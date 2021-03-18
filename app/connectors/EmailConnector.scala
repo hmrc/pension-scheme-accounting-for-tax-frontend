@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{SendEmailRequest, SchemeAdministratorType, JourneyType}
+import models.{SendEmailRequest, AdministratorOrPractitioner, JourneyType}
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
@@ -43,7 +43,7 @@ class EmailConnector @Inject()(
   private val logger = Logger(classOf[EmailConnector])
 
   private def callBackUrl(
-    schemeAdministratorType: SchemeAdministratorType,
+    schemeAdministratorType: AdministratorOrPractitioner,
     requestId: String,
     journeyType: JourneyType.Value,
     psaOrPspId: String,
@@ -57,7 +57,7 @@ class EmailConnector @Inject()(
 
   //scalastyle:off parameter.number
   def sendEmail(
-                 schemeAdministratorType: SchemeAdministratorType,
+                 schemeAdministratorType: AdministratorOrPractitioner,
                  requestId: String,
                  psaOrPspId: String,
                  journeyType: JourneyType.Value,

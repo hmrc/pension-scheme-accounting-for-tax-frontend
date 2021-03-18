@@ -20,7 +20,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
-import models.{JourneyType, SchemeAdministratorType}
+import models.AdministratorOrPractitioner.Administrator
+import models.{AdministratorOrPractitioner, JourneyType}
 import models.requests.{IdentifierRequest, DataRequest}
 import play.api.Configuration
 import play.api.i18n.Lang
@@ -78,7 +79,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val aftUrl: String = servicesConfig.baseUrl("pension-scheme-accounting-for-tax")
 
   def aftEmailCallback(
-                        schemeAdministratorType: SchemeAdministratorType,
+                        schemeAdministratorType: AdministratorOrPractitioner,
                         journeyType: JourneyType.Value,
                         requestId: String,
                         encryptedEmail: String,
@@ -86,7 +87,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
                       ) = s"$aftUrl${
     configuration.get[String](path = "urls.emailCallback")
       .format(
-        schemeAdministratorType.toString,
+        if (schemeAdministratorType == Administrator) "PSA" else "PSP",
         journeyType.toString,
         requestId,
         encryptedEmail,

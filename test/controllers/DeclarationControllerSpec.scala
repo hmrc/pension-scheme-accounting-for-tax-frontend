@@ -31,7 +31,7 @@ import models.JourneyType.{AFT_SUBMIT_RETURN, AFT_SUBMIT_AMEND}
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeSame, ChangeTypeIncrease}
 import models.requests.IdentifierRequest
-import models.{SessionAccessData, SchemeAdministratorType, GenericViewModel, JourneyType, UserAnswers, Quarter, Declaration, AccessMode}
+import models.{SessionAccessData, AdministratorOrPractitioner, GenericViewModel, JourneyType, UserAnswers, Quarter, Declaration, AccessMode}
 import navigators.CompoundNavigator
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, when, verify}
@@ -166,7 +166,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         hasAgreed = true
       ))
       verify(mockEmailConnector, times(1)).sendEmail(
-        Matchers.eq(SchemeAdministratorType.SchemeAdministratorTypePSA),
+        Matchers.eq(AdministratorOrPractitioner.Administrator),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
@@ -174,7 +174,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       templateCaptor.getValue mustEqual fileAFTReturnTemplateId
       emailParamsCaptor.getValue mustEqual emailParams()
 
-      val expectedAuditEvent = AFTReturnEmailAuditEvent(psaId, AFT_SUBMIT_RETURN, SchemeAdministratorType.SchemeAdministratorTypePSA, email)
+      val expectedAuditEvent = AFTReturnEmailAuditEvent(psaId, AFT_SUBMIT_RETURN, AdministratorOrPractitioner.Administrator, email)
       val auditEventCaptor = ArgumentCaptor.forClass(classOf[AFTReturnEmailAuditEvent])
       verify(mockAuditService, times(1)).sendEvent(auditEventCaptor.capture())(any(), any())
       auditEventCaptor.getValue mustBe expectedAuditEvent
@@ -200,7 +200,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         hasAgreed = true
       ))
       verify(mockEmailConnector, times(1)).sendEmail(
-        Matchers.eq(SchemeAdministratorType.SchemeAdministratorTypePSP),
+        Matchers.eq(AdministratorOrPractitioner.Practitioner),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
@@ -208,7 +208,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       templateCaptor.getValue mustEqual fileAFTReturnTemplateId
       emailParamsCaptor.getValue mustEqual emailParams()
 
-      val expectedAuditEvent = AFTReturnEmailAuditEvent(pspId, AFT_SUBMIT_RETURN, SchemeAdministratorType.SchemeAdministratorTypePSP, email)
+      val expectedAuditEvent = AFTReturnEmailAuditEvent(pspId, AFT_SUBMIT_RETURN, AdministratorOrPractitioner.Practitioner, email)
       val auditEventCaptor = ArgumentCaptor.forClass(classOf[AFTReturnEmailAuditEvent])
       verify(mockAuditService, times(1)).sendEvent(auditEventCaptor.capture())(any(), any())
       auditEventCaptor.getValue mustBe expectedAuditEvent
@@ -231,7 +231,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       status(result) mustEqual SEE_OTHER
 
       verify(mockEmailConnector, times(1)).sendEmail(
-        Matchers.eq(SchemeAdministratorType.SchemeAdministratorTypePSA),
+        Matchers.eq(AdministratorOrPractitioner.Administrator),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
 
@@ -258,7 +258,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       status(result) mustEqual SEE_OTHER
 
       verify(mockEmailConnector, times(1)).sendEmail(
-        Matchers.eq(SchemeAdministratorType.SchemeAdministratorTypePSA),
+        Matchers.eq(AdministratorOrPractitioner.Administrator),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
@@ -284,7 +284,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       status(result) mustEqual SEE_OTHER
 
       verify(mockEmailConnector, times(1)).sendEmail(
-        Matchers.eq(SchemeAdministratorType.SchemeAdministratorTypePSA),
+        Matchers.eq(AdministratorOrPractitioner.Administrator),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
@@ -292,7 +292,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       templateCaptor.getValue mustEqual amendAftReturnIncreaseTemplateIdId
       emailParamsCaptor.getValue mustEqual emailParams(isAmendment = true)
 
-      val expectedAuditEvent = AFTReturnEmailAuditEvent(psaId, AFT_SUBMIT_AMEND, SchemeAdministratorType.SchemeAdministratorTypePSA, email)
+      val expectedAuditEvent = AFTReturnEmailAuditEvent(psaId, AFT_SUBMIT_AMEND, AdministratorOrPractitioner.Administrator, email)
       val auditEventCaptor = ArgumentCaptor.forClass(classOf[AFTReturnEmailAuditEvent])
       verify(mockAuditService, times(1)).sendEvent(auditEventCaptor.capture())(any(), any())
       auditEventCaptor.getValue mustBe expectedAuditEvent

@@ -22,10 +22,10 @@ import config.FrontendAppConfig
 import connectors.{SchemeDetailsConnector, MinimalConnector, AFTConnector}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
-import models.SchemeAdministratorType.SchemeAdministratorTypePSA
+import models.AdministratorOrPractitioner.Administrator
 import models.SchemeStatus.{WoundUp, Deregistered, Open}
 import models.requests.{IdentifierRequest, DataRequest}
-import models.{SchemeAdministratorType, MinimalFlags, AccessType}
+import models.{AdministratorOrPractitioner, MinimalFlags, AccessType}
 import pages.{MinimalFlagsQuery, _}
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
@@ -39,12 +39,12 @@ import scala.concurrent.{ExecutionContext, Future}
 trait AllowAccessCommon {
   protected def minimalFlagsRedirect(minimalFlags: MinimalFlags,
     frontendAppConfig: FrontendAppConfig,
-    schemeAdministratorType: SchemeAdministratorType):Option[Result] = {
+    schemeAdministratorType: AdministratorOrPractitioner):Option[Result] = {
     minimalFlags match {
       case MinimalFlags(true, _) => Some(Redirect(frontendAppConfig.youMustContactHMRCUrl))
       case MinimalFlags(_, true) =>
         Some(Redirect(
-          if (schemeAdministratorType == SchemeAdministratorTypePSA) {
+          if (schemeAdministratorType == Administrator) {
             frontendAppConfig.psaUpdateContactDetailsUrl
           } else {
             frontendAppConfig.pspUpdateContactDetailsUrl
