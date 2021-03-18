@@ -30,6 +30,7 @@ import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
@@ -42,17 +43,16 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                                     val controllerComponents: MessagesControllerComponents,
                                     penaltiesService: PenaltiesService,
                                     schemeService: SchemeService,
-                                    renderer: Renderer,
-                                    messages: Messages
+                                    renderer: Renderer
                                    )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoadAft(startDate: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoadAft(startDate: LocalDate, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
 
-      val title: String = messages("penalties.aft.title",
+      val title: Message = Message("penalties.aft.title").withArgs(
         LocalDate.parse(startDate).format(dateFormatterStartDate),
           Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY))
 
@@ -66,7 +66,10 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
               .filter(_.pstr == schemeDetails.pstr)
               .filter(_.periodStartDate == startDate)
               .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
-
+            println(s"\n\n >>>>>>>>>>>>>>>>>>>>>>>>>penalties $penalties")
+            println(s"\n\n >>>>>>>>>>>>>>>>>>>>>>>>>schemeDetails.pstr ${schemeDetails.pstr}")
+            println(s"\n\n >>>>>>>>>>>>>>>>>>>>>>>>>startDate $startDate")
+            println(s"\n\n >>>>>>>>>>>>>>>>>>>>>>>>>filteredPsaFS $filteredPsaFS")
             val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex)
 
             viewModel(title, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
@@ -115,7 +118,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
   private def onPageLoad(year: Int, identifier: String, penalties: Seq[PsaFS], typeParam: String, penaltyType: PenaltyType)
                         (implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
 
-    val title: String = messages("penalties.nonAft.title", typeParam, year)
+    val title: Message = Message("penalties.nonAft.title", typeParam, year)
     val chargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
     val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
       schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
@@ -148,9 +151,10 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
 
   }
 
-  private def viewModel(title: String, pstr: String, schemeAssociated: Boolean, table: JsObject, args: String*): JsObject =
+  private def viewModel(title: Message, pstr: String, schemeAssociated: Boolean, table: JsObject, args: String*)
+                       (implicit messages: Messages): JsObject =
     Json.obj(
-      "title" -> title,
+      "titleMessage" -> title.resolve,
       "pstr" -> pstr,
       "schemeAssociated" -> schemeAssociated,
       "table" -> table,

@@ -60,7 +60,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
     val navMethod: (Seq[PsaFS], Int) => Future[Result] =
       (penalties, year) => {
         val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == penaltyType)
-        service.skipYearsPage(filteredPenalties, year, request.psaIdOrException.id)
+        service.navFromAftYearsPage(filteredPenalties, year, request.psaIdOrException.id)
       }
 
     onSubmit(penaltyType, "penaltyType.accountingForTax", navMethod)
@@ -126,17 +126,19 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       )
     }
 
-  private def getYears(penaltyType: PenaltyType, penalties: Seq[PsaFS]): Seq[DisplayYear] =
-    penalties
-      .filter(p => getPenaltyType(p.chargeType) == penaltyType)
-      .map(_.periodStartDate.getYear).distinct.sorted.reverse
+  private def getYears(penaltyType: PenaltyType, penalties: Seq[PsaFS]): Seq[DisplayYear] = {
+    val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == penaltyType)
+
+    filteredPenalties
+      .map(_.periodEndDate.getYear).distinct.sorted.reverse
       .map { year =>
-        val hint = if (penalties.filter(_.periodStartDate.getYear == year).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
+        val hint = if (filteredPenalties.filter(_.periodEndDate.getYear == year).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
         DisplayYear(year, hint)
       }
+  }
 
   private def nonAftNavMethod(penaltyType: PenaltyType)
                              (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFS], Int) => Future[Result] =
-  (penalties, year) => service.skipYearsAndQuartersPage(penalties, year.toString, request.psaIdOrException.id, penaltyType)
+  (penalties, year) => service.navFromNonAftYearsPage(penalties, year.toString, request.psaIdOrException.id, penaltyType)
 
 }

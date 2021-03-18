@@ -11,7 +11,7 @@
 
 
 {% block pageTitle %}
-  {{ title(messages("penalties.title", startDate, endDate), form.errors) }}
+  {{ title(titleMessage, form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -22,11 +22,11 @@
 
         {% if schemeAssociated %}
             {{ hmrcPageHeading({
-                  text: messages("penalties.title", startDate, endDate),
+                  text: titleMessage,
                   section: schemeName
                 }) }}
         {% else %}
-        <h1 class="govuk-heading-xl">{{ messages("penalties.title", startDate, endDate) }}</h1>
+        <h1 class="govuk-heading-xl">{{ titleMessage }}</h1>
         {% endif %}
 
       <p class="govuk-body">{{ messages("penalties.pstr", pstr) }}</p>

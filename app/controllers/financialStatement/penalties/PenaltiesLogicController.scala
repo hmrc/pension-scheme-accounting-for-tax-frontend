@@ -41,11 +41,12 @@ class PenaltiesLogicController @Inject()(override val messagesApi: MessagesApi,
 
     service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penalties =>
       val penaltyTypes: Seq[PenaltyType] = penalties.map(p => getPenaltyType(p.chargeType)).distinct
-
+      println(s"\n\n 1 >>>>>>>>>>>>>>> $penalties")
+      println(s"\n\n 2 >>>>>>>>>>>>>>> $penaltyTypes")
       if (penaltyTypes.nonEmpty && penaltyTypes.size > 1) {
         Future.successful(Redirect(routes.PenaltyTypeController.onPageLoad()))
       } else if (penaltyTypes.size == 1) {
-          service.skipPenaltiesTypePage(penalties, penaltyTypes.head, request.psaIdOrException.id)
+          service.navFromPenaltiesTypePage(penalties, penaltyTypes.head, request.psaIdOrException.id)
       } else {
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }

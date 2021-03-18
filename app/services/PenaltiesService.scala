@@ -165,7 +165,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       val filteredPenalties = penalties
         .filter(p => getPenaltyType(p.chargeType) == penaltyType)
         .filter(_.periodStartDate.getYear == year)
-
+println("\n\n\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+filteredPenalties)
       penaltySchemes(filteredPenalties, psaId)
     }
 
@@ -237,8 +237,8 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
 
   //Navigation helper methods
-  def skipPenaltiesTypePage(penalties: Seq[PsaFS], penaltyType: PenaltyType, psaId: String)
-                   (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
+  def navFromPenaltiesTypePage(penalties: Seq[PsaFS], penaltyType: PenaltyType, psaId: String)
+                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
     val yearsSeq = penalties
       .filter(p => getPenaltyType(p.chargeType) == penaltyType)
@@ -254,14 +254,14 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     if (yearsSeq.size > 1) {
       Future.successful(Redirect(selectYearUrl))
     } else if (yearsSeq.size == 1) {
-      skipYearsPage(penalties, yearsSeq.head, psaId)
+      navFromAftYearsPage(penalties, yearsSeq.head, psaId)
     } else {
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def skipYearsAndQuartersPage(penalties: Seq[PsaFS], year: String, psaId: String, penaltyType: PenaltyType)
-                   (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
+  def navFromNonAftYearsPage(penalties: Seq[PsaFS], year: String, psaId: String, penaltyType: PenaltyType)
+                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
     val (selectSchemeUrl, penaltiesUrl) = penaltyType match {
       case ContractSettlementCharges =>
@@ -289,23 +289,24 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
   }
 
-  def skipYearsPage(penalties: Seq[PsaFS], year: Int, psaId: String)
-                           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
+  def navFromAftYearsPage(penalties: Seq[PsaFS], year: Int, psaId: String)
+                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     val quartersSeq = penalties
+      .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
       .filter(_.periodStartDate.getYear == year)
-      .map { penalty => penalty.periodStartDate }.distinct
+      .map(_.periodStartDate).distinct
 
     if (quartersSeq.size > 1) {
       Future.successful(Redirect(SelectPenaltiesQuarterController.onPageLoad(year.toString)))
     } else if (quartersSeq.size == 1) {
-      skipQuartersPage(penalties, quartersSeq.head, psaId)
+      navFromAftQuartersPage(penalties, quartersSeq.head, psaId)
     } else {
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def skipQuartersPage(penalties: Seq[PsaFS], startDate: LocalDate, psaId: String)
-                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] =
+  def navFromAftQuartersPage(penalties: Seq[PsaFS], startDate: LocalDate, psaId: String)
+                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] =
     penaltySchemes(startDate, psaId, penalties).map { schemes =>
       if(schemes.size > 1) {
         Redirect(SelectSchemeController.onPageLoadAft(startDate))

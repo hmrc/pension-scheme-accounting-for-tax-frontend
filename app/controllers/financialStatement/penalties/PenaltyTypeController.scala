@@ -72,7 +72,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
           )
           renderer.render(template = "financialStatement/penalties/penaltyType.njk", json).map(BadRequest(_))
         },
-        value => service.skipPenaltiesTypePage(penalties, value, request.psaIdOrException.id)
+        value => service.navFromPenaltiesTypePage(penalties, value, request.psaIdOrException.id)
       )
     }
   }

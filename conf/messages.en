@@ -1154,6 +1154,7 @@ pspDeclaration.title = Declaration
 pspDeclaration.heading = Declaration
 pspDeclaration.p1 = By submitting this Accounting for Tax (AFT) return, you declare that the pension scheme administrator approves the content and authorises you to submit this return.
 
+penaltyType.title = What type of administrator penalties or charges do you want to view?
 penaltyType.accountingForTax = Accounting for Tax penalties
 penaltyType.contractSettlement = Contract settlement charges
 penaltyType.informationNotice = Information notice penalties
