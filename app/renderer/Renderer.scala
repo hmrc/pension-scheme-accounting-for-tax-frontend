@@ -49,6 +49,6 @@ class Renderer @Inject()(appConfig: FrontendAppConfig, renderer: NunjucksRendere
       "managePensionsSchemeOverviewUrl" -> appConfig.managePensionsSchemeOverviewUrl,
       "gtmContainerId"                  -> appConfig.gtmContainerId,
       "trackingSnippetUrl"              -> appConfig.trackingSnippetUrl,
-      "contactHost"                     -> appConfig.contactHost,
+      "contactHost"                     -> appConfig.contactHost
   )
 }
