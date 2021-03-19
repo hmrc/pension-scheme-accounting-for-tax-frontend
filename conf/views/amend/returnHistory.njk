@@ -18,8 +18,10 @@
                       section: schemeName
             }) }}
 
+     <div role="region" aria-labelledby="aftreturn_history" class="govuk-!-margin-bottom-7" tabindex="0">
+        <span id="aftreturn_history" class="govuk-visually-hidden" aria-hidden="true">{{ messages("returnHistory.title", quarterStart, quarterEnd) }}</span>
         {{ govukTable(versions) }}
-
+    </div>
       </div>
     </div>
 
