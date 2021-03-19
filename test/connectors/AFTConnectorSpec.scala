@@ -264,9 +264,9 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       val submitter1 = SubmitterDetails(PSA, "abc", "A1234567", None, LocalDate.of(2020, 4, 17))
       val submitter2 = SubmitterDetails(PSP, "def", "12345678", Some("A1234567"), LocalDate.of(2020, 5, 17))
       val submitter3 = SubmitterDetails(PSA, "ghi", "A2345678", None, LocalDate.of(2020, 6, 17))
-      val versions = Seq(VersionsWithSubmitter(version1, submitter1),
-                          VersionsWithSubmitter(version2, submitter2),
-                          VersionsWithSubmitter(version3, submitter3))
+      val versions = Seq(VersionsWithSubmitter(version1, Some(submitter1)),
+                          VersionsWithSubmitter(version2, Some(submitter2)),
+                          VersionsWithSubmitter(version3, Some(submitter3)))
 
       server.stubFor(
         get(urlEqualTo(aftListOfVersionsUrl))

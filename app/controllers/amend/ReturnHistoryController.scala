@@ -191,26 +191,27 @@ class ReturnHistoryController @Inject()(
   private val psaIdRegex: Regex = "^A[0-9]{7}$".r
   private val pspIdRegex: Regex = "^[0-9]{8}$".r
 
-  private def submittedBy(index: Int, aftVersion: AFTVersion, submitterDetails: SubmitterDetails, srn: String)
+  private def submittedBy(index: Int, aftVersion: AFTVersion, submitterDetails: Option[SubmitterDetails], srn: String)
                          (implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier): Future[Content] =
-  if(index == 0 && aftVersion.reportStatus.equalsIgnoreCase("Compiled")){
+  if((index == 0 && aftVersion.reportStatus.equalsIgnoreCase("Compiled")) || submitterDetails.isEmpty){
     Future(visuallyHidden("draft"))
   } else {
+    val submitter = submitterDetails.head
     request.idOrException match {
-      case psaIdRegex(_*) => Future(Literal(submitterDetails.submitterName))
+      case psaIdRegex(_*) => Future(Literal(submitter.submitterName))
 
-      case pspIdRegex(_*) if submitterDetails.submitterType == PSA =>
+      case pspIdRegex(_*) if submitter.submitterType == PSA =>
 
         schemeDetailsConnector.getPspSchemeDetails(request.idOrException, srn).map { schemeDetails =>
-          if (schemeDetails.authorisingPSAID.contains(submitterDetails.submitterID)) {
-            Literal(submitterDetails.submitterName)
+          if (schemeDetails.authorisingPSAID.contains(submitter.submitterID)) {
+            Literal(submitter.submitterName)
           } else {
             visuallyHidden("notAuthorised")
           }
         }
 
-      case pspIdRegex(_*) if submitterDetails.submitterID == request.idOrException =>
-        Future(Literal(submitterDetails.submitterName))
+      case pspIdRegex(_*) if submitter.submitterID == request.idOrException =>
+        Future(Literal(submitter.submitterName))
 
       case _ => Future(visuallyHidden("notAuthorised"))
 

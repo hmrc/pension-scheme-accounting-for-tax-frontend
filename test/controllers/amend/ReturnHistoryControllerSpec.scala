@@ -58,9 +58,9 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val submitter3 = SubmitterDetails(PSA, "Submitter 3", "A2100007", None, LocalDate.of(2020, 6, 17))
 
   private val versions: Seq[VersionsWithSubmitter] = Seq(
-    VersionsWithSubmitter(version1, submitter1),
-    VersionsWithSubmitter(version2, submitter2),
-    VersionsWithSubmitter(version3, submitter3))
+    VersionsWithSubmitter(version1, Some(submitter1)),
+    VersionsWithSubmitter(version2, Some(submitter2)),
+    VersionsWithSubmitter(version3, None))
 
   private val multipleVersions = Seq[AFTOverview](
     AFTOverview(
