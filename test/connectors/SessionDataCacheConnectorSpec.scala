@@ -47,7 +47,7 @@ class SessionDataCacheConnectorSpec
       )
     )
 
-  "getAdministratorOrPractitioner" must {
+  "fetch" must {
     "return successfully when the backend has returned OK and a correct response for administrator" in {
       server.stubFor(
         get(urlEqualTo(sessionDataCacheUrl))
