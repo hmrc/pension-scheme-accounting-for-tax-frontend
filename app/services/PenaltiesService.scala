@@ -32,7 +32,7 @@ import play.api.mvc.Result
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
-import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.dateFormatterDMY
 
@@ -149,12 +149,12 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
   }
 
   //SELECT SCHEME
-  def penaltySchemes(startDate: String, psaId: String, penalties: Seq[PsaFS])
+  def penaltySchemes(startDate: LocalDate, psaId: String, penalties: Seq[PsaFS])
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] = {
 
       val filteredPenalties = penalties
         .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
-        .filter(_.periodStartDate == LocalDate.parse(startDate))
+        .filter(_.periodStartDate == startDate)
 
       penaltySchemes(filteredPenalties, psaId)
     }
@@ -165,7 +165,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       val filteredPenalties = penalties
         .filter(p => getPenaltyType(p.chargeType) == penaltyType)
         .filter(_.periodStartDate.getYear == year)
-println("\n\n\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+filteredPenalties)
+
       penaltySchemes(filteredPenalties, psaId)
     }
 
@@ -189,14 +189,14 @@ println("\n\n\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+filteredPenalties)
       associatedSchemes ++ unassociatedSchemes
     }
 
-  def unassociatedSchemes(seqPsaFS: Seq[PsaFS], startDate: String, psaId: String)
+  def unassociatedSchemes(seqPsaFS: Seq[PsaFS], startDate: LocalDate, psaId: String)
                          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] = {
     for {
       listOfSchemes <- getListOfSchemes(psaId)
       schemesWithPstr = listOfSchemes.filter(_.pstr.isDefined)
     } yield
       seqPsaFS
-        .filter(_.periodStartDate == LocalDate.parse(startDate))
+        .filter(_.periodStartDate == startDate)
         .filter(psaFS => !schemesWithPstr.map(_.pstr.get).contains(psaFS.pstr))
   }
 
@@ -237,6 +237,20 @@ println("\n\n\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+filteredPenalties)
     }
 
   //Navigation helper methods
+
+  def navFromOverviewPage(penalties: Seq[PsaFS], psaId: String)
+  (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
+    val penaltyTypes: Seq[PenaltyType] = penalties.map(p => getPenaltyType(p.chargeType)).distinct
+
+    if (penaltyTypes.nonEmpty && penaltyTypes.size > 1) {
+      Future.successful(Redirect(PenaltyTypeController.onPageLoad()))
+    } else if (penaltyTypes.size == 1) {
+      navFromPenaltiesTypePage(penalties, penaltyTypes.head, psaId)
+    } else {
+      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
   def navFromPenaltiesTypePage(penalties: Seq[PsaFS], penaltyType: PenaltyType, psaId: String)
                               (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
@@ -244,37 +258,27 @@ println("\n\n\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+filteredPenalties)
       .filter(p => getPenaltyType(p.chargeType) == penaltyType)
       .map { penalty => penalty.periodStartDate.getYear }.distinct
 
-    val selectYearUrl = penaltyType match {
-      case AccountingForTaxPenalties => SelectPenaltiesYearController.onPageLoadAft()
-      case ContractSettlementCharges => SelectPenaltiesYearController.onPageLoadContract()
-      case InformationNoticePenalties => SelectPenaltiesYearController.onPageLoadInfoNotice()
-      case PensionsPenalties => SelectPenaltiesYearController.onPageLoadPension()
+    (penaltyType, yearsSeq.size) match {
+      case (AccountingForTaxPenalties, 1) => navFromAftYearsPage(penalties, yearsSeq.head, psaId)
+      case (_, 1) => navFromNonAftYearsPage(penalties, yearsSeq.head.toString, psaId, penaltyType)
+      case (_, size) if size > 1 =>Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType)))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
 
-    if (yearsSeq.size > 1) {
-      Future.successful(Redirect(selectYearUrl))
-    } else if (yearsSeq.size == 1) {
-      navFromAftYearsPage(penalties, yearsSeq.head, psaId)
-    } else {
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    }
   }
 
   def navFromNonAftYearsPage(penalties: Seq[PsaFS], year: String, psaId: String, penaltyType: PenaltyType)
                             (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
-    val (selectSchemeUrl, penaltiesUrl) = penaltyType match {
-      case ContractSettlementCharges =>
-        (SelectSchemeController.onPageLoadContract(year), identifier => PenaltiesController.onPageLoadContract(year, identifier))
-      case InformationNoticePenalties =>
-        (SelectSchemeController.onPageLoadInfoNotice(year), identifier => PenaltiesController.onPageLoadInfoNotice(year, identifier))
-      case _ =>
-        (SelectSchemeController.onPageLoadPension(year), identifier => PenaltiesController.onPageLoadPension(year, identifier))
+    val penaltiesUrl = penaltyType match {
+      case ContractSettlementCharges => identifier => PenaltiesController.onPageLoadContract(year, identifier)
+      case InformationNoticePenalties => identifier => PenaltiesController.onPageLoadInfoNotice(year, identifier)
+      case _ => identifier => PenaltiesController.onPageLoadPension(year, identifier)
     }
 
     penaltySchemes(year.toInt, psaId, penaltyType, penalties).map { schemes =>
       if (schemes.size > 1) {
-        Redirect(selectSchemeUrl)
+        Redirect(SelectSchemeController.onPageLoad(penaltyType, year))
       } else if (schemes.size == 1) {
         schemes.head.srn match {
           case Some(srn) =>
@@ -309,7 +313,7 @@ println("\n\n\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+filteredPenalties)
                             (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] =
     penaltySchemes(startDate, psaId, penalties).map { schemes =>
       if(schemes.size > 1) {
-        Redirect(SelectSchemeController.onPageLoadAft(startDate))
+        Redirect(SelectSchemeController.onPageLoad(AccountingForTaxPenalties, startDate))
       } else if (schemes.size == 1) {
         schemes.head.srn match {
           case Some(srn) =>
@@ -321,6 +325,13 @@ println("\n\n\n >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+filteredPenalties)
       } else {
         Redirect(controllers.routes.SessionExpiredController.onPageLoad())
       }
+    }
+
+  def getTypeParam(penaltyType: PenaltyType)(implicit messages: Messages): String =
+    if(penaltyType == AccountingForTaxPenalties) {
+      messages(s"penaltyType.${penaltyType.toString}")
+    } else {
+      messages(s"penaltyType.${penaltyType.toString}").toLowerCase()
     }
 
 }

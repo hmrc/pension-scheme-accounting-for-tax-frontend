@@ -51,6 +51,8 @@ class SelectPenaltiesQuarterController @Inject()(
     formProvider(messages("selectPenaltiesQuarter.error"), quarters)
 
   def onPageLoad(year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+
+
     penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
 
       val quarters: Seq[Quarter] = getQuarters(year, filteredPenalties(penalties, year.toInt))

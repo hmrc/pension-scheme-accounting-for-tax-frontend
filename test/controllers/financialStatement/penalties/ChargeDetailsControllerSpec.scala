@@ -55,12 +55,12 @@ class ChargeDetailsControllerSpec
 
   private def httpPathGETAssociated(chargeReferenceIndex: String): String =
     controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(
-      identifier = srn, startDate = "2020-04-01", chargeReferenceIndex = chargeReferenceIndex
+      identifier = srn, chargeReferenceIndex = chargeReferenceIndex
     ).url
 
   private def httpPathGETUnassociated: String =
     controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(
-      identifier = "0", startDate = "2020-04-01", chargeReferenceIndex = "0"
+      identifier = "0", chargeReferenceIndex = "0"
     ).url
 
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]

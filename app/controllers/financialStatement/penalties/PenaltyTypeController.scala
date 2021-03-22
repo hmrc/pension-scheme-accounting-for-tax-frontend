@@ -78,7 +78,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
   }
 
   private def getPenaltyTypes(penalties: Seq[PsaFS]): Seq[DisplayPenaltyType] =
-    penalties.map(p => getPenaltyType(p.chargeType)).distinct.map { category =>
+    penalties.map(p => getPenaltyType(p.chargeType)).distinct.sortBy(_.toString).map { category =>
 
       val isOverdue: Boolean = penalties.filter(p => getPenaltyType(p.chargeType) == category).exists(service.isPaymentOverdue)
       val hint: Option[DisplayHint] = if (isOverdue) Some(PaymentOverdue) else None

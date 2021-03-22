@@ -22,6 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
+import models.financialStatement.PenaltyType.AccountingForTaxPenalties
 import models.requests.IdentifierRequest
 import models.{DisplayQuarter, Enumerable, PaymentOverdue, Quarter, Quarters}
 import org.mockito.ArgumentCaptor
@@ -104,12 +105,14 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     }
 
     "redirect to next page when valid data is submitted" in {
+      when(mockPenaltiesService.navFromAftQuartersPage(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(Redirect(routes.PenaltiesController.onPageLoadAft(q32020.startDate.toString, srn))))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.SelectSchemeController.onPageLoad(q32020.startDate.toString).url)
+      redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadAft(q32020.startDate.toString, srn).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

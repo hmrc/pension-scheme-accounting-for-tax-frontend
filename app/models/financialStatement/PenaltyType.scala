@@ -16,19 +16,20 @@
 
 package models.financialStatement
 
+import models.Enumerable
 import models.financialStatement.PsaFSChargeType._
-import models.{Enumerable, WithName}
 import play.api.data.Form
+import play.api.mvc.PathBindable
 import uk.gov.hmrc.viewmodels._
 
 sealed trait PenaltyType
 
 object PenaltyType extends Enumerable.Implicits {
 
-  case object AccountingForTaxPenalties extends WithName("accountingForTax") with PenaltyType
-  case object ContractSettlementCharges extends WithName("contractSettlement") with PenaltyType
-  case object InformationNoticePenalties extends WithName("informationNotice") with PenaltyType
-  case object PensionsPenalties extends WithName("pensionsPenalties") with PenaltyType
+  case object AccountingForTaxPenalties extends PenaltyType
+  case object ContractSettlementCharges extends PenaltyType
+  case object InformationNoticePenalties extends PenaltyType
+  case object PensionsPenalties extends PenaltyType
 
   def getPenaltyType(chargeType: PsaFSChargeType): PenaltyType =
     chargeType match {
@@ -44,4 +45,42 @@ object PenaltyType extends Enumerable.Implicits {
     Radios(form("value"), penaltyTypes.map(value => Radios.Radio(msg"penaltyType.${value.penaltyType.toString}", value.penaltyType.toString)))
 
   implicit val enumerable: Enumerable[PenaltyType] = Enumerable(values.map(v => v.toString -> v): _*)
+
+  implicit def modePathBindable(implicit stringBinder: PathBindable[String]): PathBindable[PenaltyType] = new
+      PathBindable[PenaltyType] {
+
+    override def bind(key: String, value: String): Either[String, PenaltyType] = {
+      stringBinder.bind(key, value) match {
+        case Right("accounting-for-tax") => Right(AccountingForTaxPenalties)
+        case Right("contract-settlement") => Right(ContractSettlementCharges)
+        case Right("information-notice") => Right(InformationNoticePenalties)
+        case Right("pensions-penalty") => Right(PensionsPenalties)
+        case _ => Left("PenaltyType binding failed")
+      }
+    }
+
+    override def unbind(key: String, value: PenaltyType): String = {
+      val modeValue = values.find(_ == value).map(_.toString).getOrElse(throw UnknownPenaltyTypeException())
+      stringBinder.unbind(key, modeValue)
+    }
+
+  }
+
+  implicit def penaltyTypeToString(value: PenaltyType): String = value match {
+    case AccountingForTaxPenalties => "accounting-for-tax"
+    case ContractSettlementCharges => "contract-settlement"
+    case InformationNoticePenalties => "information-notice"
+    case PensionsPenalties => "pensions-penalty"
+  }
+
+  implicit def stringToPenaltyType(value: String): PenaltyType =
+    value match {
+      case "accounting-for-tax" => AccountingForTaxPenalties
+      case "contract-settlement" => ContractSettlementCharges
+      case "information-notice" => InformationNoticePenalties
+      case "pensions-penalty" => PensionsPenalties
+    }
+
+  case class UnknownPenaltyTypeException() extends Exception
+
 }

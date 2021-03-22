@@ -1063,6 +1063,7 @@ pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod = View o
 pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods = View overdue payments and interest charges
 
 psaPenaltiesCard.h2 = Penalties
+psaPenaltiesCard.paymentsDue.linkText = View payments due for penalties and charges
 psaPenaltiesCard.viewPastPenalties = View past penalties
 
 paymentsAndChargesUpcoming.h1.singlePeriod = Payments and charges for {0} to {1}
@@ -1140,9 +1141,9 @@ paymentsAndCharges.interest.hint = This interest charge was the result of late p
 paymentsAndCharges.interest.chargeReference.text2 = in full. You can only pay the interest once a charge reference has been generated.
 paymentsAndCharges.viewReturnHistory = View the AFT return for this quarter
 
-selectScheme.title = Which scheme do you want to view penalties for?
+selectScheme.title = Which scheme do you want to view {0} for?
 selectScheme.text = Any schemes with which you are no longer associated will only show as PSTR numbers
-selectScheme.error = Select which scheme you want to view penalties for
+selectScheme.error = Select which scheme you want to view {0} for
 
 enterPsaId.title = What is the pension scheme administrator’s ID?
 enterPsaId.p1 = Enter the ID of the pension scheme administrator who authorised you to this scheme
@@ -1155,17 +1156,17 @@ pspDeclaration.heading = Declaration
 pspDeclaration.p1 = By submitting this Accounting for Tax (AFT) return, you declare that the pension scheme administrator approves the content and authorises you to submit this return.
 
 penaltyType.title = What type of administrator penalties or charges do you want to view?
-penaltyType.accountingForTax = Accounting for Tax penalties
-penaltyType.contractSettlement = Contract settlement charges
-penaltyType.informationNotice = Information notice penalties
-penaltyType.pensionsPenalties = Pensions penalties
+penaltyType.AccountingForTaxPenalties = Accounting for Tax penalties
+penaltyType.ContractSettlementCharges = Contract settlement charges
+penaltyType.InformationNoticePenalties = Information notice penalties
+penaltyType.PensionsPenalties = Pensions penalties
 penaltyType.error.required = Select what type of penalty or charge you want to view
 
 selectPenaltiesYear.title = Which year do you want to view {0} for?
 selectPenaltiesYear.error = Select which year you want to view {0} for
 
-selectPenaltiesQuarter.title = Which quarter of {0} do you want to view scheme penalties for?
-selectPenaltiesQuarter.error = Select which quarter you want to view scheme penalties for
+selectPenaltiesQuarter.title = Which quarter of {0} do you want to view Accounting for Tax penalties for?
+selectPenaltiesQuarter.error = Select which quarter you want to view Accounting for Tax penalties for
 
 selectChargesYear.title = Which year do you want to view charges for?
 selectChargesYear.error = Select which year you want to view charges for

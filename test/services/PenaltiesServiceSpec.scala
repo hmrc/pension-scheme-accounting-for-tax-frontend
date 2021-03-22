@@ -56,7 +56,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   private val penaltiesService = new PenaltiesService(mockFSConnector, mockFIConnector, mockListOfSchemesConn)
 
   def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String): JsObject = Json.obj(
-      "penaltyTable" -> Table(head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue),
+      "penaltyTable" -> Table(head = head, rows = rows(aftLink(), statusClass, statusMessageKey, amountDue),
         attributes = Map("role" -> "table"))
     )
 
@@ -69,7 +69,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
   "getPsaFsJson" must {
     "return the penalty tables based on API response for paymentOverdue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")), srn, startDate, chargeRefIndex) mustBe
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")), srn, chargeRefIndex) mustBe
           penaltyTables(
             statusClass = "govuk-tag govuk-tag--red",
             statusMessageKey = "penalties.status.paymentOverdue",
@@ -78,7 +78,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for noPaymentDue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, startDate, chargeRefIndex) mustBe
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, chargeRefIndex) mustBe
           penaltyTables(
             statusClass = "govuk-visually-hidden",
             statusMessageKey = "penalties.status.visuallyHiddenText.noPaymentDue",
@@ -87,7 +87,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for paymentIsDue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, startDate, chargeRefIndex) mustBe
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, chargeRefIndex) mustBe
           penaltyTables(
             statusClass = "govuk-visually-hidden",
             statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
@@ -143,7 +143,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
       when(mockFIConnector.fetch(any(), any())) thenReturn Future.successful(Some(Json.toJson(PenaltiesCache("PsaID", psaFSResponse()))))
       when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future.successful(Right(listOfSchemes)))
 
-      whenReady(penaltiesService.penaltySchemes("2020-04-01", "PsaID")(implicitly, implicitly)) {
+      whenReady(penaltiesService.penaltySchemes("2020-04-01", "PsaID", psaFSResponse())(implicitly, implicitly)) {
         _ mustBe penaltySchemes
       }
     }
@@ -226,7 +226,7 @@ object PenaltiesServiceSpec {
       pstr = "24000040IN"
     ),
     PsaFS(
-      chargeReference = "XY002610150184",
+      chargeReference = "XY002610150185",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(dueDate),
       totalAmount = 80000.00,
@@ -238,7 +238,7 @@ object PenaltiesServiceSpec {
       pstr = "24000041IN"
     ),
     PsaFS(
-      chargeReference = "XY002610150184",
+      chargeReference = "XY002610150186",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(dueDate),
       totalAmount = 80000.00,
@@ -275,7 +275,7 @@ object PenaltiesServiceSpec {
                    statusClass: String,
                    statusMessageKey: String,
                    amountDue: String,
-                   link2: Html = otcLink("2020-04-01")
+                   link2: Html = otcLink()
                   )(implicit messages: Messages) = Seq(Seq(
     Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
@@ -285,19 +285,25 @@ object PenaltiesServiceSpec {
     Seq(
       Cell(link2, classes = Seq("govuk-!-width-two-thirds-quarter")),
       Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal("XY002610150185"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
+    ),
+    Seq(
+      Cell(otcLink("XY002610150186"), classes = Seq("govuk-!-width-two-thirds-quarter")),
+      Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal("XY002610150186"), classes = Seq("govuk-!-width-one-quarter")),
       Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
     ))
 
-  def aftLink(startDate: String): Html = Html(
-    s"<a id=XY002610150184 class=govuk-link " +
-      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
-      s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
+  def aftLink(chargeReference: String = "XY002610150184"): Html = Html(
+    s"<a id=$chargeReference class=govuk-link " +
+      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
+      s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
-  def otcLink(startDate: String): Html = Html(
-    s"<a id=XY002610150184 class=govuk-link " +
-      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
-      s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
+  def otcLink(chargeReference: String = "XY002610150185"): Html = Html(
+    s"<a id=$chargeReference class=govuk-link " +
+      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
+      s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
 
   def totalAmount(amount: BigDecimal = BigDecimal(80000.00)): Row = Row(

@@ -17,13 +17,14 @@
 package controllers.financialStatement.penalties
 
 import controllers.actions._
-import models.financialStatement.PenaltyType
+import models.financialStatement.{PenaltyType, PsaFS}
 import models.financialStatement.PenaltyType.getPenaltyType
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,16 +41,17 @@ class PenaltiesLogicController @Inject()(override val messagesApi: MessagesApi,
   def onPageLoad(): Action[AnyContent] = identify.async { implicit request =>
 
     service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penalties =>
-      val penaltyTypes: Seq[PenaltyType] = penalties.map(p => getPenaltyType(p.chargeType)).distinct
-      println(s"\n\n 1 >>>>>>>>>>>>>>> $penalties")
-      println(s"\n\n 2 >>>>>>>>>>>>>>> $penaltyTypes")
-      if (penaltyTypes.nonEmpty && penaltyTypes.size > 1) {
-        Future.successful(Redirect(routes.PenaltyTypeController.onPageLoad()))
-      } else if (penaltyTypes.size == 1) {
-          service.navFromPenaltiesTypePage(penalties, penaltyTypes.head, request.psaIdOrException.id)
-      } else {
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-      }
+      service.navFromOverviewPage(penalties, request.psaIdOrException.id)
+    }
+  }
+
+  def onPageLoadUpcoming(): Action[AnyContent] = identify.async { implicit request =>
+
+    service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penalties =>
+
+      val upcomingCharges: Seq[PsaFS] = penalties.filter(_.dueDate.exists(_.isBefore(DateHelper.today)))
+
+      service.navFromOverviewPage(upcomingCharges, request.psaIdOrException.id)
     }
   }
 

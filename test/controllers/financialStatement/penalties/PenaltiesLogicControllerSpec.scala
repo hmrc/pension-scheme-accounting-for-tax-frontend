@@ -21,9 +21,10 @@ import controllers.base.ControllerSpecBase
 import controllers.financialStatement.penalties.PenaltiesLogicControllerSpec._
 import data.SampleData._
 import matchers.JsonMatchers
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
 import models.{Enumerable, PenaltySchemes}
-import models.financialStatement.PsaFS
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
+import models.financialStatement.{PenaltyType, PsaFS}
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.requests.IdentifierRequest
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
@@ -32,7 +33,7 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.mvc.Results
+import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
 import services.PenaltiesService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -47,6 +48,8 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
   private val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
+  private val penaltyType: PenaltyType = ContractSettlementCharges
+  private val contractSelectYearPage: Call = routes.SelectPenaltiesYearController.onPageLoad(penaltyType)
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PenaltiesService].toInstance(mockPenaltiesService)
@@ -64,67 +67,14 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSuppo
   "Penalties Logic Controller" when {
     "on a GET" must {
 
-      "return to SelectYears page if more than 1 years are available to choose from" in {
-        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(multipleYearsMultipleQuartersPsaFS))
+      "return to page returned by nav method in penalties service if only one type is available" in {
+        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(Seq(psaFS1)))
+        when(mockPenaltiesService.navFromOverviewPage(any(), any())(any(), any()))
+          .thenReturn(Future.successful(Redirect(contractSelectYearPage)))
         val result = route(application, httpGETRequest(httpPathGET)).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(routes.SelectPenaltiesYearController.onPageLoad().url)
-
-      }
-
-      "return to Quarters page if 1 year and more than 1 quarters are available to choose from" in {
-        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(singleYearMultipleQuartersPsaFS))
-        val result = route(application, httpGETRequest(httpPathGET)).value
-
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(routes.SelectPenaltiesQuarterController.onPageLoad("2020").url)
-
-      }
-
-      "return to SelectScheme page if exactly 1 year, 1 quarter and multiple schemes are available to choose from" in {
-        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(singleYearMSingleQuarterPsaFS))
-        when(mockPenaltiesService.penaltySchemes(any(), any())(any(), any()))
-          .thenReturn(Future.successful(Seq(PenaltySchemes(Some("ABC"), pstr, Some(srn)), PenaltySchemes(Some("ABC"), pstr, None))))
-
-        val result = route(application, httpGETRequest(httpPathGET)).value
-
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(routes.SelectSchemeController.onPageLoad("2020-04-01").url)
-
-      }
-
-      "return to Penalties page if exactly 1 year, 1 quarter and 1 scheme with srn is available to choose from" in {
-        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(singleYearMSingleQuarterPsaFS))
-        when(mockPenaltiesService.penaltySchemes(any(), any())(any(), any()))
-          .thenReturn(Future.successful(Seq(PenaltySchemes(Some("ABC"), pstr, Some(srn)))))
-
-        val result = route(application, httpGETRequest(httpPathGET)).value
-
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoad("2020-04-01", srn).url)
-
-      }
-
-      "return to Penalties page if exactly 1 year, 1 quarter and 1 scheme without srn is available to choose from" in {
-        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(singleYearMSingleQuarterPsaFS))
-        when(mockPenaltiesService.penaltySchemes(any(), any())(any(), any()))
-          .thenReturn(Future.successful(Seq(PenaltySchemes(Some("ABC"), "24000040IN", None))))
-
-        val result = route(application, httpGETRequest(httpPathGET)).value
-
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoad("2020-04-01", "0").url)
-
-      }
-
-      "redirect to Session Expired page if there is no data returned from overview" in {
-        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(Nil))
-
-        val result = route(application, httpGETRequest(httpPathGET)).value
-
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(controllers.routes.SessionExpiredController.onPageLoad().url)
+        redirectLocation(result) mustBe Some(contractSelectYearPage.url)
 
       }
     }
@@ -133,12 +83,8 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSuppo
 }
 
 object PenaltiesLogicControllerSpec {
-  val singleYearMSingleQuarterPsaFS = Seq(psaFS1(), psaFS2("2020-04-01"))
-  val singleYearMultipleQuartersPsaFS = Seq(psaFS1(), psaFS1("2020-07-01"), psaFS2(), psaFS1("2020-10-01"))
-  val multipleYearsMultipleQuartersPsaFS = Seq(psaFS1(), psaFS2("2021-01-01"))
 
-
-  def psaFS1(startDate: String = "2020-04-01"): PsaFS = PsaFS(
+  val psaFS1: PsaFS = PsaFS(
     chargeReference = "XY002610150184",
     chargeType = AFT_INITIAL_LFP,
     dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -146,21 +92,8 @@ object PenaltiesLogicControllerSpec {
     outstandingAmount = 56049.08,
     stoodOverAmount = 25089.08,
     amountDue = 1029.05,
-    periodStartDate = LocalDate.parse(startDate),
+    periodStartDate = LocalDate.parse("2020-04-01"),
     periodEndDate = LocalDate.parse("2020-06-30"),
     pstr = "24000040IN"
-  )
-
-  def psaFS2(startDate: String = "2020-07-01"): PsaFS = PsaFS(
-    chargeReference = "XY002610150185",
-    chargeType = OTC_6_MONTH_LPP,
-    dueDate = Some(LocalDate.parse("2020-02-15")),
-    totalAmount = 80000.00,
-    outstandingAmount = 56049.08,
-    stoodOverAmount = 25089.08,
-    amountDue = 1029.05,
-    periodStartDate = LocalDate.parse(startDate),
-    periodEndDate = LocalDate.parse("2020-09-30"),
-    pstr = "24000041IN"
   )
 }

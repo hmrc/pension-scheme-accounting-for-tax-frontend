@@ -88,7 +88,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
     reset(mockFSConnector, mockRenderer)
     when(mockFSConnector.getPsaFS(any())(any(), any()))
       .thenReturn(Future.successful(psaFSResponse))
-    when(mockAFTPartialService.retrievePsaPenaltiesCardModel(any())(any()))
+    when(mockAFTPartialService.retrievePsaPenaltiesCardModel(any(), any())(any(), any(), any()))
       .thenReturn(dashboardViewModel)
     when(mockAppConfig.viewPenaltiesUrl).thenReturn(frontendAppConfig.viewPenaltiesUrl)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))

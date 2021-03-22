@@ -24,7 +24,8 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.SelectSchemeFormProvider
 import matchers.JsonMatchers
-import models.financialStatement.PsaFS
+import models.financialStatement.PenaltyType.ContractSettlementCharges
+import models.financialStatement.{PenaltyType, PsaFS}
 import models.{Enumerable, PenaltySchemes}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -42,6 +43,7 @@ import play.twirl.api.Html
 import services.PenaltiesService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
@@ -53,6 +55,9 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
   private val mockFICacheConnector = mock[FinancialInfoCacheConnector]
   private val mockFSConnector = mock[FinancialStatementConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
+  private def form: Form[PenaltySchemes] =
+    new SelectSchemeFormProvider()(penaltySchemes,
+      messages("selectScheme.error", messages(s"penaltyType.${penaltyType.toString}").toLowerCase()))
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PenaltiesService].toInstance(mockPenaltyService),
@@ -64,15 +69,14 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
   private val jsonToTemplate: Form[PenaltySchemes] => JsObject = form => Json.obj(
     fields = "form" -> form,
-    "radios" -> PenaltySchemes.radios(form, penaltySchemes),
-    "submitUrl" -> routes.SelectSchemeController.onSubmit(year).url
+    "radios" -> PenaltySchemes.radios(form, penaltySchemes)
   )
 
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPenaltyService, mockAppConfig, mockFICacheConnector, mockFSConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockPenaltyService.penaltySchemes(any(), any())(any(), any())).thenReturn(Future.successful(penaltySchemes))
+    when(mockPenaltyService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).thenReturn(Future.successful(penaltySchemes))
     when(mockPenaltyService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
   }
 
@@ -102,7 +106,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
         status(result) mustEqual SEE_OTHER
 
-        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoad(year, srn).url)
+        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadContract(year, srn).url)
 
       }
 
@@ -116,7 +120,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
         status(result) mustEqual SEE_OTHER
 
-        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoad(year, pstrIndex).url)
+        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadContract(year, pstrIndex).url)
 
       }
 
@@ -138,9 +142,9 @@ object SelectSchemeControllerSpec {
   private val ps2 = PenaltySchemes(name = None, pstr = "24000041IN", srn = None)
   val penaltySchemes: Seq[PenaltySchemes] = Seq(ps1, ps2)
   val psaFS: JsValue = Json.toJson(psaFSResponse)
+  val penaltyType: PenaltyType = ContractSettlementCharges
 
-  private def form = new SelectSchemeFormProvider()(penaltySchemes)
-  private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad(year).url
+  private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad(penaltyType, year).url
 
-  private def httpPathPOST: String = routes.SelectSchemeController.onSubmit(year).url
+  private def httpPathPOST: String = routes.SelectSchemeController.onSubmit(penaltyType, year).url
 }

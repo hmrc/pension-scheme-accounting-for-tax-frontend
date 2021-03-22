@@ -66,10 +66,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
               .filter(_.pstr == schemeDetails.pstr)
               .filter(_.periodStartDate == startDate)
               .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
-            println(s"\n\n >>>>>>>>>>>>>>>>>>>>>>>>>penalties $penalties")
-            println(s"\n\n >>>>>>>>>>>>>>>>>>>>>>>>>schemeDetails.pstr ${schemeDetails.pstr}")
-            println(s"\n\n >>>>>>>>>>>>>>>>>>>>>>>>>startDate $startDate")
-            println(s"\n\n >>>>>>>>>>>>>>>>>>>>>>>>>filteredPsaFS $filteredPsaFS")
+
             val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex)
 
             viewModel(title, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
@@ -96,59 +93,57 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
 
   def onPageLoadContract(year: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
-        onPageLoad(year.toInt, identifier, penalties, "penaltyType.contractSettlement", ContractSettlementCharges)
-      }
+        onPageLoad(year.toInt, identifier, ContractSettlementCharges)
+
   }
 
   def onPageLoadInfoNotice(year: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
-        onPageLoad(year.toInt, identifier, penalties, "penaltyType.informationNotice", InformationNoticePenalties)
-      }
+        onPageLoad(year.toInt, identifier, InformationNoticePenalties)
+
   }
 
   def onPageLoadPension(year: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
-        onPageLoad(year.toInt, identifier, penalties, "penaltyType.pensionsPenalties", PensionsPenalties)
-      }
+        onPageLoad(year.toInt, identifier, PensionsPenalties)
+
   }
 
-  private def onPageLoad(year: Int, identifier: String, penalties: Seq[PsaFS], typeParam: String, penaltyType: PenaltyType)
+  private def onPageLoad(year: Int, identifier: String, penaltyType: PenaltyType)
                         (implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
+    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+      val title: Message = Message("penalties.nonAft.title", Message(s"penaltyType.${penaltyType.toString}"), year.toString)
+      val chargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
+      val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
+        schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
 
-    val title: Message = Message("penalties.nonAft.title", typeParam, year)
-    val chargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
-    val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
-      schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
+          val filteredPsaFS: Seq[PsaFS] = penalties
+            .filter(_.pstr == schemeDetails.pstr)
+            .filter(_.periodStartDate.getYear == year)
+            .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
-        val filteredPsaFS: Seq[PsaFS] = penalties
-          .filter(_.pstr == schemeDetails.pstr)
-          .filter(_.periodStartDate.getYear == year)
-          .filter(p => getPenaltyType(p.chargeType) == penaltyType)
+          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex)
 
-        val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex)
+          viewModel(title, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
+        }
+      } else {
+        penaltiesService.unassociatedSchemes(penalties, year, request.psaIdOrException.id) map { penalties =>
 
-        viewModel(title, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
+          val pstrs: Seq[String] = penalties.map(_.pstr)
+
+          val filteredPsaFS: Seq[PsaFS] = penalties
+            .filter(_.periodStartDate.getYear == year)
+            .filter(p => getPenaltyType(p.chargeType) == penaltyType)
+
+          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex)
+
+          viewModel(title, pstrs(identifier.toInt), schemeAssociated = false, penaltyTable)
+        }
       }
-    } else {
-      penaltiesService.unassociatedSchemes(penalties, year, request.psaIdOrException.id) map { penalties =>
 
-        val pstrs: Seq[String] = penalties.map(_.pstr)
+      json.flatMap(js => renderer.render(template = "financialStatement/penalties/penalties.njk", js).map(Ok(_)))
 
-        val filteredPsaFS: Seq[PsaFS] = penalties
-          .filter(_.periodStartDate.getYear == year)
-          .filter(p => getPenaltyType(p.chargeType) == penaltyType)
-
-        val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex)
-
-        viewModel(title, pstrs(identifier.toInt), schemeAssociated = false, penaltyTable)
-      }
     }
-
-    json.flatMap(js => renderer.render(template = "financialStatement/penalties/penalties.njk", js).map(Ok(_)))
-
   }
 
   private def viewModel(title: Message, pstr: String, schemeAssociated: Boolean, table: JsObject, args: String*)
