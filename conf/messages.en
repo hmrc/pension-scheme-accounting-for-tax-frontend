@@ -1064,7 +1064,7 @@ pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods = Vie
 
 psaPenaltiesCard.h2 = Penalties
 psaPenaltiesCard.paymentsDue.linkText = View payments due for penalties and charges
-psaPenaltiesCard.viewPastPenalties = View past penalties
+psaPenaltiesCard.viewPastPenalties = View past penalties and charges
 
 paymentsAndChargesUpcoming.h1.singlePeriod = Payments and charges for {0} to {1}
 paymentsAndChargesUpcoming.h1.multiplePeriod = Upcoming payments and charges
