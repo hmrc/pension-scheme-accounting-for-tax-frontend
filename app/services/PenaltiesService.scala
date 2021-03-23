@@ -32,7 +32,7 @@ import play.api.mvc.Result
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.dateFormatterDMY
 
@@ -175,7 +175,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       listOfSchemes <- getListOfSchemes(psaId)
     } yield {
 
-      val penaltyPstrs: Seq[String] = filteredPenalties.map(_.pstr)
+      val penaltyPstrs: Seq[String] = filteredPenalties.map(_.pstr).distinct
       val schemesWithPstr: Seq[ListSchemeDetails] = listOfSchemes.filter(_.pstr.isDefined)
 
       val associatedSchemes: Seq[PenaltySchemes] = schemesWithPstr
@@ -256,7 +256,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
     val yearsSeq = penalties
       .filter(p => getPenaltyType(p.chargeType) == penaltyType)
-      .map { penalty => penalty.periodStartDate.getYear }.distinct
+      .map { penalty => penalty.periodEndDate.getYear }.distinct
 
     (penaltyType, yearsSeq.size) match {
       case (AccountingForTaxPenalties, 1) => navFromAftYearsPage(penalties, yearsSeq.head, psaId)
