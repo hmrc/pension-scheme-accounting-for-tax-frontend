@@ -18,13 +18,17 @@ package controllers.actions
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import connectors.cache.SessionDataCacheConnector
 import controllers.routes
+import models.AdministratorOrPractitioner
+import models.AdministratorOrPractitioner.{Practitioner, Administrator}
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
@@ -38,6 +42,7 @@ trait IdentifierAction
 class AuthenticatedIdentifierAction @Inject()(
                                                override val authConnector: AuthConnector,
                                                config: FrontendAppConfig,
+                                               sessionDataCacheConnector: SessionDataCacheConnector,
                                                val parser: BodyParsers.Default
                                              )(implicit val executionContext: ExecutionContext)
   extends IdentifierAction
@@ -54,9 +59,16 @@ class AuthenticatedIdentifierAction @Inject()(
       HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
     authorised(Enrolment("HMRC-PODS-ORG") or Enrolment("HMRC-PODSPP-ORG")).retrieve(
-      Retrievals.allEnrolments
-    ) { enrolments =>
-      block(IdentifierRequest(request, getPsaId(enrolments), getPspId(enrolments)))
+      Retrievals.externalId and Retrievals.allEnrolments
+    ) {
+      case Some(id) ~ enrolments if enrolments.enrolments.size == 2 =>
+        administratorOrPractitioner(id).flatMap{
+          case None =>  Future.successful(Redirect(Call("GET",config.administratorOrPractitionerUrl)))
+          case Some(Administrator) => block(IdentifierRequest(id, request, getPsaId(enrolments), None))
+          case Some(Practitioner) => block(IdentifierRequest(id, request, None, getPspId(enrolments)))
+        }
+      case Some(id) ~ enrolments =>
+        block(IdentifierRequest(id, request, getPsaId(enrolments), getPspId(enrolments)))
     } recover {
       case _: NoActiveSession =>
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))
@@ -77,4 +89,13 @@ class AuthenticatedIdentifierAction @Inject()(
       .getEnrolment(key = "HMRC-PODSPP-ORG")
       .flatMap(_.getIdentifier("PSPID"))
       .map(x => PspId(x.value))
+
+
+  private def administratorOrPractitioner(id:String)(implicit hc:HeaderCarrier):Future[Option[AdministratorOrPractitioner]] = {
+    sessionDataCacheConnector.fetch(id).map { optionJsValue =>
+      optionJsValue.flatMap { json =>
+        (json \ "administratorOrPractitioner").toOption.flatMap(_.validate[AdministratorOrPractitioner].asOpt)
+      }
+    }
+  }
 }
