@@ -46,11 +46,11 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
   val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
   //PENALTIES
-  def getPsaFsJson(penalties: Seq[PsaFS], identifier: String, chargeRefsIndex: String => String)
+  def getPsaFsJson(penalties: Seq[PsaFS], identifier: String, chargeRefsIndex: String => String, penaltyType: PenaltyType)
                   (implicit messages: Messages): JsObject = {
 
     val head: Seq[Cell] = Seq(
-      Cell(msg"penalties.column.chargeType"),
+      Cell(msg"penalties.column.${if(penaltyType == ContractSettlementCharges) "chargeType" else "penaltyType"}"),
       Cell(msg"penalties.column.amount"),
       Cell(msg"penalties.column.chargeReference"),
       Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))

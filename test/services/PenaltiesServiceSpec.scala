@@ -44,6 +44,7 @@ import utils.DateHelper.dateFormatterDMY
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import models.LocalDateBinder._
+import models.financialStatement.PenaltyType.AccountingForTaxPenalties
 
 class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
 
@@ -69,7 +70,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
   "getPsaFsJson" must {
     "return the penalty tables based on API response for paymentOverdue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")), srn, chargeRefIndex) mustBe
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")), srn, chargeRefIndex, AccountingForTaxPenalties) mustBe
           penaltyTables(
             statusClass = "govuk-tag govuk-tag--red",
             statusMessageKey = "penalties.status.paymentOverdue",
@@ -78,7 +79,8 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for noPaymentDue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, chargeRefIndex) mustBe
+      penaltiesService.getPsaFsJson(
+        psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, chargeRefIndex, AccountingForTaxPenalties) mustBe
           penaltyTables(
             statusClass = "govuk-visually-hidden",
             statusMessageKey = "penalties.status.visuallyHiddenText.noPaymentDue",
@@ -87,7 +89,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for paymentIsDue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, chargeRefIndex) mustBe
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, chargeRefIndex, AccountingForTaxPenalties) mustBe
           penaltyTables(
             statusClass = "govuk-visually-hidden",
             statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
@@ -265,7 +267,7 @@ object PenaltiesServiceSpec {
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
   private def head(implicit messages: Messages) = Seq(
-    Cell(msg"penalties.column.chargeType"),
+    Cell(msg"penalties.column.penaltyType"),
     Cell(msg"penalties.column.amount"),
     Cell(msg"penalties.column.chargeReference"),
     Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))

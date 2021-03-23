@@ -1076,6 +1076,7 @@ penalties.aft.title = Accounting for Tax penalties for {0} to {1}
 penalties.nonAft.title = {0} for {1}
 penalties.pstr = Pension Scheme Tax Reference: {0}
 penalties.p1 = Amounts due may not reflect payments made in the last 3 days.
+penalties.column.penaltyType = Penalty type
 penalties.column.chargeType = Charge type
 penalties.column.amount = Amount due
 penalties.column.chargeReference = Charge reference
@@ -1094,8 +1095,6 @@ penalties.chargeDetails.totalDueBy = Amount due by {0}
 penalties.chargeDetails.totalDue = Amount due
 penalties.chargeReference = Charge reference: {0}
 penalties.visuallyHiddenText = for charge reference {0}
-
-
 
 paymentsAndCharges.partial.h1 = Payments and charges
 paymentsAndCharges.partial.view.link = View payments and charges for 2020

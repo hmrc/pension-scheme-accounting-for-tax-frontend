@@ -80,7 +80,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPenaltiesService, mockRenderer)
-    when(mockPenaltiesService.getPsaFsJson(any(), any(), any())(any()))
+    when(mockPenaltiesService.getPsaFsJson(any(), any(), any(), any())(any()))
       .thenReturn(penaltyTables)
     when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
 

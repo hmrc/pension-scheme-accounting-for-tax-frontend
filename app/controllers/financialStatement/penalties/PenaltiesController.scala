@@ -67,7 +67,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
               .filter(_.periodStartDate == startDate)
               .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
 
-            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex)
+            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, AccountingForTaxPenalties)
 
             viewModel(title, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
           }
@@ -80,7 +80,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
               .filter(_.periodStartDate == startDate)
               .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
 
-            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex)
+            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, AccountingForTaxPenalties)
 
             viewModel(title, pstrs(identifier.toInt), schemeAssociated = false, penaltyTable)
           }
@@ -122,7 +122,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
             .filter(_.periodStartDate.getYear == year)
             .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
-          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex)
+          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, penaltyType)
 
           viewModel(title, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
         }
@@ -135,7 +135,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
             .filter(_.periodStartDate.getYear == year)
             .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
-          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex)
+          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, penaltyType)
 
           viewModel(title, pstrs(identifier.toInt), schemeAssociated = false, penaltyTable)
         }
