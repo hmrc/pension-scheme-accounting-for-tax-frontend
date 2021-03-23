@@ -26,6 +26,7 @@ import models.LocalDateBinder._
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFS}
 import models.{ListSchemeDetails, PenaltySchemes}
+import play.api.Logger
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, JsSuccess, Json, OFormat}
 import play.api.mvc.Result
@@ -42,6 +43,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
                                  fiCacheConnector: FinancialInfoCacheConnector,
                                  listOfSchemesConnector: ListOfSchemesConnector) {
+
+  private val logger = Logger(classOf[PenaltiesService])
 
   val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
@@ -164,7 +167,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
       val filteredPenalties = penalties
         .filter(p => getPenaltyType(p.chargeType) == penaltyType)
-        .filter(_.periodStartDate.getYear == year)
+        .filter(_.periodEndDate.getYear == year)
 
       penaltySchemes(filteredPenalties, psaId)
     }
@@ -245,6 +248,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     if (penaltyTypes.nonEmpty && penaltyTypes.size > 1) {
       Future.successful(Redirect(PenaltyTypeController.onPageLoad()))
     } else if (penaltyTypes.size == 1) {
+      logger.debug(s"Skipping the penalty type page for type ${penaltyTypes.head}")
       navFromPenaltiesTypePage(penalties, penaltyTypes.head, psaId)
     } else {
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -280,6 +284,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       if (schemes.size > 1) {
         Redirect(SelectSchemeController.onPageLoad(penaltyType, year))
       } else if (schemes.size == 1) {
+        logger.debug(s"Skipping the select scheme page for year $year and type $penaltyType")
         schemes.head.srn match {
           case Some(srn) =>
             Redirect(penaltiesUrl(srn))
@@ -303,6 +308,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     if (quartersSeq.size > 1) {
       Future.successful(Redirect(SelectPenaltiesQuarterController.onPageLoad(year.toString)))
     } else if (quartersSeq.size == 1) {
+      logger.debug(s"Skipping the select quarter page for year $year and type AFT")
       navFromAftQuartersPage(penalties, quartersSeq.head, psaId)
     } else {
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -315,6 +321,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       if(schemes.size > 1) {
         Redirect(SelectSchemeController.onPageLoad(AccountingForTaxPenalties, startDate))
       } else if (schemes.size == 1) {
+        logger.debug(s"Skipping the select scheme page for startDate $startDate and type AFT")
         schemes.head.srn match {
           case Some(srn) =>
             Redirect(PenaltiesController.onPageLoadAft(startDate, srn))
