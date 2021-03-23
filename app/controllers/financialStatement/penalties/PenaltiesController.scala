@@ -119,7 +119,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
 
           val filteredPsaFS: Seq[PsaFS] = penalties
             .filter(_.pstr == schemeDetails.pstr)
-            .filter(_.periodStartDate.getYear == year)
+            .filter(_.periodEndDate.getYear == year)
             .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
           val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, penaltyType)
@@ -132,7 +132,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
           val pstrs: Seq[String] = penalties.map(_.pstr)
 
           val filteredPsaFS: Seq[PsaFS] = penalties
-            .filter(_.periodStartDate.getYear == year)
+            .filter(_.periodEndDate.getYear == year)
             .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
           val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, penaltyType)
