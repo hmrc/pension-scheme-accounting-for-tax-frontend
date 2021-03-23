@@ -17,9 +17,9 @@
 package models.requests
 
 import controllers.actions.IdNotFound
-import models.SchemeAdministratorType.{SchemeAdministratorTypePSA, SchemeAdministratorTypePSP}
+import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import play.api.mvc.{Request, WrappedRequest}
-import models.{AccessMode, SessionData, SchemeAdministratorType, UserAnswers}
+import models.{AccessMode, SessionData, AdministratorOrPractitioner, UserAnswers}
 import uk.gov.hmrc.domain.{PspId, PsaId}
 
 case class OptionalDataRequest[A] (
@@ -58,9 +58,9 @@ case class DataRequest[A] (
     }
   }
 
-  def schemeAdministratorType:SchemeAdministratorType = (psaId, pspId) match {
-    case (Some(_), None) => SchemeAdministratorTypePSA
-    case (None, Some(_)) => SchemeAdministratorTypePSP
+  def schemeAdministratorType:AdministratorOrPractitioner = (psaId, pspId) match {
+    case (Some(_), None) => Administrator
+    case (None, Some(_)) => Practitioner
     case _ => throw IdNotFound()
   }
 }

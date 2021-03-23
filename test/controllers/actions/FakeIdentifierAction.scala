@@ -28,7 +28,7 @@ class FakeIdentifierAction @Inject()(bodyParsers: PlayBodyParsers) extends Ident
   private val defaultPsaId: String = "A0000000"
 
   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
-    block(IdentifierRequest(request, Some(PsaId(defaultPsaId))))
+    block(IdentifierRequest("id", request, Some(PsaId(defaultPsaId))))
   }
 
   override def parser: BodyParser[AnyContent] =
@@ -43,7 +43,7 @@ class FakeIdentifierActionPSP @Inject()(bodyParsers: PlayBodyParsers) extends Id
   private val defaultPspId: String = "20000000"
 
   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
-    block(IdentifierRequest(request,None, Some(PspId(defaultPspId))))
+    block(IdentifierRequest("id", request,None, Some(PspId(defaultPspId))))
   }
 
   override def parser: BodyParser[AnyContent] =

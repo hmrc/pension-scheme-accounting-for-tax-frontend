@@ -17,12 +17,13 @@
 package models.requests
 
 import controllers.actions.IdNotFound
-import models.SchemeAdministratorType
-import models.SchemeAdministratorType.{SchemeAdministratorTypePSP, SchemeAdministratorTypePSA}
+import models.AdministratorOrPractitioner
+import models.AdministratorOrPractitioner.{Practitioner, Administrator}
 import play.api.mvc.{Request, WrappedRequest}
 import uk.gov.hmrc.domain.{PsaId, PspId}
 
 case class IdentifierRequest[A](
+                                 externalId: String,
                                  request: Request[A],
                                  psaId: Option[PsaId],
                                  pspId: Option[PspId] = None
@@ -48,9 +49,9 @@ case class IdentifierRequest[A](
       case _ => throw IdNotFound()
     }
 
-  def schemeAdministratorType:SchemeAdministratorType = (psaId, pspId) match {
-    case (Some(_), None) => SchemeAdministratorTypePSA
-    case (None, Some(_)) => SchemeAdministratorTypePSP
+  def schemeAdministratorType:AdministratorOrPractitioner = (psaId, pspId) match {
+    case (Some(_), None) => Administrator
+    case (None, Some(_)) => Practitioner
     case _ => throw IdNotFound()
   }
 }

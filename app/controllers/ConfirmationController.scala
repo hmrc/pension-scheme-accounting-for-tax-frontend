@@ -24,7 +24,7 @@ import controllers.actions._
 import controllers.financialStatement.paymentsAndCharges.routes._
 import controllers.routes.{ReturnToSchemeDetailsController, SignOutController}
 import models.LocalDateBinder._
-import models.SchemeAdministratorType.{SchemeAdministratorTypePSA, SchemeAdministratorTypePSP}
+import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.requests.DataRequest
 import models.{AccessType, GenericViewModel}
@@ -137,8 +137,8 @@ class ConfirmationController @Inject()(
     }
 
   def listSchemesUrl(implicit request: DataRequest[AnyContent]): String = request.schemeAdministratorType match {
-    case SchemeAdministratorTypePSA => config.yourPensionSchemesUrl
-    case SchemeAdministratorTypePSP => config.yourPensionSchemesPspUrl
+    case Administrator => config.yourPensionSchemesUrl
+    case Practitioner => config.yourPensionSchemesPspUrl
   }
 
   private[controllers] def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String,

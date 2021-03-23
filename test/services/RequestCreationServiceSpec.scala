@@ -60,7 +60,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val sd = SessionData(sessionId, nameLockedBy, sessionAccessDataCompile)
 
   private val request: IdentifierRequest[AnyContentAsEmpty.type] =
-    IdentifierRequest(fakeRequest, Some(psaIdInstance))
+    IdentifierRequest("id", fakeRequest, Some(psaIdInstance))
 
   private val schemeStatus = "Open"
 
@@ -142,7 +142,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         val referer = Seq("Referer" -> "manage-pension-scheme-accounting-for-tax")
 
         val request: IdentifierRequest[AnyContentAsEmpty.type] =
-          IdentifierRequest(fakeRequest.withHeaders(referer :_*), Some(psaIdInstance))
+          IdentifierRequest("id", fakeRequest.withHeaders(referer :_*), Some(psaIdInstance))
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
           .thenReturn(Future.successful(None))
@@ -166,7 +166,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
       "create data request with details" in {
 
         val request: IdentifierRequest[AnyContentAsEmpty.type] =
-          IdentifierRequest(fakeRequest, Some(psaIdInstance))
+          IdentifierRequest("id", fakeRequest, Some(psaIdInstance))
 
         val multipleVersions = Seq[AFTOverview](
           AFTOverview(

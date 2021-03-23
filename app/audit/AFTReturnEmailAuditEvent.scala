@@ -16,19 +16,19 @@
 
 package audit
 
-import models.{JourneyType, SchemeAdministratorType}
+import models.{JourneyType, AdministratorOrPractitioner}
 
 case class AFTReturnEmailAuditEvent(
                                psaOrPspId: String,
                                journeyType: JourneyType.Name,
-                               schemeAdministratorType: SchemeAdministratorType,
+                               schemeAdministratorType: AdministratorOrPractitioner,
                                emailAddress: String
                              ) extends AuditEvent {
   override def auditType: String = s"${journeyType.toString}Email"
 
   override def details: Map[String, String] = {
     val psaOrPspIdJson = schemeAdministratorType match {
-      case SchemeAdministratorType.SchemeAdministratorTypePSA =>
+      case AdministratorOrPractitioner.Administrator =>
         Map("psaId" -> psaOrPspId)
       case _ => Map("pspId" -> psaOrPspId)
     }
