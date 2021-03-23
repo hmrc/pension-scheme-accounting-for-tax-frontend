@@ -21,10 +21,10 @@ import controllers.base.ControllerSpecBase
 import controllers.financialStatement.penalties.PenaltiesLogicControllerSpec._
 import data.SampleData._
 import matchers.JsonMatchers
-import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
-import models.{Enumerable, PenaltySchemes}
+import models.Enumerable
+import models.financialStatement.PenaltyType.ContractSettlementCharges
+import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.{PenaltyType, PsaFS}
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.requests.IdentifierRequest
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}

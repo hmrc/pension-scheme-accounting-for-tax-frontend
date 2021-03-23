@@ -22,7 +22,6 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
-import models.financialStatement.PenaltyType.AccountingForTaxPenalties
 import models.requests.IdentifierRequest
 import models.{DisplayQuarter, Enumerable, PaymentOverdue, Quarter, Quarters}
 import org.mockito.ArgumentCaptor

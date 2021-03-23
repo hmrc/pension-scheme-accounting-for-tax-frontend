@@ -17,8 +17,7 @@
 package controllers.financialStatement.penalties
 
 import controllers.actions._
-import models.financialStatement.{PenaltyType, PsaFS}
-import models.financialStatement.PenaltyType.getPenaltyType
+import models.financialStatement.PsaFS
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.PenaltiesService
@@ -27,7 +26,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class PenaltiesLogicController @Inject()(override val messagesApi: MessagesApi,
                                           service: PenaltiesService,
