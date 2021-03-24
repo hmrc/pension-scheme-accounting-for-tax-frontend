@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.Inject
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, ListOfSchemesConnector}
+import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
 import controllers.Assets.Redirect
 import controllers.financialStatement.penalties.routes._
 import helpers.FormatHelper
@@ -42,7 +42,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
                                  fiCacheConnector: FinancialInfoCacheConnector,
-                                 listOfSchemesConnector: ListOfSchemesConnector) {
+                                 listOfSchemesConnector: ListOfSchemesConnector,
+                                 minimalConnector: MinimalConnector) {
 
   private val logger = Logger(classOf[PenaltiesService])
 
@@ -222,18 +223,19 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
 
   //SELECT YEAR
-  def saveAndReturnPenalties(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] =
+  def saveAndReturnPenalties(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PenaltiesCache] =
     for {
       penalties <- fsConnector.getPsaFS(psaId)
-      _ <- fiCacheConnector.save(Json.toJson(PenaltiesCache(psaId, penalties)))
-    } yield penalties
+      minimalDetails <- minimalConnector.getMinimalPsaDetails(psaId)
+      _ <- fiCacheConnector.save(Json.toJson(PenaltiesCache(psaId, minimalDetails.name, penalties)))
+    } yield PenaltiesCache(psaId, minimalDetails.name, penalties)
 
 
-  def getPenaltiesFromCache(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] =
+  def getPenaltiesFromCache(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PenaltiesCache] =
     fiCacheConnector.fetch flatMap {
       case Some(jsValue) =>
-        jsValue.validate[PenaltiesCache] match {
-          case JsSuccess(value, _) if value.psaId == psaId => Future.successful(value.penalties)
+      jsValue.validate[PenaltiesCache] match {
+          case JsSuccess(value, _) if value.psaId == psaId => Future.successful(value)
           case _ => saveAndReturnPenalties(psaId)
         }
       case _ => saveAndReturnPenalties(psaId)
@@ -343,7 +345,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
 }
 
-case class PenaltiesCache(psaId: String, penalties: Seq[PsaFS])
+case class PenaltiesCache(psaId: String, psaName: String, penalties: Seq[PsaFS])
 object PenaltiesCache {
   implicit val format: OFormat[PenaltiesCache] = Json.format[PenaltiesCache]
 }

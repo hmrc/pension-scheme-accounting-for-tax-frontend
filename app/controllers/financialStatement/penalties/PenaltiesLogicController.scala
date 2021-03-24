@@ -39,16 +39,16 @@ class PenaltiesLogicController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(): Action[AnyContent] = identify.async { implicit request =>
 
-    service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penalties =>
-      service.navFromOverviewPage(penalties, request.psaIdOrException.id)
+    service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penaltiesCache =>
+      service.navFromOverviewPage(penaltiesCache.penalties, request.psaIdOrException.id)
     }
   }
 
   def onPageLoadUpcoming(): Action[AnyContent] = identify.async { implicit request =>
 
-    service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penalties =>
+    service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penaltiesCache =>
 
-      val upcomingCharges: Seq[PsaFS] = penalties.filter(_.dueDate.exists(_.isBefore(DateHelper.today)))
+      val upcomingCharges: Seq[PsaFS] = penaltiesCache.penalties.filter(_.dueDate.exists(_.isBefore(DateHelper.today)))
 
       service.navFromOverviewPage(upcomingCharges, request.psaIdOrException.id)
     }

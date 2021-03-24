@@ -19,8 +19,9 @@ package services
 import java.time.LocalDate
 import base.SpecBase
 import config.FrontendAppConfig
+import connectors.MinimalConnector.MinimalDetails
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, ListOfSchemesConnector}
+import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
 import controllers.financialStatement.penalties.routes._
 import data.SampleData.{paymentsCache, psaFsSeq, psaId, schemeFSResponseAftAndOTC}
 import helpers.FormatHelper
@@ -55,7 +56,8 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
   private val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val mockListOfSchemesConn: ListOfSchemesConnector = mock[ListOfSchemesConnector]
-  private val penaltiesService = new PenaltiesService(mockFSConnector, mockFIConnector, mockListOfSchemesConn)
+  private val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
+  private val penaltiesService = new PenaltiesService(mockFSConnector, mockFIConnector, mockListOfSchemesConn, mockMinimalConnector)
 
   def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String): JsObject = Json.obj(
       "penaltyTable" -> Table(head = head, rows = rows(aftLink(), statusClass, statusMessageKey, amountDue),
@@ -66,6 +68,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     super.beforeEach
     reset(mockListOfSchemesConn)
     when(mockAppConfig.minimumYear).thenReturn(year)
+    when(mockMinimalConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future(MinimalDetails("", false, Some("psa-name"), None, false, false)))
     when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse()))))
     when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future.successful(Right(listOfSchemes)))
     DateHelper.setDate(Some(dateNow))
@@ -146,7 +149,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
   "penaltySchemes" must {
     "return a combination of all associated and unassociated schemes returned in correct format" in {
-      when(mockFIConnector.fetch(any(), any())) thenReturn Future.successful(Some(Json.toJson(PenaltiesCache("PsaID", psaFSResponse()))))
+      when(mockFIConnector.fetch(any(), any())) thenReturn Future.successful(Some(Json.toJson(PenaltiesCache("PsaID", "psa-name", psaFSResponse()))))
 
       whenReady(penaltiesService.penaltySchemes("2020-04-01", "PsaID", psaFSResponse())(implicitly, implicitly)) {
         _ mustBe penaltySchemes
@@ -180,28 +183,28 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     "return payload from cache is srn and logged in id match the payload" in {
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(penaltiesCache))))
-      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFsSeq }
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe PenaltiesCache(psaId, "psa-name", psaFsSeq) }
     }
 
     "call FS API and save to cache if logged in id does not match the retrieved payload from cache" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(penaltiesCache.copy(psaId = "wrong-id")))))
       when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse()))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFSResponse() }
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe PenaltiesCache(psaId, "psa-name", psaFSResponse()) }
     }
 
     "call FS API and save to cache if retrieved payload from cache is not in Payments format" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache(schemeFSResponseAftAndOTC)))))
       when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFsSeq }
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe PenaltiesCache(psaId, "psa-name", psaFsSeq) }
     }
 
     "call FS API and save to cache if there is no existing payload stored in cache" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(None))
       when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFsSeq }
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe PenaltiesCache(psaId, "psa-name", psaFsSeq) }
     }
   }
 
@@ -359,7 +362,7 @@ object PenaltiesServiceSpec {
   val dateNow: LocalDate = LocalDate.now()
   val chargeRefIndex: String => String = _ => "0"
 
-  val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, psaFsSeq)
+  val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
 
   def psaFSResponse(amountDue: BigDecimal = BigDecimal(0.01), dueDate: LocalDate = dateNow): Seq[PsaFS] = Seq(
     PsaFS(

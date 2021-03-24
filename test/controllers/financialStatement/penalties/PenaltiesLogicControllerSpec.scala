@@ -35,7 +35,7 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
-import services.PenaltiesService
+import services.{PenaltiesCache, PenaltiesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
@@ -68,7 +68,7 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSuppo
     "on a GET" must {
 
       "return to page returned by nav method in penalties service if only one type is available" in {
-        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(Seq(psaFS1)))
+        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, psaName, Seq(psaFS1))))
         when(mockPenaltiesService.navFromOverviewPage(any(), any())(any(), any()))
           .thenReturn(Future.successful(Redirect(contractSelectYearPage)))
         val result = route(application, httpGETRequest(httpPathGET)).value
@@ -84,6 +84,7 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
 object PenaltiesLogicControllerSpec {
 
+  val psaName: String = "psa-name"
   val psaFS1: PsaFS = PsaFS(
     chargeReference = "XY002610150184",
     chargeType = AFT_INITIAL_LFP,

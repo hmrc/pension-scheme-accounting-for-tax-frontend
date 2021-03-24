@@ -53,17 +53,17 @@ class SelectPenaltiesQuarterController @Inject()(
   def onPageLoad(year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
 
 
-    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
 
-      val quarters: Seq[Quarter] = getQuarters(year, filteredPenalties(penalties, year.toInt))
+      val quarters: Seq[Quarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
 
         if (quarters.nonEmpty) {
 
           val json = Json.obj(
-            "year" -> year,
+            "psaName" -> penaltiesCache.psaName,
             "form" -> form(quarters),
             "radios" -> Quarters.radios(form(quarters),
-                                        getDisplayQuarters(year, filteredPenalties(penalties, year.toInt)),
+                                        getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
                                         Seq("govuk-tag govuk-tag--red govuk-!-display-inline"),
                                         areLabelsBold = false),
             "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
@@ -79,19 +79,19 @@ class SelectPenaltiesQuarterController @Inject()(
   }
 
   def onSubmit(year: String): Action[AnyContent] = identify.async { implicit request =>
-    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
 
-      val quarters: Seq[Quarter] = getQuarters(year, filteredPenalties(penalties, year.toInt))
+      val quarters: Seq[Quarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
         if (quarters.nonEmpty) {
 
           form(quarters).bindFromRequest().fold(
               formWithErrors => {
 
                   val json = Json.obj(
-                    "year" -> year,
+                    "psaName" -> penaltiesCache.psaName,
                     "form" -> formWithErrors,
                     "radios" -> Quarters.radios(formWithErrors,
-                                                getDisplayQuarters(year, filteredPenalties(penalties, year.toInt)),
+                                                getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
                                                 Seq("govuk-tag govuk-!-display-inline govuk-tag--red"),
                                                 areLabelsBold = false),
                     "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
@@ -100,7 +100,7 @@ class SelectPenaltiesQuarterController @Inject()(
                   renderer.render(template = "financialStatement/penalties/selectQuarter.njk", json).map(BadRequest(_))
 
               },
-              value => penaltiesService.navFromAftQuartersPage(penalties, value.startDate, request.psaIdOrException.id)
+              value => penaltiesService.navFromAftQuartersPage(penaltiesCache.penalties, value.startDate, request.psaIdOrException.id)
             )
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

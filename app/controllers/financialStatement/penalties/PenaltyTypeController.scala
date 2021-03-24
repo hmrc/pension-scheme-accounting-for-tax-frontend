@@ -49,9 +49,10 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
   private def form: Form[PenaltyType] = formProvider()
 
   def onPageLoad: Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
-    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
-      val penaltyTypes = getPenaltyTypes(penalties)
+    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+      val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties)
       val json = Json.obj(
+        "psaName" -> penaltiesCache.psaName,
         "form" -> form,
         "radios" -> PenaltyType.radios(form, penaltyTypes),
         "submitUrl" -> routes.PenaltyTypeController.onSubmit().url
@@ -62,17 +63,18 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
   }
 
   def onSubmit: Action[AnyContent] = identify.async { implicit request =>
-    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
       form.bindFromRequest().fold(
         formWithErrors => {
           val json = Json.obj(
+            "psaName" -> penaltiesCache.psaName,
             "form" -> formWithErrors,
-            "radios" -> PenaltyType.radios(formWithErrors, getPenaltyTypes(penalties)),
+            "radios" -> PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties)),
             "submitUrl" -> routes.PenaltyTypeController.onSubmit().url
           )
           renderer.render(template = "financialStatement/penalties/penaltyType.njk", json).map(BadRequest(_))
         },
-        value => service.navFromPenaltiesTypePage(penalties, value, request.psaIdOrException.id)
+        value => service.navFromPenaltiesTypePage(penaltiesCache.penalties, value, request.psaIdOrException.id)
       )
     }
   }

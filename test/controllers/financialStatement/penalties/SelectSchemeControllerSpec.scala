@@ -40,7 +40,7 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.PenaltiesService
+import services.{PenaltiesCache, PenaltiesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
@@ -77,7 +77,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
     reset(mockPenaltyService, mockAppConfig, mockFICacheConnector, mockFSConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPenaltyService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).thenReturn(Future.successful(penaltySchemes))
-    when(mockPenaltyService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
+    when(mockPenaltyService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
   }
 
   "SelectScheme Controller" when {

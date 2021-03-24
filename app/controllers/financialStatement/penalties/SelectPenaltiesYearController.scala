@@ -31,7 +31,6 @@ import renderer.Renderer
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Text.Message
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -53,12 +52,13 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
 
   def onPageLoad(penaltyType: PenaltyType): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
 
-    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
 
       val typeParam = service.getTypeParam(penaltyType)
 
-      val years = getYears(penaltyType, penalties)
+      val years = getYears(penaltyType, penaltiesCache.penalties)
       val json = Json.obj(
+        "psaName" -> penaltiesCache.psaName,
         "typeParam" -> typeParam,
         "form" -> form(typeParam, config),
         "radios" -> FSYears.radios(form(typeParam, config), years)
@@ -75,17 +75,18 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       if (penaltyType == AccountingForTaxPenalties) aftNavMethod(request.psaIdOrException.id) else nonAftNavMethod(penaltyType)
     val typeParam = service.getTypeParam(penaltyType)
 
-    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
       form(typeParam, config).bindFromRequest().fold(
         formWithErrors => {
           val json = Json.obj(
+            "psaName" -> penaltiesCache.psaName,
             "typeParam" -> typeParam,
             "form" -> formWithErrors,
-            "radios" -> FSYears.radios(formWithErrors, getYears(penaltyType, penalties))
+            "radios" -> FSYears.radios(formWithErrors, getYears(penaltyType, penaltiesCache.penalties))
           )
           renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(BadRequest(_))
         },
-        value => navMethod(penalties, value.year)
+        value => navMethod(penaltiesCache.penalties, value.year)
       )
     }
   }

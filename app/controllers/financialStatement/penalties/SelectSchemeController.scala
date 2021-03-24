@@ -55,13 +55,14 @@ class SelectSchemeController @Inject()(
   def onPageLoad(penaltyType: PenaltyType, period: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       val (penaltySchemesFunction, _) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id)
-      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
-        penaltySchemesFunction(penalties).flatMap { penaltySchemes =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+        penaltySchemesFunction(penaltiesCache.penalties).flatMap { penaltySchemes =>
           if (penaltySchemes.nonEmpty) {
 
             val typeParam = penaltiesService.getTypeParam(penaltyType)
 
             val json = Json.obj(
+              "psaName" -> penaltiesCache.psaName,
               "typeParam" -> typeParam,
               "form" -> form(penaltySchemes, typeParam),
               "radios" -> PenaltySchemes.radios(form(penaltySchemes, typeParam), penaltySchemes))
@@ -79,8 +80,8 @@ class SelectSchemeController @Inject()(
 
       val (penaltySchemesFunction, redirectUrl) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id)
 
-      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
-        penaltySchemesFunction(penalties).flatMap { penaltySchemes =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+        penaltySchemesFunction(penaltiesCache.penalties).flatMap { penaltySchemes =>
 
           val typeParam = penaltiesService.getTypeParam(penaltyType)
 
@@ -88,6 +89,7 @@ class SelectSchemeController @Inject()(
             formWithErrors => {
 
               val json = Json.obj(
+                "psaName" -> penaltiesCache.psaName,
                 "typeParam" -> typeParam,
                 "form" -> formWithErrors,
                 "radios" -> PenaltySchemes.radios(formWithErrors, penaltySchemes))
@@ -100,7 +102,7 @@ class SelectSchemeController @Inject()(
                   Future.successful(Redirect(redirectUrl(srn)))
                 case _ =>
                   penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).map { penalties =>
-                    val pstrIndex: String = penalties.map(_.pstr).indexOf(value.pstr).toString
+                    val pstrIndex: String = penaltiesCache.penalties.map(_.pstr).indexOf(value.pstr).toString
                     Redirect(redirectUrl(pstrIndex))
                   }
               }

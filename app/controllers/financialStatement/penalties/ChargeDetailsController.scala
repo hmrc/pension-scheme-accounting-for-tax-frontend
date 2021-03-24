@@ -47,26 +47,28 @@ class ChargeDetailsController @Inject()(
 
   def onPageLoad(identifier: String, chargeReferenceIndex: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
 
-          val chargeRefs: Seq[String] = penalties.map(_.chargeReference)
-          def penaltyOpt: Option[PsaFS] = penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
+          val chargeRefs: Seq[String] = penaltiesCache.penalties.map(_.chargeReference)
+          def penaltyOpt: Option[PsaFS] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
 
           if(chargeRefs.length > chargeReferenceIndex.toInt && penaltyOpt.nonEmpty) {
                 if (identifier.matches(srnRegex)) {
                   schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") flatMap {
                     schemeDetails =>
                       val json = Json.obj(
+                        "psaName" -> penaltiesCache.psaName,
                         "schemeAssociated" -> true,
                         "schemeName" -> schemeDetails.schemeName
-                      ) ++ commonJson(penaltyOpt.head, penalties, chargeRefs, chargeReferenceIndex)
+                      ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex)
 
                       renderer.render(template = "financialStatement/penalties/chargeDetails.njk", json).map(Ok(_))
                   }
                 } else {
                   val json = Json.obj(
+                    "psaName" -> penaltiesCache.psaName,
                     "schemeAssociated" -> false
-                  ) ++ commonJson(penaltyOpt.head, penalties, chargeRefs, chargeReferenceIndex)
+                  ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex)
 
                   renderer.render(template = "financialStatement/penalties/chargeDetails.njk", json).map(Ok(_))
                 }
