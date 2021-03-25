@@ -7,7 +7,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("selectPenaltiesYear.title"), form.errors) }}
+  {{ title(messages("selectPenaltiesYear.title", messages(typeParam)), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -22,7 +22,7 @@
           }) }}
         {% endif %}
 
-        <form action="{{  submitUrl }}" method="post" autocomplete="off">
+        <form method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 
@@ -30,7 +30,7 @@
             name: 'value',
             fieldset: {
               legend: {
-                text: messages('selectPenaltiesYear.title'),
+                text: messages('selectPenaltiesYear.title', messages(typeParam)),
                 isPageHeading: true,
                 classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8"
               }
@@ -48,6 +48,6 @@
 
       </div>
     </div>
-  <p class="govuk-body"><a href="{{ config.managePensionsSchemeOverviewUrl }}" class="govuk-link">{{ messages("site.return_to_overview") }}</a>
+  <p class="govuk-body"><a id="return_to_psa" href="{{ config.managePensionsSchemeOverviewUrl }}" class="govuk-link">{{ messages("return.to.link", psaName) }}</a>
     </p>
 {% endblock %}

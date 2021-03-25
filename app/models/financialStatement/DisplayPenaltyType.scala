@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package models
+package models.financialStatement
 
-import models.financialStatement.PenaltyType
+import models.DisplayHint
 
-class WithName(string: String) {
-  override val toString: String = string
-}
-
-class WithPenaltyType(penaltyType: PenaltyType) {
-  override val toString: String = penaltyType.toString
-}
+case class DisplayPenaltyType(penaltyType: PenaltyType, hintText: Option[DisplayHint])

@@ -22,8 +22,8 @@ import play.api.data.Form
 
 class SelectSchemeFormProvider extends Mappings {
 
-  def apply(schemes: Seq[PenaltySchemes]): Form[PenaltySchemes] =
+  def apply(schemes: Seq[PenaltySchemes], errorKey: String): Form[PenaltySchemes] =
     Form(
-      "value" -> enumerable[PenaltySchemes]("selectScheme.error")(PenaltySchemes.enumerable(schemes))
+      "value" -> enumerable[PenaltySchemes](errorKey)(PenaltySchemes.enumerable(schemes))
     )
 }

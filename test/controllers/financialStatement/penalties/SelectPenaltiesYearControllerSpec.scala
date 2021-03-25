@@ -22,6 +22,8 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
+import models.financialStatement.PenaltyType
+import models.financialStatement.PenaltyType.AccountingForTaxPenalties
 import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import org.mockito.ArgumentCaptor
@@ -37,7 +39,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.PenaltiesService
+import services.{PenaltiesCache, PenaltiesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -58,14 +60,14 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
   val templateToBeRendered = "financialStatement/penalties/selectYear.njk"
   val formProvider = new YearsFormProvider()
   val form: Form[Year] = formProvider()
+  val penaltyType: PenaltyType = AccountingForTaxPenalties
 
-  lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad().url
-  lazy val httpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit().url
+  lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad(penaltyType).url
+  lazy val httpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(penaltyType).url
 
   private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> FSYears.radios(form, years),
-    "submitUrl" -> httpPathPOST
+    "radios" -> FSYears.radios(form, years)
   )
 
   private val year = "2020"
@@ -79,7 +81,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
+    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
   }
 
   "SelectYear Controller" must {
@@ -100,6 +102,8 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     }
 
     "redirect to next page when valid data is submitted" in {
+      when(mockPenaltiesService.navFromAftYearsPage(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(year))))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

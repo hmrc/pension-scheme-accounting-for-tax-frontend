@@ -20,7 +20,7 @@ import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{SchemeDetails, Enumerable}
+import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -32,11 +32,12 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import services.{PenaltiesService, SchemeService}
+import services.{PenaltiesCache, PenaltiesService, SchemeService}
 import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, _}
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
@@ -45,9 +46,9 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
   import PenaltiesControllerSpec._
 
   private def httpPathGETAssociated: String =
-    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, srn).url
+    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoadAft(startDate, srn).url
   private def httpPathGETUnassociated(identifier: String): String =
-    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, identifier).url
+    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoadAft(startDate, identifier).url
 
   val penaltyTables: JsObject =
     Json.obj("penaltyTable" -> Table(head = head, rows = rows("2020-04-01")))
@@ -65,16 +66,12 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 
   private val templateToBeRendered = "financialStatement/penalties/penalties.njk"
   private val jsonToPassToTemplateAssociatedScheme: JsObject = Json.obj(
-    "startDate" -> "1 April",
-    "endDate" -> "30 June 2020",
     "pstr" -> pstr,
     "schemeAssociated" -> true,
     "schemeName" -> Json.arr(schemeDetails.schemeName),
     "table" -> penaltyTables)
 
   private val jsonToPassToTemplateUnassociatedScheme: JsObject = Json.obj(
-    "startDate" -> "1 April",
-    "endDate" -> "30 June 2020",
     "pstr" -> pstr,
     "schemeAssociated" -> false,
     "schemeName" -> Json.arr(),
@@ -85,7 +82,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
     reset(mockPenaltiesService, mockRenderer)
     when(mockPenaltiesService.getPsaFsJson(any(), any(), any(), any())(any()))
       .thenReturn(penaltyTables)
-    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
+    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
 
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
@@ -112,7 +109,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
       }
 
       "render the correct view with penalty tables for unassociated" in {
-        when(mockPenaltiesService.unassociatedSchemes(any(), any(), any())(any(), any()))
+        when(mockPenaltiesService.unassociatedSchemes(any(), any(): LocalDate, any())(any(), any()))
           .thenReturn(Future.successful(psaFSResponse))
 
         val pstrIndex: String = psaFSResponse.map(_.pstr).indexOf(pstr).toString
@@ -139,7 +136,7 @@ object PenaltiesControllerSpec {
   val pstr = "24000040IN"
 
   val head = Seq(
-    Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-half")),
+    Cell(msg"penalties.column.chargeType", classes = Seq("govuk-!-width-one-half")),
     Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
     Cell(msg"")
   )
@@ -151,6 +148,6 @@ object PenaltiesControllerSpec {
     ))
 
   def link(startDate: String): Html = Html(
-      s"<a id=XY002610150184 class=govuk-link href=${routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
+      s"<a id=XY002610150184 class=govuk-link href=${routes.ChargeDetailsController.onPageLoad(srn, "XY002610150184").url}>" +
       s"Accounting for Tax late filing penalty </a>")
 }

@@ -16,32 +16,32 @@
 
 package services
 
-import java.time.LocalDate
 import base.SpecBase
 import config.FrontendAppConfig
-import connectors.{MinimalConnector, AFTConnector}
 import connectors.MinimalConnector.MinimalDetails
 import connectors.cache.UserAnswersCacheConnector
+import connectors.{AFTConnector, MinimalConnector}
 import data.SampleData
 import data.SampleData._
-import models.{AFTOverview, SessionAccessData, AFTVersion, SchemeStatus, SessionData, SchemeDetails, AccessMode, UserAnswers, MinimalFlags}
 import models.requests.IdentifierRequest
-import org.mockito.{ArgumentCaptor, Matchers}
+import models.{AFTOverview, AccessMode, MinimalFlags, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when, _}
-import org.scalatest.{BeforeAndAfterEach, MustMatchers}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.{BeforeAndAfterEach, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{PSTRQuery, EmailQuery, NameQuery, SchemeNameQuery, AFTSummaryPage, ChargeTypePage, MinimalFlagsQuery, SchemeStatusQuery}
+import pages._
 import play.api.libs.json.JsObject
 import play.api.mvc.AnyContentAsEmpty
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants._
 import utils.DateHelper
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
 

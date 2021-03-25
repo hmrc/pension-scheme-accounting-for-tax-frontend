@@ -7,7 +7,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("selectScheme.title", messages(typeParam)), form.errors) }}
+  {{ title(messages("penaltyType.title"), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -22,11 +22,7 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{ messages("selectScheme.title", messages(typeParam)) }}</h1>
-
-        <p class="govuk-body">{{ messages("selectScheme.text") }}</p>
-
-        <form method="post" autocomplete="off" novalidate >
+        <form method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 
@@ -34,9 +30,9 @@
             name: 'value',
             fieldset: {
               legend: {
-                text: messages('selectScheme.title', messages(typeParam)),
-                isPageHeading: false,
-                classes: "govuk-visually-hidden"
+                text: messages('penaltyType.title'),
+                isPageHeading: true,
+                classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8"
               }
             },
             items: radios,
@@ -44,7 +40,7 @@
           }) }}
 
           {{ govukButton({
-            text: messages("site.continue"),
+            text: messages("site.save_and_continue"),
             attributes: {id: "submit"}
           }) }}
 
@@ -52,7 +48,6 @@
 
       </div>
     </div>
-
-    <p class="govuk-body"><a id="return_to_psa" href="{{ config.managePensionsSchemeOverviewUrl }}" class="govuk-link">{{ messages("return.to.link", psaName) }}</a></p>
+  <p class="govuk-body"><a id="return_to_psa" href="{{ config.managePensionsSchemeOverviewUrl }}" class="govuk-link">{{ messages("return.to.link", psaName) }}</a></p>
 
 {% endblock %}

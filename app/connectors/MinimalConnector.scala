@@ -25,8 +25,9 @@ import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import utils.HttpResponseHelper
 import play.api.http.Status._
+import play.api.mvc.AnyContent
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
@@ -45,6 +46,21 @@ class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
         case (_, Some(psp)) => hc.withExtraHeaders("pspId" -> psp.id)
         case _ => throw new Exception("Could not retrieve ID from request")
       }
+
+    minDetails(hcWithId)
+  }
+
+  def getMinimalPsaDetails(psaId: String)
+                                    (implicit hc: HeaderCarrier,
+                                     ec: ExecutionContext
+                                    ): Future[MinimalDetails] = {
+
+    val hcWithId: HeaderCarrier = hc.withExtraHeaders("psaId" -> psaId)
+    minDetails(hcWithId)
+  }
+
+  private def minDetails(hcWithId: HeaderCarrier)
+                        (implicit ec: ExecutionContext): Future[MinimalDetails] = {
 
     val url = config.minimalPsaDetailsUrl
 

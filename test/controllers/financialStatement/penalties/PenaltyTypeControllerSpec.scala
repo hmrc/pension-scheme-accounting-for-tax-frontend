@@ -20,10 +20,12 @@ import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.QuartersFormProvider
+import forms.financialStatement.PenaltyTypeFormProvider
 import matchers.JsonMatchers
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
+import models.financialStatement.{DisplayPenaltyType, PenaltyType}
 import models.requests.IdentifierRequest
-import models.{DisplayQuarter, Enumerable, PaymentOverdue, Quarter, Quarters}
+import models.{Enumerable, PaymentOverdue}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -42,7 +44,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -51,30 +53,28 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     bind[PenaltiesService].toInstance(mockPenaltiesService)
   )
 
-  private val year = "2020"
-
-  private val quarters: Seq[Quarter] = Seq(q32020, q42020)
-  private val displayQuarters: Seq[DisplayQuarter] = Seq(
-    DisplayQuarter(q32020, displayYear = false, None, Some(PaymentOverdue)),
-    DisplayQuarter(q42020, displayYear = false, None, Some(PaymentOverdue))
-  )
+  private val displayPenalties: Seq[DisplayPenaltyType] = Seq(
+    DisplayPenaltyType(AccountingForTaxPenalties, Some(PaymentOverdue)),
+    DisplayPenaltyType(ContractSettlementCharges, None))
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialStatement/penalties/selectQuarter.njk"
-  val formProvider = new QuartersFormProvider()
-  val form: Form[Quarter] = formProvider("selectPenaltiesQuarter.error", quarters)
+  val templateToBeRendered = "financialStatement/penalties/penaltyType.njk"
+  val formProvider = new PenaltyTypeFormProvider()
+  val form: Form[PenaltyType] = formProvider()
+  val penaltyTypes: Seq[PenaltyType] = PenaltyType.values
 
-  lazy val httpPathGET: String = routes.SelectPenaltiesQuarterController.onPageLoad(year).url
-  lazy val httpPathPOST: String = routes.SelectPenaltiesQuarterController.onSubmit(year).url
+  lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad().url
+  lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit().url
 
-  private val jsonToPassToTemplate: Form[Quarter] => JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[PenaltyType] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
-    "submitUrl" -> httpPathPOST
+    "radios" -> PenaltyType.radios(form, displayPenalties)
   )
 
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q32020.toString))
+  private val year = "2020"
+
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(AccountingForTaxPenalties.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
   override def beforeEach: Unit = {
@@ -83,10 +83,10 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
   }
 
-  "SelectPenaltiesQuarter Controller" must {
+  "PenaltyTypeController" must {
     "return OK and the correct view for a GET" in {
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -104,14 +104,14 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     }
 
     "redirect to next page when valid data is submitted" in {
-      when(mockPenaltiesService.navFromAftQuartersPage(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(Redirect(routes.PenaltiesController.onPageLoadAft(q32020.startDate.toString, srn))))
+      when(mockPenaltiesService.navFromPenaltiesTypePage(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(year))))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadAft(q32020.startDate.toString, srn).url)
+      redirectLocation(result) mustBe Some(routes.SelectPenaltiesQuarterController.onPageLoad(year).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

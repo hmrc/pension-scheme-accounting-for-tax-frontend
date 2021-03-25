@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package models
-
+package forms.financialStatement
+import forms.mappings.Mappings
 import models.financialStatement.PenaltyType
+import play.api.data.Form
 
-class WithName(string: String) {
-  override val toString: String = string
-}
+class PenaltyTypeFormProvider extends Mappings {
 
-class WithPenaltyType(penaltyType: PenaltyType) {
-  override val toString: String = penaltyType.toString
+  def apply(): Form[PenaltyType] =
+    Form(
+      "value" -> enumerable[PenaltyType](requiredKey = "penaltyType.error.required")
+    )
 }
