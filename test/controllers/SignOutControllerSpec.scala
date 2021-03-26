@@ -16,15 +16,18 @@
 
 package controllers
 
+import connectors.cache.SessionDataCacheConnector
 import controllers.base.ControllerSpecBase
 import models.UserAnswers
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when, never}
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{never, times, verify, when, _}
 import play.api.test.Helpers._
 import utils.AFTConstants._
+import play.api.inject.bind
 
 import scala.concurrent.Future
 
@@ -36,11 +39,22 @@ class SignOutControllerSpec extends ControllerSpecBase {
   private val userAnswers = UserAnswers(Json.obj(
     "test-key" -> "test-value"
   ))
-  private val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+
+  private val mockSessionDataCacheConnector = mock[SessionDataCacheConnector]
+
+  private val extraModules: Seq[GuiceableModule] =
+    Seq[GuiceableModule](
+      bind[SessionDataCacheConnector].toInstance(mockSessionDataCacheConnector)
+    )
+
+  private val application = applicationBuilder(userAnswers = Some(userAnswers), extraModules = extraModules).build()
 
   "SignOut Controller" must {
 
     "clear data and redirect to feedback survey page when there is a startDate" in {
+      reset(mockSessionDataCacheConnector)
+      when(mockSessionDataCacheConnector.removeAll(any())(any(), any()))
+        .thenReturn(Future.successful(Ok))
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
       when(mockAppConfig.signOutUrl).thenReturn(frontendAppConfig.signOutUrl)
       val result = route(application, FakeRequest(GET, signOutRoute())).value
@@ -51,6 +65,9 @@ class SignOutControllerSpec extends ControllerSpecBase {
     }
 
     "not clear data but redirect to feedback survey page when there is no startDate" in {
+      reset(mockSessionDataCacheConnector)
+      when(mockSessionDataCacheConnector.removeAll(any())(any(), any()))
+        .thenReturn(Future.successful(Ok))
       when(mockAppConfig.signOutUrl).thenReturn(frontendAppConfig.signOutUrl)
 
       val result = route(application, FakeRequest(GET, signOutRoute(None))).value

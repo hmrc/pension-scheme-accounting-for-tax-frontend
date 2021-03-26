@@ -18,15 +18,15 @@ package config
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
-import models.{SchemeAdministratorType, JourneyType}
-import models.requests.{DataRequest, IdentifierRequest}
+import models.AdministratorOrPractitioner.Administrator
+import models.{AdministratorOrPractitioner, JourneyType}
+import models.requests.{IdentifierRequest, DataRequest}
 import play.api.Configuration
 import play.api.i18n.Lang
 import play.api.mvc.Call
-import uk.gov.hmrc.domain.{PspId, PsaId}
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
@@ -79,7 +79,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val aftUrl: String = servicesConfig.baseUrl("pension-scheme-accounting-for-tax")
 
   def aftEmailCallback(
-                        schemeAdministratorType: SchemeAdministratorType,
+                        schemeAdministratorType: AdministratorOrPractitioner,
                         journeyType: JourneyType.Value,
                         requestId: String,
                         encryptedEmail: String,
@@ -87,7 +87,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
                       ) = s"$aftUrl${
     configuration.get[String](path = "urls.emailCallback")
       .format(
-        schemeAdministratorType.toString,
+        if (schemeAdministratorType == Administrator) "PSA" else "PSP",
         journeyType.toString,
         requestId,
         encryptedEmail,
@@ -106,6 +106,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val isAftNonZero: String = s"$aftUrl${configuration.get[String](path = "urls.isAftNonZero")}"
   lazy val psaFinancialStatementUrl: String = s"$aftUrl${configuration.get[String](path = "urls.psaFinancialStatement")}"
   lazy val viewPenaltiesUrl: String = configuration.get[String](path = "urls.partials.psaFinancialStatementLink")
+  lazy val viewUpcomingPenaltiesUrl: String = configuration.get[String](path = "urls.partials.upcomingPenaltiesLink")
   lazy val schemeFinancialStatementUrl: String = s"$aftUrl${configuration.get[String](path = "urls.schemeFinancialStatement")}"
 
   lazy val schemeDetailsUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.schemeDetails")}"
@@ -124,6 +125,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
       case _ => managePensionsSchemeSummaryUrl
     }
 
+  lazy val administratorOrPractitionerUrl: String = loadConfig("urls.administratorOrPractitioner")
   lazy val managePensionsSchemeSummaryUrl: String = loadConfig("urls.schemesSummary")
   lazy val managePensionsSchemePspUrl: String = loadConfig("urls.psp.schemesSummary")
   lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")

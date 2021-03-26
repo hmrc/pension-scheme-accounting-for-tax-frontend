@@ -364,14 +364,13 @@ class AFTPartialService @Inject()(
     }
   }
 
-  def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFS])
-    (implicit messages: Messages): DashboardAftViewModel = {
+  def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFS], psaId: String)
+    (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): DashboardAftViewModel = {
+
+    val upcomingCharges: Seq[PsaFS] =
+      psaFs.filter(_.dueDate.exists(_.isBefore(DateHelper.today)))
 
     val subHeadingPaymentDue = {
-
-      val upcomingCharges: Seq[PsaFS] =
-        psaFs.filter(charge => charge.dueDate.exists(_.isBefore(DateHelper.today)))
-
 
       val totalUpcoming = upcomingCharges.map(_.amountDue).sum
 
@@ -398,8 +397,14 @@ class AFTPartialService @Inject()(
       )
     }
 
+    val upcomingLink: Seq[Link] = if(upcomingCharges.nonEmpty) {
+        Seq(Link("upcoming-penalties-id", appConfig.viewUpcomingPenaltiesUrl, msg"psaPenaltiesCard.paymentsDue.linkText", None))
+    } else {
+      Nil
+    }
+
     DashboardAftViewModel(
       subHeadings = Seq(subHeadingPaymentDue, subHeadingTotalOverduePayments),
-      links = Seq(Link("aft-penalties-id",appConfig.viewPenaltiesUrl,msg"psaPenaltiesCard.viewPastPenalties", None)))
+      links = upcomingLink :+ Link("past-penalties-id", appConfig.viewPenaltiesUrl, msg"psaPenaltiesCard.viewPastPenalties", None))
   }
 }

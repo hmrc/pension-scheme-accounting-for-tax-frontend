@@ -19,12 +19,14 @@ package services
 import java.time.LocalDate
 import base.SpecBase
 import config.FrontendAppConfig
+import connectors.MinimalConnector.MinimalDetails
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, ListOfSchemesConnector}
+import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
+import controllers.financialStatement.penalties.routes._
 import data.SampleData.{paymentsCache, psaFsSeq, psaId, schemeFSResponseAftAndOTC}
 import helpers.FormatHelper
-import models.financialStatement.PsaFS
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
+import models.financialStatement.{PsaFS, PsaFSChargeType}
+import models.financialStatement.PsaFSChargeType._
 import models.{ListOfSchemes, ListSchemeDetails, PenaltySchemes}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -44,6 +46,7 @@ import utils.DateHelper.dateFormatterDMY
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import models.LocalDateBinder._
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, PensionsPenalties}
 
 class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
 
@@ -53,23 +56,28 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
   private val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val mockListOfSchemesConn: ListOfSchemesConnector = mock[ListOfSchemesConnector]
-  private val penaltiesService = new PenaltiesService(mockFSConnector, mockFIConnector, mockListOfSchemesConn)
+  private val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
+  private val penaltiesService = new PenaltiesService(mockFSConnector, mockFIConnector, mockListOfSchemesConn, mockMinimalConnector)
 
   def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String): JsObject = Json.obj(
-      "penaltyTable" -> Table(head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue),
+      "penaltyTable" -> Table(head = head, rows = rows(aftLink(), statusClass, statusMessageKey, amountDue),
         attributes = Map("role" -> "table"))
     )
 
   override def beforeEach: Unit = {
     super.beforeEach
+    reset(mockListOfSchemesConn)
     when(mockAppConfig.minimumYear).thenReturn(year)
+    when(mockMinimalConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future(MinimalDetails("", false, Some("psa-name"), None, false, false)))
     when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse()))))
+    when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future.successful(Right(listOfSchemes)))
     DateHelper.setDate(Some(dateNow))
   }
 
   "getPsaFsJson" must {
     "return the penalty tables based on API response for paymentOverdue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")), srn, startDate, chargeRefIndex) mustBe
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")),
+        srn, chargeRefIndex, AccountingForTaxPenalties) mustBe
           penaltyTables(
             statusClass = "govuk-tag govuk-tag--red",
             statusMessageKey = "penalties.status.paymentOverdue",
@@ -78,7 +86,8 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for noPaymentDue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, startDate, chargeRefIndex) mustBe
+      penaltiesService.getPsaFsJson(
+        psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, chargeRefIndex, AccountingForTaxPenalties) mustBe
           penaltyTables(
             statusClass = "govuk-visually-hidden",
             statusMessageKey = "penalties.status.visuallyHiddenText.noPaymentDue",
@@ -87,7 +96,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for paymentIsDue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, startDate, chargeRefIndex) mustBe
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, chargeRefIndex, AccountingForTaxPenalties) mustBe
           penaltyTables(
             statusClass = "govuk-visually-hidden",
             statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
@@ -140,10 +149,9 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
   "penaltySchemes" must {
     "return a combination of all associated and unassociated schemes returned in correct format" in {
-      when(mockFIConnector.fetch(any(), any())) thenReturn Future.successful(Some(Json.toJson(PenaltiesCache("PsaID", psaFSResponse()))))
-      when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future.successful(Right(listOfSchemes)))
+      when(mockFIConnector.fetch(any(), any())) thenReturn Future.successful(Some(Json.toJson(PenaltiesCache("PsaID", "psa-name", psaFSResponse()))))
 
-      whenReady(penaltiesService.penaltySchemes("2020-04-01", "PsaID")(implicitly, implicitly)) {
+      whenReady(penaltiesService.penaltySchemes("2020-04-01", "PsaID", psaFSResponse())(implicitly, implicitly)) {
         _ mustBe penaltySchemes
       }
     }
@@ -175,28 +183,172 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     "return payload from cache is srn and logged in id match the payload" in {
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(penaltiesCache))))
-      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFsSeq }
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe PenaltiesCache(psaId, "psa-name", psaFsSeq) }
     }
 
     "call FS API and save to cache if logged in id does not match the retrieved payload from cache" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(penaltiesCache.copy(psaId = "wrong-id")))))
       when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse()))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFSResponse() }
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe PenaltiesCache(psaId, "psa-name", psaFSResponse()) }
     }
 
     "call FS API and save to cache if retrieved payload from cache is not in Payments format" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache(schemeFSResponseAftAndOTC)))))
       when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFsSeq }
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe PenaltiesCache(psaId, "psa-name", psaFsSeq) }
     }
 
     "call FS API and save to cache if there is no existing payload stored in cache" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(None))
       when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFsSeq }
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe PenaltiesCache(psaId, "psa-name", psaFsSeq) }
+    }
+  }
+
+  "navFromAftQuartersPage" must {
+    "redirect to SelectSchemePage if charges from multiple schemes are returned for this quarter" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_6_MONTH_LPP, pstr = "24000041IN"))
+      whenReady(penaltiesService.navFromAftQuartersPage(apiResponse, LocalDate.parse("2021-01-01"), psaId)){
+        _ mustBe Redirect(SelectSchemeController.onPageLoad(AccountingForTaxPenalties, "2021-01-01"))
+      }
+    }
+
+    "redirect to PenaltiesController with srn if charges from single scheme is returned and pstr is found in list of schemes" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_6_MONTH_LPP))
+      val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1", Some(List(ListSchemeDetails("scheme-name", srn, "", None, Some(pstr), None, None, None))))
+
+      when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
+
+      whenReady(penaltiesService.navFromAftQuartersPage(apiResponse, LocalDate.parse("2021-01-01"), psaId)){
+        _ mustBe Redirect(PenaltiesController.onPageLoadAft("2021-01-01", srn))
+      }
+    }
+
+    "redirect to PenaltiesController with pstr index identifier if charges from single scheme is returned and pstr is not found in list of schemes" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_6_MONTH_LPP))
+      val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1",
+        Some(List(ListSchemeDetails("scheme-name", srn, "", None, Some("24000041IN"), None, None, None))))
+
+      when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
+
+      whenReady(penaltiesService.navFromAftQuartersPage(apiResponse, LocalDate.parse("2021-01-01"), psaId)){
+        _ mustBe Redirect(PenaltiesController.onPageLoadAft("2021-01-01", "0"))
+      }
+    }
+  }
+
+  "navFromNonAftYearsPage" must {
+    "redirect to SelectSchemePage if charges from multiple schemes are returned for the selected year" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(CONTRACT_SETTLEMENT), customPsaFS(CONTRACT_SETTLEMENT_INTEREST, pstr = "24000041IN"))
+      whenReady(penaltiesService.navFromNonAftYearsPage(apiResponse, "2021", psaId, ContractSettlementCharges)){
+        _ mustBe Redirect(SelectSchemeController.onPageLoad(ContractSettlementCharges, "2021"))
+      }
+    }
+
+    "redirect to PenaltiesController with srn if charges from single scheme is returned and pstr is found in list of schemes" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(PSS_PENALTY), customPsaFS(PSS_PENALTY, "2021-04-01", "2021-06-30"))
+      val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1", Some(List(ListSchemeDetails("scheme-name", srn, "", None, Some(pstr), None, None, None))))
+
+      when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
+
+      whenReady(penaltiesService.navFromNonAftYearsPage(apiResponse, "2021", psaId, PensionsPenalties)){
+        _ mustBe Redirect(PenaltiesController.onPageLoadPension("2021", srn))
+      }
+    }
+
+    "redirect to PenaltiesController with pstr index identifier if charges from single scheme is returned and pstr is not found in list of schemes" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(PSS_INFO_NOTICE))
+      val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1",
+        Some(List(ListSchemeDetails("scheme-name", srn, "", None, Some("24000041IN"), None, None, None))))
+
+      when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
+
+      whenReady(penaltiesService.navFromNonAftYearsPage(apiResponse, "2021", psaId, InformationNoticePenalties)){
+        _ mustBe Redirect(PenaltiesController.onPageLoadInfoNotice("2021", "0"))
+      }
+    }
+  }
+
+  "navFromAftYearsPage" must {
+    "redirect to SelectQuartersPage if charges from multiple quarters are returned for the selected year" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_6_MONTH_LPP, startDate = "2021-04-01"))
+      whenReady(penaltiesService.navFromAftYearsPage(apiResponse, 2021, psaId)){
+        _ mustBe Redirect(SelectPenaltiesQuarterController.onPageLoad("2021"))
+      }
+    }
+
+    "redirect to page returned if single quarter is returned for the selected year" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_6_MONTH_LPP))
+
+      whenReady(penaltiesService.navFromAftYearsPage(apiResponse, 2021, psaId)){
+        _ mustBe Redirect(PenaltiesController.onPageLoadAft("2021-01-01", "SRN123"))
+      }
+    }
+
+    "redirect to SessionExpired if no charges are returned for given year" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_6_MONTH_LPP))
+
+      whenReady(penaltiesService.navFromAftYearsPage(apiResponse, 2020, psaId)){
+        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+      }
+    }
+  }
+
+  "navFromPenaltiesTypePage" must {
+    "redirect to SelectYear page if API returns multiple years for AFT" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_12_MONTH_LPP, "2020-01-01", "2020-03-31"))
+      whenReady(penaltiesService.navFromPenaltiesTypePage(apiResponse, AccountingForTaxPenalties, psaId)){
+        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(AccountingForTaxPenalties))
+      }
+    }
+
+    "redirect to SelectYear page if API returns multiple years for NON-AFT" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(PSS_INFO_NOTICE), customPsaFS(PSS_INFO_NOTICE, "2020-01-01", "2020-03-31"))
+      whenReady(penaltiesService.navFromPenaltiesTypePage(apiResponse, InformationNoticePenalties, psaId)){
+        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(InformationNoticePenalties))
+      }
+    }
+
+    "redirect to penaltyType page if API returns charges from a single year for AFT" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_12_MONTH_LPP))
+      whenReady(penaltiesService.navFromPenaltiesTypePage(apiResponse, AccountingForTaxPenalties, psaId)){
+        _ mustBe Redirect(PenaltiesController.onPageLoadAft("2021-01-01", "SRN123"))
+      }
+    }
+
+    "redirect to penaltyType page if API returns charges from a single year for NON-AFT" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(CONTRACT_SETTLEMENT_INTEREST), customPsaFS(CONTRACT_SETTLEMENT))
+      whenReady(penaltiesService.navFromPenaltiesTypePage(apiResponse, ContractSettlementCharges, psaId)){
+        _ mustBe Redirect(PenaltiesController.onPageLoadContract("2021", "SRN123"))
+      }
+    }
+
+    "redirect to SessionExpired if no charges are returned for given year" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(CONTRACT_SETTLEMENT_INTEREST), customPsaFS(CONTRACT_SETTLEMENT))
+      whenReady(penaltiesService.navFromPenaltiesTypePage(apiResponse, PensionsPenalties, psaId)){
+        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+      }
+    }
+  }
+
+  "navFromOverviewPage" must {
+    "redirect to penaltyType page if API returns multiple categories" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(PSS_PENALTY))
+      whenReady(penaltiesService.navFromOverviewPage(apiResponse, psaId)){ _ mustBe Redirect(PenaltyTypeController.onPageLoad())}
+    }
+
+    "redirect to penaltyType page if API returns charges in a single category" in {
+      val apiResponse: Seq[PsaFS] = Seq(customPsaFS(CONTRACT_SETTLEMENT_INTEREST), customPsaFS(CONTRACT_SETTLEMENT))
+      whenReady(penaltiesService.navFromOverviewPage(apiResponse, psaId)){ _ mustBe Redirect(PenaltiesController.onPageLoadContract("2021", "SRN123"))}
+    }
+
+    "redirect to SessionExpired if no charges are returned for given year" in {
+           whenReady(penaltiesService.navFromOverviewPage(Nil, psaId)){
+        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+      }
     }
   }
 
@@ -210,7 +362,7 @@ object PenaltiesServiceSpec {
   val dateNow: LocalDate = LocalDate.now()
   val chargeRefIndex: String => String = _ => "0"
 
-  val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, psaFsSeq)
+  val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
 
   def psaFSResponse(amountDue: BigDecimal = BigDecimal(0.01), dueDate: LocalDate = dateNow): Seq[PsaFS] = Seq(
     PsaFS(
@@ -226,7 +378,7 @@ object PenaltiesServiceSpec {
       pstr = "24000040IN"
     ),
     PsaFS(
-      chargeReference = "XY002610150184",
+      chargeReference = "XY002610150185",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(dueDate),
       totalAmount = 80000.00,
@@ -238,7 +390,7 @@ object PenaltiesServiceSpec {
       pstr = "24000041IN"
     ),
     PsaFS(
-      chargeReference = "XY002610150184",
+      chargeReference = "XY002610150186",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(dueDate),
       totalAmount = 80000.00,
@@ -265,7 +417,7 @@ object PenaltiesServiceSpec {
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
   private def head(implicit messages: Messages) = Seq(
-    Cell(msg"penalties.column.penalty"),
+    Cell(msg"penalties.column.penaltyType"),
     Cell(msg"penalties.column.amount"),
     Cell(msg"penalties.column.chargeReference"),
     Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
@@ -275,7 +427,7 @@ object PenaltiesServiceSpec {
                    statusClass: String,
                    statusMessageKey: String,
                    amountDue: String,
-                   link2: Html = otcLink("2020-04-01")
+                   link2: Html = otcLink()
                   )(implicit messages: Messages) = Seq(Seq(
     Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
@@ -285,19 +437,25 @@ object PenaltiesServiceSpec {
     Seq(
       Cell(link2, classes = Seq("govuk-!-width-two-thirds-quarter")),
       Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal("XY002610150185"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
+    ),
+    Seq(
+      Cell(otcLink("XY002610150186"), classes = Seq("govuk-!-width-two-thirds-quarter")),
+      Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal("XY002610150186"), classes = Seq("govuk-!-width-one-quarter")),
       Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
     ))
 
-  def aftLink(startDate: String): Html = Html(
-    s"<a id=XY002610150184 class=govuk-link " +
-      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
-      s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
+  def aftLink(chargeReference: String = "XY002610150184"): Html = Html(
+    s"<a id=$chargeReference class=govuk-link " +
+      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
+      s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
-  def otcLink(startDate: String): Html = Html(
-    s"<a id=XY002610150184 class=govuk-link " +
-      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
-      s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
+  def otcLink(chargeReference: String = "XY002610150185"): Html = Html(
+    s"<a id=$chargeReference class=govuk-link " +
+      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
+      s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
 
   def totalAmount(amount: BigDecimal = BigDecimal(80000.00)): Row = Row(
@@ -333,5 +491,10 @@ object PenaltiesServiceSpec {
 
   val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
     ListSchemeDetails("Assoc scheme", "SRN123", "", None, Some("24000040IN"), None, None))))
+
+  def customPsaFS(chargeType: PsaFSChargeType, startDate: String = "2021-01-01", endDate: String = "2021-03-31", pstr: String = pstr): PsaFS =
+    PsaFS("XY002610150184", chargeType, Some(LocalDate.parse("2021-05-15")), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),
+      BigDecimal(0.00), LocalDate.parse(startDate), LocalDate.parse(endDate), pstr)
+
 
 }

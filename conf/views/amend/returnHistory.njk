@@ -18,8 +18,10 @@
                       section: schemeName
             }) }}
 
+     <div role="region" aria-labelledby="aftreturn_history" class="govuk-!-margin-bottom-7" tabindex="0">
+        <span id="aftreturn_history" class="govuk-visually-hidden" aria-hidden="true">{{ messages("returnHistory.title", quarterStart, quarterEnd) }}</span>
         {{ govukTable(versions) }}
-
+    </div>
       </div>
     </div>
 
@@ -27,6 +29,6 @@
           <p class="govuk-body govuk-!-margin-bottom-5"><a id="payments-charges" href="{{ paymentsAndChargesUrl }}" class="govuk-link"> {{ messages("paymentsAndCharges.partial.view.link") }}</a></p>
     {% endif %}
 
-    <a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
-
+    <p class="govuk-body"><a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+    </p>
 {% endblock %}

@@ -18,9 +18,9 @@ package controllers.financialStatement.penalties
 
 import controllers.actions._
 import forms.QuartersFormProvider
-import models.LocalDateBinder._
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.PsaFS
-import models.{DisplayQuarter, DisplayHint, PaymentOverdue, Quarter, Quarters}
+import models.{DisplayHint, DisplayQuarter, PaymentOverdue, Quarter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -51,17 +51,19 @@ class SelectPenaltiesQuarterController @Inject()(
     formProvider(messages("selectPenaltiesQuarter.error"), quarters)
 
   def onPageLoad(year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
-    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
 
-      val quarters: Seq[Quarter] = getQuarters(year, penalties)
+
+    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+
+      val quarters: Seq[Quarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
 
         if (quarters.nonEmpty) {
 
           val json = Json.obj(
-            "year" -> year,
+            "psaName" -> penaltiesCache.psaName,
             "form" -> form(quarters),
             "radios" -> Quarters.radios(form(quarters),
-                                        getDisplayQuarters(year, penalties),
+                                        getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
                                         Seq("govuk-tag govuk-tag--red govuk-!-display-inline"),
                                         areLabelsBold = false),
             "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
@@ -77,21 +79,19 @@ class SelectPenaltiesQuarterController @Inject()(
   }
 
   def onSubmit(year: String): Action[AnyContent] = identify.async { implicit request =>
-    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
 
-      val quarters: Seq[Quarter] = getQuarters(year, penalties)
+      val quarters: Seq[Quarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
         if (quarters.nonEmpty) {
 
-          form(quarters)
-            .bindFromRequest()
-            .fold(
+          form(quarters).bindFromRequest().fold(
               formWithErrors => {
 
                   val json = Json.obj(
-                    "year" -> year,
+                    "psaName" -> penaltiesCache.psaName,
                     "form" -> formWithErrors,
                     "radios" -> Quarters.radios(formWithErrors,
-                                                getDisplayQuarters(year, penalties),
+                                                getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
                                                 Seq("govuk-tag govuk-!-display-inline govuk-tag--red"),
                                                 areLabelsBold = false),
                     "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
@@ -100,9 +100,7 @@ class SelectPenaltiesQuarterController @Inject()(
                   renderer.render(template = "financialStatement/penalties/selectQuarter.njk", json).map(BadRequest(_))
 
               },
-              value => {
-                Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(value.startDate)))
-              }
+              value => penaltiesService.navFromAftQuartersPage(penaltiesCache.penalties, value.startDate, request.psaIdOrException.id)
             )
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -110,8 +108,15 @@ class SelectPenaltiesQuarterController @Inject()(
     }
   }
 
+  val filteredPenalties: (Seq[PsaFS], Int) => Seq[PsaFS] = (penalties, year) =>
+    penalties
+      .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
+      .filter(_.periodStartDate.getYear == year)
+
   private def getDisplayQuarters(year: String, penalties: Seq[PsaFS]): Seq[DisplayQuarter] = {
-    val quartersFound: Seq[LocalDate] = penalties.filter(_.periodStartDate.getYear == year.toInt).map(_.periodStartDate).distinct.sortBy(_.getMonth)
+
+    val quartersFound: Seq[LocalDate] = penalties.map(_.periodStartDate).distinct.sortBy(_.getMonth)
+
     quartersFound.map { startDate =>
       val hint: Option[DisplayHint] =
         if (penalties.filter(_.periodStartDate == startDate).exists(penaltiesService.isPaymentOverdue)) Some(PaymentOverdue) else None
@@ -122,6 +127,7 @@ class SelectPenaltiesQuarterController @Inject()(
   }
 
   private def getQuarters(year: String, penalties: Seq[PsaFS]): Seq[Quarter] =
-    penalties.filter(_.periodStartDate.getYear == year.toInt).distinct
-      .map(penalty => Quarters.getQuarter(penalty.periodStartDate))
+    penalties.distinct.map(penalty => Quarters.getQuarter(penalty.periodStartDate))
+
+
 }

@@ -61,12 +61,12 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
   private def identifierRequest(headers: Seq[(String,String)] = Seq.empty): IdentifierRequest[AnyContent] = {
     val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
-    IdentifierRequest(request, Some(PsaId(psaId)), None)
+    IdentifierRequest("id", request, Some(PsaId(psaId)), None)
   }
 
   private def identifierRequestPsp(headers: Seq[(String,String)] = Seq.empty): IdentifierRequest[AnyContent] = {
     val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
-    IdentifierRequest(request, None, Some(PspId(pspId)))
+    IdentifierRequest("id", request, None, Some(PspId(pspId)))
   }
 
   private def dataRequestPsp(ua:UserAnswers, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {

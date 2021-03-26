@@ -17,7 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.{urlEqualTo, _}
-import models.{JourneyType, SchemeAdministratorType}
+import models.{JourneyType, AdministratorOrPractitioner}
 import org.scalatest.{AsyncWordSpec, MustMatchers}
 import play.api.http.Status
 import uk.gov.hmrc.domain.PsaId
@@ -49,7 +49,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
           )
         )
         connector.sendEmail(
-          SchemeAdministratorType.SchemeAdministratorTypePSA,
+          AdministratorOrPractitioner.Administrator,
           requestId,
           testPsaId.id,
           journeyType,
@@ -69,7 +69,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
           )
         )
 
-        connector.sendEmail(SchemeAdministratorType.SchemeAdministratorTypePSA,
+        connector.sendEmail(AdministratorOrPractitioner.Administrator,
           requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
@@ -81,7 +81,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(SchemeAdministratorType.SchemeAdministratorTypePSA,
+        connector.sendEmail(AdministratorOrPractitioner.Administrator,
           requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }

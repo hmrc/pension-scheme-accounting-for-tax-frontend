@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-package models
+package models.financialStatement
 
-sealed trait SchemeAdministratorType
+import models.DisplayHint
 
-object SchemeAdministratorType extends Enumerable.Implicits {
-
-    case object SchemeAdministratorTypePSA extends WithName("PSA") with SchemeAdministratorType
-    case object SchemeAdministratorTypePSP extends WithName("PSP") with SchemeAdministratorType
-
-    val values: Seq[SchemeAdministratorType] = Seq(
-        SchemeAdministratorTypePSA, SchemeAdministratorTypePSP
-    )
-
-    implicit val enumerable: Enumerable[SchemeAdministratorType] =
-        Enumerable(values.map(v => v.toString -> v): _*)
-}
+case class DisplayPenaltyType(penaltyType: PenaltyType, hintText: Option[DisplayHint])

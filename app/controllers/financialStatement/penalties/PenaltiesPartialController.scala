@@ -50,7 +50,7 @@ class PenaltiesPartialController @Inject()(
       val result = if (psaFS.isEmpty) {
         Future.successful(Html(""))
       } else {
-        val viewModel = aftPartialService.retrievePsaPenaltiesCardModel(psaFS)
+        val viewModel = aftPartialService.retrievePsaPenaltiesCardModel(psaFS, request.psaIdOrException.id)
         renderer.render(
           template = "partials/penalties.njk",
           ctx = Json.obj("viewModel" -> Json.toJson(viewModel))

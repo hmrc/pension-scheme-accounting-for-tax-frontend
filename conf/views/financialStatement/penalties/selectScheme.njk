@@ -7,7 +7,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("selectScheme.title"), form.errors) }}
+  {{ title(messages("selectScheme.title", messages(typeParam)), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -22,11 +22,11 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{ messages("selectScheme.title") }}</h1>
+        <h1 class="govuk-heading-xl">{{ messages("selectScheme.title", messages(typeParam)) }}</h1>
 
         <p class="govuk-body">{{ messages("selectScheme.text") }}</p>
 
-        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
+        <form method="post" autocomplete="off" novalidate >
 
           {{ csrf() | safe }}
 
@@ -34,7 +34,7 @@
             name: 'value',
             fieldset: {
               legend: {
-                text: messages('selectScheme.title'),
+                text: messages('selectScheme.title', messages(typeParam)),
                 isPageHeading: false,
                 classes: "govuk-visually-hidden"
               }
@@ -52,5 +52,7 @@
 
       </div>
     </div>
+
+    <p class="govuk-body"><a id="return_to_psa" href="{{ config.managePensionsSchemeOverviewUrl }}" class="govuk-link">{{ messages("return.to.link", psaName) }}</a></p>
 
 {% endblock %}

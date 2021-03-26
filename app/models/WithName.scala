@@ -16,6 +16,12 @@
 
 package models
 
+import models.financialStatement.PenaltyType
+
 class WithName(string: String) {
   override val toString: String = string
+}
+
+class WithPenaltyType(penaltyType: PenaltyType) {
+  override val toString: String = penaltyType.toString
 }

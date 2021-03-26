@@ -37,7 +37,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.PenaltiesService
+import services.{PenaltiesCache, PenaltiesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -83,7 +83,7 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
+    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
   }
 
   "SelectPenaltiesQuarter Controller" must {
@@ -104,12 +104,14 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     }
 
     "redirect to next page when valid data is submitted" in {
+      when(mockPenaltiesService.navFromAftQuartersPage(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(Redirect(routes.PenaltiesController.onPageLoadAft(q32020.startDate.toString, srn))))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.SelectSchemeController.onPageLoad(q32020.startDate.toString).url)
+      redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadAft(q32020.startDate.toString, srn).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

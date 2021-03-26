@@ -16,17 +16,17 @@
 
 package connectors
 
-import java.time.LocalDate
-
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
-import models.financialStatement.{PsaFS, PsaFSChargeType, SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{PsaFS, SchemeFS, SchemeFSChargeType}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
+
+import java.time.LocalDate
 
 class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
 
@@ -52,7 +52,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
             aResponse()
               .withStatus(Status.OK)
               .withHeader("Content-Type", "application/json")
-              .withBody(Json.toJson(psaFSResponse ++ psaPaymentOnAccount).toString)
+              .withBody(Json.toJson(psaFSResponse).toString)
           )
       )
 
@@ -135,21 +135,6 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
 }
 
 object FinancialStatementConnectorSpec {
-
-  val psaPaymentOnAccount = Seq(
-    PsaFS(
-      chargeReference = "XY002610150184",
-      chargeType = PsaFSChargeType.PAYMENT_ON_ACCOUNT,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 80000.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      periodStartDate = LocalDate.parse("2020-07-01"),
-      periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000042IN"
-    )
-  )
 
   val psaFSResponse: Seq[PsaFS] = Seq(
     PsaFS(

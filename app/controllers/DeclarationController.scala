@@ -21,7 +21,7 @@ import java.time.{ZoneId, ZonedDateTime, LocalDate}
 import audit.{AFTReturnEmailAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import models.SchemeAdministratorType._
+import models.AdministratorOrPractitioner._
 import connectors.{EmailConnector, EmailStatus}
 import controllers.actions._
 import javax.inject.Inject
@@ -72,8 +72,8 @@ class DeclarationController @Inject()(
         )
 
         val template = request.schemeAdministratorType match {
-          case SchemeAdministratorTypePSA => "declaration.njk"
-          case SchemeAdministratorTypePSP => "pspDeclaration.njk"
+          case Administrator => "declaration.njk"
+          case Practitioner => "pspDeclaration.njk"
         }
         renderer.render(template, Json.obj(fields = "viewModel" -> viewModel)).map(Ok(_))
       }
@@ -83,7 +83,8 @@ class DeclarationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)
       andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, pstr, email, quarter, isAmendment, amendedVersion) =>
-        val declaration = Declaration(request.schemeAdministratorType.toString, request.idOrException, hasAgreed = true)
+        val schemeAdministratorType = if (request.schemeAdministratorType == Administrator) "PSA" else "PSP"
+        val declaration = Declaration(schemeAdministratorType, request.idOrException, hasAgreed = true)
         for {
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.save(request.internalId, answersWithDeclaration.data)

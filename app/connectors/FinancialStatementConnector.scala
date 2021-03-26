@@ -18,14 +18,13 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.financialStatement.{PsaFS, SchemeFSChargeType, PsaFSChargeType, SchemeFS}
+import models.financialStatement.{PsaFS, SchemeFS, SchemeFSChargeType}
 import play.api.http.Status._
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HttpResponse, HeaderCarrier}
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import utils.HttpResponseHelper
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
@@ -39,7 +38,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
-          response.json.as[Seq[PsaFS]].filter(_.chargeType != PsaFSChargeType.PAYMENT_ON_ACCOUNT)
+          response.json.as[Seq[PsaFS]]
         case _ =>
           handleErrorResponse("GET", url)(response)
       }

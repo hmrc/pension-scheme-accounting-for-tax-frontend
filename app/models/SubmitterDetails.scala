@@ -40,7 +40,7 @@ object SubmitterDetails {
   implicit val formats: Format[SubmitterDetails] = Json.format[SubmitterDetails]
 }
 
-case class VersionsWithSubmitter(versionDetails: AFTVersion, submitterDetails: SubmitterDetails)
+case class VersionsWithSubmitter(versionDetails: AFTVersion, submitterDetails: Option[SubmitterDetails])
 
 object VersionsWithSubmitter {
   implicit val formats: Format[VersionsWithSubmitter] = Json.format[VersionsWithSubmitter]

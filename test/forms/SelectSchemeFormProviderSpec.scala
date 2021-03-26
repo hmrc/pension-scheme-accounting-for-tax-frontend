@@ -20,18 +20,19 @@ import base.SpecBase
 import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
 import models.PenaltySchemes
+import models.financialStatement.PenaltyType.ContractSettlementCharges
 import play.api.data.FormError
 
 class SelectSchemeFormProviderSpec extends SpecBase with OptionFieldBehaviours {
 
   implicit val config: FrontendAppConfig = frontendAppConfig
   val valid: Seq[PenaltySchemes] = Seq(PenaltySchemes(Some("Assoc scheme"), "XY123", Some("SRN123")), PenaltySchemes(None, "XY345", None))
-  val form = new SelectSchemeFormProvider()(valid)
+  val errorMessage: String = messages("selectScheme.error", messages(s"penaltyType.${ContractSettlementCharges.toString}").toLowerCase())
+  val form = new SelectSchemeFormProvider()(valid, errorMessage)
 
   ".value" must {
 
     val fieldName = "value"
-    val requiredKey = "selectScheme.error"
 
     behave like optionsField[PenaltySchemes](
       form,
@@ -43,7 +44,7 @@ class SelectSchemeFormProviderSpec extends SpecBase with OptionFieldBehaviours {
     behave like mandatoryField(
       form,
       fieldName,
-      requiredError = FormError(fieldName, requiredKey)
+      requiredError = FormError(fieldName, errorMessage)
     )
   }
 }
