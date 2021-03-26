@@ -54,7 +54,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
-          response.json.as[Seq[SchemeFS]].filter(_.chargeType != SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
+          response.json.as[Seq[SchemeFS]]
         case _ =>
           handleErrorResponse("GET", url)(response)
       }

@@ -267,7 +267,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     (penaltyType, yearsSeq.size) match {
       case (AccountingForTaxPenalties, 1) => navFromAftYearsPage(penalties, yearsSeq.head, psaId)
       case (_, 1) => navFromNonAftYearsPage(penalties, yearsSeq.head.toString, psaId, penaltyType)
-      case (_, size) if size > 1 =>Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType)))
+      case (_, size) if size > 1 => Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
 

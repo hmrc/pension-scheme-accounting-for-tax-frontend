@@ -19,7 +19,7 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import models.ChargeDetailsFilter
-import models.financialStatement.SchemeFS
+import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -50,7 +50,7 @@ class PaymentsAndChargesOverdueController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesOverdueController])
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoad(srn: String, startDate: LocalDate, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
@@ -60,7 +60,7 @@ class PaymentsAndChargesOverdueController @Inject()(
               if (overduePaymentsAndCharges.nonEmpty) {
                 val paymentsAndChargesTables: Table =
                   paymentsAndChargesService
-                    .getPaymentsAndCharges(srn, overduePaymentsAndCharges, ChargeDetailsFilter.Overdue)
+                    .getPaymentsAndCharges(srn, overduePaymentsAndCharges, ChargeDetailsFilter.Overdue, paymentOrChargeType)
 
                 val heading =
                     msg"paymentsAndChargesOverdue.h1.singlePeriod".withArgs(

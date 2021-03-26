@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxPenalties
 import models.financialStatement.SchemeFS
 import models.{DisplayHint, DisplayQuarter, PaymentOverdue, Quarter, Quarters}
 import play.api.data.Form
@@ -99,7 +100,7 @@ class SelectQuarterOverdueController @Inject()(config: FrontendAppConfig,
 
               },
               value => {
-                Future.successful(Redirect(routes.PaymentsAndChargesOverdueController.onPageLoad(srn, value.startDate)))
+                Future.successful(Redirect(routes.PaymentsAndChargesOverdueController.onPageLoad(srn, value.startDate, AccountingForTaxPenalties)))
               }
             )
         } else {

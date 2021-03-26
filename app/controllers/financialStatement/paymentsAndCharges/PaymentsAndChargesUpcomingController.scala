@@ -18,7 +18,7 @@ package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import controllers.actions._
-import models.financialStatement.SchemeFS
+import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -50,7 +50,7 @@ class PaymentsAndChargesUpcomingController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesUpcomingController])
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoad(srn: String, startDate: LocalDate, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
         val schemeFS = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
@@ -61,7 +61,7 @@ class PaymentsAndChargesUpcomingController @Inject()(
 
           val json = Json.obj(
             "heading" -> heading(startDate),
-            "paymentAndChargesTable" -> tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges, srn),
+            "paymentAndChargesTable" -> tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges, srn, paymentOrChargeType),
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
@@ -76,10 +76,10 @@ class PaymentsAndChargesUpcomingController @Inject()(
     }
   }
 
-  private def tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges: Seq[SchemeFS], srn: String)
+  private def tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges: Seq[SchemeFS], srn: String, paymentOrChargeType: PaymentOrChargeType)
                                      (implicit messages: Messages): Table = {
 
-    val table: Table = paymentsAndChargesService.getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, ChargeDetailsFilter.Upcoming)
+    val table: Table = paymentsAndChargesService.getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, ChargeDetailsFilter.Upcoming, paymentOrChargeType)
 
         Table(table.caption, table.captionClasses, table.firstCellIsHeader,
           table.head.take(table.head.size - 1),

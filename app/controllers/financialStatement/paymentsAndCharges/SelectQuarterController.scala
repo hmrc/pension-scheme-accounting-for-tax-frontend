@@ -20,13 +20,14 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.financialStatement.SchemeFS
-import models.{DisplayQuarter, Quarters, PaymentOverdue, Quarter, DisplayHint}
+import models.{DisplayHint, DisplayQuarter, PaymentOverdue, Quarter, Quarters}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import models.LocalDateBinder._
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, getPaymentOrChargeType}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -98,7 +99,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
               },
               value => {
-                Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.startDate)))
+                Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.startDate, AccountingForTaxPenalties)))
               }
             )
         } else {
@@ -108,7 +109,12 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   }
 
   private def getDisplayQuarters(year: String, payments: Seq[SchemeFS]): Seq[DisplayQuarter] = {
-    val quartersFound: Seq[LocalDate] = payments.filter(_.periodStartDate.getYear == year.toInt).map(_.periodStartDate).distinct.sortBy(_.getMonth)
+
+    val quartersFound: Seq[LocalDate] = payments
+      .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxPenalties)
+      .filter(_.periodStartDate.getYear == year.toInt).map(_.periodStartDate).distinct
+      .sortBy(_.getMonth)
+
     quartersFound.map { startDate =>
       val hint: Option[DisplayHint] =
         if (payments.filter(_.periodStartDate == startDate).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
@@ -119,6 +125,8 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   }
 
   private def getQuarters(year: String, payments: Seq[SchemeFS]): Seq[Quarter] =
-    payments.filter(_.periodStartDate.getYear == year.toInt).distinct
-      .map(paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate))
+    payments
+      .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxPenalties)
+      .filter(_.periodStartDate.getYear == year.toInt)
+      .map(paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate)).distinct
 }

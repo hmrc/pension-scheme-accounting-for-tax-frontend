@@ -19,12 +19,15 @@ package models
 
 import config.FrontendAppConfig
 import play.api.data.Form
-import play.api.libs.json.{JsString, Writes, JsValue}
+import play.api.libs.json.{JsString, JsValue, Writes}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper
 import viewmodels.Radios.Radio
 import viewmodels.{Hint, Radios}
 import uk.gov.hmrc.viewmodels._
+import utils.DateHelper.dateFormatterDMY
+
+import java.time.{LocalDate, Month}
 
 case class Year(year: Int) {
   def getYear: Int = this.asInstanceOf[Year].year
@@ -87,10 +90,10 @@ object FSYears extends CommonYears with Enumerable.Implicits {
 
   def values(years: Seq[DisplayYear]): Seq[Year] = years.map(x => Year(x.year))
 
-  def radios(form: Form[_], displayYears: Seq[DisplayYear]): Seq[Radios.Item] = {
+  def radios(form: Form[_], displayYears: Seq[DisplayYear], isFYFormat: Boolean = false): Seq[Radios.Item] = {
     val x: Seq[Radio] = displayYears.map { displayYear =>
 
-      Radios.Radio(label = Literal(displayYear.year.toString),
+      Radios.Radio(label = getLabel(displayYear.year, isFYFormat),
         value = displayYear.year.toString,
         hint = getHint(displayYear),
         labelClasses = None)
@@ -105,6 +108,17 @@ object FSYears extends CommonYears with Enumerable.Implicits {
     displayYear.hintText match {
       case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", Seq("govuk-tag govuk-tag--red govuk-!-display-inline")))
       case _ => None
+    }
+
+  //scalastyle:off magic.number
+  private def getLabel(year: Int, isFYFormat: Boolean): Text =
+    if(isFYFormat) {
+      msg"yearRangeRadio".withArgs(
+        LocalDate.of(year-1, Month.APRIL, 6).format(dateFormatterDMY),
+        LocalDate.of(year, Month.APRIL, 5).format(dateFormatterDMY)
+    )
+    } else {
+      Literal(year.toString)
     }
 
 }

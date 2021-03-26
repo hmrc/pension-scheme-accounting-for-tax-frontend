@@ -1099,11 +1099,12 @@ penalties.visuallyHiddenText = for charge reference {0}
 paymentsAndCharges.partial.h1 = Payments and charges
 paymentsAndCharges.partial.view.link = View payments and charges for 2020
 
+paymentsAndCharges.aft.title = Accounting for Tax payments and charges for {0} to {1}
+paymentsAndCharges.nonAft.title = {0} for {1}
 paymentsAndCharges.reflect.charge.text = Amounts due may not reflect payments made in the last 3 days.
 paymentsAndCharges.caption = {0} to {1}
 paymentsAndCharges.visuallyHiddenText = for charge reference {0}
 paymentsAndCharges.interest.visuallyHiddenText = for charge reference to come
-paymentsAndCharges.h1 = Payments and charges for {0} to {1}
 paymentsAndCharges.chargeReference.toBeAssigned = To be assigned
 paymentsAndCharges.chargeType.table = Charge type
 paymentsAndCharges.totalDue.table = Amount due
@@ -1167,11 +1168,19 @@ selectPenaltiesYear.error = Select which year you want to view {0} for
 selectPenaltiesQuarter.title = Which quarter of {0} do you want to view Accounting for Tax penalties for?
 selectPenaltiesQuarter.error = Select which quarter you want to view Accounting for Tax penalties for
 
-selectChargesYear.title = Which year do you want to view charges for?
-selectChargesYear.error = Select which year you want to view charges for
-selectChargesQuarter.title = Which quarter of {0} do you want to view the charges for?
-selectChargesQuarter.error = Select which quarter of {0} you want to view charges for
+selectChargesYear.title = Which year do you want to view {0} for?
+selectChargesYear.error = Select which year you want to view {0} for
+selectChargesQuarter.title = Which quarter of {0} do you want to view the Accounting for Tax charges for?
+selectChargesQuarter.error = Select which quarter of {0} you want to view Accounting for Tax charges for
 selectOverdueChargesQuarter.title = Which quarter do you want to view overdue payments and interest charges for?
 selectOverdueChargesQuarter.error = Select which quarter you want to view overdue payments and interest charges for
 selectUpcomingChargesQuarter.title = Which quarter do you want to view upcoming payments for?
 selectUpcomingChargesQuarter.error = Select which quarter you want to view upcoming payments and interest charges for
+
+paymentOrChargeType.title = What type of payments and charges do you want to view?
+paymentOrChargeType.error.required = Select what type of payments and charges you want to view
+paymentOrChargeType.AccountingForTaxPenalties = Accounting for Tax charge
+paymentOrChargeType.ContractSettlementCharges = Contract settlement charges
+paymentOrChargeType.ExcessReliefPaidCharges = Excess relief paid charges
+paymentOrChargeType.ExcessReliefInterest = Interest on excess relief paid charges
+paymentOrChargeType.PensionsCharges = Pensions charges

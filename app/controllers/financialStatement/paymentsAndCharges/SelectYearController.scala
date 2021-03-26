@@ -35,14 +35,15 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
-import models.financialStatement.SchemeFS
-import models.{FSYears, Year, DisplayYear, PaymentOverdue}
+import models.financialStatement.{PaymentOrChargeType, SchemeFS}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, ExcessReliefInterest, ExcessReliefPaidCharges, getPaymentOrChargeType}
+import models.{DisplayYear, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.paymentsAndCharges.PaymentsAndChargesService
+import services.paymentsAndCharges.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -56,21 +57,25 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                                      val controllerComponents: MessagesControllerComponents,
                                      renderer: Renderer,
                                      config: FrontendAppConfig,
-                                     service: PaymentsAndChargesService)
+                                     service: PaymentsAndChargesService,
+                                     navService: PaymentsNavigationService)
                                     (implicit ec: ExecutionContext) extends FrontendBaseController
   with I18nSupport
   with NunjucksSupport {
 
-  private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider("selectChargesYear.error")
+  private def form(typeParam: String, config: FrontendAppConfig)
+                  (implicit messages: Messages): Form[Year] = formProvider(messages("selectChargesYear.error", typeParam))(config)
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+  def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
-      val years = getYears(paymentsCache.schemeFS)
+      val typeParam: String = service.getTypeParam(paymentOrChargeType)
+      val years = getYears(paymentsCache.schemeFS, paymentOrChargeType)
       val json = Json.obj(
+        "typeParam" -> typeParam,
         "schemeName" -> paymentsCache.schemeDetails.schemeName,
-        "form" -> form(config),
-        "radios" -> FSYears.radios(form(config), years),
+        "form" -> form(typeParam, config),
+        "radios" -> FSYears.radios(form(typeParam, config), years, isFYFormat(paymentOrChargeType)),
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
       )
 
@@ -78,36 +83,38 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] = identify.async { implicit request =>
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
-
-      form(config).bindFromRequest().fold(
+      val typeParam: String = service.getTypeParam(paymentOrChargeType)
+      form(typeParam, config).bindFromRequest().fold(
         formWithErrors => {
 
           val json = Json.obj(
+            "typeParam" -> typeParam,
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "form" -> formWithErrors,
-            "radios" -> FSYears.radios(formWithErrors, getYears(paymentsCache.schemeFS)),
+            "radios" -> FSYears.radios(formWithErrors, getYears(paymentsCache.schemeFS, paymentOrChargeType), isFYFormat(paymentOrChargeType)),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
         },
-        value => {
-          val quartersSeq = paymentsCache.schemeFS.filter(_.periodStartDate.getYear == value.year).map(_.periodStartDate).distinct
-          if (quartersSeq.size == 1) {
-            Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, quartersSeq.head.toString)))
-          } else {
-            Future.successful(Redirect(routes.SelectQuarterController.onPageLoad(srn, value.getYear.toString)))
-          }
+        value => if(paymentOrChargeType == AccountingForTaxPenalties) {
+          navService.navFromAFTYearsPage(paymentsCache.schemeFS, value.year, srn)
+        } else {
+          Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
         }
       )
     }
   }
 
-  def getYears(payments: Seq[SchemeFS]): Seq[DisplayYear] =
-    payments.map(_.periodStartDate.getYear).distinct.sorted.reverse.map { year =>
-      val hint = if (payments.filter(_.periodStartDate.getYear == year).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
+  def getYears(payments: Seq[SchemeFS], paymentOrChargeType: PaymentOrChargeType): Seq[DisplayYear] =
+    payments
+      .filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
+      .map(_.periodEndDate.getYear).distinct.sorted.reverse.map { year =>
+      val hint = if (payments.filter(_.periodEndDate.getYear == year).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
       DisplayYear(year, hint)
     }
+
+  val isFYFormat: PaymentOrChargeType => Boolean = ct => ct == ExcessReliefInterest || ct == ExcessReliefPaidCharges
 
 }

@@ -5,7 +5,7 @@
 {% from "govuk/components/table/macro.njk" import govukTable %}
 
 {% block pageTitle %}
-  {{ title(messages("paymentsAndCharges.h1", startDate, endDate)) }}
+  {{ title(titleMessage) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -14,7 +14,7 @@
       <div class="govuk-grid-column-two-thirds">
 
         {{ hmrcPageHeading({
-          text: messages("paymentsAndCharges.h1", startDate, endDate),
+          text: messages(titleMessage),
           section: schemeName
         }) }}
 

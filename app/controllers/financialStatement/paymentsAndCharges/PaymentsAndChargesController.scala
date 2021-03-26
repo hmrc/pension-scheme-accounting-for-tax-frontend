@@ -18,10 +18,11 @@ package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import controllers.actions._
-import models.financialStatement.SchemeFS
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, getPaymentOrChargeType}
+import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
@@ -50,20 +51,19 @@ class PaymentsAndChargesController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesController])
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoad(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
-              val filteredPayments: Seq[SchemeFS] = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
+              val (title, filteredPayments): (String, Seq[SchemeFS]) = getTitleAndFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
 
               if (filteredPayments.nonEmpty) {
 
                 val tableOfPaymentsAndCharges: Table =
-                  paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, ChargeDetailsFilter.All)
+                  paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, ChargeDetailsFilter.All, paymentOrChargeType)
 
                 val json = Json.obj(
                   fields =
-                    "startDate" -> startDate.format(dateFormatterStartDate),
-                    "endDate" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+                    "titleMessage" -> title,
                     "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
                     "schemeName" -> paymentsCache.schemeDetails.schemeName,
                     "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
@@ -71,10 +71,21 @@ class PaymentsAndChargesController @Inject()(
                 renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 
               } else {
-                logger.warn(s"No Scheme Payments and Charges returned for the selected startDate $startDate")
+                logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
 
       }
   }
+
+  private def getTitleAndFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType)
+                                         (implicit messages: Messages): (String, Seq[SchemeFS]) =
+    if(paymentOrChargeType == AccountingForTaxPenalties) {
+      val startDate: LocalDate = LocalDate.parse(period)
+      (messages("paymentsAndCharges.aft.title", startDate.format(dateFormatterStartDate), Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY)),
+      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxPenalties).filter(_.periodStartDate == startDate))
+    } else {
+      (messages("paymentsAndCharges.nonAft.title", messages(s"paymentOrChargeType.${paymentOrChargeType.toString}"), period),
+        payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt))
+    }
 }

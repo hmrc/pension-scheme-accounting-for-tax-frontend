@@ -16,24 +16,44 @@
 
 package models.financialStatement
 
-import models.{WithName, Enumerable}
+import models.{Enumerable, WithName}
 
 sealed trait SchemeFSChargeType
 
 object SchemeFSChargeType extends Enumerable.Implicits {
 
-  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with SchemeFSChargeType
   case object PSS_AFT_RETURN extends WithName("Accounting for Tax return") with SchemeFSChargeType
   case object PSS_AFT_RETURN_INTEREST extends WithName("Interest on Accounting for Tax return") with SchemeFSChargeType
   case object PSS_OTC_AFT_RETURN extends WithName("Overseas transfer charge") with SchemeFSChargeType
   case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("Interest on overseas transfer charge") with SchemeFSChargeType
+  case object AFT_MANUAL_ASST extends WithName( "AFT manual assessment") with SchemeFSChargeType
+  case object AFT_MANUAL_ASST_INTEREST extends WithName("Interest on AFT manual assessment") with SchemeFSChargeType
+  case object OTC_MANUAL_ASST extends WithName("OTC manual assessment") with SchemeFSChargeType
+  case object OTC_MANUAL_ASST_INTEREST extends WithName("Interest on OTC manual assessment") with SchemeFSChargeType
+  case object PSS_CHARGE extends WithName("PSS charge") with SchemeFSChargeType
+  case object PSS_CHARGE_INTEREST extends WithName("PSS charge interest") with SchemeFSChargeType
+  case object CONTRACT_SETTLEMENT extends WithName("Contract settlement") with SchemeFSChargeType
+  case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract settlement interest") with SchemeFSChargeType
+  case object REPAYMENT_INTEREST extends WithName("Repayment interest") with SchemeFSChargeType
+  case object EXCESS_RELIEF_PAID extends WithName("Excess relief paid") with SchemeFSChargeType
+  case object EXCESS_RELIEF_INTEREST extends WithName("Interest on excess relief") with SchemeFSChargeType
 
   val values: Seq[SchemeFSChargeType] = Seq(
     PSS_AFT_RETURN,
     PSS_AFT_RETURN_INTEREST,
     PSS_OTC_AFT_RETURN,
     PSS_OTC_AFT_RETURN_INTEREST,
-    PAYMENT_ON_ACCOUNT
+    AFT_MANUAL_ASST,
+    AFT_MANUAL_ASST_INTEREST,
+    OTC_MANUAL_ASST,
+    OTC_MANUAL_ASST_INTEREST,
+    PSS_CHARGE,
+    PSS_CHARGE_INTEREST,
+    CONTRACT_SETTLEMENT,
+    CONTRACT_SETTLEMENT_INTEREST,
+    REPAYMENT_INTEREST,
+    EXCESS_RELIEF_PAID,
+    EXCESS_RELIEF_INTEREST
   )
 
   implicit val enumerable: Enumerable[SchemeFSChargeType] =
