@@ -19,6 +19,7 @@
         signOutUrl: routes.controllers.SignOutController.signOut(srn, startDate).url
     }) }}
     {{ trackingSnippet({
+        nonce: config.nonce,
         url: config.trackingSnippetUrl,
         gtmContainerId: config.gtmContainerId,
         lang: "en"
