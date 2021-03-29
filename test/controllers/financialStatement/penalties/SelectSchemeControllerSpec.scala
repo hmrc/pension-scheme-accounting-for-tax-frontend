@@ -43,7 +43,6 @@ import play.twirl.api.Html
 import services.{PenaltiesCache, PenaltiesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
 import scala.concurrent.Future
 
 class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
