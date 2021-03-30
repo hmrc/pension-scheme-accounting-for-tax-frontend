@@ -32,9 +32,8 @@
       <p class="govuk-body">{{ messages("penalties.pstr", pstr) }}</p>
       <p class="govuk-body">{{ messages("penalties.p1") }}</p>
 
-
-     <h2 class="govuk-heading-m">{{ table.header }}</h2>
-     <div role="region" class="govuk-!-margin-bottom-7" tabindex="0">
+      <span id="penalities_charges_hidden" class="govuk-visually-hidden" aria-hidden="true"> {{ titleMessage }}</span>
+     <div role="region" aria-labelledby="penalities_charges_hidden" class="govuk-!-margin-bottom-7" tabindex="0">
         {{ govukTable(table.penaltyTable) }}
      </div>
 

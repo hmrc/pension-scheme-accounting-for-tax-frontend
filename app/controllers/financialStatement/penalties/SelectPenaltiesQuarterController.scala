@@ -64,7 +64,7 @@ class SelectPenaltiesQuarterController @Inject()(
             "form" -> form(quarters),
             "radios" -> Quarters.radios(form(quarters),
                                         getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
-                                        Seq("govuk-tag govuk-tag--red govuk-!-display-inline"),
+                                        Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
                                         areLabelsBold = false),
             "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
             "year" -> year
