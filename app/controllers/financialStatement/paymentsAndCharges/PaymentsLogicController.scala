@@ -33,6 +33,8 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import controllers.actions._
+import models.ChargeDetailsFilter
+import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.paymentsAndCharges.{PaymentsAndChargesService, PaymentsNavigationService}
@@ -52,9 +54,9 @@ class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
                                           with I18nSupport
                                           with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
-      navService.navFromSchemeDashboard(paymentsCache.schemeFS, srn)
+  def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
+      navService.navFromSchemeDashboard(paymentsCache.schemeFS, srn, journeyType)
     }
   }
 

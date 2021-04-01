@@ -35,9 +35,9 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, ExcessReliefInterest, ExcessReliefPaidCharges, getPaymentOrChargeType}
-import models.{DisplayYear, FSYears, PaymentOverdue, Year}
+import models.{ChargeDetailsFilter, DisplayYear, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -66,12 +66,15 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
   private def form(typeParam: String, config: FrontendAppConfig)
                   (implicit messages: Messages): Form[Year] = formProvider(messages("selectChargesYear.error", typeParam))(config)
 
-  def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
-    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+  def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+    (identify andThen allowAccess()).async { implicit request =>
+
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
       val years = getYears(paymentsCache.schemeFS, paymentOrChargeType)
       val json = Json.obj(
+        "titleMessage" -> s"selectChargesYear.$journeyType.title",
         "typeParam" -> typeParam,
         "schemeName" -> paymentsCache.schemeDetails.schemeName,
         "form" -> form(typeParam, config),
@@ -83,13 +86,15 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     }
   }
 
-  def onSubmit(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] = identify.async { implicit request =>
-    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+  def onSubmit(srn: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+    identify.async { implicit request =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
       form(typeParam, config).bindFromRequest().fold(
         formWithErrors => {
 
           val json = Json.obj(
+            "titleMessage" -> s"selectChargesYear.$journeyType.title",
             "typeParam" -> typeParam,
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "form" -> formWithErrors,
@@ -99,9 +104,9 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
         },
         value => if(paymentOrChargeType == AccountingForTaxPenalties) {
-          navService.navFromAFTYearsPage(paymentsCache.schemeFS, value.year, srn)
+          navService.navFromAFTYearsPage(paymentsCache.schemeFS, value.year, srn, journeyType)
         } else {
-          Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
+          Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType, journeyType)))
         }
       )
     }
@@ -115,6 +120,6 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
       DisplayYear(year, hint)
     }
 
-  val isFYFormat: PaymentOrChargeType => Boolean = ct => ct == ExcessReliefInterest || ct == ExcessReliefPaidCharges
+  val isFYFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
 
 }

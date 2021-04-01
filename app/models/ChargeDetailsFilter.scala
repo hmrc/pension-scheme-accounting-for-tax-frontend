@@ -16,6 +16,8 @@
 
 package models
 
+import play.api.mvc.PathBindable
+
 sealed trait ChargeDetailsFilter
 
 object ChargeDetailsFilter
@@ -35,4 +37,29 @@ object ChargeDetailsFilter
 
   implicit val enumerable: Enumerable[ChargeDetailsFilter] =
     Enumerable(values.map(v => v.toString -> v): _*)
+
+  implicit def chargeDetailsFilterPathBindable(implicit stringBinder: PathBindable[String]): PathBindable[ChargeDetailsFilter] =
+    new PathBindable[ChargeDetailsFilter] {
+
+    override def bind(key: String, value: String): Either[String, ChargeDetailsFilter] = {
+      stringBinder.bind(key, value) match {
+        case Right(x)=> Right(stringToFilter(x))
+        case _ => Left("Charge details filter binding failed")
+      }
+    }
+
+    override def unbind(key: String, value: ChargeDetailsFilter): String = {
+      stringBinder.unbind(key, value.toString)
+    }
+  }
+
+  implicit def filterToString(filter: ChargeDetailsFilter): String =
+    filter.toString
+
+  implicit def stringToFilter(filter: String): ChargeDetailsFilter =
+    filter match {
+      case "upcoming" => Upcoming
+      case "overdue" => Overdue
+      case _ => All
+    }
 }

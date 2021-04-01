@@ -18,12 +18,13 @@ package services
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import dateOrdering.orderingLocalDate
 import helpers.FormatHelper
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, getPaymentOrChargeType}
+
 import javax.inject.Inject
 import models.financialStatement.SchemeFS
 import models.{AFTOverview, Draft, Quarters, SchemeDetails}
@@ -248,25 +249,17 @@ class PsaSchemePartialService @Inject()(
 
   private def viewUpcomingLink(upcomingCharges: Seq[SchemeFS], srn: String): Seq[Link] =
     if (upcomingCharges != Seq.empty) {
-
-        if (upcomingCharges.map(_.periodStartDate).distinct.size == 1) {
-          val startDate: LocalDate = upcomingCharges.map(_.periodStartDate).distinct.head
-          Seq(Link(
-            id = "upcoming-payments-and-charges",
-            url = appConfig.paymentsAndChargesUpcomingUrl.format(srn, startDate),
-            linkText = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
+      val nonAftUpcomingCharges: Seq[Boolean] = upcomingCharges.map(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxPenalties)
+        val linkText: Text = if (upcomingCharges.map(_.dueDate).distinct.size == 1 && nonAftUpcomingCharges.isEmpty) {
+          msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
             upcomingCharges.map(_.periodStartDate).distinct.head.format(smallDatePattern),
-            upcomingCharges.map(_.periodEndDate).distinct.head.format(smallDatePattern)),
-            hiddenText = None
-          ))
+            upcomingCharges.map(_.periodEndDate).distinct.head.format(smallDatePattern))
         } else {
-          Seq(Link(
-            id = "upcoming-payments-and-charges",
-            url = appConfig.upcomingChargesSelectQuarterUrl.format(srn),
-            linkText = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
-            hiddenText = None
-          ))
+          msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
         }
+
+      Seq(Link("upcoming-payments-and-charges", appConfig.upcomingChargesUrl.format(srn), linkText, None))
+
     } else {
       Nil
     }
@@ -325,26 +318,19 @@ class PsaSchemePartialService @Inject()(
     }
   }
 
-  private def viewOverdueLink(schemeFs: Seq[SchemeFS], srn: String): Seq[Link] =
-      if (schemeFs.map(_.periodStartDate).distinct.size == 1) {
-        val startDate: LocalDate = schemeFs.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
-        Seq(Link(
-          id = "overdue-payments-and-charges",
-          url = appConfig.paymentsAndChargesOverdueUrl.format(srn, startDate),
-          linkText = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+  private def viewOverdueLink(schemeFs: Seq[SchemeFS], srn: String): Seq[Link] = {
+    val nonAftOverdueCharges: Seq[Boolean] = schemeFs.map(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxPenalties)
+      val linkText = if (schemeFs.map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
+        msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
           .withArgs(
             schemeFs.map(_.periodStartDate).distinct.head.format(smallDatePattern),
-            schemeFs.map(_.periodEndDate).distinct.head.format(smallDatePattern)),
-          hiddenText = None
-        ))
+            schemeFs.map(_.periodEndDate).distinct.head.format(smallDatePattern))
       } else {
-        Seq(Link(
-          id = "overdue-payments-and-charges",
-          url = appConfig.overdueChargesSelectQuarterUrl.format(srn),
-          linkText = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
-          hiddenText = None
-        ))
+        msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"
       }
+
+    Seq(Link("overdue-payments-and-charges", appConfig.overdueChargesUrl.format(srn), linkText, None))
+  }
 
   val fullDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   val smallDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")

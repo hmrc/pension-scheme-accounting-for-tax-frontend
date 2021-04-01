@@ -22,10 +22,10 @@ import controllers.chargeB.{routes => _}
 import controllers.financialStatement.paymentsAndCharges.routes.{PaymentsAndChargeDetailsController, PaymentsAndChargesInterestController}
 import helpers.FormatHelper._
 import models.ChargeDetailsFilter
-import models.LocalDateBinder._
+import models.ChargeDetailsFilter.{Overdue, Upcoming}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxPenalties
-import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.financialStatement.SchemeFSChargeType._
+import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
 import models.viewModels.paymentsAndCharges.{PaymentAndChargeStatus, PaymentsAndChargesDetails}
 import play.api.i18n.Messages
@@ -322,6 +322,16 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           case _ => saveAndReturnPaymentsCache(loggedInId, srn)
         }
       case _ => saveAndReturnPaymentsCache(loggedInId, srn)
+    }
+
+  def getPaymentsForJourney(loggedInId: String, srn: String, journeyType: ChargeDetailsFilter)
+                           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
+    getPaymentsFromCache(loggedInId, srn).map { cache =>
+      journeyType match {
+        case Overdue => cache.copy(schemeFS = getOverdueCharges(cache.schemeFS))
+        case Upcoming => cache.copy(schemeFS = extractUpcomingCharges(cache.schemeFS))
+        case _ => cache
+      }
     }
 
   def getTypeParam(paymentType: PaymentOrChargeType)(implicit messages: Messages): String =

@@ -21,13 +21,12 @@ import controllers.actions._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
 import models.financialStatement.PaymentOrChargeType.getPaymentOrChargeType
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFS}
-import models.{DisplayHint, PaymentOverdue}
+import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.PenaltiesService
 import services.paymentsAndCharges.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -50,10 +49,11 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   private def form: Form[PaymentOrChargeType] = formProvider()
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
-    service.getPaymentsFromCache(request.idOrException, srn).flatMap { cache =>
+  def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { cache =>
       val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFS)
       val json = Json.obj(
+        "titleMessage" -> s"paymentOrChargeType.$journeyType.title",
         "form" -> form,
         "radios" -> PaymentOrChargeType.radios(form, paymentsOrCharges),
         "schemeName" -> cache.schemeDetails.schemeName,
@@ -64,11 +64,12 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
     }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    service.getPaymentsFromCache(request.psaIdOrException.id, srn).flatMap { cache =>
+  def onSubmit(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
+    service.getPaymentsForJourney(request.psaIdOrException.id, srn, journeyType).flatMap { cache =>
       form.bindFromRequest().fold(
         formWithErrors => {
           val json = Json.obj(
+            "titleMessage" -> s"paymentOrChargeType.$journeyType.title",
             "form" -> formWithErrors,
             "radios" -> PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFS)),
             "schemeName" -> cache.schemeDetails.schemeName,
@@ -76,7 +77,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/paymentOrChargeType.njk", json).map(BadRequest(_))
         },
-        value => navService.navFromPaymentsTypePage(cache.schemeFS, srn, value)
+        value => navService.navFromPaymentsTypePage(cache.schemeFS, srn, value, journeyType)
       )
     }
   }

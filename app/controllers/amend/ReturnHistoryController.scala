@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, FinancialStatementConnector, SchemeDetailsConnector}
 import controllers.actions.IdentifierAction
+import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.SubmitterType.PSA
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxPenalties
@@ -78,7 +79,7 @@ class ReturnHistoryController @Inject()(
       }
       else {
         Json.obj("paymentsAndChargesUrl" ->
-          controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxPenalties).url)
+          controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxPenalties, All).url)
       }
 
       Json.obj(

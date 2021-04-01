@@ -29,26 +29,26 @@ object PaymentOrChargeType extends Enumerable.Implicits {
   case object AccountingForTaxPenalties extends PaymentOrChargeType
   case object ContractSettlementCharges extends PaymentOrChargeType
   case object ExcessReliefPaidCharges extends PaymentOrChargeType
-  case object ExcessReliefInterest extends PaymentOrChargeType
+  case object InterestOnExcessRelief extends PaymentOrChargeType
   case object PensionsCharges extends PaymentOrChargeType
 
   def getPaymentOrChargeType(chargeType: SchemeFSChargeType): PaymentOrChargeType =
     chargeType match {
       case EXCESS_RELIEF_PAID => ExcessReliefPaidCharges
-      case EXCESS_RELIEF_INTEREST => ExcessReliefInterest
+      case EXCESS_RELIEF_INTEREST => InterestOnExcessRelief
       case CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST => ContractSettlementCharges
       case PSS_CHARGE | PSS_CHARGE_INTEREST => PensionsCharges
       case _ => AccountingForTaxPenalties
     }
 
-  val values: Seq[PaymentOrChargeType] = Seq(AccountingForTaxPenalties, ContractSettlementCharges, ExcessReliefPaidCharges, ExcessReliefInterest, PensionsCharges)
+  val values: Seq[PaymentOrChargeType] = Seq(AccountingForTaxPenalties, ContractSettlementCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, PensionsCharges)
 
   def radios(form: Form[_], chargeTypes: Seq[DisplayPaymentOrChargeType]): Seq[Radios.Item] =
     Radios(form("value"), chargeTypes.map(value => Radios.Radio(msg"paymentOrChargeType.${value.chargeType.toString}", value.chargeType.toString)))
 
   implicit val enumerable: Enumerable[PaymentOrChargeType] = Enumerable(values.map(v => v.toString -> v): _*)
 
-  implicit def modePathBindable(implicit stringBinder: PathBindable[String]): PathBindable[PaymentOrChargeType] = new
+  implicit def paymentOrChargePathBindable(implicit stringBinder: PathBindable[String]): PathBindable[PaymentOrChargeType] = new
       PathBindable[PaymentOrChargeType] {
 
     override def bind(key: String, value: String): Either[String, PaymentOrChargeType] = {
@@ -56,7 +56,7 @@ object PaymentOrChargeType extends Enumerable.Implicits {
         case Right("accounting-for-tax") => Right(AccountingForTaxPenalties)
         case Right("contract-settlement") => Right(ContractSettlementCharges)
         case Right("excess-relief-paid") => Right(ExcessReliefPaidCharges)
-        case Right("interest-on-excess-relief-paid") => Right(ExcessReliefInterest)
+        case Right("interest-on-excess-relief-paid") => Right(InterestOnExcessRelief)
         case Right("pensions-charge") => Right(PensionsCharges)
         case _ => Left("ChargeType binding failed")
       }
@@ -73,7 +73,7 @@ object PaymentOrChargeType extends Enumerable.Implicits {
     case AccountingForTaxPenalties => "accounting-for-tax"
     case ContractSettlementCharges => "contract-settlement"
     case ExcessReliefPaidCharges => "excess-relief-paid"
-    case ExcessReliefInterest => "interest-on-excess-relief-paid"
+    case InterestOnExcessRelief => "interest-on-excess-relief-paid"
     case PensionsCharges => "pensions-charge"
   }
 
@@ -82,7 +82,7 @@ object PaymentOrChargeType extends Enumerable.Implicits {
       case "accounting-for-tax" => AccountingForTaxPenalties
       case "contract-settlement" => ContractSettlementCharges
       case "excess-relief-paid" => ExcessReliefPaidCharges
-      case "interest-on-excess-relief-paid" => ExcessReliefInterest
+      case "interest-on-excess-relief-paid" => InterestOnExcessRelief
       case "pensions-charge" => PensionsCharges
     }
 

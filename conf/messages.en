@@ -1048,14 +1048,14 @@ pspDashboardAftReturnsCard.inProgressReturns.link = View AFT returns in progress
 pspDashboardAftReturnsCard.inProgressReturns.link.single = View AFT return in progress
 pspDashboardAftReturnsCard.inProgressReturns.link.single.locked = View locked AFT return
 
-pspDashboardUpcomingAftChargesCard.h2 = Upcoming AFT charges
+pspDashboardUpcomingAftChargesCard.h2 = Upcoming charges
 pspDashboardUpcomingAftChargesCard.span.singleDueDate = Payment due by {0}:
-pspDashboardUpcomingAftChargesCard.span.multipleDueDate = Total amount due:
+pspDashboardUpcomingAftChargesCard.span.multipleDueDate = Total upcoming payments
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single = View payments and charges for {0} to {1}
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple = View upcoming payments and charges
 pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges = View past payments and charges
 
-pspDashboardOverdueAftChargesCard.h2 = Overdue AFT charges
+pspDashboardOverdueAftChargesCard.h2 = Overdue charges
 pspDashboardOverdueAftChargesCard.total.span = Total overdue payments:
 pspDashboardOverdueAftChargesCard.interestAccruing.span = Interest accruing:
 pspDashboardOverdueAftChargesCard.toDate.span = to date
@@ -1065,12 +1065,6 @@ pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods = Vie
 psaPenaltiesCard.h2 = Penalties
 psaPenaltiesCard.paymentsDue.linkText = View payments due for penalties and charges
 psaPenaltiesCard.viewPastPenalties = View past penalties and charges
-
-paymentsAndChargesUpcoming.h1.singlePeriod = Payments and charges for {0} to {1}
-paymentsAndChargesUpcoming.h1.multiplePeriod = Upcoming payments and charges
-
-paymentsAndChargesOverdue.h1.singlePeriod = Payments and charges for {0} to {1}
-paymentsAndChargesOverdue.h1.multiplePeriod = Overdue payments and charges
 
 penalties.aft.title = Accounting for Tax penalties for {0} to {1}
 penalties.nonAft.title = {0} for {1}
@@ -1099,8 +1093,18 @@ penalties.visuallyHiddenText = for charge reference {0}
 paymentsAndCharges.partial.h1 = Payments and charges
 paymentsAndCharges.partial.view.link = View payments and charges for 2020
 
-paymentsAndCharges.aft.title = Accounting for Tax payments and charges for {0} to {1}
-paymentsAndCharges.nonAft.title = {0} for {1}
+paymentsAndChargesUpcoming.h1.singlePeriod = Payments and charges for {0} to {1}
+paymentsAndChargesUpcoming.h1.multiplePeriod = Upcoming payments and charges
+
+paymentsAndChargesOverdue.h1.singlePeriod = Payments and charges for {0} to {1}
+paymentsAndChargesOverdue.h1.multiplePeriod = Overdue payments and charges
+
+paymentsAndCharges.all.aft.title = Accounting for Tax payments and charges for {0} to {1}
+paymentsAndCharges.all.nonAft.title = {0} for {1}
+paymentsAndCharges.upcoming.aft.title = Upcoming Accounting for Tax payments and charges for {0} to {1}
+paymentsAndCharges.upcoming.nonAft.title = Upcoming {0} for {1}
+paymentsAndCharges.overdue.aft.title = Overdue Accounting for Tax payments and charges for {0} to {1}
+paymentsAndCharges.overdue.nonAft.title = Overdue {0} for {1}
 paymentsAndCharges.reflect.charge.text = Amounts due may not reflect payments made in the last 3 days.
 paymentsAndCharges.caption = {0} to {1}
 paymentsAndCharges.visuallyHiddenText = for charge reference {0}
@@ -1168,19 +1172,27 @@ selectPenaltiesYear.error = Select which year you want to view {0} for
 selectPenaltiesQuarter.title = Which quarter of {0} do you want to view Accounting for Tax penalties for?
 selectPenaltiesQuarter.error = Select which quarter you want to view Accounting for Tax penalties for
 
-selectChargesYear.title = Which year do you want to view {0} for?
-selectChargesYear.error = Select which year you want to view {0} for
-selectChargesQuarter.title = Which quarter of {0} do you want to view the Accounting for Tax charges for?
-selectChargesQuarter.error = Select which quarter of {0} you want to view Accounting for Tax charges for
-selectOverdueChargesQuarter.title = Which quarter do you want to view overdue payments and interest charges for?
-selectOverdueChargesQuarter.error = Select which quarter you want to view overdue payments and interest charges for
-selectUpcomingChargesQuarter.title = Which quarter do you want to view upcoming payments for?
-selectUpcomingChargesQuarter.error = Select which quarter you want to view upcoming payments and interest charges for
+selectChargesYear.all.title = Which year do you want to view {0} for?
+selectChargesYear.upcoming.title = Which year do you want to view upcoming {0} for?
+selectChargesYear.overdue.title = Which year do you want to view overdue {0} for?
+selectChargesYear.all.error = Select which year you want to view {0} for
+selectChargesYear.upcoming.error = Select which year you want to view upcoming {0} for
+selectChargesYear.overdue.error = Select which year you want to view overdue {0} for
+selectChargesQuarter.all.title = Which quarter of {0} do you want to view the Accounting for Tax charges for?
+selectChargesQuarter.upcoming.title = Which quarter of {0} do you want to view the upcoming {0} for?
+selectChargesQuarter.overdue.title = Which quarter of {0} do you want to view the overdue {0} for?
+selectChargesQuarter.all.error = Select which quarter of {0} you want to view {0} for
+selectChargesQuarter.upcoming.error = Select which quarter of {0} you want to view upcoming {0} for
+selectChargesQuarter.overdue.error = Select which quarter of {0} you want to view overdue {0} for
 
-paymentOrChargeType.title = What type of payments and charges do you want to view?
-paymentOrChargeType.error.required = Select what type of payments and charges you want to view
+paymentOrChargeType.all.title = What type of payments and charges do you want to view?
+paymentOrChargeType.upcoming.title = What type of upcoming payments and charges do you want to view?
+paymentOrChargeType.overdue.title = What type of overdue payments and charges do you want to view?
+paymentOrChargeType.all.error.required = Select what type of payments and charges you want to view
+paymentOrChargeType.upcoming.error.required = Select what type of upcoming payments and charges you want to view
+paymentOrChargeType.overdue.error.required = Select what type of overdue payments and charges you want to view
 paymentOrChargeType.AccountingForTaxPenalties = Accounting for Tax charge
 paymentOrChargeType.ContractSettlementCharges = Contract settlement charges
 paymentOrChargeType.ExcessReliefPaidCharges = Excess relief paid charges
-paymentOrChargeType.ExcessReliefInterest = Interest on excess relief paid charges
+paymentOrChargeType.InterestOnExcessRelief = Interest on excess relief paid charges
 paymentOrChargeType.PensionsCharges = Pensions charges

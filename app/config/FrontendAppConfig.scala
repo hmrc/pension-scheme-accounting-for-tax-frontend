@@ -148,10 +148,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val aftContinueReturnUrl: String = s"${configuration.get[String](path = "urls.partials.aftContinueReturn")}"
   lazy val aftAmendUrl: String = s"${configuration.get[String](path = "urls.partials.aftAmendLink")}"
   lazy val paymentsAndChargesUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesLogicLink")}"
-  lazy val upcomingChargesSelectQuarterUrl: String = s"${configuration.get[String](path = "urls.partials.upcomingChargesSelectQuarterLink")}"
-  lazy val paymentsAndChargesUpcomingUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesUpcomingLink")}"
-  lazy val overdueChargesSelectQuarterUrl: String = s"${configuration.get[String](path = "urls.partials.overdueChargesSelectQuarterLink")}"
-  lazy val paymentsAndChargesOverdueUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesOverdueLink")}"
+  lazy val upcomingChargesUrl: String = s"${configuration.get[String](path = "urls.partials.upcomingChargesLogicLink")}"
+  lazy val overdueChargesUrl: String = s"${configuration.get[String](path = "urls.partials.overdueChargesLogicLink")}"
 
   lazy val listOfSchemesUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.listOfSchemes")}"
   lazy val listOfSchemesIFUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.if-listOfSchemes")}"
