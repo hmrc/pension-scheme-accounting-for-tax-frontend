@@ -23,7 +23,7 @@ import controllers.actions.IdentifierAction
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.SubmitterType.PSA
-import models.financialStatement.PaymentOrChargeType.AccountingForTaxPenalties
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.IdentifierRequest
 import models.{AFTOverview, AFTVersion, AccessType, Draft, LockDetail, Quarters, Submission, SubmitterDetails, VersionsWithSubmitter}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -79,7 +79,7 @@ class ReturnHistoryController @Inject()(
       }
       else {
         Json.obj("paymentsAndChargesUrl" ->
-          controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxPenalties, All).url)
+          controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges, All).url)
       }
 
       Json.obj(

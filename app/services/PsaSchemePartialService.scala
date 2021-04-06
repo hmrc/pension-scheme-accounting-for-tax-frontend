@@ -23,7 +23,7 @@ import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import dateOrdering.orderingLocalDate
 import helpers.FormatHelper
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 
 import javax.inject.Inject
 import models.financialStatement.SchemeFS
@@ -249,7 +249,8 @@ class PsaSchemePartialService @Inject()(
 
   private def viewUpcomingLink(upcomingCharges: Seq[SchemeFS], srn: String): Seq[Link] =
     if (upcomingCharges != Seq.empty) {
-      val nonAftUpcomingCharges: Seq[Boolean] = upcomingCharges.map(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxPenalties)
+      val nonAftUpcomingCharges: Seq[SchemeFS] = upcomingCharges.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
+
         val linkText: Text = if (upcomingCharges.map(_.dueDate).distinct.size == 1 && nonAftUpcomingCharges.isEmpty) {
           msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
             upcomingCharges.map(_.periodStartDate).distinct.head.format(smallDatePattern),
@@ -319,7 +320,7 @@ class PsaSchemePartialService @Inject()(
   }
 
   private def viewOverdueLink(schemeFs: Seq[SchemeFS], srn: String): Seq[Link] = {
-    val nonAftOverdueCharges: Seq[Boolean] = schemeFs.map(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxPenalties)
+    val nonAftOverdueCharges: Seq[SchemeFS] = schemeFs.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
       val linkText = if (schemeFs.map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
         msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
           .withArgs(

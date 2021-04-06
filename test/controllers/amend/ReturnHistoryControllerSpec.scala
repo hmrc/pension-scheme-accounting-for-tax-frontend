@@ -16,14 +16,15 @@
 
 package controllers.amend
 
-import java.time.LocalDate
 import connectors.{AFTConnector, FinancialStatementConnector}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
+import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.SubmitterType.{PSA, PSP}
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.IdentifierRequest
 import models.{AFTOverview, AFTVersion, AccessType, Draft, Submission, SubmitterDetails, VersionsWithSubmitter}
 import org.mockito.ArgumentCaptor
@@ -39,6 +40,7 @@ import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
@@ -182,7 +184,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       val expectedJson =
         Json.obj("paymentsAndChargesUrl" -> controllers.financialStatement.paymentsAndCharges.routes
-          .PaymentsAndChargesController.onPageLoad(srn, startDate).url)
+          .PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges, All).url)
 
       actual must containJson(expectedJson)
     }

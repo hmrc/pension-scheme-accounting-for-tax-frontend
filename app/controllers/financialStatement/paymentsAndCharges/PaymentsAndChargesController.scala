@@ -19,7 +19,7 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import models.ChargeDetailsFilter.Upcoming
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
@@ -85,12 +85,12 @@ class PaymentsAndChargesController @Inject()(
 
   private def getTitleAndFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter)
                                          (implicit messages: Messages): (String, Seq[SchemeFS]) =
-    if(paymentOrChargeType == AccountingForTaxPenalties) {
+    if(paymentOrChargeType == AccountingForTaxCharges) {
       val startDate: LocalDate = LocalDate.parse(period)
       (messages(s"paymentsAndCharges.$journeyType.aft.title",
         startDate.format(dateFormatterStartDate),
         Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY)),
-      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxPenalties).filter(_.periodStartDate == startDate))
+      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate))
     } else {
       (messages(s"paymentsAndCharges.$journeyType.nonAft.title", messages(s"paymentOrChargeType.${paymentOrChargeType.toString}").toLowerCase, period),
         payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt))

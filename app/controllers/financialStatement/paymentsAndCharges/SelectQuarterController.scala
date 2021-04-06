@@ -21,7 +21,7 @@ import controllers.actions._
 import controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFS
 import models.{ChargeDetailsFilter, DisplayHint, DisplayQuarter, PaymentOverdue, Quarter, Quarters}
 import play.api.data.Form
@@ -102,7 +102,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
               },
               value => {
-                Future.successful(Redirect(PaymentsAndChargesController.onPageLoad(srn, value.startDate, AccountingForTaxPenalties, journeyType)))
+                Future.successful(Redirect(PaymentsAndChargesController.onPageLoad(srn, value.startDate, AccountingForTaxCharges, journeyType)))
               }
             )
         } else {
@@ -114,7 +114,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   private def getDisplayQuarters(year: String, payments: Seq[SchemeFS]): Seq[DisplayQuarter] = {
 
     val quartersFound: Seq[LocalDate] = payments
-      .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxPenalties)
+      .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
       .filter(_.periodStartDate.getYear == year.toInt).map(_.periodStartDate).distinct
       .sortBy(_.getMonth)
 
@@ -129,7 +129,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
   private def getQuarters(year: String, payments: Seq[SchemeFS]): Seq[Quarter] =
     payments
-      .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxPenalties)
+      .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
       .filter(_.periodStartDate.getYear == year.toInt)
       .map(paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate)).distinct
 }

@@ -17,16 +17,18 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import controllers.actions.{IdentifierAction, FakeIdentifierAction, AllowAccessActionProviderForIdentifierRequest}
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
+import models.ChargeDetailsFilter.All
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, reset, when}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -40,13 +42,14 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import scala.concurrent.Future
+import controllers.financialStatement.paymentsAndCharges.routes._
 
 class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
 
   import PaymentsAndChargesControllerSpec._
 
   private def httpPathGET(startDate: String = startDate): String =
-    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate).url
+    PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges, All).url
 
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
@@ -65,9 +68,9 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     super.beforeEach
     reset(mockRenderer, mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 

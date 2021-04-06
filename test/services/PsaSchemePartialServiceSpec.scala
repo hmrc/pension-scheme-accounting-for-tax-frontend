@@ -179,10 +179,8 @@ object PsaSchemePartialServiceSpec {
   val returnHistoryUrl: String = s"$aftUrl/srn/previous-return/2020-10-01/amend-previous"
   val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
   val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
-  val viewUpcomingChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/upcoming-payments-and-charges"
-  val selectUpcomingChargesQuarterUrl: String = s"$aftUrl/srn/payments-and-charges/select-upcoming-charges-quarter"
-  val viewOverdueChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/overdue-payments-and-charges"
-  val selectOverdueChargesQuarterUrl: String = s"$aftUrl/srn/payments-and-charges/select-overdue-charges-quarter"
+  val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
+  val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
   val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
 
   private val charge1: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
@@ -213,7 +211,7 @@ object PsaSchemePartialServiceSpec {
                                    upcomingLinkText: Text = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
                                    pastLink: Seq[Link] = upcomingPastChargesLink,
                                    amount: String = "£300.00",
-                                   upcomingLink: String = selectUpcomingChargesQuarterUrl)
+                                   upcomingLink: String = viewUpcomingChargesUrl)
                                   (implicit messages: Messages): Seq[CardViewModel] = Seq(CardViewModel(
     id = "upcoming-aft-charges",
     heading = messages("pspDashboardUpcomingAftChargesCard.h2"),
@@ -244,7 +242,7 @@ object PsaSchemePartialServiceSpec {
 
   def overdueChargesModel(totalOverdue: BigDecimal = BigDecimal(300.00), totalInterestAccruing: BigDecimal = BigDecimal(300.00),
                           overdueLinkText: Text = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
-                          link: String = selectOverdueChargesQuarterUrl)
+                          link: String = viewOverdueChargesUrl)
                          (implicit messages: Messages): Seq[CardViewModel] = Seq(CardViewModel(
     id = "aft-overdue-charges",
     heading = messages("pspDashboardOverdueAftChargesCard.h2"),

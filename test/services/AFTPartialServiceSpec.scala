@@ -163,12 +163,12 @@ class AFTPartialServiceSpec
         DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
-            "span" -> "Total amount due:"
+            "span" -> "Total upcoming payments"
           )),
           links = Seq(
             Link(
               id = "upcoming-payments-and-charges",
-              url = selectUpcomingChargesQuarterUrl,
+              url = viewUpcomingChargesUrl,
               linkText =
                 msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
               hiddenText = None
@@ -213,12 +213,12 @@ class AFTPartialServiceSpec
         DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
-            "span" -> "Total amount due:"
+            "span" -> "Total upcoming payments"
           )),
           links = Seq(
             Link(
               id = "upcoming-payments-and-charges",
-              url = selectUpcomingChargesQuarterUrl,
+              url = viewUpcomingChargesUrl,
               linkText =
                 msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
               hiddenText = None
@@ -312,7 +312,7 @@ class AFTPartialServiceSpec
           links = Seq(
             Link(
               id = "overdue-payments-and-charges",
-              url = selectOverdueChargesQuarterUrl,
+              url = viewOverdueChargesUrl,
               linkText =
                 msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
               hiddenText = None
@@ -339,7 +339,7 @@ class AFTPartialServiceSpec
           links = Seq(
             Link(
               id = "overdue-payments-and-charges",
-              url = selectOverdueChargesQuarterUrl,
+              url = viewOverdueChargesUrl,
               linkText =
                 msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
               hiddenText = None
@@ -451,10 +451,8 @@ object AFTPartialServiceSpec {
   val returnHistoryUrl: String = s"$aftUrl/srn/previous-return/2020-10-01/amend-previous"
   val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
   val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
-  val viewUpcomingChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/upcoming-payments-and-charges"
-  val selectUpcomingChargesQuarterUrl: String = s"$aftUrl/srn/payments-and-charges/select-upcoming-charges-quarter"
-  val viewOverdueChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/overdue-payments-and-charges"
-  val selectOverdueChargesQuarterUrl: String = s"$aftUrl/srn/payments-and-charges/select-overdue-charges-quarter"
+  val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
+  val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
   val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
 
   def startModel: AFTViewModel = AFTViewModel(None, None,

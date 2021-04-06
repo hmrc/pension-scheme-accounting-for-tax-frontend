@@ -19,9 +19,9 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
+import models.ChargeDetailsFilter
 import models.LocalDateBinder._
-import models.Quarters
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.requests.IdentifierRequest
@@ -54,37 +54,14 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
 
-  def onPageLoad(srn: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
+  def onPageLoad(srn: String, period: String, index: String,
+                 paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async {
     implicit request =>
-      paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+      paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
         val schemeFS: Seq[SchemeFS] = getFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
-        buildPage(schemeFS, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType)
-      }
-  }
-
-  def onPageLoadUpcoming(srn: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
-    (identify andThen allowAccess()).async {
-    implicit request =>
-      paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
-
-        val schemeFS: Seq[SchemeFS] = getFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
-        val upcomingCharges: Seq[SchemeFS] = paymentsAndChargesService.extractUpcomingCharges(schemeFS)
-
-        buildPage(upcomingCharges, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType)
-      }
-  }
-
-  def onPageLoadOverdue(srn: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
-    (identify andThen allowAccess()).async {
-    implicit request =>
-      paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
-
-        val schemeFS: Seq[SchemeFS] = getFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
-        val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(schemeFS)
-
-        buildPage(overdueCharges, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType)
+        buildPage(schemeFS, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType, journeyType)
       }
   }
 
@@ -94,20 +71,22 @@ class PaymentsAndChargeDetailsController @Inject()(
                          index: String,
                          schemeName: String,
                          srn: String,
-                         paymentOrChargeType: PaymentOrChargeType
+                         paymentOrChargeType: PaymentOrChargeType,
+                         journeyType: ChargeDetailsFilter
                        )(
                          implicit request: IdentifierRequest[AnyContent]
                        ): Future[Result] = {
 
     val chargeRefs: Seq[String] = filteredCharges.map(_.chargeReference)
-
+    val interestUrl = controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+        .onPageLoad(srn, period, index, paymentOrChargeType, journeyType).url
     if (chargeRefs.size > index.toInt) {
       filteredCharges.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
           val returnUrl = config.schemeDashboardUrl(request.psaId, request.pspId).format(srn)
           renderer.render(
             template = "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk",
-            ctx = summaryListData(srn, period, schemeFs, schemeName, index, returnUrl, paymentOrChargeType)
+            ctx = summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, interestUrl)
           ).map(Ok(_))
         case _ =>
           logger.warn(
@@ -126,18 +105,14 @@ class PaymentsAndChargeDetailsController @Inject()(
   }
 
   private def summaryListData(srn: String, period: String, schemeFS: SchemeFS, schemeName: String,
-                              index: String, returnUrl: String, paymentOrChargeType: PaymentOrChargeType)
+                              returnUrl: String, paymentOrChargeType: PaymentOrChargeType, interestUrl: String)
                              (implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
       case (Some(_), true, true) =>
         Html(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
             s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate")}" +
-            s" <span><a id='breakdown' class=govuk-link href=${
-              controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-                .onPageLoad(srn, schemeFS.periodStartDate, index, paymentOrChargeType)
-                .url
-            }>" +
+            s" <span><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s"${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
         )
       case (Some(date), true, false) =>
@@ -179,7 +154,7 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
 
   def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType): JsObject =
-    if(paymentOrChargeType == AccountingForTaxPenalties) {
+    if(paymentOrChargeType == AccountingForTaxCharges) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, LocalDate.parse(period)).url)
     } else {
       Json.obj()
@@ -198,9 +173,9 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   private def getFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType)
                                          (implicit messages: Messages): Seq[SchemeFS] =
-    if(paymentOrChargeType == AccountingForTaxPenalties) {
+    if(paymentOrChargeType == AccountingForTaxCharges) {
       val startDate: LocalDate = LocalDate.parse(period)
-      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxPenalties).filter(_.periodStartDate == startDate)
+      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate)
     } else {
         payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt)
     }

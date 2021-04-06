@@ -17,18 +17,20 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import controllers.actions.{IdentifierAction, FakeIdentifierAction, AllowAccessActionProviderForIdentifierRequest}
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import helpers.FormatHelper
 import matchers.JsonMatchers
+import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN_INTEREST, PSS_AFT_RETURN}
-import models.financialStatement.{SchemeFS, PsaFS}
+import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
+import models.financialStatement.{PsaFS, SchemeFS}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, reset, when}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest._
 import play.api.Application
 import play.api.inject.bind
@@ -39,10 +41,11 @@ import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.AFTConstants._
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import scala.concurrent.Future
+import controllers.financialStatement.paymentsAndCharges.routes._
 
 class PaymentsAndChargeDetailsControllerSpec
   extends ControllerSpecBase
@@ -54,7 +57,7 @@ class PaymentsAndChargeDetailsControllerSpec
   import PaymentsAndChargeDetailsControllerSpec._
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
-    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController.onPageLoad(srn, startDate, index).url
+    PaymentsAndChargeDetailsController.onPageLoad(srn, startDate, index, AccountingForTaxCharges, All).url
 
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
@@ -74,7 +77,7 @@ class PaymentsAndChargeDetailsControllerSpec
     reset(mockRenderer, mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(), any()))
       .thenReturn(dummyCall.url)
-    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
     when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any())(any()))
       .thenReturn(Nil)
@@ -92,7 +95,7 @@ class PaymentsAndChargeDetailsControllerSpec
         s" <span>" +
         s"<a id='breakdown' class=govuk-link href=${
           controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-            .onPageLoad(srn, schemeFS.periodStartDate, "1")
+            .onPageLoad(srn, schemeFS.periodStartDate, "1", AccountingForTaxCharges, All)
             .url
         }>" +
         s"${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
@@ -147,7 +150,7 @@ class PaymentsAndChargeDetailsControllerSpec
   "PaymentsAndChargesController" must {
 
     "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(
               createChargeWithAmountDueAndInterest("XY002610150183", amountDue = 1234.00),
               createChargeWithAmountDueAndInterest("XY002610150184", amountDue = 1234.00)
@@ -171,7 +174,7 @@ class PaymentsAndChargeDetailsControllerSpec
     }
 
     "return OK and the correct view with hint text linked to interest page if amount is due and interest is not accruing for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(
               createChargeWithAmountDueAndInterestPayment("XY002610150188", interest = BigDecimal(0.00)),
               createChargeWithAmountDueAndInterestPayment("XY002610150189", interest = BigDecimal(0.00))
@@ -198,7 +201,7 @@ class PaymentsAndChargeDetailsControllerSpec
     }
 
     "return OK and the correct view with inset text if amount is all paid and interest accrued has been created as another charge for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest("XY002610150186"))
           )
         ))
@@ -216,7 +219,7 @@ class PaymentsAndChargeDetailsControllerSpec
     }
 
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest("XY002610150187", interest = 0.00))
           )
         ))
@@ -234,7 +237,7 @@ class PaymentsAndChargeDetailsControllerSpec
     }
 
     "return OK and the correct view with no inset text and correct chargeReference text if amount is in credit for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithDeltaCredit())
           )
         ))
@@ -252,7 +255,7 @@ class PaymentsAndChargeDetailsControllerSpec
     }
 
     "catch IndexOutOfBoundsException" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest("XY002610150185"))
           )
         ))
@@ -264,7 +267,7 @@ class PaymentsAndChargeDetailsControllerSpec
     }
 
     "return charge details for XY002610150184 for startDate 2020-04-01 index 3" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(
               createChargeWithAmountDueAndInterest("XY002610150181", amountDue = 1234.00),
               createChargeWithAmountDueAndInterest("XY002610150182", amountDue = 1234.00),
@@ -288,7 +291,7 @@ class PaymentsAndChargeDetailsControllerSpec
     }
 
     "return charge details for XY002610150181 for startDate 2020-04-01 index 0" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(
               createChargeWithAmountDueAndInterest("XY002610150181", amountDue = 1234.00),
               createChargeWithAmountDueAndInterest("XY002610150182", amountDue = 1234.00),

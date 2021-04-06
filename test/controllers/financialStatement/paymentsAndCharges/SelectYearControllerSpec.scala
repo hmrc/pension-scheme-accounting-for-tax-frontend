@@ -22,6 +22,8 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
+import models.ChargeDetailsFilter.All
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import org.mockito.ArgumentCaptor
@@ -61,8 +63,8 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
   val formProvider = new YearsFormProvider()
   val form: Form[Year] = formProvider()
 
-  lazy val httpPathGET: String = routes.SelectYearController.onPageLoad(srn).url
-  lazy val httpPathPOST: String = routes.SelectYearController.onSubmit(srn).url
+  lazy val httpPathGET: String = routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges, All).url
+  lazy val httpPathPOST: String = routes.SelectYearController.onSubmit(srn, AccountingForTaxCharges, All).url
 
   private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
     "form" -> form,
@@ -81,7 +83,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC)))
   }
 
@@ -108,19 +110,19 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.PaymentsAndChargesController.onPageLoad(srn, QUARTER_START_DATE.toString).url)
+      redirectLocation(result) mustBe Some(routes.PaymentsAndChargesController.onPageLoad(srn, QUARTER_START_DATE.toString, AccountingForTaxCharges, All).url)
     }
 
     "redirect to next page when valid data is submitted and multiple quarters are found for the selected year" in {
       val schemeFS = schemeFSResponseAftAndOTC.head.copy(periodStartDate = LocalDate.parse("2020-07-01"))
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC :+ schemeFS)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.SelectQuarterController.onPageLoad(srn, year).url)
+      redirectLocation(result) mustBe Some(routes.SelectQuarterController.onPageLoad(srn, year, All).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

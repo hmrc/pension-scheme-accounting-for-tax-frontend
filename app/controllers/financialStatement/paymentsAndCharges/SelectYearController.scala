@@ -35,7 +35,7 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxPenalties, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.{ChargeDetailsFilter, DisplayYear, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
@@ -103,7 +103,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
         },
-        value => if(paymentOrChargeType == AccountingForTaxPenalties) {
+        value => if(paymentOrChargeType == AccountingForTaxCharges) {
           navService.navFromAFTYearsPage(paymentsCache.schemeFS, value.year, srn, journeyType)
         } else {
           Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType, journeyType)))

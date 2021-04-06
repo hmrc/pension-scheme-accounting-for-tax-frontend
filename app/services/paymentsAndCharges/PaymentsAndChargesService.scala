@@ -23,7 +23,7 @@ import controllers.financialStatement.paymentsAndCharges.routes.{PaymentsAndChar
 import helpers.FormatHelper._
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
-import models.financialStatement.PaymentOrChargeType.AccountingForTaxPenalties
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
@@ -81,13 +81,16 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val onlyAFTAndOTCChargeTypes: Boolean =
     details.chargeType == PSS_AFT_RETURN || details.chargeType == PSS_OTC_AFT_RETURN
 
+    val period: String = if(paymentOrChargeType == AccountingForTaxCharges) details.periodStartDate.toString else details.periodEndDate.getYear.toString
+
     val chargeDetailsItemWithStatus: PaymentAndChargeStatus => PaymentsAndChargesDetails =
       status => PaymentsAndChargesDetails(
         chargeType = details.chargeType.toString,
         chargeReference = details.chargeReference,
         amountDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
         status = status,
-        redirectUrl = redirectChargeDetailsUrl(details, srn, chargeRefs, chargeDetailsFilter, paymentOrChargeType),
+        redirectUrl = PaymentsAndChargeDetailsController.onPageLoad(
+          srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType, chargeDetailsFilter).url,
         visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
       )
 
@@ -104,7 +107,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
             amountDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
             status = InterestIsAccruing,
-            redirectUrl = interestRedirectUrl(details, srn, chargeRefs, chargeDetailsFilter, paymentOrChargeType),
+            redirectUrl = PaymentsAndChargesInterestController.onPageLoad(
+              srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType, chargeDetailsFilter).url,
             visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
           )
         )
@@ -114,38 +118,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         Seq(
           chargeDetailsItemWithStatus(NoStatus)
         )
-    }
-  }
-
-  private def redirectChargeDetailsUrl(details: SchemeFS, srn: String, chargeRefs: Seq[String],
-                                       chargeDetailsFilter: ChargeDetailsFilter, paymentOrChargeType: PaymentOrChargeType): String = {
-    val period: String = if(paymentOrChargeType == AccountingForTaxPenalties) details.periodStartDate.toString else details.periodEndDate.getYear.toString
-    chargeDetailsFilter match {
-      case ChargeDetailsFilter.Upcoming =>
-        PaymentsAndChargeDetailsController.onPageLoadUpcoming(
-          srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType).url
-      case ChargeDetailsFilter.Overdue =>
-        PaymentsAndChargeDetailsController.onPageLoadOverdue(
-          srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType).url
-      case _ =>
-        PaymentsAndChargeDetailsController.onPageLoad(
-          srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType).url
-    }
-  }
-
-  private def interestRedirectUrl(details: SchemeFS, srn: String, chargeRefs: Seq[String],
-                                  chargeDetailsFilter: ChargeDetailsFilter, paymentOrChargeType: PaymentOrChargeType): String = {
-    val period: String = if(paymentOrChargeType == AccountingForTaxPenalties) details.periodStartDate.toString else details.periodEndDate.getYear.toString
-    chargeDetailsFilter match {
-      case ChargeDetailsFilter.Upcoming =>
-        PaymentsAndChargesInterestController.onPageLoadUpcoming(
-          srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType).url
-      case ChargeDetailsFilter.Overdue =>
-        PaymentsAndChargesInterestController.onPageLoadOverdue(
-          srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType).url
-      case _ =>
-        PaymentsAndChargesInterestController.onPageLoad(
-          srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType).url
     }
   }
 
@@ -335,7 +307,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
 
   def getTypeParam(paymentType: PaymentOrChargeType)(implicit messages: Messages): String =
-    if(paymentType == AccountingForTaxPenalties) {
+    if(paymentType == AccountingForTaxCharges) {
       messages(s"paymentOrChargeType.${paymentType.toString}")
     } else {
       messages(s"paymentOrChargeType.${paymentType.toString}").toLowerCase()
