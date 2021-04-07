@@ -16,16 +16,11 @@
 
 package services
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
-import dateOrdering.orderingLocalDate
 import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
-
-import javax.inject.Inject
 import models.financialStatement.SchemeFS
 import models.{AFTOverview, Draft, Quarters, SchemeDetails}
 import play.api.i18n.Messages
@@ -36,6 +31,9 @@ import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels._
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PsaSchemePartialService @Inject()(

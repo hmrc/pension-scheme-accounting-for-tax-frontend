@@ -34,7 +34,6 @@ package controllers.financialStatement.paymentsAndCharges
 
 import controllers.actions._
 import models.ChargeDetailsFilter
-import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.paymentsAndCharges.{PaymentsAndChargesService, PaymentsNavigationService}

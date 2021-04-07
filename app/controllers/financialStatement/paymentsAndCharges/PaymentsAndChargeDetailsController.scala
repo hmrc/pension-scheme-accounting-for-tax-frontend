@@ -171,8 +171,7 @@ class PaymentsAndChargeDetailsController @Inject()(
       schemeFS.periodEndDate.format(dateFormatterDMY)
     )
 
-  private def getFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType)
-                                         (implicit messages: Messages): Seq[SchemeFS] =
+  private def getFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType): Seq[SchemeFS] =
     if(paymentOrChargeType == AccountingForTaxCharges) {
       val startDate: LocalDate = LocalDate.parse(period)
       payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate)

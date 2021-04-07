@@ -45,21 +45,21 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 class ChargeTypeController @Inject()(
-    override val messagesApi: MessagesApi,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    navigator: CompoundNavigator,
-    identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    updateData: DataSetupAction,
-    allowAccess: AllowAccessActionProvider,
-    requireData: DataRequiredAction,
-    formProvider: ChargeTypeFormProvider,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig,
-    schemeService: SchemeService
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                      override val messagesApi: MessagesApi,
+                                      userAnswersCacheConnector: UserAnswersCacheConnector,
+                                      navigator: CompoundNavigator,
+                                      identify: IdentifierAction,
+                                      getData: DataRetrievalAction,
+                                      updateData: DataSetupAction,
+                                      allowAccess: AllowAccessActionProvider,
+                                      requireData: DataRequiredAction,
+                                      formProvider: ChargeTypeFormProvider,
+                                      val controllerComponents: MessagesControllerComponents,
+                                      renderer: Renderer,
+                                      config: FrontendAppConfig,
+                                      schemeService: SchemeService
+                                    )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -87,30 +87,30 @@ class ChargeTypeController @Inject()(
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
-        form
-          .bindFromRequest()
-          .fold(
-            formWithErrors => {
-              val json = Json.obj(
-                fields = "srn" -> srn,
-                "startDate" -> Some(startDate),
-                "form" -> formWithErrors,
-                "radios" -> ChargeType.radios(formWithErrors),
-                "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
-              )
-              renderer.render(template = "chargeType.njk", json).map(BadRequest(_))
-            },
-            value =>
-              for {
-                updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeTypePage, value))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+      implicit request =>
+        DataRetrievals.retrieveSchemeName { schemeName =>
+          form
+            .bindFromRequest()
+            .fold(
+              formWithErrors => {
+                val json = Json.obj(
+                  fields = "srn" -> srn,
+                  "startDate" -> Some(startDate),
+                  "form" -> formWithErrors,
+                  "radios" -> ChargeType.radios(formWithErrors),
+                  "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
+                )
+                renderer.render(template = "chargeType.njk", json).map(BadRequest(_))
+              },
+              value =>
+                for {
+                  updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeTypePage, value))
+                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
 
-          )
-      }
-  }
+            )
+        }
+    }
 
   private def viewModel(schemeName: String, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): GenericViewModel = {
     GenericViewModel(

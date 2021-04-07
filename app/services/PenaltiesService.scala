@@ -94,7 +94,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
         ("govuk-visually-hidden", messages("penalties.status.visuallyHiddenText.noPaymentDue"))
       case _ => ("govuk-visually-hidden", messages("penalties.status.visuallyHiddenText.paymentIsDue"))
     }
-    Cell(Html(s"<span class='$classes'>$content</span>"))
+    Cell(Html(s"""<span class='$classes'>$content</span>"""))
   }
 
   //CHARGE DETAILS

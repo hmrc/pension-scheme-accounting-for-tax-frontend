@@ -348,7 +348,7 @@ class AFTPartialService @Inject()(
   }
 
   def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFS], psaId: String)
-    (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): DashboardAftViewModel = {
+    (implicit messages: Messages): DashboardAftViewModel = {
 
     val upcomingCharges: Seq[PsaFS] =
       psaFs.filter(_.dueDate.exists(_.isBefore(DateHelper.today)))
