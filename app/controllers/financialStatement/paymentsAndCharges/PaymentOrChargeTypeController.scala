@@ -47,15 +47,15 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
   with I18nSupport
   with NunjucksSupport {
 
-  private def form: Form[PaymentOrChargeType] = formProvider()
+  private def form(journeyType: ChargeDetailsFilter): Form[PaymentOrChargeType] = formProvider(journeyType)
 
   def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { cache =>
       val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFS)
       val json = Json.obj(
         "titleMessage" -> s"paymentOrChargeType.$journeyType.title",
-        "form" -> form,
-        "radios" -> PaymentOrChargeType.radios(form, paymentsOrCharges),
+        "form" -> form(journeyType),
+        "radios" -> PaymentOrChargeType.radios(form(journeyType), paymentsOrCharges),
         "schemeName" -> cache.schemeDetails.schemeName,
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
       )
@@ -66,7 +66,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   def onSubmit(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
     service.getPaymentsForJourney(request.psaIdOrException.id, srn, journeyType).flatMap { cache =>
-      form.bindFromRequest().fold(
+      form(journeyType).bindFromRequest().fold(
         formWithErrors => {
           val json = Json.obj(
             "titleMessage" -> s"paymentOrChargeType.$journeyType.title",

@@ -85,7 +85,7 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC)))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC)))
   }
 
   "SelectQuarter Controller" must {

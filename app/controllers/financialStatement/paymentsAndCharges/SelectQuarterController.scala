@@ -50,11 +50,12 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                                                   with I18nSupport
                                                   with NunjucksSupport {
 
-  private def form(quarters: Seq[Quarter], year: String)(implicit messages: Messages): Form[Quarter] =
-    formProvider(messages("selectChargesQuarter.error", year), quarters)
+  private def form(quarters: Seq[Quarter], year: String, journeyType: ChargeDetailsFilter)
+                  (implicit messages: Messages): Form[Quarter] =
+    formProvider(messages(s"selectChargesQuarter.$journeyType.error", year), quarters)
 
   def onPageLoad(srn: String, year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
-    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
       val quarters: Seq[Quarter] = getQuarters(year, paymentsCache.schemeFS)
 
@@ -64,8 +65,8 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
             "titleMessage" -> s"selectChargesQuarter.$journeyType.title",
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "year" -> year,
-            "form" -> form(quarters, year),
-            "radios" -> Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFS),
+            "form" -> form(quarters, year, journeyType),
+            "radios" -> Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFS),
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
@@ -79,14 +80,12 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   }
 
   def onSubmit(srn: String, year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
-    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
       val quarters: Seq[Quarter] = getQuarters(year, paymentsCache.schemeFS)
         if (quarters.nonEmpty) {
 
-          form(quarters, year)
-            .bindFromRequest()
-            .fold(
+          form(quarters, year, journeyType).bindFromRequest().fold(
               formWithErrors => {
 
                   val json = Json.obj(

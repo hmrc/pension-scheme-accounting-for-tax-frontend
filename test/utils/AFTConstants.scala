@@ -19,7 +19,11 @@ package utils
 import java.time.LocalDate
 
 object AFTConstants {
-  val QUARTER_START_DATE = LocalDate.of(2020, 4, 1)
-  val QUARTER_END_DATE = LocalDate.of(2020, 6, 30)
-  val MIN_DATE = LocalDate.of(1900, 1, 1)
+  val QUARTER_START_DATE: LocalDate = LocalDate.of(2020, 4, 1)
+  val QUARTER_END_DATE: LocalDate = LocalDate.of(2020, 6, 30)
+  val MIN_DATE: LocalDate = LocalDate.of(1900, 1, 1)
+  val Q3_2020_START: LocalDate = LocalDate.of(2020, 7, 1)
+  val Q3_2020_END: LocalDate = LocalDate.of(2020, 9, 30)
+  val Q3_2021_START: LocalDate = LocalDate.of(2021, 7, 1)
+  val Q3_2021_END: LocalDate = LocalDate.of(2021, 9, 30)
 }

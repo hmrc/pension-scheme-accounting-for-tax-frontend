@@ -17,13 +17,15 @@
 package forms.financialStatement
 
 import forms.mappings.Mappings
+import models.ChargeDetailsFilter
+import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType
 import play.api.data.Form
 
 class PaymentOrChargeTypeFormProvider extends Mappings {
 
-  def apply(): Form[PaymentOrChargeType] =
+  def apply(journeyType: ChargeDetailsFilter = All): Form[PaymentOrChargeType] =
     Form(
-      "value" -> enumerable[PaymentOrChargeType](requiredKey = "paymentOrChargeType.error.required")
+      "value" -> enumerable[PaymentOrChargeType](requiredKey = s"paymentOrChargeType.$journeyType.error.required")
     )
 }

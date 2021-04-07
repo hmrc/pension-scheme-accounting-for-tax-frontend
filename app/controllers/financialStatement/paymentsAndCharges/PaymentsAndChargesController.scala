@@ -18,7 +18,7 @@ package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import controllers.actions._
-import models.ChargeDetailsFilter.Upcoming
+import models.ChargeDetailsFilter.{All, Upcoming}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.{ChargeDetailsFilter, Quarters}
@@ -92,7 +92,9 @@ class PaymentsAndChargesController @Inject()(
         Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY)),
       payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate))
     } else {
-      (messages(s"paymentsAndCharges.$journeyType.nonAft.title", messages(s"paymentOrChargeType.${paymentOrChargeType.toString}").toLowerCase, period),
+      val typeParam: String = messages(s"paymentOrChargeType.${paymentOrChargeType.toString}")
+      val messageParam: String = if(journeyType == All) typeParam else typeParam.toLowerCase
+      (messages(s"paymentsAndCharges.$journeyType.nonAft.title", messageParam, period),
         payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt))
     }
 

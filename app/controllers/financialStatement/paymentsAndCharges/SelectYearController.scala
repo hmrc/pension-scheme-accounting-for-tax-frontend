@@ -63,8 +63,15 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
   with I18nSupport
   with NunjucksSupport {
 
-  private def form(typeParam: String, config: FrontendAppConfig)
-                  (implicit messages: Messages): Form[Year] = formProvider(messages("selectChargesYear.error", typeParam))(config)
+  private def form(journeyType: ChargeDetailsFilter, paymentOrChargeType: PaymentOrChargeType, typeParam: String, config: FrontendAppConfig)
+                  (implicit messages: Messages): Form[Year] = {
+    val errorMessage = if(isTaxYearFormat(paymentOrChargeType)) {
+      messages(s"selectChargesTaxYear.$journeyType.error", typeParam)
+    } else {
+      messages(s"selectChargesYear.$journeyType.error", typeParam)
+    }
+    formProvider(errorMessage)(config)
+  }
 
   def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
@@ -74,11 +81,11 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
       val years = getYears(paymentsCache.schemeFS, paymentOrChargeType)
       val json = Json.obj(
-        "titleMessage" -> s"selectChargesYear.$journeyType.title",
+        "titleMessage" -> getTitle(typeParam, paymentOrChargeType, journeyType),
         "typeParam" -> typeParam,
         "schemeName" -> paymentsCache.schemeDetails.schemeName,
-        "form" -> form(typeParam, config),
-        "radios" -> FSYears.radios(form(typeParam, config), years, isFYFormat(paymentOrChargeType)),
+        "form" -> form(journeyType, paymentOrChargeType, typeParam, config),
+        "radios" -> FSYears.radios(form(journeyType, paymentOrChargeType, typeParam, config), years, isTaxYearFormat(paymentOrChargeType)),
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
       )
 
@@ -90,15 +97,15 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     identify.async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
-      form(typeParam, config).bindFromRequest().fold(
+      form(journeyType, paymentOrChargeType, typeParam, config).bindFromRequest().fold(
         formWithErrors => {
 
           val json = Json.obj(
-            "titleMessage" -> s"selectChargesYear.$journeyType.title",
+            "titleMessage" -> getTitle(typeParam, paymentOrChargeType, journeyType),
             "typeParam" -> typeParam,
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "form" -> formWithErrors,
-            "radios" -> FSYears.radios(formWithErrors, getYears(paymentsCache.schemeFS, paymentOrChargeType), isFYFormat(paymentOrChargeType)),
+            "radios" -> FSYears.radios(formWithErrors, getYears(paymentsCache.schemeFS, paymentOrChargeType), isTaxYearFormat(paymentOrChargeType)),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
@@ -112,6 +119,14 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     }
   }
 
+  def getTitle(typeParam: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter)
+              (implicit messages: Messages): String =
+    if(isTaxYearFormat(paymentOrChargeType)) {
+      messages(s"selectChargesTaxYear.$journeyType.title", typeParam)
+    } else {
+      messages(s"selectChargesYear.$journeyType.title", typeParam)
+    }
+
   def getYears(payments: Seq[SchemeFS], paymentOrChargeType: PaymentOrChargeType): Seq[DisplayYear] =
     payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
@@ -120,6 +135,6 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
       DisplayYear(year, hint)
     }
 
-  val isFYFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
+  val isTaxYearFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
 
 }

@@ -1175,15 +1175,23 @@ selectPenaltiesQuarter.error = Select which quarter you want to view Accounting 
 selectChargesYear.all.title = Which year do you want to view {0} for?
 selectChargesYear.upcoming.title = Which year do you want to view upcoming {0} for?
 selectChargesYear.overdue.title = Which year do you want to view overdue {0} for?
+selectChargesTaxYear.all.title = Which tax year do you want to view {0} for?
+selectChargesTaxYear.upcoming.title = Which tax year do you want to view {0} for?
+selectChargesTaxYear.overdue.title = Which tax year do you want to view {0} for?
+
 selectChargesYear.all.error = Select which year you want to view {0} for
 selectChargesYear.upcoming.error = Select which year you want to view upcoming {0} for
 selectChargesYear.overdue.error = Select which year you want to view overdue {0} for
+selectChargesTaxYear.all.error = Select which tax year you want to view {0} for
+selectChargesTaxYear.upcoming.error = Select which tax year you want to view upcoming {0} for
+selectChargesTaxYear.overdue.error = Select which tax year you want to view overdue {0} for
+
 selectChargesQuarter.all.title = Which quarter of {0} do you want to view the Accounting for Tax charges for?
 selectChargesQuarter.upcoming.title = Which quarter of {0} do you want to view the upcoming {0} for?
 selectChargesQuarter.overdue.title = Which quarter of {0} do you want to view the overdue {0} for?
-selectChargesQuarter.all.error = Select which quarter of {0} you want to view {0} for
-selectChargesQuarter.upcoming.error = Select which quarter of {0} you want to view upcoming {0} for
-selectChargesQuarter.overdue.error = Select which quarter of {0} you want to view overdue {0} for
+selectChargesQuarter.all.error = Select which quarter of {0} you want to view Accounting for Tax charges for
+selectChargesQuarter.upcoming.error = Select which quarter of {0} you want to view upcoming Accounting for Tax charges for
+selectChargesQuarter.overdue.error = Select which quarter of {0} you want to view overdue Accounting for Tax charges for
 
 paymentOrChargeType.all.title = What type of payments and charges do you want to view?
 paymentOrChargeType.upcoming.title = What type of upcoming payments and charges do you want to view?
@@ -1191,7 +1199,7 @@ paymentOrChargeType.overdue.title = What type of overdue payments and charges do
 paymentOrChargeType.all.error.required = Select what type of payments and charges you want to view
 paymentOrChargeType.upcoming.error.required = Select what type of upcoming payments and charges you want to view
 paymentOrChargeType.overdue.error.required = Select what type of overdue payments and charges you want to view
-paymentOrChargeType.AccountingForTaxCharges = Accounting for Tax charge
+paymentOrChargeType.AccountingForTaxCharges = Accounting for Tax charges
 paymentOrChargeType.ContractSettlementCharges = Contract settlement charges
 paymentOrChargeType.ExcessReliefPaidCharges = Excess relief paid charges
 paymentOrChargeType.InterestOnExcessRelief = Interest on excess relief paid charges
