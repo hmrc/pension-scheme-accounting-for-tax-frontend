@@ -58,6 +58,7 @@ class AmendYearsController @Inject()(
     ) flatMap { schemeDetails =>
       quartersService.getPastYears(schemeDetails.pstr).flatMap {
         case Nil => futureSessionExpiredPage
+        case Seq(oneYearOnly) => Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, oneYearOnly.toString)))
         case yearsSeq =>
           val json = Json.obj(
             "srn" -> srn,
