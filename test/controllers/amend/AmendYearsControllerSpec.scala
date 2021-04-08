@@ -72,6 +72,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val year = "2020"
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
+  //scalastyle.off: magic.number
   private val displayYears = Seq(2020, 2022)
 
   override def beforeEach: Unit = {
@@ -84,9 +85,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "AmendYears Controller" must {
-    "return OK and the correct view for a GET" in {
-      val years = Seq(2020, 2022)
-
+    "return OK and the correct view for a GET when more than one year" in {
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -98,7 +97,16 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(years).apply(form(years)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(displayYears).apply(form(displayYears)))
+    }
+
+    "redirect to amend quarters page when only one year" in {
+      val years = displayYears.filter(_ == 2020)
+      when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(years))
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, "2020").url)
     }
 
     "redirect to session expired page when there is no data returned from overview api for a GET" in {
