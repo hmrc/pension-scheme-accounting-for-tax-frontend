@@ -52,8 +52,9 @@ class AmendQuartersController @Inject()(
   private def form(quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
     formProvider(messages("amendQuarters.error.required"), quarters)
 
-  private def futureSessionExpired:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-  private def futureReturnHistoryController(srn:String, startDate:LocalDate):Future[Result] =
+  private def futureSessionExpiredPage:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+  
+  private def futureReturnHistoryPage(srn:String, startDate:LocalDate):Future[Result] =
     Future.successful(Redirect (controllers.amend.routes.ReturnHistoryController.onPageLoad (srn, startDate) ) )
 
   def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
@@ -63,8 +64,8 @@ class AmendQuartersController @Inject()(
       schemeIdType = "srn"
     ) flatMap { schemeDetails =>
       quartersService.getPastQuarters(schemeDetails.pstr, year.toInt).flatMap {
-        case Nil => futureSessionExpired
-        case Seq(oneQuarterOnly) => futureReturnHistoryController(srn, oneQuarterOnly.quarter.startDate)
+        case Nil => futureSessionExpiredPage
+        case Seq(oneQuarterOnly) => futureReturnHistoryPage(srn, oneQuarterOnly.quarter.startDate)
         case displayQuarters =>
           val quarters = displayQuarters.map(_.quarter)
           val json = Json.obj(
@@ -104,10 +105,10 @@ class AmendQuartersController @Inject()(
                   )
                   renderer.render(template = "amend/amendQuarters.njk", json).map(BadRequest(_))
               },
-              value => futureReturnHistoryController(srn, value.startDate)
+              value => futureReturnHistoryPage(srn, value.startDate)
             )
         } else {
-          futureSessionExpired
+          futureSessionExpiredPage
         }
     }
     }
