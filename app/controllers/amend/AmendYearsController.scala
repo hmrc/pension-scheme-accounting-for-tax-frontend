@@ -48,6 +48,8 @@ class AmendYearsController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
+  private def amendQuartersPage(srn:String, year:Int):Future[Result] =
+    Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year.toString)))
   private def futureSessionExpiredPage:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
@@ -58,8 +60,7 @@ class AmendYearsController @Inject()(
     ) flatMap { schemeDetails =>
       quartersService.getPastYears(schemeDetails.pstr).flatMap {
         case Nil => futureSessionExpiredPage
-        case Seq(oneYearOnly) =>
-          Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, oneYearOnly.toString)))
+        case Seq(oneYearOnly) => amendQuartersPage(srn, oneYearOnly)
         case yearsSeq =>
           val json = Json.obj(
             "srn" -> srn,
@@ -110,8 +111,7 @@ class AmendYearsController @Inject()(
                 )
                 renderer.render(template = "amend/amendYears.njk", json).map(BadRequest(_))
               },
-              value => Future.successful(
-                Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, value.toString)))
+              value => amendQuartersPage(srn, value.year)
             )
       }
     }
