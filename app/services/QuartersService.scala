@@ -51,6 +51,15 @@ class QuartersService @Inject()(
     }
   }
 
+  def getPastYears(pstr: String)
+    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Int]] = {
+    aftConnector.getAftOverview(pstr).map (
+      _.filter(_.submittedVersionAvailable)
+        .map(overviewElement => Quarters.getQuarter(overviewElement.periodStartDate).startDate.getYear)
+        .distinct
+    )
+  }
+
   def getInProgressQuarters(srn: String, pstr: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
     aftConnector.getAftOverview(pstr).flatMap { aftOverview =>
