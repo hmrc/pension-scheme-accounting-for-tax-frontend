@@ -108,6 +108,17 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(displayQuarters).apply(form(quarters)))
     }
 
+    "redirect to return history page when only one quarter for a GET" in {
+      val displayQuarters: Seq[DisplayQuarter] = Seq(displayQuarterViewPast)
+      when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(controllers.amend.routes.ReturnHistoryController
+        .onPageLoad(srn, displayQuarterViewPast.quarter.startDate.toString).url)
+    }
+
     "redirect to session expired page when quarters service returns an empty list" in {
       when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpGETRequest(httpPathGET)).value
