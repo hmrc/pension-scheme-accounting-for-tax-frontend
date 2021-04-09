@@ -17,18 +17,18 @@
 package controllers.amend
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import controllers.actions._
 import forms.amend.AmendYearsFormProvider
+
 import javax.inject.Inject
-import models.{AmendYears, GenericViewModel, Year}
+import models.{AmendYears, Year, GenericViewModel}
 import models.requests.IdentifierRequest
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
-import services.SchemeService
+import services.{SchemeService, QuartersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -41,12 +41,16 @@ class AmendYearsController @Inject()(
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
-                                      aftConnector: AFTConnector,
-                                      schemeService: SchemeService
+                                      schemeService: SchemeService,
+                                      quartersService: QuartersService
                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
+
+  private def amendQuartersPage(srn:String, year:Int):Future[Result] =
+    Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year.toString)))
+  private def futureSessionExpiredPage:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(
@@ -54,11 +58,10 @@ class AmendYearsController @Inject()(
       srn = srn,
       schemeIdType = "srn"
     ) flatMap { schemeDetails =>
-      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-        if (aftOverview.nonEmpty) {
-          val yearsSeq =
-            aftOverview.map(_.periodStartDate.getYear).distinct
-
+      quartersService.getPastYears(schemeDetails.pstr).flatMap {
+        case Nil => futureSessionExpiredPage
+        case Seq(oneYearOnly) => amendQuartersPage(srn, oneYearOnly)
+        case yearsSeq =>
           val json = Json.obj(
             "srn" -> srn,
             "startDate" -> None,
@@ -66,20 +69,13 @@ class AmendYearsController @Inject()(
             "radios" -> AmendYears.radios(form(yearsSeq), yearsSeq),
             "viewModel" -> viewModel(schemeDetails.schemeName, srn)
           )
-
           renderer
             .render(template = "amend/amendYears.njk", json)
             .map(Ok(_))
-        } else {
-          Future.successful(
-            Redirect(
-              controllers.routes.SessionExpiredController.onPageLoad()
-            )
-          )
-        }
       }
     }
   }
+
 
   private def form(years: Seq[Int]): Form[Year] = formProvider(years)
 
@@ -97,13 +93,10 @@ class AmendYearsController @Inject()(
       srn = srn,
       schemeIdType = "srn"
     ) flatMap { schemeDetails =>
-      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-        if (aftOverview.nonEmpty) {
-          val yearsSeq =
-            aftOverview.map(_.periodStartDate.getYear).distinct
-          form(yearsSeq)
-            .bindFromRequest()
-            .fold(
+      quartersService.getPastYears(schemeDetails.pstr).flatMap {
+        case Nil => futureSessionExpiredPage
+        case yearsSeq =>
+          form(yearsSeq).bindFromRequest().fold(
               formWithErrors => {
                 val json = Json.obj(
                   fields = "srn" -> srn,
@@ -116,25 +109,10 @@ class AmendYearsController @Inject()(
                     srn
                   )
                 )
-                renderer
-                  .render(template = "amend/amendYears.njk", json)
-                  .map(BadRequest(_))
+                renderer.render(template = "amend/amendYears.njk", json).map(BadRequest(_))
               },
-              value =>
-                Future.successful(
-                  Redirect(
-                    controllers.amend.routes.AmendQuartersController
-                      .onPageLoad(srn, value.toString)
-                  )
-                )
+              value => amendQuartersPage(srn, value.year)
             )
-        } else {
-          Future.successful(
-            Redirect(
-              controllers.routes.SessionExpiredController.onPageLoad()
-            )
-          )
-        }
       }
     }
   }

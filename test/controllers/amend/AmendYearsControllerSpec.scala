@@ -17,7 +17,6 @@
 package controllers.amend
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.amend.AmendYearsFormProvider
@@ -33,11 +32,11 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.SchemeService
+import services.{SchemeService, QuartersService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -47,11 +46,11 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   implicit val config: FrontendAppConfig = mockAppConfig
   private val mockSchemeService: SchemeService = mock[SchemeService]
-  private val mockAFTConnector: AFTConnector = mock[AFTConnector]
+  private val mockQuartersService: QuartersService = mock[QuartersService]
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
+    bind[QuartersService].toInstance(mockQuartersService),
     bind[SchemeService].toInstance(mockSchemeService),
-    bind[AFTConnector].toInstance(mockAFTConnector)
   )
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
   val templateToBeRendered = "amend/amendYears.njk"
@@ -73,11 +72,12 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val year = "2020"
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
+  //scalastyle.off: magic.number
+  private val displayYears = Seq(2020, 2022)
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
-      .thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
+    when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(displayYears))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
@@ -85,9 +85,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "AmendYears Controller" must {
-    "return OK and the correct view for a GET" in {
-      val years = Seq(2020, 2022)
-
+    "return OK and the correct view for a GET when more than one year" in {
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -99,11 +97,20 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(years).apply(form(years)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(displayYears).apply(form(displayYears)))
+    }
+
+    "redirect to amend quarters page when only one year" in {
+      val years = displayYears.filter(_ == 2020)
+      when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(years))
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, "2020").url)
     }
 
     "redirect to session expired page when there is no data returned from overview api for a GET" in {
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
@@ -128,7 +135,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "redirect to session expired page when there is no data returned from overview api for a POST" in {
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url

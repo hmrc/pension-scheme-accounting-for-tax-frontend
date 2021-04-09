@@ -17,12 +17,11 @@
 package services
 
 import java.time.LocalDate
-
 import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData._
-import models.{DisplayQuarter, InProgressHint, AFTOverview, SubmittedHint, LockDetail, LockedHint}
+import models.{SubmittedHint, LockDetail, LockedHint, DisplayQuarter, InProgressHint, AFTOverview}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -74,6 +73,28 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
 
     "give an empty list if overview api returns an empty list" in {
       whenReady(quartersService.getPastQuarters(pstr, year2020)) { result =>
+        result mustBe Nil
+      }
+    }
+  }
+
+  "getPastYears" must {
+    "give all years for which return has been submitted when all returns are for a single year" in {
+      when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(pastOneYear))
+      whenReady(quartersService.getPastYears(pstr)) { result =>
+        result mustBe Seq(2020)
+      }
+    }
+
+    "give all years for which return has been submitted when returns are for multiple years" in {
+      when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(pastMultipleYears))
+      whenReady(quartersService.getPastYears(pstr)) { result =>
+        result mustBe Seq(2020, 2021)
+      }
+    }
+
+    "give an empty list if overview api returns an empty list" in {
+      whenReady(quartersService.getPastYears(pstr)) { result =>
         result mustBe Nil
       }
     }
