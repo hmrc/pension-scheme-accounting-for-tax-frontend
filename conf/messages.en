@@ -880,6 +880,12 @@ chargeC.employerAddressResults.error.required = Select an address
 
 addEmployers.employer.header = Sponsoring employer
 addEmployers.amount.header = Total
+addEmployers.hiddenText.header.viewSponsoringEmployer = View sponsoring employer
+addEmployers.hiddenText.header.removeSponsoringEmployer = Remove sponsoring employer
+
+addMember.link.hiddenText.header.viewMember = View member
+addMember.link.hiddenText.header.removeMember = Remove member
+
 
 deleteEmployer.chargeC.title = Are you sure you want to remove the authorised surplus payments charge for {0}?
 deleteEmployer.chargeC.heading = Are you sure you want to remove the authorised surplus payments charge for {0}?

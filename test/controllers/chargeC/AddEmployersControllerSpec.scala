@@ -66,8 +66,8 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     "head" -> Json.arr(
       Json.obj("text" -> "Sponsoring employer"),
       Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
-      Json.obj("html" -> s"""<span class=govuk-visually-hidden>${messages("site.view.link")}</span>"""),
-      Json.obj("html" -> s"""<span class=govuk-visually-hidden>${messages("site.remove.link")}</span>""")
+      Json.obj("html" -> s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>"""),
+      Json.obj("html" -> s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")
     ),
     "rows" -> Json.arr(
       Json.arr(
