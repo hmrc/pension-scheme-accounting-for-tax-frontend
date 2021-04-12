@@ -1,7 +1,3 @@
-  [role="region"][aria-labelledby][tabindex] {
+  [role="region"][aria-labelledby] {
     overflow: auto;
-  }
-​
-  [role="region"][aria-labelledby][tabindex]:focus {
-    outline: .1em solid rgba(0, 0, 0, .1);
   }

@@ -33,7 +33,7 @@
           {% for i in range(0, members.length) -%}
             {{ members[i].name }}
           {%- endfor %}
-        <div role="region" aria-labelledby="chargeG_h1" class="govuk-!-margin-bottom-7" tabindex="0">
+        <div role="region" aria-labelledby="chargeG_h1" class="govuk-!-margin-bottom-7">
           {{ govukTable(table) }}
          </div>
           {% if canChange %}
