@@ -59,13 +59,14 @@
     {% block mainContent %}
 
     {% endblock %}
-    <p class="govuk-body govuk-!-margin-top-7">
-    {{ reportTechnicalIssue({
-                    serviceId: "PODS",
-                    baseUrl: config.contactHost,
-                    language: "en"
-                }) }}
-                </p>
+    <p class="govuk-body">
+        {{ reportTechnicalIssue({
+                        serviceId: "PODS",
+                        baseUrl: config.contactHost,
+                        classList: "govuk-!-display-inline-block govuk-!-margin-top-8",
+                        language: "en"
+                    }) }}
+    </p>
 {% endblock %}
 
 {% block bodyEnd %}
