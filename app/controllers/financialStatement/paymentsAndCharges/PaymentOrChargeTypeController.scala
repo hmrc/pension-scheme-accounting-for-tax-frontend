@@ -65,7 +65,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
   }
 
   def onSubmit(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
-    service.getPaymentsForJourney(request.psaIdOrException.id, srn, journeyType).flatMap { cache =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { cache =>
       form(journeyType).bindFromRequest().fold(
         formWithErrors => {
           val json = Json.obj(
