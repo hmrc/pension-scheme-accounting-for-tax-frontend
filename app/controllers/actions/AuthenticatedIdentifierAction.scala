@@ -50,6 +50,9 @@ class AuthenticatedIdentifierAction @Inject()(
 
   private val logger = Logger(classOf[AuthenticatedIdentifierAction])
 
+  private def bothPsaAndPspEnrolmentsPresent(enrolments: Enrolments):Boolean =
+    enrolments.getEnrolment("HMRC-PODS-ORG").isDefined && enrolments.getEnrolment("HMRC-PODSPP-ORG").isDefined
+
   override def invokeBlock[A](
                                request: Request[A],
                                block: IdentifierRequest[A] => Future[Result]
@@ -61,7 +64,7 @@ class AuthenticatedIdentifierAction @Inject()(
     authorised(Enrolment("HMRC-PODS-ORG") or Enrolment("HMRC-PODSPP-ORG")).retrieve(
       Retrievals.externalId and Retrievals.allEnrolments
     ) {
-      case Some(id) ~ enrolments if enrolments.enrolments.size == 2 =>
+      case Some(id) ~ enrolments if bothPsaAndPspEnrolmentsPresent(enrolments) =>
         administratorOrPractitioner(id).flatMap{
           case None =>  Future.successful(Redirect(Call("GET",config.administratorOrPractitionerUrl)))
           case Some(Administrator) => block(IdentifierRequest(id, request, getPsaId(enrolments), None))
