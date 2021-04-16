@@ -193,7 +193,7 @@ object PsaSchemePartialServiceSpec {
   private val upcomingPastChargesLink: Seq[Link] = Seq(Link(
                                                 id = "past-payments-and-charges",
                                                 url = viewPastChargesUrl,
-                                                linkText = msg"pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges",
+                                                linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
                                                 hiddenText = None
                                               ))
 

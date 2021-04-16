@@ -1053,7 +1053,7 @@ pspDashboardUpcomingAftChargesCard.span.singleDueDate = Payment due by {0}:
 pspDashboardUpcomingAftChargesCard.span.multipleDueDate = Total upcoming payments
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single = View payments and charges for {0} to {1}
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple = View upcoming payments and charges
-pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges = View past payments and charges
+pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges = View all payments and charges
 
 pspDashboardOverdueAftChargesCard.h2 = Overdue charges
 pspDashboardOverdueAftChargesCard.total.span = Total overdue payments:

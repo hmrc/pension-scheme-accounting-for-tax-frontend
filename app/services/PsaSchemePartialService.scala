@@ -270,7 +270,7 @@ class PsaSchemePartialService @Inject()(
       Seq(Link(
         id = "past-payments-and-charges",
         url = appConfig.paymentsAndChargesUrl.format(srn),
-        linkText = msg"pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges",
+        linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
         hiddenText = None
       ))
     }
