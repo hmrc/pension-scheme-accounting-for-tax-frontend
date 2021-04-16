@@ -62,8 +62,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       Json.obj("text" -> "Member"),
       Json.obj("text" -> "National Insurance number"),
       Json.obj("text" -> "Total tax due", "classes" -> "govuk-table__header--numeric"),
-      Json.obj("html" -> s"""<span class=govuk-visually-hidden>${messages("site.view.link")}</span>"""),
-      Json.obj("html" -> s"""<span class=govuk-visually-hidden>${messages("site.remove.link")}</span>""")
+      Json.obj("html" -> s"""<span class=govuk-visually-hidden>${messages("addMember.link.hiddenText.header.viewMember")}</span>"""),
+      Json.obj("html" -> s"""<span class=govuk-visually-hidden>${messages("addMember.link.hiddenText.header.removeMember")}</span>""")
     ),
     "rows" -> Json.arr(
       Json.arr(

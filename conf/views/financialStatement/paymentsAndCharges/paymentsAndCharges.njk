@@ -21,7 +21,7 @@
         <p class="govuk-body">{{ messages("paymentsAndCharges.reflect.charge.text") }}</p>
 
             {% if paymentAndChargesTable.rows.length > 0 %}
-                 <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7" tabindex="0">
+                 <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
                     {{ govukTable(paymentAndChargesTable) }}
                 </div>
             {% endif %}

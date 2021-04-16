@@ -18,6 +18,8 @@ package models
 
 import play.api.mvc.PathBindable
 
+import scala.language.implicitConversions
+
 sealed trait ChargeDetailsFilter
 
 object ChargeDetailsFilter

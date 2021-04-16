@@ -110,10 +110,10 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     val head = Seq(
       Cell(msg"addEmployers.employer.header"),
       Cell(msg"addEmployers.amount.header", classes = Seq("govuk-table__header--numeric")),
-      Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.view.link")}</span>"""))
+      Cell(Html(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>"""))
     ) ++ (
       if (canChange)
-        Seq(Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.remove.link")}</span>""")))
+        Seq(Cell(Html(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")))
       else
         Nil
       )

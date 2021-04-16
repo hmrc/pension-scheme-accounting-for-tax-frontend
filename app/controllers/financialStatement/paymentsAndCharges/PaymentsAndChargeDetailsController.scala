@@ -138,7 +138,7 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   }
 
-  def chargeReferenceTextMessage(schemeFS: SchemeFS)(implicit messages: Messages): String =
+  private def chargeReferenceTextMessage(schemeFS: SchemeFS)(implicit messages: Messages): String =
     if (schemeFS.totalAmount < 0) {
       messages("paymentsAndCharges.credit.information",
         s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}")
@@ -146,25 +146,25 @@ class PaymentsAndChargeDetailsController @Inject()(
       messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
     }
 
-  def optHintText(schemeFS: SchemeFS)(implicit messages: Messages): JsObject =
+  private def optHintText(schemeFS: SchemeFS)(implicit messages: Messages): JsObject =
     if (schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00)) {
       Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
     } else {
       Json.obj()
     }
 
-  def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType): JsObject =
+  private def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType): JsObject =
     if(paymentOrChargeType == AccountingForTaxCharges) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, LocalDate.parse(period)).url)
     } else {
       Json.obj()
     }
 
-  def isPaymentOverdue(schemeFS: SchemeFS): Boolean =
+  private def isPaymentOverdue(schemeFS: SchemeFS): Boolean =
     (schemeFS.amountDue > 0 && schemeFS.accruedInterestTotal > 0
       && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN))
 
-  def tableHeader(schemeFS: SchemeFS)(implicit messages: Messages): String =
+  private def tableHeader(schemeFS: SchemeFS)(implicit messages: Messages): String =
     messages(
       "paymentsAndCharges.caption",
       schemeFS.periodStartDate.format(dateFormatterStartDate),

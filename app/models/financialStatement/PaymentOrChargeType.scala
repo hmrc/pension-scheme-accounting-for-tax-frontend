@@ -22,6 +22,8 @@ import play.api.data.Form
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.viewmodels._
 
+import scala.language.implicitConversions
+
 sealed trait PaymentOrChargeType
 
 object PaymentOrChargeType extends Enumerable.Implicits {
@@ -41,7 +43,8 @@ object PaymentOrChargeType extends Enumerable.Implicits {
       case _ => AccountingForTaxCharges
     }
 
-  val values: Seq[PaymentOrChargeType] = Seq(AccountingForTaxCharges, ContractSettlementCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, PensionsCharges)
+  val values: Seq[PaymentOrChargeType] =
+    Seq(AccountingForTaxCharges, ContractSettlementCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, PensionsCharges)
 
   def radios(form: Form[_], chargeTypes: Seq[DisplayPaymentOrChargeType]): Seq[Radios.Item] =
     Radios(form("value"), chargeTypes.map(value => Radios.Radio(msg"paymentOrChargeType.${value.chargeType.toString}", value.chargeType.toString)))
