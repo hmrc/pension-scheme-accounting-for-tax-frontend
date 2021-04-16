@@ -124,7 +124,7 @@ class AFTSummaryController @Inject()(
   private def confirmationPanelText(schemeName: String, startDate: LocalDate, endDate: LocalDate)(implicit messages: Messages): Html = {
     val quarterStartDate = startDate.format(dateFormatterStartDate)
     val quarterEndDate = endDate.format(dateFormatterDMY)
-    Html(s"${Html(s""" <span class=govuk-caption-xl>${schemeName}</span>${messages("aft.summary.heading", quarterStartDate, quarterEndDate)}""").toString()}")
+    Html(s""" <span class=govuk-caption-xl>${schemeName}</span>${messages("aft.summary.heading", quarterStartDate, quarterEndDate)}""")
   }
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
