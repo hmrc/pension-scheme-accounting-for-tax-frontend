@@ -35,6 +35,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import models.financialStatement.PaymentOrChargeType.{getPaymentOrChargeType, AccountingForTaxCharges}
 
 class AFTPartialService @Inject()(
                                    appConfig: FrontendAppConfig,
@@ -92,26 +93,17 @@ class AFTPartialService @Inject()(
       if (upcomingCharges == Seq.empty) {
         None
       } else {
-
-          if (upcomingCharges.map(_.periodStartDate).distinct.size == 1) {
-            Some(Link(
-              id = "upcoming-payments-and-charges",
-              url = appConfig.paymentsAndChargesUpcomingUrl.format(srn, startDate(upcomingCharges)),
-              linkText = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
+        val nonAftUpcomingCharges: Seq[SchemeFS] = upcomingCharges.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
+        val linkText: Text = if (upcomingCharges.map(_.dueDate).distinct.size == 1 && nonAftUpcomingCharges.isEmpty) {
+           msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
               .withArgs(
                 startDate(upcomingCharges).format(DateTimeFormatter.ofPattern("d MMMM")),
                 endDate(upcomingCharges).format(DateTimeFormatter.ofPattern("d MMMM"))
-              ),
-              hiddenText = None
-            ))
+              )
           } else {
-            Some(Link(
-              id = "upcoming-payments-and-charges",
-              url = appConfig.upcomingChargesSelectQuarterUrl.format(srn),
-              linkText = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
-              hiddenText = None
-            ))
+            msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
           }
+        Some(Link("upcoming-payments-and-charges", appConfig.upcomingChargesUrl.format(srn), linkText, None))
       }
     }
 
@@ -122,7 +114,7 @@ class AFTPartialService @Inject()(
         Some(Link(
           id = "past-payments-and-charges",
           url = appConfig.paymentsAndChargesUrl.format(srn),
-          linkText = msg"pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges",
+          linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
           hiddenText = None
         ))
       }
@@ -158,26 +150,17 @@ class AFTPartialService @Inject()(
       if (schemeFs == Seq.empty) {
         None
       } else {
-          if (schemeFs.map(_.periodStartDate).distinct.size == 1) {
-
-            Some(Link(
-              id = "overdue-payments-and-charges",
-              url = appConfig.paymentsAndChargesOverdueUrl.format(srn, startDate(schemeFs)),
-              linkText = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+        val nonAftOverdueCharges: Seq[SchemeFS] = schemeFs.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
+        val linkText: Text = if (schemeFs.map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
+            msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
               .withArgs(
                 startDate(schemeFs).format(DateTimeFormatter.ofPattern("d MMMM")),
                 endDate(schemeFs).format(DateTimeFormatter.ofPattern("d MMMM"))
-              ),
-              hiddenText = None
-            ))
+              )
           } else {
-            Some(Link(
-              id = "overdue-payments-and-charges",
-              url = appConfig.overdueChargesSelectQuarterUrl.format(srn),
-              linkText = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
-              hiddenText = None
-            ))
+            msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"
           }
+        Some(Link("overdue-payments-and-charges", appConfig.overdueChargesUrl.format(srn), linkText, None))
       }
     }
 
@@ -365,7 +348,7 @@ class AFTPartialService @Inject()(
   }
 
   def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFS], psaId: String)
-    (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): DashboardAftViewModel = {
+    (implicit messages: Messages): DashboardAftViewModel = {
 
     val upcomingCharges: Seq[PsaFS] =
       psaFs.filter(_.dueDate.exists(_.isBefore(DateHelper.today)))

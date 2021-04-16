@@ -33,20 +33,19 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import controllers.actions._
-import models.LocalDateBinder._
-import models.Quarters
-import models.financialStatement.SchemeFS
-import play.api.i18n.{MessagesApi, I18nSupport}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import services.paymentsAndCharges.PaymentsAndChargesService
+import models.ChargeDetailsFilter
+import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import services.paymentsAndCharges.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
                                         service: PaymentsAndChargesService,
+                                        navService: PaymentsNavigationService,
                                         identify: IdentifierAction,
                                         val controllerComponents: MessagesControllerComponents
                                       )(implicit ec: ExecutionContext)
@@ -54,33 +53,10 @@ class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
                                           with I18nSupport
                                           with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
-
-      val yearsSeq: Seq[Int] = paymentsCache.schemeFS.map(_.periodStartDate.getYear).distinct.sorted.reverse
-
-      if (yearsSeq.nonEmpty && yearsSeq.size > 1) {
-        Future.successful(Redirect(routes.SelectYearController.onPageLoad(srn)))
-      } else if (yearsSeq.size == 1) {
-        skipYearsPage(paymentsCache.schemeFS, yearsSeq.head, srn)
-      } else {
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-      }
+  def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
+      navService.navFromSchemeDashboard(paymentsCache.schemeFS, srn, journeyType)
     }
   }
 
-  private def skipYearsPage(payments: Seq[SchemeFS], year: Int, srn: String): Future[Result] = {
-
-    val quartersSeq = payments
-      .filter(_.periodStartDate.getYear == year)
-      .map { paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate) }.distinct
-
-    if (quartersSeq.size > 1) {
-      Future.successful(Redirect(routes.SelectQuarterController.onPageLoad(srn, year.toString)))
-    } else if (quartersSeq.size == 1) {
-      Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, quartersSeq.head.startDate)))
-    } else {
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    }
-  }
 }

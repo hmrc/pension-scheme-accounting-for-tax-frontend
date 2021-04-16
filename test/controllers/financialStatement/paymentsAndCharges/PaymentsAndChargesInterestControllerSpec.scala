@@ -17,14 +17,16 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import controllers.actions.{IdentifierAction, FakeIdentifierAction, AllowAccessActionProviderForIdentifierRequest}
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import helpers.FormatHelper
 import matchers.JsonMatchers
+import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
-import models.financialStatement.SchemeFSChargeType.{PSS_OTC_AFT_RETURN_INTEREST, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_AFT_RETURN}
-import models.financialStatement.{SchemeFSChargeType, SchemeFS}
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
+import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
+import models.financialStatement.{SchemeFS, SchemeFSChargeType}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -37,10 +39,10 @@ import play.api.test.Helpers.{route, _}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.AFTConstants._
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -50,7 +52,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
   import PaymentsAndChargesInterestControllerSpec._
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
-    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController.onPageLoad(srn, startDate, index).url
+    routes.PaymentsAndChargesInterestController.onPageLoad(srn, startDate, index, AccountingForTaxCharges, All).url
 
   val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
 
@@ -101,7 +103,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     "accruedInterest" -> schemeFS.accruedInterestTotal,
     "chargeType" -> chargeType,
     "originalAmountUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, schemeFS.periodStartDate, index)
+      .onPageLoad(srn, schemeFS.periodStartDate, index, AccountingForTaxCharges, All)
       .url,
     "returnUrl" -> dummyCall.url
   )
@@ -109,7 +111,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
   "PaymentsAndChargesInterestController" must {
 
     "return OK and the correct view for interest accrued for aft return charge if amount is due and interest is accruing for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
 
       val schemeFS = createCharge(chargeReference = "XY002610150184", chargeType = PSS_AFT_RETURN)
@@ -125,7 +127,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     }
 
     "return OK and the correct view for interest accrued for overseas transfer charge if amount is due and interest is accruing for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
 
       val schemeFS = createCharge(chargeReference = "XY002610150185", chargeType = PSS_OTC_AFT_RETURN)
@@ -141,7 +143,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     }
 
     "redirect to Session Expired page when there is no data for the selected charge reference for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq.empty)))
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual SEE_OTHER

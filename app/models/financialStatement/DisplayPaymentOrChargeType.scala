@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-package utils
+package models.financialStatement
 
-import java.time.LocalDate
+import models.DisplayHint
 
-object AFTConstants {
-  val QUARTER_START_DATE: LocalDate = LocalDate.of(2020, 4, 1)
-  val QUARTER_END_DATE: LocalDate = LocalDate.of(2020, 6, 30)
-  val MIN_DATE: LocalDate = LocalDate.of(1900, 1, 1)
-  val Q3_2020_START: LocalDate = LocalDate.of(2020, 7, 1)
-  val Q3_2020_END: LocalDate = LocalDate.of(2020, 9, 30)
-  val Q3_2021_START: LocalDate = LocalDate.of(2021, 7, 1)
-  val Q3_2021_END: LocalDate = LocalDate.of(2021, 9, 30)
-}
+case class DisplayPaymentOrChargeType(chargeType: PaymentOrChargeType, hintText: Option[DisplayHint])

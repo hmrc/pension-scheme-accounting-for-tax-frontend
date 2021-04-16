@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package utils
+package forms.financialStatement
 
-import java.time.LocalDate
+import forms.mappings.Mappings
+import models.ChargeDetailsFilter
+import models.ChargeDetailsFilter.All
+import models.financialStatement.PaymentOrChargeType
+import play.api.data.Form
 
-object AFTConstants {
-  val QUARTER_START_DATE: LocalDate = LocalDate.of(2020, 4, 1)
-  val QUARTER_END_DATE: LocalDate = LocalDate.of(2020, 6, 30)
-  val MIN_DATE: LocalDate = LocalDate.of(1900, 1, 1)
-  val Q3_2020_START: LocalDate = LocalDate.of(2020, 7, 1)
-  val Q3_2020_END: LocalDate = LocalDate.of(2020, 9, 30)
-  val Q3_2021_START: LocalDate = LocalDate.of(2021, 7, 1)
-  val Q3_2021_END: LocalDate = LocalDate.of(2021, 9, 30)
+class PaymentOrChargeTypeFormProvider extends Mappings {
+
+  def apply(journeyType: ChargeDetailsFilter = All): Form[PaymentOrChargeType] =
+    Form(
+      "value" -> enumerable[PaymentOrChargeType](requiredKey = s"paymentOrChargeType.$journeyType.error.required")
+    )
 }

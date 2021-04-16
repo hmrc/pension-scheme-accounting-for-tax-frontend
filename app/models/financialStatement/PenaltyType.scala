@@ -28,11 +28,8 @@ sealed trait PenaltyType
 object PenaltyType extends Enumerable.Implicits {
 
   case object AccountingForTaxPenalties extends PenaltyType
-
   case object ContractSettlementCharges extends PenaltyType
-
   case object InformationNoticePenalties extends PenaltyType
-
   case object PensionsPenalties extends PenaltyType
 
   def getPenaltyType(chargeType: PsaFSChargeType): PenaltyType =

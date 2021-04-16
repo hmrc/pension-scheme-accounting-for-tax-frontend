@@ -18,8 +18,8 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
+import models.financialStatement.PsaFS
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
-import models.financialStatement.{PsaFS, SchemeFS, SchemeFSChargeType}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
@@ -93,7 +93,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
             aResponse()
               .withStatus(Status.OK)
               .withHeader("Content-Type", "application/json")
-              .withBody(Json.toJson(SampleData.schemeFSResponseAftAndOTC ++ schemePaymentOnAccount).toString)
+              .withBody(Json.toJson(SampleData.schemeFSResponseAftAndOTC).toString)
           )
       )
 
@@ -160,21 +160,6 @@ object FinancialStatementConnectorSpec {
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
-    )
-  )
-
-  private def schemePaymentOnAccount = Seq(
-    SchemeFS(
-      chargeReference = "XY002610150188",
-      chargeType = SchemeFSChargeType.PAYMENT_ON_ACCOUNT,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 56432.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      accruedInterestTotal = 24000.41,
-      periodStartDate = LocalDate.parse("2020-04-01"),
-      periodEndDate = LocalDate.parse("2020-06-30")
     )
   )
 }

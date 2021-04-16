@@ -18,10 +18,12 @@ package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import controllers.actions._
-import models.financialStatement.SchemeFS
+import models.ChargeDetailsFilter.{All, Upcoming}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
+import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
@@ -50,20 +52,23 @@ class PaymentsAndChargesController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesController])
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess()).async {
-    implicit request =>
-      paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
-              val filteredPayments: Seq[SchemeFS] = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
+  def onPageLoad(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+    (identify andThen allowAccess()).async { implicit request =>
+      paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
+
+              val (title, filteredPayments): (String, Seq[SchemeFS]) =
+                getTitleAndFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType, journeyType)
 
               if (filteredPayments.nonEmpty) {
 
-                val tableOfPaymentsAndCharges: Table =
-                  paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, ChargeDetailsFilter.All)
+                val tableOfPaymentsAndCharges: Table = {
+                  val table = paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, journeyType, paymentOrChargeType)
+                  if(journeyType == Upcoming) removePaymentStatusColumn(table) else table
+                }
 
                 val json = Json.obj(
                   fields =
-                    "startDate" -> startDate.format(dateFormatterStartDate),
-                    "endDate" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+                    "titleMessage" -> title,
                     "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
                     "schemeName" -> paymentsCache.schemeDetails.schemeName,
                     "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
@@ -71,10 +76,31 @@ class PaymentsAndChargesController @Inject()(
                 renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 
               } else {
-                logger.warn(s"No Scheme Payments and Charges returned for the selected startDate $startDate")
+                logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
 
       }
   }
+
+  private def getTitleAndFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter)
+                                         (implicit messages: Messages): (String, Seq[SchemeFS]) =
+    if(paymentOrChargeType == AccountingForTaxCharges) {
+      val startDate: LocalDate = LocalDate.parse(period)
+      (messages(s"paymentsAndCharges.$journeyType.aft.title",
+        startDate.format(dateFormatterStartDate),
+        Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY)),
+      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate))
+    } else {
+      val typeParam: String = messages(s"paymentOrChargeType.${paymentOrChargeType.toString}")
+      val messageParam: String = if(journeyType == All) typeParam else typeParam.toLowerCase
+      (messages(s"paymentsAndCharges.$journeyType.nonAft.title", messageParam, period),
+        payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt))
+    }
+
+  private val removePaymentStatusColumn: Table => Table = table =>
+    Table(table.caption, table.captionClasses, table.firstCellIsHeader,
+      table.head.take(table.head.size - 1),
+      table.rows.map(p => p.take(p.size - 1)), table.classes, table.attributes
+    )
 }

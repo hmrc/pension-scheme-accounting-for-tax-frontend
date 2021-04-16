@@ -18,15 +18,17 @@ package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import controllers.actions._
+import controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController
 import forms.QuartersFormProvider
+import models.LocalDateBinder._
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFS
-import models.{DisplayQuarter, Quarters, PaymentOverdue, Quarter, DisplayHint}
+import models.{ChargeDetailsFilter, DisplayHint, DisplayQuarter, PaymentOverdue, Quarter, Quarters}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import models.LocalDateBinder._
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -48,21 +50,23 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                                                   with I18nSupport
                                                   with NunjucksSupport {
 
-  private def form(quarters: Seq[Quarter], year: String)(implicit messages: Messages): Form[Quarter] =
-    formProvider(messages("selectChargesQuarter.error", year), quarters)
+  private def form(quarters: Seq[Quarter], year: String, journeyType: ChargeDetailsFilter)
+                  (implicit messages: Messages): Form[Quarter] =
+    formProvider(messages(s"selectChargesQuarter.$journeyType.error", year), quarters)
 
-  def onPageLoad(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
-    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+  def onPageLoad(srn: String, year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
       val quarters: Seq[Quarter] = getQuarters(year, paymentsCache.schemeFS)
 
         if (quarters.nonEmpty) {
 
           val json = Json.obj(
+            "titleMessage" -> s"selectChargesQuarter.$journeyType.title",
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "year" -> year,
-            "form" -> form(quarters, year),
-            "radios" -> Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFS),
+            "form" -> form(quarters, year, journeyType),
+            "radios" -> Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFS),
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
@@ -75,18 +79,17 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
     }
   }
 
-  def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
-    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+  def onSubmit(srn: String, year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
       val quarters: Seq[Quarter] = getQuarters(year, paymentsCache.schemeFS)
         if (quarters.nonEmpty) {
 
-          form(quarters, year)
-            .bindFromRequest()
-            .fold(
+          form(quarters, year, journeyType).bindFromRequest().fold(
               formWithErrors => {
 
                   val json = Json.obj(
+                    "titleMessage" -> s"selectChargesQuarter.$journeyType.title",
                     "schemeName" -> paymentsCache.schemeDetails.schemeName,
                     "year" -> year,
                     "form" -> formWithErrors,
@@ -98,7 +101,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
               },
               value => {
-                Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.startDate)))
+                Future.successful(Redirect(PaymentsAndChargesController.onPageLoad(srn, value.startDate, AccountingForTaxCharges, journeyType)))
               }
             )
         } else {
@@ -108,7 +111,12 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   }
 
   private def getDisplayQuarters(year: String, payments: Seq[SchemeFS]): Seq[DisplayQuarter] = {
-    val quartersFound: Seq[LocalDate] = payments.filter(_.periodStartDate.getYear == year.toInt).map(_.periodStartDate).distinct.sortBy(_.getMonth)
+
+    val quartersFound: Seq[LocalDate] = payments
+      .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
+      .filter(_.periodStartDate.getYear == year.toInt).map(_.periodStartDate).distinct
+      .sortBy(_.getMonth)
+
     quartersFound.map { startDate =>
       val hint: Option[DisplayHint] =
         if (payments.filter(_.periodStartDate == startDate).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
@@ -119,6 +127,8 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   }
 
   private def getQuarters(year: String, payments: Seq[SchemeFS]): Seq[Quarter] =
-    payments.filter(_.periodStartDate.getYear == year.toInt).distinct
-      .map(paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate))
+    payments
+      .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
+      .filter(_.periodStartDate.getYear == year.toInt)
+      .map(paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate)).distinct
 }

@@ -16,16 +16,17 @@
 
 package controllers
 
-import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import controllers.financialStatement.paymentsAndCharges.routes._
 import controllers.routes.{ReturnToSchemeDetailsController, SignOutController}
-import models.LocalDateBinder._
 import models.AdministratorOrPractitioner.{Administrator, Practitioner}
+import models.ChargeDetailsFilter.All
+import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.DataRequest
 import models.{AccessType, GenericViewModel}
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
@@ -107,7 +108,7 @@ class ConfirmationController @Inject()(
               val optViewPaymentsUrl =
                 if (isFinancialInfoLinkDisplayable) {
                   Json.obj(
-                    "viewPaymentsUrl" -> PaymentsAndChargesController.onPageLoad(srn, startDate).url
+                    "viewPaymentsUrl" -> PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges, All).url
                   )
                 } else {
                   Json.obj()
