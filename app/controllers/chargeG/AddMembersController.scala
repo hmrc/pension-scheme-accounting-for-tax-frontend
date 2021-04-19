@@ -25,7 +25,7 @@ import forms.AddMembersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{Quarter, NormalMode, GenericViewModel, AccessType}
+import models.{AFTQuarter, NormalMode, GenericViewModel, AccessType}
 import navigators.CompoundNavigator
 import pages.chargeG.AddMembersPage
 import pages.{SchemeNameQuery, QuarterPage, ViewOnlyAccessiblePage}
@@ -94,7 +94,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         )
   }
 
-  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: Quarter, accessType: AccessType, version: Int)(
+  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: AFTQuarter, accessType: AccessType, version: Int)(
       implicit request: DataRequest[AnyContent]): JsObject = {
 
     val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate, accessType, version).url,

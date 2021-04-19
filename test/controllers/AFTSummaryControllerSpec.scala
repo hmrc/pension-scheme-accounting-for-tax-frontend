@@ -25,7 +25,7 @@ import helpers.{AFTSummaryHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, UserAnswers, Quarter, MemberDetails, AccessMode}
+import models.{GenericViewModel, UserAnswers, AFTQuarter, MemberDetails, AccessMode}
 import org.mockito.{Matchers, ArgumentCaptor}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -286,7 +286,7 @@ object AFTSummaryControllerSpec {
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("true"))
   private val valuesInvalid: Map[String, Seq[String]] = Map("value" -> Seq("xyz"))
   private val testManagePensionsUrl = Call("GET", "/scheme-summary")
-  private val uaGetAFTDetails = UserAnswers().set(QuarterPage, Quarter("2000-04-01", "2000-05-31")).toOption.get
+  private val uaGetAFTDetails = UserAnswers().set(QuarterPage, AFTQuarter("2000-04-01", "2000-05-31")).toOption.get
   private val templateToBeRendered = "aftSummary.njk"
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
   private val form = new AFTSummaryFormProvider()()

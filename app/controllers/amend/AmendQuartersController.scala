@@ -21,13 +21,13 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{Quarter, Quarters, GenericViewModel}
+import models.{GenericViewModel, AFTQuarter, Quarters}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
-import services.{SchemeService, QuartersService}
+import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -44,75 +44,92 @@ class AmendQuartersController @Inject()(
                                          config: FrontendAppConfig,
                                          quartersService: QuartersService,
                                          schemeService: SchemeService
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                       )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
+  private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("amendQuarters.error.required"), quarters)
 
-  private def futureSessionExpiredPage:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-  
-  private def futureReturnHistoryPage(srn:String, startDate:LocalDate):Future[Result] =
-    Future.successful(Redirect (controllers.amend.routes.ReturnHistoryController.onPageLoad (srn, startDate) ) )
+  private def futureSessionExpiredPage: Future[Result] =
+    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
 
-  def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(
-      psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
-    ) flatMap { schemeDetails =>
-      quartersService.getPastQuarters(schemeDetails.pstr, year.toInt).flatMap {
-        case Nil => futureSessionExpiredPage
-        case Seq(oneQuarterOnly) => futureReturnHistoryPage(srn, oneQuarterOnly.quarter.startDate)
-        case displayQuarters =>
-          val quarters = displayQuarters.map(_.quarter)
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> None,
-            "form" -> form(quarters),
-            "radios" -> Quarters.radios(form(quarters), displayQuarters),
-            "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-            "year" -> year
-          )
-          renderer.render(template = "amend/amendQuarters.njk", json).map(Ok(_))
-      }
-    }
-  }
+  private def futureReturnHistoryPage(srn: String, startDate: LocalDate): Future[Result] =
+    Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate)))
 
-  def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(
-      psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
-    ) flatMap { schemeDetails =>
-      quartersService.getPastQuarters(schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
-        if (displayQuarters.nonEmpty) {
-          val quarters = displayQuarters.map(_.quarter)
-          form(quarters)
-            .bindFromRequest()
-            .fold(
-              formWithErrors => {
-
-                  val json = Json.obj(
-                    fields = "srn" -> srn,
+  def onPageLoad(srn: String, year: String): Action[AnyContent] =
+    identify.async {
+      implicit request =>
+        schemeService.retrieveSchemeDetails(
+          psaId = request.idOrException,
+          srn = srn,
+          schemeIdType = "srn"
+        ) flatMap {
+          schemeDetails =>
+            quartersService.getPastQuarters(
+              pstr = schemeDetails.pstr,
+              year = year.toInt
+            ) flatMap {
+              case Nil =>
+                futureSessionExpiredPage
+              case Seq(oneQuarterOnly) =>
+                futureReturnHistoryPage(srn, oneQuarterOnly.quarter.startDate)
+              case displayQuarters =>
+                val quarters = displayQuarters.map(_.quarter)
+                renderer.render(
+                  template = "amend/amendQuarters.njk",
+                  ctx = Json.obj(
+                    "srn" -> srn,
                     "startDate" -> None,
-                    "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, displayQuarters),
+                    "form" -> form(quarters),
+                    "radios" -> Quarters.radios(form(quarters), displayQuarters),
                     "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
                     "year" -> year
                   )
-                  renderer.render(template = "amend/amendQuarters.njk", json).map(BadRequest(_))
-              },
-              value => futureReturnHistoryPage(srn, value.startDate)
-            )
-        } else {
-          futureSessionExpiredPage
+                ).map(Ok(_))
+            }
         }
     }
+
+  def onSubmit(srn: String, year: String): Action[AnyContent] =
+    identify.async {
+      implicit request =>
+        schemeService.retrieveSchemeDetails(
+          psaId = request.idOrException,
+          srn = srn,
+          schemeIdType = "srn"
+        ) flatMap {
+          schemeDetails =>
+            quartersService.getPastQuarters(
+              pstr = schemeDetails.pstr,
+              year = year.toInt
+            ) flatMap {
+              displayQuarters =>
+                if (displayQuarters.nonEmpty) {
+                  form(displayQuarters.map(_.quarter))
+                    .bindFromRequest()
+                    .fold(
+                      formWithErrors =>
+                        renderer.render(
+                          template = "amend/amendQuarters.njk",
+                          ctx = Json.obj(
+                            fields = "srn" -> srn,
+                            "startDate" -> None,
+                            "form" -> formWithErrors,
+                            "radios" -> Quarters.radios(formWithErrors, displayQuarters),
+                            "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+                            "year" -> year
+                          )).map(BadRequest(_)),
+                      value =>
+                        futureReturnHistoryPage(srn, value.startDate)
+                    )
+                } else {
+                  futureSessionExpiredPage
+                }
+            }
+        }
     }
-  }
 
   private def viewModel(srn: String, year: String, schemeName: String)
                        (implicit request: IdentifierRequest[_]): GenericViewModel =

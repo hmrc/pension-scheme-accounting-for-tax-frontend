@@ -23,7 +23,7 @@ import forms.QuartersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{Draft, GenericViewModel, Quarter, Quarters, SubmittedHint}
+import models.{Draft, GenericViewModel, AFTQuarter, Quarters, SubmittedHint}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -51,7 +51,7 @@ class QuartersController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(year: String, quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
+  private def form(year: String, quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("quarters.error.required", year), quarters)
 
   def onPageLoad(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>

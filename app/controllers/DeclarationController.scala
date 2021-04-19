@@ -28,7 +28,7 @@ import javax.inject.Inject
 import models.JourneyType.{AFT_SUBMIT_RETURN, AFT_SUBMIT_AMEND}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, AccessType, Quarter, NormalMode, Declaration}
+import models.{GenericViewModel, AccessType, AFTQuarter, NormalMode, Declaration}
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import navigators.CompoundNavigator
 import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage, NameQuery}
@@ -96,7 +96,7 @@ class DeclarationController @Inject()(
       }
     }
 
-  private def sendEmail(email: String, quarter: Quarter, schemeName: String, isAmendment: Boolean, amendedVersion: Int)(
+  private def sendEmail(email: String, quarter: AFTQuarter, schemeName: String, isAmendment: Boolean, amendedVersion: Int)(
       implicit request: DataRequest[_],
       hc: HeaderCarrier,
       messages: Messages): Future[EmailStatus] = {

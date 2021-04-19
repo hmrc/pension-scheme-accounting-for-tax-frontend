@@ -16,10 +16,10 @@
 
 package pages
 
-import models.Quarter
+import models.AFTQuarter
 import play.api.libs.json.JsPath
 
-case object QuarterPage extends QuestionPage[Quarter] {
+case object QuarterPage extends QuestionPage[AFTQuarter] {
 
   override def path: JsPath = JsPath \ toString
 

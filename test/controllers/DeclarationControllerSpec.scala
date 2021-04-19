@@ -31,7 +31,7 @@ import models.JourneyType.{AFT_SUBMIT_RETURN, AFT_SUBMIT_AMEND}
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeSame, ChangeTypeIncrease}
 import models.requests.IdentifierRequest
-import models.{SessionAccessData, AdministratorOrPractitioner, GenericViewModel, JourneyType, UserAnswers, Quarter, Declaration, AccessMode}
+import models.{SessionAccessData, AdministratorOrPractitioner, GenericViewModel, JourneyType, UserAnswers, AFTQuarter, Declaration, AccessMode}
 import navigators.CompoundNavigator
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, when, verify}
@@ -314,7 +314,7 @@ object DeclarationControllerSpec {
   private val emailParamsCaptor = ArgumentCaptor.forClass(classOf[Map[String, String]])
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val journeyTypeCaptor = ArgumentCaptor.forClass(classOf[JourneyType.Value])
-  private val quarter = Quarter(QUARTER_START_DATE, QUARTER_END_DATE)
+  private val quarter = AFTQuarter(QUARTER_START_DATE, QUARTER_END_DATE)
   private val versionNumber = 3
   private val psaName = "test ltd"
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)

@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
-import models.{DisplayQuarter, InProgressHint, Quarters, Quarter, SubmittedHint, CommonQuarters, LockedHint}
+import models.{DisplayQuarter, InProgressHint, Quarters, AFTQuarter, SubmittedHint, CommonQuarters, LockedHint}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{Future, ExecutionContext}
@@ -70,7 +70,7 @@ class QuartersService @Inject()(
             .filter(_.compiledVersionAvailable)
             .map { overviewElement =>
 
-              val quarter: Quarter = Quarters.getQuarter(overviewElement.periodStartDate)
+              val quarter: AFTQuarter = Quarters.getQuarter(overviewElement.periodStartDate)
               userAnswersCacheConnector.lockDetail(srn, overviewElement.periodStartDate).flatMap {
                 case Some(lockDetail) =>
                   Future.successful(Seq(DisplayQuarter(

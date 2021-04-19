@@ -23,7 +23,7 @@ import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{DisplayQuarter, Enumerable, PaymentOverdue, Quarter, Quarters}
+import models.{DisplayQuarter, Enumerable, PaymentOverdue, AFTQuarter, Quarters}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -53,7 +53,7 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
 
   private val year = "2020"
 
-  private val quarters: Seq[Quarter] = Seq(q32020, q42020)
+  private val quarters: Seq[AFTQuarter] = Seq(q32020, q42020)
   private val displayQuarters: Seq[DisplayQuarter] = Seq(
     DisplayQuarter(q32020, displayYear = false, None, Some(PaymentOverdue)),
     DisplayQuarter(q42020, displayYear = false, None, Some(PaymentOverdue))
@@ -63,12 +63,12 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   val templateToBeRendered = "financialStatement/penalties/selectQuarter.njk"
   val formProvider = new QuartersFormProvider()
-  val form: Form[Quarter] = formProvider("selectPenaltiesQuarter.error", quarters)
+  val form: Form[AFTQuarter] = formProvider("selectPenaltiesQuarter.error", quarters)
 
   lazy val httpPathGET: String = routes.SelectPenaltiesQuarterController.onPageLoad(year).url
   lazy val httpPathPOST: String = routes.SelectPenaltiesQuarterController.onSubmit(year).url
 
-  private val jsonToPassToTemplate: Form[Quarter] => JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
     "form" -> form,
     "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"), areLabelsBold = false),
     "submitUrl" -> httpPathPOST
