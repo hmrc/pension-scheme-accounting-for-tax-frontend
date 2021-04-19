@@ -16,7 +16,7 @@
 
 package models
 
-case class DisplayQuarter(quarter: Quarter,
+case class DisplayQuarter(quarter: AFTQuarter,
                           displayYear: Boolean,
                           lockedBy: Option[String],
                           hintText: Option[DisplayHint])

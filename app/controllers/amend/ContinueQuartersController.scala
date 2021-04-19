@@ -23,7 +23,7 @@ import forms.QuartersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{Draft, Quarter, GenericViewModel, Quarters}
+import models.{Draft, AFTQuarter, GenericViewModel, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -50,7 +50,7 @@ class ContinueQuartersController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
+  private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("continueQuarters.error.required"), quarters)
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>

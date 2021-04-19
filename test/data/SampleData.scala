@@ -27,7 +27,7 @@ import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.{PsaFS, SchemeFS}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, AFTQuarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -108,7 +108,7 @@ object SampleData {
     UserAnswers(Json.obj(
       "schemeName" -> schemeName,
       "pstr" -> pstr,
-      "quarter" -> Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
+      "quarter" -> AFTQuarter(QUARTER_START_DATE, QUARTER_END_DATE))
     )
 
   def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeNamePstrQuarter
@@ -175,10 +175,10 @@ object SampleData {
       compiledVersionAvailable = false
     )
 
-  val q22020: Quarter = Quarter(LocalDate.of(2020, 4, 1), LocalDate.of(2020, 6, 30))
-  val q32020: Quarter = Quarter(LocalDate.of(2020, 7, 1), LocalDate.of(2020, 9, 30))
-  val q42020: Quarter = Quarter(LocalDate.of(2020, 10, 1), LocalDate.of(2020, 12, 31))
-  val q12021: Quarter = Quarter(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 3, 31))
+  val q22020: AFTQuarter = AFTQuarter(LocalDate.of(2020, 4, 1), LocalDate.of(2020, 6, 30))
+  val q32020: AFTQuarter = AFTQuarter(LocalDate.of(2020, 7, 1), LocalDate.of(2020, 9, 30))
+  val q42020: AFTQuarter = AFTQuarter(LocalDate.of(2020, 10, 1), LocalDate.of(2020, 12, 31))
+  val q12021: AFTQuarter = AFTQuarter(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 3, 31))
 
   val displayQuarterLocked: DisplayQuarter = DisplayQuarter(q32020, displayYear = false, Some(psaId), Some(LockedHint))
   val displayQuarterContinueAmend: DisplayQuarter = DisplayQuarter(q42020, displayYear = true, None, Some(InProgressHint))

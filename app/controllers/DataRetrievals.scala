@@ -22,7 +22,7 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
-import models.{AccessType, Index, MemberDetails, Quarter, SponsoringEmployerType, YearRange}
+import models.{AccessType, Index, MemberDetails, AFTQuarter, SponsoringEmployerType, YearRange}
 import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
@@ -49,7 +49,7 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeNameWithEmailAndQuarter(block: (String, String, Quarter) => Future[Result])(
+  def retrieveSchemeNameWithEmailAndQuarter(block: (String, String, AFTQuarter) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(EmailQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(email), Some(quarter)) => block(schemeName, email, quarter)
@@ -57,7 +57,7 @@ object DataRetrievals {
     }
   }
 
-  def retrievePSAAndSchemeDetailsWithAmendment(block: (String, String, String, Quarter, Boolean, Int) => Future[Result])(
+  def retrievePSAAndSchemeDetailsWithAmendment(block: (String, String, String, AFTQuarter, Boolean, Int) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
     (ua.get(SchemeNameQuery), ua.get(PSTRQuery), ua.get(EmailQuery), ua.get(QuarterPage)) match {
@@ -68,7 +68,7 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeAndQuarter(block: (String, Quarter) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeAndQuarter(block: (String, AFTQuarter) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
       case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

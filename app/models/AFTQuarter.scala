@@ -16,15 +16,14 @@
 
 package models
 
-import java.time.LocalDate
-
 import play.api.libs.json.{Format, Json}
 
-case class Quarter(startDate: LocalDate, endDate: LocalDate)
+import java.time.LocalDate
 
-object Quarter {
+case class AFTQuarter(startDate: LocalDate, endDate: LocalDate)
 
-  implicit lazy val formats: Format[Quarter] =
-    Json.format[Quarter]
+object AFTQuarter {
+
+  implicit lazy val formats: Format[AFTQuarter] =
+    Json.format[AFTQuarter]
 }
-

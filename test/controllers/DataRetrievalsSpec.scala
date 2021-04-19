@@ -24,7 +24,7 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.chargeC.{SponsoringOrganisationDetails, SponsoringEmployerAddress, ChargeCDetails}
 import models.chargeG.{MemberDetails => ChargeGMemberDetails}
 import models.requests.DataRequest
-import models.{SponsoringEmployerType, UserAnswers, Quarter, Draft, MemberDetails}
+import models.{SponsoringEmployerType, UserAnswers, AFTQuarter, Draft, MemberDetails}
 import org.scalatest.{OptionValues, FreeSpec, MustMatchers}
 import pages._
 import pages.chargeC._
@@ -61,11 +61,11 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
   }
 
   "retrieveSchemeNameWithEmailAndQuarter must" - {
-    val result: (String, String, Quarter) => Future[Result] = { (_, _, _) => Future.successful(Ok("success result"))}
+    val result: (String, String, AFTQuarter) => Future[Result] = { (_, _, _) => Future.successful(Ok("success result"))}
 
     "return successful result when scheme name, email and quarter is successfully retrieved from user answers" in {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").flatMap(_.set(EmailQuery, value = "test@test.com")).
-        flatMap(_.set(QuarterPage, Quarter(startDate, endDate))).getOrElse(UserAnswers())
+        flatMap(_.set(QuarterPage, AFTQuarter(startDate, endDate))).getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", Some(PsaId("A2100000")), None, ua, SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeNameWithEmailAndQuarter(result)(request)
       status(res) must be(OK)
@@ -80,11 +80,11 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
   }
 
   "retrievePSAAndSchemeDetailsWithAmendment must" - {
-    val result: (String, String, String, Quarter, Boolean, Int) => Future[Result] = { (_, _, _, _, _, _) => Future.successful(Ok("success result"))}
+    val result: (String, String, String, AFTQuarter, Boolean, Int) => Future[Result] = { (_, _, _, _, _, _) => Future.successful(Ok("success result"))}
 
     "return successful result when scheme name, email and quarter is successfully retrieved from user answers" in {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").flatMap(_.set(EmailQuery, value = "test@test.com")).
-        flatMap(_.set(QuarterPage, Quarter(startDate, endDate))).flatMap(_.set(PSTRQuery, value = "test-pstr")).getOrElse(UserAnswers())
+        flatMap(_.set(QuarterPage, AFTQuarter(startDate, endDate))).flatMap(_.set(PSTRQuery, value = "test-pstr")).getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", Some(PsaId("A2100000")), None, ua, SampleData.sessionData())
       val res = DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment(result)(request)
       status(res) must be(OK)
@@ -99,11 +99,11 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
   }
 
   "retrieveSchemeAndQuarter must" - {
-    val result: (String, Quarter) => Future[Result] = { (_, _) => Future.successful(Ok("success result"))}
+    val result: (String, AFTQuarter) => Future[Result] = { (_, _) => Future.successful(Ok("success result"))}
 
     "return successful result when scheme name and quarter is successfully retrieved from user answers" in {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").
-        flatMap(_.set(QuarterPage, Quarter(startDate, endDate))).getOrElse(UserAnswers())
+        flatMap(_.set(QuarterPage, AFTQuarter(startDate, endDate))).getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, ua, SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndQuarter(result)(request)

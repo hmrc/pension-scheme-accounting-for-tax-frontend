@@ -20,7 +20,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.PsaFS
-import models.{DisplayHint, DisplayQuarter, PaymentOverdue, Quarter, Quarters}
+import models.{DisplayHint, DisplayQuarter, PaymentOverdue, AFTQuarter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -47,7 +47,7 @@ class SelectPenaltiesQuarterController @Inject()(
                                                   with I18nSupport
                                                   with NunjucksSupport {
 
-  private def form(quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
+  private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("selectPenaltiesQuarter.error"), quarters)
 
   def onPageLoad(year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
@@ -55,7 +55,7 @@ class SelectPenaltiesQuarterController @Inject()(
 
     penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
 
-      val quarters: Seq[Quarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
+      val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
 
         if (quarters.nonEmpty) {
 
@@ -81,7 +81,7 @@ class SelectPenaltiesQuarterController @Inject()(
   def onSubmit(year: String): Action[AnyContent] = identify.async { implicit request =>
     penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
 
-      val quarters: Seq[Quarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
+      val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
         if (quarters.nonEmpty) {
 
           form(quarters).bindFromRequest().fold(
@@ -126,7 +126,7 @@ class SelectPenaltiesQuarterController @Inject()(
     }
   }
 
-  private def getQuarters(year: String, penalties: Seq[PsaFS]): Seq[Quarter] =
+  private def getQuarters(year: String, penalties: Seq[PsaFS]): Seq[AFTQuarter] =
     penalties.distinct.map(penalty => Quarters.getQuarter(penalty.periodStartDate))
 
 

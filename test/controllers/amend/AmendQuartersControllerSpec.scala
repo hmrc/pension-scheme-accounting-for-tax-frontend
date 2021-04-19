@@ -23,7 +23,7 @@ import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{DisplayQuarter, Quarters, GenericViewModel, SchemeStatus, Quarter, SchemeDetails, Enumerable}
+import models.{DisplayQuarter, Quarters, GenericViewModel, SchemeStatus, AFTQuarter, SchemeDetails, Enumerable}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -59,16 +59,16 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
   val templateToBeRendered = "amend/amendQuarters.njk"
   private val errorKey = "quarters.error.required"
   private val year = "2022"
-  val quarters: Seq[Quarter] = Seq(q22020, q32020, q42020)
+  val quarters: Seq[AFTQuarter] = Seq(q22020, q32020, q42020)
   val displayQuarters: Seq[DisplayQuarter] = Seq(displayQuarterLocked, displayQuarterContinueAmend, displayQuarterViewPast)
 
   val formProvider = new QuartersFormProvider()
-  def form(quarters: Seq[Quarter]): Form[Quarter] = formProvider(errorKey, quarters)
+  def form(quarters: Seq[AFTQuarter]): Form[AFTQuarter] = formProvider(errorKey, quarters)
 
   lazy val httpPathGET: String = controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year).url
   lazy val httpPathPOST: String = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url
 
-  private def jsonToPassToTemplate(quarters: Seq[DisplayQuarter]): Form[Quarter] => JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(quarters: Seq[DisplayQuarter]): Form[AFTQuarter] => JsObject = form => Json.obj(
     "form" -> form,
     "radios" -> Quarters.radios(form, quarters),
     "viewModel" -> GenericViewModel(

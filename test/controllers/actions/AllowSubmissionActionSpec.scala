@@ -19,7 +19,7 @@ package controllers.actions
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import handlers.ErrorHandler
-import models.{Quarter, UserAnswers}
+import models.{AFTQuarter, UserAnswers}
 import models.requests.DataRequest
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
@@ -55,7 +55,7 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
         when(aftService.isSubmissionDisabled(any())).thenReturn(false)
         val action = new Harness(aftService, errorHandler)
 
-        val ua: UserAnswers = UserAnswers().setOrException(QuarterPage, Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
+        val ua: UserAnswers = UserAnswers().setOrException(QuarterPage, AFTQuarter(QUARTER_START_DATE, QUARTER_END_DATE))
 
         val futureResult = action.callTransform(DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, ua, SampleData.sessionData()))
 

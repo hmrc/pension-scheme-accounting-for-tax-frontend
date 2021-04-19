@@ -78,15 +78,15 @@ trait CommonQuarters {
     }
   }
 
-  def getQuarter(quarter: QuarterType, year: Int): Quarter = {
-    Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay),
+  def getQuarter(quarter: QuarterType, year: Int): AFTQuarter = {
+    AFTQuarter(LocalDate.of(year, quarter.startMonth, quarter.startDay),
       LocalDate.of(year, quarter.endMonth, quarter.endDay))
   }
 
   def getStartDate(quarter: QuarterType, year: Int): LocalDate =
     LocalDate.of(year, quarter.startMonth, quarter.startDay)
 
-  def getQuarter(startDate: LocalDate): Quarter =
+  def getQuarter(startDate: LocalDate): AFTQuarter =
     getQuarter(getQuartersFromDate(startDate), startDate.getYear)
 
   def getQuartersFromDate(date: LocalDate): QuarterType =
@@ -107,7 +107,7 @@ trait CommonQuarters {
 
 object Quarters extends CommonQuarters with Enumerable.Implicits {
 
-  def values(displayQuarters: Seq[DisplayQuarter]): Seq[Quarter] = displayQuarters.map(_.quarter)
+  def values(displayQuarters: Seq[DisplayQuarter]): Seq[AFTQuarter] = displayQuarters.map(_.quarter)
 
   def radios(form: Form[_], displayQuarters: Seq[DisplayQuarter], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
             (implicit messages: Messages): Seq[Radios.Item] = {
@@ -122,7 +122,7 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
     Radios(form("value"), x)
   }
 
-  implicit def enumerable(quarters: Seq[Quarter]): Enumerable[Quarter] =
+  implicit def enumerable(quarters: Seq[AFTQuarter]): Enumerable[AFTQuarter] =
     Enumerable(quarters.map(v => v.toString -> v): _*)
 
   def getLabel(displayQuarter: DisplayQuarter)(implicit messages: Messages): Text = {

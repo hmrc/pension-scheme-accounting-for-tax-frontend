@@ -25,7 +25,7 @@ import matchers.JsonMatchers
 import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.IdentifierRequest
-import models.{DisplayQuarter, Enumerable, PaymentOverdue, Quarter, Quarters}
+import models.{DisplayQuarter, Enumerable, PaymentOverdue, AFTQuarter, Quarters}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -55,7 +55,7 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val year = "2020"
 
-  private val quarters: Seq[Quarter] = Seq(q22020)
+  private val quarters: Seq[AFTQuarter] = Seq(q22020)
   private val displayQuarters: Seq[DisplayQuarter] = Seq(
     DisplayQuarter(q22020, displayYear = false, None, Some(PaymentOverdue))
   )
@@ -64,12 +64,12 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   val templateToBeRendered = "financialStatement/paymentsAndCharges/selectQuarter.njk"
   val formProvider = new QuartersFormProvider()
-  val form: Form[Quarter] = formProvider("selectChargesQuarter.error", quarters)
+  val form: Form[AFTQuarter] = formProvider("selectChargesQuarter.error", quarters)
 
   lazy val httpPathGET: String = routes.SelectQuarterController.onPageLoad(srn, year, All).url
   lazy val httpPathPOST: String = routes.SelectQuarterController.onSubmit(srn, year, All).url
 
-  private val jsonToPassToTemplate: Form[Quarter] => JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
     "form" -> form,
     "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
     "schemeName" -> schemeName,

@@ -20,7 +20,7 @@ import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import models.ChargeType._
 import models.LocalDateBinder._
-import models.{ChargeType, NormalMode, Quarter, UserAnswers}
+import models.{ChargeType, NormalMode, AFTQuarter, UserAnswers}
 import org.scalatest.prop.{TableFor3, TableFor5}
 import pages._
 import play.api.mvc.Call
@@ -44,7 +44,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
 
   private def aftSummaryYes: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, true).toOption
 
-  private def aftSummaryNo(quarter: Quarter): Option[UserAnswers] =
+  private def aftSummaryNo(quarter: AFTQuarter): Option[UserAnswers] =
     Option(
       UserAnswers()
         .setOrException(AFTSummaryPage, false)
