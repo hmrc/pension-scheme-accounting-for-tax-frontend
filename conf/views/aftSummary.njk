@@ -13,7 +13,7 @@
 {% from 'macros/inputSearch.njk'                   import hmrcInputSearch with context %}
 
   {% if formSearchText.searchText.value %}
-   {% set summarySearchHeadingText = ' '+ messages('aft.summary.heading.search.results') %}
+   {% set summarySearchHeadingText = messages('aft.summary.heading.search.results')+ ' ' %}
    {% else %}
    {% set summarySearchHeadingText =  '' %}
   {% endif %}
@@ -21,7 +21,7 @@
 {% block pageTitle %}
 
     {{ title(
-        messages('aft.summary.heading', quarterStartDate, quarterEndDate)+ summarySearchHeadingText,
+        summarySearchHeadingText+ messages('aft.summary.heading', quarterStartDate, quarterEndDate),
         form.errors + formSearchText.errors
     ) }}
 {% endblock %}
@@ -49,7 +49,7 @@
                 {{ csrf() | safe }}
                 {% call govukFieldset({
                   legend: {
-                    html: summaryheadingtext + summarySearchHeadingText,
+                    html: summaryheadingtext ,
                     classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8",
                     isPageHeading: true
                   }

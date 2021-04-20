@@ -121,10 +121,15 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  private def confirmationPanelText(schemeName: String, startDate: LocalDate, endDate: LocalDate)(implicit messages: Messages): Html = {
+  private def confirmationPanelText(schemeName: String, startDate: LocalDate, endDate: LocalDate,formTextValue:Option[String])(implicit messages: Messages): Html = {
     val quarterStartDate = startDate.format(dateFormatterStartDate)
     val quarterEndDate = endDate.format(dateFormatterDMY)
-    Html(s""" <span class=govuk-caption-xl>${schemeName}</span>${messages("aft.summary.heading", quarterStartDate, quarterEndDate)}""")
+    if(formTextValue.isDefined){
+      Html(s""" <span class=govuk-caption-xl>${schemeName}</span>${messages("aft.summary.heading.search.results")+" " + messages("aft.summary.heading", quarterStartDate, quarterEndDate)}""")
+      }
+    else {
+        Html(s""" <span class=govuk-caption-xl>${schemeName}</span>${messages("aft.summary.heading", quarterStartDate, quarterEndDate)}""")
+      }
   }
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
@@ -157,7 +162,7 @@ class AFTSummaryController @Inject()(
                             version: Int,
                             accessType: AccessType)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
-    val getLegendHtml = Json.obj("summaryheadingtext" -> confirmationPanelText(schemeName, startDate, endDate).toString())
+    val getLegendHtml = Json.obj("summaryheadingtext" -> confirmationPanelText(schemeName, startDate, endDate,formSearchText.value).toString())
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
     } else {

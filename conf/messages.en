@@ -454,7 +454,7 @@ aft.summary.search.Name = Name
 aft.summary.search.clearSearch = Clear search
 aft.summary.search.result = result found
 aft.summary.search.results = results found
-aft.summary.heading.search.results = search results
+aft.summary.heading.search.results = Search results for
 
 chargeG.chargeDetails.title = Overseas transfer charge details for {0}
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
