@@ -35,7 +35,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   private def loadConfig(key: String): String =
     configuration.getOptional[String](key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
 
-  private def baseUrl(serviceName: String) = {
+  private def baseUrl(serviceName: String): String = {
     val protocol = configuration.getOptional[String](s"microservice.services.$serviceName.protocol").getOrElse("http")
     val host = configuration.get[String](s"microservice.services.$serviceName.host")
     val port = configuration.get[String](s"microservice.services.$serviceName.port")
