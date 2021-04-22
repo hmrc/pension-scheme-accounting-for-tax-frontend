@@ -37,7 +37,7 @@ import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
-import models.{ChargeDetailsFilter, DisplayYear, FSYears, PaymentOverdue, Year}
+import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -64,13 +64,13 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
   with NunjucksSupport {
 
   private def form(journeyType: ChargeDetailsFilter, paymentOrChargeType: PaymentOrChargeType, typeParam: String, config: FrontendAppConfig)
-                  (implicit messages: Messages): Form[Year] = {
+                  (implicit messages: Messages, ev: Enumerable[Year]): Form[Year] = {
     val errorMessage = if(isTaxYearFormat(paymentOrChargeType)) {
       messages(s"selectChargesTaxYear.$journeyType.error", typeParam)
     } else {
       messages(s"selectChargesYear.$journeyType.error", typeParam)
     }
-    formProvider(errorMessage)(config)
+    formProvider(errorMessage)(config, implicitly)
   }
 
   def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
@@ -80,6 +80,8 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
 
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
       val years = getYears(paymentsCache.schemeFS, paymentOrChargeType)
+      implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
+
       val json = Json.obj(
         "titleMessage" -> getTitle(typeParam, paymentOrChargeType, journeyType),
         "typeParam" -> typeParam,
@@ -97,6 +99,9 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     identify.async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
+      val years = getYears(paymentsCache.schemeFS, paymentOrChargeType)
+      implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
+
       form(journeyType, paymentOrChargeType, typeParam, config).bindFromRequest().fold(
         formWithErrors => {
 
@@ -105,7 +110,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
             "typeParam" -> typeParam,
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "form" -> formWithErrors,
-            "radios" -> FSYears.radios(formWithErrors, getYears(paymentsCache.schemeFS, paymentOrChargeType), isTaxYearFormat(paymentOrChargeType)),
+            "radios" -> FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType)),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))

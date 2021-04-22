@@ -19,7 +19,7 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import models.ChargeDetailsFilter.{All, Upcoming}
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
@@ -83,19 +83,33 @@ class PaymentsAndChargesController @Inject()(
       }
   }
 
+  val isTaxYearFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
+
   private def getTitleAndFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter)
                                          (implicit messages: Messages): (String, Seq[SchemeFS]) =
     if(paymentOrChargeType == AccountingForTaxCharges) {
+
       val startDate: LocalDate = LocalDate.parse(period)
       (messages(s"paymentsAndCharges.$journeyType.aft.title",
         startDate.format(dateFormatterStartDate),
         Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY)),
       payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate))
+
     } else {
+
       val typeParam: String = messages(s"paymentOrChargeType.${paymentOrChargeType.toString}")
       val messageParam: String = if(journeyType == All) typeParam else typeParam.toLowerCase
-      (messages(s"paymentsAndCharges.$journeyType.nonAft.title", messageParam, period),
-        payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt))
+      val filteredPayments = payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt)
+
+      val title = if(isTaxYearFormat(paymentOrChargeType) && filteredPayments.nonEmpty) {
+        messages(s"paymentsAndCharges.$journeyType.excessCharges.title", messageParam,
+          filteredPayments.head.periodStartDate.format(dateFormatterDMY),
+          filteredPayments.head.periodEndDate.format(dateFormatterDMY)
+        )
+      } else {
+        messages(s"paymentsAndCharges.$journeyType.nonAft.title", messageParam, period)
+      }
+        (title, filteredPayments)
     }
 
   private val removePaymentStatusColumn: Table => Table = table =>
