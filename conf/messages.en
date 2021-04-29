@@ -1108,10 +1108,13 @@ paymentsAndChargesOverdue.h1.multiplePeriod = Overdue payments and charges
 
 paymentsAndCharges.all.aft.title = Accounting for Tax payments and charges for {0} to {1}
 paymentsAndCharges.all.nonAft.title = {0} for {1}
+paymentsAndCharges.all.excessCharges.title = {0} for tax year {1} to {2}
 paymentsAndCharges.upcoming.aft.title = Upcoming Accounting for Tax payments and charges for {0} to {1}
 paymentsAndCharges.upcoming.nonAft.title = Upcoming {0} for {1}
+paymentsAndCharges.upcoming.excessCharges.title = Upcoming {0} for tax year {1} to {2}
 paymentsAndCharges.overdue.aft.title = Overdue Accounting for Tax payments and charges for {0} to {1}
 paymentsAndCharges.overdue.nonAft.title = Overdue {0} for {1}
+paymentsAndCharges.overdue.excessCharges.title = Overdue {0} for tax year {1} to {2}
 paymentsAndCharges.reflect.charge.text = Amounts due may not reflect payments made in the last 3 days.
 paymentsAndCharges.caption = {0} to {1}
 paymentsAndCharges.visuallyHiddenText = for charge reference {0}

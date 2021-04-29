@@ -35,20 +35,20 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.{ExecutionContext, Future}
 
 class YearsController @Inject()(
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    allowAccess: AllowAccessActionProviderForIdentifierRequest,
-    formProvider: YearsFormProvider,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig,
-    schemeService: SchemeService
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+                                override val messagesApi: MessagesApi,
+                                identify: IdentifierAction,
+                                allowAccess: AllowAccessActionProviderForIdentifierRequest,
+                                formProvider: YearsFormProvider,
+                                val controllerComponents: MessagesControllerComponents,
+                                renderer: Renderer,
+                                config: FrontendAppConfig,
+                                schemeService: SchemeService
+                            )(implicit ec: ExecutionContext)
+                                extends FrontendBaseController
+                                with I18nSupport
+                                with NunjucksSupport {
 
-  private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()
+  private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()(implicitly, StartYears.enumerable)
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     schemeService.retrieveSchemeDetails(

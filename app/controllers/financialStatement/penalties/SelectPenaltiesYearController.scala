@@ -22,7 +22,7 @@ import forms.YearsFormProvider
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFS}
 import models.requests.IdentifierRequest
-import models.{DisplayYear, FSYears, PaymentOverdue, Year}
+import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -47,16 +47,17 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
                                                                       with I18nSupport
                                                                       with NunjucksSupport {
 
-  private def form(errorParameter: String, config: FrontendAppConfig)(implicit messages: Messages): Form[Year] =
-    formProvider(messages("selectPenaltiesYear.error", messages(errorParameter)))(config)
+  private def form(errorParameter: String, config: FrontendAppConfig)(implicit messages: Messages, ev: Enumerable[Year]): Form[Year] =
+    formProvider(messages("selectPenaltiesYear.error", messages(errorParameter)))(config, implicitly)
 
   def onPageLoad(penaltyType: PenaltyType): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
 
     service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
 
       val typeParam = service.getTypeParam(penaltyType)
-
       val years = getYears(penaltyType, penaltiesCache.penalties)
+      implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
+
       val json = Json.obj(
         "psaName" -> penaltiesCache.psaName,
         "typeParam" -> typeParam,
@@ -76,6 +77,9 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
     val typeParam = service.getTypeParam(penaltyType)
 
     service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+      val years = getYears(penaltyType, penaltiesCache.penalties)
+      implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
+
       form(typeParam, config).bindFromRequest().fold(
         formWithErrors => {
           val json = Json.obj(

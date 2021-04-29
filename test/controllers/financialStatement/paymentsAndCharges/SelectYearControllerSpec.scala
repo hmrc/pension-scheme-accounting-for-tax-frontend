@@ -45,6 +45,7 @@ import utils.AFTConstants.QUARTER_START_DATE
 
 import java.time.LocalDate
 import scala.concurrent.Future
+import models.StartYears.enumerable
 
 class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
