@@ -21,29 +21,29 @@ import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import controllers.financialStatement.paymentsAndCharges.routes._
-import controllers.routes.{ReturnToSchemeDetailsController, SignOutController}
-import models.AdministratorOrPractitioner.{Administrator, Practitioner}
+import controllers.routes.{SignOutController, ReturnToSchemeDetailsController}
+import models.AdministratorOrPractitioner.{Practitioner, Administrator}
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
-import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
+import models.ValueChangeType.{ChangeTypeSame, ChangeTypeDecrease, ChangeTypeIncrease}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.DataRequest
 import models.{AccessType, GenericViewModel}
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
+import utils.DateHelper.{dateFormatterStartDate, formatSubmittedDate, dateFormatterDMY}
 
-import java.time.{LocalDate, ZoneId, ZonedDateTime}
+import java.time.{ZoneId, ZonedDateTime, LocalDate}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -68,20 +68,17 @@ class ConfirmationController @Inject()(
 
   private def checkIfFinancialInfoLinkDisplayable(srn: String, startDate: LocalDate)
                                                  (implicit request: DataRequest[AnyContent]): Future[Boolean] = {
-    if (config.isFSEnabled) {
-      schemeService.retrieveSchemeDetails(
-        psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
-      ) flatMap { schemeDetails =>
-        fsConnector.getSchemeFS(schemeDetails.pstr).map(_.exists(_.periodStartDate == startDate))
-      } recover { case e =>
-        logger.error("Exception (not rendered to user) when checking for financial information", e)
-        false
-      }
-    } else {
-      Future.successful(false)
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
+      fsConnector.getSchemeFS(schemeDetails.pstr).map(_.exists(_.periodStartDate == startDate))
+    } recover { case e =>
+      logger.error("Exception (not rendered to user) when checking for financial information", e)
+      false
     }
+
   }
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
