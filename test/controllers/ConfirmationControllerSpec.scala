@@ -17,23 +17,23 @@
 package controllers
 
 import connectors.FinancialStatementConnector
-import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
+import controllers.actions.{FakeAllowSubmissionAction, MutableFakeDataRetrievalAction, AllowSubmissionAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
-import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
+import models.ValueChangeType.{ChangeTypeSame, ChangeTypeDecrease, ChangeTypeIncrease}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
-import models.{AccessMode, GenericViewModel, SessionAccessData, SessionData, UserAnswers}
+import models.{SessionAccessData, GenericViewModel, UserAnswers, SessionData, AccessMode}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
-import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, EmailQuery}
+import pages.{EmailQuery, ConfirmSubmitAFTAmendmentValueChangeTypePage}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
@@ -43,14 +43,14 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
 import utils.DateHelper.formatSubmittedDate
 
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZoneId, ZonedDateTime}
+import java.time.{ZoneId, ZonedDateTime, LocalDate}
 import scala.concurrent.Future
 
 class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
@@ -109,7 +109,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.yourPensionSchemesUrl).thenReturn(testManagePensionsUrl.url)
-    when(mockAppConfig.isFSEnabled).thenReturn(true)
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
     when(mockSchemeService.retrieveSchemeDetails(any(),any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
@@ -219,22 +218,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseWithDataForDifferentYear))
 
-      val result = route(application, request).value
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "confirmation.njk"
-      (jsonCaptor.getValue \ "viewPaymentsUrl").toOption mustBe None
-    }
-
-    "return OK but don't include financial info link for a GET when financial info exists for year but toggle is off" in {
-      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
-      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
-        SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
-        set(EmailQuery, email).getOrElse(UserAnswers())))
-      when(mockAppConfig.isFSEnabled).thenReturn(false)
       val result = route(application, request).value
       status(result) mustEqual OK
 
