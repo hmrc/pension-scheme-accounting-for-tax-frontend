@@ -79,37 +79,46 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     DateHelper.setDate(Some(dateNow))
   }
 
-  def expectedRows(link: Html,
-    statusClass: String,
-    statusMessageKey: String,
-    amountDue: String,
-    link2: Html = otcLink()
-  )(implicit messages: Messages) = Seq(Seq(
-    Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
-    Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
-  ))
-
-
-
   "getPsaFsJson" must {
 
     "return the penalty tables based on API response for contract settlement where there is interestAccruedTotal" in {
+      def expectedRow(link: Html,
+        statusClass: String,
+        statusMessageKey: String,
+        amountDue: String,
+        chargeRef: String
+      )(implicit messages: Messages) = Seq(
+        Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
+        Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(chargeRef), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
+      )
+
+      val expectedRows = Seq(
+        expectedRow(
+          link = contractSettlementLink(),
+          statusClass = "govuk-visually-hidden",
+          statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
+          amountDue = "0.01",
+          chargeRef = "XY002610150184"),
+        expectedRow(
+          link = interestOnContractSettlementLink(),
+          statusClass = "govuk-body govuk-tag govuk-tag--blue",
+          statusMessageKey = "penalties.status.interestAccruing",
+          amountDue = "0.01",
+          chargeRef = "To be assigned")
+      )
+
       val charge = createPsaFS(accruedInterestTotal = BigDecimal(123.45), chargeType = CONTRACT_SETTLEMENT)
       penaltiesService.getPsaFsJson(
         Seq(charge),
         srn, chargeRefIndex, ContractSettlementCharges
       ) mustBe
         penaltyTables(
-          rows = expectedRows(contractSettlementLink(),
-            statusClass = "govuk-visually-hidden",
-            statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
-            amountDue = "0.01"),
+          rows = expectedRows,
           head = headForChargeType(firstColumnMessageKey = "penalties.column.chargeType")
         )
     }
-
 
     "return the penalty tables based on API response for paymentOverdue" in {
       penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")),
@@ -528,6 +537,11 @@ object PenaltiesServiceSpec {
     s"<a id=$chargeReference class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
       s"Contract settlement<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
+
+  def interestOnContractSettlementLink(chargeReference: String = "XY002610150184"): Html = Html(
+    s"<a id=$chargeReference class=govuk-link " +
+      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
+      s"Interest on contract settlement<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
   def otcLink(chargeReference: String = "XY002610150185"): Html = Html(
     s"<a id=$chargeReference class=govuk-link " +
