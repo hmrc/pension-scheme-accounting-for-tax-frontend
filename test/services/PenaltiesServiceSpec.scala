@@ -21,13 +21,13 @@ import base.SpecBase
 import config.FrontendAppConfig
 import connectors.MinimalConnector.MinimalDetails
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
+import connectors.{MinimalConnector, ListOfSchemesConnector, FinancialStatementConnector}
 import controllers.financialStatement.penalties.routes._
-import data.SampleData.{paymentsCache, psaFsSeq, psaId, schemeFSResponseAftAndOTC}
+import data.SampleData.{psaFsSeq, psaId, paymentsCache, schemeFSResponseAftAndOTC}
 import helpers.FormatHelper
-import models.financialStatement.{PsaFS, PsaFSChargeType}
+import models.financialStatement.{PsaFSChargeType, PsaFS}
 import models.financialStatement.PsaFSChargeType._
-import models.{ListOfSchemes, ListSchemeDetails, PenaltySchemes}
+import models.{PenaltySchemes, ListSchemeDetails, ListOfSchemes}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
@@ -36,7 +36,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
 import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
@@ -46,7 +46,7 @@ import utils.DateHelper.dateFormatterDMY
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import models.LocalDateBinder._
-import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, PensionsPenalties}
+import models.financialStatement.PenaltyType.{PensionsPenalties, AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties}
 
 class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
 
@@ -59,10 +59,19 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   private val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
   private val penaltiesService = new PenaltiesService(mockFSConnector, mockFIConnector, mockListOfSchemesConn, mockMinimalConnector)
 
-  def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String): JsObject = Json.obj(
-      "penaltyTable" -> Table(head = head, rows = rows(aftLink(), statusClass, statusMessageKey, amountDue),
+  def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String,
+    optionRows: Option[Seq[Seq[Cell]]] = None,
+    head: Seq[Cell] = headForChargeType("penalties.column.penaltyType")
+  ): JsObject = {
+    val allRows = optionRows match {
+      case None => rows(aftLink(), statusClass, statusMessageKey, amountDue)
+      case Some(r) => r
+    }
+    Json.obj(
+      "penaltyTable" -> Table(head = head, rows = allRows,
         attributes = Map("role" -> "table"))
     )
+  }
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -74,7 +83,41 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     DateHelper.setDate(Some(dateNow))
   }
 
+  def expectedRows(link: Html,
+    statusClass: String,
+    statusMessageKey: String,
+    amountDue: String,
+    link2: Html = otcLink()
+  )(implicit messages: Messages) = Seq(Seq(
+    Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
+    Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
+    Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
+    Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
+  ))
+
+
+
   "getPsaFsJson" must {
+
+    "return the penalty tables based on API response for contract settlement where there is interestAccruedTotal" in {
+      val charge = createPsaFS(accruedInterestTotal = BigDecimal(123.45), chargeType = CONTRACT_SETTLEMENT)
+      penaltiesService.getPsaFsJson(
+        Seq(charge),
+        srn, chargeRefIndex, ContractSettlementCharges
+      ) mustBe
+        penaltyTables(
+          statusClass = "",
+          statusMessageKey = "",
+          amountDue = "",
+          optionRows = Some(expectedRows(contractSettlementLink(),
+            statusClass = "govuk-visually-hidden",
+            statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
+            amountDue = "0.01")),
+          head = headForChargeType(firstColumnMessageKey = "penalties.column.chargeType")
+        )
+    }
+
+
     "return the penalty tables based on API response for paymentOverdue" in {
       penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")),
         srn, chargeRefIndex, AccountingForTaxPenalties) mustBe
@@ -364,6 +407,27 @@ object PenaltiesServiceSpec {
 
   val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
 
+  def createPsaFS(
+    amountDue: BigDecimal = BigDecimal(0.01),
+    dueDate: LocalDate = dateNow,
+    chargeType: PsaFSChargeType = AFT_INITIAL_LFP,
+    accruedInterestTotal: BigDecimal = BigDecimal(0.00)
+  ): PsaFS = {
+    PsaFS(
+        chargeReference = "XY002610150184",
+        chargeType = chargeType ,
+        dueDate = Some(dueDate),
+        totalAmount = 80000.00,
+        outstandingAmount = 56049.08,
+        stoodOverAmount = 25089.08,
+        accruedInterestTotal = accruedInterestTotal,
+        amountDue = amountDue,
+        periodStartDate = LocalDate.parse("2020-04-01"),
+        periodEndDate = LocalDate.parse("2020-06-30"),
+        pstr = "24000040IN"
+      )
+  }
+
   def psaFSResponse(amountDue: BigDecimal = BigDecimal(0.01), dueDate: LocalDate = dateNow): Seq[PsaFS] = Seq(
     PsaFS(
       chargeReference = "XY002610150184",
@@ -420,12 +484,13 @@ object PenaltiesServiceSpec {
   val zeroAmount: BigDecimal = BigDecimal(0.00)
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
-  private def head(implicit messages: Messages) = Seq(
-    Cell(msg"penalties.column.penaltyType"),
+  private def headForChargeType(firstColumnMessageKey: String)(implicit messages: Messages) = Seq(
+    Cell(msg"$firstColumnMessageKey"),
     Cell(msg"penalties.column.amount"),
     Cell(msg"penalties.column.chargeReference"),
     Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
   )
+
 
   private def rows(link: Html,
                    statusClass: String,
@@ -455,6 +520,11 @@ object PenaltiesServiceSpec {
     s"<a id=$chargeReference class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
       s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
+
+  def contractSettlementLink(chargeReference: String = "XY002610150184"): Html = Html(
+    s"<a id=$chargeReference class=govuk-link " +
+      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
+      s"Contract settlement<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
   def otcLink(chargeReference: String = "XY002610150185"): Html = Html(
     s"<a id=$chargeReference class=govuk-link " +
