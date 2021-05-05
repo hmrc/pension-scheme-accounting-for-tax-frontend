@@ -60,21 +60,20 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
     )
 
-    val rows = penalties.map {
-      data =>
-
-         val content = chargeTypeLink(identifier, data, chargeRefsIndex(data.chargeReference))
-            Seq(
-              Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
-              Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
-                classes = Seq("govuk-!-width-one-quarter")),
-              Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
-              statusCell(data)
-            )
-        }
+    val rows = penalties.map { data =>
+      val content = chargeTypeLink(identifier, data, chargeRefsIndex(data.chargeReference))
+      // TODO
+      Seq(
+        Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+          classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
+        statusCell(data)
+      )
+    }
     Json.obj(
-          "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
-        )
+      "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
+    )
   }
 
   private def chargeTypeLink(identifier: String, data: PsaFS, chargeRefsIndex: String)

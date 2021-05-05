@@ -27,6 +27,7 @@ case class PsaFS(chargeReference: String,
                  amountDue: BigDecimal,
                  outstandingAmount: BigDecimal,
                  stoodOverAmount: BigDecimal,
+                 accruedInterestTotal: BigDecimal,
                  periodStartDate: LocalDate,
                  periodEndDate: LocalDate,
                  pstr: String)

@@ -372,6 +372,7 @@ object PenaltiesServiceSpec {
       totalAmount = 80000.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
+      accruedInterestTotal = 0.00,
       amountDue = amountDue,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
@@ -384,6 +385,7 @@ object PenaltiesServiceSpec {
       totalAmount = 80000.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
+      accruedInterestTotal = 0.00,
       amountDue = amountDue,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
@@ -396,6 +398,7 @@ object PenaltiesServiceSpec {
       totalAmount = 80000.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
+      accruedInterestTotal = 0.00,
       amountDue = amountDue,
       periodStartDate = LocalDate.parse("2020-10-01"),
       periodEndDate = LocalDate.parse("2020-12-31"),
@@ -410,7 +413,8 @@ object PenaltiesServiceSpec {
              outStandingAmount: BigDecimal = BigDecimal(56049.08),
              stoodOverAmount: BigDecimal = BigDecimal(25089.08)
            ): PsaFS =
-    PsaFS("XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount, dateNow, dateNow, pstr)
+    PsaFS("XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
+      accruedInterestTotal = 0.00, dateNow, dateNow, pstr)
 
   val pstr: String = "24000040IN"
   val zeroAmount: BigDecimal = BigDecimal(0.00)
@@ -494,7 +498,7 @@ object PenaltiesServiceSpec {
 
   def customPsaFS(chargeType: PsaFSChargeType, startDate: String = "2021-01-01", endDate: String = "2021-03-31", pstr: String = pstr): PsaFS =
     PsaFS("XY002610150184", chargeType, Some(LocalDate.parse("2021-05-15")), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),
-      BigDecimal(0.00), LocalDate.parse(startDate), LocalDate.parse(endDate), pstr)
+      BigDecimal(0.00), BigDecimal(0.00), LocalDate.parse(startDate), LocalDate.parse(endDate), pstr)
 
 
 }
