@@ -59,16 +59,12 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   private val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
   private val penaltiesService = new PenaltiesService(mockFSConnector, mockFIConnector, mockListOfSchemesConn, mockMinimalConnector)
 
-  def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String,
-    optionRows: Option[Seq[Seq[Cell]]] = None,
+  def penaltyTables(
+    rows: Seq[Seq[Cell]],
     head: Seq[Cell] = headForChargeType("penalties.column.penaltyType")
   ): JsObject = {
-    val allRows = optionRows match {
-      case None => rows(aftLink(), statusClass, statusMessageKey, amountDue)
-      case Some(r) => r
-    }
     Json.obj(
-      "penaltyTable" -> Table(head = head, rows = allRows,
+      "penaltyTable" -> Table(head = head, rows = rows,
         attributes = Map("role" -> "table"))
     )
   }
@@ -106,13 +102,10 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
         srn, chargeRefIndex, ContractSettlementCharges
       ) mustBe
         penaltyTables(
-          statusClass = "",
-          statusMessageKey = "",
-          amountDue = "",
-          optionRows = Some(expectedRows(contractSettlementLink(),
+          rows = expectedRows(contractSettlementLink(),
             statusClass = "govuk-visually-hidden",
             statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
-            amountDue = "0.01")),
+            amountDue = "0.01"),
           head = headForChargeType(firstColumnMessageKey = "penalties.column.chargeType")
         )
     }
@@ -122,9 +115,12 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
       penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")),
         srn, chargeRefIndex, AccountingForTaxPenalties) mustBe
           penaltyTables(
-            statusClass = "govuk-tag govuk-tag--red",
-            statusMessageKey = "penalties.status.paymentOverdue",
-            amountDue = "1,029.05"
+            rows = rows(
+              link = aftLink(),
+              statusClass = "govuk-tag govuk-tag--red",
+              statusMessageKey = "penalties.status.paymentOverdue",
+              amountDue = "1,029.05"
+            )
           )
     }
 
@@ -132,18 +128,25 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
       penaltiesService.getPsaFsJson(
         psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, chargeRefIndex, AccountingForTaxPenalties) mustBe
           penaltyTables(
-            statusClass = "govuk-visually-hidden",
-            statusMessageKey = "penalties.status.visuallyHiddenText.noPaymentDue",
-            amountDue = "0.00"
+            rows(
+              link = aftLink(),
+              statusClass = "govuk-visually-hidden",
+              statusMessageKey = "penalties.status.visuallyHiddenText.noPaymentDue",
+              amountDue = "0.00"
+            )
           )
     }
 
     "return the penalty tables based on API response for paymentIsDue" in {
       penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, chargeRefIndex, AccountingForTaxPenalties) mustBe
           penaltyTables(
-            statusClass = "govuk-visually-hidden",
-            statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
-            amountDue = "5.00")
+            rows(
+              link = aftLink(),
+              statusClass = "govuk-visually-hidden",
+              statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
+              amountDue = "5.00"
+            )
+          )
       }
   }
 
