@@ -128,31 +128,12 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
 
   private def totalInterestDueRow(data: PsaFS): Seq[SummaryList.Row] = {
-    //if (data.amountDue > BigDecimal(0.00) && data.dueDate.isDefined) {
-    //  val dueDate: String = data.dueDate.get.format(dateFormatterDMY)
-    //  Seq(Row(
-    //    key = Key(msg"penalties.chargeDetails.totalDueBy".withArgs(dueDate), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-    //    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
-    //      classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-    //  ))
-    //}
-    //else {
-    //  Seq(Row(
-    //    key = Key(msg"penalties.chargeDetails.totalDue", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-    //    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
-    //      classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-    //  ))
-    //}
-
     val dateAsOf: String = LocalDate.now.format(dateFormatterDMY)
-
     Seq(Row(
       key = Key(msg"penalties.interest.totalDueAsOf".withArgs(dateAsOf), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
         classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
     ))
-
-    //penalties.interest.totalDueAsOf
   }
 
   def interestRows(data: PsaFS): Seq[SummaryList.Row] =

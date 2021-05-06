@@ -92,7 +92,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
         penaltiesRow(
           link = interestOnContractSettlementLink(),
           statusClass = "govuk-body govuk-tag govuk-tag--blue",
-          statusMessageKey = "penalties.status.interestAccruing",
+          statusMessageKey = Messages("penalties.status.interestAccruing").toUpperCase,
           amountDue = "123.45",
           chargeRef = "To be assigned")
       )
@@ -504,7 +504,7 @@ object PenaltiesServiceSpec {
     Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
     Cell(Literal(chargeRef), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey).toUpperCase}</span>"))
+    Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
   )
 
   private def rows(link: Html,
