@@ -60,7 +60,7 @@ class InterestController @Inject()(
                         "psaName" -> penaltiesCache.psaName,
                         "schemeAssociated" -> true,
                         "schemeName" -> schemeDetails.schemeName
-                      ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex)
+                      ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex, identifier)
 
                       renderer.render(template = "financialStatement/penalties/interest.njk", json).map(Ok(_))
                   }
@@ -68,7 +68,7 @@ class InterestController @Inject()(
                   val json = Json.obj(
                     "psaName" -> penaltiesCache.psaName,
                     "schemeAssociated" -> false
-                  ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex)
+                  ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex, identifier)
 
                   renderer.render(template = "financialStatement/penalties/interest.njk", json).map(Ok(_))
                 }
@@ -85,7 +85,8 @@ class InterestController @Inject()(
                           fs: PsaFS,
                           psaFS: Seq[PsaFS],
                           chargeRefs: Seq[String],
-                          chargeReferenceIndex: String
+                          chargeReferenceIndex: String,
+                          identifier: String
                         )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
     val chargeTypeDescription = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString.toLowerCase
     Json.obj(
@@ -93,7 +94,8 @@ class InterestController @Inject()(
       "isOverdue" ->        penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
       "period" ->           Messages("penalties.period", fs.periodStartDate.format(dateFormatterStartDate), fs.periodEndDate.format(dateFormatterDMY)),
       "chargeReference" ->  Messages("penalties.column.chargeReference.toBeAssigned"),
-      "list" ->             penaltiesService.interestRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head)
+      "list" ->             penaltiesService.interestRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
+      "originalAmountURL" -> controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(identifier, chargeReferenceIndex).url
     )
   }
 
