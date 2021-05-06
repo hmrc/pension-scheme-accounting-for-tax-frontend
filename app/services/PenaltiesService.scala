@@ -50,15 +50,6 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
   val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
-  private def accruedInterestLink(identifier: String, data: PsaFS, chargeRefsIndex: String)
-    (implicit messages: Messages): Html =
-    Html(s"<a id=${data.chargeReference}-interest " +
-      s"class=govuk-link href=${controllers.financialStatement.penalties.routes
-        .ChargeDetailsController.onPageLoad(identifier, chargeRefsIndex)}>" +
-      s"${messages("penalties.column.chargeType.interestOn", messages(data.chargeType.toString.toLowerCase))}" +
-      s"<span class=govuk-visually-hidden>${messages(s"penalties.column.chargeType.interestToCome")}</span> </a>")
-
-  //PENALTIES
   def getPsaFsJson(penalties: Seq[PsaFS], identifier: String, chargeRefsIndex: String => String, penaltyType: PenaltyType)
                   (implicit messages: Messages): JsObject = {
 
@@ -94,7 +85,6 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
       (Seq(charge) ++ Seq(interest)).filterNot(_.isEmpty)
     }
-
     Json.obj(
       "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
     )
@@ -108,7 +98,13 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
             s"${messages(data.chargeType.toString)}" +
             s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
 
-
+  private def accruedInterestLink(identifier: String, data: PsaFS, chargeRefsIndex: String)
+    (implicit messages: Messages): Html =
+    Html(s"<a id=${data.chargeReference}-interest " +
+      s"class=govuk-link href=${controllers.financialStatement.penalties.routes
+        .ChargeDetailsController.onPageLoad(identifier, chargeRefsIndex)}>" +
+      s"${messages("penalties.column.chargeType.interestOn", messages(data.chargeType.toString.toLowerCase))}" +
+      s"<span class=govuk-visually-hidden>${messages(s"penalties.column.chargeType.interestToCome")}</span> </a>")
 
   private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
     val (classes, content) = (isPaymentOverdue(data), data.amountDue) match {

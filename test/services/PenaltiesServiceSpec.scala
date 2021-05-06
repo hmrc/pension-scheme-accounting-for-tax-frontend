@@ -82,26 +82,14 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   "getPsaFsJson" must {
 
     "return the penalty tables based on API response for contract settlement where there is interestAccruedTotal" in {
-      def expectedRow(link: Html,
-        statusClass: String,
-        statusMessageKey: String,
-        amountDue: String,
-        chargeRef: String
-      )(implicit messages: Messages) = Seq(
-        Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
-        Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(chargeRef), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
-      )
-
       val expectedRows = Seq(
-        expectedRow(
+        penaltiesRow(
           link = contractSettlementLink(),
           statusClass = "govuk-visually-hidden",
           statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
           amountDue = "500.23",
           chargeRef = "XY002610150184"),
-        expectedRow(
+        penaltiesRow(
           link = interestOnContractSettlementLink(),
           statusClass = "govuk-body govuk-tag govuk-tag--blue",
           statusMessageKey = "penalties.status.interestAccruing",
@@ -113,6 +101,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
         amountDue = BigDecimal(500.23),
         accruedInterestTotal = BigDecimal(123.45), chargeType = CONTRACT_SETTLEMENT
       )
+
       penaltiesService.getPsaFsJson(
         Seq(charge),
         srn, chargeRefIndex, ContractSettlementCharges
@@ -506,30 +495,28 @@ object PenaltiesServiceSpec {
     Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
   )
 
+  private def penaltiesRow(link: Html,
+    statusClass: String,
+    statusMessageKey: String,
+    amountDue: String,
+    chargeRef: String
+  )(implicit messages: Messages) = Seq(
+    Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
+    Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
+    Cell(Literal(chargeRef), classes = Seq("govuk-!-width-one-quarter")),
+    Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
+  )
 
   private def rows(link: Html,
                    statusClass: String,
                    statusMessageKey: String,
                    amountDue: String,
                    link2: Html = otcLink()
-                  )(implicit messages: Messages) = Seq(Seq(
-    Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
-    Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
-  ),
-    Seq(
-      Cell(link2, classes = Seq("govuk-!-width-two-thirds-quarter")),
-      Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(Literal("XY002610150185"), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
-    ),
-    Seq(
-      Cell(otcLink("XY002610150186"), classes = Seq("govuk-!-width-two-thirds-quarter")),
-      Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(Literal("XY002610150186"), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
-    ))
+                  )(implicit messages: Messages) = Seq(
+      penaltiesRow(link, statusClass, statusMessageKey, amountDue, "XY002610150184"),
+      penaltiesRow(link2, statusClass, statusMessageKey, amountDue, "XY002610150185"),
+      penaltiesRow(otcLink("XY002610150186"), statusClass, statusMessageKey, amountDue, "XY002610150186")
+    )
 
   def aftLink(chargeReference: String = "XY002610150184"): Html = Html(
     s"<a id=$chargeReference class=govuk-link " +
