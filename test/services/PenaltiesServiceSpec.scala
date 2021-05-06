@@ -100,14 +100,13 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
           statusClass = "govuk-visually-hidden",
           statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
           amountDue = "500.23",
-          chargeRef = "XY002610150184")
-        //,
-        //expectedRow(
-        //  link = interestOnContractSettlementLink(),
-        //  statusClass = "govuk-body govuk-tag govuk-tag--blue",
-        //  statusMessageKey = "penalties.status.interestAccruing",
-        //  amountDue = "0.01",
-        //  chargeRef = "To be assigned")
+          chargeRef = "XY002610150184"),
+        expectedRow(
+          link = interestOnContractSettlementLink(),
+          statusClass = "govuk-body govuk-tag govuk-tag--blue",
+          statusMessageKey = "penalties.status.interestAccruing",
+          amountDue = "123.45",
+          chargeRef = "To be assigned")
       )
 
       val charge = createPsaFS(
@@ -540,12 +539,12 @@ object PenaltiesServiceSpec {
   def contractSettlementLink(chargeReference: String = "XY002610150184"): Html = Html(
     s"<a id=$chargeReference class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
-      s"Contract settlement<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
+      s"Contract settlement charge<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
   def interestOnContractSettlementLink(chargeReference: String = "XY002610150184"): Html = Html(
-    s"<a id=$chargeReference class=govuk-link " +
+    s"<a id=$chargeReference-interest class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
-      s"Interest on contract settlement<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
+      s"Interest on contract settlement charge<span class=govuk-visually-hidden>for charge reference to come</span> </a>")
 
   def otcLink(chargeReference: String = "XY002610150185"): Html = Html(
     s"<a id=$chargeReference class=govuk-link " +

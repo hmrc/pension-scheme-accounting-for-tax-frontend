@@ -1079,8 +1079,11 @@ penalties.pstr = Pension Scheme Tax Reference: {0}
 penalties.p1 = Amounts due may not reflect payments made in the last 3 days.
 penalties.column.penaltyType = Penalty type
 penalties.column.chargeType = Charge type
+penalties.column.chargeType.interestOn = Interest on {0}
+penalties.column.chargeType.interestToCome = for charge reference to come
 penalties.column.amount = Amount due
 penalties.column.chargeReference = Charge reference
+penalties.column.chargeReference.toBeAssigned = To be assigned
 penalties.column.paymentStatus = Payment status
 penalties.status.paymentOverdue = PAYMENT OVERDUE
 penalties.status.interestAccruing = INTEREST ACCRUING
@@ -1216,3 +1219,4 @@ paymentOrChargeType.ContractSettlementCharges = Contract settlement charges
 paymentOrChargeType.ExcessReliefPaidCharges = Excess relief paid charges
 paymentOrChargeType.InterestOnExcessRelief = Interest on excess relief paid charges
 paymentOrChargeType.PensionsCharges = Pensions charges
+
