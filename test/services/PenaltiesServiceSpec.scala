@@ -504,7 +504,7 @@ object PenaltiesServiceSpec {
     Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
     Cell(Literal(chargeRef), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
+    Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey).toUpperCase}</span>"))
   )
 
   private def rows(link: Html,
@@ -530,7 +530,7 @@ object PenaltiesServiceSpec {
 
   def interestOnContractSettlementLink(chargeReference: String = "XY002610150184"): Html = Html(
     s"<a id=$chargeReference-interest class=govuk-link " +
-      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0").url}>" +
+      s"href=${controllers.financialStatement.penalties.routes.InterestController.onPageLoad(srn, "0").url}>" +
       s"Interest on contract settlement charge<span class=govuk-visually-hidden>for charge reference to come</span> </a>")
 
   def otcLink(chargeReference: String = "XY002610150185"): Html = Html(

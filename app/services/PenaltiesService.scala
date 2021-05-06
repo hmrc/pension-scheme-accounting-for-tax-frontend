@@ -77,7 +77,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
           Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
             classes = Seq("govuk-!-width-one-quarter")),
           Cell(Message("penalties.column.chargeReference.toBeAssigned"), classes = Seq("govuk-!-width-one-quarter")),
-          Cell(Html(s"<span class='govuk-body govuk-tag govuk-tag--blue'>${messages("penalties.status.interestAccruing")}</span>"))
+          Cell(Html(s"<span class='govuk-body govuk-tag govuk-tag--blue'>${messages("penalties.status.interestAccruing").toUpperCase}</span>"))
         )
       } else {
         Nil
@@ -102,7 +102,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     (implicit messages: Messages): Html =
     Html(s"<a id=${data.chargeReference}-interest " +
       s"class=govuk-link href=${controllers.financialStatement.penalties.routes
-        .ChargeDetailsController.onPageLoad(identifier, chargeRefsIndex)}>" +
+        .InterestController.onPageLoad(identifier, chargeRefsIndex)}>" +
       s"${messages("penalties.column.chargeType.interestOn", messages(data.chargeType.toString.toLowerCase))}" +
       s"<span class=govuk-visually-hidden>${messages(s"penalties.column.chargeType.interestToCome")}</span> </a>")
 
@@ -125,6 +125,44 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
       )
     ) ++ paymentRow(data) ++ amountUnderReviewRow(data) ++ totalDueRow(data)
+
+
+  private def totalInterestDueRow(data: PsaFS): Seq[SummaryList.Row] = {
+    //if (data.amountDue > BigDecimal(0.00) && data.dueDate.isDefined) {
+    //  val dueDate: String = data.dueDate.get.format(dateFormatterDMY)
+    //  Seq(Row(
+    //    key = Key(msg"penalties.chargeDetails.totalDueBy".withArgs(dueDate), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
+    //    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+    //      classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    //  ))
+    //}
+    //else {
+    //  Seq(Row(
+    //    key = Key(msg"penalties.chargeDetails.totalDue", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
+    //    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+    //      classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    //  ))
+    //}
+
+    val dateAsOf: String = LocalDate.now.format(dateFormatterDMY)
+
+    Seq(Row(
+      key = Key(msg"penalties.interest.totalDueAsOf".withArgs(dateAsOf), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
+        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    ))
+
+    //penalties.interest.totalDueAsOf
+  }
+
+  def interestRows(data: PsaFS): Seq[SummaryList.Row] =
+    Seq(
+      Row(
+        key = Key(Message("penalties.status.interestAccruing"), classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      )
+    ) ++ totalInterestDueRow(data)
 
   private def paymentRow(data: PsaFS): Seq[SummaryList.Row] = {
     val paymentAmount: BigDecimal = data.totalAmount - data.outstandingAmount

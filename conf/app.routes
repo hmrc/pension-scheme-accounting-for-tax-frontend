@@ -264,6 +264,8 @@ POST        /:penaltyType/:year/select-a-scheme                                 
 
 GET         /accounting-for-tax/:startDate/:identifier/accounting-for-tax-penalties                                                                  controllers.financialStatement.penalties.PenaltiesController.onPageLoadAft(startDate: String, identifier: String)
 GET         /contract-settlement/:year/:identifier/contract-settlement-charges                                                                       controllers.financialStatement.penalties.PenaltiesController.onPageLoadContract(year: String, identifier: String)
+GET         /contract-settlement/:year/:identifier/contract-settlement-interest-details                                                              controllers.financialStatement.penalties.InterestController.onPageLoad(year: String, identifier: String)
+
 GET         /information-notice/:year/:identifier/information-notice-penalties                                                                       controllers.financialStatement.penalties.PenaltiesController.onPageLoadInfoNotice(year: String, identifier: String)
 GET         /pensions-penalty/:year/:identifier/pension-penalties                                                                                    controllers.financialStatement.penalties.PenaltiesController.onPageLoadPension(year: String, identifier: String)
 
