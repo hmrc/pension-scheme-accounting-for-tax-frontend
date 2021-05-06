@@ -99,17 +99,21 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
           link = contractSettlementLink(),
           statusClass = "govuk-visually-hidden",
           statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
-          amountDue = "0.01",
-          chargeRef = "XY002610150184"),
-        expectedRow(
-          link = interestOnContractSettlementLink(),
-          statusClass = "govuk-body govuk-tag govuk-tag--blue",
-          statusMessageKey = "penalties.status.interestAccruing",
-          amountDue = "0.01",
-          chargeRef = "To be assigned")
+          amountDue = "500.23",
+          chargeRef = "XY002610150184")
+        //,
+        //expectedRow(
+        //  link = interestOnContractSettlementLink(),
+        //  statusClass = "govuk-body govuk-tag govuk-tag--blue",
+        //  statusMessageKey = "penalties.status.interestAccruing",
+        //  amountDue = "0.01",
+        //  chargeRef = "To be assigned")
       )
 
-      val charge = createPsaFS(accruedInterestTotal = BigDecimal(123.45), chargeType = CONTRACT_SETTLEMENT)
+      val charge = createPsaFS(
+        amountDue = BigDecimal(500.23),
+        accruedInterestTotal = BigDecimal(123.45), chargeType = CONTRACT_SETTLEMENT
+      )
       penaltiesService.getPsaFsJson(
         Seq(charge),
         srn, chargeRefIndex, ContractSettlementCharges
