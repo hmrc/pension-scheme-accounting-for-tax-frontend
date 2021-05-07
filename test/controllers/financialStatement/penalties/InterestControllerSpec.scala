@@ -22,7 +22,6 @@ import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.financialStatement.PsaFS
 import models.{SchemeDetails, Enumerable}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -81,19 +80,15 @@ class InterestControllerSpec
   private val templateToBeRendered = "financialStatement/penalties/interest.njk"
   private val commonJson: JsObject = Json.obj(
     "heading" -> "Interest on accounting for tax late filing penalty",
-    "isOverdue" -> true,
     "period" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
     "chargeReference" -> chargeRef,
     "list" -> rows
   )
 
-  val isOverdue: PsaFS => Boolean = _ => true
-
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPenaltiesService, mockRenderer)
     when(mockPenaltiesService.interestRows(any())).thenReturn(rows)
-    when(mockPenaltiesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))

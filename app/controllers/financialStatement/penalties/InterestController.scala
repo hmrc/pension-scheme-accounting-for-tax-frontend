@@ -91,7 +91,6 @@ class InterestController @Inject()(
     val chargeTypeDescription = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString.toLowerCase
     Json.obj(
       "heading" ->   heading(Messages("penalties.column.chargeType.interestOn", chargeTypeDescription)),
-      "isOverdue" ->        penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
       "period" ->           Messages("penalties.period", fs.periodStartDate.format(dateFormatterStartDate), fs.periodEndDate.format(dateFormatterDMY)),
       "chargeReference" ->  Messages("penalties.column.chargeReference.toBeAssigned"),
       "list" ->             penaltiesService.interestRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
