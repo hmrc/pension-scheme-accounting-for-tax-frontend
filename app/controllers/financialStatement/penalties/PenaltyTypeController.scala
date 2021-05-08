@@ -21,7 +21,7 @@ import controllers.actions._
 import forms.financialStatement.PenaltyTypeFormProvider
 import models.financialStatement.PenaltyType.getPenaltyType
 import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFS}
-import models.{DisplayHint, PaymentOverdue}
+import models.{DisplayHint, PaymentOverdue, PenaltiesFilter}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -48,33 +48,33 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
 
   private def form: Form[PenaltyType] = formProvider()
 
-  def onPageLoad: Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
-    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+  def onPageLoad(journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+    service.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties)
       val json = Json.obj(
         "psaName" -> penaltiesCache.psaName,
         "form" -> form,
         "radios" -> PenaltyType.radios(form, penaltyTypes),
-        "submitUrl" -> routes.PenaltyTypeController.onSubmit().url
+        "submitUrl" -> routes.PenaltyTypeController.onSubmit(journeyType).url
       )
 
       renderer.render(template = "financialStatement/penalties/penaltyType.njk", json).map(Ok(_))
     }
   }
 
-  def onSubmit: Action[AnyContent] = identify.async { implicit request =>
-    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+  def onSubmit(journeyType: PenaltiesFilter): Action[AnyContent] = identify.async { implicit request =>
+    service.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       form.bindFromRequest().fold(
         formWithErrors => {
           val json = Json.obj(
             "psaName" -> penaltiesCache.psaName,
             "form" -> formWithErrors,
             "radios" -> PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties)),
-            "submitUrl" -> routes.PenaltyTypeController.onSubmit().url
+            "submitUrl" -> routes.PenaltyTypeController.onSubmit(journeyType).url
           )
           renderer.render(template = "financialStatement/penalties/penaltyType.njk", json).map(BadRequest(_))
         },
-        value => service.navFromPenaltiesTypePage(penaltiesCache.penalties, value, request.psaIdOrException.id)
+        value => service.navFromPenaltiesTypePage(penaltiesCache.penalties, value, request.psaIdOrException.id, journeyType)
       )
     }
   }

@@ -22,8 +22,9 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
+import models.PenaltiesFilter.All
 import models.requests.IdentifierRequest
-import models.{DisplayQuarter, Enumerable, PaymentOverdue, AFTQuarter, Quarters}
+import models.{AFTQuarter, DisplayQuarter, Enumerable, PaymentOverdue, Quarters}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -65,8 +66,8 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
   val formProvider = new QuartersFormProvider()
   val form: Form[AFTQuarter] = formProvider("selectPenaltiesQuarter.error", quarters)
 
-  lazy val httpPathGET: String = routes.SelectPenaltiesQuarterController.onPageLoad(year).url
-  lazy val httpPathPOST: String = routes.SelectPenaltiesQuarterController.onSubmit(year).url
+  lazy val httpPathGET: String = routes.SelectPenaltiesQuarterController.onPageLoad(year, All).url
+  lazy val httpPathPOST: String = routes.SelectPenaltiesQuarterController.onSubmit(year, All).url
 
   private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
     "form" -> form,
@@ -83,7 +84,7 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+    when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
   }
 
   "SelectPenaltiesQuarter Controller" must {
@@ -104,14 +105,14 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     }
 
     "redirect to next page when valid data is submitted" in {
-      when(mockPenaltiesService.navFromAftQuartersPage(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(Redirect(routes.PenaltiesController.onPageLoadAft(q32020.startDate.toString, srn))))
+      when(mockPenaltiesService.navFromAftQuartersPage(any(), any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(Redirect(routes.PenaltiesController.onPageLoadAft(q32020.startDate.toString, srn, All))))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadAft(q32020.startDate.toString, srn).url)
+      redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadAft(q32020.startDate.toString, srn, All).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

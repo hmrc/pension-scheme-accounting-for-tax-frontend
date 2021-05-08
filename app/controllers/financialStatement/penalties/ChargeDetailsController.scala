@@ -18,6 +18,7 @@ package controllers.financialStatement.penalties
 
 import config.Constants._
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
+import models.PenaltiesFilter
 import models.financialStatement.PsaFS
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -45,9 +46,9 @@ class ChargeDetailsController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(identifier: String, chargeReferenceIndex: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoad(identifier: String, chargeReferenceIndex: String, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+      penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
 
           val chargeRefs: Seq[String] = penaltiesCache.penalties.map(_.chargeReference)
           def penaltyOpt: Option[PsaFS] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))

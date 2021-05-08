@@ -22,6 +22,7 @@ import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
+import models.PenaltiesFilter.All
 import models.financialStatement.PsaFS
 import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
@@ -55,13 +56,11 @@ class ChargeDetailsControllerSpec
 
   private def httpPathGETAssociated(chargeReferenceIndex: String): String =
     controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(
-      identifier = srn, chargeReferenceIndex = chargeReferenceIndex
-    ).url
+      identifier = srn, chargeReferenceIndex = chargeReferenceIndex, All).url
 
   private def httpPathGETUnassociated: String =
     controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(
-      identifier = "0", chargeReferenceIndex = "0"
-    ).url
+      identifier = "0", chargeReferenceIndex = "0", All).url
 
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
   val mockSchemeService: SchemeService = mock[SchemeService]
@@ -93,7 +92,7 @@ class ChargeDetailsControllerSpec
     reset(mockPenaltiesService, mockRenderer)
     when(mockPenaltiesService.chargeDetailsRows(any())).thenReturn(rows)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(isOverdue)
-    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
+    when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))

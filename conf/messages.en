@@ -1069,9 +1069,9 @@ pspDashboardOverdueAftChargesCard.toDate.span = to date
 pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod = View overdue payments and interest charges for {0} to {1}
 pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods = View overdue payments and interest charges
 
-psaPenaltiesCard.h2 = Penalties
-psaPenaltiesCard.paymentsDue.linkText = View payments due for penalties and charges
-psaPenaltiesCard.viewPastPenalties = View past penalties and charges
+psaPenaltiesCard.h2 = Penalties and charges
+psaPenaltiesCard.paymentsDue.linkText = View only penalties and charges outstanding
+psaPenaltiesCard.viewPastPenalties = View all penalties and charges
 
 penalties.aft.title = Accounting for Tax penalties for {0} to {1}
 penalties.nonAft.title = {0} for {1}

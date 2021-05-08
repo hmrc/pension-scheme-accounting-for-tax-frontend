@@ -19,7 +19,7 @@ package controllers.financialStatement.penalties
 import controllers.actions._
 import controllers.financialStatement.penalties.routes._
 import forms.SelectSchemeFormProvider
-import models.PenaltySchemes
+import models.{PenaltiesFilter, PenaltySchemes}
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFS}
 import models.requests.IdentifierRequest
@@ -52,10 +52,10 @@ class SelectSchemeController @Inject()(
   private def form(schemes: Seq[PenaltySchemes], typeParam: String)
                   (implicit messages: Messages): Form[PenaltySchemes] = formProvider(schemes, messages("selectScheme.error", typeParam))
 
-  def onPageLoad(penaltyType: PenaltyType, period: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoad(penaltyType: PenaltyType, period: String, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-      val (penaltySchemesFunction, _) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id)
-      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+      val (penaltySchemesFunction, _) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id, journeyType)
+      penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
         penaltySchemesFunction(penaltiesCache.penalties).flatMap { penaltySchemes =>
           if (penaltySchemes.nonEmpty) {
 
@@ -75,12 +75,12 @@ class SelectSchemeController @Inject()(
       }
   }
 
-  def onSubmit(penaltyType: PenaltyType, period: String): Action[AnyContent] = identify.async {
+  def onSubmit(penaltyType: PenaltyType, period: String, journeyType: PenaltiesFilter): Action[AnyContent] = identify.async {
     implicit request =>
 
-      val (penaltySchemesFunction, redirectUrl) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id)
+      val (penaltySchemesFunction, redirectUrl) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id, journeyType: PenaltiesFilter)
 
-      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+      penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
         penaltySchemesFunction(penaltiesCache.penalties).flatMap { penaltySchemes =>
 
           val typeParam = penaltiesService.getTypeParam(penaltyType)
@@ -101,7 +101,7 @@ class SelectSchemeController @Inject()(
                 case Some(srn) =>
                   Future.successful(Redirect(redirectUrl(srn)))
                 case _ =>
-                  penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).map { penalties =>
+                  penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).map { penalties =>
                     val pstrIndex: String = penaltiesCache.penalties.map(_.pstr).indexOf(value.pstr).toString
                     Redirect(redirectUrl(pstrIndex))
                   }
@@ -114,21 +114,21 @@ class SelectSchemeController @Inject()(
       }
   }
 
-  def getSchemesAndUrl(penaltyType: PenaltyType, period: String, psaId: String)
+  def getSchemesAndUrl(penaltyType: PenaltyType, period: String, psaId: String, journeyType: PenaltiesFilter)
                       (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFS] => Future[Seq[PenaltySchemes]], String => Call) =
     penaltyType match {
       case AccountingForTaxPenalties =>
         (penalties => penaltiesService.penaltySchemes(LocalDate.parse(period), psaId, penalties),
-          identifier => PenaltiesController.onPageLoadAft(period, identifier))
+          identifier => PenaltiesController.onPageLoadAft(period, identifier, journeyType))
       case ContractSettlementCharges =>
         (penalties => penaltiesService.penaltySchemes(period.toInt, psaId, penaltyType, penalties),
-          identifier => PenaltiesController.onPageLoadContract(period, identifier))
+          identifier => PenaltiesController.onPageLoadContract(period, identifier, journeyType))
       case InformationNoticePenalties =>
         (penalties => penaltiesService.penaltySchemes(period.toInt, psaId, penaltyType, penalties),
-          identifier => PenaltiesController.onPageLoadInfoNotice(period, identifier))
+          identifier => PenaltiesController.onPageLoadInfoNotice(period, identifier, journeyType))
       case PensionsPenalties =>
         (penalties => penaltiesService.penaltySchemes(period.toInt, psaId, penaltyType, penalties),
-          identifier => PenaltiesController.onPageLoadPension(period, identifier))
+          identifier => PenaltiesController.onPageLoadPension(period, identifier, journeyType))
 
     }
 

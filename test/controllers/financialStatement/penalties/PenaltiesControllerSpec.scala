@@ -20,6 +20,7 @@ import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
+import models.PenaltiesFilter.All
 import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -46,9 +47,9 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
   import PenaltiesControllerSpec._
 
   private def httpPathGETAssociated: String =
-    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoadAft(startDate, srn).url
+    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoadAft(startDate, srn, All).url
   private def httpPathGETUnassociated(identifier: String): String =
-    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoadAft(startDate, identifier).url
+    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoadAft(startDate, identifier, All).url
 
   val penaltyTables: JsObject =
     Json.obj("penaltyTable" -> Table(head = head, rows = rows("2020-04-01")))
@@ -80,9 +81,9 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPenaltiesService, mockRenderer)
-    when(mockPenaltiesService.getPsaFsJson(any(), any(), any(), any())(any()))
+    when(mockPenaltiesService.getPsaFsJson(any(), any(), any(), any(), any())(any()))
       .thenReturn(penaltyTables)
-    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
+    when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
 
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
@@ -148,6 +149,6 @@ object PenaltiesControllerSpec {
     ))
 
   def link(startDate: String): Html = Html(
-      s"<a id=XY002610150184 class=govuk-link href=${routes.ChargeDetailsController.onPageLoad(srn, "XY002610150184").url}>" +
+      s"<a id=XY002610150184 class=govuk-link href=${routes.ChargeDetailsController.onPageLoad(srn, "XY002610150184", All).url}>" +
       s"Accounting for Tax late filing penalty </a>")
 }

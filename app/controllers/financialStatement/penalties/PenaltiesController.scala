@@ -19,7 +19,7 @@ package controllers.financialStatement.penalties
 import config.Constants._
 import controllers.actions._
 import models.LocalDateBinder._
-import models.Quarters
+import models.{PenaltiesFilter, Quarters}
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFS}
 import models.requests.IdentifierRequest
@@ -49,14 +49,14 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoadAft(startDate: LocalDate, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoadAft(startDate: LocalDate, identifier: String, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
 
       val title: Message = Message("penalties.aft.title").withArgs(
         LocalDate.parse(startDate).format(dateFormatterStartDate),
           Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY))
 
-      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+      penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
 
         val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
         val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
@@ -67,7 +67,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
               .filter(_.periodStartDate == startDate)
               .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
 
-            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, AccountingForTaxPenalties)
+            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, AccountingForTaxPenalties, journeyType)
 
             viewModel(title, penaltiesCache.psaName, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
           }
@@ -80,7 +80,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
               .filter(_.periodStartDate == startDate)
               .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
 
-            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, AccountingForTaxPenalties)
+            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, AccountingForTaxPenalties, journeyType)
 
             viewModel(title, penaltiesCache.psaName, pstrs(identifier.toInt), schemeAssociated = false, penaltyTable)
           }
@@ -91,27 +91,27 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
       }
   }
 
-  def onPageLoadContract(year: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoadContract(year: String, identifier: String, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-        onPageLoad(year.toInt, identifier, ContractSettlementCharges)
+        onPageLoad(year.toInt, identifier, ContractSettlementCharges, journeyType)
 
   }
 
-  def onPageLoadInfoNotice(year: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoadInfoNotice(year: String, identifier: String, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-        onPageLoad(year.toInt, identifier, InformationNoticePenalties)
+        onPageLoad(year.toInt, identifier, InformationNoticePenalties, journeyType)
 
   }
 
-  def onPageLoadPension(year: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoadPension(year: String, identifier: String, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-        onPageLoad(year.toInt, identifier, PensionsPenalties)
+        onPageLoad(year.toInt, identifier, PensionsPenalties, journeyType)
 
   }
 
-  private def onPageLoad(year: Int, identifier: String, penaltyType: PenaltyType)
+  private def onPageLoad(year: Int, identifier: String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
                         (implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
-    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
+    penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       val title: Message = Message("penalties.nonAft.title", Message(s"penaltyType.${penaltyType.toString}"), year.toString)
       val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
       val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
@@ -122,7 +122,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
             .filter(_.periodEndDate.getYear == year)
             .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
-          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, penaltyType)
+          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, penaltyType, journeyType)
 
           viewModel(title, penaltiesCache.psaName, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
         }
@@ -135,7 +135,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
             .filter(_.periodEndDate.getYear == year)
             .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
-          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, penaltyType)
+          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, penaltyType, journeyType)
 
           viewModel(title, penaltiesCache.psaName, pstrs(identifier.toInt), schemeAssociated = false, penaltyTable)
         }
