@@ -1079,11 +1079,16 @@ penalties.pstr = Pension Scheme Tax Reference: {0}
 penalties.p1 = Amounts due may not reflect payments made in the last 3 days.
 penalties.column.penaltyType = Penalty type
 penalties.column.chargeType = Charge type
+penalties.column.chargeType.interestOn = Interest on {0}
+penalties.column.chargeType.interestToCome = for charge reference to come
 penalties.column.amount = Amount due
 penalties.column.chargeReference = Charge reference
+penalties.column.chargeReference.toBeAssigned = To be assigned
 penalties.column.paymentStatus = Payment status
 penalties.status.paymentOverdue = PAYMENT OVERDUE
+penalties.status.interestAccruing = Interest accruing
 penalties.status.visuallyHiddenText.paymentIsDue = Payment is due
+penalties.status.visuallyHiddenText.interestIsAccruing = Interest is accruing
 penalties.status.visuallyHiddenText.noPaymentDue = No payment due
 penalties.12months = Accounting for Tax late payment penalty (12 months)
 penalties.6months = Accounting for Tax late payment penalty (6 months)
@@ -1093,9 +1098,14 @@ penalties.period = {0} to {1}
 penalties.chargeDetails.payments = Payments
 penalties.chargeDetails.amountUnderReview = Amount under review (includes appeals)
 penalties.chargeDetails.totalDueBy = Amount due by {0}
+penalties.interest.totalDueAsOf = Interest due as of {0}
 penalties.chargeDetails.totalDue = Amount due
 penalties.chargeReference = Charge reference: {0}
 penalties.visuallyHiddenText = for charge reference {0}
+
+penalties.hint1 = The charge reference for the interest due will show once you have paid the
+penalties.hintLink = original amount due
+penalties.hint2 = in full. You can only pay the interest once a charge reference has been generated.
 
 paymentsAndCharges.partial.h1 = Payments and charges
 paymentsAndCharges.partial.view.link = View payments and charges for 2020
@@ -1214,3 +1224,4 @@ paymentOrChargeType.ContractSettlementCharges = Contract settlement charges
 paymentOrChargeType.ExcessReliefPaidCharges = Excess relief paid charges
 paymentOrChargeType.InterestOnExcessRelief = Interest on excess relief paid charges
 paymentOrChargeType.PensionsCharges = Pensions charges
+

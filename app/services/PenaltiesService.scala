@@ -18,23 +18,24 @@ package services
 
 import com.google.inject.Inject
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
+import connectors.{MinimalConnector, ListOfSchemesConnector, FinancialStatementConnector}
 import controllers.Assets.Redirect
 import controllers.financialStatement.penalties.routes._
 import helpers.FormatHelper
 import models.LocalDateBinder._
 import models.PenaltiesFilter.Outstanding
 import models.financialStatement.PenaltyType._
-import models.financialStatement.{PenaltyType, PsaFS}
-import models.{ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
+import models.financialStatement.PsaFSChargeType.CONTRACT_SETTLEMENT
+import models.financialStatement.{PsaFS, PenaltyType}
+import models.{PenaltiesFilter, PenaltySchemes, ListSchemeDetails}
 import play.api.Logger
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, JsSuccess, Json, OFormat}
+import play.api.libs.json.{JsObject, OFormat, JsSuccess, Json}
 import play.api.mvc.Result
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
 import uk.gov.hmrc.viewmodels.Table.Cell
-import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.dateFormatterDMY
 
@@ -61,21 +62,34 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
     )
 
-    val rows = penalties.map {
-      data =>
+    val rows = penalties.flatMap { data =>
+      val content = chargeTypeLink(identifier, data, chargeRefsIndex(data.chargeReference), journeyType)
+      val charge = Seq(
+        Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+          classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
+        statusCell(data)
+      )
 
-         val content = chargeTypeLink(identifier, data, chargeRefsIndex(data.chargeReference), journeyType)
-            Seq(
-              Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
-              Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
-                classes = Seq("govuk-!-width-one-quarter")),
-              Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
-              statusCell(data)
-            )
-        }
-    Json.obj(
-          "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
+      val interest = if (data.chargeType == CONTRACT_SETTLEMENT && data.accruedInterestTotal > 0) {
+        val content = accruedInterestLink(identifier, data, chargeRefsIndex(data.chargeReference))
+        Seq(
+          Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
+          Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
+            classes = Seq("govuk-!-width-one-quarter")),
+          Cell(Message("penalties.column.chargeReference.toBeAssigned"), classes = Seq("govuk-!-width-one-quarter")),
+          Cell(Html(s"<span class='govuk-body govuk-tag govuk-tag--blue'>${messages("penalties.status.interestAccruing").toUpperCase}</span>"))
         )
+      } else {
+        Nil
+      }
+
+      (Seq(charge) ++ Seq(interest)).filterNot(_.isEmpty)
+    }
+    Json.obj(
+      "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
+    )
   }
 
   private def chargeTypeLink(identifier: String, data: PsaFS, chargeRefsIndex: String, journeyType: PenaltiesFilter)
@@ -86,7 +100,13 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
             s"${messages(data.chargeType.toString)}" +
             s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
 
-
+  private def accruedInterestLink(identifier: String, data: PsaFS, chargeRefsIndex: String)
+    (implicit messages: Messages): Html =
+    Html(s"<a id=${data.chargeReference}-interest " +
+      s"class=govuk-link href=${controllers.financialStatement.penalties.routes
+        .InterestController.onPageLoad(identifier, chargeRefsIndex)}>" +
+      s"${messages("penalties.column.chargeType.interestOn", messages(data.chargeType.toString.toLowerCase))}" +
+      s"<span class=govuk-visually-hidden>${messages(s"penalties.column.chargeType.interestToCome")}</span> </a>")
 
   private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
     val (classes, content) = (isPaymentOverdue(data), data.amountDue) match {
@@ -107,6 +127,25 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
       )
     ) ++ paymentRow(data) ++ amountUnderReviewRow(data) ++ totalDueRow(data)
+
+
+  private def totalInterestDueRow(data: PsaFS): Seq[SummaryList.Row] = {
+    val dateAsOf: String = LocalDate.now.format(dateFormatterDMY)
+    Seq(Row(
+      key = Key(msg"penalties.interest.totalDueAsOf".withArgs(dateAsOf), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
+        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    ))
+  }
+
+  def interestRows(data: PsaFS): Seq[SummaryList.Row] =
+    Seq(
+      Row(
+        key = Key(Message("penalties.status.interestAccruing"), classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      )
+    ) ++ totalInterestDueRow(data)
 
   private def paymentRow(data: PsaFS): Seq[SummaryList.Row] = {
     val paymentAmount: BigDecimal = data.totalAmount - data.outstandingAmount
@@ -232,7 +271,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     } yield PenaltiesCache(psaId, minimalDetails.name, penalties)
 
 
-  private def getPenaltiesFromCache(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PenaltiesCache] =
+  def getPenaltiesFromCache(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PenaltiesCache] =
     fiCacheConnector.fetch flatMap {
       case Some(jsValue) =>
       jsValue.validate[PenaltiesCache] match {
