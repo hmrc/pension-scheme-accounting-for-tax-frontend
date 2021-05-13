@@ -129,7 +129,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
       } else {
         penaltiesService.unassociatedSchemes(penaltiesCache.penalties, year, request.psaIdOrException.id) map { penalties =>
 
-          val pstrs: Seq[String] = penalties.map(_.pstr)
+          val pstrs: Seq[String] = penaltiesCache.penalties.map(_.pstr)
 
           val filteredPsaFS: Seq[PsaFS] = penalties
             .filter(_.periodEndDate.getYear == year)
