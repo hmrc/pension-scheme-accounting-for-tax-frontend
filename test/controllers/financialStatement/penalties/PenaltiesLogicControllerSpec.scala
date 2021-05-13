@@ -92,6 +92,7 @@ object PenaltiesLogicControllerSpec {
     totalAmount = 80000.00,
     outstandingAmount = 56049.08,
     stoodOverAmount = 25089.08,
+    accruedInterestTotal = 0.00,
     amountDue = 1029.05,
     periodStartDate = LocalDate.parse("2020-04-01"),
     periodEndDate = LocalDate.parse("2020-06-30"),

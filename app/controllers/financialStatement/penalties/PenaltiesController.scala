@@ -94,7 +94,6 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
   def onPageLoadContract(year: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
         onPageLoad(year.toInt, identifier, ContractSettlementCharges)
-
   }
 
   def onPageLoadInfoNotice(year: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {

@@ -32,7 +32,7 @@ object PsaFSChargeType extends Enumerable.Implicits {
   case object OTC_12_MONTH_LPP extends WithName("Overseas transfer charge late payment penalty (12 months)") with PsaFSChargeType
   case object PSS_PENALTY extends WithName("Pensions Penalty") with PsaFSChargeType
   case object PSS_INFO_NOTICE extends WithName("Information Notice Penalty") with PsaFSChargeType
-  case object CONTRACT_SETTLEMENT extends WithName("Contract settlement") with PsaFSChargeType
+  case object CONTRACT_SETTLEMENT extends WithName("Contract settlement charge") with PsaFSChargeType
   case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract settlement interest") with PsaFSChargeType
 
   val values: Seq[PsaFSChargeType] = Seq(
