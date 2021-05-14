@@ -351,7 +351,7 @@ class AFTPartialService @Inject()(
     (implicit messages: Messages): DashboardAftViewModel = {
 
     val upcomingCharges: Seq[PsaFS] =
-      psaFs.filter(_.dueDate.exists(_.isBefore(DateHelper.today)))
+      psaFs.filter(_.dueDate.exists(!_.isBefore(DateHelper.today)))
 
     val subHeadingPaymentDue = {
 
