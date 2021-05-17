@@ -1057,7 +1057,7 @@ pspDashboardAftReturnsCard.inProgressReturns.link.single.locked = View locked AF
 
 pspDashboardUpcomingAftChargesCard.h2 = Upcoming charges
 pspDashboardUpcomingAftChargesCard.span.singleDueDate = Payment due by {0}:
-pspDashboardUpcomingAftChargesCard.span.multipleDueDate = Total upcoming payments
+pspDashboardUpcomingAftChargesCard.span.multipleDueDate = Total upcoming payments:
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single = View payments and charges for {0} to {1}
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple = View upcoming payments and charges
 pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges = View all payments and charges
@@ -1093,7 +1093,7 @@ penalties.status.visuallyHiddenText.noPaymentDue = No payment due
 penalties.12months = Accounting for Tax late payment penalty (12 months)
 penalties.6months = Accounting for Tax late payment penalty (6 months)
 penalties.30days = Accounting for Tax late payment penalty (30 days)
-penalties.period = {0} to {1}
+penalties.period = Period: {0} to {1}
 
 penalties.chargeDetails.payments = Payments
 penalties.chargeDetails.amountUnderReview = Amount under review (includes appeals)
