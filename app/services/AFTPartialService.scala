@@ -357,7 +357,7 @@ class AFTPartialService @Inject()(
 
       val totalUpcoming = upcomingCharges.map(_.amountDue).sum
 
-      val span = if (upcomingCharges.map(_.dueDate).distinct.size == 1) {
+      val span: Text = if (upcomingCharges.map(_.dueDate).distinct.size == 1) {
           msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate".withArgs(
             upcomingCharges.map(_.dueDate).distinct.flatten.head.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
         } else {
@@ -370,7 +370,7 @@ class AFTPartialService @Inject()(
       )
     }
 
-    val subHeadingTotalOverduePayments = {
+    val subHeadingTotalOverduePayments: JsObject = {
       val pastDueDateCharges: Seq[PsaFS] =
         psaFs.filter(charge =>  charge.dueDate.exists(_.isBefore(DateHelper.today)))
       val totalOverdue: BigDecimal = pastDueDateCharges.map(_.amountDue).sum
