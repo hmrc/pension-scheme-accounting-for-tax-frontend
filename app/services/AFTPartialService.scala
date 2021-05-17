@@ -380,14 +380,14 @@ class AFTPartialService @Inject()(
       )
     }
 
-    val upcomingLink: Seq[Link] = if(upcomingCharges.nonEmpty) {
-        Seq(Link("upcoming-penalties-id", appConfig.viewUpcomingPenaltiesUrl, msg"psaPenaltiesCard.paymentsDue.linkText", None))
+    val outstandingLink: Seq[Link] = if(psaFs.exists(_.amountDue > BigDecimal(0.00))) {
+        Seq(Link("outstanding-penalties-id", appConfig.viewUpcomingPenaltiesUrl, msg"psaPenaltiesCard.paymentsDue.linkText", None))
     } else {
       Nil
     }
 
     DashboardAftViewModel(
       subHeadings = Seq(subHeadingPaymentDue, subHeadingTotalOverduePayments),
-      links = upcomingLink :+ Link("past-penalties-id", appConfig.viewPenaltiesUrl, msg"psaPenaltiesCard.viewPastPenalties", None))
+      links = outstandingLink :+ Link("past-penalties-id", appConfig.viewPenaltiesUrl, msg"psaPenaltiesCard.viewPastPenalties", None))
   }
 }

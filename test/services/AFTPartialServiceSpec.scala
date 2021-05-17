@@ -346,8 +346,13 @@ class AFTPartialServiceSpec
   "retrievePsaPenaltiesCardModel" must {
     "return the correct viewmodel" when {
       "there are no upcoming payments" in {
-        service.retrievePsaPenaltiesCardModel(multiplePenalties, psaId) mustBe
-          aftViewModel(upcomingLink = Nil, upcomingAmount = "£0.00", overdueAmount = "£200.00")
+        val penalties = Seq(
+          multiplePenalties(0).copy(amountDue = BigDecimal(0.00)),
+          multiplePenalties(1).copy(amountDue = BigDecimal(0.00))
+        )
+
+        service.retrievePsaPenaltiesCardModel(penalties, psaId) mustBe
+          aftViewModel(upcomingLink = Nil, upcomingAmount = "£0.00", overdueAmount = "£0.00")
       }
 
       "there are upcoming payments for a single due date" in {
@@ -389,7 +394,7 @@ object AFTPartialServiceSpec {
   private val viewPenaltiesUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/view-penalties"
   private val viewUpcomingPenaltiesUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/view-upcoming-penalties"
 
-  private val upcomingLink = Seq(Link("upcoming-penalties-id", viewUpcomingPenaltiesUrl, msg"psaPenaltiesCard.paymentsDue.linkText", None))
+  private val upcomingLink = Seq(Link("outstanding-penalties-id", viewUpcomingPenaltiesUrl, msg"psaPenaltiesCard.paymentsDue.linkText", None))
 
   def aftViewModel(message: Text = msg"pspDashboardUpcomingAftChargesCard.span.multipleDueDate",
                    upcomingLink: Seq[Link] = upcomingLink,
