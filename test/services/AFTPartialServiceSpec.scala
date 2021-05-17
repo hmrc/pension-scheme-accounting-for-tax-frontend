@@ -165,7 +165,7 @@ class AFTPartialServiceSpec
         DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
-            "span" -> "Total upcoming payments"
+            "span" -> "Total upcoming payments:"
           )),
           links = Seq(
             Link(
@@ -215,7 +215,7 @@ class AFTPartialServiceSpec
         DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
-            "span" -> "Total upcoming payments"
+            "span" -> "Total upcoming payments:"
           )),
           links = Seq(
             Link(
