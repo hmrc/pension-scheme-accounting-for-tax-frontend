@@ -24,6 +24,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.SelectSchemeFormProvider
 import matchers.JsonMatchers
+import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.financialStatement.{PenaltyType, PsaFS}
 import models.{Enumerable, PenaltySchemes}
@@ -77,7 +78,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
     reset(mockPenaltyService, mockAppConfig, mockFICacheConnector, mockFSConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPenaltyService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).thenReturn(Future.successful(penaltySchemes))
-    when(mockPenaltyService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
+    when(mockPenaltyService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
   }
 
   "SelectScheme Controller" when {
@@ -106,7 +107,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
         status(result) mustEqual SEE_OTHER
 
-        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadContract(year, srn).url)
+        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadContract(year, srn, All).url)
 
       }
 
@@ -120,7 +121,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
         status(result) mustEqual SEE_OTHER
 
-        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadContract(year, pstrIndex).url)
+        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadContract(year, pstrIndex, All).url)
 
       }
 
@@ -144,7 +145,7 @@ object SelectSchemeControllerSpec {
   val psaFS: JsValue = Json.toJson(psaFSResponse)
   val penaltyType: PenaltyType = ContractSettlementCharges
 
-  private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad(penaltyType, year).url
+  private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad(penaltyType, year, All).url
 
-  private def httpPathPOST: String = routes.SelectSchemeController.onSubmit(penaltyType, year).url
+  private def httpPathPOST: String = routes.SelectSchemeController.onSubmit(penaltyType, year, All).url
 }

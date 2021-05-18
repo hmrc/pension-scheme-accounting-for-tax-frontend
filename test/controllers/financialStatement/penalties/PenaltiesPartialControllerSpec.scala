@@ -21,6 +21,7 @@ import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import controllers.base.ControllerSpecBase
 import matchers.JsonMatchers
 import models.Enumerable
+import models.PenaltiesFilter.All
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -29,14 +30,14 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTPartialService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
-import viewmodels.{Link, DashboardAftViewModel}
+import viewmodels.{DashboardAftViewModel, Link}
 
 import scala.concurrent.Future
 
@@ -75,7 +76,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
 
     val links = Seq(
       Link(id = "aft-penalties-id",
-        url = routes.PenaltiesLogicController.onPageLoad().url,
+        url = routes.PenaltiesLogicController.onPageLoad(All).url,
         linkText = Message("psaPenaltiesCard.viewPenalties"),
         hiddenText = None)
     )

@@ -19,6 +19,7 @@ package services
 import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
+import data.SampleData.multiplePenalties
 import models._
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
@@ -28,6 +29,7 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
@@ -163,7 +165,7 @@ class AFTPartialServiceSpec
         DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
-            "span" -> "Total upcoming payments"
+            "span" -> "Total upcoming payments:"
           )),
           links = Seq(
             Link(
@@ -213,7 +215,7 @@ class AFTPartialServiceSpec
         DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
-            "span" -> "Total upcoming payments"
+            "span" -> "Total upcoming payments:"
           )),
           links = Seq(
             Link(
@@ -236,8 +238,6 @@ class AFTPartialServiceSpec
 
   "retrievePspDashboardOverdueAftCharges" must {
     "return a model for a single period overdue charges with no interest accruing" in {
-      val service = app.injector.instanceOf[AFTPartialService]
-
       service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseSinglePeriod(), srn) mustBe
         DashboardAftViewModel(
           subHeadings = Seq(
@@ -265,8 +265,6 @@ class AFTPartialServiceSpec
 
 
     "return a model for a single period overdue charges with interest accruing" in {
-      val service = app.injector.instanceOf[AFTPartialService]
-
       service.retrievePspDashboardOverdueAftChargesModel(
         schemeFSResponseSinglePeriod(123.00), srn
       ) mustBe
@@ -295,8 +293,6 @@ class AFTPartialServiceSpec
     }
 
     "return a model for a multiple periods overdue charges with no interest accruing" in {
-      val service = app.injector.instanceOf[AFTPartialService]
-
       service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseMultiplePeriods(), srn) mustBe
         DashboardAftViewModel(
           subHeadings = Seq(
@@ -323,8 +319,6 @@ class AFTPartialServiceSpec
 
 
     "return a model for a multiple periods overdue charges with interest accruing" in {
-      val service = app.injector.instanceOf[AFTPartialService]
-
       service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseMultiplePeriods(123.00), srn) mustBe
         DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
@@ -348,6 +342,40 @@ class AFTPartialServiceSpec
         )
     }
   }
+
+  "retrievePsaPenaltiesCardModel" must {
+    "return the correct viewmodel" when {
+      "there are no upcoming payments" in {
+        val penalties = Seq(
+          multiplePenalties(0).copy(amountDue = BigDecimal(0.00)),
+          multiplePenalties(1).copy(amountDue = BigDecimal(0.00))
+        )
+
+        service.retrievePsaPenaltiesCardModel(penalties, psaId) mustBe
+          aftViewModel(upcomingLink = Nil, upcomingAmount = "£0.00", overdueAmount = "£0.00")
+      }
+
+      "there are upcoming payments for a single due date" in {
+        val dueDate: LocalDate = LocalDate.now().plusDays(5)
+        val penalties = Seq(
+          multiplePenalties(0).copy(dueDate = Some(dueDate)),
+          multiplePenalties(1).copy(dueDate = Some(dueDate))
+        )
+        val message = msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate".withArgs(
+          dueDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
+
+        service.retrievePsaPenaltiesCardModel(penalties, psaId) mustBe aftViewModel(message)
+      }
+
+      "there are upcoming payments for multiple due dates" in {
+        val penalties = Seq(
+          multiplePenalties(0).copy(dueDate = Some(LocalDate.now().plusDays(5))),
+          multiplePenalties(1).copy(dueDate = Some(LocalDate.now().plusMonths(5)))
+        )
+        service.retrievePsaPenaltiesCardModel(penalties, psaId) mustBe aftViewModel()
+      }
+    }
+  }
 }
 
 object AFTPartialServiceSpec {
@@ -363,6 +391,28 @@ object AFTPartialServiceSpec {
   private val psaId = "A0000000"
   private val name = "test-name"
   val minimalPsaName: Option[String] = Some("John Doe Doe")
+  private val viewPenaltiesUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/view-penalties"
+  private val viewUpcomingPenaltiesUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/view-upcoming-penalties"
+
+  private val upcomingLink = Seq(Link("outstanding-penalties-id", viewUpcomingPenaltiesUrl, msg"psaPenaltiesCard.paymentsDue.linkText", None))
+
+  def aftViewModel(message: Text = msg"pspDashboardUpcomingAftChargesCard.span.multipleDueDate",
+                   upcomingLink: Seq[Link] = upcomingLink,
+                   upcomingAmount: String = "£200.00",
+                   overdueAmount: String = "£0.00",
+                  )(implicit messages: Messages): DashboardAftViewModel = DashboardAftViewModel(
+    subHeadings = Seq(
+      Json.obj(
+        "total" -> upcomingAmount,
+        "span" -> message
+      ),
+      Json.obj(
+        "total" -> overdueAmount,
+        "span" -> msg"pspDashboardOverdueAftChargesCard.total.span"
+      )
+    ),
+    links = upcomingLink :+ Link("past-penalties-id", viewPenaltiesUrl, msg"psaPenaltiesCard.viewPastPenalties", None)
+  )
 
   def lockedAftModel: Seq[AFTViewModel] = Seq(
     AFTViewModel(

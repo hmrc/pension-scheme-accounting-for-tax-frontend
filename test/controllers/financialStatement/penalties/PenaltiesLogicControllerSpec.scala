@@ -22,6 +22,7 @@ import controllers.financialStatement.penalties.PenaltiesLogicControllerSpec._
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
+import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.{PenaltyType, PsaFS}
@@ -44,12 +45,12 @@ import scala.concurrent.Future
 class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
-  private def httpPathGET: String = routes.PenaltiesLogicController.onPageLoad().url
+  private def httpPathGET: String = routes.PenaltiesLogicController.onPageLoad(All).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
   private val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
   private val penaltyType: PenaltyType = ContractSettlementCharges
-  private val contractSelectYearPage: Call = routes.SelectPenaltiesYearController.onPageLoad(penaltyType)
+  private val contractSelectYearPage: Call = routes.SelectPenaltiesYearController.onPageLoad(penaltyType, All)
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PenaltiesService].toInstance(mockPenaltiesService)
@@ -68,8 +69,9 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSuppo
     "on a GET" must {
 
       "return to page returned by nav method in penalties service if only one type is available" in {
-        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, psaName, Seq(psaFS1))))
-        when(mockPenaltiesService.navFromOverviewPage(any(), any())(any(), any()))
+        when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any()))
+          .thenReturn(Future.successful(PenaltiesCache(psaId, psaName, Seq(psaFS1))))
+        when(mockPenaltiesService.navFromOverviewPage(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(Redirect(contractSelectYearPage)))
         val result = route(application, httpGETRequest(httpPathGET)).value
 

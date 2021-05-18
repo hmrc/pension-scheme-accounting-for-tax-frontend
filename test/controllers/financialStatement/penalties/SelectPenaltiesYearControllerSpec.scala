@@ -22,6 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
+import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType
 import models.financialStatement.PenaltyType.AccountingForTaxPenalties
 import models.requests.IdentifierRequest
@@ -63,8 +64,8 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
   val form: Form[Year] = formProvider()
   val penaltyType: PenaltyType = AccountingForTaxPenalties
 
-  lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad(penaltyType).url
-  lazy val httpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(penaltyType).url
+  lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad(penaltyType, All).url
+  lazy val httpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(penaltyType, All).url
 
   private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
     "form" -> form,
@@ -82,7 +83,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+    when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
   }
 
   "SelectYear Controller" must {
@@ -103,14 +104,14 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     }
 
     "redirect to next page when valid data is submitted" in {
-      when(mockPenaltiesService.navFromAftYearsPage(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(year))))
+      when(mockPenaltiesService.navFromAftYearsPage(any(), any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(year, All))))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.SelectPenaltiesQuarterController.onPageLoad(year).url)
+      redirectLocation(result) mustBe Some(routes.SelectPenaltiesQuarterController.onPageLoad(year, All).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

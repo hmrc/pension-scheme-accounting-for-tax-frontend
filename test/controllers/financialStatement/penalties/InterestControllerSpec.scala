@@ -22,7 +22,7 @@ import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{SchemeDetails, Enumerable}
+import models.{SchemeDetails, Enumerable, PenaltiesFilter}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -109,7 +109,7 @@ class InterestControllerSpec
           "schemeAssociated" -> true,
           "schemeName" -> schemeDetails.schemeName,
           "originalAmountURL" -> controllers.financialStatement.penalties.routes.ChargeDetailsController
-            .onPageLoad(srn, "0").url
+            .onPageLoad(srn, "0", PenaltiesFilter.All).url
         )
 
         status(result) mustEqual OK
@@ -129,7 +129,7 @@ class InterestControllerSpec
         val json = Json.obj(
           "schemeAssociated" -> false,
           "originalAmountURL" -> controllers.financialStatement.penalties.routes.ChargeDetailsController
-            .onPageLoad("0", "0").url
+            .onPageLoad("0", "0", PenaltiesFilter.All).url
         )
 
         status(result) mustEqual OK

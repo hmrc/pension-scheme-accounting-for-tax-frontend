@@ -1057,7 +1057,7 @@ pspDashboardAftReturnsCard.inProgressReturns.link.single.locked = View locked AF
 
 pspDashboardUpcomingAftChargesCard.h2 = Upcoming charges
 pspDashboardUpcomingAftChargesCard.span.singleDueDate = Payment due by {0}:
-pspDashboardUpcomingAftChargesCard.span.multipleDueDate = Total upcoming payments
+pspDashboardUpcomingAftChargesCard.span.multipleDueDate = Total upcoming payments:
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single = View payments and charges for {0} to {1}
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple = View upcoming payments and charges
 pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges = View all payments and charges
@@ -1069,9 +1069,9 @@ pspDashboardOverdueAftChargesCard.toDate.span = to date
 pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod = View overdue payments and interest charges for {0} to {1}
 pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods = View overdue payments and interest charges
 
-psaPenaltiesCard.h2 = Penalties
-psaPenaltiesCard.paymentsDue.linkText = View payments due for penalties and charges
-psaPenaltiesCard.viewPastPenalties = View past penalties and charges
+psaPenaltiesCard.h2 = Penalties and charges
+psaPenaltiesCard.paymentsDue.linkText = View only penalties and charges outstanding
+psaPenaltiesCard.viewPastPenalties = View all penalties and charges
 
 penalties.aft.title = Accounting for Tax penalties for {0} to {1}
 penalties.nonAft.title = {0} for {1}
@@ -1093,7 +1093,7 @@ penalties.status.visuallyHiddenText.noPaymentDue = No payment due
 penalties.12months = Accounting for Tax late payment penalty (12 months)
 penalties.6months = Accounting for Tax late payment penalty (6 months)
 penalties.30days = Accounting for Tax late payment penalty (30 days)
-penalties.period = {0} to {1}
+penalties.period = Period: {0} to {1}
 
 penalties.chargeDetails.payments = Payments
 penalties.chargeDetails.amountUnderReview = Amount under review (includes appeals)

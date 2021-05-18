@@ -17,13 +17,12 @@
 package controllers.financialStatement.penalties
 
 import controllers.actions._
-import models.financialStatement.PsaFS
+import models.PenaltiesFilter
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
@@ -37,22 +36,11 @@ class PenaltiesLogicController @Inject()(override val messagesApi: MessagesApi,
                                           with I18nSupport
                                           with NunjucksSupport {
 
-  def onPageLoad(): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(journeyType: PenaltiesFilter): Action[AnyContent] = identify.async { implicit request =>
 
-    service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penaltiesCache =>
-      service.navFromOverviewPage(penaltiesCache.penalties, request.psaIdOrException.id)
+    service.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
+      service.navFromOverviewPage(penaltiesCache.penalties, request.psaIdOrException.id, journeyType)
     }
   }
-
-  def onPageLoadUpcoming(): Action[AnyContent] = identify.async { implicit request =>
-
-    service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penaltiesCache =>
-
-      val upcomingCharges: Seq[PsaFS] = penaltiesCache.penalties.filter(_.dueDate.exists(_.isBefore(DateHelper.today)))
-
-      service.navFromOverviewPage(upcomingCharges, request.psaIdOrException.id)
-    }
-  }
-
 
 }

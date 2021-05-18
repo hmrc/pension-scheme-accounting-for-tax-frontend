@@ -18,6 +18,7 @@ package controllers.financialStatement.penalties
 
 import config.Constants._
 import controllers.actions.{IdentifierAction, AllowAccessActionProviderForIdentifierRequest}
+import models.PenaltiesFilter
 import models.financialStatement.PsaFS
 import models.requests.IdentifierRequest
 import play.api.i18n.{MessagesApi, Messages, I18nSupport}
@@ -94,7 +95,8 @@ class InterestController @Inject()(
       "period" ->           Messages("penalties.period", fs.periodStartDate.format(dateFormatterStartDate), fs.periodEndDate.format(dateFormatterDMY)),
       "chargeReference" ->  Messages("penalties.column.chargeReference.toBeAssigned"),
       "list" ->             penaltiesService.interestRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
-      "originalAmountURL" -> controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(identifier, chargeReferenceIndex).url
+      "originalAmountURL" -> controllers.financialStatement.penalties.routes.ChargeDetailsController
+        .onPageLoad(identifier, chargeReferenceIndex, PenaltiesFilter.All).url
     )
   }
 
