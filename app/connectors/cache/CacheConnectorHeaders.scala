@@ -22,9 +22,10 @@ object CacheConnectorHeaders {
   val names: HeaderCarrier => Seq[String] = hc =>
     Seq(hc.names.authorisation, hc.names.xRequestId, hc.names.xSessionId)
 
-  def headers(hc: HeaderCarrier, extraHeaders: Seq[(String, String)] = Seq.empty): Seq[(String, String)] = {
+  def headers(hc: HeaderCarrier, additionalHeaders: Seq[(String, String)] = Seq.empty): Seq[(String, String)] = {
+    val x = additionalHeaders ++ Seq(("content-type", "application/json"))
     hc.headers(names(hc)) ++ hc.withExtraHeaders(
-      Seq(("content-type", "application/json")) ++ extraHeaders: _*
+      x:_*
     ).extraHeaders
   }
 }

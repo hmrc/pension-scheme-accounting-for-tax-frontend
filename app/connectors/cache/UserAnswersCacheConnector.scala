@@ -124,9 +124,10 @@ class UserAnswersCacheConnectorImpl @Inject()(
       }
 
   override def lockDetail(srn: String, startDate: String)
-                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] =
+                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] = {
+    println(s"\n\n\n\n\n\n\n ${CacheConnectorHeaders.headers(hc, Seq(("id", srn + startDate)))} \n\n\n\n\n\n\n")
     http.url(lockDetailUrl)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc, Seq(("id", srn + startDate))): _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc, Seq(Tuple2("id", srn + startDate))): _*)
       .get()
       .flatMap {
         response =>
@@ -139,6 +140,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
               Future.failed(new HttpException(response.body, response.status))
           }
       }
+  }
 }
 
 trait UserAnswersCacheConnector {
