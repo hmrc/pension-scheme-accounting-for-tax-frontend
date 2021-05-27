@@ -18,10 +18,10 @@ package forms
 
 import config.FrontendAppConfig
 import forms.mappings.Mappings
+import models.{Enumerable, Year}
+import play.api.data.Form
 
 import javax.inject.Inject
-import models.{Enumerable, StartYears, Year}
-import play.api.data.Form
 
 class YearsFormProvider @Inject() extends Mappings {
 
