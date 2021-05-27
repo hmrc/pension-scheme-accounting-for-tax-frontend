@@ -37,7 +37,7 @@ class SessionDataCacheConnector  @Inject()(
     hc: HeaderCarrier): Future[Option[JsValue]] = {
     http
       .url(url(id))
-      .withHttpHeaders(hc.headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc): _*)
       .get()
       .flatMap { response =>
         response.status match {
@@ -54,7 +54,7 @@ class SessionDataCacheConnector  @Inject()(
   def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     http
       .url(url(id))
-      .withHttpHeaders(hc.headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc): _*)
       .delete()
       .map(_=>Ok)
   }

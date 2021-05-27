@@ -26,7 +26,7 @@ import models.requests.{OptionalDataRequest, IdentifierRequest}
 import play.api.libs.json.JsObject
 import play.api.mvc.ActionTransformer
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{Future, ExecutionContext}
 
@@ -38,7 +38,7 @@ class DataRetrievalImpl(
   extends DataRetrieval {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     val id = s"$srn$startDate"
     for {
       data <- userAnswersCacheConnector.fetch(id)

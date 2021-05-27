@@ -46,7 +46,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]] =
     http
       .url(saveUrl)
-      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc, Seq(("id", id))): _*)
       .get()
       .flatMap { response =>
         response.status match {
@@ -71,7 +71,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                       (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     http
       .url(url)
-      .withHttpHeaders(hc.withExtraHeaders(headers: _*).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc): _*)
       .post(PlainText(Json.stringify(value)).value)
       .flatMap { response =>
         response.status match {
@@ -100,7 +100,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] =
     http
       .url(saveUrl)
-      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc, Seq(("id", id))): _*)
       .delete()
       .map(_ => Ok)
 
@@ -108,7 +108,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[SessionData]] =
     http
       .url(saveSessionUrl)
-      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc, Seq(("id", id))): _*)
       .get()
       .flatMap { response =>
         response.status match {
@@ -126,7 +126,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
   override def lockDetail(srn: String, startDate: String)
                          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] =
     http.url(lockDetailUrl)
-      .withHttpHeaders(hc.withExtraHeaders(("id", srn + startDate)).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc, Seq(("id", srn + startDate))): _*)
       .get()
       .flatMap {
         response =>
