@@ -19,13 +19,18 @@ package connectors.cache
 import uk.gov.hmrc.http.HeaderCarrier
 
 object CacheConnectorHeaders {
-  val names: HeaderCarrier => Seq[String] = hc =>
-    Seq(hc.names.authorisation, hc.names.xRequestId, hc.names.xSessionId)
+  val names: HeaderCarrier => Seq[String] =
+    hc =>
+      Seq(
+        hc.names.authorisation,
+        hc.names.xRequestId,
+        hc.names.xSessionId,
+        "id"
+      )
 
-  def headers(hc: HeaderCarrier, additionalHeaders: Seq[(String, String)] = Seq.empty): Seq[(String, String)] = {
-    val x = additionalHeaders ++ Seq(("content-type", "application/json"))
-    hc.headers(names(hc)) ++ hc.withExtraHeaders(
-      x:_*
-    ).extraHeaders
-  }
+  val headers: HeaderCarrier => Seq[(String, String)] =
+    hc =>
+      hc.headers(names(hc)) ++ hc.withExtraHeaders(
+        ("content-type", "application/json")
+      ).extraHeaders
 }

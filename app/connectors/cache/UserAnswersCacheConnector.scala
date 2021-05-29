@@ -46,7 +46,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]] =
     http
       .url(saveUrl)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc, Seq(("id", id))): _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))): _*)
       .get()
       .flatMap { response =>
         response.status match {
@@ -71,7 +71,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                       (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     http
       .url(url)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc): _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(headers: _*)): _*)
       .post(PlainText(Json.stringify(value)).value)
       .flatMap { response =>
         response.status match {
@@ -100,7 +100,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] =
     http
       .url(saveUrl)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc, Seq(("id", id))): _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))): _*)
       .delete()
       .map(_ => Ok)
 
@@ -108,7 +108,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[SessionData]] =
     http
       .url(saveSessionUrl)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc, Seq(("id", id))): _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))): _*)
       .get()
       .flatMap { response =>
         response.status match {
@@ -125,9 +125,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
   override def lockDetail(srn: String, startDate: String)
                          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] = {
-    println(s"\n\n\n\n\n\n\n ${CacheConnectorHeaders.headers(hc, Seq(("id", srn + startDate)))} \n\n\n\n\n\n\n")
     http.url(lockDetailUrl)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc, Seq(Tuple2("id", srn + startDate))): _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", srn + startDate))): _*)
       .get()
       .flatMap {
         response =>
