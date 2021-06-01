@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package forms
+package connectors.cache
 
-import config.FrontendAppConfig
-import forms.mappings.Mappings
-import models.{Enumerable, Year}
-import play.api.data.Form
+import uk.gov.hmrc.http.HeaderCarrier
 
-import javax.inject.Inject
+object CacheConnectorHeaders {
+  val names: HeaderCarrier => Seq[String] =
+    hc =>
+      Seq(
+        hc.names.authorisation,
+        hc.names.xRequestId,
+        hc.names.xSessionId,
+        "id"
+      )
 
-class YearsFormProvider @Inject() extends Mappings {
-
-  def apply(errorMessage: String = "years.error.required")(implicit config: FrontendAppConfig, ev: Enumerable[Year]): Form[Year] =
-    Form(
-      "value" -> enumerable[Year](errorMessage)
-    )
+  val headers: HeaderCarrier => Seq[(String, String)] =
+    hc =>
+      hc.headers(names(hc)) ++ hc.withExtraHeaders(
+        ("content-type", "application/json")
+      ).extraHeaders
 }

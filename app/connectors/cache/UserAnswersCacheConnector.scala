@@ -46,7 +46,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]] =
     http
       .url(saveUrl)
-      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))): _*)
       .get()
       .flatMap { response =>
         response.status match {
@@ -71,7 +71,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                       (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     http
       .url(url)
-      .withHttpHeaders(hc.withExtraHeaders(headers: _*).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(headers: _*)): _*)
       .post(PlainText(Json.stringify(value)).value)
       .flatMap { response =>
         response.status match {
@@ -100,7 +100,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] =
     http
       .url(saveUrl)
-      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))): _*)
       .delete()
       .map(_ => Ok)
 
@@ -108,7 +108,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[SessionData]] =
     http
       .url(saveSessionUrl)
-      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))): _*)
       .get()
       .flatMap { response =>
         response.status match {
@@ -124,9 +124,9 @@ class UserAnswersCacheConnectorImpl @Inject()(
       }
 
   override def lockDetail(srn: String, startDate: String)
-                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] =
+                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] = {
     http.url(lockDetailUrl)
-      .withHttpHeaders(hc.withExtraHeaders(("id", srn + startDate)).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", srn + startDate))): _*)
       .get()
       .flatMap {
         response =>
@@ -139,6 +139,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
               Future.failed(new HttpException(response.body, response.status))
           }
       }
+  }
 }
 
 trait UserAnswersCacheConnector {

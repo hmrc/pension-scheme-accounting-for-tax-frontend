@@ -39,7 +39,7 @@ class FinancialInfoCacheConnector @Inject()(
                      hc: HeaderCarrier): Future[Option[JsValue]] = {
     http
       .url(url)
-      .withHttpHeaders(hc.headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc): _*)
       .get()
       .flatMap { response =>
         response.status match {
@@ -57,7 +57,7 @@ class FinancialInfoCacheConnector @Inject()(
           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
     http
       .url(url)
-      .withHttpHeaders(hc.withExtraHeaders(("content-type", "application/json")).headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc): _*)
       .post(PlainText(Json.stringify(value)).value)
       .flatMap { response =>
         response.status match {
@@ -72,7 +72,7 @@ class FinancialInfoCacheConnector @Inject()(
   override def removeAll(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     http
       .url(url)
-      .withHttpHeaders(hc.headers: _*)
+      .withHttpHeaders(CacheConnectorHeaders.headers(hc): _*)
       .delete()
       .map(_ => Ok)
   }
