@@ -18,7 +18,6 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import play.api.Logger
 import models.{LockDetail, SessionData, SessionAccessData}
 import play.api.http.Status._
 import play.api.libs.json._
@@ -34,8 +33,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                                config: FrontendAppConfig,
                                                http: WSClient
                                              ) extends UserAnswersCacheConnector {
-
-  private val logger = Logger(classOf[UserAnswersCacheConnectorImpl])
 
   override protected def saveUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
 
@@ -81,9 +78,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
           case CREATED =>
             Future.successful(value)
           case _ =>
-            logger.warn(s"Response status of ${response.status} received from " +
-              s"posting to $url. Response body is ${response.body}. " +
-              s"The original value posted was $value.")
             Future.failed(new HttpException(response.body, response.status))
         }
       }
