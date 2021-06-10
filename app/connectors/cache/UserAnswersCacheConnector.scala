@@ -18,7 +18,8 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{LockDetail, SessionData, SessionAccessData}
+import models.{SessionAccessData, LockDetail, SessionData}
+import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
@@ -27,12 +28,13 @@ import play.api.mvc.Results._
 import uk.gov.hmrc.crypto.PlainText
 import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class UserAnswersCacheConnectorImpl @Inject()(
                                                config: FrontendAppConfig,
                                                http: WSClient
                                              ) extends UserAnswersCacheConnector {
+  private val logger = Logger(classOf[UserAnswersCacheConnectorImpl])
 
   override protected def saveUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
 
@@ -68,7 +70,13 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   private def savePost(headers: Seq[(String, String)], url: String, value: JsValue)
-                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
+                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+
+    val a = Option(Json.stringify(value))
+    val b = Option(PlainText(Json.stringify(value)).value)
+
+    logger.warn(s"SAVEPOST: value length is: ${value.toString.length}. Stringified value of " +
+      s"body is defined: ${a.isDefined}. Plaintext value is defined ${b.isDefined}.")
     http
       .url(url)
       .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(headers: _*)): _*)
@@ -81,6 +89,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
             Future.failed(new HttpException(response.body, response.status))
         }
       }
+  }
 
   override def saveAndLock(id: String, value: JsValue, sessionAccessData: SessionAccessData, lockReturn: Boolean = false)
                           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {

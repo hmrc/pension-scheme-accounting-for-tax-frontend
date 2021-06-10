@@ -16,15 +16,16 @@
 
 package services
 
+import audit.AuditService
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.MinimalConnector.MinimalDetails
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{AFTConnector, MinimalConnector}
+import connectors.{MinimalConnector, AFTConnector}
 import data.SampleData
 import data.SampleData._
 import models.requests.IdentifierRequest
-import models.{AFTOverview, AccessMode, MinimalFlags, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, UserAnswers}
+import models.{AFTOverview, SessionAccessData, SchemeStatus, SessionData, SchemeDetails, AccessMode, UserAnswers, MinimalFlags}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when, _}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -41,7 +42,7 @@ import utils.DateHelper
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Future, Await}
 
 class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
 
@@ -66,8 +67,10 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
   private val schemeDetails = SchemeDetails(schemeName, pstr, schemeStatus, None)
 
+  private val mockAuditService = mock[AuditService]
+
   private def requestCreationService =
-    new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector)
+    new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAuditService)
 
   private val email = "test@test.com"
 

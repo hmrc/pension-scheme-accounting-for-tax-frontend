@@ -27,7 +27,7 @@ import uk.gov.hmrc.play.audit.model.DataEvent
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
-import scala.util.{Failure, Success}
+import scala.util.{Success, Failure}
 
 class AuditService @Inject()(
                               config: FrontendAppConfig,
@@ -44,7 +44,6 @@ class AuditService @Inject()(
 
     val details = rh.toAuditDetails() ++ event.details
     logger.debug(s"[AuditService][sendEvent] sending ${event.auditType}")
-
     val result: Future[AuditResult] = connector.sendEvent(
       DataEvent(
         auditSource = config.appName,

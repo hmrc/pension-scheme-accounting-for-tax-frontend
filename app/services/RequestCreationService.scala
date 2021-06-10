@@ -16,6 +16,8 @@
 
 package services
 
+import audit.{AuditService, AuditEvent}
+
 import java.time.LocalDate
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
@@ -38,7 +40,8 @@ class RequestCreationService @Inject()(
                                         aftConnector: AFTConnector,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
                                         schemeService: SchemeService,
-                                        minimalConnector: MinimalConnector
+                                        minimalConnector: MinimalConnector,
+                                        auditService:AuditService
                                       ) {
 
 
@@ -70,6 +73,24 @@ class RequestCreationService @Inject()(
     }
   }
 
+  private case class PostUAToMongoAuditEvent(ua:UserAnswers) extends AuditEvent {
+
+    override def auditType: String = "PostUAToMongoAuditEvent"
+
+    override def details: Map[String, String] = {
+      Map(
+        "userAnswersData" -> Json.stringify(ua.data)
+      )
+    }
+  }
+
+  private def auditData[A](ua:UserAnswers)(implicit request: IdentifierRequest[A],
+    hc: HeaderCarrier,
+    ec: ExecutionContext):Future[Unit] = {
+    auditService.sendEvent(PostUAToMongoAuditEvent(ua))
+    Future.successful(())
+  }
+
   private def retrieveAFTRequiredDetails[A](
                                              srn: String,
                                              startDate: LocalDate,
@@ -89,6 +110,7 @@ class RequestCreationService @Inject()(
       seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
       uaWithMinPsaDetails <- updateMinimalDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus)
       updatedUA <- updateUserAnswersWithAFTDetails(version, schemeDetails, startDate, accessType, uaWithMinPsaDetails, seqAFTOverview)
+      _ <- auditData(updatedUA)
       sessionAccessData <- createSessionAccessData(version, seqAFTOverview, srn, startDate)
       userAnswers <- userAnswersCacheConnector.saveAndLock(
         id = id,
