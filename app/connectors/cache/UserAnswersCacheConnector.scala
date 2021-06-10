@@ -76,7 +76,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
     val b = Option(PlainText(Json.stringify(value)).value)
 
     logger.warn(s"SAVEPOST: value length is: ${value.toString.length}. Stringified value of " +
-      s"body is defined: ${a.isDefined}. Plaintext value is defined ${b.isDefined}.")
+      s"body length: ${a.map(_.length)}. Plaintext value length: ${b.map(_.length)}.")
     http
       .url(url)
       .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(headers: _*)): _*)
