@@ -18,12 +18,12 @@ package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
-import models.{LockDetail, AccessMode, SessionAccessData}
+import models.{SessionAccessData, LockDetail, AccessMode}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
+import uk.gov.hmrc.http.{HeaderCarrier, Upstream5xxResponse}
 import utils.WireMockHelper
 
 class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with OptionValues with RecoverMethods {
@@ -79,10 +79,10 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      recoverToExceptionIf[HttpException] {
+      recoverToExceptionIf[Upstream5xxResponse] {
         connector.fetch(cacheId = "testId")
       } map {
-        _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
+        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }
@@ -131,10 +131,10 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      recoverToExceptionIf[HttpException] {
+      recoverToExceptionIf[Upstream5xxResponse] {
         connector.getSessionData(id = "testId")
       } map {
-        _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
+        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }
@@ -168,10 +168,10 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
             serverError()
           )
       )
-      recoverToExceptionIf[HttpException] {
+      recoverToExceptionIf[Upstream5xxResponse] {
         connector.save(cacheId = "testId", json)
       } map {
-        _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
+        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }
@@ -249,10 +249,10 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      recoverToExceptionIf[HttpException] {
+      recoverToExceptionIf[Upstream5xxResponse] {
         connector.lockDetail(srn = "srn", startDate = "2020-04-01")
       } map {
-        _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
+        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }
