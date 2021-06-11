@@ -19,13 +19,11 @@ package connectors.cache
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.{SessionAccessData, LockDetail, SessionData}
-import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json._
-import uk.gov.hmrc.http.NotFoundException
 import play.api.mvc.Result
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{HttpClient, HttpResponse, HttpException, HeaderCarrier}
+import uk.gov.hmrc.http.{HttpResponse, HeaderCarrier, NotFoundException, HttpException, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,8 +31,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                                config: FrontendAppConfig,
                                                http: HttpClient
                                              ) extends UserAnswersCacheConnector {
-  private val logger = Logger(classOf[UserAnswersCacheConnectorImpl])
-
   override protected def saveUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
 
   override protected def saveSessionUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
@@ -138,11 +134,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
     }
   }
 
-  private def mapExceptionsToStatus: PartialFunction[Throwable, Future[HttpResponse]] = {
-    case _: NotFoundException =>
-      Future.successful(HttpResponse(NOT_FOUND, "Not found"))
-  }
-
   override def lockDetail(srn: String, startDate: String)
                          (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[LockDetail]] = {
 
@@ -163,6 +154,11 @@ class UserAnswersCacheConnectorImpl @Inject()(
             throw new HttpException(response.body, response.status)
         }
     }
+  }
+
+  private def mapExceptionsToStatus: PartialFunction[Throwable, Future[HttpResponse]] = {
+    case _: NotFoundException =>
+      Future.successful(HttpResponse(NOT_FOUND, "Not found"))
   }
 }
 
