@@ -314,6 +314,7 @@ memberDetails.heading = Member’s details
 memberDetails.firstName = First name
 memberDetails.lastName = Last name
 memberDetails.nino = National Insurance number
+memberDetails.nino.hint = It’s on your National Insurance card, benefit letter, payslip or P60. For example, ‘QQ 12 34 56 C’
 memberDetails.checkYourAnswersLabel = memberDetails
 memberDetails.error.firstName.required = Enter the member’s first name
 memberDetails.error.firstName.length = The member’s first name must be 35 characters or fewer
