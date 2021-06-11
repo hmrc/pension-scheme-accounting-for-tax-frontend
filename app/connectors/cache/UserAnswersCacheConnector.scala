@@ -22,17 +22,16 @@ import models.{SessionAccessData, LockDetail, SessionData}
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json._
-import play.api.libs.ws.WSClient
+import uk.gov.hmrc.http.NotFoundException
 import play.api.mvc.Result
 import play.api.mvc.Results._
-import uk.gov.hmrc.crypto.PlainText
-import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
+import uk.gov.hmrc.http.{HttpClient, HttpResponse, HttpException, HeaderCarrier}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class UserAnswersCacheConnectorImpl @Inject()(
                                                config: FrontendAppConfig,
-                                               http: WSClient
+                                               http: HttpClient
                                              ) extends UserAnswersCacheConnector {
   private val logger = Logger(classOf[UserAnswersCacheConnectorImpl])
 
@@ -45,21 +44,26 @@ class UserAnswersCacheConnectorImpl @Inject()(
   override protected def lockDetailUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
   override def fetch(id: String)
-                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]] =
-    http
-      .url(saveUrl)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))): _*)
-      .get()
-      .flatMap { response =>
+                    (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[JsValue]] = {
+
+    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
+    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
+
+    http.GET[HttpResponse](
+      url = saveUrl,
+      headers = CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))))(implicitly, hc, implicitly)
+      .recoverWith(mapExceptionsToStatus)
+      .map { response =>
         response.status match {
           case NOT_FOUND =>
-            Future.successful(None)
+            None
           case OK =>
-            Future.successful(Some(Json.parse(response.body)))
+            Some(Json.parse(response.body))
           case _ =>
-            Future.failed(new HttpException(response.body, response.status))
+            throw new HttpException(response.body, response.status)
         }
-      }
+    }
+  }
 
   def save(id: String, value: JsValue)
           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
@@ -70,23 +74,17 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   private def savePost(headers: Seq[(String, String)], url: String, value: JsValue)
-                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+                      (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[JsValue] = {
+    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    val a = Option(Json.stringify(value))
-    val b = Option(PlainText(Json.stringify(value)).value)
-
-    logger.warn(s"SAVEPOST: value length is: ${value.toString.length}. Stringified value of " +
-      s"body length: ${a.map(_.length)}. Plaintext value length: ${b.map(_.length)}.")
-    http
-      .url(url)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(headers: _*)): _*)
-      .post(PlainText(Json.stringify(value)).value)
-      .flatMap { response =>
+    http.POST[JsValue, HttpResponse](url, value, CacheConnectorHeaders.headers(hc.withExtraHeaders(headers: _*)))(
+      implicitly, implicitly, hc, implicitly)
+      .map { response =>
         response.status match {
           case CREATED =>
-            Future.successful(value)
+            value
           case _ =>
-            Future.failed(new HttpException(response.body, response.status))
+            throw new HttpException(response.body, response.status)
         }
       }
   }
@@ -106,48 +104,65 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   override def removeAll(id: String)
-                        (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] =
-    http
-      .url(saveUrl)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))): _*)
-      .delete()
-      .map(_ => Ok)
+                        (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Result] = {
+    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
+    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
+    http.DELETE[HttpResponse](
+      url = saveUrl,
+      headers = CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id)))
+    ).map { _ =>
+      Ok
+    }
+  }
 
   override def getSessionData(id: String)
-                             (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[SessionData]] =
-    http
-      .url(saveSessionUrl)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))): _*)
-      .get()
-      .flatMap { response =>
+                             (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[SessionData]] = {
+    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
+    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
+
+    http.GET[HttpResponse](
+      url = saveSessionUrl,
+      headers = CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))))(implicitly, hc, implicitly)
+      .recoverWith(mapExceptionsToStatus)
+      .map { response =>
         response.status match {
-          case NOT_FOUND => Future.successful(None)
+          case NOT_FOUND => None
           case OK =>
             val sessionData = Json.parse(response.body).validate[SessionData] match {
               case JsSuccess(value, _) => value
               case JsError(errors) => throw JsResultException(errors)
             }
-            Future.successful(Some(sessionData))
-          case _ => Future.failed(new HttpException(response.body, response.status))
+            Some(sessionData)
+          case _ => throw new HttpException(response.body, response.status)
         }
-      }
+    }
+  }
+
+  private def mapExceptionsToStatus: PartialFunction[Throwable, Future[HttpResponse]] = {
+    case _: NotFoundException =>
+      Future.successful(HttpResponse(NOT_FOUND, "Not found"))
+  }
 
   override def lockDetail(srn: String, startDate: String)
-                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] = {
-    http.url(lockDetailUrl)
-      .withHttpHeaders(CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", srn + startDate))): _*)
-      .get()
-      .flatMap {
-        response =>
-          response.status match {
-            case NOT_FOUND =>
-              Future.successful(None)
-            case OK =>
-              Future.successful(Some(Json.parse(response.body).as[LockDetail]))
-            case _ =>
-              Future.failed(new HttpException(response.body, response.status))
-          }
-      }
+                         (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[LockDetail]] = {
+
+    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
+    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
+
+    http.GET[HttpResponse](
+      url = lockDetailUrl,
+      headers = CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", srn + startDate))))(implicitly, hc, implicitly)
+      .recoverWith(mapExceptionsToStatus)
+      .map { response =>
+        response.status match {
+          case NOT_FOUND =>
+            None
+          case OK =>
+            Some(Json.parse(response.body).as[LockDetail])
+          case _ =>
+            throw new HttpException(response.body, response.status)
+        }
+    }
   }
 }
 
