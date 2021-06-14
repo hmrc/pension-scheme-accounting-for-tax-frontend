@@ -73,7 +73,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                       (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[JsValue] = {
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.POST[JsValue, HttpResponse](url, value, hc.headers(HeaderNames.explicitlyIncludedHeaders))(
+    http.POST[JsValue, HttpResponse](url, value, CacheConnectorHeaders.headers(hc.withExtraHeaders(headers: _*)))(
       implicitly, implicitly, hc, implicitly)
       .map { response =>
         response.status match {
