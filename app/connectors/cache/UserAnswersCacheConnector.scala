@@ -23,7 +23,7 @@ import play.api.http.Status._
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{HttpResponse, HeaderCarrier, NotFoundException, HttpException, HttpClient}
+import uk.gov.hmrc.http.{HeaderNames, HttpResponse, HeaderCarrier, NotFoundException, HttpException, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -73,7 +73,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                       (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[JsValue] = {
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.POST[JsValue, HttpResponse](url, value, CacheConnectorHeaders.headers(hc.withExtraHeaders(headers: _*)))(
+    http.POST[JsValue, HttpResponse](url, value, hc.headers(HeaderNames.explicitlyIncludedHeaders))(
       implicitly, implicitly, hc, implicitly)
       .map { response =>
         response.status match {
