@@ -16,7 +16,7 @@
 
 package connectors.cache
 
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 
 object CacheConnectorHeaders {
   val names: HeaderCarrier => Seq[String] =
@@ -30,7 +30,7 @@ object CacheConnectorHeaders {
 
   val headers: HeaderCarrier => Seq[(String, String)] =
     hc =>
-      hc.headers(names(hc)) ++ hc.withExtraHeaders(
+      hc.headers(HeaderNames.explicitlyIncludedHeaders) ++ hc.withExtraHeaders(
         ("content-type", "application/json")
       ).extraHeaders
 }
