@@ -40,14 +40,14 @@ class UserAnswersCacheConnectorImpl @Inject()(
   override protected def lockDetailUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
   override def fetch(id: String)
-                    (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[JsValue]] = {
+    (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[JsValue]] = {
 
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
     http.GET[HttpResponse](
       url = saveUrl,
-      headers = hc.headers(HeaderNames.explicitlyIncludedHeaders))(implicitly, hc, implicitly)
+      headers = CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))))(implicitly, hc, implicitly)
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {
@@ -58,7 +58,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
           case _ =>
             throw new HttpException(response.body, response.status)
         }
-    }
+      }
   }
 
   def save(id: String, value: JsValue)
@@ -105,7 +105,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
     http.DELETE[HttpResponse](
       url = saveUrl,
-      headers = hc.headers(HeaderNames.explicitlyIncludedHeaders)
+      headers = CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id)))
     ).map { _ =>
       Ok
     }
