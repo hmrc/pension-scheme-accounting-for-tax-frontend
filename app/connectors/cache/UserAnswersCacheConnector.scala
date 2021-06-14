@@ -47,7 +47,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
     http.GET[HttpResponse](
       url = saveUrl,
-      headers = CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id))))(implicitly, hc, implicitly)
+      headers = hc.headers(HeaderNames.explicitlyIncludedHeaders))(implicitly, hc, implicitly)
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {
@@ -105,7 +105,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
     http.DELETE[HttpResponse](
       url = saveUrl,
-      headers = CacheConnectorHeaders.headers(hc.withExtraHeaders(("id", id)))
+      headers = hc.headers(HeaderNames.explicitlyIncludedHeaders)
     ).map { _ =>
       Ok
     }
