@@ -36,7 +36,8 @@ class ListOfSchemesConnectorSpec extends AsyncWordSpec with MustMatchers with Wi
 
       server.stubFor(
         get(urlEqualTo(listOfSchemesUrl))
-          .withHeader("psaId", equalTo(psaId))
+          .withHeader("idType", equalTo("psaid"))
+          .withHeader("idValue", equalTo(psaId))
           .willReturn(
             aResponse()
               .withStatus(OK)
