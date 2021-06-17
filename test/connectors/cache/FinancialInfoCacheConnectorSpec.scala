@@ -21,7 +21,7 @@ import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
+import uk.gov.hmrc.http.{HeaderCarrier, Upstream5xxResponse}
 import utils.WireMockHelper
 
 class FinancialInfoCacheConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with OptionValues with RecoverMethods {
@@ -70,10 +70,10 @@ class FinancialInfoCacheConnectorSpec extends AsyncWordSpec with MustMatchers wi
           )
       )
 
-      recoverToExceptionIf[HttpException] {
+      recoverToExceptionIf[Upstream5xxResponse] {
         connector.fetch
       } map {
-        _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
+        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }
@@ -105,10 +105,10 @@ class FinancialInfoCacheConnectorSpec extends AsyncWordSpec with MustMatchers wi
             serverError()
           )
       )
-      recoverToExceptionIf[HttpException] {
+      recoverToExceptionIf[Upstream5xxResponse] {
         connector.save(json)
       } map {
-        _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
+        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }
