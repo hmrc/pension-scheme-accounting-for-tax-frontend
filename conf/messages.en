@@ -934,10 +934,19 @@ confirmation.li1 = Return to {0}
 confirmation.li2 = View your other pension schemes
 confirmation.print.page.link.text = Print this page
 
-confirmation.amend.decrease.whatNext.p1 = The amendment you have submitted has reduced the charge for this Accounting for Tax return.
-confirmation.amend.decrease.whatNext.p2 = You must email pensions.administration@hmrc.gov.uk to ensure your account is updated correctly. Include these details in your email:
 confirmation.amend.viewPaymentCharges.prelink.text = You can
 confirmation.amend.viewPaymentCharges.link.text = view payments and charge references for your AFT returns
+
+confirmation.amend.decrease.reduced.charge.h2 = Reduced charge
+confirmation.amend.decrease.outstanding.charges.heading = If you have any outstanding AFT charges for this quarter
+confirmation.amend.decrease.outstanding.charges.p1 = The amendment you have submitted has reduced the charge for this Accounting for Tax return.
+confirmation.amend.decrease.outstanding.charges.p2 = A credit has been created and will be allocated to another AFT charge for this quarter. You can view the allocation in your
+confirmation.amend.viewPaymentCharges.decrease.link.text = AFT payments and charges for this quarter
+
+confirmation.amend.decrease.paid.charges.heading = If you’ve paid all AFT charges for this quarter
+confirmation.amend.decrease.paid.charges.p1 = The credit will sit on the scheme’s account. You can
+confirmation.amend.decrease.contact.link.text = contact HMRC to request a refund, or a reallocation
+confirmation.amend.decrease.paid.charges.p2 = of the credit to other charges in other periods.
 
 confirmation.amend.increase.whatNext.p1 = A new charge reference has been created for the additional amount included in this amendment. You must use this charge reference when making payment.
 confirmation.amend.noChange.whatNext.p1 = This amended Accounting for Tax return has resulted in nothing additional to pay.
