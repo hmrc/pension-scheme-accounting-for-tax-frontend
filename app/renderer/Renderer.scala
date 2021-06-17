@@ -49,7 +49,6 @@ class Renderer @Inject()(appConfig: FrontendAppConfig, renderer: NunjucksRendere
       "countdown"                       -> appConfig.countdownSeconds,
       "managePensionsSchemeOverviewUrl" -> appConfig.managePensionsSchemeOverviewUrl,
       "gtmContainerId"                  -> appConfig.gtmContainerId,
-      "trackingSnippetUrl"              -> appConfig.trackingSnippetUrl,
-      "contactHost"                     -> appConfig.contactHost
+      "trackingSnippetUrl"              -> appConfig.trackingSnippetUrl
   )
 }
