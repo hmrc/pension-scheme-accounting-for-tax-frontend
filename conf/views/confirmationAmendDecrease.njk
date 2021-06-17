@@ -40,29 +40,27 @@
                   })
         }}
 
-        <h2 class="govuk-heading-m">{{messages("confirmation.whatNext.h2")}}</h2>
-         <p class="govuk-body">{{messages("confirmation.amend.decrease.whatNext.p1")}}</p>
-         <p class="govuk-body">{{messages("confirmation.amend.decrease.whatNext.p2")}}</p>
+        <h2 class="govuk-heading-m">{{messages("confirmation.amend.decrease.reduced.charge.h2")}}</h2>
+          <p class="govuk-body">{{messages("confirmation.amend.decrease.outstanding.charges.p1")}}</p>
+          <p class="govuk-body govuk-!-font-weight-bold">{{messages("confirmation.amend.decrease.outstanding.charges.heading")}}</p>
+          {% if viewPaymentsUrl %}
+              <p class="govuk-body">
+                  {{messages("confirmation.amend.decrease.outstanding.charges.p2")}}
+                  <a class="govuk-link" href="{{ viewPaymentsUrl }}">{{messages("confirmation.amend.viewPaymentCharges.decrease.link.text")}}</a>.
+              </p>
+          {% endif %}
 
-         <div><ul class="govuk-list govuk-list--bullet">
-            <li>{{messages("confirmation.whatNext.li.item1")}}</li>
-            <li>{{messages("confirmation.whatNext.li.item2")}}</li>
-            {% if isAmendment %}
-                <li>{{messages("confirmation.whatNext.li.item3")}}</li>
-            {% endif %}
-        </ul></div>
+          <p class="govuk-body govuk-!-font-weight-bold">{{messages("confirmation.amend.decrease.paid.charges.heading")}}</p>
+          <p class="govuk-body">
+              {{messages("confirmation.amend.decrease.paid.charges.p1")}}
+              <a class="govuk-link" href="https://www.gov.uk/government/publications/pension-schemes-refund-or-reallocation-request">{{messages("confirmation.amend.decrease.contact.link.text")}}</a>
+              {{messages("confirmation.amend.decrease.paid.charges.p2")}}
+          </p>
 
-         {% if viewPaymentsUrl %}
-             <p class="govuk-body">
-                {{messages("confirmation.amend.viewPaymentCharges.prelink.text")}}
-                <a class="govuk-link" href="{{ viewPaymentsUrl }}">{{messages("confirmation.amend.viewPaymentCharges.link.text")}}</a>.
-             </p>
-         {% endif %}
-
-        <ul class="govuk-list">
-          <li><a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("confirmation.li1", viewModel.schemeName) }}</a></li>
-          <li><a href="{{ pensionSchemesUrl }}" class="govuk-link">{{ messages("confirmation.li2", viewModel.schemeName) }}</a></li>
-        </ul>
+          <ul class="govuk-list">
+              <li><a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("confirmation.li1", viewModel.schemeName) }}</a></li>
+              <li><a href="{{ pensionSchemesUrl }}" class="govuk-link">{{ messages("confirmation.li2", viewModel.schemeName) }}</a></li>
+          </ul>
 
         <h2 class="govuk-heading-m">{{messages("confirmation.saveOrPrint.h2")}}</h2>
 
