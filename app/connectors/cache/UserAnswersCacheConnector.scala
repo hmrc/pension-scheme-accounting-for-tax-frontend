@@ -100,7 +100,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Result] = {
     val headers: Seq[(String, String)] = Seq(("id", id))
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
-    http.DELETE[HttpResponse](saveUrl).map { _ =>
+    http.DELETE[HttpResponse](saveUrl)(implicitly, hc, implicitly).map { _ =>
       Ok
     }
   }
