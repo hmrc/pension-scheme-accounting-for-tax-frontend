@@ -21,7 +21,6 @@ import config.FrontendAppConfig
 import play.api.libs.json._
 import uk.gov.hmrc.http._
 import play.api.http.Status._
-import play.api.libs.ws.WSClient
 import play.api.mvc.Results._
 import play.api.mvc.Result
 
@@ -29,33 +28,36 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SessionDataCacheConnector  @Inject()(
   config: FrontendAppConfig,
-  http: WSClient
+  http: HttpClient
 ) {
   private def url(cacheId:String) = s"${config.pensionsAdministratorUrl}/pension-administrator/journey-cache/session-data/$cacheId"
 
-  def fetch(id: String)(implicit ec: ExecutionContext,
-    hc: HeaderCarrier): Future[Option[JsValue]] = {
-    http
-      .url(url(id))
-      .withHttpHeaders(hc.headers: _*)
-      .get()
-      .flatMap { response =>
+  def fetch(id: String)
+    (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[JsValue]] = {
+
+    http.GET[HttpResponse](url(id))
+      .recoverWith(mapExceptionsToStatus)
+      .map { response =>
         response.status match {
           case NOT_FOUND =>
-            Future.successful(None)
+            None
           case OK =>
-            Future.successful(Some(Json.parse(response.body)))
+            Some(Json.parse(response.body))
           case _ =>
-            Future.failed(new HttpException(response.body, response.status))
+            throw new HttpException(response.body, response.status)
         }
       }
   }
 
-  def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-    http
-      .url(url(id))
-      .withHttpHeaders(hc.headers: _*)
-      .delete()
-      .map(_=>Ok)
+  def removeAll(id: String)
+    (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Result] = {
+    http.DELETE[HttpResponse](url(id)).map { _ =>
+      Ok
+    }
+  }
+
+  private def mapExceptionsToStatus: PartialFunction[Throwable, Future[HttpResponse]] = {
+    case _: NotFoundException =>
+      Future.successful(HttpResponse(NOT_FOUND, "Not found"))
   }
 }

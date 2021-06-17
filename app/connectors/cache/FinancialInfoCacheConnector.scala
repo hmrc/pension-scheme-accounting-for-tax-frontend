@@ -20,63 +20,64 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import play.api.http.Status._
 import play.api.libs.json.{Json, JsValue}
-import play.api.libs.ws.WSClient
 import play.api.mvc.Result
 import play.api.mvc.Results._
-import uk.gov.hmrc.crypto.PlainText
-import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
+import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.HttpReads.Implicits
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class FinancialInfoCacheConnector @Inject()(
                                                config: FrontendAppConfig,
-                                               http: WSClient
+                                               http: HttpClient
                                              ) extends CacheConnector {
 
   override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/financialInfo"
 
-  override def fetch(implicit ec: ExecutionContext,
-                     hc: HeaderCarrier): Future[Option[JsValue]] = {
-    http
-      .url(url)
-      .withHttpHeaders(hc.headers: _*)
-      .get()
-      .flatMap { response =>
+  override def fetch
+    (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[JsValue]] = {
+
+    http.GET[HttpResponse](url)
+      .recoverWith(mapExceptionsToStatus)
+      .map { response =>
         response.status match {
           case NOT_FOUND =>
-            Future.successful(None)
+            None
           case OK =>
-            Future.successful(Some(Json.parse(response.body)))
+            Some(Json.parse(response.body))
           case _ =>
-            Future.failed(new HttpException(response.body, response.status))
+            throw new HttpException(response.body, response.status)
         }
       }
   }
 
   def save(value: JsValue)
-          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    http
-      .url(url)
-      .withHttpHeaders(hc.withExtraHeaders(("content-type", "application/json")).headers: _*)
-      .post(PlainText(Json.stringify(value)).value)
-      .flatMap { response =>
+          (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[JsValue] = {
+    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
+    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
+
+    http.POST[JsValue, HttpResponse](url, value)(implicitly, implicitly, hc, implicitly)
+      .map { response =>
         response.status match {
           case CREATED =>
-            Future.successful(value)
+            value
           case _ =>
-            Future.failed(new HttpException(response.body, response.status))
+            throw new HttpException(response.body, response.status)
         }
       }
   }
 
-  override def removeAll(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-    http
-      .url(url)
-      .withHttpHeaders(hc.headers: _*)
-      .delete()
-      .map(_ => Ok)
+  override def removeAll
+    (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Result] = {
+    http.DELETE[HttpResponse](url).map { _ =>
+      Ok
+    }
   }
 
+  private def mapExceptionsToStatus: PartialFunction[Throwable, Future[HttpResponse]] = {
+    case _: NotFoundException =>
+      Future.successful(HttpResponse(NOT_FOUND, "Not found"))
+  }
 }
 
 trait CacheConnector {
