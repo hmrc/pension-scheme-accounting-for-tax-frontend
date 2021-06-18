@@ -26,7 +26,7 @@ import pages.Page
 import play.api.mvc.ActionTransformer
 import services.RequestCreationService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{Future, ExecutionContext}
 
@@ -42,7 +42,7 @@ class DataSetupImpl(
   extends DataSetup {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     requestCreationService.retrieveAndCreateRequest(srn, startDate, version, accessType, optionCurrentPage)(request,implicitly, implicitly)
   }
 }

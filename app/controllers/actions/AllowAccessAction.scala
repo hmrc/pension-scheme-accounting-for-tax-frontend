@@ -31,7 +31,7 @@ import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
 import play.api.mvc.{ActionFilter, Result}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.DateHelper
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -70,7 +70,8 @@ class AllowAccessAction(
                        )
   extends ActionFilter[DataRequest] with AllowAccessCommon {
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    implicit val hc: HeaderCarrier =
+      HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
 
     (isInvalidDate, request.userAnswers.get(SchemeStatusQuery), minimalFlagChecks(request)) match {
@@ -134,7 +135,8 @@ class AllowAccessActionForIdentifierRequest(
                        )
   extends ActionFilter[IdentifierRequest] with AllowAccessCommon {
   override protected def filter[A](request: IdentifierRequest[A]): Future[Option[Result]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    implicit val hc: HeaderCarrier =
+      HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     minimalConnector.getMinimalDetails(implicitly, implicitly, request).map { minimalDetails =>
       minimalFlagsRedirect(MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag),
         frontendAppConfig, request.schemeAdministratorType) match {

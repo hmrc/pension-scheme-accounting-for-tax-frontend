@@ -23,6 +23,7 @@ import uk.gov.hmrc.http._
 import play.api.http.Status._
 import play.api.mvc.Results._
 import play.api.mvc.Result
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 

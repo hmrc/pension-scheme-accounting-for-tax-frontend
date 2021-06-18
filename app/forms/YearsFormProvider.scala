@@ -16,16 +16,15 @@
 
 package forms
 
-import config.FrontendAppConfig
 import forms.mappings.Mappings
 
 import javax.inject.Inject
-import models.{Enumerable, StartYears, Year}
+import models.{Year, Enumerable}
 import play.api.data.Form
 
 class YearsFormProvider @Inject() extends Mappings {
 
-  def apply(errorMessage: String = "years.error.required")(implicit config: FrontendAppConfig, ev: Enumerable[Year]): Form[Year] =
+  def apply(errorMessage: String = "years.error.required")(implicit ev: Enumerable[Year]): Form[Year] =
     Form(
       "value" -> enumerable[Year](errorMessage)
     )

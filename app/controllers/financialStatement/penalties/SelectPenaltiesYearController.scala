@@ -20,11 +20,11 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.PenaltyType._
-import models.financialStatement.{PenaltyType, PsaFS}
+import models.financialStatement.{PsaFS, PenaltyType}
 import models.requests.IdentifierRequest
-import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, PenaltiesFilter, Year}
+import models.{DisplayYear, PaymentOverdue, Year, Enumerable, PenaltiesFilter, FSYears}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
@@ -47,8 +47,8 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
                                                                       with I18nSupport
                                                                       with NunjucksSupport {
 
-  private def form(errorParameter: String, config: FrontendAppConfig)(implicit messages: Messages, ev: Enumerable[Year]): Form[Year] =
-    formProvider(messages("selectPenaltiesYear.error", messages(errorParameter)))(config, implicitly)
+  private def form(errorParameter: String)(implicit messages: Messages, ev: Enumerable[Year]): Form[Year] =
+    formProvider(messages("selectPenaltiesYear.error", messages(errorParameter)))(implicitly)
 
   def onPageLoad(penaltyType: PenaltyType, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
 
@@ -61,8 +61,8 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       val json = Json.obj(
         "psaName" -> penaltiesCache.psaName,
         "typeParam" -> typeParam,
-        "form" -> form(typeParam, config),
-        "radios" -> FSYears.radios(form(typeParam, config), years)
+        "form" -> form(typeParam),
+        "radios" -> FSYears.radios(form(typeParam), years)
       )
 
       renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(Ok(_))
@@ -80,7 +80,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       val years = getYears(penaltyType, penaltiesCache.penalties)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
-      form(typeParam, config).bindFromRequest().fold(
+      form(typeParam).bindFromRequest().fold(
         formWithErrors => {
           val json = Json.obj(
             "psaName" -> penaltiesCache.psaName,

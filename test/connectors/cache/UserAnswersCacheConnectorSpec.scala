@@ -20,10 +20,9 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.{SessionAccessData, LockDetail, AccessMode}
 import org.scalatest._
-import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{HeaderCarrier, Upstream5xxResponse}
+import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
 import utils.WireMockHelper
 
 class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with OptionValues with RecoverMethods {
@@ -79,10 +78,8 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      recoverToExceptionIf[Upstream5xxResponse] {
+      recoverToSucceededIf[HttpException] {
         connector.fetch(cacheId = "testId")
-      } map {
-        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }
@@ -131,10 +128,8 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      recoverToExceptionIf[Upstream5xxResponse] {
+      recoverToSucceededIf[HttpException] {
         connector.getSessionData(id = "testId")
-      } map {
-        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }
@@ -168,11 +163,11 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
             serverError()
           )
       )
-      recoverToExceptionIf[Upstream5xxResponse] {
+
+      recoverToSucceededIf[HttpException] {
         connector.save(cacheId = "testId", json)
-      } map {
-        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
+
     }
   }
 
@@ -249,11 +244,10 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      recoverToExceptionIf[Upstream5xxResponse] {
+      recoverToSucceededIf[HttpException] {
         connector.lockDetail(srn = "srn", startDate = "2020-04-01")
-      } map {
-        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
+
     }
   }
 }

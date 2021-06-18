@@ -35,11 +35,11 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
-import models.financialStatement.{PaymentOrChargeType, SchemeFS}
-import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType, InterestOnExcessRelief, ExcessReliefPaidCharges}
+import models.financialStatement.{SchemeFS, PaymentOrChargeType}
+import models.{DisplayYear, PaymentOverdue, Year, FSYears, Enumerable, ChargeDetailsFilter}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
@@ -70,7 +70,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     } else {
       messages(s"selectChargesYear.$journeyType.error", typeParam)
     }
-    formProvider(errorMessage)(config, implicitly)
+    formProvider(errorMessage)(implicitly)
   }
 
   def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =

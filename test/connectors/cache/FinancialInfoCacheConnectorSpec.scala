@@ -18,10 +18,9 @@ package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
-import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{HeaderCarrier, Upstream5xxResponse}
+import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
 import utils.WireMockHelper
 
 class FinancialInfoCacheConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with OptionValues with RecoverMethods {
@@ -70,10 +69,8 @@ class FinancialInfoCacheConnectorSpec extends AsyncWordSpec with MustMatchers wi
           )
       )
 
-      recoverToExceptionIf[Upstream5xxResponse] {
+      recoverToSucceededIf[HttpException] {
         connector.fetch
-      } map {
-        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }
@@ -105,10 +102,8 @@ class FinancialInfoCacheConnectorSpec extends AsyncWordSpec with MustMatchers wi
             serverError()
           )
       )
-      recoverToExceptionIf[Upstream5xxResponse] {
+      recoverToSucceededIf[HttpException] {
         connector.save(json)
-      } map {
-        _.upstreamResponseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }
