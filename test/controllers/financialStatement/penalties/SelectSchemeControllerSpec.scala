@@ -26,8 +26,8 @@ import forms.SelectSchemeFormProvider
 import matchers.JsonMatchers
 import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.ContractSettlementCharges
-import models.financialStatement.{PenaltyType, PsaFS}
-import models.{Enumerable, PenaltySchemes}
+import models.financialStatement.{PsaFS, PenaltyType}
+import models.{PenaltySchemes, Enumerable}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -37,14 +37,13 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsObject, Json, JsValue}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.{PenaltiesCache, PenaltiesService}
+import services.{PenaltiesService, PenaltiesCache}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
 import scala.concurrent.Future
 
 class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers

@@ -23,7 +23,7 @@ import play.api.libs.json.{Json, JsValue}
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.HttpReads.Implicits
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 

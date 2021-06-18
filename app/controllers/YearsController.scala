@@ -48,7 +48,7 @@ class YearsController @Inject()(
                                 with I18nSupport
                                 with NunjucksSupport {
 
-  private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()(implicitly, StartYears.enumerable)
+  private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()(StartYears.enumerable)
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     schemeService.retrieveSchemeDetails(
