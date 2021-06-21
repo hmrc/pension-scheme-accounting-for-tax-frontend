@@ -16,17 +16,14 @@
 
 package connectors
 
-import com.google.inject.{ImplementedBy, Inject, Singleton}
+import com.google.inject.{Inject, Singleton, ImplementedBy}
 import config.FrontendAppConfig
-import models.FeatureToggle.Enabled
-import models.FeatureToggleName.IntegrationFrameworkListSchemes
 import models.ListOfSchemes
 import play.api.Logger
 import play.api.http.Status._
-import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
-import services.FeatureToggleService
+import play.api.libs.json.{JsResultException, JsError, JsSuccess, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.{HttpClient, HttpResponse, HeaderCarrier}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -43,28 +40,21 @@ trait ListOfSchemesConnector {
 @Singleton
 class ListOfSchemesConnectorImpl @Inject()(
                                             http: HttpClient,
-                                            config: FrontendAppConfig,
-                                            featureToggleService: FeatureToggleService
+                                            config: FrontendAppConfig
                                           ) extends ListOfSchemesConnector {
 
   private val logger = Logger(classOf[ListOfSchemesConnectorImpl])
 
   override def getListOfSchemes(psaId: String)
                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
-    featureToggleService.get(IntegrationFrameworkListSchemes).flatMap {
-      case Enabled(IntegrationFrameworkListSchemes) =>
-        val (url, schemeHc) = (config.listOfSchemesIFUrl, hc.withExtraHeaders("idType" -> "psaid", "idValue" -> psaId))
-        listOfSchemes(url)(schemeHc, ec)
-      case _ =>
-        val (url, schemeHc) = (config.listOfSchemesUrl, hc.withExtraHeaders("psaId" -> psaId))
-        listOfSchemes(url)(schemeHc, ec)
-    }
+      val (url, schemeHc) = (config.listOfSchemesUrl, hc.withExtraHeaders("idType" -> "psaid", "idValue" -> psaId))
+      listOfSchemes(url)(schemeHc, ec)
   }
 
   override def getListOfSchemesForPsp(pspId: String)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
     val schemeHc = hc.withExtraHeaders("idType" -> "PSP", "idValue" -> pspId)
-    listOfSchemes(config.listOfSchemesIFUrl)(schemeHc, ec)
+    listOfSchemes(config.listOfSchemesUrl)(schemeHc, ec)
   }
 
   private def listOfSchemes(url: String)
