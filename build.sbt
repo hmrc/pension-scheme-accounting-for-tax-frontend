@@ -1,5 +1,5 @@
 import play.sbt.routes.RoutesKeys
-import sbt.{compilerPlugin, Setting, Def, CrossVersion}
+import sbt.{CrossVersion, Def, Setting, compilerPlugin}
 import scoverage.ScoverageKeys
 import uk.gov.hmrc.DefaultBuildSettings
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
@@ -8,7 +8,7 @@ lazy val appName: String = "pension-scheme-accounting-for-tax-frontend"
 
 lazy val root = (project in file("."))
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
-  .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtDistributablesPlugin, SbtArtifactory)
+  .enablePlugins(PlayScala, SbtAutoBuildPlugin, SbtDistributablesPlugin)
   .settings(DefaultBuildSettings.scalaSettings: _*)
   .settings(DefaultBuildSettings.defaultSettings(): _*)
   .settings(SbtDistributablesPlugin.publishingSettings: _*)
