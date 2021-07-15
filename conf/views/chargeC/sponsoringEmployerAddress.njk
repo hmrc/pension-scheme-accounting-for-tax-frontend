@@ -6,6 +6,8 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 {% from "govuk/components/select/macro.njk"        import govukSelect %}
+{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
+
 
 {% block pageHead %}
     <link href="{{ routes.controllers.Assets.versioned("stylesheets/location-autocomplete.min.css").url }}" media="screen" rel="stylesheet" type="text/css" />
@@ -27,12 +29,17 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeC.sponsoringEmployerAddress.heading', sponsorName)}}</h1>
-
         <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
 
           {{ csrf() | safe }}
 
+        {% call govukFieldset({
+          legend: {
+            text: messages('chargeC.sponsoringEmployerAddress.heading', sponsorName),
+            classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8",
+            isPageHeading: true
+          }
+        }) %}
           {{ govukInput({
             label: {
               text: messages('chargeC.sponsoringEmployerAddress.line1.title'),
@@ -106,8 +113,6 @@
               }) }}
           </div>
 
-
-
           {{ govukInput({
             label: {
               text: messages('chargeC.sponsoringEmployerAddress.postcode.title'),
@@ -121,7 +126,7 @@
             attributes: {autocomplete: "none"},
             errorMessage: form.postcode.error
           }) }}
-
+        {% endcall %}
           {{ govukButton({
             text: messages("site.continue"),
             attributes: {id: "submit"}
