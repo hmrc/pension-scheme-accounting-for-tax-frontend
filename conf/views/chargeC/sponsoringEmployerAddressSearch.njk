@@ -22,17 +22,15 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeC.employerAddressSearch.heading', sponsorName)}}</h1>
-
         <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
 
           {{ csrf() | safe }}
 
           {{ govukInput({
             label: {
-              text: messages('chargeC.employerAddressSearch.label'),
-              isPageHeading: false,
-              classes: "govuk-fieldset__legend--s govuk-!-font-weight-bold"
+              text: messages('chargeC.employerAddressSearch.heading', sponsorName),
+              isPageHeading: true,
+              classes: "govuk-label--xl govuk-!-margin-bottom-8"
             },
             id: "value",
             name: "value",
