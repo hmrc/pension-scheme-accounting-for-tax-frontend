@@ -6,6 +6,11 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 
+{% set hint %}
+<p class="govuk-body">
+          {{ messages("chargeC.employerAddressSearch.selectAddress") }} <a href="{{ enterManuallyUrl }}" class="govuk-link">{{ messages("chargeC.employerAddressSearch.link.enterManually") }}</a>.
+        </p>
+{% endset %}
 {% block pageTitle %}
   {{ title(messages("chargeC.employerAddressResults.title", sponsorName), form.errors) }}
 {% endblock %}
@@ -22,12 +27,6 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeC.employerAddressResults.heading', sponsorName)}}</h1>
-
-        <p class="govuk-body">
-          {{ messages("chargeC.employerAddressSearch.selectAddress") }} <a href="{{ enterManuallyUrl }}" class="govuk-link">{{ messages("chargeC.employerAddressSearch.link.enterManually") }}</a>.
-        </p>
-
         <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
 
           {{ csrf() | safe }}
@@ -37,10 +36,11 @@
             fieldset: {
               legend: {
                 text: messages('chargeC.employerAddressResults.heading', sponsorName),
-                isPageHeading: false,
-                classes: "govuk-fieldset__legend--xl govuk-visually-hidden"
+                isPageHeading: true,
+                classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8"
               }
             },
+            hint: {html: hint},
             items: addresses,
             errorMessage: form.value.error
           }) }}
