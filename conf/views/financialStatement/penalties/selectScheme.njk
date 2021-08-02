@@ -6,6 +6,9 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 
+{% set hint %}
+<p class="govuk-body">{{ messages("selectScheme.text") }}</p>
+{% endset %}
 {% block pageTitle %}
   {{ title(messages("selectScheme.title", messages(typeParam)), form.errors) }}
 {% endblock %}
@@ -35,10 +38,11 @@
             fieldset: {
               legend: {
                 text: messages('selectScheme.title', messages(typeParam)),
-                isPageHeading: false,
-                classes: "govuk-visually-hidden"
+                isPageHeading: true,
+                classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8"
               }
             },
+            hint: {html: hint},
             items: radios,
             errorMessage: form.value.error
           }) }}
