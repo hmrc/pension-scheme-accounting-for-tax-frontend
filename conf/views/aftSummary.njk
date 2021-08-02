@@ -44,16 +44,13 @@
                     "errorList": formSearchText.errors
                 }) }}
             {% endif %}
-
+            {{ hmrcPageHeading({
+                  text: summarySearchHeadingText+ messages('aft.summary.heading', quarterStartDate, quarterEndDate),
+                  section: viewModel.schemeName
+                }) }}
             <form action="{{ searchURL }}" method="post" autocomplete="off" novalidate >
                 {{ csrf() | safe }}
-                {% call govukFieldset({
-                  legend: {
-                    html: summaryheadingtext ,
-                    classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8",
-                    isPageHeading: true
-                  }
-                }) %}
+                
                 {% if formSearchText.searchText.value %}
                     {% set btnText = messages('aft.summary.searchAgain.button') %}
                 {% else %}
@@ -134,7 +131,6 @@
 
                     {% endif %}
                     {% endif %}
-                {% endcall %}
             </form>
 
             <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
