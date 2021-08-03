@@ -17,19 +17,19 @@
 package controllers.actions
 
 import java.time.LocalDate
-import com.google.inject.{Inject, ImplementedBy}
+import com.google.inject.{ImplementedBy, Inject}
 import config.FrontendAppConfig
-import connectors.{SchemeDetailsConnector, MinimalConnector, AFTConnector}
+import connectors.{AFTConnector, DelimitedAdminException, MinimalConnector, SchemeDetailsConnector}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.AdministratorOrPractitioner.Administrator
-import models.SchemeStatus.{WoundUp, Deregistered, Open}
-import models.requests.{IdentifierRequest, DataRequest}
-import models.{AdministratorOrPractitioner, MinimalFlags, AccessType}
+import models.SchemeStatus.{Deregistered, Open, WoundUp}
+import models.requests.{DataRequest, IdentifierRequest}
+import models.{AccessType, AdministratorOrPractitioner, MinimalFlags}
 import pages.{MinimalFlagsQuery, _}
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
-import play.api.mvc.{ActionFilter, Result}
+import play.api.mvc.{ActionFilter, Call, Result}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.DateHelper
@@ -143,6 +143,9 @@ class AllowAccessActionForIdentifierRequest(
         case optionRedirectUrl@Some(_) => optionRedirectUrl
         case _ => None
       }
+    } recoverWith {
+      case _: DelimitedAdminException =>
+        Future.successful(Some(Redirect(Call("GET", frontendAppConfig.delimitedPsaUrl))))
     }
   }
 }
