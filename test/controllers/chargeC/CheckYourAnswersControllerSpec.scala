@@ -94,5 +94,11 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       page = CheckYourAnswersPage,
       userAnswers = uaOrg
     )
+
+    behave like redirectToErrorOn5XX(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = uaOrg
+    )
   }
 }

@@ -23,12 +23,12 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, when, verify}
-import org.mockito.{Matchers, ArgumentCaptor, Mockito}
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import pages.Page
 import play.api.Application
 import play.api.inject.bind
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -36,6 +36,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
+import uk.gov.hmrc.http.UpstreamErrorResponse
 
 trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
@@ -108,7 +109,8 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
-      when(mockAftConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockAftConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(
+        Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPath)).value
 
@@ -117,6 +119,28 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
       verify(mockAftConnector, times(1)).fileAFTReturn(any(), any(), any())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
+    }
+  }
+
+  def redirectToErrorOn5XX[A](httpPath: => String,
+                               page: Page,
+                               userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter): Unit = {
+
+    "redirect to your action was not processed page on a POST when 5XX error is thrown" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
+
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+
+      when(mockAftConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(
+        Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result) mustBe Some(controllers.routes.YourActionWasNotProcessedController.onPageLoad(srn, startDate).url)
     }
   }
 }
