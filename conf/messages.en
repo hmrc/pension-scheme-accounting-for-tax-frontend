@@ -1235,3 +1235,9 @@ paymentOrChargeType.ExcessReliefPaidCharges = Excess relief paid charges
 paymentOrChargeType.InterestOnExcessRelief = Interest on excess relief paid charges
 paymentOrChargeType.PensionsCharges = Pensions charges
 
+yourActionWasNotProcessed.title = Sorry, your action was not processed
+yourActionWasNotProcessed.heading = Sorry, your action was not processed
+yourActionWasNotProcessed.guidance.p1 = Try again later.
+yourActionWasNotProcessed.guidance.p2 = Any information entered will have been saved from the last ‘save and continue’.
+yourActionWasNotProcessed.guidance.p3 = If the problem persists you can tell us about it using the link below.
+

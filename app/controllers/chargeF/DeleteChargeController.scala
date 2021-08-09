@@ -17,26 +17,29 @@
 package controllers.chargeF
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions._
+import controllers.routes.YourActionWasNotProcessedController
 import forms.DeleteFormProvider
+
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{NormalMode, GenericViewModel, AccessType}
+import models.{AccessType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeF.{DeleteChargePage, DeregistrationQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{UserAnswersService, DeleteAFTChargeService}
+import services.{DeleteAFTChargeService, UserAnswersService}
+import uk.gov.hmrc.http.HttpReads.is5xx
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersService: UserAnswersService,
@@ -111,9 +114,14 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
                   val userAnswers = userAnswersService.removeSchemeBasedCharge(DeregistrationQuery)
-                  for {
+                  (for {
                     _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers)
-                  } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate, accessType, version))
+                  } yield {
+                    Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate, accessType, version))
+                  }).recoverWith {
+                    case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
+                      Future(Redirect(YourActionWasNotProcessedController.onPageLoad(srn, startDate)))
+                  }
                 }
               } else {
                 Future.successful(Redirect(controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)))

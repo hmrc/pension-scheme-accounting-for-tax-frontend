@@ -17,27 +17,29 @@
 package controllers.chargeF
 
 import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.DataRetrievals
-import controllers.actions.{IdentifierAction, DataRequiredAction, AllowAccessActionProvider, DataRetrievalAction}
+import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.routes.YourActionWasNotProcessedController
 import helpers.{CYAChargeFHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{NormalMode, GenericViewModel, AccessType}
+import models.{AccessType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
-import pages.chargeF.{CheckYourAnswersPage, ChargeDetailsPage}
+import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
+import uk.gov.hmrc.http.HttpReads.is5xx
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -98,6 +100,9 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       DataRetrievals.retrievePSTR { pstr =>
         aftService.fileCompileReturn(pstr, request.userAnswers).map { _ =>
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
+        }.recoverWith {
+          case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
+            Future.successful(Redirect(YourActionWasNotProcessedController.onPageLoad(srn, startDate)))
         }
       }
   }

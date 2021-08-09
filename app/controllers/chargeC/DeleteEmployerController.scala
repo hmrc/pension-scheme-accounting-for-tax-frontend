@@ -17,29 +17,32 @@
 package controllers.chargeC
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
+import controllers.routes.YourActionWasNotProcessedController
 import forms.DeleteFormProvider
+
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.DataRequest
-import models.{GenericViewModel, UserAnswers, AccessType, NormalMode, Index}
+import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC._
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{UserAnswersService, ChargeCService, DeleteAFTChargeService}
+import services.{ChargeCService, DeleteAFTChargeService, UserAnswersService}
+import uk.gov.hmrc.http.HttpReads.is5xx
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
@@ -115,10 +118,15 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
 
-                  for {
+                  (for {
                     updatedAnswers <- Future.fromTry(removeCharge(index, srn, startDate, accessType, version))
                     _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
-                  } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+                  } yield {
+                    Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+                  }).recoverWith {
+                    case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
+                      Future(Redirect(YourActionWasNotProcessedController.onPageLoad(srn, startDate)))
+                  }
                 }
               } else {
                 Future.successful(Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, request.userAnswers, srn, startDate, accessType, version)))

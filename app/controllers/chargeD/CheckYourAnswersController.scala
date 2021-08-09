@@ -17,28 +17,30 @@
 package controllers.chargeD
 
 import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{IdentifierAction, DataRequiredAction, AllowAccessActionProvider, DataRetrievalAction}
+import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.routes.YourActionWasNotProcessedController
 import helpers.CYAChargeDHelper
 import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
-import models.{NormalMode, GenericViewModel, AccessType, Index}
+import models.{AccessType, GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeD.{TotalChargeAmountPage, CheckYourAnswersPage, ChargeDetailsPage}
-import pages.{ViewOnlyAccessiblePage, PSTRQuery}
+import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
+import pages.{PSTRQuery, ViewOnlyAccessiblePage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{ChargeDService, AFTService}
+import services.{AFTService, ChargeDService}
+import uk.gov.hmrc.http.HttpReads.is5xx
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -98,13 +100,16 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
             taxAt55Percent = Option(chargeDetails.taxAt55Percent.getOrElse(BigDecimal(0.00)))
           )
 
-          for {
+          (for {
             ua1 <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
             ua2 <- Future.fromTry(ua1.set(ChargeDetailsPage(index), updatedChargeDetails))
             _ <- userAnswersCacheConnector.save(request.internalId, ua2.data)
             _ <- aftService.fileCompileReturn(pstr, ua2)
           } yield {
             Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
+          }).recoverWith {
+            case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
+              Future.successful(Redirect(YourActionWasNotProcessedController.onPageLoad(srn, startDate)))
           }
         case _ =>
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

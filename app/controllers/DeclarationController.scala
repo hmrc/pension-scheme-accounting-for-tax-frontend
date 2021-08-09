@@ -16,19 +16,20 @@
 
 package controllers
 
-import java.time.{ZoneId, ZonedDateTime, LocalDate}
-
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import audit.{AFTReturnEmailAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.AdministratorOrPractitioner._
 import connectors.{EmailConnector, EmailStatus}
 import controllers.actions._
+import controllers.routes.YourActionWasNotProcessedController
+
 import javax.inject.Inject
-import models.JourneyType.{AFT_SUBMIT_RETURN, AFT_SUBMIT_AMEND}
+import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, AccessType, AFTQuarter, NormalMode, Declaration}
+import models.{AFTQuarter, AccessType, Declaration, GenericViewModel, NormalMode}
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import navigators.CompoundNavigator
 import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage, NameQuery}
@@ -37,7 +38,8 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.HttpReads.is5xx
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
@@ -85,13 +87,16 @@ class DeclarationController @Inject()(
       DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, pstr, email, quarter, isAmendment, amendedVersion) =>
         val schemeAdministratorType = if (request.schemeAdministratorType == Administrator) "PSA" else "PSP"
         val declaration = Declaration(schemeAdministratorType, request.idOrException, hasAgreed = true)
-        for {
+        (for {
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.save(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
+        }).recoverWith {
+          case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
+            Future.successful(Redirect(YourActionWasNotProcessedController.onPageLoad(srn, startDate)))
         }
       }
     }
