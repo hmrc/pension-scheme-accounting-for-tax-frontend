@@ -16,8 +16,6 @@
 
 package controllers.chargeE
 
-import java.time.LocalDate
-
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -29,6 +27,8 @@ import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswe
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
+
+import java.time.LocalDate
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 

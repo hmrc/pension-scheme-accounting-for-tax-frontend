@@ -23,6 +23,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import controllers.routes.YourActionWasNotProcessedController
 import forms.DeleteFormProvider
+import helpers.ErrorHelper.recoverFrom5XX
 
 import javax.inject.Inject
 import models.LocalDateBinder._
@@ -127,11 +128,9 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                             .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount(srn, startDate, accessType, version)))
 
                           _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
-                        } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
-                          ).recoverWith {
-                          case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
-                            Future.successful(Redirect(YourActionWasNotProcessedController.onPageLoad(srn, startDate)))
-                        }
+                        } yield {
+                          Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+                        }) recoverWith recoverFrom5XX(srn, startDate)
                     }
                   } else {
                     Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate, accessType, version)))

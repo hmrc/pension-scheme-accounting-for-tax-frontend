@@ -21,7 +21,9 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.UserAnswers
+import models.requests.IdentifierRequest
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
@@ -31,12 +33,10 @@ import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
-import models.requests.IdentifierRequest
-import uk.gov.hmrc.http.UpstreamErrorResponse
 
 trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mockAftConnector: AFTConnector = mock[AFTConnector]

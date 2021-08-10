@@ -16,14 +16,11 @@
 
 package controllers.chargeF
 
-import java.time.LocalDate
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions._
-import controllers.routes.YourActionWasNotProcessedController
 import forms.DeleteFormProvider
-
-import javax.inject.Inject
+import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
 import models.{AccessType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
@@ -34,11 +31,11 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{DeleteAFTChargeService, UserAnswersService}
-import uk.gov.hmrc.http.HttpReads.is5xx
-import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
@@ -118,10 +115,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                     _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers)
                   } yield {
                     Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate, accessType, version))
-                  }).recoverWith {
-                    case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
-                      Future(Redirect(YourActionWasNotProcessedController.onPageLoad(srn, startDate)))
-                  }
+                  }) recoverWith recoverFrom5XX(srn, startDate)
                 }
               } else {
                 Future.successful(Redirect(controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)))

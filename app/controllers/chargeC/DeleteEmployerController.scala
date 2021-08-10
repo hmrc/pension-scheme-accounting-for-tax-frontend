@@ -16,15 +16,12 @@
 
 package controllers.chargeC
 
-import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import controllers.routes.YourActionWasNotProcessedController
 import forms.DeleteFormProvider
-
-import javax.inject.Inject
+import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.DataRequest
@@ -37,11 +34,11 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{ChargeCService, DeleteAFTChargeService, UserAnswersService}
-import uk.gov.hmrc.http.HttpReads.is5xx
-import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -123,10 +120,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                     _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                   } yield {
                     Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
-                  }).recoverWith {
-                    case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
-                      Future(Redirect(YourActionWasNotProcessedController.onPageLoad(srn, startDate)))
-                  }
+                  }) recoverWith recoverFrom5XX(srn, startDate)
                 }
               } else {
                 Future.successful(Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, request.userAnswers, srn, startDate, accessType, version)))

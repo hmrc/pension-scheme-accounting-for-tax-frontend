@@ -16,21 +16,18 @@
 
 package controllers
 
-import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import audit.{AFTReturnEmailAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import models.AdministratorOrPractitioner._
 import connectors.{EmailConnector, EmailStatus}
 import controllers.actions._
-import controllers.routes.YourActionWasNotProcessedController
-
-import javax.inject.Inject
+import helpers.ErrorHelper.recoverFrom5XX
+import models.AdministratorOrPractitioner._
 import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
+import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.requests.DataRequest
 import models.{AFTQuarter, AccessType, Declaration, GenericViewModel, NormalMode}
-import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import navigators.CompoundNavigator
 import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage, NameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -38,11 +35,12 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
-import uk.gov.hmrc.http.HttpReads.is5xx
-import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DeclarationController @Inject()(
@@ -94,10 +92,7 @@ class DeclarationController @Inject()(
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
-        }).recoverWith {
-          case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
-            Future.successful(Redirect(YourActionWasNotProcessedController.onPageLoad(srn, startDate)))
-        }
+        }) recoverWith recoverFrom5XX(srn, startDate)
       }
     }
 

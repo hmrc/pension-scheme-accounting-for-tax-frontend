@@ -16,14 +16,13 @@
 
 package controllers.chargeC
 
-import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import controllers.routes.YourActionWasNotProcessedController
 import helpers.CYAChargeCHelper
+import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
 import models.{AccessType, GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
@@ -34,11 +33,10 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{AFTService, ChargeCService}
-import uk.gov.hmrc.http.HttpReads.is5xx
-import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
@@ -100,10 +98,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
         } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
-        }).recoverWith {
-          case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
-            Future.successful(Redirect(YourActionWasNotProcessedController.onPageLoad(srn, startDate)))
-        }
+        }) recoverWith recoverFrom5XX(srn, startDate)
       }
     }
 }
