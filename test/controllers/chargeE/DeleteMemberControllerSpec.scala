@@ -21,25 +21,26 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.DeleteFormProvider
 import matchers.JsonMatchers
+import models.GenericViewModel
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.GenericViewModel
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, when, verify}
-import org.mockito.{Matchers, ArgumentCaptor}
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
-import pages.chargeE.{TotalChargeAmountPage, MemberDetailsPage}
+import pages.chargeE.{MemberDetailsPage, TotalChargeAmountPage}
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.DeleteAFTChargeService
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
@@ -180,6 +181,18 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+    }
+
+    "redirect to your action was not processed page for a POST if 5XX error is thrown" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any()))
+        .thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
+      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", "true"))
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustEqual controllers.routes.YourActionWasNotProcessedController.onPageLoad(srn, startDate).url
     }
   }
 }

@@ -13,6 +13,8 @@ GET         /language/:lang                                                     
 
 GET         /this-service-has-been-reset                                                                                                             controllers.SessionExpiredController.onPageLoad
 
+GET         /:srn/:startDate/your-action-was-not-processed                                                                                           controllers.YourActionWasNotProcessedController.onPageLoad(srn: String, startDate: String)
+
 GET         /:srn/:startDate/:accessType/:version/charge-type                                                                                        controllers.ChargeTypeController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 POST        /:srn/:startDate/:accessType/:version/charge-type                                                                                        controllers.ChargeTypeController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
 

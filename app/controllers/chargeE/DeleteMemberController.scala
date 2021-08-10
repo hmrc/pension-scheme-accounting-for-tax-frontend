@@ -16,29 +16,29 @@
 
 package controllers.chargeE
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
-import javax.inject.Inject
+import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, UserAnswers, AccessType, NormalMode, Index}
+import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeE.{MemberDetailsPage, DeleteMemberPage}
+import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{UserAnswersService, ChargeEService, DeleteAFTChargeService}
+import services.{ChargeEService, DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -114,11 +114,13 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                 value =>
                   if (value) {
                     DataRetrievals.retrievePSTR { pstr =>
-                        for {
+                      (for {
                           updatedAnswers <- Future.fromTry(userAnswersService
                             .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount(srn, startDate, accessType, version)))
                           _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
-                        } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+                        } yield {
+                          Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+                        }) recoverWith recoverFrom5XX(srn, startDate)
                     }
                   } else {
                     Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate, accessType, version)))

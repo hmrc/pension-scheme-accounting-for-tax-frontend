@@ -16,28 +16,28 @@
 
 package controllers.chargeC
 
-import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import helpers.CYAChargeCHelper
+import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
-import models.{NormalMode, GenericViewModel, AccessType, Index}
+import models.{AccessType, GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeC._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{AFTService, ChargeCService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -92,13 +92,13 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         val totalAmount = chargeCHelper.getSponsoringEmployers(request.userAnswers, srn, startDate, accessType, version).map(_.amount).sum
-        for {
+        (for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
           _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
         } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
-        }
+        }) recoverWith recoverFrom5XX(srn, startDate)
       }
     }
 }
