@@ -1,5 +1,6 @@
 // initialise GovUK lib
 GOVUKFrontend.initAll();
+HMRCFrontend.initAll();
 if (document.querySelector('#country') != null) {
     accessibleAutocomplete({
         element: document.getElementById('country'),
