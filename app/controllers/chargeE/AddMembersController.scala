@@ -17,29 +17,30 @@
 package controllers.chargeE
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
+
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTQuarter, NormalMode, GenericViewModel, AccessType}
+import models.{AFTQuarter, NormalMode, AccessType, GenericViewModel}
 import navigators.CompoundNavigator
 import pages.chargeE.AddMembersPage
-import pages.{SchemeNameQuery, QuarterPage, ViewOnlyAccessiblePage}
+import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
+import play.api.Logger
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{Json, JsObject}
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.ChargeEService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -59,11 +60,19 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   def form: Form[Boolean] = formProvider("chargeE.addMembers.error")
 
+  private val logger = Logger(classOf[AddMembersController])
+
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
+
+      logger.info("Loading add members page for charge type E (annual allowance)")
+
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
-          renderer.render(template = "chargeE/addMembers.njk", getJson(srn, startDate, form, schemeName, quarter, accessType, version)).map(Ok(_))
+          renderer.render(template = "chargeE/addMembers.njk",
+            getJson(srn, startDate, form, schemeName, quarter, accessType, version))
+            .map(Ok(_))
 
         case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
@@ -95,13 +104,17 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: AFTQuarter, accessType: AccessType, version: Int)(
       implicit request: DataRequest[AnyContent]): JsObject = {
 
+    logger.info("Add members page for charge type E (annual allowance) - getJson called")
+
     val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate, accessType, version).url,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
     val members = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate, accessType, version)
 
-    Json.obj(
+    logger.info(s"Add members page for charge type E (annual allowance) - getJson - total members: ${members.size}")
+
+    val json = Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),
       "form" -> form,
@@ -113,6 +126,9 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       "canChange" -> !request.isViewOnly
     )
 
+    logger.info("Add members page for charge type E (annual allowance) - getJson call ended")
+
+    json
   }
 
 }
