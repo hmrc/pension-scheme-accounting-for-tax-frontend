@@ -17,29 +17,30 @@
 package controllers
 
 import java.time.LocalDate
-
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProvider, _}
 import forms.{MemberSearchFormProvider, AFTSummaryFormProvider}
 import helpers.AFTSummaryHelper
+
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{Quarters, GenericViewModel, UserAnswers, AccessType, NormalMode, Mode}
+import models.{Quarters, GenericViewModel, NormalMode, Mode, UserAnswers, AccessType}
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
+import play.api.Logger
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{Json, JsObject}
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import services._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class AFTSummaryController @Inject()(
                                       override val messagesApi: MessagesApi,
@@ -61,7 +62,7 @@ class AFTSummaryController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
-
+  private val logger = Logger(classOf[AFTSummaryController])
   private def nunjucksTemplate = "aftSummary.njk"
 
   private val form = formProvider()
@@ -94,6 +95,9 @@ class AFTSummaryController @Inject()(
   def onSearchMember(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
+
+      logger.info("AFT summary controller on search member")
+
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
         srn = srn,
@@ -104,12 +108,16 @@ class AFTSummaryController @Inject()(
           .bindFromRequest()
           .fold(
             formWithErrors => {
+              logger.info("AFT summary controller on search member -- errors")
               val json = getJson(form, formWithErrors, ua, srn, startDate, schemeDetails.schemeName, version, accessType)
+              logger.info(s"AFT summary controller on search member -- got json")
               renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
             },
             value => {
+              logger.info(s"AFT summary controller on search member -- value = $value - about to search")
               val preparedForm: Form[String] = memberSearchForm.fill(value)
               val searchResults = memberSearchService.search(ua, srn, startDate, value, accessType, version)
+              logger.info(s"AFT summary controller on search member -- searchResults size = ${searchResults.size}")
               val json =
                 getJsonCommon(form, preparedForm, srn, startDate, schemeDetails.schemeName, version, accessType) ++
                   Json.obj("list" -> Json.toJson(searchResults)) ++

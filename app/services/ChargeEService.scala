@@ -16,28 +16,40 @@
 
 package services
 
-import java.time.LocalDate
-
+import java.time.{LocalDateTime, LocalDate}
 import com.google.inject.Inject
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{amendedChargeStatus, Unknown}
+import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, AccessType, UserAnswers, MemberDetails}
-import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
+import models.{UserAnswers, MemberDetails, Member, AccessType}
+import pages.chargeE.{ChargeDetailsPage, MemberStatusPage, MemberAFTVersionPage}
+import play.api.Logger
 import play.api.i18n.Messages
 import play.api.mvc.{Call, AnyContent}
 import services.AddMembersService.mapChargeXMembersToTable
 import viewmodels.Table
 
-class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
+import java.time.format.{FormatStyle, DateTimeFormatter}
 
+class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
+  private val logger = Logger(classOf[ChargeEService])
+
+  private def now: String =
+    LocalDateTime.now.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM))
 
   def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): Seq[Member] = {
-    ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").zipWithIndex.flatMap { case (member, index) =>
+
+    logger.info("Get annual allowance members for charge type E (annual allowance)")
+
+    val allMembers = ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails")
+
+    logger.info(s"Get annual allowance members for charge type E (annual allowance) - total members: ${allMembers.size} and start time: $now")
+
+    val m = allMembers.zipWithIndex.flatMap { case (member, index) =>
       ua.get(MemberStatusPage(index)) match {
         case Some(status) if status == "Deleted" => Nil
         case _ =>
@@ -53,6 +65,8 @@ class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
           }.toSeq
       }
     }
+    logger.info(s"Get annual allowance members for charge type E (annual allowance) - exiting at end time: $now")
+    m
   }
 
   def getAllAnnualAllowanceAmendments(ua: UserAnswers, currentVersion: Int): Seq[ViewAmendmentDetails] = {
