@@ -76,8 +76,7 @@ class AFTSummaryController @Inject()(
       Try(request.userAnswers.data \ "chargeEDetails" \ "members" \\ "memberDetails") match {
         case Success(value) =>
           logger.info(s"Loading aft summary page: success getting member details: size = ${value.size}")
-        case Failure(exception) =>
-        logger.info(s"Loading aft summary page: failure to get member details: ${exception.toString}")
+        case _ => ()
       }
 
       schemeService.retrieveSchemeDetails(
