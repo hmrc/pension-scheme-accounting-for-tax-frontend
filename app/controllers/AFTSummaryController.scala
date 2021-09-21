@@ -75,7 +75,7 @@ class AFTSummaryController @Inject()(
 
       Try(request.userAnswers.data \ "chargeEDetails" \ "members" \\ "memberDetails") match {
         case Success(value) =>
-          logger.info(s"Loading aft summary page: success getting member details: size = ${value.size}")
+          logger.warn(s"Loading aft summary page: success getting member details: size = ${value.size}")
         case _ => ()
       }
 
@@ -104,7 +104,7 @@ class AFTSummaryController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
 
-      logger.info("AFT summary controller on search member")
+      logger.warn("AFT summary controller on search member")
 
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
@@ -116,16 +116,16 @@ class AFTSummaryController @Inject()(
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              logger.info("AFT summary controller on search member -- errors")
+              logger.warn("AFT summary controller on search member -- errors")
               val json = getJson(form, formWithErrors, ua, srn, startDate, schemeDetails.schemeName, version, accessType)
-              logger.info(s"AFT summary controller on search member -- got json")
+              logger.warn(s"AFT summary controller on search member -- got json")
               renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
             },
             value => {
-              logger.info(s"AFT summary controller on search member -- value = $value - about to search")
+              logger.warn(s"AFT summary controller on search member -- value = $value - about to search")
               val preparedForm: Form[String] = memberSearchForm.fill(value)
               val searchResults = memberSearchService.search(ua, srn, startDate, value, accessType, version)
-              logger.info(s"AFT summary controller on search member -- searchResults size = ${searchResults.size}")
+              logger.warn(s"AFT summary controller on search member -- searchResults size = ${searchResults.size}")
               val json =
                 getJsonCommon(form, preparedForm, srn, startDate, schemeDetails.schemeName, version, accessType) ++
                   Json.obj("list" -> Json.toJson(searchResults)) ++
