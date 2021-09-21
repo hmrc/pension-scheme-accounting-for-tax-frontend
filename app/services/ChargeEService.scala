@@ -43,11 +43,11 @@ class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): Seq[Member] = {
 
-    logger.info("Get annual allowance members for charge type E (annual allowance)")
+    logger.warn("Get annual allowance members for charge type E (annual allowance)")
 
     val allMembers = ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails")
 
-    logger.info(s"Get annual allowance members for charge type E (annual allowance) - total members: ${allMembers.size} and start time: $now")
+    logger.warn(s"Get annual allowance members for charge type E (annual allowance) - total members: ${allMembers.size} and start time: $now")
 
     val m = allMembers.zipWithIndex.flatMap { case (member, index) =>
       ua.get(MemberStatusPage(index)) match {
@@ -65,7 +65,7 @@ class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
           }.toSeq
       }
     }
-    logger.info(s"Get annual allowance members for charge type E (annual allowance) - exiting at end time: $now")
+    logger.warn(s"Get annual allowance members for charge type E (annual allowance) - exiting at end time: $now")
     m
   }
 

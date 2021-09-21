@@ -66,7 +66,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
 
-      logger.info("Loading add members page for charge type E (annual allowance)")
+      logger.warn("Loading add members page for charge type E (annual allowance)")
 
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
@@ -104,7 +104,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: AFTQuarter, accessType: AccessType, version: Int)(
       implicit request: DataRequest[AnyContent]): JsObject = {
 
-    logger.info("Add members page for charge type E (annual allowance) - getJson called")
+    logger.warn("Add members page for charge type E (annual allowance) - getJson called")
 
     val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate, accessType, version).url,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
@@ -112,7 +112,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
     val members = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate, accessType, version)
 
-    logger.info(s"Add members page for charge type E (annual allowance) - getJson - total members: ${members.size}")
+    logger.warn(s"Add members page for charge type E (annual allowance) - getJson - total members: ${members.size}")
 
     val json = Json.obj(
       "srn" -> srn,
@@ -126,7 +126,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       "canChange" -> !request.isViewOnly
     )
 
-    logger.info("Add members page for charge type E (annual allowance) - getJson call ended")
+    logger.warn("Add members page for charge type E (annual allowance) - getJson call ended")
 
     json
   }
