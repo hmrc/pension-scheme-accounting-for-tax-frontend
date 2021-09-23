@@ -75,7 +75,7 @@ class AFTSummaryController @Inject()(
 
       Try(request.userAnswers.data \ "chargeEDetails" \ "members" \\ "memberDetails") match {
         case Success(value) =>
-          logger.warn(s"Loading aft summary page: success getting member details: size = ${value.size}")
+          logger.warn(s"Loading aft summary page in load: success getting member details: size = ${value.size}")
         case _ => ()
       }
 

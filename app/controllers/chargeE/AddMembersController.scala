@@ -41,6 +41,7 @@ import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Try, Success}
 
 class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -70,9 +71,15 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
-          renderer.render(template = "chargeE/addMembers.njk",
-            getJson(srn, startDate, form, schemeName, quarter, accessType, version))
-            .map(Ok(_))
+          val thisJson = getJson(srn, startDate, form, schemeName, quarter, accessType, version)
+          logger.warn(s"Add members page: thisJson=$thisJson")
+          renderer.render(template = "chargeE/addMembers.njk", thisJson)
+            .map{ renderedHtml =>
+              logger.warn("Html rendered")
+              val result = Ok(renderedHtml)
+              logger.warn("play result=" + result)
+              result
+            }
 
         case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
