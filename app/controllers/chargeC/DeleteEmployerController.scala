@@ -65,7 +65,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
+      DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, employerName, employerType) =>
         val viewModel = GenericViewModel(
           submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, version, index).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
@@ -78,7 +78,8 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
           "form" -> form(employerName),
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo(form(employerName)(implicitly)("value")),
-          "employerName" -> employerName
+          "employerName" -> employerName,
+          "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
         )
 
         renderer.render("chargeC/deleteEmployer.njk", json).map(Ok(_))
@@ -87,7 +88,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
+      DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, employerName, employerType) =>
         form(employerName)
           .bindFromRequest()
           .fold(
@@ -105,7 +106,8 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                 "form" -> formWithErrors,
                 "viewModel" -> viewModel,
                 "radios" -> Radios.yesNo(formWithErrors("value")),
-                "employerName" -> employerName
+                "employerName" -> employerName,
+                "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
               )
 
               renderer.render("chargeC/deleteEmployer.njk", json).map(BadRequest(_))

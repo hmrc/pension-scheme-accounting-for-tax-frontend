@@ -872,6 +872,8 @@ chargeC.employerAddressSearch.link.youCan = You can
 chargeC.employerAddressSearch.link.enterManually = enter the address manually
 chargeC.employerAddressSearch.findAddress = Find address
 chargeC.employerAddressSearch.selectAddress = Select the address from the list below, or
+chargeC.employerType.individual = the individual
+chargeC.employerType.organisation = the company
 
 chargeC.employerAddressResults.title = What is {0}’s address?
 chargeC.employerAddressResults.heading = What is {0}’s address?

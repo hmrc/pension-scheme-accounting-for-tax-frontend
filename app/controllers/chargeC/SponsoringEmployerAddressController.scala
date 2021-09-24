@@ -84,7 +84,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+      DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
         val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage(index)) match {
           case None        => form
           case Some(value) => form.fill(value)
@@ -101,6 +101,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "sponsorName" -> sponsorName,
+          "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
           "countries" -> jsonCountries(preparedForm.data.get("country"))
         )
 
@@ -114,7 +115,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+      DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
         form
           .bindFromRequest()
           .fold(
@@ -131,6 +132,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
                 "form" -> addArgsToErrors(formWithErrors, sponsorName),
                 "viewModel" -> viewModel,
                 "sponsorName" -> sponsorName,
+                "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
                 "countries" -> jsonCountries(formWithErrors.data.get("country"))
               )
 
