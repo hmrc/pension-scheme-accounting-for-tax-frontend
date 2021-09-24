@@ -49,7 +49,7 @@ class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
     logger.warn(s"Get annual allowance members for charge type E (annual allowance) - total members: ${allMembers.size} and start time: $now")
 
-    val m = allMembers.take(10).zipWithIndex.flatMap { case (member, index) =>
+    val m = allMembers.zipWithIndex.flatMap { case (member, index) =>
       ua.get(MemberStatusPage(index)) match {
         case Some(status) if status == "Deleted" => Nil
         case _ =>
@@ -64,7 +64,7 @@ class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
             )
           }.toSeq
       }
-    }
+    }.take(10)
     logger.warn(s"Get annual allowance members for charge type E (annual allowance) - exiting at end time: $now")
     m
   }
