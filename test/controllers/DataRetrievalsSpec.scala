@@ -209,6 +209,39 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
     }
   }
 
+  "retrieveSchemeEmployerTypeAndSponsoringEmployer must" - {
+    val result: (String, String, SponsoringEmployerType) => Future[Result] = { (_, _, _) => Future.successful(Ok("success result"))}
+
+    "return successful result when scheme name and company name is successfully retrieved from user answers" in {
+      val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").
+        flatMap(_.set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeOrganisation)).
+        flatMap(_.set(SponsoringOrganisationDetailsPage(0), SponsoringOrganisationDetails("company", "test crn")))
+        .getOrElse(UserAnswers())
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
+        Some(PsaId("A2100000")), None, ua, SampleData.sessionData())
+      val res = DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index = 0)(result)(request)
+      status(res) must be(OK)
+    }
+
+    "return successful result when scheme name and individual name is successfully retrieved from user answers" in {
+      val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").
+        flatMap(_.set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual)).
+        flatMap(_.set(SponsoringIndividualDetailsPage(0), MemberDetails("first", "last", "ab100100a")))
+        .getOrElse(UserAnswers())
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
+        Some(PsaId("A2100000")), None, ua, SampleData.sessionData())
+      val res = DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index = 0)(result)(request)
+      status(res) must be(OK)
+    }
+
+    "return session expired when there is no scheme name or company name or individual name in user answers" in {
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
+        Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
+      val res = DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index = 0)(result)(request)
+      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+    }
+  }
+
   "cyaChargeC must" - {
     val result: (SponsoringEmployerType, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) =>
       Future[Result] = { (_, _, _, _, _) => Future.successful(Ok("success result"))}

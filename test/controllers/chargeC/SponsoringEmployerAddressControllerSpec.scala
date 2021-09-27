@@ -22,7 +22,8 @@ import data.SampleData._
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
+import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
 import models.chargeC.SponsoringEmployerAddress
 import models.requests.IdentifierRequest
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -33,6 +34,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import play.twirl.api.Html
@@ -85,7 +87,8 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     "postcode" -> Seq("ZZ1 1ZZ")
   )
 
-  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false): Form[SponsoringEmployerAddress] => JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false, sponsorType: SponsoringEmployerType):
+  Form[SponsoringEmployerAddress] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.
@@ -93,6 +96,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
       schemeName = schemeName),
     "sponsorName" -> sponsorName,
+    "employerType" -> Messages(s"chargeC.employerType.${sponsorType.toString}"),
     "countries" -> Seq(
       Json.obj(
         "value" -> "",
@@ -127,7 +131,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = "First Last").apply(form))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = "First Last", sponsorType = SponsoringEmployerTypeIndividual).apply(form))
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
@@ -143,7 +147,8 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       templateCaptor.getValue mustEqual templateToBeRendered
-      val expected = jsonToPassToTemplate(sponsorName = "First Last", isSelected = true)(form.fill(sponsoringEmployerAddress))
+      val expected = jsonToPassToTemplate(sponsorName = "First Last", isSelected = true,
+        sponsorType = SponsoringEmployerTypeIndividual)(form.fill(sponsoringEmployerAddress))
       jsonCaptor.getValue must containJson(expected)
     }
 
@@ -172,7 +177,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName).apply(form))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName, sponsorType = SponsoringEmployerTypeOrganisation).apply(form))
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
@@ -190,7 +195,8 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName, isSelected = true)(form.fill(sponsoringEmployerAddress)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName, isSelected = true,
+        sponsorType = SponsoringEmployerTypeOrganisation)(form.fill(sponsoringEmployerAddress)))
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {

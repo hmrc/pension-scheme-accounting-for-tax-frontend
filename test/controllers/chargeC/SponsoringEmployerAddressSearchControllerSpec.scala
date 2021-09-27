@@ -24,8 +24,9 @@ import data.SampleData.{companyName, dummyCall, srn, startDate, userAnswersWithS
 import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, NormalMode, TolerantAddress, UserAnswers}
+import models.{GenericViewModel, NormalMode, SponsoringEmployerType, TolerantAddress, UserAnswers}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when, _}
@@ -34,6 +35,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
@@ -84,7 +86,7 @@ class SponsoringEmployerAddressSearchControllerSpec
     "value" -> Seq("")
   )
 
-  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false): Form[String] => JsObject =
+  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false, sponsorType: SponsoringEmployerType): Form[String] => JsObject =
     form =>
       Json.obj(
         "form" -> form,
@@ -94,6 +96,7 @@ class SponsoringEmployerAddressSearchControllerSpec
           schemeName = schemeName
         ),
         "sponsorName" -> sponsorName,
+        "employerType" -> Messages(s"chargeC.employerType.${sponsorType.toString}"),
         "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url
     )
 
@@ -120,7 +123,8 @@ class SponsoringEmployerAddressSearchControllerSpec
 
       templateCaptor.getValue mustEqual templateToBeRendered
       jsonCaptor.getValue must containJson(
-        jsonToPassToTemplate(sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}").apply(form))
+        jsonToPassToTemplate(sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}",
+          sponsorType = SponsoringEmployerTypeIndividual).apply(form))
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
@@ -147,7 +151,8 @@ class SponsoringEmployerAddressSearchControllerSpec
 
         templateCaptor.getValue mustEqual templateToBeRendered
 
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName).apply(form))
+        jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName,
+          sponsorType = SponsoringEmployerTypeOrganisation).apply(form))
       }
     }
 
