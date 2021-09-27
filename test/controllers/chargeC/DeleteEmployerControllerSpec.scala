@@ -154,7 +154,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
         "viewModel" -> viewModel,
         "radios" -> Radios.yesNo(form("value")),
         "employerName" -> employerNameOrg,
-        "employerType" -> Messages(s"chargeC.employerType.individual")
+        "employerType" -> Messages(s"chargeC.employerType.organisation")
       )
 
       templateCaptor.getValue mustEqual "chargeC/deleteEmployer.njk"
