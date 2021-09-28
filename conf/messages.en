@@ -1217,11 +1217,11 @@ selectChargesTaxYear.upcoming.error = Select which tax year you want to view upc
 selectChargesTaxYear.overdue.error = Select which tax year you want to view overdue {0} for
 
 selectChargesQuarter.all.title = Which quarter of {0} do you want to view the Accounting for Tax charges for?
-selectChargesQuarter.upcoming.title = Which quarter of {0} do you want to view the upcoming {0} for?
-selectChargesQuarter.overdue.title = Which quarter of {0} do you want to view the overdue {0} for?
+selectChargesQuarter.upcoming.title = Which quarter of {0} do you want to view the upcoming payments and interest charges for?
+selectChargesQuarter.overdue.title = Which quarter of {0} do you want to view the overdue payments and interest charges for?
 selectChargesQuarter.all.error = Select which quarter of {0} you want to view Accounting for Tax charges for
-selectChargesQuarter.upcoming.error = Select which quarter of {0} you want to view upcoming Accounting for Tax charges for
-selectChargesQuarter.overdue.error = Select which quarter of {0} you want to view overdue Accounting for Tax charges for
+selectChargesQuarter.upcoming.error = Select which quarter of {0} you want to view upcoming payments and interest charges for
+selectChargesQuarter.overdue.error = Select which quarter of {0} you want to view the overdue payments and interest charges for
 
 paymentOrChargeType.all.title = What type of payments and charges do you want to view?
 paymentOrChargeType.upcoming.title = What type of upcoming payments and charges do you want to view?
