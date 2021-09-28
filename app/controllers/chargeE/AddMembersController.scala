@@ -110,7 +110,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
-    val members = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate, accessType, version)
+    val members = chargeEHelper.getAnnualAllowanceMembersPaginated(1, request.userAnswers, srn, startDate, accessType, version)
 
     logger.warn(s"Add members page for charge type E (annual allowance) - getJson - total members: ${members.size}")
 

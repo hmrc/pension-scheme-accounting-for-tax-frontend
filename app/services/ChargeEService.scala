@@ -15,9 +15,11 @@
  */
 
 package services
+import play.api.libs.json.Reads._
 
 import java.time.{LocalDateTime, LocalDate}
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeAnnualAllowance
@@ -28,17 +30,56 @@ import models.{UserAnswers, MemberDetails, Member, AccessType}
 import pages.chargeE.{ChargeDetailsPage, MemberStatusPage, MemberAFTVersionPage}
 import play.api.Logger
 import play.api.i18n.Messages
+import play.api.libs.json.{JsResultException, JsArray, JsValue, Reads}
 import play.api.mvc.{Call, AnyContent}
 import services.AddMembersService.mapChargeXMembersToTable
 import viewmodels.Table
 
 import java.time.format.{FormatStyle, DateTimeFormatter}
 
-class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
+class ChargeEService @Inject()(
+  deleteChargeHelper: DeleteChargeHelper,
+  config: FrontendAppConfig
+) {
   private val logger = Logger(classOf[ChargeEService])
 
   private def now: String =
     LocalDateTime.now.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM))
+
+  private def validate[A](jsValue: JsValue)(implicit rds: Reads[A]): A = {
+    jsValue.validate[A].fold(
+      invalid =
+        errors =>
+          throw JsResultException(errors),
+      valid =
+        response => response
+    )
+  }
+
+  // scalastyle:off method.length
+  def getAnnualAllowanceMembersPaginated(pageNo:Int, ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+    (implicit request: DataRequest[AnyContent]): Seq[Member] = {
+    val pageSize = config.membersPageSize
+    val start = (pageNo-1) * pageSize
+    val end = pageNo * pageSize
+
+    (ua.data \ "chargeEDetails" \ "members").as[JsArray].value.zipWithIndex
+      .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
+      .slice(start, end)
+      .flatMap { case (m, index) =>
+        val member = (m \ "memberDetails").as[MemberDetails]
+        ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
+          Member(
+            index,
+            member.fullName,
+            member.nino,
+            chargeDetails.chargeAmount,
+            viewUrl(index, srn, startDate, accessType, version).url,
+            removeUrl(index, srn, startDate, ua, accessType, version).url
+          )
+        }.toSeq
+      }
+  }
 
   def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): Seq[Member] = {

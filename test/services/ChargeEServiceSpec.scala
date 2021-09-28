@@ -17,21 +17,21 @@
 package services
 
 import java.time.LocalDate
-
 import base.SpecBase
+import config.FrontendAppConfig
 import data.SampleData
-import data.SampleData.{versionInt, accessType}
+import data.SampleData.{accessType, versionInt}
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Deleted, Added}
+import models.AmendedChargeStatus.{Added, Deleted}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, AmendedChargeStatus, UserAnswers, MemberDetails}
+import models.{UserAnswers, MemberDetails, Member, AmendedChargeStatus}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
+import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage, MemberStatusPage, MemberAFTVersionPage}
 import utils.AFTConstants.QUARTER_START_DATE
 class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
@@ -43,10 +43,22 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
     .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
+
     .set(MemberStatusPage(1), AmendedChargeStatus.Deleted.toString).toOption.get
     .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
     .set(ChargeDetailsPage(1), SampleData.chargeEDetails).toOption.get
+
+    .set(MemberStatusPage(2), AmendedChargeStatus.Added.toString).toOption.get
+    .set(MemberAFTVersionPage(2), SampleData.version.toInt).toOption.get
+    .set(MemberDetailsPage(2), SampleData.memberDetails3).toOption.get
+    .set(ChargeDetailsPage(2), SampleData.chargeEDetails).toOption.get
+
+    .set(MemberStatusPage(3), AmendedChargeStatus.Added.toString).toOption.get
+    .set(MemberAFTVersionPage(3), SampleData.version.toInt).toOption.get
+    .set(MemberDetailsPage(3), SampleData.memberDetails4).toOption.get
+    .set(ChargeDetailsPage(3), SampleData.chargeEDetails).toOption.get
+
 
   def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url
@@ -54,19 +66,42 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index))
 
   def expectedAllMembersMinusDeleted: Seq[Member] = Seq(
-    expectedMember(SampleData.memberDetails, 0)
+    expectedMember(SampleData.memberDetails, 0),
+    expectedMember(SampleData.memberDetails3, 2),
+    expectedMember(SampleData.memberDetails4, 3)
   )
+
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper)
+  private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
+  val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper, mockAppConfig)
 
   override def beforeEach: Unit = {
-    reset(mockDeleteChargeHelper)
+    reset(mockDeleteChargeHelper, mockAppConfig)
     when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
+    when(mockAppConfig.membersPageSize).thenReturn(2)
   }
 
   ".getAnnualAllowanceMembers" must {
     "return all the members added in charge E" in {
-      chargeEHelper.getAnnualAllowanceMembers(allMembers, srn, startDate, accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
+      chargeEHelper.getAnnualAllowanceMembers(allMembers, srn, startDate,
+        accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
+    }
+
+    "return page one for all the members added in charge E, excluding the deleted member" in {
+      val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
+        expectedMember(SampleData.memberDetails, 0),
+        expectedMember(SampleData.memberDetails3, 2)
+      )
+      chargeEHelper.getAnnualAllowanceMembersPaginated(1, allMembers, srn, startDate,
+        accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
+    }
+
+    "return page two for all the members added in charge E, excluding the deleted member" in {
+      val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
+        expectedMember(SampleData.memberDetails4, 3)
+      )
+      chargeEHelper.getAnnualAllowanceMembersPaginated(2, allMembers, srn, startDate,
+        accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
     }
   }
 
@@ -83,6 +118,16 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
           SampleData.memberDetails2.fullName, ChargeTypeAnnualAllowance.toString,
           FormatHelper.formatCurrencyAmountAsString(SampleData.chargeEDetails.chargeAmount),
           Deleted
+        ),
+        ViewAmendmentDetails(
+          SampleData.memberDetails3.fullName, ChargeTypeAnnualAllowance.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeEDetails.chargeAmount),
+          Added
+        ),
+        ViewAmendmentDetails(
+          SampleData.memberDetails4.fullName, ChargeTypeAnnualAllowance.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeEDetails.chargeAmount),
+          Added
         )
       )
       chargeEHelper.getAllAnnualAllowanceAmendments(allMembers, versionInt) mustBe expectedRows

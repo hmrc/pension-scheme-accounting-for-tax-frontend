@@ -123,6 +123,8 @@ object SampleData {
   val chargeBDetails: ChargeBDetails = ChargeBDetails(4, chargeAmount1)
   val memberDetails: MemberDetails = MemberDetails("first", "last", "AB123456C")
   val memberDetails2: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C")
+  val memberDetails3: MemberDetails = MemberDetails("Joe", "Bliggs", "AB123457C")
+  val memberDetails4: MemberDetails = MemberDetails("Joe", "Blaggs", "AB123458C")
   val memberGDetails: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.now(), "AB123456C")
   val memberGDetails2: MemberDetailsG = MemberDetailsG("Joe", "Bloggs", LocalDate.now(), "AB123456C")
 
