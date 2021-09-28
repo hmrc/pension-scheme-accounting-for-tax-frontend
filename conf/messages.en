@@ -1220,7 +1220,7 @@ selectChargesQuarter.all.title = Which quarter of {0} do you want to view the Ac
 selectChargesQuarter.upcoming.title = Which quarter of {0} do you want to view the upcoming payments and interest charges for?
 selectChargesQuarter.overdue.title = Which quarter of {0} do you want to view the overdue payments and interest charges for?
 selectChargesQuarter.all.error = Select which quarter of {0} you want to view Accounting for Tax charges for
-selectChargesQuarter.upcoming.error = Select which quarter of {0} you want to view upcoming payments and interest charges for
+selectChargesQuarter.upcoming.error = Select which quarter of {0} you want to view the upcoming payments and interest charges for
 selectChargesQuarter.overdue.error = Select which quarter of {0} you want to view the overdue payments and interest charges for
 
 paymentOrChargeType.all.title = What type of payments and charges do you want to view?
