@@ -19,18 +19,17 @@ import play.api.libs.json.Reads._
 
 import java.time.{LocalDateTime, LocalDate}
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
+import models.chargeE.ChargeEDetails
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{UserAnswers, MemberDetails, Member, AccessType}
 import pages.chargeE.{ChargeDetailsPage, MemberStatusPage, MemberAFTVersionPage}
 import play.api.Logger
 import play.api.i18n.Messages
-import play.api.libs.json.JsArray
 import play.api.mvc.{Call, AnyContent}
 import services.AddMembersService.mapChargeXMembersToTable
 import viewmodels.Table
@@ -39,35 +38,21 @@ import java.time.format.{FormatStyle, DateTimeFormatter}
 
 class ChargeEService @Inject()(
   deleteChargeHelper: DeleteChargeHelper,
-  config: FrontendAppConfig
+  memberPaginationService: MemberPaginationService
 ) {
   private val logger = Logger(classOf[ChargeEService])
 
   private def now: String =
     LocalDateTime.now.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM))
 
-  // scalastyle:off method.length
   def getAnnualAllowanceMembersPaginated(pageNo:Int, ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
     (implicit request: DataRequest[AnyContent]): Seq[Member] = {
-    val pageSize = config.membersPageSize
-    val start = (pageNo - 1) * pageSize
-    val end = pageNo * pageSize
 
-    (ua.data \ "chargeEDetails" \ "members").as[JsArray].value.zipWithIndex
-      .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
-      .slice(start, end)
-      .flatMap { case (m, index) =>
-        val member = (m \ "memberDetails").as[MemberDetails]
-        ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-          Member(
-            index,
-            member.fullName,
-            member.nino,
-            chargeDetails.chargeAmount,
-            viewUrl(index, srn, startDate, accessType, version).url,
-            removeUrl(index, srn, startDate, ua, accessType, version).url
-          )
-        }.toSeq
+    memberPaginationService.getMembersPaginated[ChargeEDetails](
+      "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo)(ua, srn, startDate, accessType, version)
+      match {
+        case Some(pmi) => pmi.members
+        case _ => Nil
       }
   }
 

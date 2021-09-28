@@ -18,17 +18,18 @@ package services
 
 import java.time.LocalDate
 import base.SpecBase
-import config.FrontendAppConfig
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus.{Added, Deleted}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
+import models.chargeE.ChargeEDetails
 import models.viewModels.ViewAmendmentDetails
 import models.{UserAnswers, MemberDetails, Member, AmendedChargeStatus}
+import org.mockito.Matchers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.{times, verify, reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage, MemberStatusPage, MemberAFTVersionPage}
@@ -74,14 +75,25 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     expectedMember(SampleData.memberDetails6, 5)
   )
 
+  private val expectedMembers = Seq(Member(0, "mr smith", "CS121212C", BigDecimal(3), "viewlink", "removeLink"))
+
+  private val expectedPaginatedMembersInfo:Option[PaginatedMembersInfo] =
+    Some(PaginatedMembersInfo(
+      members = expectedMembers,
+      startMemberNumber = 0,
+      lastMemberNumber = 0,
+      totalMembers = 1
+    ))
+
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
-  val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper, mockAppConfig)
+  private val mockMemberPaginationService = mock[MemberPaginationService]
+  val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper, mockMemberPaginationService)
 
   override def beforeEach: Unit = {
-    reset(mockDeleteChargeHelper, mockAppConfig)
+    reset(mockDeleteChargeHelper, mockMemberPaginationService)
     when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
-    when(mockAppConfig.membersPageSize).thenReturn(2)
+    when(mockMemberPaginationService.getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any())(any(), any(), any(), any(), any())(any()))
+      .thenReturn(expectedPaginatedMembersInfo)
   }
 
   ".getAnnualAllowanceMembers" must {
@@ -89,41 +101,18 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
       chargeEHelper.getAnnualAllowanceMembers(allMembers, srn, startDate,
         accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
     }
+   }
 
-    "return page one for all the members added in charge E, excluding the deleted member" in {
-      val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
-        expectedMember(SampleData.memberDetails, 0),
-        expectedMember(SampleData.memberDetails3, 2)
-      )
-      chargeEHelper.getAnnualAllowanceMembersPaginated(1, allMembers, srn, startDate,
-        accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
-    }
-
-    "return page two for all the members added in charge E, excluding the deleted member" in {
-      val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
-        expectedMember(SampleData.memberDetails4, 3),
-        expectedMember(SampleData.memberDetails5, 4)
-      )
+  "getAnnualAllowanceMembersPaginated" must {
+    "delegate to the member pagination service with correct page no" in {
       chargeEHelper.getAnnualAllowanceMembersPaginated(2, allMembers, srn, startDate,
-        accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
-    }
-
-    "return page three for all the members added in charge E, excluding the deleted member" in {
-      val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
-        expectedMember(SampleData.memberDetails6, 5)
-      )
-      chargeEHelper.getAnnualAllowanceMembersPaginated(3, allMembers, srn, startDate,
-        accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
-    }
-
-    "return empty sequence when beyond page limit" in {
-      chargeEHelper.getAnnualAllowanceMembersPaginated(4, allMembers, srn, startDate,
-        accessType, versionInt)(request()) mustBe Nil
+        accessType, versionInt)(request()) mustBe expectedMembers
+      verify(mockMemberPaginationService, times(1))
+        .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), Matchers.eq(2))(any(), any(), any(), any(), any())(any())
     }
   }
 
   "getAllAnnualAllowanceAmendments" must {
-
     "return all the amendments for annual allowance charge" in {
       val expectedRows = Seq(
         ViewAmendmentDetails(
