@@ -41,6 +41,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.DeleteAFTChargeService
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
@@ -215,6 +216,18 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
         Matchers.eq(expectedUA))(any(), any(), any())
+    }
+
+    "redirect to your action was not processed page for a POST if 5XX error is thrown" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(answersOrg))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any()))
+        .thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
+      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", "true"))
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustEqual controllers.routes.YourActionWasNotProcessedController.onPageLoad(srn, startDate).url
     }
   }
 }

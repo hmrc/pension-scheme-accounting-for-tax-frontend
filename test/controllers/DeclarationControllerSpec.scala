@@ -16,38 +16,38 @@
 
 package controllers
 
-import java.time.{ZonedDateTime, ZoneId}
-
-import audit.{AuditService, AFTReturnEmailAuditEvent}
+import java.time.{ZoneId, ZonedDateTime}
+import audit.{AFTReturnEmailAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{EmailSent, EmailConnector}
+import connectors.{EmailConnector, EmailSent}
 import controllers.actions._
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
-import models.JourneyType.{AFT_SUBMIT_RETURN, AFT_SUBMIT_AMEND}
+import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
-import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeSame, ChangeTypeIncrease}
+import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.requests.IdentifierRequest
-import models.{SessionAccessData, AdministratorOrPractitioner, GenericViewModel, JourneyType, UserAnswers, AFTQuarter, Declaration, AccessMode}
+import models.{AFTQuarter, AccessMode, AdministratorOrPractitioner, Declaration, GenericViewModel, JourneyType, SessionAccessData, UserAnswers}
 import navigators.CompoundNavigator
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, when, verify}
-import org.mockito.{Matchers, ArgumentCaptor, Mockito}
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.scalatestplus.mockito.MockitoSugar
 import pages._
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY, formatSubmittedDate}
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
 import scala.concurrent.Future
 
@@ -305,6 +305,19 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+    }
+
+    "redirect to your action was not processed page for a POST if 5XX error is thrown" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(
+        userAnswersWithPSTREmailQuarter.map(_.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease))
+      )
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).
+        thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
+      val result = route(application, httpGETRequest(httpPathOnSubmit)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.YourActionWasNotProcessedController.onPageLoad(srn, startDate).url
     }
   }
 }

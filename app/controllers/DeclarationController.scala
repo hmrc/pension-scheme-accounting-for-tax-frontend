@@ -16,20 +16,18 @@
 
 package controllers
 
-import java.time.{ZoneId, ZonedDateTime, LocalDate}
-
 import audit.{AFTReturnEmailAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import models.AdministratorOrPractitioner._
 import connectors.{EmailConnector, EmailStatus}
 import controllers.actions._
-import javax.inject.Inject
-import models.JourneyType.{AFT_SUBMIT_RETURN, AFT_SUBMIT_AMEND}
+import helpers.ErrorHelper.recoverFrom5XX
+import models.AdministratorOrPractitioner._
+import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
-import models.requests.DataRequest
-import models.{GenericViewModel, AccessType, AFTQuarter, NormalMode, Declaration}
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
+import models.requests.DataRequest
+import models.{AFTQuarter, AccessType, Declaration, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage, NameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -41,6 +39,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DeclarationController @Inject()(
@@ -85,14 +85,14 @@ class DeclarationController @Inject()(
       DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, pstr, email, quarter, isAmendment, amendedVersion) =>
         val schemeAdministratorType = if (request.schemeAdministratorType == Administrator) "PSA" else "PSP"
         val declaration = Declaration(schemeAdministratorType, request.idOrException, hasAgreed = true)
-        for {
+        (for {
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.save(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
-        }
+        }) recoverWith recoverFrom5XX(srn, startDate)
       }
     }
 

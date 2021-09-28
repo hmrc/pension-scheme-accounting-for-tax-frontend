@@ -16,27 +16,27 @@
 
 package controllers.chargeF
 
-import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.DataRetrievals
-import controllers.actions.{IdentifierAction, DataRequiredAction, AllowAccessActionProvider, DataRetrievalAction}
+import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeFHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{NormalMode, GenericViewModel, AccessType}
+import models.{AccessType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
-import pages.chargeF.{CheckYourAnswersPage, ChargeDetailsPage}
+import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
@@ -98,7 +98,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       DataRetrievals.retrievePSTR { pstr =>
         aftService.fileCompileReturn(pstr, request.userAnswers).map { _ =>
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
-        }
+        } recoverWith recoverFrom5XX(srn, startDate)
       }
   }
 }

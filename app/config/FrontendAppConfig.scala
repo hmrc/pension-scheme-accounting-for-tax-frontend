@@ -127,6 +127,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val administratorOrPractitionerUrl: String = loadConfig("urls.administratorOrPractitioner")
   lazy val managePensionsSchemeSummaryUrl: String = loadConfig("urls.schemesSummary")
+  lazy val delimitedPsaUrl: String = loadConfig("urls.delimitedPsa")
   lazy val managePensionsSchemePspUrl: String = loadConfig("urls.psp.schemesSummary")
   lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")
   lazy val yourPensionSchemesPspUrl: String = loadConfig("urls.psp.yourPensionSchemes")

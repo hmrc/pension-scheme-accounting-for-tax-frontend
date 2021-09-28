@@ -6,6 +6,8 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 {% from "govuk/components/select/macro.njk"        import govukSelect %}
+{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
+
 
 {% block pageHead %}
     <link href="{{ routes.controllers.Assets.versioned("stylesheets/location-autocomplete.min.css").url }}" media="screen" rel="stylesheet" type="text/css" />
@@ -27,11 +29,17 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeC.sponsoringEmployerAddress.heading', sponsorName)}}</h1>
-
         <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
 
           {{ csrf() | safe }}
+
+        {% call govukFieldset({
+          legend: {
+            text: messages('chargeC.sponsoringEmployerAddress.heading', sponsorName),
+            classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8",
+            isPageHeading: true
+          }
+        }) %}
 
           {{ govukInput({
             label: {
@@ -43,7 +51,6 @@
             name: "line1",
             value: form.line1.value,
             classes: "govuk-input--width-20",
-            attributes: {autocomplete: "none"},
             errorMessage: form.line1.error
           }) }}
 
@@ -57,7 +64,6 @@
             name: "line2",
             value: form.line2.value,
             classes: "govuk-input--width-20",
-            attributes: {autocomplete: "none"},
             errorMessage: form.line2.error
           }) }}
 
@@ -71,7 +77,6 @@
             name: "line3",
             value: form.line3.value,
             classes: "govuk-input--width-20",
-            attributes: {autocomplete: "none"},
             errorMessage: form.line3.error
           }) }}
 
@@ -85,7 +90,6 @@
             name: "line4",
             value: form.line4.value,
             classes: "govuk-input--width-20",
-            attributes: {autocomplete: "none"},
             errorMessage: form.line4.error
           }) }}
 
@@ -106,8 +110,6 @@
               }) }}
           </div>
 
-
-
           {{ govukInput({
             label: {
               text: messages('chargeC.sponsoringEmployerAddress.postcode.title'),
@@ -118,10 +120,9 @@
             name: "postcode",
             value: form.postcode.value,
             classes: "govuk-input--width-10",
-            attributes: {autocomplete: "none"},
             errorMessage: form.postcode.error
           }) }}
-
+        {% endcall %}
           {{ govukButton({
             text: messages("site.continue"),
             attributes: {id: "submit"}

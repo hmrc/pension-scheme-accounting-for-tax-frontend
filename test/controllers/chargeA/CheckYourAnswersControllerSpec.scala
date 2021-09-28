@@ -61,6 +61,12 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       jsonToPassToTemplate = jsonToPassToTemplate,
       userAnswers = ua
     )
+
+    behave like redirectToErrorOn5XX(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = ua
+    )
   }
 
   "CheckYourAnswers Controller with both rates of tax set" must {

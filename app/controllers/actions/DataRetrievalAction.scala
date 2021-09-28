@@ -17,18 +17,20 @@
 package controllers.actions
 
 import java.time.LocalDate
-
 import com.google.inject.ImplementedBy
 import connectors.cache.UserAnswersCacheConnector
+
 import javax.inject.Inject
 import models.UserAnswers
-import models.requests.{OptionalDataRequest, IdentifierRequest}
+import models.requests.{IdentifierRequest, OptionalDataRequest}
+import play.api.Logger
 import play.api.libs.json.JsObject
 import play.api.mvc.ActionTransformer
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class DataRetrievalImpl(
                          srn: String,
@@ -36,16 +38,22 @@ class DataRetrievalImpl(
                          userAnswersCacheConnector: UserAnswersCacheConnector
                        )(implicit val executionContext: ExecutionContext)
   extends DataRetrieval {
-
+  private val logger = Logger(classOf[DataRetrievalImpl])
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     val id = s"$srn$startDate"
-    for {
+    logger.warn("Dataretrieval action transform - start")
+    val result = for {
       data <- userAnswersCacheConnector.fetch(id)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       val optionUA = data.map(jsValue => UserAnswers(jsValue.as[JsObject]))
       OptionalDataRequest[A](request, id, request.psaId, request.pspId, optionUA, sessionData)
+    }
+    logger.warn("Dataretrieval action transform - end")
+    result andThen {
+      case Success(v) => logger.info("Successful response to data retrieval:" + v)
+      case Failure(t: Throwable) => logger.warn("Unable to complete dataretrieval", t)
     }
   }
 

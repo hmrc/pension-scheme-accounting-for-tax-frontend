@@ -45,7 +45,7 @@ class ErrorHandler @Inject()(
   override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = {
 
     implicit val rh: RequestHeader = request
-
+    logger.warn(s"Errorhandler onClientError:statusCode = $statusCode and message = $message")
     statusCode match {
       case BAD_REQUEST =>
         renderer.render("badRequest.njk").map(BadRequest(_))

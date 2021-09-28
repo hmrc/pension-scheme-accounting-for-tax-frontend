@@ -16,27 +16,27 @@
 
 package controllers.chargeB
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
-import javax.inject.Inject
+import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
-import models.{NormalMode, GenericViewModel, AccessType, UserAnswers}
+import models.{AccessType, GenericViewModel, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeB.{SpecialDeathBenefitsQuery, DeleteChargePage}
+import pages.chargeB.{DeleteChargePage, SpecialDeathBenefitsQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{UserAnswersService, DeleteAFTChargeService}
+import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        navigator: CompoundNavigator,
@@ -111,11 +111,11 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
                   val userAnswers: UserAnswers = userAnswersService.removeSchemeBasedCharge(SpecialDeathBenefitsQuery)
-                  for {
+                  (for {
                       _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers)
                     } yield {
                     Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate, accessType, version))
-                  }
+                  }) recoverWith recoverFrom5XX(srn, startDate)
                 }
               } else {
                 Future.successful(Redirect(controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)))
