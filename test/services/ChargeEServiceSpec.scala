@@ -39,17 +39,26 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
 
-  private def addMember(ua:UserAnswers, memberDetails: MemberDetails,
-    amendedChargeStatus:AmendedChargeStatus = AmendedChargeStatus.Added): UserAnswers = {
-    val memberNo = (ua.data \ "chargeEDetails" \ "members").asOpt[JsArray].map(_.value.size).getOrElse(0)
-    ua.set(MemberStatusPage(memberNo), amendedChargeStatus.toString).toOption.get
-      .set(MemberAFTVersionPage(memberNo), SampleData.version.toInt).toOption.get
-      .set(MemberDetailsPage(memberNo), memberDetails).toOption.get.set(ChargeDetailsPage(memberNo), SampleData.chargeEDetails).toOption.get
+  private def addMembers(memberDetailsToAdd: Seq[(MemberDetails, AmendedChargeStatus)]): UserAnswers = {
+    memberDetailsToAdd.foldLeft[UserAnswers](UserAnswers()) { (ua, yyy) =>
+      val memberNo = (ua.data \ "chargeEDetails" \ "members").asOpt[JsArray].map(_.value.size).getOrElse(0)
+      ua.set(MemberStatusPage(memberNo), yyy._2.toString).toOption.get
+        .set(MemberAFTVersionPage(memberNo), SampleData.version.toInt).toOption.get
+        .set(MemberDetailsPage(memberNo), yyy._1).toOption.get.set(ChargeDetailsPage(memberNo), SampleData.chargeEDetails).toOption.get
+    }
   }
 
-  val allMembers: UserAnswers = addMember(addMember(addMember(
-    addMember(addMember(addMember(UserAnswers(), SampleData.memberDetails), SampleData.memberDetails2, AmendedChargeStatus.Deleted),
-      SampleData.memberDetails3), SampleData.memberDetails4), SampleData.memberDetails5), SampleData.memberDetails6)
+  val allMembers: UserAnswers =
+    addMembers(
+      Seq(
+        (SampleData.memberDetails, AmendedChargeStatus.Added),
+        (SampleData.memberDetails2, AmendedChargeStatus.Deleted),
+        (SampleData.memberDetails3, AmendedChargeStatus.Added),
+        (SampleData.memberDetails4, AmendedChargeStatus.Added),
+        (SampleData.memberDetails5, AmendedChargeStatus.Added),
+        (SampleData.memberDetails6, AmendedChargeStatus.Added)
+      )
+    )
 
   def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url
