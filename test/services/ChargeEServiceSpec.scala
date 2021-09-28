@@ -32,43 +32,37 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage, MemberStatusPage, MemberAFTVersionPage}
+import play.api.libs.json.JsArray
 import utils.AFTConstants.QUARTER_START_DATE
 class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
 
-  val allMembers: UserAnswers = UserAnswers()
-    .set(MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
-    .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
-    .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
-    .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
+  private def addMember(ua:UserAnswers, memberDetails: MemberDetails,
+    amendedChargeStatus:AmendedChargeStatus = AmendedChargeStatus.Added): UserAnswers = {
+    val memberNo = (ua.data \ "chargeEDetails" \ "members").asOpt[JsArray].map(_.value.size).getOrElse(0)
+    ua.set(MemberStatusPage(memberNo), amendedChargeStatus.toString).toOption.get
+      .set(MemberAFTVersionPage(memberNo), SampleData.version.toInt).toOption.get
+      .set(MemberDetailsPage(memberNo), memberDetails).toOption.get.set(ChargeDetailsPage(memberNo), SampleData.chargeEDetails).toOption.get
+  }
 
-    .set(MemberStatusPage(1), AmendedChargeStatus.Deleted.toString).toOption.get
-    .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
-    .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
-    .set(ChargeDetailsPage(1), SampleData.chargeEDetails).toOption.get
-
-    .set(MemberStatusPage(2), AmendedChargeStatus.Added.toString).toOption.get
-    .set(MemberAFTVersionPage(2), SampleData.version.toInt).toOption.get
-    .set(MemberDetailsPage(2), SampleData.memberDetails3).toOption.get
-    .set(ChargeDetailsPage(2), SampleData.chargeEDetails).toOption.get
-
-    .set(MemberStatusPage(3), AmendedChargeStatus.Added.toString).toOption.get
-    .set(MemberAFTVersionPage(3), SampleData.version.toInt).toOption.get
-    .set(MemberDetailsPage(3), SampleData.memberDetails4).toOption.get
-    .set(ChargeDetailsPage(3), SampleData.chargeEDetails).toOption.get
-
+  val allMembers: UserAnswers = addMember(addMember(addMember(
+    addMember(addMember(addMember(UserAnswers(), SampleData.memberDetails), SampleData.memberDetails2, AmendedChargeStatus.Deleted),
+      SampleData.memberDetails3), SampleData.memberDetails4), SampleData.memberDetails5), SampleData.memberDetails6)
 
   def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int): Member =
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index))
 
+  //scalastyle.off: magic.number
   def expectedAllMembersMinusDeleted: Seq[Member] = Seq(
     expectedMember(SampleData.memberDetails, 0),
     expectedMember(SampleData.memberDetails3, 2),
-    expectedMember(SampleData.memberDetails4, 3)
+    expectedMember(SampleData.memberDetails4, 3),
+    expectedMember(SampleData.memberDetails5, 4),
+    expectedMember(SampleData.memberDetails6, 5)
   )
 
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
@@ -98,10 +92,24 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
     "return page two for all the members added in charge E, excluding the deleted member" in {
       val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
-        expectedMember(SampleData.memberDetails4, 3)
+        expectedMember(SampleData.memberDetails4, 3),
+        expectedMember(SampleData.memberDetails5, 4)
       )
       chargeEHelper.getAnnualAllowanceMembersPaginated(2, allMembers, srn, startDate,
         accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
+    }
+
+    "return page three for all the members added in charge E, excluding the deleted member" in {
+      val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
+        expectedMember(SampleData.memberDetails6, 5)
+      )
+      chargeEHelper.getAnnualAllowanceMembersPaginated(3, allMembers, srn, startDate,
+        accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
+    }
+
+    "return empty sequence when beyond page limit" in {
+      chargeEHelper.getAnnualAllowanceMembersPaginated(4, allMembers, srn, startDate,
+        accessType, versionInt)(request()) mustBe Nil
     }
   }
 
@@ -126,6 +134,16 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
         ),
         ViewAmendmentDetails(
           SampleData.memberDetails4.fullName, ChargeTypeAnnualAllowance.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeEDetails.chargeAmount),
+          Added
+        ),
+        ViewAmendmentDetails(
+          SampleData.memberDetails5.fullName, ChargeTypeAnnualAllowance.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeEDetails.chargeAmount),
+          Added
+        ),
+        ViewAmendmentDetails(
+          SampleData.memberDetails6.fullName, ChargeTypeAnnualAllowance.toString,
           FormatHelper.formatCurrencyAmountAsString(SampleData.chargeEDetails.chargeAmount),
           Added
         )

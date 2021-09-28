@@ -125,6 +125,8 @@ object SampleData {
   val memberDetails2: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C")
   val memberDetails3: MemberDetails = MemberDetails("Joe", "Bliggs", "AB123457C")
   val memberDetails4: MemberDetails = MemberDetails("Joe", "Blaggs", "AB123458C")
+  val memberDetails5: MemberDetails = MemberDetails("Joe", "Bleggs", "AB123458C")
+  val memberDetails6: MemberDetails = MemberDetails("Joe", "Blyggs", "AB123458C")
   val memberGDetails: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.now(), "AB123456C")
   val memberGDetails2: MemberDetailsG = MemberDetailsG("Joe", "Bloggs", LocalDate.now(), "AB123456C")
 

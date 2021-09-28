@@ -30,7 +30,7 @@ import models.{UserAnswers, MemberDetails, Member, AccessType}
 import pages.chargeE.{ChargeDetailsPage, MemberStatusPage, MemberAFTVersionPage}
 import play.api.Logger
 import play.api.i18n.Messages
-import play.api.libs.json.{JsResultException, JsArray, JsValue, Reads}
+import play.api.libs.json.JsArray
 import play.api.mvc.{Call, AnyContent}
 import services.AddMembersService.mapChargeXMembersToTable
 import viewmodels.Table
@@ -46,21 +46,11 @@ class ChargeEService @Inject()(
   private def now: String =
     LocalDateTime.now.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM))
 
-  private def validate[A](jsValue: JsValue)(implicit rds: Reads[A]): A = {
-    jsValue.validate[A].fold(
-      invalid =
-        errors =>
-          throw JsResultException(errors),
-      valid =
-        response => response
-    )
-  }
-
   // scalastyle:off method.length
   def getAnnualAllowanceMembersPaginated(pageNo:Int, ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
     (implicit request: DataRequest[AnyContent]): Seq[Member] = {
     val pageSize = config.membersPageSize
-    val start = (pageNo-1) * pageSize
+    val start = (pageNo - 1) * pageSize
     val end = pageNo * pageSize
 
     (ua.data \ "chargeEDetails" \ "members").as[JsArray].value.zipWithIndex
