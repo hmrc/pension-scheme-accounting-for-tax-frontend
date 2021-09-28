@@ -80,8 +80,8 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   private val expectedPaginatedMembersInfo:Option[PaginatedMembersInfo] =
     Some(PaginatedMembersInfo(
       members = expectedMembers,
-      startMemberNumber = 0,
-      lastMemberNumber = 0,
+      startMember = 0,
+      lastMember = 0,
       totalMembers = 1
     ))
 

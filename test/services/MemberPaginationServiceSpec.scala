@@ -94,8 +94,8 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         accessType, versionInt) mustBe Some(
           PaginatedMembersInfo(
             members = expectedAllMembersMinusDeleted,
-            startMemberNumber = 1,
-            lastMemberNumber = 2,
+            startMember = 1,
+            lastMember = 2,
             totalMembers = 5)
         )
     }
@@ -110,8 +110,8 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         accessType, versionInt) mustBe Some(
         PaginatedMembersInfo(
           members = expectedAllMembersMinusDeleted,
-          startMemberNumber = 3,
-          lastMemberNumber = 4,
+          startMember = 3,
+          lastMember = 4,
           totalMembers = 5)
       )
     }
@@ -125,8 +125,8 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         accessType, versionInt) mustBe Some(
         PaginatedMembersInfo(
           members = expectedAllMembersMinusDeleted,
-          startMemberNumber = 5,
-          lastMemberNumber = 5,
+          startMember = 5,
+          lastMember = 5,
           totalMembers = 5)
       )
     }

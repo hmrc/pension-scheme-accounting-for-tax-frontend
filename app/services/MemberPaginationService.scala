@@ -63,11 +63,12 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     } else {
       Some(PaginatedMembersInfo(
         members = paginatedMembers,
-        startMemberNumber = start + 1,
-        lastMemberNumber = start + paginatedMembers.size,
+        startMember = start + 1,
+        lastMember = start + paginatedMembers.size,
         totalMembers = filteredMembers.size))
     }
   }
 }
 
-case class PaginatedMembersInfo(members:Seq[Member], startMemberNumber:Int, lastMemberNumber:Int, totalMembers:Int)
+// TODO: Add totalPages:Int
+case class PaginatedMembersInfo(members:Seq[Member], startMember:Int, lastMember:Int, totalMembers:Int)
