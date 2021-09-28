@@ -530,7 +530,7 @@ chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each trans
 chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
 chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
 
-chargeG.chargeAmount.title = Overseas transfer charge amounts for {0}
+chargeG.chargeAmount.title = Overseas transfer charge amounts for the member
 chargeG.chargeAmount.heading = Overseas transfer charge amounts for {0}
 chargeG.chargeAmount.transferred = Amount transferred into the QROPS
 chargeG.chargeAmount.taxDue = Amount of tax due
