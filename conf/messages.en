@@ -378,7 +378,7 @@ dateNoticeReceived.error.future = The date you received notice to pay the charge
 dateNoticeReceived.error.minDate = The Date you received notice to pay the charge must be after {0}
 isPaymentMandatory.error = Select yes if the payment type is mandatory
 
-chargeEDetails.title = Annual allowance charge details for {0}
+chargeEDetails.title = Annual allowance charge details for the member
 chargeEDetails.heading = Annual allowance charge details for {0}
 chargeEDetails.chargeAmount.label = Charge amount
 chargeEDetails.dateNoticeReceived.label = Date you received notice to pay the charge
@@ -400,11 +400,11 @@ chargeE.addMembers.heading = Annual allowance charges for {0} to {1}
 chargeE.addMembers.label = Do you want to add another annual allowance charge?
 chargeE.addMembers.visuallyHidden = {0}’s annual allowance charge
 
-deleteMember.title = Are you sure you want to remove the annual allowance charge for {0}?
+deleteMember.title = Are you sure you want to remove the annual allowance charge for the member?
 deleteMember.heading = Are you sure you want to remove the annual allowance charge for {0}?
 deleteMember.error.required = Select yes if you want to remove the annual allowance charge for {0}
 
-deleteMember.chargeD.title = Are you sure you want to remove the lifetime allowance charge for {0}?
+deleteMember.chargeD.title = Are you sure you want to remove the lifetime allowance charge for the member?
 deleteMember.chargeD.heading = Are you sure you want to remove the lifetime allowance charge for {0}?
 deleteMember.chargeD.error.required = Select yes if you want to remove the lifetime allowance charge for {0}
 
@@ -457,7 +457,7 @@ aft.summary.search.result = result found
 aft.summary.search.results = results found
 aft.summary.heading.search.results = Search results for
 
-chargeG.chargeDetails.title = Overseas transfer charge details for {0}
+chargeG.chargeDetails.title = Overseas transfer charge details for the member
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
 chargeG.chargeDetails.qropsReferenceNumber.label = QROPS reference number
 chargeG.chargeDetails.qropsReferenceNumber.error.required = Enter a QROPS reference number
@@ -500,7 +500,7 @@ dateOfEvent.error.date = The date of the benefit crystallisation event giving ri
 dateOfEvent.error.incomplete = The date of the benefit crystallisation event must include a day, month and year
 dateOfEvent.error.invalid = Enter a real date for the benefit crystallisation event giving rise to the charge
 
-chargeDDetails.title = Lifetime allowance charge details for {0}
+chargeDDetails.title = Lifetime allowance charge details for the member
 chargeDDetails.heading = Lifetime allowance charge details for {0}
 chargeDDetails.dateOfEvent.label = Date of benefit crystallisation event giving rise to the charge
 chargeDDetails.dateOfEvent.visuallyHidden.label = the date of the benefit crystallisation event giving rise to the charge
@@ -807,7 +807,7 @@ chargeG.addMembers.label = Do you want to add another overseas transfer charge?
 chargeG.addMembers.visuallyHidden = {0}’s overseas transfer charge
 chargeG.addMembers.error = Select yes if you want to add another overseas transfer charge
 
-deleteMember.chargeG.title = Are you sure you want to remove {0}’s overseas transfer charge?
+deleteMember.chargeG.title = Are you sure you want to remove the member’s overseas transfer charge?
 deleteMember.chargeG.heading = Are you sure you want to remove {0}’s overseas transfer charge?
 deleteMember.chargeG.error.required = Select yes if you want to remove {0}’s overseas transfer charge
 chargeG.whatYouWillNeed.title = Overseas transfer charge
