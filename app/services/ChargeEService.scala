@@ -23,38 +23,22 @@ import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.chargeE.ChargeEDetails
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{UserAnswers, MemberDetails, Member, AccessType}
 import pages.chargeE.{ChargeDetailsPage, MemberStatusPage, MemberAFTVersionPage}
 import play.api.Logger
-import play.api.i18n.Messages
 import play.api.mvc.{Call, AnyContent}
-import services.AddMembersService.mapChargeXMembersToTable
-import viewmodels.Table
 
 import java.time.format.{FormatStyle, DateTimeFormatter}
 
 class ChargeEService @Inject()(
-  deleteChargeHelper: DeleteChargeHelper,
-  memberPaginationService: MemberPaginationService
+  deleteChargeHelper: DeleteChargeHelper
 ) {
   private val logger = Logger(classOf[ChargeEService])
 
   private def now: String =
     LocalDateTime.now.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM))
-
-  def getAnnualAllowanceMembersPaginated(pageNo:Int, ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-    (implicit request: DataRequest[AnyContent]): Seq[Member] = {
-
-    memberPaginationService.getMembersPaginated[ChargeEDetails](
-      "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo)(ua, srn, startDate, accessType, version)
-      match {
-        case Some(pmi) => pmi.members
-        case _ => Nil
-      }
-  }
 
   def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): Seq[Member] = {
@@ -110,7 +94,7 @@ class ChargeEService @Inject()(
       .flatten
   }
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
+  private def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
     controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
   private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers,
@@ -120,8 +104,4 @@ class ChargeEService @Inject()(
     } else {
       controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, index)
     }
-
-  def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
-    mapChargeXMembersToTable("chargeE", members, canChange)
-
 }

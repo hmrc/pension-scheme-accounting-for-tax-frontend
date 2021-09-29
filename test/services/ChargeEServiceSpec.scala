@@ -24,12 +24,10 @@ import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus.{Added, Deleted}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.chargeE.ChargeEDetails
 import models.viewModels.ViewAmendmentDetails
 import models.{UserAnswers, MemberDetails, Member, AmendedChargeStatus}
-import org.mockito.Matchers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, reset, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage, MemberStatusPage, MemberAFTVersionPage}
@@ -86,14 +84,11 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     ))
 
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  private val mockMemberPaginationService = mock[MemberPaginationService]
-  val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper, mockMemberPaginationService)
+  val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper)
 
   override def beforeEach: Unit = {
-    reset(mockDeleteChargeHelper, mockMemberPaginationService)
+    reset(mockDeleteChargeHelper)
     when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
-    when(mockMemberPaginationService.getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any())(any(), any(), any(), any(), any())(any()))
-      .thenReturn(expectedPaginatedMembersInfo)
   }
 
   ".getAnnualAllowanceMembers" must {
@@ -103,14 +98,14 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     }
    }
 
-  "getAnnualAllowanceMembersPaginated" must {
-    "delegate to the member pagination service with correct page no" in {
-      chargeEHelper.getAnnualAllowanceMembersPaginated(2, allMembers, srn, startDate,
-        accessType, versionInt)(request()) mustBe expectedMembers
-      verify(mockMemberPaginationService, times(1))
-        .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), Matchers.eq(2))(any(), any(), any(), any(), any())(any())
-    }
-  }
+  //"getAnnualAllowanceMembersPaginated" must {
+  //  "delegate to the member pagination service with correct page no" in {
+  //    chargeEHelper.getAnnualAllowanceMembersPaginated(2, allMembers, srn, startDate,
+  //      accessType, versionInt)(request()) mustBe expectedMembers
+  //    verify(mockMemberPaginationService, times(1))
+  //      .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), Matchers.eq(2))(any(), any(), any(), any(), any())(any())
+  //  }
+  //}
 
   "getAllAnnualAllowanceAmendments" must {
     "return all the amendments for annual allowance charge" in {

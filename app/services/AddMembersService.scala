@@ -26,7 +26,7 @@ import viewmodels.Table.Cell
 
 object AddMembersService {
 
-  private[services] def mapChargeXMembersToTable(chargeName: String, members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table = {
+  def mapChargeXMembersToTable(chargeName: String, members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table = {
 
     val head = Seq(
       Cell(msg"addMembers.members.header"),
