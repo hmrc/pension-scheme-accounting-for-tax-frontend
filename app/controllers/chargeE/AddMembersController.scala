@@ -20,6 +20,7 @@ import java.time.LocalDate
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
+import handlers.ErrorHandler
 import helpers.DeleteChargeHelper
 
 import javax.inject.Inject
@@ -30,14 +31,16 @@ import models.{Member, GenericViewModel, NormalMode, AFTQuarter, UserAnswers, Ac
 import navigators.CompoundNavigator
 import pages.chargeE.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
-import play.api.Logger
 import play.api.data.Form
+import play.api.http.Status.NOT_FOUND
 import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Result, Call, Action}
+import play.api.mvc._
 import renderer.Renderer
 import services.AddMembersService.mapChargeXMembersToTable
 import services.MemberPaginationService
+import uk.gov.hmrc.http.HttpReads.notFoundMessage
+import uk.gov.hmrc.http.NotFoundException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
@@ -56,6 +59,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      val controllerComponents: MessagesControllerComponents,
                                      memberPaginationService: MemberPaginationService,
                                      deleteChargeHelper: DeleteChargeHelper,
+                                     errorHandler:ErrorHandler,
                                      renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -63,28 +67,34 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   def form: Form[Boolean] = formProvider("chargeE.addMembers.error")
 
-  private val logger = Logger(classOf[AddMembersController])
+  private def renderPage(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int)(implicit
+    request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(quarter)) =>
+        getJson(srn, startDate, form, schemeName, quarter, accessType, version, pageNumber).map{json =>
+          renderer.render(template = "chargeE/addMembers.njk", json)
+            .map(Ok(_))
+        }.getOrElse(errorHandler.onClientError(request.request, NOT_FOUND))
+
+      case _ => futureSessionExpired
+    }
+  }
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
+      renderPage(srn, startDate, accessType, version, pageNumber = 1)
+    }
 
-      logger.warn("Loading add members page for charge type E (annual allowance)")
-
-      (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
-        case (Some(schemeName), Some(quarter)) =>
-          getJson(srn, startDate, form, schemeName, quarter, accessType, version).map{json =>
-          renderer.render(template = "chargeE/addMembers.njk", json)
-            .map(Ok(_))
-          }.getOrElse(Future.successful(NotFound))
-
-        case _ => futureSessionExpired
-      }
+  def onPageLoadWithPageNo(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
+      renderPage(srn, startDate, accessType, version, pageNumber)
     }
 
   private def futureSessionExpired:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       form
@@ -93,7 +103,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
             (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
               case (Some(schemeName), Some(quarter)) =>
-                getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version).map { json =>
+                getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version, pageNumber).map { json =>
                     renderer.render(template = "chargeE/addMembers.njk", json).map(BadRequest(_))
                 }.getOrElse(Future.successful(NotFound))
               case _ => futureSessionExpired
@@ -108,17 +118,23 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         )
   }
 
-  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: AFTQuarter, accessType: AccessType, version: Int)(
-      implicit request: DataRequest[AnyContent]): Option[JsObject] = {
-
-    val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate, accessType, version).url,
+  // scalastyle:off parameter.number
+  private def getJson(srn: String,
+    startDate: LocalDate,
+    form: Form[_],
+    schemeName: String,
+    quarter: AFTQuarter,
+    accessType: AccessType,
+    version: Int,
+    pageNumber: Int
+  )(implicit request: DataRequest[AnyContent]): Option[JsObject] = {
+    val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate, accessType, version, pageNumber).url,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController
                                        .returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
     val optionPaginatedMembersInfo = memberPaginationService.getMembersPaginated[ChargeEDetails](
-      "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, 1)(request.userAnswers, srn, startDate, accessType, version)
-
+      "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNumber)(request.userAnswers, srn, startDate, accessType, version)
 
     optionPaginatedMembersInfo.map { pmi =>
       Json.obj(

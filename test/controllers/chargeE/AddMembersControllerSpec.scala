@@ -38,7 +38,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, redirectLocation, status, _}
 import play.twirl.api.Html
-import services.{MemberPaginationService, PaginatedMembersInfo, PaginationStats}
+import services.{PaginationStats, MemberPaginationService, PaginatedMembersInfo}
 import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
@@ -50,7 +50,9 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val templateToBeRendered = "chargeE/addMembers.njk"
   private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
   private def httpPathGET: String = controllers.chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url
-  private def httpPathPOST: String = controllers.chargeE.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt).url
+  private def httpPathGETWithPageNo(pageNo:Int): String =
+    controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, versionInt, pageNo).url
+  private def httpPathPOST(pageNo:Int): String = controllers.chargeE.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt, pageNo).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -84,7 +86,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       ),
       Json.arr(
         Json.obj("text" -> ""),
-        Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
+        Json.obj("text" -> "Total charge amount for this quarter", "classes" -> "govuk-table__header--numeric"),
         Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> s"govuk-table__header--numeric"),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
@@ -93,10 +95,10 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "attributes" -> Map("role" -> "table")
   )
 
-  private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(pageNo:Int):Form[Boolean]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt).url,
+      submitUrl = controllers.chargeE.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt, pageNo).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value")),
@@ -169,7 +171,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(pageNo = 1).apply(form))
     }
 
     "return NOT_FOUND when paginated info not available" in {
@@ -198,7 +200,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST(pageNo = 1), valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
@@ -211,7 +213,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "return a BAD REQUEST when invalid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST(pageNo = 1), valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -221,7 +223,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "redirect to Session Expired page for a POST when there is no data" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(UserAnswers()))
 
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST(pageNo = 1), valuesInvalid)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url

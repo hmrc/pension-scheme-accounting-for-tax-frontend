@@ -520,7 +520,7 @@ addMembers.nino.header = National Insurance number
 addMembers.chargeE.amount.header = Charge amount
 addMembers.chargeD.amount.header = Total tax due
 addMembers.chargeG.amount.header = Tax due
-addMembers.total = Total
+addMembers.total = Total charge amount for this quarter
 
 chargeG.whatYouWillNeed.title = Overseas transfer charge
 chargeG.whatYouWillNeed.heading = Overseas transfer charge
