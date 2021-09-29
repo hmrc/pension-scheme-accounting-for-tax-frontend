@@ -43,7 +43,7 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     val filteredMembers = (ua.data \ uaChargeDetailsNode \ "members").as[JsArray].value.zipWithIndex
       .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
 
-    val paginatedMembers = filteredMembers
+    val paginatedMembers = filteredMembers.reverse
       .slice(start, end)
       .flatMap { case (m, index) =>
         val member = (m \ "memberDetails").as[MemberDetails]

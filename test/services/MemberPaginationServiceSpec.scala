@@ -95,10 +95,10 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
   }
 
   "getMembersPaginated (using charge type E for testing)" must {
-    "return pagination info for page one for all the members added, excluding the deleted member" in {
+    "return pagination info in reverse order for page one for all the members added, excluding the deleted member" in {
       val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
-        expectedMember(SampleData.memberDetails, index = 0),
-        expectedMember(SampleData.memberDetails3, index = 2)
+        expectedMember(SampleData.memberDetails6, index = 5),
+        expectedMember(SampleData.memberDetails5, index = 4)
       )
 
       memberPaginationService.getMembersPaginated[ChargeEDetails](
@@ -117,10 +117,10 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         )
     }
 
-    "return pagination info for page two for all the members added, excluding the deleted member" in {
+    "return pagination info in reverse order for page two for all the members added, excluding the deleted member" in {
       val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
         expectedMember(SampleData.memberDetails4, index = 3),
-        expectedMember(SampleData.memberDetails5, index = 4)
+        expectedMember(SampleData.memberDetails3, index = 2)
       )
       memberPaginationService.getMembersPaginated[ChargeEDetails](
         "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 2)(allMembers, srn, startDate,
@@ -138,9 +138,9 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
     }
 
-    "return pagination info for page three for all the members added, excluding the deleted member" in {
+    "return pagination info in reverse order for page three for all the members added, excluding the deleted member" in {
       val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
-        expectedMember(SampleData.memberDetails6, index = 5)
+        expectedMember(SampleData.memberDetails, index = 0)
       )
       memberPaginationService.getMembersPaginated[ChargeEDetails](
         "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 3)(allMembers, srn, startDate,
