@@ -807,9 +807,9 @@ chargeG.addMembers.label = Do you want to add another overseas transfer charge?
 chargeG.addMembers.visuallyHidden = {0}’s overseas transfer charge
 chargeG.addMembers.error = Select yes if you want to add another overseas transfer charge
 
-deleteMember.chargeG.title = Are you sure you want to remove the member’s overseas transfer charge?
-deleteMember.chargeG.heading = Are you sure you want to remove {0}’s overseas transfer charge?
-deleteMember.chargeG.error.required = Select yes if you want to remove {0}’s overseas transfer charge
+deleteMember.chargeG.title = Are you sure you want to remove the overseas transfer charge for the member?
+deleteMember.chargeG.heading = Are you sure you want to remove overseas transfer charge for {0}?
+deleteMember.chargeG.error.required = Select yes if you want to remove the overseas transfer charge for {0}
 chargeG.whatYouWillNeed.title = Overseas transfer charge
 chargeG.whatYouWillNeed.heading = Overseas transfer charge
 chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need:
