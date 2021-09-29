@@ -17,29 +17,34 @@
 package controllers.chargeC
 
 import java.time.LocalDate
-
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
+import handlers.ErrorHandler
+import helpers.{DeleteChargeHelper, FormatHelper}
+
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.chargeC.ChargeCDetails
 import models.requests.DataRequest
-import models.{AFTQuarter, NormalMode, GenericViewModel, AccessType}
+import models.{GenericViewModel, NormalMode, Employer, AFTQuarter, UserAnswers, AccessType}
 import navigators.CompoundNavigator
 import pages.chargeC.AddEmployersPage
-import pages.{SchemeNameQuery, QuarterPage, ViewOnlyAccessiblePage}
+import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{Json, JsObject}
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc._
 import renderer.Renderer
-import services.ChargeCService
+import services.MemberPaginationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{Html, Radios, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
+import viewmodels.Table
+import viewmodels.Table.Cell
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -50,8 +55,9 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        requireData: DataRequiredAction,
                                        formProvider: AddMembersFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
-                                       chargeCHelper: ChargeCService,
-                                       config: FrontendAppConfig,
+                                       memberPaginationService: MemberPaginationService,
+                                       deleteChargeHelper: DeleteChargeHelper,
+                                       errorHandler:ErrorHandler,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -59,19 +65,33 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
 
   def form: Form[Boolean] = formProvider("chargeC.addEmployers.error")
 
+  private def renderPage(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int)(implicit
+    request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(quarter)) =>
+        getJson(srn, startDate, form, schemeName, quarter, accessType, version, pageNumber).map{json =>
+          renderer.render(template = "chargeC/addEmployers.njk", json)
+            .map(Ok(_))
+        }.getOrElse(errorHandler.onClientError(request.request, NOT_FOUND))
+      case _ => futureSessionExpired
+    }
+  }
+
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
-      (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
-        case (Some(schemeName), Some(quarter)) =>
-          renderer.render(template = "chargeC/addEmployers.njk",
-            getJson(srn, startDate, form, schemeName, quarter, accessType, version)).map(Ok(_))
-
-        case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-      }
+      renderPage(srn, startDate, accessType, version, pageNumber = 1)
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoadWithPageNo(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
+      renderPage(srn, startDate, accessType, version, pageNumber)
+    }
+
+  private def futureSessionExpired:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       form
@@ -80,11 +100,9 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
             (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
               case (Some(schemeName), Some(quarter)) =>
-                renderer
-                  .render(template = "chargeC/addEmployers.njk",
-                    getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version))
-                  .map(BadRequest(_))
-
+                getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version, pageNumber).map { json =>
+                  renderer.render(template = "chargeC/addEmployers.njk", json).map(BadRequest(_))
+                }.getOrElse(Future.successful(NotFound))
               case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
             }
           },
@@ -97,27 +115,92 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
         )
   }
 
-  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: AFTQuarter, accessType: AccessType, version: Int)(
-      implicit request: DataRequest[AnyContent]): JsObject = {
+  // scalastyle:off parameter.number
+  private def getJson(srn: String,
+    startDate: LocalDate,
+    form: Form[_],
+    schemeName: String,
+    quarter: AFTQuarter,
+    accessType: AccessType,
+    version: Int,
+    pageNumber: Int
+  )(implicit request: DataRequest[AnyContent]): Option[JsObject] = {
 
-    val viewModel = GenericViewModel(submitUrl = routes.AddEmployersController.onSubmit(srn, startDate, accessType, version).url,
-                                     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+    val viewModel = GenericViewModel(submitUrl = routes.AddEmployersController.onSubmit(srn, startDate, accessType, version, pageNumber).url,
+                                     returnUrl = controllers.routes.ReturnToSchemeDetailsController
+                                       .returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
-    val members = chargeCHelper.getSponsoringEmployers(request.userAnswers, srn, startDate, accessType, version)
+    val optionPaginatedMembersInfo = memberPaginationService.getEmployersPaginated[ChargeCDetails](
+      "chargeCDetails", _.amountTaxDue, viewUrl, removeUrl, pageNumber)(request.userAnswers, srn, startDate, accessType, version)
 
-    Json.obj(
-      "srn" -> srn,
-      "startDate" -> Some(startDate),
-      "form" -> form,
-      "viewModel" -> viewModel,
-      "radios" -> Radios.yesNo(form("value")),
-      "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
-      "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-      "table" -> Json.toJson(chargeCHelper.mapToTable(members, !request.isViewOnly)),
-      "canChange" -> !request.isViewOnly
-    )
+    optionPaginatedMembersInfo.map { pmi =>
+      Json.obj(
+        "srn" -> srn,
+        "startDate" -> Some(startDate),
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "radios" -> Radios.yesNo(form("value")),
+        "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
+        "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
+        "table" -> Json.toJson(mapToTable(pmi.membersForCurrentPage, !request.isViewOnly)),
+        "canChange" -> !request.isViewOnly
+      )
+    }
 
   }
+
+  private def mapToTable(members: Seq[Employer], canChange: Boolean)
+    (implicit messages: Messages): Table = {
+    val head = Seq(
+      Cell(msg"addEmployers.employer.header"),
+      Cell(msg"addEmployers.amount.header", classes = Seq("govuk-table__header--numeric")),
+      Cell(Html(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>"""))
+    ) ++ (
+      if (canChange)
+        Seq(Cell(Html(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")))
+      else
+        Nil
+      )
+
+    val rows = members.map { data =>
+      Seq(
+        Cell(Literal(data.name), classes = Seq("govuk-!-width-one-half")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
+        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = Seq("govuk-!-width-one-quarter"))
+      ) ++ (if (canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter")))
+      else Nil)
+    }
+    val totalAmount = members.map(_.amount).sum
+
+    val totalRow = Seq(
+      Seq(
+        Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
+          classes = Seq("govuk-table__header--numeric")),
+        Cell(msg"")
+      ) ++ (if (canChange) Seq(Cell(msg"")) else Nil))
+
+    Table(head = head, rows = rows ++ totalRow,attributes = Map("role" -> "table"))
+  }
+
+  private def link(id: String, text: String, url: String, name: String)(implicit messages: Messages): Html = {
+    val hiddenTag = "govuk-visually-hidden"
+    Html(
+      s"<a class=govuk-link id=$id href=$url>" + s"<span aria-hidden=true >${messages(text)}</span>" +
+        s"<span class= $hiddenTag>${messages(text)} ${messages(s"chargeC.addEmployers.visuallyHidden", name)}</span> </a>")
+  }
+
+  private def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
+    controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+
+  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers, accessType: AccessType, version: Int)
+    (implicit request: DataRequest[AnyContent]): Call =
+    if (request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
+      controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
+    } else {
+      controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, version, index)
+    }
 
 }
