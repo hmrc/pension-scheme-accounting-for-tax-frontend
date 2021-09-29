@@ -21,7 +21,7 @@ import play.api.mvc.Call
 import com.google.inject.Inject
 
 import java.time.LocalDate
-import play.api.libs.json.{JsArray, Reads}
+import play.api.libs.json.{JsArray, Format, Reads, Json}
 import models.{UserAnswers, MemberDetails, Member, AccessType}
 
 class MemberPaginationService @Inject()(config: FrontendAppConfig) {
@@ -62,17 +62,26 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
       None
     } else {
       Some(PaginatedMembersInfo(
-        members = paginatedMembers,
-        startMember = start + 1,
-        lastMember = start + paginatedMembers.size,
-        totalMembers = filteredMembers.size,
-        totalPages = MemberPaginationService.totalPages(filteredMembers.size, pageSize)
+        membersForCurrentPage = paginatedMembers,
+        paginationStats = PaginationStats(
+          currentPage = pageNo,
+          startMember = start + 1,
+          lastMember = start + paginatedMembers.size,
+          totalMembers = filteredMembers.size,
+          totalPages = MemberPaginationService.totalPages(filteredMembers.size, pageSize)
+        )
       ))
     }
   }
 }
 
-case class PaginatedMembersInfo(members:Seq[Member], startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int)
+case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int)
+
+object PaginationStats {
+  implicit val formats: Format[PaginationStats] = Json.format[PaginationStats]
+}
+
+case class PaginatedMembersInfo(membersForCurrentPage:Seq[Member], paginationStats: PaginationStats)
 
 object MemberPaginationService {
   def totalPages(totalMembers:Int, pageSize: Int):Int = (totalMembers.toFloat / pageSize).ceil.toInt

@@ -73,8 +73,6 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     expectedMember(SampleData.memberDetails6, 5)
   )
 
-  private val expectedMembers = Seq(Member(0, "mr smith", "CS121212C", BigDecimal(3), "viewlink", "removeLink"))
-
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper)
 

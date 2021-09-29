@@ -17,9 +17,9 @@
 package controllers
 
 import config.FrontendAppConfig
-import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import controllers.actions.{IdentifierAction, DataRetrievalAction, DataRequiredAction}
+import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController

@@ -129,7 +129,8 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         "radios" -> Radios.yesNo(form("value")),
         "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
         "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-        "table" -> Json.toJson(mapToTable(pmi.members, !request.isViewOnly)),
+        "table" -> Json.toJson(mapToTable(pmi.membersForCurrentPage, !request.isViewOnly)),
+        "paginationStats" -> pmi.paginationStats,
         "canChange" -> !request.isViewOnly
       )
     }

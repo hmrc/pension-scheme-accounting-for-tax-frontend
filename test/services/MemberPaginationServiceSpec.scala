@@ -105,11 +105,15 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 1)(allMembers, srn, startDate,
         accessType, versionInt) mustBe Some(
           PaginatedMembersInfo(
-            members = expectedAllMembersMinusDeleted,
-            startMember = 1,
-            lastMember = 2,
-            totalMembers = 5,
-            totalPages = 3)
+            membersForCurrentPage = expectedAllMembersMinusDeleted,
+            paginationStats = PaginationStats(
+              currentPage = 1,
+              startMember = 1,
+              lastMember = 2,
+              totalMembers = 5,
+              totalPages = 3
+            )
+          )
         )
     }
 
@@ -122,11 +126,15 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 2)(allMembers, srn, startDate,
         accessType, versionInt) mustBe Some(
         PaginatedMembersInfo(
-          members = expectedAllMembersMinusDeleted,
-          startMember = 3,
-          lastMember = 4,
-          totalMembers = 5,
-          totalPages = 3)
+          membersForCurrentPage = expectedAllMembersMinusDeleted,
+          paginationStats = PaginationStats(
+            currentPage = 2,
+            startMember = 3,
+            lastMember = 4,
+            totalMembers = 5,
+            totalPages = 3
+          )
+        )
       )
     }
 
@@ -138,11 +146,15 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 3)(allMembers, srn, startDate,
         accessType, versionInt) mustBe Some(
         PaginatedMembersInfo(
-          members = expectedAllMembersMinusDeleted,
-          startMember = 5,
-          lastMember = 5,
-          totalMembers = 5,
-          totalPages = 3)
+          membersForCurrentPage = expectedAllMembersMinusDeleted,
+          paginationStats = PaginationStats(
+            currentPage = 3,
+            startMember = 5,
+            lastMember = 5,
+            totalMembers = 5,
+            totalPages = 3
+          )
+        )
       )
     }
 

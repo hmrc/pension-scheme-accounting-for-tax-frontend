@@ -38,7 +38,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, redirectLocation, status, _}
 import play.twirl.api.Html
-import services.{MemberPaginationService, PaginatedMembersInfo}
+import services.{MemberPaginationService, PaginatedMembersInfo, PaginationStats}
 import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
@@ -122,11 +122,14 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val expectedPaginatedMembersInfo:Option[PaginatedMembersInfo] =
     Some(PaginatedMembersInfo(
-      members = expectedMembers,
-      startMember = 0,
-      lastMember = 0,
-      totalMembers = 1,
-      totalPages = 1
+      membersForCurrentPage = expectedMembers,
+      paginationStats = PaginationStats(
+        currentPage = 1,
+        startMember = 0,
+        lastMember = 0,
+        totalMembers = 1,
+        totalPages = 1
+      )
     ))
 
   val expectedJson: JsObject = ua.set(AddMembersPage, true).get.data
@@ -173,11 +176,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       when(mockMemberPaginationService.getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any())(any(), any(), any(), any(), any())(any()))
         .thenReturn(None)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpGETRequest(httpPathGET)).value
-
       status(result) mustEqual NOT_FOUND
     }
 

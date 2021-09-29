@@ -39,7 +39,6 @@ import scala.concurrent.Future
 class YourActionWasNotProcessedControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
   with JsonMatchers with OptionValues with TryValues {
  private val srn = "test-srn"
-  private val date = "test-date"
 
   private val data = UserAnswers().set(SchemeNameQuery, schemeName).toOption
   private def getRoute: String = routes.YourActionWasNotProcessedController.onPageLoad(srn, QUARTER_START_DATE).url
