@@ -151,14 +151,19 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockMemberPaginationService.getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any())(any(), any(), any(), any(), any())(any()))
+    when(mockMemberPaginationService
+      .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any(), any())(any(), any(), any(), any(), any())(any()))
       .thenReturn(expectedPaginatedMembersInfo)
   }
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+  private val pageCaptor = ArgumentCaptor.forClass(classOf[Int])
 
   "AddMembers Controller" must {
-    "return OK and the correct view for a GET" in {
+    "return OK and the correct view for a GET and get first page" in {
+      when(mockMemberPaginationService
+        .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), pageCaptor.capture(), any())(any(), any(), any(), any(), any())(any()))
+        .thenReturn(expectedPaginatedMembersInfo)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -172,10 +177,32 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(pageNo = 1).apply(form))
+      pageCaptor.getValue mustBe 1
+    }
+
+    "return OK and the correct view for a GET with page no 2" in {
+      when(mockMemberPaginationService
+        .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), pageCaptor.capture(), any())(any(), any(), any(), any(), any())(any()))
+        .thenReturn(expectedPaginatedMembersInfo)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGETWithPageNo(pageNo = 2))).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(pageNo = 2).apply(form))
+      pageCaptor.getValue mustBe 2
     }
 
     "return NOT_FOUND when paginated info not available" in {
-      when(mockMemberPaginationService.getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any())(any(), any(), any(), any(), any())(any()))
+      when(mockMemberPaginationService
+        .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any(), any())(any(), any(), any(), any(), any())(any()))
         .thenReturn(None)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 

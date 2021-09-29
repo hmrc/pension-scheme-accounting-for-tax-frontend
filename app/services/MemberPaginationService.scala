@@ -25,7 +25,6 @@ import models.chargeC.SponsoringOrganisationDetails
 import java.time.LocalDate
 import play.api.libs.json.{JsArray, Format, Json, Reads}
 import models.{Member, SponsoringEmployerType, Employer, MemberDetails, UserAnswers, AccessType}
-import pages.chargeC.{WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 
 class MemberPaginationService @Inject()(config: FrontendAppConfig) {
 
