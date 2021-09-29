@@ -79,7 +79,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo(form(employerName)(implicitly)("value")),
           "employerName" -> employerName,
-          "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
+          "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}")
         )
 
         renderer.render("chargeC/deleteEmployer.njk", json).map(Ok(_))
@@ -107,7 +107,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                 "viewModel" -> viewModel,
                 "radios" -> Radios.yesNo(formWithErrors("value")),
                 "employerName" -> employerName,
-                "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
+                "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}")
               )
 
               renderer.render("chargeC/deleteEmployer.njk", json).map(BadRequest(_))
