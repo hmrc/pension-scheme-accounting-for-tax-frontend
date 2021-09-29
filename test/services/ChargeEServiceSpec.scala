@@ -75,14 +75,6 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
   private val expectedMembers = Seq(Member(0, "mr smith", "CS121212C", BigDecimal(3), "viewlink", "removeLink"))
 
-  private val expectedPaginatedMembersInfo:Option[PaginatedMembersInfo] =
-    Some(PaginatedMembersInfo(
-      members = expectedMembers,
-      startMember = 0,
-      lastMember = 0,
-      totalMembers = 1
-    ))
-
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper)
 
@@ -97,15 +89,6 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
         accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
     }
    }
-
-  //"getAnnualAllowanceMembersPaginated" must {
-  //  "delegate to the member pagination service with correct page no" in {
-  //    chargeEHelper.getAnnualAllowanceMembersPaginated(2, allMembers, srn, startDate,
-  //      accessType, versionInt)(request()) mustBe expectedMembers
-  //    verify(mockMemberPaginationService, times(1))
-  //      .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), Matchers.eq(2))(any(), any(), any(), any(), any())(any())
-  //  }
-  //}
 
   "getAllAnnualAllowanceAmendments" must {
     "return all the amendments for annual allowance charge" in {

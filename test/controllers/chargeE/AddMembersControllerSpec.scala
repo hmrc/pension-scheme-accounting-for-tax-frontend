@@ -125,7 +125,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       members = expectedMembers,
       startMember = 0,
       lastMember = 0,
-      totalMembers = 1
+      totalMembers = 1,
+      totalPages = 1
     ))
 
   val expectedJson: JsObject = ua.set(AddMembersPage, true).get.data

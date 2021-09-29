@@ -82,7 +82,19 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
   private val removeUrl: (Int, String, LocalDate, UserAnswers, AccessType, Int) => Call =
     (index, srn, startDate, ua, accessType, version) => Call("GET", s"/dummyRemoveUrl/$index/$srn/$startDate/$accessType/$version")
 
-  ".getMembersPaginated (using charge type E for testing)" must {
+  "MemberPaginationService.totalPages" must {
+    "give correct total pages where divide exactly" in {
+      MemberPaginationService.totalPages(200, 25) mustBe 8
+    }
+    "give correct total pages where don't divide exactly" in {
+      MemberPaginationService.totalPages(201, 25) mustBe 9
+    }
+    "give correct total pages where less than one page" in {
+      MemberPaginationService.totalPages(24, 25) mustBe 1
+    }
+  }
+
+  "getMembersPaginated (using charge type E for testing)" must {
     "return pagination info for page one for all the members added, excluding the deleted member" in {
       val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
         expectedMember(SampleData.memberDetails, index = 0),
@@ -96,7 +108,8 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
             members = expectedAllMembersMinusDeleted,
             startMember = 1,
             lastMember = 2,
-            totalMembers = 5)
+            totalMembers = 5,
+            totalPages = 3)
         )
     }
 
@@ -112,7 +125,8 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
           members = expectedAllMembersMinusDeleted,
           startMember = 3,
           lastMember = 4,
-          totalMembers = 5)
+          totalMembers = 5,
+          totalPages = 3)
       )
     }
 
@@ -127,7 +141,8 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
           members = expectedAllMembersMinusDeleted,
           startMember = 5,
           lastMember = 5,
-          totalMembers = 5)
+          totalMembers = 5,
+          totalPages = 3)
       )
     }
 

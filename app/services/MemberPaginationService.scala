@@ -65,10 +65,15 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
         members = paginatedMembers,
         startMember = start + 1,
         lastMember = start + paginatedMembers.size,
-        totalMembers = filteredMembers.size))
+        totalMembers = filteredMembers.size,
+        totalPages = MemberPaginationService.totalPages(filteredMembers.size, pageSize)
+      ))
     }
   }
 }
 
-// TODO: Add totalPages:Int
-case class PaginatedMembersInfo(members:Seq[Member], startMember:Int, lastMember:Int, totalMembers:Int)
+case class PaginatedMembersInfo(members:Seq[Member], startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int)
+
+object MemberPaginationService {
+  def totalPages(totalMembers:Int, pageSize: Int):Int = (totalMembers.toFloat / pageSize).ceil.toInt
+}
