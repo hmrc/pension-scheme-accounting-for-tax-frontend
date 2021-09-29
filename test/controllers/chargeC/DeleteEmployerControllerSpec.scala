@@ -34,6 +34,7 @@ import pages.PSTRQuery
 import pages.chargeC._
 import play.api.Application
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
@@ -120,7 +121,8 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
         "form" -> form,
         "viewModel" -> viewModel,
         "radios" -> Radios.yesNo(form("value")),
-        "employerName" -> employerNameIndividual
+        "employerName" -> employerNameIndividual,
+        "employerType" -> Messages(s"chargeC.employerType.individual")
       )
 
       templateCaptor.getValue mustEqual "chargeC/deleteEmployer.njk"
@@ -151,7 +153,8 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
         "form" -> form,
         "viewModel" -> viewModel,
         "radios" -> Radios.yesNo(form("value")),
-        "employerName" -> employerNameOrg
+        "employerName" -> employerNameOrg,
+        "employerType" -> Messages(s"chargeC.employerType.organisation")
       )
 
       templateCaptor.getValue mustEqual "chargeC/deleteEmployer.njk"

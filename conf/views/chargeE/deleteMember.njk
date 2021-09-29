@@ -7,7 +7,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("deleteMember.title", memberName), form.errors) }}
+  {{ title(messages("deleteMember.title"), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -32,7 +32,7 @@
             name: 'value',
             fieldset: {
               legend: {
-                text: messages('deleteMember.title', memberName),
+                text: messages('deleteMember.heading', memberName),
                 isPageHeading: true,
                 classes: "govuk-fieldset__legend--xl"
               }
