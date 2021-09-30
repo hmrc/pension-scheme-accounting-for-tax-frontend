@@ -55,14 +55,10 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     removeUrl: Int => Call
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
     val pageSize = config.membersPageSize
-    val start = (pageNo - 1) * pageSize
-    val end = pageNo * pageSize
-
     val filteredMembers = (ua.data \ chargeRootNode \ "members").as[JsArray].value.zipWithIndex
       .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
-
-    // TODO: Make this more efficient by calculating the stats and then only reversing the slice chosen
-    val paginatedMembers = filteredMembers.reverse
+    val (start, end) = MemberPaginationService.pageStartAndEnd(pageNo, filteredMembers.size, pageSize)
+    val paginatedMembers = filteredMembers
       .slice(start, end)
       .flatMap { case (m, index) =>
         (m \ chargeDetailsNode).asOpt[A].map(createMember(m, index, amount, _, viewUrl, removeUrl)).toSeq
@@ -70,12 +66,13 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     if (paginatedMembers.isEmpty) {
       None
     } else {
+      val startMember = (pageNo - 1) * pageSize + 1
       Some(PaginatedMembersInfo(
-        membersForCurrentPage = paginatedMembers,
+        membersForCurrentPage = paginatedMembers.reverse,
         paginationStats = PaginationStats(
           currentPage = pageNo,
-          startMember = start + 1,
-          lastMember = start + paginatedMembers.size,
+          startMember = startMember,
+          lastMember = startMember + paginatedMembers.size - 1,
           totalMembers = filteredMembers.size,
           totalPages = MemberPaginationService.totalPages(filteredMembers.size, pageSize)
         )
@@ -121,14 +118,16 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     viewUrl: Int => Call,
     removeUrl: Int => Call
   )(implicit reads: Reads[A]): Option[PaginatedEmployersInfo] = {
+
     val pageSize = config.membersPageSize
-    val start = (pageNo - 1) * pageSize
-    val end = pageNo * pageSize
+    val filteredMembers = (ua.data \ chargeRootNode \ "employers").as[JsArray].value.zipWithIndex
+      .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
+    val (start, end) = MemberPaginationService.pageStartAndEnd(pageNo, filteredMembers.size, pageSize)
 
     val filteredEmployers = (ua.data \ chargeRootNode \ "employers").as[JsArray].value.zipWithIndex
       .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
 
-    val paginatedEmployers = filteredEmployers.reverse
+    val paginatedEmployers = filteredEmployers
       .slice(start, end)
       .flatMap { case (m, index) =>
         (m \ "chargeDetails").asOpt[A].map(createEmployer(m, index, amount, _, viewUrl, removeUrl)).toSeq
@@ -136,12 +135,13 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     if (paginatedEmployers.isEmpty) {
       None
     } else {
+      val startMember = (pageNo - 1) * pageSize + 1
       Some(PaginatedEmployersInfo(
-        membersForCurrentPage = paginatedEmployers,
+        membersForCurrentPage = paginatedEmployers.reverse,
         paginationStats = PaginationStats(
           currentPage = pageNo,
-          startMember = start + 1,
-          lastMember = start + paginatedEmployers.size,
+          startMember = startMember,
+          lastMember = startMember + paginatedEmployers.size - 1,
           totalMembers = filteredEmployers.size,
           totalPages = MemberPaginationService.totalPages(filteredEmployers.size, pageSize)
         )
@@ -163,4 +163,20 @@ case class PaginatedEmployersInfo(membersForCurrentPage:Seq[Employer], paginatio
 
 object MemberPaginationService {
   def totalPages(totalMembers:Int, pageSize: Int):Int = (totalMembers.toFloat / pageSize).ceil.toInt
+
+  private def pageStart(pageNo:Int, totalPages: Int, pageSize: Int):Int = {
+    (totalPages - pageNo) * pageSize - 1 match {case x if x < 0 => 0 case x => x}
+  }
+
+  def pageStartAndEnd(pageNo:Int, totalMembers: Int, pageSize: Int):Tuple2[Int, Int] = {
+    val pages = totalPages(totalMembers, pageSize)
+    val start = pageStart(pageNo, pages, pageSize)
+    val end = if (pageNo == 1) {
+      totalMembers
+    } else {
+      pageStart(pageNo - 1, pages, pageSize)
+    }
+    (start,end)
+  }
+
 }

@@ -96,6 +96,30 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
     }
   }
 
+  "MemberPaginationService.pageStartAndEnd" must {
+    "give correct values for page 1 of 3" in {
+      MemberPaginationService.pageStartAndEnd(
+        pageNo = 1,
+        totalMembers = 5,
+        pageSize = 2
+      ) mustBe (3, 5)
+    }
+    "give correct values for page 2 of 3" in {
+      MemberPaginationService.pageStartAndEnd(
+        pageNo = 2,
+        totalMembers = 5,
+        pageSize = 2
+      ) mustBe (1, 3)
+    }
+    "give correct values for page 3 of 3" in {
+      MemberPaginationService.pageStartAndEnd(
+        pageNo = 3,
+        totalMembers = 5,
+        pageSize = 2
+      ) mustBe (0, 1)
+    }
+  }
+
   "getMembersPaginated (using charge type E for testing)" must {
     "return pagination info in reverse order for page one for all the members added, excluding the deleted member" in {
       val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
