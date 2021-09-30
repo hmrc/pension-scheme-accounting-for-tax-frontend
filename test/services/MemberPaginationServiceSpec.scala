@@ -20,12 +20,11 @@ import java.time.LocalDate
 import base.SpecBase
 import config.FrontendAppConfig
 import data.SampleData
-import data.SampleData.{accessType, versionInt}
 import helpers.DeleteChargeHelper
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.ChargeAmounts
-import models.{Member, AmendedChargeStatus, MemberDetails, UserAnswers, AccessType}
+import models.{UserAnswers, MemberDetails, Member, AmendedChargeStatus}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -63,10 +62,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
     )
 
   private def expectedMember(memberDetails: MemberDetails, index: Int, amount:BigDecimal): Member =
-    Member(index, memberDetails.fullName, memberDetails.nino, amount,
-      viewUrl(index, srn, startDate, accessType, versionInt).url,
-      removeUrl(index, srn, startDate, UserAnswers(), accessType, versionInt).url
-    )
+    Member(index, memberDetails.fullName, memberDetails.nino, amount, viewUrl(index).url, removeUrl(index).url)
 
   private val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
@@ -78,113 +74,106 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
     when(mockAppConfig.membersPageSize).thenReturn(2)
   }
 
-  private val viewUrl: (Int, String, LocalDate, AccessType, Int) => Call =
-    (index, srn, startDate, accessType, version) => Call("GET", s"/dummyViewUrl/$index/$srn/$startDate/$accessType/$version")
+  private val viewUrl: Int => Call = index => Call("GET", s"/dummyViewUrl/$index")
 
-  private val removeUrl: (Int, String, LocalDate, UserAnswers, AccessType, Int) => Call =
-    (index, srn, startDate, ua, accessType, version) => Call("GET", s"/dummyRemoveUrl/$index/$srn/$startDate/$accessType/$version")
+  private val removeUrl: Int => Call = index => Call("GET", s"/dummyRemoveUrl/$index")
 
-  //"MemberPaginationService.totalPages" must {
-  //  "give correct total pages where divide exactly" in {
-  //    MemberPaginationService.totalPages(200, 25) mustBe 8
-  //  }
-  //  "give correct total pages where don't divide exactly" in {
-  //    MemberPaginationService.totalPages(201, 25) mustBe 9
-  //  }
-  //  "give correct total pages where less than one page" in {
-  //    MemberPaginationService.totalPages(24, 25) mustBe 1
-  //  }
-  //}
-  //
-  //"getMembersPaginated (using charge type E for testing)" must {
-  //  "return pagination info in reverse order for page one for all the members added, excluding the deleted member" in {
-  //    val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
-  //      expectedMember(SampleData.memberDetails6, index = 5, SampleData.chargeAmount1),
-  //      expectedMember(SampleData.memberDetails5, index = 4, SampleData.chargeAmount1)
-  //    )
-  //
-  //    memberPaginationService.getMembersPaginated[ChargeEDetails](
-  //      "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 1)(allMembersChargeE, srn, startDate,
-  //      accessType, versionInt) mustBe Some(
-  //        PaginatedMembersInfo(
-  //          membersForCurrentPage = expectedAllMembersMinusDeleted,
-  //          paginationStats = PaginationStats(
-  //            currentPage = 1,
-  //            startMember = 1,
-  //            lastMember = 2,
-  //            totalMembers = 5,
-  //            totalPages = 3
-  //          )
-  //        )
-  //      )
-  //  }
-  //
-  //  "return pagination info in reverse order for page two for all the members added, excluding the deleted member" in {
-  //    val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
-  //      expectedMember(SampleData.memberDetails4, index = 3, SampleData.chargeAmount1),
-  //      expectedMember(SampleData.memberDetails3, index = 2, SampleData.chargeAmount1)
-  //    )
-  //    memberPaginationService.getMembersPaginated[ChargeEDetails](
-  //      "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 2)(allMembersChargeE, srn, startDate,
-  //      accessType, versionInt) mustBe Some(
-  //      PaginatedMembersInfo(
-  //        membersForCurrentPage = expectedAllMembersMinusDeleted,
-  //        paginationStats = PaginationStats(
-  //          currentPage = 2,
-  //          startMember = 3,
-  //          lastMember = 4,
-  //          totalMembers = 5,
-  //          totalPages = 3
-  //        )
-  //      )
-  //    )
-  //  }
-  //
-  //  "return pagination info in reverse order for page three for all the members added, excluding the deleted member" in {
-  //    val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
-  //      expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
-  //    )
-  //    memberPaginationService.getMembersPaginated[ChargeEDetails](
-  //      "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 3)(allMembersChargeE, srn, startDate,
-  //      accessType, versionInt) mustBe Some(
-  //      PaginatedMembersInfo(
-  //        membersForCurrentPage = expectedAllMembersMinusDeleted,
-  //        paginationStats = PaginationStats(
-  //          currentPage = 3,
-  //          startMember = 5,
-  //          lastMember = 5,
-  //          totalMembers = 5,
-  //          totalPages = 3
-  //        )
-  //      )
-  //    )
-  //  }
-  //
-  //  "return none when beyond page limit" in {
-  //    memberPaginationService.getMembersPaginated[ChargeEDetails](
-  //      "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 4)(allMembersChargeE, srn, startDate,
-  //      accessType, versionInt) mustBe None
-  //  }
-  //}
-  //
-  //"getMembersPaginated (using charge type D)" must {
-  //  "parse and return the sole member paginated" in {
-  //    val ua = UserAnswers()
-  //      .set(pages.chargeD.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
-  //      .set(pages.chargeD.MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
-  //      .set(pages.chargeD.MemberDetailsPage(0), SampleData.memberDetails).toOption.get
-  //      .set(pages.chargeD.ChargeDetailsPage(0), SampleData.chargeDDetails).toOption.get
-  //
-  //    val expectedMembers: Seq[Member] = Seq(
-  //      expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount3)
-  //    )
-  //
-  //    val result = memberPaginationService.getMembersPaginated[ChargeDDetails](
-  //      "chargeDDetails", _.total, viewUrl, removeUrl, pageNo = 1)(ua, srn, startDate,
-  //      accessType, versionInt).map(_.membersForCurrentPage)
-  //    result mustBe Some(expectedMembers)
-  //  }
-  //}
+  "MemberPaginationService.totalPages" must {
+    "give correct total pages where divide exactly" in {
+      MemberPaginationService.totalPages(200, 25) mustBe 8
+    }
+    "give correct total pages where don't divide exactly" in {
+      MemberPaginationService.totalPages(201, 25) mustBe 9
+    }
+    "give correct total pages where less than one page" in {
+      MemberPaginationService.totalPages(24, 25) mustBe 1
+    }
+  }
+
+  "getMembersPaginated (using charge type E for testing)" must {
+    "return pagination info in reverse order for page one for all the members added, excluding the deleted member" in {
+      val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
+        expectedMember(SampleData.memberDetails6, index = 5, SampleData.chargeAmount1),
+        expectedMember(SampleData.memberDetails5, index = 4, SampleData.chargeAmount1)
+      )
+
+      memberPaginationService.getMembersPaginated[ChargeEDetails](
+        "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 1, allMembersChargeE) mustBe Some(
+          PaginatedMembersInfo(
+            membersForCurrentPage = expectedAllMembersMinusDeleted,
+            paginationStats = PaginationStats(
+              currentPage = 1,
+              startMember = 1,
+              lastMember = 2,
+              totalMembers = 5,
+              totalPages = 3
+            )
+          )
+        )
+    }
+
+    "return pagination info in reverse order for page two for all the members added, excluding the deleted member" in {
+      val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
+        expectedMember(SampleData.memberDetails4, index = 3, SampleData.chargeAmount1),
+        expectedMember(SampleData.memberDetails3, index = 2, SampleData.chargeAmount1)
+      )
+      memberPaginationService.getMembersPaginated[ChargeEDetails](
+        "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 2, allMembersChargeE) mustBe Some(
+        PaginatedMembersInfo(
+          membersForCurrentPage = expectedAllMembersMinusDeleted,
+          paginationStats = PaginationStats(
+            currentPage = 2,
+            startMember = 3,
+            lastMember = 4,
+            totalMembers = 5,
+            totalPages = 3
+          )
+        )
+      )
+    }
+
+    "return pagination info in reverse order for page three for all the members added, excluding the deleted member" in {
+      val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
+        expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
+      )
+      memberPaginationService.getMembersPaginated[ChargeEDetails](
+        "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 3, allMembersChargeE) mustBe Some(
+        PaginatedMembersInfo(
+          membersForCurrentPage = expectedAllMembersMinusDeleted,
+          paginationStats = PaginationStats(
+            currentPage = 3,
+            startMember = 5,
+            lastMember = 5,
+            totalMembers = 5,
+            totalPages = 3
+          )
+        )
+      )
+    }
+
+    "return none when beyond page limit" in {
+      memberPaginationService.getMembersPaginated[ChargeEDetails](
+        "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 4, allMembersChargeE) mustBe None
+    }
+  }
+
+  "getMembersPaginated (using charge type D)" must {
+    "parse and return the sole member paginated" in {
+      val ua = UserAnswers()
+        .set(pages.chargeD.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
+        .set(pages.chargeD.MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
+        .set(pages.chargeD.MemberDetailsPage(0), SampleData.memberDetails).toOption.get
+        .set(pages.chargeD.ChargeDetailsPage(0), SampleData.chargeDDetails).toOption.get
+
+      val expectedMembers: Seq[Member] = Seq(
+        expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount3)
+      )
+
+      val result = memberPaginationService.getMembersPaginated[ChargeDDetails](
+        "chargeDDetails", _.total, viewUrl, removeUrl, pageNo = 1, ua).map(_.membersForCurrentPage)
+      result mustBe Some(expectedMembers)
+    }
+  }
 
   "getMembersPaginated (using charge type G)" must {
     "parse and return the sole member paginated" in {
@@ -199,8 +188,8 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
 
       val result = memberPaginationService.getMembersPaginated[ChargeAmounts](
-        "chargeGDetails", _.amountTaxDue, viewUrl, removeUrl, pageNo = 1, "chargeAmounts")(ua, srn, startDate,
-        accessType, versionInt).map(_.membersForCurrentPage)
+        "chargeGDetails", _.amountTaxDue, viewUrl, removeUrl, pageNo = 1, ua, "chargeAmounts")
+        .map(_.membersForCurrentPage)
       result mustBe Some(expectedMembers)
     }
   }

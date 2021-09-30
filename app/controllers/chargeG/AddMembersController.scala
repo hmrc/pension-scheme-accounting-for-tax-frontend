@@ -17,7 +17,6 @@
 package controllers.chargeG
 
 import java.time.LocalDate
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
@@ -35,10 +34,10 @@ import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
 import play.api.data.Form
 import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Result, Call, Action}
+import play.api.mvc._
 import renderer.Renderer
 import services.AddMembersService.mapChargeXMembersToTable
-import services.{MemberPaginationService, ChargeGService}
+import services.MemberPaginationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
@@ -132,7 +131,14 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      schemeName = schemeName)
 
     val optionPaginatedMembersInfo = memberPaginationService.getMembersPaginated[ChargeAmounts](
-      "chargeGDetails", _.amountTaxDue, viewUrl, removeUrl, pageNumber, "chargeAmounts")(request.userAnswers, srn, startDate, accessType, version)
+      "chargeGDetails",
+      _.amountTaxDue,
+      viewUrl(srn, startDate, accessType, version),
+      removeUrl(srn, startDate, request.userAnswers, accessType, version),
+      pageNumber,
+      request.userAnswers,
+      "chargeAmounts"
+    )
     optionPaginatedMembersInfo.map { pmi =>
 
       Json.obj(
@@ -152,15 +158,15 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   private def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeG", members, canChange)
 
-  private def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
-    controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+  private def viewUrl(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Int => Call =
+    controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, _)
 
-  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers,
-    accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Call =
+  private def removeUrl(srn: String, startDate: LocalDate, ua: UserAnswers,
+    accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int => Call =
     if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
-      controllers.chargeG.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
+      controllers.chargeG.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, _)
     } else {
-      controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, index)
+      controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, _)
     }
 
 }

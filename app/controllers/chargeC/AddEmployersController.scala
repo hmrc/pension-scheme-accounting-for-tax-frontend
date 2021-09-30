@@ -132,7 +132,12 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                      schemeName = schemeName)
 
     val optionPaginatedMembersInfo = memberPaginationService.getEmployersPaginated[ChargeCDetails](
-      "chargeCDetails", _.amountTaxDue, viewUrl, removeUrl, pageNumber)(request.userAnswers, srn, startDate, accessType, version)
+      "chargeCDetails",
+      _.amountTaxDue,
+      viewUrl,
+      removeUrl,
+      pageNumber
+    )(request.userAnswers, srn, startDate, accessType, version)
 
     optionPaginatedMembersInfo.map { pmi =>
       Json.obj(

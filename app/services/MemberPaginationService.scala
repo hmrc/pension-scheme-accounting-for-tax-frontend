@@ -30,16 +30,14 @@ import models.{Member, SponsoringEmployerType, Employer, MemberDetails, UserAnsw
 
 class MemberPaginationService @Inject()(config: FrontendAppConfig) {
 
-  // scalastyle:off parameter.number
   def getMembersPaginated[A]
-  (uaChargeDetailsNode:String,
+  ( uaChargeDetailsNode:String,
     amount:A=>BigDecimal,
-    viewUrl: (Int, String, LocalDate, AccessType, Int) => Call,
-    removeUrl: (Int, String, LocalDate, UserAnswers, AccessType, Int) => Call,
+    viewUrl: Int => Call,
+    removeUrl: Int => Call,
     pageNo:Int,
+    ua: UserAnswers,
     chargeDetailsNode: String = "chargeDetails"
-  )(
-    ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
     val pageSize = config.membersPageSize
     val start = (pageNo - 1) * pageSize
@@ -59,8 +57,8 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
             member.fullName,
             member.nino,
             amount(chargeDetails),
-            viewUrl(index, srn, startDate, accessType, version).url,
-            removeUrl(index, srn, startDate, ua, accessType, version).url
+            viewUrl(index).url,
+            removeUrl(index).url
           )
         }.toSeq
       }
