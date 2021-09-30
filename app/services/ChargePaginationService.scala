@@ -165,17 +165,22 @@ case class PaginatedMembersInfo(itemsForCurrentPage:Either[Seq[Member], Seq[Empl
 object ChargePaginationService {
   def totalPages(totalMembers:Int, pageSize: Int):Int = (totalMembers.toFloat / pageSize).ceil.toInt
 
-  private def pageStart(pageNo:Int, totalPages: Int, pageSize: Int):Int = {
-    (totalPages - pageNo) * pageSize - 1 match {case x if x < 0 => 0 case x => x}
+  private def pageStart(pageNo:Int, totalPages: Int, pageSize: Int, totalMembers: Int):Int = {
+    if (pageNo == totalPages) {
+      0
+    } else {
+      (totalMembers - 1) - (pageNo * pageSize) + 1
+    }
   }
 
   def pageStartAndEnd(pageNo:Int, totalMembers: Int, pageSize: Int):(Int, Int) = {
     val pages = totalPages(totalMembers, pageSize)
-    val start = pageStart(pageNo, pages, pageSize)
+
+    val start = pageStart(pageNo, pages, pageSize, totalMembers)
     val end = if (pageNo == 1) {
       totalMembers
     } else {
-      pageStart(pageNo - 1, pages, pageSize)
+      pageStart(pageNo - 1, pages, pageSize, totalMembers)
     }
     (start,end)
   }

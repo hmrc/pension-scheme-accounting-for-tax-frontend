@@ -139,6 +139,20 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         pageSize = 2
       ) mustBe (0, 1)
     }
+    "give correct values for page 1 of 7" in { // ACT GOT (23,26)
+      ChargePaginationService.pageStartAndEnd(
+        pageNo = 1,
+        totalMembers = 26,
+        pageSize = 4
+      ) mustBe (22, 26)
+    }
+    "give correct values for page 7 of 7" in { // ACT GOT (0,3)
+      ChargePaginationService.pageStartAndEnd(
+        pageNo = 7,
+        totalMembers = 26,
+        pageSize = 4
+      ) mustBe (0, 2)
+    }
   }
 
   "getItemsPaginated (using charge type E for testing)" must {
