@@ -17,17 +17,18 @@
 package services
 
 import java.time.LocalDate
-
 import com.google.inject.Inject
 import helpers.FormatHelper
+
 import javax.inject.Singleton
 import models.requests.DataRequest
-import models.{ChargeType, Member, AccessType, UserAnswers}
+import models.{AccessType, ChargeType, Member, UserAnswers}
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Writes, Json, _}
+import play.api.libs.json.Reads.JsObjectReducer
+import play.api.libs.json.{Json, Writes, _}
 import play.api.mvc.AnyContent
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels._
 
@@ -51,7 +52,9 @@ class MemberSearchService @Inject()(
         fuzzyMatchingService.doFuzzyMatching(searchTextUpper, member.name)
       }
     }
-
+println("\n\n list of members"+listOfMembers(ua, srn, startDate, accessType, version))
+println("\n\n list of filtered members"+listOfMembers(ua, srn, startDate, accessType, version).filter(searchFunc))
+println("\n\n list of rows"+listOfRows(listOfMembers(ua, srn, startDate, accessType, version).filter(searchFunc), request.isViewOnly))
     listOfRows(listOfMembers(ua, srn, startDate, accessType, version).filter(searchFunc), request.isViewOnly)
   }
 
@@ -115,6 +118,39 @@ class MemberSearchService @Inject()(
       MemberRow(data.name, rowNino ++ rowChargeType ++ rowAmount, actions)
     }
     allRows.sortBy(_.name)
+  }
+
+  val jsonSearch: (String, JsValue) => Option[JsValue] = (searchString, ua) => {
+
+    val conditionalFilter: JsValue => Boolean = jsValue => if(searchString.matches(ninoRegex)) {
+      (jsValue \ "memberDetails" \ "nino").as[String] == searchString
+    } else {
+      val memberName = s"${(jsValue \ "memberDetails" \ "firstName").as[String]} ${(jsValue \ "memberDetails" \ "lastName").as[String]}"
+      fuzzyMatchingService.doFuzzyMatching(searchString, memberName)
+    }
+
+    val chargeFilter: String => Reads[JsObject] = chargeType =>
+      (__ \ s"charge${chargeType}Details").readNullable(__.read(
+        (__ \ s"charge${chargeType}Details" \ "members").json.update(__.read[JsArray].map { jsArray =>
+        JsArray(jsArray.value.filter(conditionalFilter))})
+      )).map { _.getOrElse(Json.obj()) }
+
+    val pruneEmptyCharges: String => Reads[JsObject] = chargeType =>
+      (__ \ s"charge${chargeType}Details").readNullable(__.read(
+        (__ \ s"charge${chargeType}Details" \ "members").readNullable[JsArray] flatMap {
+          case Some(array) if array.value.nonEmpty => __.json.pickBranch
+          case _ => ((__ \ s"charge${chargeType}Details").json.prune  and (__ \ s"charge${chargeType}NoMatch").json.put(JsBoolean(true))).reduce
+        }
+      )).map { _.getOrElse(Json.obj()) }
+
+    val allFilters = (chargeFilter("D") and chargeFilter("E") and chargeFilter("G")).reduce
+    val allPruners = (pruneEmptyCharges("D") and pruneEmptyCharges("E") and pruneEmptyCharges("G")).reduce
+
+    val filtered: JsObject = ua.transform(allFilters).get
+    println("\n\n >>>>>>>>> 1 "+filtered)
+    val filteredAndPruned = filtered.transform(allPruners).get
+    val noMatchBoolean: String => Boolean = chargeType => (filteredAndPruned \ s"charge${chargeType}NoMatch").asOpt[Boolean].getOrElse(false)
+    if(Seq(noMatchBoolean("D"), noMatchBoolean("E"), noMatchBoolean("G")).contains(false)) Some(filteredAndPruned) else None
   }
 }
 
