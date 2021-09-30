@@ -141,6 +141,18 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
     )
 
     optionPaginatedMembersInfo.map { pmi =>
+      println("\n>>>PAGINATION STATS=" + pmi.paginationStats)
+      //case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int)
+      /*
+        PaginationStats(
+          currentPage = 1,
+          startMember = 1,
+          lastMember = 3,
+          totalMembers = 26,
+          totalPages = 7
+        )
+
+       */
       Json.obj(
         "srn" -> srn,
         "startDate" -> Some(startDate),

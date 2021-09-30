@@ -64,13 +64,13 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     membersOrEmployers: MembersOrEmployers
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
     val pageSize = config.membersPageSize
-    val filteredMembers = (ua.data \ chargeRootNode \ listNode(membersOrEmployers)).as[JsArray].value.zipWithIndex
+    val membersExcludingDeletedJson = (ua.data \ chargeRootNode \ listNode(membersOrEmployers)).as[JsArray].value.zipWithIndex
       .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
-    val (start, end) = ChargePaginationService.pageStartAndEnd(pageNo, filteredMembers.size, pageSize)
-    val paginatedMembersTmp = filteredMembers
-      .slice(start, end)
+    val (start, end) = ChargePaginationService.pageStartAndEnd(pageNo, membersExcludingDeletedJson.size, pageSize)
+    val membersForPageJson = membersExcludingDeletedJson.slice(start, end)
+
     val paginatedMembers = if (membersOrEmployers == MEMBERS) {
-        paginatedMembersTmp.flatMap { case (m, index) =>
+        membersForPageJson.flatMap { case (m, index) =>
           (m \ chargeDetailsNode).asOpt[A].map(createMember(m, index, amount, _, viewUrl, removeUrl)).toSeq
         }
       } else {
@@ -78,7 +78,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
       }
 
     val paginatedEmployers = if (membersOrEmployers == EMPLOYERS) {
-      paginatedMembersTmp.flatMap { case (m, index) =>
+      membersForPageJson.flatMap { case (m, index) =>
         (m \ chargeDetailsNode).asOpt[A].map(createEmployer(m, index, amount, _, viewUrl, removeUrl)).toSeq
       }
     } else {
@@ -97,8 +97,8 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
           currentPage = pageNo,
           startMember = startMember,
           lastMember = startMember + paginatedMembers.size - 1,
-          totalMembers = filteredMembers.size,
-          totalPages = ChargePaginationService.totalPages(filteredMembers.size, pageSize)
+          totalMembers = membersExcludingDeletedJson.size,
+          totalPages = ChargePaginationService.totalPages(membersExcludingDeletedJson.size, pageSize)
         )
       ))
     }
@@ -160,7 +160,7 @@ object ChargePaginationService {
     (totalPages - pageNo) * pageSize - 1 match {case x if x < 0 => 0 case x => x}
   }
 
-  def pageStartAndEnd(pageNo:Int, totalMembers: Int, pageSize: Int):Tuple2[Int, Int] = {
+  def pageStartAndEnd(pageNo:Int, totalMembers: Int, pageSize: Int):(Int, Int) = {
     val pages = totalPages(totalMembers, pageSize)
     val start = pageStart(pageNo, pages, pageSize)
     val end = if (pageNo == 1) {
