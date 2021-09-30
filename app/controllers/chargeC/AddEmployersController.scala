@@ -131,25 +131,14 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        .returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
-    /*
-memberPaginationService.getMembersPaginated[ChargeAmounts](
-chargeRootNode = "chargeGDetails",
-amount = _.amountTaxDue,
-viewUrl = viewUrl,
-removeUrl = removeUrl,
-pageNo = 1,
-ua = ua,
-chargeDetailsNode = "chargeAmounts"
-)
-*/
-
     val optionPaginatedMembersInfo = memberPaginationService.getEmployersPaginated[ChargeCDetails](
-      "chargeCDetails",
-      _.amountTaxDue,
-      viewUrl,
-      removeUrl,
-      pageNumber
-    )(request.userAnswers, srn, startDate, accessType, version)
+      pageNo = pageNumber,
+      ua = request.userAnswers,
+      chargeRootNode = "chargeCDetails",
+      amount = _.amountTaxDue,
+      viewUrl = viewUrl(srn, startDate, accessType, version),
+      removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version)
+    )
 
     optionPaginatedMembersInfo.map { pmi =>
       Json.obj(
@@ -209,15 +198,15 @@ chargeDetailsNode = "chargeAmounts"
         s"<span class= $hiddenTag>${messages(text)} ${messages(s"chargeC.addEmployers.visuallyHidden", name)}</span> </a>")
   }
 
-  private def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
-    controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+  private def viewUrl(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Int => Call =
+    controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, _)
 
-  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers, accessType: AccessType, version: Int)
-    (implicit request: DataRequest[AnyContent]): Call =
+  private def removeUrl(srn: String, startDate: LocalDate, ua: UserAnswers,
+    accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int => Call =
     if (request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
-      controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
+      controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, _)
     } else {
-      controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, version, index)
+      controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, version, _)
     }
 
 }

@@ -29,7 +29,7 @@ import models.chargeG.ChargeAmounts
 import models.requests.DataRequest
 import models.{Member, GenericViewModel, NormalMode, AFTQuarter, UserAnswers, AccessType}
 import navigators.CompoundNavigator
-import pages.chargeG.AddMembersPage
+import pages.chargeG.{AddMembersPage, ChargeAmountsPage}
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
 import play.api.data.Form
 import play.api.i18n.{MessagesApi, Messages, I18nSupport}
@@ -131,13 +131,13 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      schemeName = schemeName)
 
     val optionPaginatedMembersInfo = memberPaginationService.getMembersPaginated[ChargeAmounts](
-      chargeRootNode = "chargeGDetails",
-      amount = _.amountTaxDue,
-      viewUrl = viewUrl(srn, startDate, accessType, version),
-      removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version),
       pageNo = pageNumber,
       ua = request.userAnswers,
-      chargeDetailsNode = "chargeAmounts"
+      chargeRootNode = "chargeGDetails",
+      chargeDetailsNode = ChargeAmountsPage.toString,
+      amount = _.amountTaxDue,
+      viewUrl = viewUrl(srn, startDate, accessType, version),
+      removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version)
     )
     optionPaginatedMembersInfo.map { pmi =>
 

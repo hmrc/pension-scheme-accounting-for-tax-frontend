@@ -21,21 +21,19 @@ import play.api.mvc.Call
 import com.google.inject.Inject
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.SponsoringOrganisationDetails
-
-import java.time.LocalDate
 import play.api.libs.json.{JsArray, Format, Json, Reads}
-import models.{Member, SponsoringEmployerType, Employer, MemberDetails, UserAnswers, AccessType}
+import models.{Member, SponsoringEmployerType, UserAnswers, Employer, MemberDetails}
 
 class MemberPaginationService @Inject()(config: FrontendAppConfig) {
 
   def getMembersPaginated[A](
-    chargeRootNode:String,
-    amount:A=>BigDecimal,
-    viewUrl: Int => Call,
-    removeUrl: Int => Call,
     pageNo:Int,
     ua: UserAnswers,
-    chargeDetailsNode: String = "chargeDetails"
+    chargeRootNode:String,
+    chargeDetailsNode: String = "chargeDetails",
+    amount: A=>BigDecimal,
+    viewUrl: Int => Call,
+    removeUrl: Int => Call
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
     val pageSize = config.membersPageSize
     val start = (pageNo - 1) * pageSize
@@ -48,8 +46,8 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     val paginatedMembers = filteredMembers.reverse
       .slice(start, end)
       .flatMap { case (m, index) =>
-        val member = (m \ "memberDetails").as[MemberDetails]
         (m \ chargeDetailsNode).asOpt[A].map { chargeDetails =>
+        val member = (m \ "memberDetails").as[MemberDetails]
           Member(
             index,
             member.fullName,
@@ -76,26 +74,39 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     }
   }
 
-  // scalastyle:off parameter.number
   // scalastyle:off method.length
-  def getEmployersPaginated[A]
-  (uaChargeDetailsNode:String,
-    amount:A=>BigDecimal,
-    viewUrl: (Int, String, LocalDate, AccessType, Int) => Call,
-    removeUrl: (Int, String, LocalDate, UserAnswers, AccessType, Int) => Call,
-    pageNo:Int
-  )(
-    ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int
+  def getEmployersPaginated[A](
+    pageNo:Int,
+    ua: UserAnswers,
+    chargeRootNode:String,
+    amount: A=>BigDecimal,
+    viewUrl: Int => Call,
+    removeUrl: Int => Call
   )(implicit reads: Reads[A]): Option[PaginatedEmployersInfo] = {
     val pageSize = config.membersPageSize
     val start = (pageNo - 1) * pageSize
     val end = pageNo * pageSize
 
-    val filteredEmployers = (ua.data \ uaChargeDetailsNode \ "employers").as[JsArray].value.zipWithIndex
+    val filteredEmployers = (ua.data \ chargeRootNode \ "employers").as[JsArray].value.zipWithIndex
       .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
 
     val paginatedEmployers = filteredEmployers.reverse
       .slice(start, end)
+      /*
+      .flatMap { case (m, index) =>
+        (m \ chargeDetailsNode).asOpt[A].map { chargeDetails =>
+        val member = (m \ "memberDetails").as[MemberDetails]
+          Member(
+            index,
+            member.fullName,
+            member.nino,
+            amount(chargeDetails),
+            viewUrl(index).url,
+            removeUrl(index).url
+          )
+        }.toSeq
+      }
+       */
       .flatMap { case (m, index) =>
         (m \ "chargeDetails").asOpt[A].map { chargeDetails =>
           (m \ "whichTypeOfSponsoringEmployer").as[SponsoringEmployerType] match {
@@ -105,8 +116,8 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
                 index,
                 member.fullName,
                 amount(chargeDetails),
-                viewUrl(index, srn, startDate, accessType, version).url,
-                removeUrl(index, srn, startDate, ua, accessType, version).url
+                viewUrl(index).url,
+                removeUrl(index).url
               )
             case SponsoringEmployerTypeOrganisation =>
               val member = (m \ "sponsoringOrganisationDetails").as[SponsoringOrganisationDetails]
@@ -114,8 +125,8 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
                 index,
                 member.name,
                 amount(chargeDetails),
-                viewUrl(index, srn, startDate, accessType, version).url,
-                removeUrl(index, srn, startDate, ua, accessType, version).url
+                viewUrl(index).url,
+                removeUrl(index).url
               )
           }
         }.toSeq

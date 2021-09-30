@@ -30,6 +30,7 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage, MemberStatusPage, MemberAFTVersionPage}
+import pages.chargeG.ChargeAmountsPage
 import play.api.libs.json.JsArray
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
@@ -98,12 +99,12 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
 
       memberPaginationService.getMembersPaginated[ChargeEDetails](
+        pageNo = 1,
+        ua = allMembersChargeE,
         chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
-        removeUrl = removeUrl,
-        pageNo = 1,
-        ua = allMembersChargeE
+        removeUrl = removeUrl
       ) mustBe Some(
           PaginatedMembersInfo(
             membersForCurrentPage = expectedAllMembersMinusDeleted,
@@ -123,13 +124,14 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails4, index = 3, SampleData.chargeAmount1),
         expectedMember(SampleData.memberDetails3, index = 2, SampleData.chargeAmount1)
       )
+
       memberPaginationService.getMembersPaginated[ChargeEDetails](
+        pageNo = 2,
+        ua = allMembersChargeE,
         chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
-        removeUrl = removeUrl,
-        pageNo = 2,
-        ua = allMembersChargeE
+        removeUrl = removeUrl
       ) mustBe Some(
         PaginatedMembersInfo(
           membersForCurrentPage = expectedAllMembersMinusDeleted,
@@ -148,13 +150,14 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
       val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
         expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
       )
+
       memberPaginationService.getMembersPaginated[ChargeEDetails](
+        pageNo = 3,
+        ua = allMembersChargeE,
         chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
-        removeUrl = removeUrl,
-        pageNo = 3,
-        ua = allMembersChargeE
+        removeUrl = removeUrl
       ) mustBe Some(
         PaginatedMembersInfo(
           membersForCurrentPage = expectedAllMembersMinusDeleted,
@@ -170,13 +173,14 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
     }
 
     "return none when beyond page limit" in {
+
       memberPaginationService.getMembersPaginated[ChargeEDetails](
+        pageNo = 4,
+        ua = allMembersChargeE,
         chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
-        removeUrl = removeUrl,
-        pageNo = 4,
-        ua = allMembersChargeE
+        removeUrl = removeUrl
       ) mustBe None
     }
   }
@@ -194,12 +198,12 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
 
       val result = memberPaginationService.getMembersPaginated[ChargeDDetails](
+        pageNo = 1,
+        ua = ua,
         chargeRootNode = "chargeDDetails",
         amount = _.total,
         viewUrl = viewUrl,
-        removeUrl = removeUrl,
-        pageNo = 1,
-        ua = ua
+        removeUrl = removeUrl
       ).map(_.membersForCurrentPage)
 
       result mustBe Some(expectedMembers)
@@ -219,13 +223,13 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
 
       val result = memberPaginationService.getMembersPaginated[ChargeAmounts](
-        chargeRootNode = "chargeGDetails",
-        amount = _.amountTaxDue,
-        viewUrl = viewUrl,
-        removeUrl = removeUrl,
         pageNo = 1,
         ua = ua,
-        chargeDetailsNode = "chargeAmounts"
+        chargeRootNode = "chargeGDetails",
+        chargeDetailsNode = ChargeAmountsPage.toString,
+        amount = _.amountTaxDue,
+        viewUrl = viewUrl,
+        removeUrl = removeUrl
       ).map(_.membersForCurrentPage)
 
       result mustBe Some(expectedMembers)
