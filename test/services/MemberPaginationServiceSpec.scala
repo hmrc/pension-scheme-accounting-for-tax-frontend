@@ -21,10 +21,12 @@ import base.SpecBase
 import config.FrontendAppConfig
 import data.SampleData
 import helpers.DeleteChargeHelper
+import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
+import models.chargeC.ChargeCDetails
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.ChargeAmounts
-import models.{UserAnswers, MemberDetails, Member, AmendedChargeStatus}
+import models.{Member, UserAnswers, Employer, AmendedChargeStatus, MemberDetails}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -64,6 +66,9 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
 
   private def expectedMember(memberDetails: MemberDetails, index: Int, amount:BigDecimal): Member =
     Member(index, memberDetails.fullName, memberDetails.nino, amount, viewUrl(index).url, removeUrl(index).url)
+
+  private def expectedEmployer(memberDetails: MemberDetails, index: Int, amount:BigDecimal): Employer =
+    Employer(index, memberDetails.fullName, amount, viewUrl(index).url, removeUrl(index).url)
 
   private val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
@@ -227,6 +232,32 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         ua = ua,
         chargeRootNode = "chargeGDetails",
         chargeDetailsNode = ChargeAmountsPage.toString,
+        amount = _.amountTaxDue,
+        viewUrl = viewUrl,
+        removeUrl = removeUrl
+      ).map(_.membersForCurrentPage)
+
+      result mustBe Some(expectedMembers)
+    }
+  }
+
+  "getEmployersPaginated" must {
+    "parse and return the sole member paginated" in {
+      val ua = UserAnswers()
+        .set(pages.chargeC.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
+        .set(pages.chargeC.MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
+        .set(pages.chargeC.WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual).toOption.get
+        .set(pages.chargeC.SponsoringIndividualDetailsPage(0), SampleData.memberDetails).toOption.get
+        .set(pages.chargeC.ChargeCDetailsPage(0), SampleData.chargeCDetails).toOption.get
+
+      val expectedMembers: Seq[Employer] = Seq(
+        expectedEmployer(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
+      )
+
+      val result = memberPaginationService.getEmployersPaginated[ChargeCDetails](
+        pageNo = 1,
+        ua = ua,
+        chargeRootNode = "chargeCDetails",
         amount = _.amountTaxDue,
         viewUrl = viewUrl,
         removeUrl = removeUrl

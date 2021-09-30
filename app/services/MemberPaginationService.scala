@@ -21,10 +21,29 @@ import play.api.mvc.Call
 import com.google.inject.Inject
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.SponsoringOrganisationDetails
-import play.api.libs.json.{JsArray, Format, Json, Reads}
+import play.api.libs.json._
 import models.{Member, SponsoringEmployerType, UserAnswers, Employer, MemberDetails}
 
 class MemberPaginationService @Inject()(config: FrontendAppConfig) {
+
+  private def createMember[A](
+    jsValueChargeRootNode:JsValue,
+    index: Int,
+    amount: A=>BigDecimal,
+    chargeDetails: A,
+    viewUrl: Int => Call,
+    removeUrl: Int => Call
+  ):Member = {
+    val member = (jsValueChargeRootNode \ "memberDetails").as[MemberDetails]
+    Member(
+      index,
+      member.fullName,
+      member.nino,
+      amount(chargeDetails),
+      viewUrl(index).url,
+      removeUrl(index).url
+    )
+  }
 
   def getMembersPaginated[A](
     pageNo:Int,
@@ -46,17 +65,7 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     val paginatedMembers = filteredMembers.reverse
       .slice(start, end)
       .flatMap { case (m, index) =>
-        (m \ chargeDetailsNode).asOpt[A].map { chargeDetails =>
-        val member = (m \ "memberDetails").as[MemberDetails]
-          Member(
-            index,
-            member.fullName,
-            member.nino,
-            amount(chargeDetails),
-            viewUrl(index).url,
-            removeUrl(index).url
-          )
-        }.toSeq
+        (m \ chargeDetailsNode).asOpt[A].map(createMember(m, index, amount, _, viewUrl, removeUrl)).toSeq
       }
     if (paginatedMembers.isEmpty) {
       None
@@ -74,7 +83,36 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     }
   }
 
-  // scalastyle:off method.length
+  private def createEmployer[A](
+    jsValueChargeRootNode:JsValue,
+    index: Int,
+    amount: A=>BigDecimal,
+    chargeDetails: A,
+    viewUrl: Int => Call,
+    removeUrl: Int => Call
+  ):Employer = {
+    (jsValueChargeRootNode \ "whichTypeOfSponsoringEmployer").as[SponsoringEmployerType] match {
+      case SponsoringEmployerTypeIndividual =>
+        val member = (jsValueChargeRootNode \ "sponsoringIndividualDetails").as[MemberDetails]
+        Employer(
+          index,
+          member.fullName,
+          amount(chargeDetails),
+          viewUrl(index).url,
+          removeUrl(index).url
+        )
+      case SponsoringEmployerTypeOrganisation =>
+        val member = (jsValueChargeRootNode \ "sponsoringOrganisationDetails").as[SponsoringOrganisationDetails]
+        Employer(
+          index,
+          member.name,
+          amount(chargeDetails),
+          viewUrl(index).url,
+          removeUrl(index).url
+        )
+    }
+  }
+
   def getEmployersPaginated[A](
     pageNo:Int,
     ua: UserAnswers,
@@ -92,44 +130,8 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
 
     val paginatedEmployers = filteredEmployers.reverse
       .slice(start, end)
-      /*
       .flatMap { case (m, index) =>
-        (m \ chargeDetailsNode).asOpt[A].map { chargeDetails =>
-        val member = (m \ "memberDetails").as[MemberDetails]
-          Member(
-            index,
-            member.fullName,
-            member.nino,
-            amount(chargeDetails),
-            viewUrl(index).url,
-            removeUrl(index).url
-          )
-        }.toSeq
-      }
-       */
-      .flatMap { case (m, index) =>
-        (m \ "chargeDetails").asOpt[A].map { chargeDetails =>
-          (m \ "whichTypeOfSponsoringEmployer").as[SponsoringEmployerType] match {
-            case SponsoringEmployerTypeIndividual =>
-              val member = (m \ "sponsoringIndividualDetails").as[MemberDetails]
-              Employer(
-                index,
-                member.fullName,
-                amount(chargeDetails),
-                viewUrl(index).url,
-                removeUrl(index).url
-              )
-            case SponsoringEmployerTypeOrganisation =>
-              val member = (m \ "sponsoringOrganisationDetails").as[SponsoringOrganisationDetails]
-              Employer(
-                index,
-                member.name,
-                amount(chargeDetails),
-                viewUrl(index).url,
-                removeUrl(index).url
-              )
-          }
-        }.toSeq
+        (m \ "chargeDetails").asOpt[A].map(createEmployer(m, index, amount, _, viewUrl, removeUrl)).toSeq
       }
     if (paginatedEmployers.isEmpty) {
       None
