@@ -25,12 +25,7 @@ import play.api.libs.json._
 import models.{Member, SponsoringEmployerType, UserAnswers, Employer, MemberDetails}
 import services.MembersOrEmployers.{MEMBERS, MembersOrEmployers, EMPLOYERS}
 
-object MembersOrEmployers extends Enumeration {
-  type MembersOrEmployers = Value
-  val MEMBERS, EMPLOYERS = Value
-}
-
-class MemberPaginationService @Inject()(config: FrontendAppConfig) {
+class ChargePaginationService @Inject()(config: FrontendAppConfig) {
 
   private def listNode(membersOrEmployers:MembersOrEmployers): String =
     membersOrEmployers match {
@@ -58,7 +53,7 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
   }
 
   // scalastyle:off parameter.number
-  def getMembersPaginated[A](
+  def getItemsPaginated[A](
     pageNo:Int,
     ua: UserAnswers,
     chargeRootNode:String,
@@ -71,7 +66,7 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     val pageSize = config.membersPageSize
     val filteredMembers = (ua.data \ chargeRootNode \ listNode(membersOrEmployers)).as[JsArray].value.zipWithIndex
       .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
-    val (start, end) = MemberPaginationService.pageStartAndEnd(pageNo, filteredMembers.size, pageSize)
+    val (start, end) = ChargePaginationService.pageStartAndEnd(pageNo, filteredMembers.size, pageSize)
     val paginatedMembersTmp = filteredMembers
       .slice(start, end)
     val paginatedMembers = if (membersOrEmployers == MEMBERS) {
@@ -103,7 +98,7 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
           startMember = startMember,
           lastMember = startMember + paginatedMembers.size - 1,
           totalMembers = filteredMembers.size,
-          totalPages = MemberPaginationService.totalPages(filteredMembers.size, pageSize)
+          totalPages = ChargePaginationService.totalPages(filteredMembers.size, pageSize)
         )
       ))
     }
@@ -158,7 +153,7 @@ case class PaginatedMembersInfo(itemsForCurrentPage:Either[Seq[Member], Seq[Empl
   }
 }
 
-object MemberPaginationService {
+object ChargePaginationService {
   def totalPages(totalMembers:Int, pageSize: Int):Int = (totalMembers.toFloat / pageSize).ceil.toInt
 
   private def pageStart(pageNo:Int, totalPages: Int, pageSize: Int):Int = {
@@ -175,5 +170,9 @@ object MemberPaginationService {
     }
     (start,end)
   }
+}
 
+object MembersOrEmployers extends Enumeration {
+  type MembersOrEmployers = Value
+  val MEMBERS, EMPLOYERS = Value
 }

@@ -37,7 +37,7 @@ import play.api.libs.json.JsArray
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 
-class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
   //scalastyle:off magic.number
 
   private val srn = "S1234567"
@@ -72,7 +72,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
 
   private val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
-  private val memberPaginationService: MemberPaginationService = new MemberPaginationService(mockAppConfig)
+  private val chargePaginationService: ChargePaginationService = new ChargePaginationService(mockAppConfig)
 
   override def beforeEach: Unit = {
     reset(mockDeleteChargeHelper, mockAppConfig)
@@ -84,35 +84,35 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
 
   private val removeUrl: Int => Call = index => Call("GET", s"/dummyRemoveUrl/$index")
 
-  "MemberPaginationService.totalPages" must {
+  "ChargePaginationService.totalPages" must {
     "give correct total pages where divide exactly" in {
-      MemberPaginationService.totalPages(200, 25) mustBe 8
+      ChargePaginationService.totalPages(200, 25) mustBe 8
     }
     "give correct total pages where don't divide exactly" in {
-      MemberPaginationService.totalPages(201, 25) mustBe 9
+      ChargePaginationService.totalPages(201, 25) mustBe 9
     }
     "give correct total pages where less than one page" in {
-      MemberPaginationService.totalPages(24, 25) mustBe 1
+      ChargePaginationService.totalPages(24, 25) mustBe 1
     }
   }
 
-  "MemberPaginationService.pageStartAndEnd" must {
+  "ChargePaginationService.pageStartAndEnd" must {
     "give correct values for page 1 of 3" in {
-      MemberPaginationService.pageStartAndEnd(
+      ChargePaginationService.pageStartAndEnd(
         pageNo = 1,
         totalMembers = 5,
         pageSize = 2
       ) mustBe (3, 5)
     }
     "give correct values for page 2 of 3" in {
-      MemberPaginationService.pageStartAndEnd(
+      ChargePaginationService.pageStartAndEnd(
         pageNo = 2,
         totalMembers = 5,
         pageSize = 2
       ) mustBe (1, 3)
     }
     "give correct values for page 3 of 3" in {
-      MemberPaginationService.pageStartAndEnd(
+      ChargePaginationService.pageStartAndEnd(
         pageNo = 3,
         totalMembers = 5,
         pageSize = 2
@@ -120,14 +120,14 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
     }
   }
 
-  "getMembersPaginated (using charge type E for testing)" must {
+  "getItemsPaginated (using charge type E for testing)" must {
     "return pagination info in reverse order for page one for all the members added, excluding the deleted member" in {
       val expectedAllMembersMinusDeleted: Seq[Member] = Seq(
         expectedMember(SampleData.memberDetails6, index = 5, SampleData.chargeAmount1),
         expectedMember(SampleData.memberDetails5, index = 4, SampleData.chargeAmount1)
       )
 
-      memberPaginationService.getMembersPaginated[ChargeEDetails](
+      chargePaginationService.getItemsPaginated[ChargeEDetails](
         pageNo = 1,
         ua = allMembersChargeE,
         chargeRootNode = "chargeEDetails",
@@ -155,7 +155,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails3, index = 2, SampleData.chargeAmount1)
       )
 
-      memberPaginationService.getMembersPaginated[ChargeEDetails](
+      chargePaginationService.getItemsPaginated[ChargeEDetails](
         pageNo = 2,
         ua = allMembersChargeE,
         chargeRootNode = "chargeEDetails",
@@ -182,7 +182,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
       )
 
-      memberPaginationService.getMembersPaginated[ChargeEDetails](
+      chargePaginationService.getItemsPaginated[ChargeEDetails](
         pageNo = 3,
         ua = allMembersChargeE,
         chargeRootNode = "chargeEDetails",
@@ -206,7 +206,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
 
     "return none when beyond page limit" in {
 
-      memberPaginationService.getMembersPaginated[ChargeEDetails](
+      chargePaginationService.getItemsPaginated[ChargeEDetails](
         pageNo = 4,
         ua = allMembersChargeE,
         chargeRootNode = "chargeEDetails",
@@ -218,7 +218,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
     }
   }
 
-  "getMembersPaginated (using charge type D)" must {
+  "getItemsPaginated (using charge type D)" must {
     "parse and return the sole member paginated" in {
       val ua = UserAnswers()
         .set(pages.chargeD.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
@@ -230,7 +230,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount3)
       )
 
-      val result = memberPaginationService.getMembersPaginated[ChargeDDetails](
+      val result = chargePaginationService.getItemsPaginated[ChargeDDetails](
         pageNo = 1,
         ua = ua,
         chargeRootNode = "chargeDDetails",
@@ -244,7 +244,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
     }
   }
 
-  "getMembersPaginated (using charge type G)" must {
+  "getItemsPaginated (using charge type G)" must {
     "parse and return the sole member paginated" in {
       val ua = UserAnswers()
         .set(pages.chargeG.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
@@ -256,7 +256,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount2)
       )
 
-      val result = memberPaginationService.getMembersPaginated[ChargeAmounts](
+      val result = chargePaginationService.getItemsPaginated[ChargeAmounts](
         pageNo = 1,
         ua = ua,
         chargeRootNode = "chargeGDetails",
@@ -271,7 +271,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
     }
   }
 
-  "getMembersPaginated (using charge type C)" must {
+  "getItemsPaginated (using charge type C)" must {
     "parse and return the sole member paginated" in {
       val ua = UserAnswers()
         .set(pages.chargeC.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
@@ -284,7 +284,7 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedEmployer(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
       )
 
-      val result = memberPaginationService.getMembersPaginated[ChargeCDetails](
+      val result = chargePaginationService.getItemsPaginated[ChargeCDetails](
         pageNo = 1,
         ua = ua,
         chargeRootNode = "chargeCDetails",

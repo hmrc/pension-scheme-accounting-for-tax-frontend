@@ -36,7 +36,7 @@ import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
-import services.{MemberPaginationService, MembersOrEmployers}
+import services.{ChargePaginationService, MembersOrEmployers}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, Radios, NunjucksSupport}
@@ -55,7 +55,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        requireData: DataRequiredAction,
                                        formProvider: AddMembersFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
-                                       memberPaginationService: MemberPaginationService,
+                                       chargePaginationService: ChargePaginationService,
                                        deleteChargeHelper: DeleteChargeHelper,
                                        errorHandler:ErrorHandler,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
@@ -131,7 +131,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        .returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
-    val optionPaginatedMembersInfo = memberPaginationService.getMembersPaginated[ChargeCDetails](
+    val optionPaginatedMembersInfo = chargePaginationService.getItemsPaginated[ChargeCDetails](
       pageNo = pageNumber,
       ua = request.userAnswers,
       chargeRootNode = "chargeCDetails",

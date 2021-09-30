@@ -39,7 +39,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, redirectLocation, status, _}
 import play.twirl.api.Html
-import services.{PaginationStats, MemberPaginationService, PaginatedMembersInfo}
+import services.{PaginationStats, ChargePaginationService, PaginatedMembersInfo}
 import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
@@ -135,12 +135,12 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     ))
 
 
-  private val mockMemberPaginationService = mock[MemberPaginationService]
+  private val mockMemberPaginationService = mock[ChargePaginationService]
   private val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[DeleteChargeHelper].toInstance(mockDeleteChargeHelper),
-    bind[MemberPaginationService].toInstance(mockMemberPaginationService)
+    bind[ChargePaginationService].toInstance(mockMemberPaginationService)
   )
 
   override def beforeEach: Unit = {
@@ -151,7 +151,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockMemberPaginationService
-      .getMembersPaginated[ChargeCDetails](any(), any(), any(), any(), any(), any(), any(), any())(any()))
+      .getItemsPaginated[ChargeCDetails](any(), any(), any(), any(), any(), any(), any(), any())(any()))
       .thenReturn(expectedPaginatedEmployersInfo)
   }
 
@@ -161,7 +161,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
   "AddMembers Controller" must {
     "return OK and the correct view for a GET and get first page" in {
       when(mockMemberPaginationService
-        .getMembersPaginated[ChargeCDetails](pageCaptor.capture(), any(), any(), any(), any(), any(), any(), any())(any()))
+        .getItemsPaginated[ChargeCDetails](pageCaptor.capture(), any(), any(), any(), any(), any(), any(), any())(any()))
         .thenReturn(expectedPaginatedEmployersInfo)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -181,7 +181,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
 
     "return OK and the correct view for a GET with page no 2" in {
       when(mockMemberPaginationService
-        .getMembersPaginated[ChargeCDetails](pageCaptor.capture(), any(), any(), any(), any(), any(), any(), any())(any()))
+        .getItemsPaginated[ChargeCDetails](pageCaptor.capture(), any(), any(), any(), any(), any(), any(), any())(any()))
         .thenReturn(expectedPaginatedEmployersInfo)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -201,7 +201,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
 
     "return NOT_FOUND when paginated info not available" in {
       when(mockMemberPaginationService
-        .getMembersPaginated[ChargeCDetails](any(), any(), any(), any(), any(), any(), any(), any())(any()))
+        .getItemsPaginated[ChargeCDetails](any(), any(), any(), any(), any(), any(), any(), any())(any()))
         .thenReturn(None)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
