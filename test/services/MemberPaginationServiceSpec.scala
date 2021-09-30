@@ -98,7 +98,13 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
 
       memberPaginationService.getMembersPaginated[ChargeEDetails](
-        "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 1, allMembersChargeE) mustBe Some(
+        chargeRootNode = "chargeEDetails",
+        amount = _.chargeAmount,
+        viewUrl = viewUrl,
+        removeUrl = removeUrl,
+        pageNo = 1,
+        ua = allMembersChargeE
+      ) mustBe Some(
           PaginatedMembersInfo(
             membersForCurrentPage = expectedAllMembersMinusDeleted,
             paginationStats = PaginationStats(
@@ -118,7 +124,13 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails3, index = 2, SampleData.chargeAmount1)
       )
       memberPaginationService.getMembersPaginated[ChargeEDetails](
-        "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 2, allMembersChargeE) mustBe Some(
+        chargeRootNode = "chargeEDetails",
+        amount = _.chargeAmount,
+        viewUrl = viewUrl,
+        removeUrl = removeUrl,
+        pageNo = 2,
+        ua = allMembersChargeE
+      ) mustBe Some(
         PaginatedMembersInfo(
           membersForCurrentPage = expectedAllMembersMinusDeleted,
           paginationStats = PaginationStats(
@@ -137,7 +149,13 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
       )
       memberPaginationService.getMembersPaginated[ChargeEDetails](
-        "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 3, allMembersChargeE) mustBe Some(
+        chargeRootNode = "chargeEDetails",
+        amount = _.chargeAmount,
+        viewUrl = viewUrl,
+        removeUrl = removeUrl,
+        pageNo = 3,
+        ua = allMembersChargeE
+      ) mustBe Some(
         PaginatedMembersInfo(
           membersForCurrentPage = expectedAllMembersMinusDeleted,
           paginationStats = PaginationStats(
@@ -153,7 +171,13 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
 
     "return none when beyond page limit" in {
       memberPaginationService.getMembersPaginated[ChargeEDetails](
-        "chargeEDetails", _.chargeAmount, viewUrl, removeUrl, pageNo = 4, allMembersChargeE) mustBe None
+        chargeRootNode = "chargeEDetails",
+        amount = _.chargeAmount,
+        viewUrl = viewUrl,
+        removeUrl = removeUrl,
+        pageNo = 4,
+        ua = allMembersChargeE
+      ) mustBe None
     }
   }
 
@@ -170,7 +194,14 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
 
       val result = memberPaginationService.getMembersPaginated[ChargeDDetails](
-        "chargeDDetails", _.total, viewUrl, removeUrl, pageNo = 1, ua).map(_.membersForCurrentPage)
+        chargeRootNode = "chargeDDetails",
+        amount = _.total,
+        viewUrl = viewUrl,
+        removeUrl = removeUrl,
+        pageNo = 1,
+        ua = ua
+      ).map(_.membersForCurrentPage)
+
       result mustBe Some(expectedMembers)
     }
   }
@@ -188,8 +219,15 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
 
       val result = memberPaginationService.getMembersPaginated[ChargeAmounts](
-        "chargeGDetails", _.amountTaxDue, viewUrl, removeUrl, pageNo = 1, ua, "chargeAmounts")
-        .map(_.membersForCurrentPage)
+        chargeRootNode = "chargeGDetails",
+        amount = _.amountTaxDue,
+        viewUrl = viewUrl,
+        removeUrl = removeUrl,
+        pageNo = 1,
+        ua = ua,
+        chargeDetailsNode = "chargeAmounts"
+      ).map(_.membersForCurrentPage)
+
       result mustBe Some(expectedMembers)
     }
   }

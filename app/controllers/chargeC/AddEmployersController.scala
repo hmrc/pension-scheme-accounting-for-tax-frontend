@@ -131,6 +131,18 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        .returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
+    /*
+memberPaginationService.getMembersPaginated[ChargeAmounts](
+chargeRootNode = "chargeGDetails",
+amount = _.amountTaxDue,
+viewUrl = viewUrl,
+removeUrl = removeUrl,
+pageNo = 1,
+ua = ua,
+chargeDetailsNode = "chargeAmounts"
+)
+*/
+
     val optionPaginatedMembersInfo = memberPaginationService.getEmployersPaginated[ChargeCDetails](
       "chargeCDetails",
       _.amountTaxDue,

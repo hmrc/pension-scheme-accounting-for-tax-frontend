@@ -26,12 +26,10 @@ import java.time.LocalDate
 import play.api.libs.json.{JsArray, Format, Json, Reads}
 import models.{Member, SponsoringEmployerType, Employer, MemberDetails, UserAnswers, AccessType}
 
-// TODO: Get rid of 2nd param list - only used for url bits - find another way to do them
-
 class MemberPaginationService @Inject()(config: FrontendAppConfig) {
 
-  def getMembersPaginated[A]
-  ( uaChargeDetailsNode:String,
+  def getMembersPaginated[A](
+    chargeRootNode:String,
     amount:A=>BigDecimal,
     viewUrl: Int => Call,
     removeUrl: Int => Call,
@@ -43,7 +41,7 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     val start = (pageNo - 1) * pageSize
     val end = pageNo * pageSize
 
-    val filteredMembers = (ua.data \ uaChargeDetailsNode \ "members").as[JsArray].value.zipWithIndex
+    val filteredMembers = (ua.data \ chargeRootNode \ "members").as[JsArray].value.zipWithIndex
       .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
 
     // TODO: Make this more efficient by calculating the stats and then only reversing the slice chosen

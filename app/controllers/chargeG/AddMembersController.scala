@@ -131,13 +131,13 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      schemeName = schemeName)
 
     val optionPaginatedMembersInfo = memberPaginationService.getMembersPaginated[ChargeAmounts](
-      "chargeGDetails",
-      _.amountTaxDue,
-      viewUrl(srn, startDate, accessType, version),
-      removeUrl(srn, startDate, request.userAnswers, accessType, version),
-      pageNumber,
-      request.userAnswers,
-      "chargeAmounts"
+      chargeRootNode = "chargeGDetails",
+      amount = _.amountTaxDue,
+      viewUrl = viewUrl(srn, startDate, accessType, version),
+      removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version),
+      pageNo = pageNumber,
+      ua = request.userAnswers,
+      chargeDetailsNode = "chargeAmounts"
     )
     optionPaginatedMembersInfo.map { pmi =>
 
