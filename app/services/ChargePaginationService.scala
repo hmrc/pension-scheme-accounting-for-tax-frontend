@@ -137,10 +137,12 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
 
 case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int) {
   def pagerSeq: Seq[Int] = {
-    if (currentPage == 1) {
-      Seq(1)
-    } else {
-      Seq(1, 2)
+
+    currentPage match {
+      case 1 => Seq(1)
+      case 2 => Seq(1, 2)
+      case currentPage if currentPage < 5 => Seq()
+      case _ => Nil
     }
   }
 
