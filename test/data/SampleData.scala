@@ -52,6 +52,7 @@ object SampleData {
   val dummyCall: Call = Call("GET", "/foo")
   val chargeAmount1 = BigDecimal(33.44)
   val chargeAmount2 = BigDecimal(50.00)
+  val chargeAmount3 = BigDecimal(83.44)
   val chargeAmounts = ChargeAmounts(chargeAmount1, chargeAmount2)
   val chargeAmounts2 = ChargeAmounts(chargeAmount1, chargeAmount2)
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))

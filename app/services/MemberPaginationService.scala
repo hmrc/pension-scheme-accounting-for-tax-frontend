@@ -26,6 +26,8 @@ import java.time.LocalDate
 import play.api.libs.json.{JsArray, Format, Json, Reads}
 import models.{Member, SponsoringEmployerType, Employer, MemberDetails, UserAnswers, AccessType}
 
+// TODO: Get rid of 2nd param list - only used for url bits - find another way to do them
+
 class MemberPaginationService @Inject()(config: FrontendAppConfig) {
 
   // scalastyle:off parameter.number
@@ -46,6 +48,7 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     val filteredMembers = (ua.data \ uaChargeDetailsNode \ "members").as[JsArray].value.zipWithIndex
       .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
 
+    // TODO: Make this more efficient by calculating the stats and then only reversing the slice chosen
     val paginatedMembers = filteredMembers.reverse
       .slice(start, end)
       .flatMap { case (m, index) =>
