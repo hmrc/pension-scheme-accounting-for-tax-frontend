@@ -135,7 +135,16 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
   }
 }
 
-case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int)
+case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int) {
+  def pagerSeq: Seq[Int] = {
+    if (currentPage == 1) {
+      Seq(1)
+    } else {
+      Seq(1, 2)
+    }
+  }
+
+}
 
 object PaginationStats {
   implicit val formats: Format[PaginationStats] = Json.format[PaginationStats]

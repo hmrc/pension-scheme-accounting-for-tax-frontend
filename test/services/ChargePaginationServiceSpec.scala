@@ -84,6 +84,27 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
 
   private val removeUrl: Int => Call = index => Call("GET", s"/dummyRemoveUrl/$index")
 
+  def createPaginationStats(currentPage: Int, totalPages: Int): PaginationStats = {
+    PaginationStats(currentPage = currentPage, startMember = 0, lastMember = 0, totalMembers = 0, totalPages = totalPages)
+  }
+
+  "ChargePaginationService pagerSeq" must {
+    "return the sequence of numbers for the pager, where the current page number is 1" in {
+        createPaginationStats(currentPage = 1, totalPages = 1)
+          .pagerSeq mustBe Seq(1)
+    }
+
+    "return the sequence of numbers for the pager, where the current page number is 2" in {
+      createPaginationStats(currentPage = 2, totalPages = 2)
+        .pagerSeq mustBe Seq(1, 2)
+    }
+
+    "return the sequence of numbers for the pager, where the current page number is 4" in {
+      createPaginationStats(currentPage = 4, totalPages = 5)
+        .pagerSeq mustBe Seq(2, 3, 4, 5)
+    }
+  }
+
   "ChargePaginationService.totalPages" must {
     "give correct total pages where divide exactly" in {
       ChargePaginationService.totalPages(200, 25) mustBe 8

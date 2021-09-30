@@ -116,6 +116,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   }
 
   // scalastyle:off parameter.number
+  // scalastyle:off method.length
   private def getJson(srn: String,
     startDate: LocalDate,
     form: Form[_],
@@ -141,18 +142,17 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
     )
 
     optionPaginatedMembersInfo.map { pmi =>
-      println("\n>>>PAGINATION STATS=" + pmi.paginationStats)
-      //case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int)
-      /*
-        PaginationStats(
-          currentPage = 1,
-          startMember = 1,
-          lastMember = 3,
-          totalMembers = 26,
-          totalPages = 7
-        )
+//      println("\n>>>PAGINATION STATS=" + pmi.paginationStats)
+//      case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int)
+//
+//        PaginationStats(
+//          currentPage = 1,
+//          startMember = 1,
+//          lastMember = 3,
+//          totalMembers = 26,
+//          totalPages = 7
+//        )
 
-       */
       Json.obj(
         "srn" -> srn,
         "startDate" -> Some(startDate),
@@ -162,7 +162,12 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
         "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
         "table" -> Json.toJson(mapToTable(pmi.membersForCurrentPage, !request.isViewOnly)),
-        "paginationStats" -> pmi.paginationStats,
+        "prevPageUrl" -> controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, pageNumber - 1).url,
+        "pageLinksSeq" -> Seq(),
+        "nextPageUrl" -> controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, pageNumber + 1).url,
+        "paginationStatsStartMember" -> pmi.paginationStats.startMember,
+        "paginationStatsLastMember" -> pmi.paginationStats.lastMember,
+        "paginationStatsTotalMembers" -> pmi.paginationStats.totalMembers,
         "canChange" -> !request.isViewOnly
       )
     }
