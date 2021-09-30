@@ -124,7 +124,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val expectedPaginatedMembersInfo:Option[PaginatedMembersInfo] =
     Some(PaginatedMembersInfo(
-      membersForCurrentPage = expectedMembers,
+      itemsForCurrentPage = Left(expectedMembers),
       paginationStats = PaginationStats(
         currentPage = 1,
         startMember = 0,
@@ -152,7 +152,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockMemberPaginationService
-      .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any(), any(), any())(any()))
+      .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any(), any(), any(), any())(any()))
       .thenReturn(expectedPaginatedMembersInfo)
   }
 
@@ -162,7 +162,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   "AddMembers Controller" must {
     "return OK and the correct view for a GET and get first page" in {
       when(mockMemberPaginationService
-        .getMembersPaginated[ChargeEDetails](pageCaptor.capture(), any(), any(), any(), any(), any(), any())(any()))
+        .getMembersPaginated[ChargeEDetails](pageCaptor.capture(), any(), any(), any(), any(), any(), any(), any())(any()))
         .thenReturn(expectedPaginatedMembersInfo)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -182,7 +182,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "return OK and the correct view for a GET with page no 2" in {
       when(mockMemberPaginationService
-        .getMembersPaginated[ChargeEDetails](pageCaptor.capture(), any(), any(), any(), any(), any(), any())(any()))
+        .getMembersPaginated[ChargeEDetails](pageCaptor.capture(), any(), any(), any(), any(), any(), any(), any())(any()))
         .thenReturn(expectedPaginatedMembersInfo)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -202,7 +202,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "return NOT_FOUND when paginated info not available" in {
       when(mockMemberPaginationService
-        .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any(), any(), any())(any()))
+        .getMembersPaginated[ChargeEDetails](any(), any(), any(), any(), any(), any(), any(), any())(any()))
         .thenReturn(None)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 

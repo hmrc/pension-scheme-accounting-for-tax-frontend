@@ -37,7 +37,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
 import services.AddMembersService.mapChargeXMembersToTable
-import services.MemberPaginationService
+import services.{MemberPaginationService, MembersOrEmployers}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
@@ -137,7 +137,8 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       chargeDetailsNode = ChargeAmountsPage.toString,
       amount = _.amountTaxDue,
       viewUrl = viewUrl(srn, startDate, accessType, version),
-      removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version)
+      removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version),
+      membersOrEmployers = MembersOrEmployers.MEMBERS
     )
     optionPaginatedMembersInfo.map { pmi =>
 

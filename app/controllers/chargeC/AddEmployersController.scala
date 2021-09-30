@@ -36,7 +36,7 @@ import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
-import services.MemberPaginationService
+import services.{MemberPaginationService, MembersOrEmployers}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, Radios, NunjucksSupport}
@@ -131,13 +131,14 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        .returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
-    val optionPaginatedMembersInfo = memberPaginationService.getEmployersPaginated[ChargeCDetails](
+    val optionPaginatedMembersInfo = memberPaginationService.getMembersPaginated[ChargeCDetails](
       pageNo = pageNumber,
       ua = request.userAnswers,
       chargeRootNode = "chargeCDetails",
       amount = _.amountTaxDue,
       viewUrl = viewUrl(srn, startDate, accessType, version),
-      removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version)
+      removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version),
+      membersOrEmployers = MembersOrEmployers.EMPLOYERS
     )
 
     optionPaginatedMembersInfo.map { pmi =>
@@ -149,7 +150,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
         "radios" -> Radios.yesNo(form("value")),
         "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
         "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-        "table" -> Json.toJson(mapToTable(pmi.membersForCurrentPage, !request.isViewOnly)),
+        "table" -> Json.toJson(mapToTable(pmi.employersForCurrentPage, !request.isViewOnly)),
         "canChange" -> !request.isViewOnly
       )
     }

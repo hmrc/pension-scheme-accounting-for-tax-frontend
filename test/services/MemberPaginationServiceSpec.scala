@@ -133,10 +133,11 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
-        removeUrl = removeUrl
+        removeUrl = removeUrl,
+        membersOrEmployers = MembersOrEmployers.MEMBERS
       ) mustBe Some(
           PaginatedMembersInfo(
-            membersForCurrentPage = expectedAllMembersMinusDeleted,
+            itemsForCurrentPage = Left(expectedAllMembersMinusDeleted),
             paginationStats = PaginationStats(
               currentPage = 1,
               startMember = 1,
@@ -160,10 +161,11 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
-        removeUrl = removeUrl
+        removeUrl = removeUrl,
+        membersOrEmployers = MembersOrEmployers.MEMBERS
       ) mustBe Some(
         PaginatedMembersInfo(
-          membersForCurrentPage = expectedAllMembersMinusDeleted,
+          itemsForCurrentPage = Left(expectedAllMembersMinusDeleted),
           paginationStats = PaginationStats(
             currentPage = 2,
             startMember = 3,
@@ -186,10 +188,11 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
-        removeUrl = removeUrl
+        removeUrl = removeUrl,
+        membersOrEmployers = MembersOrEmployers.MEMBERS
       ) mustBe Some(
         PaginatedMembersInfo(
-          membersForCurrentPage = expectedAllMembersMinusDeleted,
+          itemsForCurrentPage = Left(expectedAllMembersMinusDeleted),
           paginationStats = PaginationStats(
             currentPage = 3,
             startMember = 5,
@@ -209,7 +212,8 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
-        removeUrl = removeUrl
+        removeUrl = removeUrl,
+        membersOrEmployers = MembersOrEmployers.MEMBERS
       ) mustBe None
     }
   }
@@ -232,7 +236,8 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         chargeRootNode = "chargeDDetails",
         amount = _.total,
         viewUrl = viewUrl,
-        removeUrl = removeUrl
+        removeUrl = removeUrl,
+        membersOrEmployers = MembersOrEmployers.MEMBERS
       ).map(_.membersForCurrentPage)
 
       result mustBe Some(expectedMembers)
@@ -258,14 +263,15 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         chargeDetailsNode = ChargeAmountsPage.toString,
         amount = _.amountTaxDue,
         viewUrl = viewUrl,
-        removeUrl = removeUrl
+        removeUrl = removeUrl,
+        membersOrEmployers = MembersOrEmployers.MEMBERS
       ).map(_.membersForCurrentPage)
 
       result mustBe Some(expectedMembers)
     }
   }
 
-  "getEmployersPaginated" must {
+  "getMembersPaginated (using charge type C)" must {
     "parse and return the sole member paginated" in {
       val ua = UserAnswers()
         .set(pages.chargeC.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
@@ -278,15 +284,15 @@ class MemberPaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedEmployer(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
       )
 
-      val result = memberPaginationService.getEmployersPaginated[ChargeCDetails](
+      val result = memberPaginationService.getMembersPaginated[ChargeCDetails](
         pageNo = 1,
         ua = ua,
         chargeRootNode = "chargeCDetails",
         amount = _.amountTaxDue,
         viewUrl = viewUrl,
-        removeUrl = removeUrl
-      ).map(_.membersForCurrentPage)
-
+        removeUrl = removeUrl,
+        membersOrEmployers = MembersOrEmployers.EMPLOYERS
+      ).map(_.employersForCurrentPage)
       result mustBe Some(expectedMembers)
     }
   }

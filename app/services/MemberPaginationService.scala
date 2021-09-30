@@ -23,8 +23,20 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.chargeC.SponsoringOrganisationDetails
 import play.api.libs.json._
 import models.{Member, SponsoringEmployerType, UserAnswers, Employer, MemberDetails}
+import services.MembersOrEmployers.{MEMBERS, MembersOrEmployers, EMPLOYERS}
+
+object MembersOrEmployers extends Enumeration {
+  type MembersOrEmployers = Value
+  val MEMBERS, EMPLOYERS = Value
+}
 
 class MemberPaginationService @Inject()(config: FrontendAppConfig) {
+
+  private def listNode(membersOrEmployers:MembersOrEmployers): String =
+    membersOrEmployers match {
+      case MEMBERS => "members"
+      case EMPLOYERS => "employers"
+    }
 
   private def createMember[A](
     jsValueChargeRootNode:JsValue,
@@ -45,6 +57,7 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     )
   }
 
+  // scalastyle:off parameter.number
   def getMembersPaginated[A](
     pageNo:Int,
     ua: UserAnswers,
@@ -52,23 +65,39 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
     chargeDetailsNode: String = "chargeDetails",
     amount: A=>BigDecimal,
     viewUrl: Int => Call,
-    removeUrl: Int => Call
+    removeUrl: Int => Call,
+    membersOrEmployers: MembersOrEmployers
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
     val pageSize = config.membersPageSize
-    val filteredMembers = (ua.data \ chargeRootNode \ "members").as[JsArray].value.zipWithIndex
+    val filteredMembers = (ua.data \ chargeRootNode \ listNode(membersOrEmployers)).as[JsArray].value.zipWithIndex
       .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
     val (start, end) = MemberPaginationService.pageStartAndEnd(pageNo, filteredMembers.size, pageSize)
-    val paginatedMembers = filteredMembers
+    val paginatedMembersTmp = filteredMembers
       .slice(start, end)
-      .flatMap { case (m, index) =>
-        (m \ chargeDetailsNode).asOpt[A].map(createMember(m, index, amount, _, viewUrl, removeUrl)).toSeq
+    val paginatedMembers = if (membersOrEmployers == MEMBERS) {
+        paginatedMembersTmp.flatMap { case (m, index) =>
+          (m \ chargeDetailsNode).asOpt[A].map(createMember(m, index, amount, _, viewUrl, removeUrl)).toSeq
+        }
+      } else {
+        Nil
       }
-    if (paginatedMembers.isEmpty) {
+
+    val paginatedEmployers = if (membersOrEmployers == EMPLOYERS) {
+      paginatedMembersTmp.flatMap { case (m, index) =>
+        (m \ chargeDetailsNode).asOpt[A].map(createEmployer(m, index, amount, _, viewUrl, removeUrl)).toSeq
+      }
+    } else {
+      Nil
+    }
+
+    if (paginatedMembers.isEmpty && paginatedEmployers.isEmpty) {
       None
     } else {
       val startMember = (pageNo - 1) * pageSize + 1
+      val items: Either[Seq[Member], Seq[Employer]] =
+        if (membersOrEmployers == MEMBERS) Left(paginatedMembers.reverse) else Right(paginatedEmployers.reverse)
       Some(PaginatedMembersInfo(
-        membersForCurrentPage = paginatedMembers.reverse,
+        itemsForCurrentPage = items,
         paginationStats = PaginationStats(
           currentPage = pageNo,
           startMember = startMember,
@@ -109,46 +138,6 @@ class MemberPaginationService @Inject()(config: FrontendAppConfig) {
         )
     }
   }
-
-  def getEmployersPaginated[A](
-    pageNo:Int,
-    ua: UserAnswers,
-    chargeRootNode:String,
-    amount: A=>BigDecimal,
-    viewUrl: Int => Call,
-    removeUrl: Int => Call
-  )(implicit reads: Reads[A]): Option[PaginatedEmployersInfo] = {
-
-    val pageSize = config.membersPageSize
-    val filteredMembers = (ua.data \ chargeRootNode \ "employers").as[JsArray].value.zipWithIndex
-      .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
-    val (start, end) = MemberPaginationService.pageStartAndEnd(pageNo, filteredMembers.size, pageSize)
-
-    val filteredEmployers = (ua.data \ chargeRootNode \ "employers").as[JsArray].value.zipWithIndex
-      .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
-
-    val paginatedEmployers = filteredEmployers
-      .slice(start, end)
-      .flatMap { case (m, index) =>
-        (m \ "chargeDetails").asOpt[A].map(createEmployer(m, index, amount, _, viewUrl, removeUrl)).toSeq
-      }
-    if (paginatedEmployers.isEmpty) {
-      None
-    } else {
-      val startMember = (pageNo - 1) * pageSize + 1
-      Some(PaginatedEmployersInfo(
-        membersForCurrentPage = paginatedEmployers.reverse,
-        paginationStats = PaginationStats(
-          currentPage = pageNo,
-          startMember = startMember,
-          lastMember = startMember + paginatedEmployers.size - 1,
-          totalMembers = filteredEmployers.size,
-          totalPages = MemberPaginationService.totalPages(filteredEmployers.size, pageSize)
-        )
-      ))
-    }
-  }
-
 }
 
 case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int)
@@ -157,9 +146,17 @@ object PaginationStats {
   implicit val formats: Format[PaginationStats] = Json.format[PaginationStats]
 }
 
-case class PaginatedMembersInfo(membersForCurrentPage:Seq[Member], paginationStats: PaginationStats)
+case class PaginatedMembersInfo(itemsForCurrentPage:Either[Seq[Member], Seq[Employer]], paginationStats: PaginationStats) {
+  def membersForCurrentPage:Seq[Member] = itemsForCurrentPage match {
+    case Left(value) => value
+    case _ => Nil
+  }
 
-case class PaginatedEmployersInfo(membersForCurrentPage:Seq[Employer], paginationStats: PaginationStats)
+  def employersForCurrentPage:Seq[Employer] = itemsForCurrentPage match {
+    case Right(value) => value
+    case _ => Nil
+  }
+}
 
 object MemberPaginationService {
   def totalPages(totalMembers:Int, pageSize: Int):Int = (totalMembers.toFloat / pageSize).ceil.toInt
