@@ -133,18 +133,34 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
         )
     }
   }
-}
 
-case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int) {
-  def pagerSeq: Seq[Int] = {
-    if (currentPage == 1) {
-      Seq(1)
-    } else {
-      Seq(1, 2)
+  def pagerSeq(ps:PaginationStats): Seq[Int] = {
+    // Current page and total pages
+    /*
+      1 2 3 4 5 6 7 8 9 10
+      x
+        x
+          x
+            x
+              x
+     */
+    (ps.currentPage, ps.totalPages) match {
+      case (_, tp) if tp <= maxSize => (1 to tp)
+      case (x, _) if x < 3 => (1 to x) ++ ((x + 1) to (x + (3 - x)))
+      case (x, tp) if x > (tp - 2) =>
+      case (x, tp) =>
     }
-  }
 
+    //
+    //if (currentPage == 1) {
+    //  Seq(1)
+    //} else {
+    //  Seq(1, 2)
+    //}
+  }
 }
+
+case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int)
 
 object PaginationStats {
   implicit val formats: Format[PaginationStats] = Json.format[PaginationStats]
@@ -165,17 +181,15 @@ case class PaginatedMembersInfo(itemsForCurrentPage:Either[Seq[Member], Seq[Empl
 object ChargePaginationService {
   def totalPages(totalMembers:Int, pageSize: Int):Int = (totalMembers.toFloat / pageSize).ceil.toInt
 
-  private def pageStart(pageNo:Int, totalPages: Int, pageSize: Int, totalMembers: Int):Int = {
+  private def pageStart(pageNo:Int, totalPages: Int, pageSize: Int, totalMembers: Int):Int =
     if (pageNo == totalPages) {
       0
     } else {
       (totalMembers - 1) - (pageNo * pageSize) + 1
     }
-  }
 
   def pageStartAndEnd(pageNo:Int, totalMembers: Int, pageSize: Int):(Int, Int) = {
     val pages = totalPages(totalMembers, pageSize)
-
     val start = pageStart(pageNo, pages, pageSize, totalMembers)
     val end = if (pageNo == 1) {
       totalMembers
