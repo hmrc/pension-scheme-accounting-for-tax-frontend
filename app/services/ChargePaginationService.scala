@@ -21,7 +21,10 @@ import play.api.mvc.Call
 import com.google.inject.Inject
 import models.ChargeType.{ChargeTypeAuthSurplus, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer, ChargeTypeAnnualAllowance}
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
-import models.chargeC.SponsoringOrganisationDetails
+import models.chargeC.{ChargeCDetails, SponsoringOrganisationDetails}
+import models.chargeD.ChargeDDetails
+import models.chargeE.ChargeEDetails
+import models.chargeG.ChargeAmounts
 import play.api.libs.json._
 import models.{Member, SponsoringEmployerType, UserAnswers, Employer, MemberDetails, ChargeType}
 import pages.chargeC.{WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
@@ -31,6 +34,10 @@ import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
 import viewmodels.Link
 
 class ChargePaginationService @Inject()(config: FrontendAppConfig) {
+
+  private def chargeTypeException(chargeType:ChargeType) =
+    new RuntimeException(s"No pagination required for this charge type: $chargeType")
+
   private def nodeInfo(chargeType:ChargeType):(String, String, String, MembersOrEmployers) = {
     chargeType match {
       case ChargeTypeAnnualAllowance => // E
@@ -41,11 +48,31 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
         Tuple4("chargeDDetails", "chargeDetails", "members", MEMBERS)
       case ChargeTypeOverseasTransfer => // G
         Tuple4("chargeGDetails", ChargeAmountsPage.toString, "members", MEMBERS)
-      case _ => throw new RuntimeException(s"No pagination required for this charge type: $chargeType")
+      case _ => throw chargeTypeException(chargeType)
     }
   }
 
-  def getItemsPaginated[A](
+  def getItemsPaginated(
+    pageNo:Int,
+    ua: UserAnswers,
+    viewUrl: Int => Call,
+    removeUrl: Int => Call,
+    chargeType: ChargeType
+  ): Option[PaginatedMembersInfo] = {
+    chargeType match {
+      case ChargeTypeAnnualAllowance =>
+        getItemsPaginatedWithAmount[ChargeEDetails](pageNo, ua: UserAnswers, _.chargeAmount, viewUrl, removeUrl, chargeType: ChargeType)
+      case ChargeTypeAuthSurplus =>
+        getItemsPaginatedWithAmount[ChargeCDetails](pageNo, ua: UserAnswers, _.amountTaxDue, viewUrl, removeUrl, chargeType: ChargeType)
+      case ChargeTypeLifetimeAllowance =>
+        getItemsPaginatedWithAmount[ChargeDDetails](pageNo, ua: UserAnswers, _.total, viewUrl, removeUrl, chargeType: ChargeType)
+      case ChargeTypeOverseasTransfer =>
+        getItemsPaginatedWithAmount[ChargeAmounts](pageNo, ua: UserAnswers, _.amountTaxDue, viewUrl, removeUrl, chargeType: ChargeType)
+      case _ => throw chargeTypeException(chargeType)
+    }
+  }
+
+  private def getItemsPaginatedWithAmount[A](
     pageNo:Int,
     ua: UserAnswers,
     amount: A=>BigDecimal,

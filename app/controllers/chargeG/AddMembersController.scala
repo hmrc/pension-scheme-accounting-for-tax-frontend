@@ -130,10 +130,9 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                        .returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
-    val optionPaginatedMembersInfo = chargePaginationService.getItemsPaginated[ChargeAmounts](
+    val optionPaginatedMembersInfo = chargePaginationService.getItemsPaginated(
       pageNo = pageNumber,
       ua = request.userAnswers,
-      amount = _.amountTaxDue,
       viewUrl = viewUrl(srn, startDate, accessType, version),
       removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version),
       chargeType = ChargeType.ChargeTypeOverseasTransfer

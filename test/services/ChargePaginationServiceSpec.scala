@@ -218,10 +218,9 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails5, index = 4, SampleData.chargeAmount1)
       )
 
-      chargePaginationService.getItemsPaginated[ChargeEDetails](
+      chargePaginationService.getItemsPaginated(
         pageNo = 1,
         ua = allMembersChargeE,
-        amount = _.chargeAmount,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
         chargeType = ChargeType.ChargeTypeAnnualAllowance
@@ -245,10 +244,9 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails3, index = 2, SampleData.chargeAmount1)
       )
 
-      chargePaginationService.getItemsPaginated[ChargeEDetails](
+      chargePaginationService.getItemsPaginated(
         pageNo = 2,
         ua = allMembersChargeE,
-        amount = _.chargeAmount,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
         chargeType = ChargeType.ChargeTypeAnnualAllowance
@@ -271,10 +269,9 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
       )
 
-      chargePaginationService.getItemsPaginated[ChargeEDetails](
+      chargePaginationService.getItemsPaginated(
         pageNo = 3,
         ua = allMembersChargeE,
-        amount = _.chargeAmount,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
         chargeType = ChargeType.ChargeTypeAnnualAllowance
@@ -294,10 +291,9 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
 
     "return none when beyond page limit" in {
 
-      chargePaginationService.getItemsPaginated[ChargeEDetails](
+      chargePaginationService.getItemsPaginated(
         pageNo = 4,
         ua = allMembersChargeE,
-        amount = _.chargeAmount,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
         chargeType = ChargeType.ChargeTypeAnnualAllowance
@@ -317,10 +313,9 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount3)
       )
 
-      val result = chargePaginationService.getItemsPaginated[ChargeDDetails](
+      val result = chargePaginationService.getItemsPaginated(
         pageNo = 1,
         ua = ua,
-        amount = _.total,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
         chargeType = ChargeType.ChargeTypeLifetimeAllowance
@@ -342,10 +337,9 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount2)
       )
 
-      val result = chargePaginationService.getItemsPaginated[ChargeAmounts](
+      val result = chargePaginationService.getItemsPaginated(
         pageNo = 1,
         ua = ua,
-        amount = _.amountTaxDue,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
         chargeType = ChargeType.ChargeTypeOverseasTransfer
@@ -375,10 +369,9 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         expectedEmployer(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
       )
 
-      val result = chargePaginationService.getItemsPaginated[ChargeCDetails](
+      val result = chargePaginationService.getItemsPaginated(
         pageNo = 1,
         ua = ua,
-        amount = _.amountTaxDue,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
         chargeType = ChargeType.ChargeTypeAuthSurplus

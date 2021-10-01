@@ -130,10 +130,9 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                        .returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
-    val optionPaginatedMembersInfo = chargePaginationService.getItemsPaginated[ChargeDDetails](
+    val optionPaginatedMembersInfo = chargePaginationService.getItemsPaginated(
       pageNo = pageNumber,
       ua = request.userAnswers,
-      amount = _.total,
       viewUrl = viewUrl(srn, startDate, accessType, version),
       removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version),
       chargeType = ChargeType.ChargeTypeLifetimeAllowance

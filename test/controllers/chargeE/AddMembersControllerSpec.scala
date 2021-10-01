@@ -157,7 +157,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockMemberPaginationService
-      .getItemsPaginated[ChargeEDetails](any(), any(), any(), any(), any(), any())(any()))
+      .getItemsPaginated(any(), any(), any(), any(), any()))
       .thenReturn(expectedPaginatedMembersInfo)
     when(mockMemberPaginationService.pagerNavSeq(any(), any()))
       .thenReturn(dummyPagerNavSeq)
@@ -169,7 +169,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   "AddMembers Controller" must {
     "return OK and the correct view for a GET and get first page" in {
       when(mockMemberPaginationService
-        .getItemsPaginated[ChargeEDetails](pageCaptor.capture(), any(), any(), any(), any(), any())(any()))
+        .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
         .thenReturn(expectedPaginatedMembersInfo)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -190,7 +190,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "return OK and the correct view for a GET with page no 2" in {
       when(mockMemberPaginationService
-        .getItemsPaginated[ChargeEDetails](pageCaptor.capture(), any(), any(), any(), any(), any())(any()))
+        .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
         .thenReturn(expectedPaginatedMembersInfo)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -210,7 +210,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "return NOT_FOUND when paginated info not available" in {
       when(mockMemberPaginationService
-        .getItemsPaginated[ChargeEDetails](any(), any(), any(), any(), any(), any())(any()))
+        .getItemsPaginated(any(), any(), any(), any(), any()))
         .thenReturn(None)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
