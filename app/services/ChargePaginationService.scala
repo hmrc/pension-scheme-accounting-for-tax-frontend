@@ -274,7 +274,7 @@ object ChargePaginationService {
   }
 }
 
-object MembersOrEmployers extends Enumeration {
+private object MembersOrEmployers extends Enumeration {
   type MembersOrEmployers = Value
   val MEMBERS, EMPLOYERS = Value
 }
