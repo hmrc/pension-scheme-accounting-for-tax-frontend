@@ -24,6 +24,7 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.chargeC.SponsoringOrganisationDetails
 import play.api.libs.json._
 import models.{Member, SponsoringEmployerType, UserAnswers, Employer, MemberDetails, ChargeType}
+import pages.chargeC.{WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeG.ChargeAmountsPage
 import services.MembersOrEmployers.{MEMBERS, MembersOrEmployers, EMPLOYERS}
 import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
@@ -54,34 +55,33 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
     val (chargeRootNode, chargeDetailsNode, listNode, membersOrEmployers) = nodeInfo(chargeType)
     val pageSize = config.membersPageSize
-    val membersExcludingDeletedJson = (ua.data \ chargeRootNode \ listNode).as[JsArray].value.zipWithIndex
+    val allItemsAsJsArray = (ua.data \ chargeRootNode \ listNode).as[JsArray].value.zipWithIndex
       .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
-    val (start, end) = ChargePaginationService.pageStartAndEnd(pageNo, membersExcludingDeletedJson.size, pageSize)
-    val membersForPageJson = membersExcludingDeletedJson.slice(start, end)
+    val (start, end) = ChargePaginationService.pageStartAndEnd(pageNo, allItemsAsJsArray.size, pageSize)
+    val pageItemsAsJsArray = allItemsAsJsArray.slice(start, end)
 
-    if (membersForPageJson.isEmpty) {
+    if (pageItemsAsJsArray.isEmpty) {
       None
     } else {
       val startMember = (pageNo - 1) * pageSize + 1
       val items: Either[Seq[Member], Seq[Employer]] =
         if (membersOrEmployers == MEMBERS) {
-          Left(createMembers(membersOrEmployers, membersForPageJson, chargeDetailsNode, amount, viewUrl, removeUrl).reverse)
+          Left(createMembers(membersOrEmployers, pageItemsAsJsArray, chargeDetailsNode, amount, viewUrl, removeUrl).reverse)
         } else {
-          Right(createEmployers(membersOrEmployers, membersForPageJson, chargeDetailsNode, amount, viewUrl, removeUrl).reverse)
+          Right(createEmployers(membersOrEmployers, pageItemsAsJsArray, chargeDetailsNode, amount, viewUrl, removeUrl).reverse)
         }
       Some(PaginatedMembersInfo(
         itemsForCurrentPage = items,
         paginationStats = PaginationStats(
           currentPage = pageNo,
           startMember = startMember,
-          lastMember = startMember + membersForPageJson.size - 1,
-          totalMembers = membersExcludingDeletedJson.size,
-          totalPages = ChargePaginationService.totalPages(membersExcludingDeletedJson.size, pageSize)
+          lastMember = startMember + pageItemsAsJsArray.size - 1,
+          totalMembers = allItemsAsJsArray.size,
+          totalPages = ChargePaginationService.totalPages(allItemsAsJsArray.size, pageSize)
         )
       ))
     }
   }
-
 
   private def createEmployers[A](
     membersOrEmployers: MembersOrEmployers,
@@ -147,9 +147,9 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     viewUrl: Int => Call,
     removeUrl: Int => Call
   ):Employer = {
-    (jsValueEmployerRootNode \ "whichTypeOfSponsoringEmployer").as[SponsoringEmployerType] match {
+    (jsValueEmployerRootNode \ WhichTypeOfSponsoringEmployerPage.toString).as[SponsoringEmployerType] match {
       case SponsoringEmployerTypeIndividual =>
-        val member = (jsValueEmployerRootNode \ "sponsoringIndividualDetails").as[MemberDetails]
+        val member = (jsValueEmployerRootNode \ SponsoringIndividualDetailsPage.toString).as[MemberDetails]
         Employer(
           index,
           member.fullName,
@@ -158,7 +158,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
           removeUrl(index).url
         )
       case SponsoringEmployerTypeOrganisation =>
-        val member = (jsValueEmployerRootNode \ "sponsoringOrganisationDetails").as[SponsoringOrganisationDetails]
+        val member = (jsValueEmployerRootNode \ SponsoringOrganisationDetailsPage.toString).as[SponsoringOrganisationDetails]
         Employer(
           index,
           member.name,

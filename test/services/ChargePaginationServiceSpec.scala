@@ -21,7 +21,7 @@ import base.SpecBase
 import config.FrontendAppConfig
 import data.SampleData
 import helpers.DeleteChargeHelper
-import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.ChargeCDetails
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
@@ -305,31 +305,6 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
     }
   }
 
-  "getItemsPaginafdfdted (using charge type D)" must {
-    "parse and return the sole member paginated" in {
-      val ua = UserAnswers()
-        .set(pages.chargeD.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
-        .set(pages.chargeD.MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
-        .set(pages.chargeD.MemberDetailsPage(0), SampleData.memberDetails).toOption.get
-        .set(pages.chargeD.ChargeDetailsPage(0), SampleData.chargeDDetails).toOption.get
-
-      val expectedMembers: Seq[Member] = Seq(
-        expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount3)
-      )
-
-      val result = chargePaginationService.getItemsPaginated[ChargeDDetails](
-        pageNo = 1,
-        ua = ua,
-        amount = _.total,
-        viewUrl = viewUrl,
-        removeUrl = removeUrl,
-        chargeType = ChargeType.ChargeTypeLifetimeAllowance
-      ).map(_.membersForCurrentPage)
-
-      result mustBe Some(expectedMembers)
-    }
-  }
-
   "getItemsPaginated (using charge type D)" must {
     "parse and return the sole member paginated" in {
       val ua = UserAnswers()
@@ -381,7 +356,7 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
   }
 
   "getItemsPaginated (using charge type C)" must {
-    "parse and return the sole member paginated" in {
+    "parse and return the two members (one individual, one organisation) paginated" in {
       val ua = UserAnswers()
         .set(pages.chargeC.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
         .set(pages.chargeC.MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
@@ -389,7 +364,14 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         .set(pages.chargeC.SponsoringIndividualDetailsPage(0), SampleData.memberDetails).toOption.get
         .set(pages.chargeC.ChargeCDetailsPage(0), SampleData.chargeCDetails).toOption.get
 
+        .set(pages.chargeC.MemberStatusPage(1), AmendedChargeStatus.Added.toString).toOption.get
+        .set(pages.chargeC.MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
+        .set(pages.chargeC.WhichTypeOfSponsoringEmployerPage(1), SponsoringEmployerTypeOrganisation).toOption.get
+        .set(pages.chargeC.SponsoringOrganisationDetailsPage(1), SampleData.sponsoringOrganisationDetails).toOption.get
+        .set(pages.chargeC.ChargeCDetailsPage(1), SampleData.chargeCDetails).toOption.get
+
       val expectedMembers: Seq[Employer] = Seq(
+        Employer(index = 1, SampleData.companyName, SampleData.chargeAmount1, viewUrl(1).url, removeUrl(1).url),
         expectedEmployer(SampleData.memberDetails, index = 0, SampleData.chargeAmount1)
       )
 
