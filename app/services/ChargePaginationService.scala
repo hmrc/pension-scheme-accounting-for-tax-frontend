@@ -44,8 +44,6 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     }
   }
 
-  //TODO: Get rid of cyclomatic complexity
-  //scalastyle:off cyclomatic.complexity
   def getItemsPaginated[A](
     pageNo:Int,
     ua: UserAnswers,
@@ -80,10 +78,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
       None
     } else {
       val startMember = (pageNo - 1) * pageSize + 1
-      val totalMembersForPage = membersOrEmployers match {
-        case MEMBERS => paginatedMembers.size
-        case EMPLOYERS => paginatedEmployers.size
-      }
+      val totalMembersForPage = membersForPageJson.size
       val items: Either[Seq[Member], Seq[Employer]] =
         if (membersOrEmployers == MEMBERS) Left(paginatedMembers.reverse) else Right(paginatedEmployers.reverse)
       Some(PaginatedMembersInfo(

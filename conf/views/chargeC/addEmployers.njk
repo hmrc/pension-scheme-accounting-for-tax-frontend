@@ -37,8 +37,9 @@
                             {{ govukTable(table) }}
                     </div>
 
-                   {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}
-
+                   <div>
+                    {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}
+                   <\div>
                    {% if pageLinksSeq %}
                        <p>
                          {% for link in pageLinksSeq %}

@@ -37,20 +37,24 @@
             {{ govukTable(table) }}
         </div>
 
-       {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}
-
-       {% if pageLinksSeq %}
-           <p>
-             {% for link in pageLinksSeq %}
-                 {% if link.url %}
-                     <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
-                 {% else %}
-                     {{ messages(link.linkText) }}
-                 {% endif %}
-             {% endfor %}
+        <div>
+           <p class='govuk-body'>
+             {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}
            </p>
-       {% endif %}
-
+           {% if pageLinksSeq %}
+               <nav class="govuk-margin-top-5" aria-label="page">
+                 {% for link in pageLinksSeq %}
+                     {% if link.url %}
+                        <span class="nav-item">
+                          <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
+                        </span>
+                     {% else %}
+                         {{ messages(link.linkText) }}
+                     {% endif %}
+                 {% endfor %}
+               </nav>
+           {% endif %}
+        </div>
 
             {% if canChange %}
                   {{ govukRadios({
