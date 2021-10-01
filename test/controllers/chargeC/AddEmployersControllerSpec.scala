@@ -86,8 +86,8 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
         Json.obj("html" -> s"<a class=govuk-link id=employer-1-remove href=removelink2><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
-        Json.obj("text" -> "Total charge amount for this quarter", "classes" -> "govuk-table__header--numeric"),
-        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> s"govuk-table__header--numeric"),
+        Json.obj("text" -> "Total charge amount for this quarter", "classes" -> "govuk-!-font-weight-bold govuk-table__header--numeric"),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> s"govuk-!-font-weight-bold govuk-table__header--numeric"),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )

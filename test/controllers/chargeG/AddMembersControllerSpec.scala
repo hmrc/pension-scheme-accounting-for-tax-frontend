@@ -88,8 +88,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       ),
       Json.arr(
         Json.obj("text" -> ""),
-        Json.obj("text" -> "Total charge amount for this quarter", "classes" -> "govuk-table__header--numeric"),
-        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> s"govuk-table__header--numeric"),
+        Json.obj("text" -> "Total charge amount for this quarter", "classes" -> "govuk-!-font-weight-bold govuk-table__header--numeric"),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> s"govuk-!-font-weight-bold govuk-table__header--numeric"),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )

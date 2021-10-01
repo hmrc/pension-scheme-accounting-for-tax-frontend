@@ -189,9 +189,9 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
 
     val totalRow = Seq(
       Seq(
-        Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
+        Cell(msg"addMembers.total", classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-          classes = Seq("govuk-table__header--numeric")),
+          classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
         Cell(msg"")
       ) ++ (if (canChange) Seq(Cell(msg"")) else Nil))
 
