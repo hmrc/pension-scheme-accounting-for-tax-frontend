@@ -44,6 +44,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     }
   }
 
+// scalastyle:off method.length
   def getItemsPaginated[A](
     pageNo:Int,
     ua: UserAnswers,
@@ -60,16 +61,24 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     val membersForPageJson = membersExcludingDeletedJson.slice(start, end)
 
     val paginatedMembers = if (membersOrEmployers == MEMBERS) {
-      membersForPageJson.flatMap { case (m, index) =>
-        (m \ chargeDetailsNode).asOpt[A].map(createMember(m, index, amount, _, viewUrl, removeUrl)).toSeq
+      membersForPageJson.map { case (m, index) =>
+        val chargeAmount = (m \ chargeDetailsNode).asOpt[A] match {
+          case Some(chargeDetails) => amount(chargeDetails)
+          case None => BigDecimal(0)
+        }
+        createMember(m, index, chargeAmount, viewUrl, removeUrl)
       }
     } else {
       Nil
     }
 
     val paginatedEmployers = if (membersOrEmployers == EMPLOYERS) {
-      membersForPageJson.flatMap { case (m, index) =>
-        (m \ chargeDetailsNode).asOpt[A].map(createEmployer(m, index, amount, _, viewUrl, removeUrl)).toSeq
+      membersForPageJson.map { case (m, index) =>
+        val chargeAmount = (m \ chargeDetailsNode).asOpt[A] match {
+          case Some(chargeDetails) => amount(chargeDetails)
+          case None => BigDecimal(0)
+        }
+        createEmployer(m, index, chargeAmount, viewUrl, removeUrl)
       }
     } else {
       Nil
@@ -94,49 +103,47 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     }
   }
 
-  private def createMember[A](
-    jsValueChargeRootNode:JsValue,
+  private def createMember(
+    jsValueMemberRootNode:JsValue,
     index: Int,
-    amount: A=>BigDecimal,
-    chargeDetails: A,
+    amount: BigDecimal,
     viewUrl: Int => Call,
     removeUrl: Int => Call
   ):Member = {
-    val member = (jsValueChargeRootNode \ "memberDetails").as[MemberDetails]
+    val member = (jsValueMemberRootNode \ "memberDetails").as[MemberDetails]
     Member(
       index,
       member.fullName,
       member.nino,
-      amount(chargeDetails),
+      amount,
       viewUrl(index).url,
       removeUrl(index).url
     )
   }
 
-  private def createEmployer[A](
-    jsValueChargeRootNode:JsValue,
+  private def createEmployer(
+    jsValueEmployerRootNode:JsValue,
     index: Int,
-    amount: A=>BigDecimal,
-    chargeDetails: A,
+    amount: BigDecimal,
     viewUrl: Int => Call,
     removeUrl: Int => Call
   ):Employer = {
-    (jsValueChargeRootNode \ "whichTypeOfSponsoringEmployer").as[SponsoringEmployerType] match {
+    (jsValueEmployerRootNode \ "whichTypeOfSponsoringEmployer").as[SponsoringEmployerType] match {
       case SponsoringEmployerTypeIndividual =>
-        val member = (jsValueChargeRootNode \ "sponsoringIndividualDetails").as[MemberDetails]
+        val member = (jsValueEmployerRootNode \ "sponsoringIndividualDetails").as[MemberDetails]
         Employer(
           index,
           member.fullName,
-          amount(chargeDetails),
+          amount,
           viewUrl(index).url,
           removeUrl(index).url
         )
       case SponsoringEmployerTypeOrganisation =>
-        val member = (jsValueChargeRootNode \ "sponsoringOrganisationDetails").as[SponsoringOrganisationDetails]
+        val member = (jsValueEmployerRootNode \ "sponsoringOrganisationDetails").as[SponsoringOrganisationDetails]
         Employer(
           index,
           member.name,
-          amount(chargeDetails),
+          amount,
           viewUrl(index).url,
           removeUrl(index).url
         )

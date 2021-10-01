@@ -305,6 +305,31 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
     }
   }
 
+  "getItemsPaginafdfdted (using charge type D)" must {
+    "parse and return the sole member paginated" in {
+      val ua = UserAnswers()
+        .set(pages.chargeD.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
+        .set(pages.chargeD.MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
+        .set(pages.chargeD.MemberDetailsPage(0), SampleData.memberDetails).toOption.get
+        .set(pages.chargeD.ChargeDetailsPage(0), SampleData.chargeDDetails).toOption.get
+
+      val expectedMembers: Seq[Member] = Seq(
+        expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount3)
+      )
+
+      val result = chargePaginationService.getItemsPaginated[ChargeDDetails](
+        pageNo = 1,
+        ua = ua,
+        amount = _.total,
+        viewUrl = viewUrl,
+        removeUrl = removeUrl,
+        chargeType = ChargeType.ChargeTypeLifetimeAllowance
+      ).map(_.membersForCurrentPage)
+
+      result mustBe Some(expectedMembers)
+    }
+  }
+
   "getItemsPaginated (using charge type D)" must {
     "parse and return the sole member paginated" in {
       val ua = UserAnswers()
