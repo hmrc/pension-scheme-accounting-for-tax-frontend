@@ -40,7 +40,11 @@
 
       <p>
         {% for link in pageLinksSeq %}
-            <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
+            {% if link.url %}
+                <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
+            {% else %}
+                {{ messages(link.linkText) }}
+            {% endif %}
         {% endfor %}
       </p>
 
