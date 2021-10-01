@@ -40,13 +40,13 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
 
   private def nodeInfo(chargeType:ChargeType):(String, String, String, MembersOrEmployers) = {
     chargeType match {
-      case ChargeTypeAnnualAllowance => // E
-        Tuple4("chargeEDetails", "chargeDetails", "members", MEMBERS)
-      case ChargeTypeAuthSurplus => // C
-        Tuple4("chargeCDetails", "chargeDetails", "employers", EMPLOYERS)
-      case ChargeTypeLifetimeAllowance => // D
-        Tuple4("chargeDDetails", "chargeDetails", "members", MEMBERS)
-      case ChargeTypeOverseasTransfer => // G
+      case ChargeTypeAnnualAllowance =>
+        Tuple4("chargeEDetails", pages.chargeE.ChargeDetailsPage.toString, "members", MEMBERS)
+      case ChargeTypeAuthSurplus =>
+        Tuple4("chargeCDetails", pages.chargeC.ChargeCDetailsPage.toString, "employers", EMPLOYERS)
+      case ChargeTypeLifetimeAllowance =>
+        Tuple4("chargeDDetails", pages.chargeD.ChargeDetailsPage.toString, "members", MEMBERS)
+      case ChargeTypeOverseasTransfer =>
         Tuple4("chargeGDetails", ChargeAmountsPage.toString, "members", MEMBERS)
       case _ => throw chargeTypeException(chargeType)
     }
