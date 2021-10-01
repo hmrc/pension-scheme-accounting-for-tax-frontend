@@ -37,21 +37,25 @@
             {{ govukTable(table) }}
         </div>
 
-        <div>
+        <div class="govuk-!-margin-bottom-9">
            <p class='govuk-body'>
              {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}
            </p>
            {% if pageLinksSeq %}
                <nav class="govuk-margin-top-5" aria-label="page">
+               <ul class="govuk-list">
                  {% for link in pageLinksSeq %}
                      {% if link.url %}
-                        <span class="nav-item">
+                        <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
                           <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
-                        </span>
+                        </li>
                      {% else %}
+                      <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
                          {{ messages(link.linkText) }}
+                        </li>
                      {% endif %}
                  {% endfor %}
+                 </ul>
                </nav>
            {% endif %}
         </div>

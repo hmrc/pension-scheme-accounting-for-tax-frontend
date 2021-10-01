@@ -37,21 +37,29 @@
                             {{ govukTable(table) }}
                     </div>
 
-                   <div>
-                    {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}
-                   <\div>
-                   {% if pageLinksSeq %}
-                       <p>
-                         {% for link in pageLinksSeq %}
-                             {% if link.url %}
-                                 <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
-                             {% else %}
-                                 {{ messages(link.linkText) }}
-                             {% endif %}
-                         {% endfor %}
-                       </p>
-                   {% endif %}
+                   <div class="govuk-!-margin-bottom-9">
+                   <p class="govuk-body"> {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}</p>
 
+                   {% if pageLinksSeq %}
+                        <nav class="govuk-margin-top-5" aria-label="page">
+                        <ul class="govuk-list">
+                         {% for link in pageLinksSeq %}
+
+                             {% if link.url %}
+                             <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
+                                 <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
+                             </li>
+                             {% else %}
+                             <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
+                                 {{ messages(link.linkText) }}
+                                 </li>
+                             {% endif %}
+
+                         {% endfor %}
+                         </ul>
+                       </nav>
+                   {% endif %}
+                    </div>
                             {% if canChange %}
                                   {{ govukRadios({
                                           classes: "govuk-radios--inline",
