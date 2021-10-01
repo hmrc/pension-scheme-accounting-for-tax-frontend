@@ -39,9 +39,11 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, redirectLocation, status, _}
 import play.twirl.api.Html
 import services.{PaginationStats, ChargePaginationService, PaginatedMembersInfo}
+import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
+import viewmodels.Link
 
 import scala.concurrent.Future
 
@@ -104,7 +106,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "radios" -> Radios.yesNo(form("value")),
     "quarterStart" -> LocalDate.parse(QUARTER_START_DATE).format(dateFormatterDMY),
     "quarterEnd" -> LocalDate.parse(QUARTER_END_DATE).format(dateFormatterDMY),
-    "table" -> table
+    "table" -> table,
+    "pageLinksSeq" -> dummyPagerNavSeq
   )
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
@@ -142,6 +145,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     bind[ChargePaginationService].toInstance(mockMemberPaginationService)
   )
 
+  private val dummyPagerNavSeq = Seq(Link(id = s"test-id", url = "test-target", linkText = Literal("test-text"), hiddenText = None))
+
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockDeleteChargeHelper)
@@ -152,6 +157,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockMemberPaginationService
       .getItemsPaginated[ChargeDDetails](any(), any(), any(), any(), any(), any(), any(), any())(any()))
       .thenReturn(expectedPaginatedMembersInfo)
+    when(mockMemberPaginationService.pagerNavSeq(any(), any()))
+      .thenReturn(dummyPagerNavSeq)
   }
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
@@ -176,6 +183,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(pageNo = 1).apply(form))
       pageCaptor.getValue mustBe 1
+      verify(mockMemberPaginationService, times(1)).pagerNavSeq(any(), any())
     }
 
     "return OK and the correct view for a GET with page no 2" in {
