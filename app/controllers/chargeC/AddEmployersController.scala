@@ -141,8 +141,6 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
     )
 
     optionPaginatedMembersInfo.map { pmi =>
-      println("\n>1>" + pmi.employersForCurrentPage.size)
-      println("\n>2>" + pmi.paginationStats)
       Json.obj(
         "srn" -> srn,
         "startDate" -> Some(startDate),

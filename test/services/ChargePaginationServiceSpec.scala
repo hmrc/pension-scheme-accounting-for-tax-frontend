@@ -187,6 +187,10 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
   }
 
   "pagerNavSeq" must {
+    "return Nil if only one page" in {
+      chargePaginationService.pagerNavSeq(ps(currentPage = 1, totalPages = 1), url) mustBe Nil
+    }
+
     "include previous and next link and no target for current page" in {
       chargePaginationService.pagerNavSeq(ps(currentPage = 4, totalPages = 6), url) mustBe Seq(
         prev(3), number(2), number(3), number(4, includeTarget = false), number(5), number(6), next(5)

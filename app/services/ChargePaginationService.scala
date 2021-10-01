@@ -158,25 +158,31 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
   }
 
   def pagerNavSeq(ps:PaginationStats, url:Int => Call): Seq[Link] = {
-    val items = pagerSeq(ps).map { c =>
-      val target = if (ps.currentPage == c) {
-        ""
-      } else {
-        url(c).url
+    if (ps.totalPages == 1) {
+      Nil
+    } else {
+      val items = pagerSeq(ps).map { c =>
+        val target = if (ps.currentPage == c) {
+          ""
+        } else {
+          url(c).url
+        }
+        Link(id = s"nav-$c", url = target, linkText = Literal(s"$c"), hiddenText = None)
       }
-      Link(id = s"nav-$c", url = target, linkText = Literal(s"$c"), hiddenText = None)
+      val prevLink = if (ps.currentPage == 1) {
+        Nil
+      } else {
+        Seq(Link(id = "nav-prev", url = url(ps.currentPage - 1).url, linkText = Message("paginationPreviousPage"),
+          hiddenText = None))
+      }
+      val nextLink = if (ps.currentPage == ps.totalPages) {
+        Nil
+      } else {
+        Seq(Link(id = "nav-next", url = url(ps.currentPage + 1).url, linkText = Message("paginationNextPage"),
+          hiddenText = None))
+      }
+      prevLink ++ items ++ nextLink
     }
-    val prevLink = if (ps.currentPage==1) {
-      Nil
-    } else {
-      Seq(Link(id = "nav-prev", url = url(ps.currentPage - 1).url, linkText = Message("paginationPreviousPage"), hiddenText = None))
-    }
-    val nextLink = if (ps.currentPage==ps.totalPages) {
-      Nil
-    } else {
-      Seq(Link(id = "nav-next", url = url(ps.currentPage + 1).url, linkText = Message("paginationNextPage"), hiddenText = None))
-    }
-    prevLink ++ items ++ nextLink
   }
 }
 
