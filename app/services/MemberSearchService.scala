@@ -44,18 +44,8 @@ class MemberSearchService @Inject()(
 
   def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit
     request: DataRequest[AnyContent]): Seq[MemberRow] = {
-    val searchTextUpper = searchText.toUpperCase
-    val searchFunc: MemberSummary => Boolean = { member =>
-      if (searchTextUpper.matches(ninoRegex)) {
-        member.nino.toUpperCase == searchTextUpper
-      } else {
-        fuzzyMatchingService.doFuzzyMatching(searchTextUpper, member.name)
-      }
-    }
-println("\n\n list of members"+listOfMembers(ua, srn, startDate, accessType, version))
-println("\n\n list of filtered members"+listOfMembers(ua, srn, startDate, accessType, version).filter(searchFunc))
-println("\n\n list of rows"+listOfRows(listOfMembers(ua, srn, startDate, accessType, version).filter(searchFunc), request.isViewOnly))
-    listOfRows(listOfMembers(ua, srn, startDate, accessType, version).filter(searchFunc), request.isViewOnly)
+      jsonSearch(searchText.toUpperCase, ua.data).fold[Seq[MemberRow]](Nil)(jsValue =>
+        listOfRows(listOfMembers(UserAnswers(jsValue.as[JsObject]), srn, startDate, accessType, version), request.isViewOnly))
   }
 
   private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
@@ -120,7 +110,7 @@ println("\n\n list of rows"+listOfRows(listOfMembers(ua, srn, startDate, accessT
     allRows.sortBy(_.name)
   }
 
-  val jsonSearch: (String, JsValue) => Option[JsValue] = (searchString, ua) => {
+  def jsonSearch: (String, JsValue) => Option[JsValue] = (searchString, ua) => {
 
     val conditionalFilter: JsValue => Boolean = jsValue => if(searchString.matches(ninoRegex)) {
       (jsValue \ "memberDetails" \ "nino").as[String] == searchString
@@ -130,25 +120,29 @@ println("\n\n list of rows"+listOfRows(listOfMembers(ua, srn, startDate, accessT
     }
 
     val chargeFilter: String => Reads[JsObject] = chargeType =>
-      (__ \ s"charge${chargeType}Details").readNullable(__.read(
         (__ \ s"charge${chargeType}Details" \ "members").json.update(__.read[JsArray].map { jsArray =>
-        JsArray(jsArray.value.filter(conditionalFilter))})
-      )).map { _.getOrElse(Json.obj()) }
+          JsArray(jsArray.value.filter(conditionalFilter))
+        })
 
     val pruneEmptyCharges: String => Reads[JsObject] = chargeType =>
-      (__ \ s"charge${chargeType}Details").readNullable(__.read(
         (__ \ s"charge${chargeType}Details" \ "members").readNullable[JsArray] flatMap {
           case Some(array) if array.value.nonEmpty => __.json.pickBranch
           case _ => ((__ \ s"charge${chargeType}Details").json.prune  and (__ \ s"charge${chargeType}NoMatch").json.put(JsBoolean(true))).reduce
         }
-      )).map { _.getOrElse(Json.obj()) }
 
-    val allFilters = (chargeFilter("D") and chargeFilter("E") and chargeFilter("G")).reduce
-    val allPruners = (pruneEmptyCharges("D") and pruneEmptyCharges("E") and pruneEmptyCharges("G")).reduce
+    def prune(chargeType: String, jsVal: JsValue): JsObject =
+      if((jsVal \ s"charge${chargeType}Details").asOpt[JsObject].isDefined) jsVal.transform(pruneEmptyCharges(chargeType)).get else jsVal.as[JsObject]
 
-    val filtered: JsObject = ua.transform(allFilters).get
-    println("\n\n >>>>>>>>> 1 "+filtered)
-    val filteredAndPruned = filtered.transform(allPruners).get
+    def filter(chargeType: String, jsVal: JsValue): JsObject =
+      if((jsVal \ s"charge${chargeType}Details").asOpt[JsObject].isDefined) jsVal.transform(chargeFilter(chargeType)).get else jsVal.as[JsObject]
+
+    def filteredD: JsObject = filter("D", ua)
+    def filteredE: JsObject = filter("E", filteredD)
+    def filteredG: JsObject = filter("G", filteredE)
+    def prunedD: JsObject = prune("D", filteredG)
+    def prunedE: JsObject = prune("E", prunedD)
+    def filteredAndPruned: JsObject = prune("G", prunedE)
+
     val noMatchBoolean: String => Boolean = chargeType => (filteredAndPruned \ s"charge${chargeType}NoMatch").asOpt[Boolean].getOrElse(false)
     if(Seq(noMatchBoolean("D"), noMatchBoolean("E"), noMatchBoolean("G")).contains(false)) Some(filteredAndPruned) else None
   }
