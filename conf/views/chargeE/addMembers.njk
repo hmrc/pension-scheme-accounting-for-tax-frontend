@@ -35,20 +35,23 @@
           {%- endfor %}
         <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-7">
             {{ govukTable(table) }}
-
-      {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}
-
-      <p>
-        {% for link in pageLinksSeq %}
-            {% if link.url %}
-                <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
-            {% else %}
-                {{ messages(link.linkText) }}
-            {% endif %}
-        {% endfor %}
-      </p>
-
         </div>
+
+       {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}
+
+       {% if pageLinksSeq %}
+           <p>
+             {% for link in pageLinksSeq %}
+                 {% if link.url %}
+                     <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
+                 {% else %}
+                     {{ messages(link.linkText) }}
+                 {% endif %}
+             {% endfor %}
+           </p>
+       {% endif %}
+
+
             {% if canChange %}
                   {{ govukRadios({
                       classes: "govuk-radios--inline",

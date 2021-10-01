@@ -151,6 +151,13 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
         "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
         "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
         "table" -> Json.toJson(mapToTable(pmi.employersForCurrentPage, !request.isViewOnly)),
+        "pageLinksSeq" -> chargePaginationService.pagerNavSeq(
+          pmi.paginationStats,
+          controllers.chargeC.routes.AddEmployersController.onPageLoadWithPageNo(srn, startDate, accessType, version, _)
+        ),
+        "paginationStatsStartMember" -> pmi.paginationStats.startMember,
+        "paginationStatsLastMember" -> pmi.paginationStats.lastMember,
+        "paginationStatsTotalMembers" -> pmi.paginationStats.totalMembers,
         "canChange" -> !request.isViewOnly
       )
     }

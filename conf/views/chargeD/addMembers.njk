@@ -36,26 +36,41 @@
             <div role="region" aria-labelledby="chargeD_h1" class="govuk-!-margin-bottom-7">
                 {{ govukTable(table) }}
             <div>
-                {% if canChange %}
-                  {{ govukRadios({
-                          classes: "govuk-radios--inline",
-                          name: 'value',
-                          fieldset: {
-                            legend: {
-                              text: messages('chargeD.addMembers.label'),
-                              isPageHeading: false,
-                              classes: "govuk-fieldset__legend--s"
-                            }
-                          },
-                          items: radios,
-                          errorMessage: form.value.error
-                  }) }}
 
-                  {{ govukButton({
-                        text: messages("site.continue"),
-                        attributes: {id: "submit"}
-                  }) }}
-                {% endif %}
+           {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}
+
+           {% if pageLinksSeq %}
+               <p>
+                 {% for link in pageLinksSeq %}
+                     {% if link.url %}
+                         <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
+                     {% else %}
+                         {{ messages(link.linkText) }}
+                     {% endif %}
+                 {% endfor %}
+               </p>
+           {% endif %}
+
+            {% if canChange %}
+              {{ govukRadios({
+                      classes: "govuk-radios--inline",
+                      name: 'value',
+                      fieldset: {
+                        legend: {
+                          text: messages('chargeD.addMembers.label'),
+                          isPageHeading: false,
+                          classes: "govuk-fieldset__legend--s"
+                        }
+                      },
+                      items: radios,
+                      errorMessage: form.value.error
+              }) }}
+
+              {{ govukButton({
+                    text: messages("site.continue"),
+                    attributes: {id: "submit"}
+              }) }}
+            {% endif %}
 
         </form>
 
