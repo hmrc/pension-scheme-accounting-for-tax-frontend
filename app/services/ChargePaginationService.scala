@@ -24,6 +24,9 @@ import models.chargeC.SponsoringOrganisationDetails
 import play.api.libs.json._
 import models.{Member, SponsoringEmployerType, UserAnswers, Employer, MemberDetails}
 import services.MembersOrEmployers.{MEMBERS, MembersOrEmployers, EMPLOYERS}
+import uk.gov.hmrc.viewmodels.Text
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import viewmodels.Link
 
 class ChargePaginationService @Inject()(config: FrontendAppConfig) {
 
@@ -134,29 +137,35 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     }
   }
 
-  def pagerSeq(ps:PaginationStats): Seq[Int] = {
-    // Current page and total pages
-    /*
-      1 2 3 4 5 6 7 8 9 10
-      x
-        x
-          x
-            x
-              x
-     */
+  private[services] def pagerSeq(ps:PaginationStats): Seq[Int] = {
     (ps.currentPage, ps.totalPages) match {
-      case (_, tp) if tp <= maxSize => (1 to tp)
-      case (x, _) if x < 3 => (1 to x) ++ ((x + 1) to (x + (3 - x)))
-      case (x, tp) if x > (tp - 2) =>
-      case (x, tp) =>
+      case (_, tp) if tp <= 5 => 1 to tp
+      case (c, _) if c < 3 => 1 to 5
+      case (c, tp) if c > (tp - 3) => (tp - 4) to tp
+      case (c, _) => (c - 2) to (c + 2)
     }
+  }
 
-    //
-    //if (currentPage == 1) {
-    //  Seq(1)
-    //} else {
-    //  Seq(1, 2)
-    //}
+  def pagerNavSeq(ps:PaginationStats, url:Int => Call): Seq[Link] = {
+    val items = pagerSeq(ps).map { c =>
+      val target = if (ps.currentPage == c) {
+        ""
+      } else {
+        url(c).url
+      }
+      Link(id = s"nav-$c", url = target, linkText = Literal(s"$c"), hiddenText = None)
+    }
+    val prevLink = if (ps.currentPage==1) {
+      Nil
+    } else {
+      Seq(Link(id = "nav-prev", url = url(ps.currentPage - 1).url, linkText = Message("paginationPreviousPage"), hiddenText = None))
+    }
+    val nextLink = if (ps.currentPage==ps.totalPages) {
+      Nil
+    } else {
+      Seq(Link(id = "nav-next", url = url(ps.currentPage + 1).url, linkText = Message("paginationNextPage"), hiddenText = None))
+    }
+    prevLink ++ items ++ nextLink
   }
 }
 

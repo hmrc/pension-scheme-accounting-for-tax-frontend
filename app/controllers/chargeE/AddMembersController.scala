@@ -151,10 +151,10 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
         "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
         "table" -> Json.toJson(mapToTable(pmi.membersForCurrentPage, !request.isViewOnly)),
-        "prevPageUrl" -> controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, pageNumber - 1).url,
-        "pageLinksSeq" -> Seq(),
-        "nextPageUrl" -> controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, pageNumber + 1).url,
-        // TODO: Put the prev, next and numbers all in one big seq of Tuple2s (anchor target and text, if the former is empty then no target  ie current page)
+        "pageLinksSeq" -> chargePaginationService.pagerNavSeq(
+          pmi.paginationStats,
+          controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, _)
+        ),
         "paginationStatsStartMember" -> pmi.paginationStats.startMember,
         "paginationStatsLastMember" -> pmi.paginationStats.lastMember,
         "paginationStatsTotalMembers" -> pmi.paginationStats.totalMembers,

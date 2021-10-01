@@ -39,8 +39,9 @@
       {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}
 
       <p>
-        <a href="{{ prevPageUrl }}" class="govuk-link">{{ messages("paginationPreviousPage") }}</a>
-        <a href="{{ nextPageUrl }}" class="govuk-link">{{ messages("paginationNextPage") }}</a>
+        {% for link in pageLinksSeq %}
+            <a href='{{ link.url }}' id='{{ link.id }}' class="govuk-link">{{ messages(link.linkText) }}</a>
+        {% endfor %}
       </p>
 
         </div>
