@@ -26,13 +26,12 @@ import models.chargeC.ChargeCDetails
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.ChargeAmounts
-import models.{Member, UserAnswers, Employer, AmendedChargeStatus, MemberDetails}
+import models.{Member, UserAnswers, Employer, AmendedChargeStatus, MemberDetails, ChargeType}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage, MemberStatusPage, MemberAFTVersionPage}
-import pages.chargeG.ChargeAmountsPage
 import play.api.libs.json.JsArray
 import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
@@ -125,35 +124,35 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         pageNo = 1,
         totalMembers = 5,
         pageSize = 2
-      ) mustBe (3, 5)
+      ) mustBe Tuple2(3, 5)
     }
     "give correct values for page 2 of 3" in {
       ChargePaginationService.pageStartAndEnd(
         pageNo = 2,
         totalMembers = 5,
         pageSize = 2
-      ) mustBe (1, 3)
+      ) mustBe Tuple2(1, 3)
     }
     "give correct values for page 3 of 3" in {
       ChargePaginationService.pageStartAndEnd(
         pageNo = 3,
         totalMembers = 5,
         pageSize = 2
-      ) mustBe (0, 1)
+      ) mustBe Tuple2(0, 1)
     }
     "give correct values for page 1 of 7" in {
       ChargePaginationService.pageStartAndEnd(
         pageNo = 1,
         totalMembers = 26,
         pageSize = 4
-      ) mustBe (22, 26)
+      ) mustBe Tuple2(22, 26)
     }
     "give correct values for page 7 of 7" in {
       ChargePaginationService.pageStartAndEnd(
         pageNo = 7,
         totalMembers = 26,
         pageSize = 4
-      ) mustBe (0, 2)
+      ) mustBe Tuple2(0, 2)
     }
   }
 
@@ -218,11 +217,10 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       chargePaginationService.getItemsPaginated[ChargeEDetails](
         pageNo = 1,
         ua = allMembersChargeE,
-        chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
-        membersOrEmployers = MembersOrEmployers.MEMBERS
+        chargeType = ChargeType.ChargeTypeAnnualAllowance
       ) mustBe Some(
           PaginatedMembersInfo(
             itemsForCurrentPage = Left(expectedAllMembersMinusDeleted),
@@ -246,11 +244,10 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       chargePaginationService.getItemsPaginated[ChargeEDetails](
         pageNo = 2,
         ua = allMembersChargeE,
-        chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
-        membersOrEmployers = MembersOrEmployers.MEMBERS
+        chargeType = ChargeType.ChargeTypeAnnualAllowance
       ) mustBe Some(
         PaginatedMembersInfo(
           itemsForCurrentPage = Left(expectedAllMembersMinusDeleted),
@@ -273,11 +270,10 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       chargePaginationService.getItemsPaginated[ChargeEDetails](
         pageNo = 3,
         ua = allMembersChargeE,
-        chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
-        membersOrEmployers = MembersOrEmployers.MEMBERS
+        chargeType = ChargeType.ChargeTypeAnnualAllowance
       ) mustBe Some(
         PaginatedMembersInfo(
           itemsForCurrentPage = Left(expectedAllMembersMinusDeleted),
@@ -297,11 +293,10 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       chargePaginationService.getItemsPaginated[ChargeEDetails](
         pageNo = 4,
         ua = allMembersChargeE,
-        chargeRootNode = "chargeEDetails",
         amount = _.chargeAmount,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
-        membersOrEmployers = MembersOrEmployers.MEMBERS
+        chargeType = ChargeType.ChargeTypeAnnualAllowance
       ) mustBe None
     }
   }
@@ -321,11 +316,10 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       val result = chargePaginationService.getItemsPaginated[ChargeDDetails](
         pageNo = 1,
         ua = ua,
-        chargeRootNode = "chargeDDetails",
         amount = _.total,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
-        membersOrEmployers = MembersOrEmployers.MEMBERS
+        chargeType = ChargeType.ChargeTypeLifetimeAllowance
       ).map(_.membersForCurrentPage)
 
       result mustBe Some(expectedMembers)
@@ -347,12 +341,10 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       val result = chargePaginationService.getItemsPaginated[ChargeAmounts](
         pageNo = 1,
         ua = ua,
-        chargeRootNode = "chargeGDetails",
-        chargeDetailsNode = ChargeAmountsPage.toString,
         amount = _.amountTaxDue,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
-        membersOrEmployers = MembersOrEmployers.MEMBERS
+        chargeType = ChargeType.ChargeTypeOverseasTransfer
       ).map(_.membersForCurrentPage)
 
       result mustBe Some(expectedMembers)
@@ -375,11 +367,10 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       val result = chargePaginationService.getItemsPaginated[ChargeCDetails](
         pageNo = 1,
         ua = ua,
-        chargeRootNode = "chargeCDetails",
         amount = _.amountTaxDue,
         viewUrl = viewUrl,
         removeUrl = removeUrl,
-        membersOrEmployers = MembersOrEmployers.EMPLOYERS
+        chargeType = ChargeType.ChargeTypeAuthSurplus
       ).map(_.employersForCurrentPage)
       result mustBe Some(expectedMembers)
     }

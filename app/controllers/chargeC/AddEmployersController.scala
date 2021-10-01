@@ -27,7 +27,7 @@ import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeC.ChargeCDetails
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode, Employer, AFTQuarter, UserAnswers, AccessType}
+import models.{GenericViewModel, NormalMode, Employer, AFTQuarter, ChargeType, UserAnswers, AccessType}
 import navigators.CompoundNavigator
 import pages.chargeC.AddEmployersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
@@ -36,7 +36,7 @@ import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
-import services.{ChargePaginationService, MembersOrEmployers}
+import services.ChargePaginationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, Radios, NunjucksSupport}
@@ -134,14 +134,15 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
     val optionPaginatedMembersInfo = chargePaginationService.getItemsPaginated[ChargeCDetails](
       pageNo = pageNumber,
       ua = request.userAnswers,
-      chargeRootNode = "chargeCDetails",
       amount = _.amountTaxDue,
       viewUrl = viewUrl(srn, startDate, accessType, version),
       removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version),
-      membersOrEmployers = MembersOrEmployers.EMPLOYERS
+      chargeType = ChargeType.ChargeTypeAuthSurplus
     )
 
     optionPaginatedMembersInfo.map { pmi =>
+      println("\n>1>" + pmi.employersForCurrentPage.size)
+      println("\n>2>" + pmi.paginationStats)
       Json.obj(
         "srn" -> srn,
         "startDate" -> Some(startDate),

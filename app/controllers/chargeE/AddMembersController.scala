@@ -27,7 +27,7 @@ import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
 import models.requests.DataRequest
-import models.{Member, GenericViewModel, NormalMode, AFTQuarter, UserAnswers, AccessType}
+import models.{Member, GenericViewModel, NormalMode, AFTQuarter, ChargeType, UserAnswers, AccessType}
 import navigators.CompoundNavigator
 import pages.chargeE.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
@@ -37,7 +37,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
 import services.AddMembersService.mapChargeXMembersToTable
-import services.{ChargePaginationService, MembersOrEmployers}
+import services.ChargePaginationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
@@ -134,11 +134,10 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
     val optionPaginatedMembersInfo = chargePaginationService.getItemsPaginated[ChargeEDetails](
       pageNo = pageNumber,
       ua = request.userAnswers,
-      chargeRootNode = "chargeEDetails",
       amount = _.chargeAmount,
       viewUrl = viewUrl(srn, startDate, accessType, version),
       removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version),
-      membersOrEmployers = MembersOrEmployers.MEMBERS
+      chargeType = ChargeType.ChargeTypeAnnualAllowance
     )
 
     optionPaginatedMembersInfo.map { pmi =>
