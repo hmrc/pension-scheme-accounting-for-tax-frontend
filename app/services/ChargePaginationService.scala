@@ -44,7 +44,6 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     }
   }
 
-// scalastyle:off method.length
   def getItemsPaginated[A](
     pageNo:Int,
     ua: UserAnswers,
@@ -60,7 +59,57 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     val (start, end) = ChargePaginationService.pageStartAndEnd(pageNo, membersExcludingDeletedJson.size, pageSize)
     val membersForPageJson = membersExcludingDeletedJson.slice(start, end)
 
-    val paginatedMembers = if (membersOrEmployers == MEMBERS) {
+    if (membersForPageJson.isEmpty) {
+      None
+    } else {
+      val startMember = (pageNo - 1) * pageSize + 1
+      val items: Either[Seq[Member], Seq[Employer]] =
+        if (membersOrEmployers == MEMBERS) {
+          Left(createMembers(membersOrEmployers, membersForPageJson, chargeDetailsNode, amount, viewUrl, removeUrl).reverse)
+        } else {
+          Right(createEmployers(membersOrEmployers, membersForPageJson, chargeDetailsNode, amount, viewUrl, removeUrl).reverse)
+        }
+      Some(PaginatedMembersInfo(
+        itemsForCurrentPage = items,
+        paginationStats = PaginationStats(
+          currentPage = pageNo,
+          startMember = startMember,
+          lastMember = startMember + membersForPageJson.size - 1,
+          totalMembers = membersExcludingDeletedJson.size,
+          totalPages = ChargePaginationService.totalPages(membersExcludingDeletedJson.size, pageSize)
+        )
+      ))
+    }
+  }
+
+
+  private def createEmployers[A](
+    membersOrEmployers: MembersOrEmployers,
+    membersForPageJson: IndexedSeq[(JsValue, Int)],
+    chargeDetailsNode: String,
+    amount: A => BigDecimal,
+    viewUrl: Int => Call,
+    removeUrl: Int => Call)(implicit reads: Reads[A]): Seq[Employer] = {
+    if (membersOrEmployers == EMPLOYERS) {
+      membersForPageJson.map { case (m, index) => val chargeAmount = (m \ chargeDetailsNode).asOpt[A] match {
+        case Some(chargeDetails) => amount(chargeDetails)
+        case None => BigDecimal(0)
+      }
+        createEmployer(m, index, chargeAmount, viewUrl, removeUrl)
+      }
+    } else {
+      Nil
+    }
+  }
+
+  private def createMembers[A](
+    membersOrEmployers: MembersOrEmployers,
+    membersForPageJson: IndexedSeq[(JsValue, Int)],
+    chargeDetailsNode: String,
+    amount: A => BigDecimal,
+    viewUrl: Int => Call,
+    removeUrl: Int => Call)(implicit reads: Reads[A]): Seq[Member] = {
+    if (membersOrEmployers == MEMBERS) {
       membersForPageJson.map { case (m, index) =>
         val chargeAmount = (m \ chargeDetailsNode).asOpt[A] match {
           case Some(chargeDetails) => amount(chargeDetails)
@@ -70,36 +119,6 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
       }
     } else {
       Nil
-    }
-
-    val paginatedEmployers = if (membersOrEmployers == EMPLOYERS) {
-      membersForPageJson.map { case (m, index) =>
-        val chargeAmount = (m \ chargeDetailsNode).asOpt[A] match {
-          case Some(chargeDetails) => amount(chargeDetails)
-          case None => BigDecimal(0)
-        }
-        createEmployer(m, index, chargeAmount, viewUrl, removeUrl)
-      }
-    } else {
-      Nil
-    }
-    if (paginatedMembers.isEmpty && paginatedEmployers.isEmpty) {
-      None
-    } else {
-      val startMember = (pageNo - 1) * pageSize + 1
-      val totalMembersForPage = membersForPageJson.size
-      val items: Either[Seq[Member], Seq[Employer]] =
-        if (membersOrEmployers == MEMBERS) Left(paginatedMembers.reverse) else Right(paginatedEmployers.reverse)
-      Some(PaginatedMembersInfo(
-        itemsForCurrentPage = items,
-        paginationStats = PaginationStats(
-          currentPage = pageNo,
-          startMember = startMember,
-          lastMember = startMember + totalMembersForPage - 1,
-          totalMembers = membersExcludingDeletedJson.size,
-          totalPages = ChargePaginationService.totalPages(membersExcludingDeletedJson.size, pageSize)
-        )
-      ))
     }
   }
 
