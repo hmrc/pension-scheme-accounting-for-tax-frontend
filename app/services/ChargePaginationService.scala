@@ -34,21 +34,17 @@ import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
 import viewmodels.Link
 
 class ChargePaginationService @Inject()(config: FrontendAppConfig) {
-
-  private def chargeTypeException(chargeType:ChargeType) =
-    new RuntimeException(s"No pagination required for this charge type: $chargeType")
-
-  private def nodeInfo(chargeType:ChargeType):(String, String, String, MembersOrEmployers) = {
+  private def nodeInfo(chargeType:ChargeType):Option[(String, String, String, MembersOrEmployers)] = {
     chargeType match {
       case ChargeTypeAnnualAllowance =>
-        Tuple4("chargeEDetails", pages.chargeE.ChargeDetailsPage.toString, "members", MEMBERS)
+       Some(Tuple4("chargeEDetails", pages.chargeE.ChargeDetailsPage.toString, "members", MEMBERS))
       case ChargeTypeAuthSurplus =>
-        Tuple4("chargeCDetails", pages.chargeC.ChargeCDetailsPage.toString, "employers", EMPLOYERS)
+        Some(Tuple4("chargeCDetails", pages.chargeC.ChargeCDetailsPage.toString, "employers", EMPLOYERS))
       case ChargeTypeLifetimeAllowance =>
-        Tuple4("chargeDDetails", pages.chargeD.ChargeDetailsPage.toString, "members", MEMBERS)
+        Some(Tuple4("chargeDDetails", pages.chargeD.ChargeDetailsPage.toString, "members", MEMBERS))
       case ChargeTypeOverseasTransfer =>
-        Tuple4("chargeGDetails", ChargeAmountsPage.toString, "members", MEMBERS)
-      case _ => throw chargeTypeException(chargeType)
+        Some(Tuple4("chargeGDetails", ChargeAmountsPage.toString, "members", MEMBERS))
+      case _ => None
     }
   }
 
@@ -68,7 +64,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
         getItemsPaginatedWithAmount[ChargeDDetails](pageNo, ua: UserAnswers, _.total, viewUrl, removeUrl, chargeType: ChargeType)
       case ChargeTypeOverseasTransfer =>
         getItemsPaginatedWithAmount[ChargeAmounts](pageNo, ua: UserAnswers, _.amountTaxDue, viewUrl, removeUrl, chargeType: ChargeType)
-      case _ => throw chargeTypeException(chargeType)
+      case _ => None
     }
   }
 
@@ -80,33 +76,34 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     removeUrl: Int => Call,
     chargeType: ChargeType
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
-    val (chargeRootNode, chargeDetailsNode, listNode, membersOrEmployers) = nodeInfo(chargeType)
-    val pageSize = config.membersPageSize
-    val allItemsAsJsArray = (ua.data \ chargeRootNode \ listNode).as[JsArray].value.zipWithIndex
-      .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
-    val (start, end) = ChargePaginationService.pageStartAndEnd(pageNo, allItemsAsJsArray.size, pageSize)
-    val pageItemsAsJsArray = allItemsAsJsArray.slice(start, end)
+    nodeInfo(chargeType).flatMap{ case (chargeRootNode, chargeDetailsNode, listNode, membersOrEmployers) =>
+      val pageSize = config.membersPageSize
+      val allItemsAsJsArray = (ua.data \ chargeRootNode \ listNode).as[JsArray].value.zipWithIndex
+        .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
+      val (start, end) = ChargePaginationService.pageStartAndEnd(pageNo, allItemsAsJsArray.size, pageSize)
+      val pageItemsAsJsArray = allItemsAsJsArray.slice(start, end)
 
-    if (pageItemsAsJsArray.isEmpty) {
-      None
-    } else {
-      val startMember = (pageNo - 1) * pageSize + 1
-      val items: Either[Seq[Member], Seq[Employer]] =
-        if (membersOrEmployers == MEMBERS) {
-          Left(createMembers(membersOrEmployers, pageItemsAsJsArray, chargeDetailsNode, amount, viewUrl, removeUrl).reverse)
-        } else {
-          Right(createEmployers(membersOrEmployers, pageItemsAsJsArray, chargeDetailsNode, amount, viewUrl, removeUrl).reverse)
-        }
-      Some(PaginatedMembersInfo(
-        itemsForCurrentPage = items,
-        paginationStats = PaginationStats(
-          currentPage = pageNo,
-          startMember = startMember,
-          lastMember = startMember + pageItemsAsJsArray.size - 1,
-          totalMembers = allItemsAsJsArray.size,
-          totalPages = ChargePaginationService.totalPages(allItemsAsJsArray.size, pageSize)
-        )
-      ))
+      if (pageItemsAsJsArray.isEmpty) {
+        None
+      } else {
+        val startMember = (pageNo - 1) * pageSize + 1
+        val items: Either[Seq[Member], Seq[Employer]] =
+          if (membersOrEmployers == MEMBERS) {
+            Left(createMembers(membersOrEmployers, pageItemsAsJsArray, chargeDetailsNode, amount, viewUrl, removeUrl).reverse)
+          } else {
+            Right(createEmployers(membersOrEmployers, pageItemsAsJsArray, chargeDetailsNode, amount, viewUrl, removeUrl).reverse)
+          }
+        Some(PaginatedMembersInfo(
+          itemsForCurrentPage = items,
+          paginationStats = PaginationStats(
+            currentPage = pageNo,
+            startMember = startMember,
+            lastMember = startMember + pageItemsAsJsArray.size - 1,
+            totalMembers = allItemsAsJsArray.size,
+            totalPages = ChargePaginationService.totalPages(allItemsAsJsArray.size, pageSize)
+          )
+        ))
+      }
     }
   }
 
