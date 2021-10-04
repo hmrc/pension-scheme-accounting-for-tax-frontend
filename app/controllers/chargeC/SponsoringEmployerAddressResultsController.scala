@@ -17,23 +17,23 @@
 package controllers.chargeC
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import models.LocalDateBinder._
 import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
+
 import javax.inject.Inject
-import models.{TolerantAddress, GenericViewModel, AccessType, Mode, Index}
+import models.{AccessType, GenericViewModel, Index, Mode, TolerantAddress}
 import models.chargeC.SponsoringEmployerAddress
 import models.requests.DataRequest
 import navigators.CompoundNavigator
-import pages.chargeC.{SponsoringEmployerAddressResultsPage, SponsoringEmployerAddressSearchPage, SponsoringEmployerAddressPage}
+import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressResultsPage, SponsoringEmployerAddressSearchPage}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Result, AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -109,7 +109,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
 
   private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status,
                           accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+    DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
       request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
         case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         case Some(addresses) =>
@@ -125,6 +125,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
             "form" -> form,
             "viewModel" -> viewModel,
             "sponsorName" -> sponsorName,
+            "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
             "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url,
             "addresses" -> addressesAsJson
           )

@@ -17,28 +17,28 @@
 package controllers.chargeC
 
 import java.time.LocalDate
-
-import audit.{AuditService, AddressLookupAuditEvent}
+import audit.{AddressLookupAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.AddressLookupConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
+
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Mode, GenericViewModel, AccessType, Index}
+import models.{AccessType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeC.SponsoringEmployerAddressSearchPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class SponsoringEmployerAddressSearchController @Inject()(override val messagesApi: MessagesApi,
                                                           userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -60,7 +60,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+      DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
 
         val viewModel = GenericViewModel(
           submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, accessType, version, index).url,
@@ -71,6 +71,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
           "form" -> form,
           "viewModel" -> viewModel,
           "sponsorName" -> sponsorName,
+          "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
           "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url
         )
 
@@ -81,7 +82,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+      DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
         form.bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
@@ -93,6 +94,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
               "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "sponsorName" -> sponsorName,
+              "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
               "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url
             )
 
@@ -110,6 +112,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
                   "form" -> formWithError("chargeC.employerAddressSearch.error.invalid"),
                   "viewModel" -> viewModel,
                   "sponsorName" -> sponsorName,
+                  "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
                   "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url
                 )
 

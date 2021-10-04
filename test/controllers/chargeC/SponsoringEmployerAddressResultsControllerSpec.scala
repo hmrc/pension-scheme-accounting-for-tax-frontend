@@ -23,8 +23,9 @@ import data.SampleData.{dummyCall, srn, startDate, userAnswersWithSchemeNameAndI
 import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, NormalMode, TolerantAddress, UserAnswers}
+import models.{GenericViewModel, NormalMode, SponsoringEmployerType, TolerantAddress, UserAnswers}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -33,6 +34,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC._
 import play.api.Application
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import play.twirl.api.Html
@@ -92,7 +94,7 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
     }
   }
 
-  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false): Form[Int] => JsObject =
+  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false, sponsorType: SponsoringEmployerType): Form[Int] => JsObject =
     form =>
       Json.obj(
         "form" -> form,
@@ -103,6 +105,7 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
           schemeName = schemeName
         ),
         "sponsorName" -> sponsorName,
+        "employerType" -> Messages(s"chargeC.employerType.${sponsorType.toString}"),
         "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.
           onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url,
         "addresses" -> transformAddressesForTemplate(seqAddresses)
@@ -130,7 +133,8 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      val expectedJson = jsonToPassToTemplate(sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}")
+      val expectedJson = jsonToPassToTemplate(sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}",
+        sponsorType = SponsoringEmployerTypeIndividual)
         .apply(form)
 
       jsonCaptor.getValue must containJson(expectedJson)

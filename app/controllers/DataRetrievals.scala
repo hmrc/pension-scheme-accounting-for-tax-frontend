@@ -114,6 +114,22 @@ object DataRetrievals {
     }
   }
 
+  def retrieveSchemeEmployerTypeAndSponsoringEmployer(index: Int)(block: (String, String, SponsoringEmployerType) => Future[Result])(
+    implicit request: DataRequest[AnyContent]): Future[Result] = {
+    val ua = request.userAnswers
+    (ua.get(WhichTypeOfSponsoringEmployerPage(index)),
+      ua.get(SponsoringOrganisationDetailsPage(index)),
+      ua.get(SponsoringIndividualDetailsPage(index)),
+      ua.get(SchemeNameQuery)) match {
+      case (Some(SponsoringEmployerTypeOrganisation), Some(company), _, Some(schemeName)) =>
+        block(schemeName, company.name, SponsoringEmployerTypeOrganisation)
+      case (Some(SponsoringEmployerTypeIndividual), _, Some(individual), Some(schemeName)) =>
+        block(schemeName, individual.fullName, SponsoringEmployerTypeIndividual)
+      case _ =>
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
   def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A], srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
       block: (A, String) => Future[Result])(implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
     (

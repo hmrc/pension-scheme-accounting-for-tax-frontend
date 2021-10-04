@@ -7,7 +7,7 @@
 {% from "macros/title.njk"                         import title %}
 {% from "hmrc/components/currency-input/macro.njk" import hmrcCurrencyInput with context %}
 {% block pageTitle %}
-  {{ title(messages("chargeC.chargeDetails.title", sponsorName), form.errors) }}
+  {{ title(messages("chargeC.chargeDetails.title", employerType), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}

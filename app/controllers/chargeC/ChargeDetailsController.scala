@@ -67,7 +67,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+      DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
@@ -88,6 +88,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "date" -> DateInput.localDate(preparedForm("paymentDate")),
+          "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
           "sponsorName" -> sponsorName
         )
 
