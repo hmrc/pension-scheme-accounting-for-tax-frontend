@@ -45,11 +45,11 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
   private val startDate: LocalDate = QUARTER_START_DATE
 
   private def addMembersChargeE(memberDetailsToAdd: Seq[(MemberDetails, AmendedChargeStatus)]): UserAnswers = {
-    memberDetailsToAdd.foldLeft[UserAnswers](UserAnswers()) { (ua, yyy) =>
+    memberDetailsToAdd.foldLeft[UserAnswers](UserAnswers()) { (ua, memberDetailsAmendedChargeStatus) =>
       val memberNo = (ua.data \ "chargeEDetails" \ "members").asOpt[JsArray].map(_.value.size).getOrElse(0)
-      ua.set(MemberStatusPage(memberNo), yyy._2.toString).toOption.get
+      ua.set(MemberStatusPage(memberNo), memberDetailsAmendedChargeStatus._2.toString).toOption.get
         .set(MemberAFTVersionPage(memberNo), SampleData.version.toInt).toOption.get
-        .set(MemberDetailsPage(memberNo), yyy._1).toOption.get.set(ChargeDetailsPage(memberNo), SampleData.chargeEDetails).toOption.get
+        .set(MemberDetailsPage(memberNo), memberDetailsAmendedChargeStatus._1).toOption.get.set(ChargeDetailsPage(memberNo), SampleData.chargeEDetails).toOption.get
     }
   }
 
