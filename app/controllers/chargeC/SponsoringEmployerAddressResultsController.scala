@@ -75,8 +75,9 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
           value => {
             request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
               case Some(addresses)  if addresses(value).toAddress.isDefined =>
+                val address = addresses(value).toAddress.get.copy(country = "GB")
                 for {
-                  updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), addresses(value).toAddress.get, mode))
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), address, mode))
                   _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                 } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
               case Some(addresses) => for {

@@ -43,7 +43,7 @@ class AddressLookupConnector @Inject()(http: HttpClient, config: FrontendAppConf
         response.json.as[Seq[TolerantAddress]]
           .filterNot(
             a => a.addressLine1.isEmpty && a.addressLine2.isEmpty && a.addressLine3.isEmpty && a.addressLine4.isEmpty
-          )++ Seq( TolerantAddress(Some("Fixable"), None, None, Some("AddressLine4"), Some("zz11zz"), Some("GB")), TolerantAddress(None, Some("Unfixable"), None, None, Some("zz11zz"), Some("GB")))
+          )
       }
       case response =>
         val message = s"Address Lookup failed with status ${response.status} Response body :${response.body}"
