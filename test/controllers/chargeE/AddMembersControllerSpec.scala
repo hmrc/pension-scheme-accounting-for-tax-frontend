@@ -133,7 +133,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
         startMember = 0,
         lastMember = 0,
         totalMembers = 1,
-        totalPages = 1
+        totalPages = 1,
+        totalAmount = BigDecimal(0)
       )
     ))
 

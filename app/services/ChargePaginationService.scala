@@ -137,6 +137,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
 
   }
 
+  // scalastyle:off method.length
   private def getItemsPaginatedWithAmount[A](
     pageNo:Int,
     ua: UserAnswers,
@@ -170,7 +171,8 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
           startMember = startMember,
           lastMember = startMember + pageItemsAsJsArray.size - 1,
           totalMembers = allItemsAsJsArray.size,
-          totalPages = ChargePaginationService.totalPages(allItemsAsJsArray.size, pageSize)
+          totalPages = ChargePaginationService.totalPages(allItemsAsJsArray.size, pageSize),
+          allItemsAsJsArray.map { case (m, _) => extractAmount(m, amount, nodeInfo)}.sum
         )
       ))
     }
@@ -185,12 +187,15 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     createItem:(JsValue, Int, BigDecimal, String, String) => Either[Member, Employer]
   )(implicit reads: Reads[A]): Seq[Either[Member, Employer]] = {
       membersForPageJson.map { case (m, index) =>
-        val chargeAmount = (m \ nodeInfo.chargeDetailsNode).asOpt[A] match {
-          case Some(chargeDetails) => amount(chargeDetails)
-          case None => BigDecimal(0)
-        }
-        createItem(m, index, chargeAmount, viewUrl(index).url, removeUrl(index).url)
+        createItem(m, index, extractAmount(m, amount, nodeInfo), viewUrl(index).url, removeUrl(index).url)
       }
+  }
+
+  private def extractAmount[A](m:JsValue, amount: A => BigDecimal, nodeInfo:NodeInfo)(implicit reads: Reads[A]):BigDecimal = {
+    (m \ nodeInfo.chargeDetailsNode).asOpt[A] match {
+      case Some(chargeDetails) => amount(chargeDetails)
+      case None => BigDecimal(0)
+    }
   }
 
   private[services] def pagerSeq(ps:PaginationStats): Seq[Int] = {
@@ -231,7 +236,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
   }
 }
 
-case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int)
+case class PaginationStats(currentPage: Int, startMember:Int, lastMember:Int, totalMembers:Int, totalPages: Int, totalAmount:BigDecimal)
 
 object PaginationStats {
   implicit val formats: Format[PaginationStats] = Json.format[PaginationStats]
