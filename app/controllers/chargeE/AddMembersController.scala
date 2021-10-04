@@ -115,7 +115,6 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   }
 
   // scalastyle:off parameter.number
-  // scalastyle:off method.length
   private def getJson(srn: String,
     startDate: LocalDate,
     form: Form[_],
