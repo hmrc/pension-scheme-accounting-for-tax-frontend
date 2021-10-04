@@ -110,7 +110,7 @@ class MemberSearchService @Inject()(
     allRows.sortBy(_.name)
   }
 
-  def jsonSearch: (String, JsValue) => Option[JsValue] = (searchString, ua) => {
+  val jsonSearch: (String, JsValue) => Option[JsValue] = (searchString, ua) => {
 
     val conditionalFilter: JsValue => Boolean = jsValue => if(searchString.matches(ninoRegex)) {
       (jsValue \ "memberDetails" \ "nino").as[String] == searchString
@@ -136,7 +136,7 @@ class MemberSearchService @Inject()(
         case _ => __.json.pickBranch
       }
 
-    def filteredAndPruned: JsObject = ua.transform(chargeFilter("D")).flatMap(
+    val filteredAndPruned: JsObject = ua.transform(chargeFilter("D")).flatMap(
       _.transform(chargeFilter("E")).flatMap(
         _.transform(chargeFilter("G")).flatMap(
           _.transform(pruneEmptyCharges("D")).flatMap(

@@ -84,7 +84,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
         Some(chargeA ++ expectedSearchBloggs ++ (expectedSearchWhizz - "chargeEDetails" - "chargeGDetails") ++ Json.obj("chargeGNoMatch" -> true))
     }
   }
-4
+
   "search" must {
     "return member row for member found in search" in {
       val memberModel = Member(0, "Bill Bloggs", "CS121212C", BigDecimal(55.55), "view-link", "remove-link")
