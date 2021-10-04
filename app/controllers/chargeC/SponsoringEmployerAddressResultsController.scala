@@ -76,11 +76,13 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
             request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
               case None =>
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-              case Some(addresses) =>
+              case Some(addresses)  if addresses(value).toAddress.isDefined =>
+
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), fromTolerantAddress(addresses(value)), mode))
                   _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                 } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
+              case _ =>
             }
 
           }

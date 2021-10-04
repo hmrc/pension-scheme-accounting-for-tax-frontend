@@ -41,7 +41,7 @@ case class TolerantAddress(addressLine1: Option[String],
 
   def print: String = lines.mkString(", ")
 
-  def toAddress: SponsoringEmployerAddress =
+  private def prepopAddress: SponsoringEmployerAddress = {
     SponsoringEmployerAddress(
       addressLine1.getOrElse(""),
       addressLine2.getOrElse(""),
@@ -50,6 +50,28 @@ case class TolerantAddress(addressLine1: Option[String],
       country.getOrElse(""),
       postcode
     )
+  }
+
+  def toPrepopAddress: SponsoringEmployerAddress = toAddress.getOrElse(prepopAddress)
+
+  def toAddress: Option[SponsoringEmployerAddress] = (addressLine1, addressLine2, country) match {
+    case (Some(line1), Some(line2), Some(country)) => Some(SponsoringEmployerAddress(line1, line2, addressLine3, addressLine4, country, postcode))
+    case (_, _, None) => None
+    case (None, None, _) if addressLine3.nonEmpty && addressLine4.nonEmpty => shuffle
+    case (Some(_), None, _) if addressLine3.nonEmpty || addressLine4.nonEmpty => shuffle
+    case (None, Some(_), _) if addressLine3.nonEmpty || addressLine4.nonEmpty => shuffle
+    case _ => None
+  }
+
+  private def shuffle: Option[SponsoringEmployerAddress] = (addressLine1, addressLine2, addressLine3, addressLine4) match {
+    case (None, None, Some(line3), Some(line4)) => Some(SponsoringEmployerAddress(line3, line4, None, None, country.get, postcode))
+    case (Some(line1), None, Some(line3), al4) => Some(SponsoringEmployerAddress(line1, line3, al4, None, country.get, postcode))
+    case (Some(line1), None, None, Some(line4)) => Some(SponsoringEmployerAddress(line1, line4, None, None, country.get, postcode))
+    case (None, Some(line2), Some(line3), al4) => Some(SponsoringEmployerAddress(line2, line3, al4, None, country.get, postcode))
+    case (None, Some(line2), None, Some(line4)) => Some(SponsoringEmployerAddress(line2, line4, None, None, country.get, postcode))
+    case _ => None
+  }
+
 
   def equalsAddress(address: SponsoringEmployerAddress): Boolean =
     address.line1 == addressLine1.getOrElse("") &&
