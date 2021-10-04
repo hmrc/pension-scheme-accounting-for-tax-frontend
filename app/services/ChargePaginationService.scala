@@ -137,7 +137,6 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
 
   }
 
-  // scalastyle:off method.length
   private def getItemsPaginatedWithAmount[A](
     pageNo:Int,
     ua: UserAnswers,
