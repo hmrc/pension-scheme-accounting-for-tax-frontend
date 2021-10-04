@@ -36,18 +36,80 @@ import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
 import viewmodels.Link
 
 class ChargePaginationService @Inject()(config: FrontendAppConfig) {
-  private case class NodeInfo(chargeRootNode:String, chargeDetailsNode:String, listNode:String, membersOrEmployers: MembersOrEmployers)
+  private case class NodeInfo(chargeRootNode:String,
+    chargeDetailsNode:String,
+    createItem: (JsValue, Int, BigDecimal, String, String) => Either[Member, Employer],
+    listNode:String,
+    membersOrEmployers: MembersOrEmployers
+  )
+
+  private val createMember: (JsValue, Int, BigDecimal, String, String) => Either[Member, Employer] =
+    (jsValueMemberRootNode, index, amount, viewUrl, removeUrl) => {
+    val member = (jsValueMemberRootNode \ "memberDetails").as[MemberDetails]
+    Left(Member(
+      index,
+      member.fullName,
+      member.nino,
+      amount,
+      viewUrl,
+      removeUrl
+    ))
+  }
+
+  private val createEmployer:(JsValue, Int, BigDecimal, String, String) => Either[Member, Employer] =
+    (jsValueEmployerRootNode, index, amount, viewUrl, removeUrl) =>
+    (jsValueEmployerRootNode \ WhichTypeOfSponsoringEmployerPage.toString).as[SponsoringEmployerType] match {
+      case SponsoringEmployerTypeIndividual =>
+        val member = (jsValueEmployerRootNode \ SponsoringIndividualDetailsPage.toString).as[MemberDetails]
+        Right(Employer(
+          index,
+          member.fullName,
+          amount,
+          viewUrl,
+          removeUrl
+        ))
+      case SponsoringEmployerTypeOrganisation =>
+        val member = (jsValueEmployerRootNode \ SponsoringOrganisationDetailsPage.toString).as[SponsoringOrganisationDetails]
+        Right(Employer(
+          index,
+          member.name,
+          amount,
+          viewUrl,
+          removeUrl
+        ))
+    }
+
 
   private def nodeInfo(chargeType:ChargeType):Option[NodeInfo] = {
     chargeType match {
       case ChargeTypeAnnualAllowance =>
-       Some(NodeInfo("chargeEDetails", pages.chargeE.ChargeDetailsPage.toString, AnnualAllowanceMembersQuery.toString, MEMBERS))
+       Some(NodeInfo(
+         chargeRootNode = "chargeEDetails",
+         chargeDetailsNode = pages.chargeE.ChargeDetailsPage.toString,
+         createItem = createMember,
+         listNode = AnnualAllowanceMembersQuery.toString,
+         membersOrEmployers = MEMBERS))
       case ChargeTypeAuthSurplus =>
-        Some(NodeInfo("chargeCDetails", pages.chargeC.ChargeCDetailsPage.toString, SponsoringEmployersQuery.toString, EMPLOYERS))
+        Some(NodeInfo(
+          chargeRootNode = "chargeCDetails",
+          chargeDetailsNode = pages.chargeC.ChargeCDetailsPage.toString,
+          createItem = createEmployer,
+          listNode = SponsoringEmployersQuery.toString,
+          membersOrEmployers = EMPLOYERS))
       case ChargeTypeLifetimeAllowance =>
-        Some(NodeInfo("chargeDDetails", pages.chargeD.ChargeDetailsPage.toString, LifetimeAllowanceMembersQuery.toString, MEMBERS))
+        Some(NodeInfo(
+          chargeRootNode = "chargeDDetails",
+          chargeDetailsNode = pages.chargeD.ChargeDetailsPage.toString,
+          createItem = createMember,
+          listNode = LifetimeAllowanceMembersQuery.toString,
+          membersOrEmployers = MEMBERS))
       case ChargeTypeOverseasTransfer =>
-        Some(NodeInfo("chargeGDetails", ChargeAmountsPage.toString, OverseasTransferMembersQuery.toString, MEMBERS))
+        Some(NodeInfo(
+          chargeRootNode = "chargeGDetails",
+          chargeDetailsNode = ChargeAmountsPage.toString,
+          createItem = createMember,
+          listNode = OverseasTransferMembersQuery.toString,
+          membersOrEmployers = MEMBERS))
       case _ => None
     }
   }
@@ -95,9 +157,11 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
       val startMember = (pageNo - 1) * pageSize + 1
       val items: Either[Seq[Member], Seq[Employer]] =
         if (nodeInfo.membersOrEmployers == MEMBERS) {
-          Left(createMembers(nodeInfo.membersOrEmployers, pageItemsAsJsArray, nodeInfo.chargeDetailsNode, amount, viewUrl, removeUrl))
+          Left(createItems(nodeInfo, pageItemsAsJsArray, amount, viewUrl, removeUrl, createMember)
+            .flatMap(_.fold[Seq[Member]](Seq(_), _=>Nil)))
         } else {
-          Right(createEmployers(nodeInfo.membersOrEmployers, pageItemsAsJsArray, nodeInfo.chargeDetailsNode, amount, viewUrl, removeUrl))
+          Right(createItems(nodeInfo, pageItemsAsJsArray, amount, viewUrl, removeUrl, createEmployer)
+            .flatMap(_.fold[Seq[Employer]](_=>Nil, Seq(_))))
         }
       Some(PaginatedMembersInfo(
         itemsForCurrentPage = items,
@@ -112,90 +176,21 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     }
   }
 
-  private def createEmployers[A](
-    membersOrEmployers: MembersOrEmployers,
+  private def createItems[A](
+    nodeInfo: NodeInfo,
     membersForPageJson: IndexedSeq[(JsValue, Int)],
-    chargeDetailsNode: String,
     amount: A => BigDecimal,
     viewUrl: Int => Call,
-    removeUrl: Int => Call)(implicit reads: Reads[A]): Seq[Employer] = {
-    if (membersOrEmployers == EMPLOYERS) {
-      membersForPageJson.map { case (m, index) => val chargeAmount = (m \ chargeDetailsNode).asOpt[A] match {
-        case Some(chargeDetails) => amount(chargeDetails)
-        case None => BigDecimal(0)
-      }
-        createEmployer(m, index, chargeAmount, viewUrl, removeUrl)
-      }
-    } else {
-      Nil
-    }
-  }
-
-  private def createMembers[A](
-    membersOrEmployers: MembersOrEmployers,
-    membersForPageJson: IndexedSeq[(JsValue, Int)],
-    chargeDetailsNode: String,
-    amount: A => BigDecimal,
-    viewUrl: Int => Call,
-    removeUrl: Int => Call)(implicit reads: Reads[A]): Seq[Member] = {
-    if (membersOrEmployers == MEMBERS) {
+    removeUrl: Int => Call,
+    createItem:(JsValue, Int, BigDecimal, String, String) => Either[Member, Employer]
+  )(implicit reads: Reads[A]): Seq[Either[Member, Employer]] = {
       membersForPageJson.map { case (m, index) =>
-        val chargeAmount = (m \ chargeDetailsNode).asOpt[A] match {
+        val chargeAmount = (m \ nodeInfo.chargeDetailsNode).asOpt[A] match {
           case Some(chargeDetails) => amount(chargeDetails)
           case None => BigDecimal(0)
         }
-        createMember(m, index, chargeAmount, viewUrl, removeUrl)
+        createItem(m, index, chargeAmount, viewUrl(index).url, removeUrl(index).url)
       }
-    } else {
-      Nil
-    }
-  }
-
-  private def createMember(
-    jsValueMemberRootNode:JsValue,
-    index: Int,
-    amount: BigDecimal,
-    viewUrl: Int => Call,
-    removeUrl: Int => Call
-  ):Member = {
-    val member = (jsValueMemberRootNode \ "memberDetails").as[MemberDetails]
-    Member(
-      index,
-      member.fullName,
-      member.nino,
-      amount,
-      viewUrl(index).url,
-      removeUrl(index).url
-    )
-  }
-
-  private def createEmployer(
-    jsValueEmployerRootNode:JsValue,
-    index: Int,
-    amount: BigDecimal,
-    viewUrl: Int => Call,
-    removeUrl: Int => Call
-  ):Employer = {
-    (jsValueEmployerRootNode \ WhichTypeOfSponsoringEmployerPage.toString).as[SponsoringEmployerType] match {
-      case SponsoringEmployerTypeIndividual =>
-        val member = (jsValueEmployerRootNode \ SponsoringIndividualDetailsPage.toString).as[MemberDetails]
-        Employer(
-          index,
-          member.fullName,
-          amount,
-          viewUrl(index).url,
-          removeUrl(index).url
-        )
-      case SponsoringEmployerTypeOrganisation =>
-        val member = (jsValueEmployerRootNode \ SponsoringOrganisationDetailsPage.toString).as[SponsoringOrganisationDetails]
-        Employer(
-          index,
-          member.name,
-          amount,
-          viewUrl(index).url,
-          removeUrl(index).url
-        )
-    }
   }
 
   private[services] def pagerSeq(ps:PaginationStats): Seq[Int] = {
