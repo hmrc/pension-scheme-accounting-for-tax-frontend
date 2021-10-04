@@ -24,7 +24,6 @@ import forms.AddMembersFormProvider
 import helpers.{DeleteChargeHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.chargeD.ChargeDDetails
 import models.requests.IdentifierRequest
 import models.{UserAnswers, Member, GenericViewModel}
 import org.mockito.Matchers.any
@@ -132,7 +131,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
         lastMember = 0,
         totalMembers = 1,
         totalPages = 1,
-        totalAmount = BigDecimal(0)
+        totalAmount = BigDecimal(66.88)
       )
     ))
 

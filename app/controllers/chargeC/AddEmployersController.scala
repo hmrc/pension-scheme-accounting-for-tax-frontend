@@ -148,7 +148,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
         "radios" -> Radios.yesNo(form("value")),
         "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
         "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-        "table" -> Json.toJson(mapToTable(pmi.employersForCurrentPage, !request.isViewOnly)),
+        "table" -> Json.toJson(mapToTable(pmi.employersForCurrentPage, !request.isViewOnly, pmi.paginationStats.totalAmount)),
         "pageLinksSeq" -> chargePaginationService.pagerNavSeq(
           pmi.paginationStats,
           controllers.chargeC.routes.AddEmployersController.onPageLoadWithPageNo(srn, startDate, accessType, version, _)
@@ -162,7 +162,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
 
   }
 
-  private def mapToTable(members: Seq[Employer], canChange: Boolean)
+  private def mapToTable(members: Seq[Employer], canChange: Boolean, totalAmount:BigDecimal)
     (implicit messages: Messages): Table = {
     val head = Seq(
       Cell(msg"addEmployers.employer.header"),
@@ -184,8 +184,6 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
       ) ++ (if (canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter")))
       else Nil)
     }
-    val totalAmount = members.map(_.amount).sum
-
     val totalRow = Seq(
       Seq(
         Cell(msg"addMembers.total", classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),

@@ -26,7 +26,11 @@ import viewmodels.Table.Cell
 
 object AddMembersService {
 
-  def mapChargeXMembersToTable(chargeName: String, members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table = {
+  def mapChargeXMembersToTable(chargeName: String,
+    members: Seq[Member],
+    canChange: Boolean,
+    totalAmount: Option[BigDecimal] = None
+  )(implicit messages: Messages): Table = {
 
     val head = Seq(
       Cell(msg"addMembers.members.header"),
@@ -53,13 +57,14 @@ object AddMembersService {
       })
     }
 
-    val totalAmount = members.map(_.amount).sum
+
 
     val totalRow = Seq(
       Seq(
         Cell(msg""),
         Cell(msg"addMembers.total", classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
-        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount.getOrElse(members.map(_.amount).sum))}"),
+          classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
         Cell(msg"")
       ) ++ (if (canChange) Seq(Cell(msg"")) else Nil))
 

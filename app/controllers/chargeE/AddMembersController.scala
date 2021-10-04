@@ -147,7 +147,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         "radios" -> Radios.yesNo(form("value")),
         "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
         "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-        "table" -> Json.toJson(mapToTable(pmi.membersForCurrentPage, !request.isViewOnly)),
+        "table" -> Json.toJson(mapToTable(pmi.membersForCurrentPage, !request.isViewOnly, pmi.paginationStats.totalAmount)),
         "pageLinksSeq" -> chargePaginationService.pagerNavSeq(
           pmi.paginationStats,
           controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, _)
@@ -160,8 +160,8 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
     }
   }
 
-  private def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
-    mapChargeXMembersToTable("chargeE", members, canChange)
+  private def mapToTable(members: Seq[Member], canChange: Boolean, totalAmount:BigDecimal)(implicit messages: Messages): Table =
+    mapChargeXMembersToTable("chargeE", members, canChange, Some(totalAmount))
 
   private def viewUrl(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Int => Call =
     controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, _)

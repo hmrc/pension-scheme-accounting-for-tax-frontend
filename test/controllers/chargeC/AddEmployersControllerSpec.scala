@@ -25,7 +25,6 @@ import helpers.{DeleteChargeHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
-import models.chargeC.ChargeCDetails
 import models.requests.IdentifierRequest
 import models.{UserAnswers, Employer, GenericViewModel}
 import org.mockito.Matchers.any
@@ -134,7 +133,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
         lastMember = 0,
         totalMembers = 1,
         totalPages = 1,
-        totalAmount = BigDecimal(0)
+        totalAmount = BigDecimal(66.88)
       )
     ))
 
