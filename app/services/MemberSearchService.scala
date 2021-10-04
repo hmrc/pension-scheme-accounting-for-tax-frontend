@@ -120,28 +120,28 @@ class MemberSearchService @Inject()(
     }
 
     val chargeFilter: String => Reads[JsObject] = chargeType =>
-        (__ \ s"charge${chargeType}Details" \ "members").json.update(__.read[JsArray].map { jsArray =>
-          JsArray(jsArray.value.filter(conditionalFilter))
-        })
+      (__ \ s"charge${chargeType}Details").readNullable[JsObject].flatMap {
+        case Some(_) => (__ \ s"charge${chargeType}Details" \ "members").json.update(__.read[JsArray].map { jsArray =>
+                          JsArray(jsArray.value.filter(conditionalFilter))
+                        })
+        case _ => __.json.pickBranch
+      }
 
     val pruneEmptyCharges: String => Reads[JsObject] = chargeType =>
-        (__ \ s"charge${chargeType}Details" \ "members").readNullable[JsArray] flatMap {
+      (__ \ s"charge${chargeType}Details").readNullable[JsObject].flatMap {
+        case Some(_) => (__ \ s"charge${chargeType}Details" \ "members").readNullable[JsArray] flatMap {
           case Some(array) if array.value.nonEmpty => __.json.pickBranch
           case _ => ((__ \ s"charge${chargeType}Details").json.prune  and (__ \ s"charge${chargeType}NoMatch").json.put(JsBoolean(true))).reduce
         }
+        case _ => __.json.pickBranch
+      }
 
-    def prune(chargeType: String, jsVal: JsValue): JsObject =
-      if((jsVal \ s"charge${chargeType}Details").asOpt[JsObject].isDefined) jsVal.transform(pruneEmptyCharges(chargeType)).get else jsVal.as[JsObject]
-
-    def filter(chargeType: String, jsVal: JsValue): JsObject =
-      if((jsVal \ s"charge${chargeType}Details").asOpt[JsObject].isDefined) jsVal.transform(chargeFilter(chargeType)).get else jsVal.as[JsObject]
-
-    def filteredD: JsObject = filter("D", ua)
-    def filteredE: JsObject = filter("E", filteredD)
-    def filteredG: JsObject = filter("G", filteredE)
-    def prunedD: JsObject = prune("D", filteredG)
-    def prunedE: JsObject = prune("E", prunedD)
-    def filteredAndPruned: JsObject = prune("G", prunedE)
+    def filteredAndPruned: JsObject = ua.transform(chargeFilter("D")).flatMap(
+      _.transform(chargeFilter("E")).flatMap(
+        _.transform(chargeFilter("G")).flatMap(
+          _.transform(pruneEmptyCharges("D")).flatMap(
+            _.transform(pruneEmptyCharges("E")).flatMap(
+              _.transform(pruneEmptyCharges("G"))))))).get
 
     val noMatchBoolean: String => Boolean = chargeType => (filteredAndPruned \ s"charge${chargeType}NoMatch").asOpt[Boolean].getOrElse(false)
     if(Seq(noMatchBoolean("D"), noMatchBoolean("E"), noMatchBoolean("G")).contains(false)) Some(filteredAndPruned) else None
