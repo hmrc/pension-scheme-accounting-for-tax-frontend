@@ -74,31 +74,22 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
           },
           value => {
             request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
-              case None =>
-                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               case Some(addresses)  if addresses(value).toAddress.isDefined =>
-
                 for {
-                  updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), fromTolerantAddress(addresses(value)), mode))
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), addresses(value).toAddress.get, mode))
                   _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                 } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
-              case _ =>
+              case Some(addresses) => for {
+                updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressResultsPage(index), addresses(value), mode))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect( routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index))
+              case None =>
+                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
             }
 
           }
         )
     }
-
-  private def fromTolerantAddress(ta:TolerantAddress):SponsoringEmployerAddress = {
-    SponsoringEmployerAddress(
-      ta.addressLine1.getOrElse(""),
-      ta.addressLine2.getOrElse(""),
-      ta.addressLine3,
-      ta.addressLine4,
-      "GB",
-      ta.postcode
-    )
-  }
 
   private def transformAddressesForTemplate(seqTolerantAddresses:Seq[TolerantAddress]):Seq[JsObject] = {
     for ((row, i) <- seqTolerantAddresses.zipWithIndex) yield {

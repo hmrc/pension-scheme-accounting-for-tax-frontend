@@ -15,10 +15,11 @@
  */
 
 package pages.chargeC
+import models.TolerantAddress
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class SponsoringEmployerAddressResultsPage(index: Int) extends QuestionPage[Int] {
+case class SponsoringEmployerAddressResultsPage(index: Int) extends QuestionPage[TolerantAddress] {
   override def path: JsPath = JsPath \ SponsoringEmployerAddressResultsPage.toString
 }
 

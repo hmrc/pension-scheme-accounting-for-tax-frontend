@@ -17,28 +17,28 @@
 package controllers.chargeC
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressFormProvider
+
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeC.SponsoringEmployerAddress
-import models.{Mode, GenericViewModel, AccessType, Index}
+import models.{AccessType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.chargeC.SponsoringEmployerAddressPage
+import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressResultsPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsArray, Json}
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class SponsoringEmployerAddressController @Inject()(override val messagesApi: MessagesApi,
                                                     userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -86,8 +86,11 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
     implicit request =>
       DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
         val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage(index)) match {
-          case None        => form
           case Some(value) => form.fill(value)
+          case None        => request.userAnswers.get(SponsoringEmployerAddressResultsPage(index)) match {
+            case Some(value) => form.fill(value.toPrepopAddress)
+            case None        => form
+          }
         }
         val viewModel = GenericViewModel(
           submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, accessType, version, index).url,
