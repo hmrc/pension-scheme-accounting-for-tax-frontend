@@ -25,7 +25,6 @@ import helpers.DeleteChargeHelper
 
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.chargeE.ChargeEDetails
 import models.requests.DataRequest
 import models.{Member, GenericViewModel, NormalMode, AFTQuarter, ChargeType, UserAnswers, AccessType}
 import navigators.CompoundNavigator

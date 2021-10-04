@@ -27,8 +27,10 @@ import models.chargeE.ChargeEDetails
 import models.chargeG.ChargeAmounts
 import play.api.libs.json._
 import models.{Member, SponsoringEmployerType, UserAnswers, Employer, MemberDetails, ChargeType}
-import pages.chargeC.{WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
-import pages.chargeG.ChargeAmountsPage
+import pages.chargeC.{WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, SponsoringEmployersQuery}
+import pages.chargeD.LifetimeAllowanceMembersQuery
+import pages.chargeE.AnnualAllowanceMembersQuery
+import pages.chargeG.{ChargeAmountsPage, OverseasTransferMembersQuery}
 import services.MembersOrEmployers.{MEMBERS, MembersOrEmployers, EMPLOYERS}
 import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
 import viewmodels.Link
@@ -37,13 +39,13 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
   private def nodeInfo(chargeType:ChargeType):Option[(String, String, String, MembersOrEmployers)] = {
     chargeType match {
       case ChargeTypeAnnualAllowance =>
-       Some(Tuple4("chargeEDetails", pages.chargeE.ChargeDetailsPage.toString, "members", MEMBERS))
+       Some(Tuple4("chargeEDetails", pages.chargeE.ChargeDetailsPage.toString, AnnualAllowanceMembersQuery.toString, MEMBERS))
       case ChargeTypeAuthSurplus =>
-        Some(Tuple4("chargeCDetails", pages.chargeC.ChargeCDetailsPage.toString, "employers", EMPLOYERS))
+        Some(Tuple4("chargeCDetails", pages.chargeC.ChargeCDetailsPage.toString, SponsoringEmployersQuery.toString, EMPLOYERS))
       case ChargeTypeLifetimeAllowance =>
-        Some(Tuple4("chargeDDetails", pages.chargeD.ChargeDetailsPage.toString, "members", MEMBERS))
+        Some(Tuple4("chargeDDetails", pages.chargeD.ChargeDetailsPage.toString, LifetimeAllowanceMembersQuery.toString, MEMBERS))
       case ChargeTypeOverseasTransfer =>
-        Some(Tuple4("chargeGDetails", ChargeAmountsPage.toString, "members", MEMBERS))
+        Some(Tuple4("chargeGDetails", ChargeAmountsPage.toString, OverseasTransferMembersQuery.toString, MEMBERS))
       case _ => None
     }
   }
