@@ -37,10 +37,9 @@
                             {{ govukTable(table) }}
                     </div>
 
-                   <div class="govuk-!-margin-bottom-9">
-                   <p class="govuk-body"> {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}</p>
-
-                   {% if pageLinksSeq %}
+                   {% if pageLinksSeq.length > 0 %}
+                      <div class="govuk-!-margin-bottom-9">
+                       <p class="govuk-body"> {{messages('paginationForMembers.pagerSummary', paginationStatsStartMember, paginationStatsLastMember, paginationStatsTotalMembers)}}</p>
                         <nav class="govuk-margin-top-5" aria-label="page">
                         <ul class="govuk-list">
                          {% for link in pageLinksSeq %}
@@ -58,8 +57,9 @@
                          {% endfor %}
                          </ul>
                        </nav>
+                     </div>
                    {% endif %}
-                    </div>
+
                             {% if canChange %}
                                   {{ govukRadios({
                                           classes: "govuk-radios--inline",

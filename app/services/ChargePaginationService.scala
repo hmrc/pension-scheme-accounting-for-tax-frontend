@@ -148,7 +148,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
     val pageSize = config.membersPageSize
     val allItemsAsJsArray = (ua.data \ nodeInfo.chargeRootNode \ nodeInfo.listNode).as[JsArray].value.zipWithIndex
-      .filter{ case (m, _) => (m \ "memberStatus").as[String] != "Deleted"}
+      .filter{ case (m, _) => !(m \ "memberStatus").asOpt[String].contains("Deleted")}
     val (start, end) = ChargePaginationService.pageStartAndEnd(pageNo, allItemsAsJsArray.size, pageSize)
     val pageItemsAsJsArray = allItemsAsJsArray.slice(start, end).reverse
 
