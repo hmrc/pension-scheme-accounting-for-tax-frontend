@@ -16,7 +16,6 @@
 
 package services
 
-import java.time.LocalDate
 import base.SpecBase
 import config.FrontendAppConfig
 import data.SampleData
@@ -31,14 +30,10 @@ import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage, MemberStatusPage, Me
 import play.api.libs.json.JsArray
 import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
-import utils.AFTConstants.QUARTER_START_DATE
 import viewmodels.Link
 
 class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
   //scalastyle:off magic.number
-
-  private val srn = "S1234567"
-  private val startDate: LocalDate = QUARTER_START_DATE
 
   private def addMembersChargeE(memberDetailsToAdd: Seq[(MemberDetails, AmendedChargeStatus)]): UserAnswers = {
     memberDetailsToAdd.foldLeft[UserAnswers](UserAnswers()) { (ua, memberDetailsAmendedChargeStatus) =>
