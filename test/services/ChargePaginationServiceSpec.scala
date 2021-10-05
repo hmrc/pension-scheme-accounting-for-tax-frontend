@@ -288,8 +288,18 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
     }
 
-    "return none when beyond page limit" in {
 
+    "return none when there are no members" in {
+      chargePaginationService.getItemsPaginated(
+        pageNo = 1,
+        ua = UserAnswers(),
+        viewUrl = viewUrl,
+        removeUrl = removeUrl,
+        chargeType = ChargeType.ChargeTypeAnnualAllowance
+      ) mustBe None
+    }
+
+    "return none when beyond page limit" in {
       chargePaginationService.getItemsPaginated(
         pageNo = 4,
         ua = allMembersChargeE,
@@ -376,6 +386,17 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         chargeType = ChargeType.ChargeTypeAuthSurplus
       ).map(_.employersForCurrentPage)
       result mustBe Some(expectedMembers)
+    }
+
+    "return none when there are no members" in {
+
+      chargePaginationService.getItemsPaginated(
+        pageNo = 1,
+        ua = UserAnswers(),
+        viewUrl = viewUrl,
+        removeUrl = removeUrl,
+        chargeType = ChargeType.ChargeTypeAuthSurplus
+      ) mustBe None
     }
   }
 }
