@@ -157,10 +157,10 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
       val startMember = (pageNo - 1) * pageSize + 1
       val items: Either[Seq[Member], Seq[Employer]] =
         if (nodeInfo.membersOrEmployers == MEMBERS) {
-          Left(createItems(nodeInfo, pageItemsAsJsArray, amount, viewUrl, removeUrl, createMember)
+          Left(createItems(nodeInfo, pageItemsAsJsArray, amount, viewUrl, removeUrl, nodeInfo.createItem)
             .flatMap(_.fold[Seq[Member]](Seq(_), _=>Nil)))
         } else {
-          Right(createItems(nodeInfo, pageItemsAsJsArray, amount, viewUrl, removeUrl, createEmployer)
+          Right(createItems(nodeInfo, pageItemsAsJsArray, amount, viewUrl, removeUrl, nodeInfo.createItem)
             .flatMap(_.fold[Seq[Employer]](_=>Nil, Seq(_))))
         }
       Some(PaginatedMembersInfo(
