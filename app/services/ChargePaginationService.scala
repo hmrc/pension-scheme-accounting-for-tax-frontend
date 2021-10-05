@@ -31,6 +31,7 @@ import pages.chargeC.{WhichTypeOfSponsoringEmployerPage, SponsoringEmployersQuer
 import pages.chargeD.LifetimeAllowanceMembersQuery
 import pages.chargeE.AnnualAllowanceMembersQuery
 import pages.chargeG.{ChargeAmountsPage, OverseasTransferMembersQuery}
+import services.MembersOrEmployers.{MEMBERS, MembersOrEmployers, EMPLOYERS}
 import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
 import viewmodels.Link
 
@@ -38,7 +39,8 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
   private case class NodeInfo(chargeRootNode:String,
     chargeDetailsNode:String,
     createItem: (JsValue, Int, BigDecimal, String, String) => Either[Member, Employer],
-    listNode:String
+    listNode:String,
+    membersOrEmployers: MembersOrEmployers
   )
 
   private val createMember: (JsValue, Int, BigDecimal, String, String) => Either[Member, Employer] =
@@ -85,25 +87,29 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
          chargeRootNode = "chargeEDetails",
          chargeDetailsNode = pages.chargeE.ChargeDetailsPage.toString,
          createItem = createMember,
-         listNode = AnnualAllowanceMembersQuery.toString))
+         listNode = AnnualAllowanceMembersQuery.toString,
+         membersOrEmployers = MEMBERS))
       case ChargeTypeAuthSurplus =>
         Some(NodeInfo(
           chargeRootNode = "chargeCDetails",
           chargeDetailsNode = pages.chargeC.ChargeCDetailsPage.toString,
           createItem = createEmployer,
-          listNode = SponsoringEmployersQuery.toString))
+          listNode = SponsoringEmployersQuery.toString,
+          membersOrEmployers = EMPLOYERS))
       case ChargeTypeLifetimeAllowance =>
         Some(NodeInfo(
           chargeRootNode = "chargeDDetails",
           chargeDetailsNode = pages.chargeD.ChargeDetailsPage.toString,
           createItem = createMember,
-          listNode = LifetimeAllowanceMembersQuery.toString))
+          listNode = LifetimeAllowanceMembersQuery.toString,
+          membersOrEmployers = MEMBERS))
       case ChargeTypeOverseasTransfer =>
         Some(NodeInfo(
           chargeRootNode = "chargeGDetails",
           chargeDetailsNode = ChargeAmountsPage.toString,
           createItem = createMember,
-          listNode = OverseasTransferMembersQuery.toString))
+          listNode = OverseasTransferMembersQuery.toString,
+          membersOrEmployers = MEMBERS))
       case _ => None
     }
   }
@@ -149,15 +155,14 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
       None
     } else {
       val startMember = (pageNo - 1) * pageSize + 1
-
-      val items: Either[Seq[Member], Seq[Employer]] = {
-        toEitherSeq(
-          pageItemsAsJsArray.map{ case (item, index) =>
-            nodeInfo.createItem(item, index, extractAmount(item, amount, nodeInfo), viewUrl(index).url, removeUrl(index).url)
-          }
-        )
-      }
-
+      val items: Either[Seq[Member], Seq[Employer]] =
+        if (nodeInfo.membersOrEmployers == MEMBERS) {
+          Left(createItems(nodeInfo, pageItemsAsJsArray, amount, viewUrl, removeUrl, createMember)
+            .flatMap(_.fold[Seq[Member]](Seq(_), _=>Nil)))
+        } else {
+          Right(createItems(nodeInfo, pageItemsAsJsArray, amount, viewUrl, removeUrl, createEmployer)
+            .flatMap(_.fold[Seq[Employer]](_=>Nil, Seq(_))))
+        }
       Some(PaginatedMembersInfo(
         itemsForCurrentPage = items,
         paginationStats = PaginationStats(
@@ -172,12 +177,17 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     }
   }
 
-  private def toEitherSeq[A,B](seq:Seq[Either[A, B]]):Either[Seq[A], Seq[B]] = {
-    if (seq.exists(_.isLeft)) {
-      Left(seq.flatMap(_.fold[Seq[A]](Seq(_), _=>Nil)))
-    } else {
-      Right(seq.flatMap(_.fold[Seq[B]](_=>Nil, Seq(_))))
-    }
+  private def createItems[A](
+    nodeInfo: NodeInfo,
+    membersForPageJson: IndexedSeq[(JsValue, Int)],
+    amount: A => BigDecimal,
+    viewUrl: Int => Call,
+    removeUrl: Int => Call,
+    createItem:(JsValue, Int, BigDecimal, String, String) => Either[Member, Employer]
+  )(implicit reads: Reads[A]): Seq[Either[Member, Employer]] = {
+      membersForPageJson.map { case (m, index) =>
+        createItem(m, index, extractAmount(m, amount, nodeInfo), viewUrl(index).url, removeUrl(index).url)
+      }
   }
 
   private def extractAmount[A](m:JsValue, amount: A => BigDecimal, nodeInfo:NodeInfo)(implicit reads: Reads[A]):BigDecimal = {
@@ -263,4 +273,9 @@ object ChargePaginationService {
     }
     (start,end)
   }
+}
+
+private object MembersOrEmployers extends Enumeration {
+  type MembersOrEmployers = Value
+  val MEMBERS, EMPLOYERS = Value
 }
