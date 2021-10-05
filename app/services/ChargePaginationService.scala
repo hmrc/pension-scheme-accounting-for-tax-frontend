@@ -260,7 +260,7 @@ object ChargePaginationService {
     if (pageNo == totalPages) {
       0
     } else {
-      (totalMembers - 1) - (pageNo * pageSize) + 1
+      totalMembers - pageNo * pageSize
     }
 
   def pageStartAndEnd(pageNo:Int, totalMembers: Int, pageSize: Int):(Int, Int) = {
