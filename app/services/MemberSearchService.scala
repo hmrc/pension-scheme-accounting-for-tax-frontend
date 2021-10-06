@@ -16,58 +16,38 @@
 
 package services
 
-import java.time.LocalDate
-
 import com.google.inject.Inject
-import helpers.FormatHelper
-import javax.inject.Singleton
+import helpers.{DeleteChargeHelper, FormatHelper}
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
+import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{ChargeType, Member, AccessType, UserAnswers}
+import models.{AccessType, ChargeType, Member, MemberDetails, UserAnswers}
+import pages.{chargeD, chargeE, chargeG}
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Writes, Json, _}
-import play.api.mvc.AnyContent
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
+import play.api.libs.json.Reads.JsObjectReducer
+import play.api.libs.json._
+import play.api.mvc.{AnyContent, Call}
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels._
 
+import java.time.LocalDate
+import javax.inject.Singleton
+
 @Singleton
 class MemberSearchService @Inject()(
-                                     chargeDService: ChargeDService,
-                                     chargeEService: ChargeEService,
-                                     chargeGService: ChargeGService,
-                                     fuzzyMatchingService: FuzzyMatchingService
+                                     fuzzyMatchingService: FuzzyMatchingService,
+                                     deleteChargeHelper: DeleteChargeHelper
                                    ) {
 
   import MemberSearchService._
 
   def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit
-    request: DataRequest[AnyContent]): Seq[MemberRow] = {
-    val searchTextUpper = searchText.toUpperCase
-    val searchFunc: MemberSummary => Boolean = { member =>
-      if (searchTextUpper.matches(ninoRegex)) {
-        member.nino.toUpperCase == searchTextUpper
-      } else {
-        fuzzyMatchingService.doFuzzyMatching(searchTextUpper, member.name)
+    request: DataRequest[AnyContent]): Seq[MemberRow] =
+      jsonSearch(searchText.toUpperCase, ua.data).fold[Seq[MemberRow]](Nil) { jsValue =>
+        listOfRows(listOfMembers(UserAnswers(jsValue.as[JsObject]), srn, startDate, accessType, version, ua), request.isViewOnly)
       }
-    }
-
-    listOfRows(listOfMembers(ua, srn, startDate, accessType, version).filter(searchFunc), request.isViewOnly)
-  }
-
-  private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                           (implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
-    val chargeDMembers = chargeDService
-      .getLifetimeAllowanceMembers(ua, srn, startDate, accessType, version)
-      .map(MemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
-    val chargeEMembers = chargeEService
-      .getAnnualAllowanceMembers(ua, srn, startDate, accessType, version)
-      .map(MemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
-    val chargeGMembers = chargeGService
-      .getOverseasTransferMembers(ua, srn, startDate, accessType, version)
-      .map(MemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
-    chargeDMembers ++ chargeEMembers ++ chargeGMembers
-  }
 
   private def listOfRows(listOfMembers: Seq[MemberSummary], isViewOnly: Boolean): Seq[MemberRow] = {
     val allRows = listOfMembers.map { data =>
@@ -116,6 +96,135 @@ class MemberSearchService @Inject()(
     }
     allRows.sortBy(_.name)
   }
+
+  val jsonSearch: (String, JsValue) => Option[JsValue] = (searchString, ua) => {
+
+    val conditionalFilter: JsValue => Boolean = jsValue => if(searchString.matches(ninoRegex)) {
+      (jsValue \ "memberDetails" \ "nino").as[String] == searchString
+    } else {
+      val memberName = s"${(jsValue \ "memberDetails" \ "firstName").as[String]} ${(jsValue \ "memberDetails" \ "lastName").as[String]}"
+      fuzzyMatchingService.doFuzzyMatching(searchString, memberName)
+    }
+
+    val chargeFilter: String => Reads[JsObject] = chargeType =>
+      (__ \ s"charge${chargeType}Details").readNullable[JsObject].flatMap {
+        case Some(_) => (__ \ s"charge${chargeType}Details" \ "members").json.update(__.read[JsArray].map { jsArray =>
+          JsArray(
+            jsArray.value.zipWithIndex.map { case (x, i) =>
+              x.as[JsObject] + ("idx" -> JsNumber(i))
+            }.filter(conditionalFilter))
+        })
+        case _ => __.json.pickBranch
+      }
+
+    val pruneEmptyCharges: String => Reads[JsObject] = chargeType =>
+      (__ \ s"charge${chargeType}Details").readNullable[JsObject].flatMap {
+        case Some(_) => (__ \ s"charge${chargeType}Details" \ "members").readNullable[JsArray] flatMap {
+          case Some(array) if array.value.nonEmpty => __.json.pickBranch
+          case _ => ((__ \ s"charge${chargeType}Details").json.prune  and (__ \ s"charge${chargeType}NoMatch").json.put(JsBoolean(true))).reduce
+        }
+        case _ => __.json.pickBranch
+      }
+
+    val filteredAndPruned: JsObject = ua.transform(chargeFilter("D")).flatMap(
+      _.transform(chargeFilter("E")).flatMap(
+        _.transform(chargeFilter("G")).flatMap(
+          _.transform(pruneEmptyCharges("D")).flatMap(
+            _.transform(pruneEmptyCharges("E")).flatMap(
+              _.transform(pruneEmptyCharges("G"))))))).get
+
+    val noMatchBoolean: String => Boolean = chargeType => (filteredAndPruned \ s"charge${chargeType}NoMatch").asOpt[Boolean].getOrElse(false)
+    if(Seq(noMatchBoolean("D"), noMatchBoolean("E"), noMatchBoolean("G")).contains(false) && filteredAndPruned != Json.obj()) Some(filteredAndPruned) else None
+  }
+
+  private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, originalUa: UserAnswers)
+                                 (implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
+    val chargeDMembers: Seq[MemberSummary] = ua.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails").zipWithIndex.flatMap { case (member, index) =>
+      ua.get(chargeD.MemberStatusPage(index)) match {
+        case Some(status) if status == "Deleted" => Nil
+        case _ =>
+          (ua.get(chargeD.ChargeDetailsPage(index)), ua.get(chargeD.SearchIndexPage(index))) match {
+            case (Some(chargeDetails), Some(idx)) =>
+              Seq(MemberSummary(
+                idx,
+                member.fullName,
+                member.nino,
+                ChargeTypeLifetimeAllowance,
+                chargeDetails.total,
+                controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, idx).url,
+                removeDUrl(idx, srn, startDate, originalUa, accessType, version).url
+              ))
+            case _ => Nil
+          }
+      }
+    }
+
+    val chargeEMembers = ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").zipWithIndex.flatMap { case (member, index) =>
+        ua.get(chargeE.MemberStatusPage(index)) match {
+          case Some(status) if status == "Deleted" => Nil
+          case _ =>
+            (ua.get(chargeE.ChargeDetailsPage(index)), ua.get(chargeE.SearchIndexPage(index))) match {
+              case (Some(chargeDetails), Some(idx)) =>
+                Seq(MemberSummary(
+                  idx,
+                  member.fullName,
+                  member.nino,
+                  ChargeTypeAnnualAllowance,
+                  chargeDetails.chargeAmount,
+                  controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, idx).url,
+                  removeEUrl(idx, srn, startDate, originalUa, accessType, version).url
+                ))
+              case _ => Nil
+            }
+        }
+      }
+
+    val chargeGMembers = ua.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").zipWithIndex.flatMap { case (member, index) =>
+      ua.get(chargeG.MemberStatusPage(index)) match {
+        case Some(status) if status == "Deleted" => Nil
+        case _ =>
+          (ua.get(chargeG.ChargeAmountsPage(index)), ua.get(chargeG.SearchIndexPage(index))) match { case (Some(chargeAmounts), Some(idx)) =>
+            Seq(MemberSummary(
+              idx,
+              member.fullName,
+              member.nino,
+              ChargeTypeOverseasTransfer,
+              chargeAmounts.amountTaxDue,
+              controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, idx).url,
+              removeGUrl(idx, srn, startDate, originalUa, accessType, version).url
+            ))
+          case _ => Nil
+          }
+      }
+    }
+
+    chargeDMembers ++ chargeEMembers ++ chargeGMembers
+  }
+
+  private def removeDUrl(index: Int, srn: String, startDate: LocalDate, originalUa: UserAnswers,
+                         accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Call =
+    if(request.isAmendment && deleteChargeHelper.isLastCharge(originalUa)) {
+      controllers.chargeD.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
+    } else {
+      controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, index)
+    }
+
+  private def removeEUrl(index: Int, srn: String, startDate: LocalDate, originalUa: UserAnswers,
+                        accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Call =
+    if(request.isAmendment && deleteChargeHelper.isLastCharge(originalUa)) {
+      controllers.chargeE.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
+    } else {
+      controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, index)
+    }
+
+  private def removeGUrl(index: Int, srn: String, startDate: LocalDate, originalUa: UserAnswers,
+                         accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Call =
+    if(request.isAmendment && deleteChargeHelper.isLastCharge(originalUa)) {
+    controllers.chargeG.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
+    } else {
+    controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, index)
+    }
+
 }
 
 object MemberSearchService {
