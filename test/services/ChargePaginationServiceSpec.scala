@@ -113,7 +113,7 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
     }
   }
 
-  "ChargePaginationService.totalPages" must {
+  "totalPages" must {
     "give correct total pages where divide exactly" in {
       ChargePaginationService.totalPages(200, 25) mustBe 8
     }
@@ -125,45 +125,50 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
     }
   }
 
-  "ChargePaginationService.pageStartAndEnd" must {
+  "pageStartAndEnd" must {
     "give correct values for page 1 of 3" in {
       ChargePaginationService.pageStartAndEnd(
         pageNo = 1,
         totalMembers = 5,
-        pageSize = 2
+        pageSize = 2,
+        totalPages = 3
       ) mustBe Tuple2(3, 5)
     }
     "give correct values for page 2 of 3" in {
       ChargePaginationService.pageStartAndEnd(
         pageNo = 2,
         totalMembers = 5,
-        pageSize = 2
+        pageSize = 2,
+        totalPages = 3
       ) mustBe Tuple2(1, 3)
     }
     "give correct values for page 3 of 3" in {
       ChargePaginationService.pageStartAndEnd(
         pageNo = 3,
         totalMembers = 5,
-        pageSize = 2
+        pageSize = 2,
+        totalPages = 3
       ) mustBe Tuple2(0, 1)
     }
     "give correct values for page 1 of 7" in {
       ChargePaginationService.pageStartAndEnd(
         pageNo = 1,
         totalMembers = 26,
-        pageSize = 4
+        pageSize = 4,
+        totalPages = 7
       ) mustBe Tuple2(22, 26)
     }
     "give correct values for page 7 of 7" in {
       ChargePaginationService.pageStartAndEnd(
         pageNo = 7,
         totalMembers = 26,
-        pageSize = 4
+        pageSize = 4,
+        totalPages = 7
       ) mustBe Tuple2(0, 2)
     }
   }
 
-  "ChargePaginationService pagerSeq" must {
+  "pagerSeq" must {
     "return the sequence of numbers for the pager, where the current page number is 1" in {
       chargePaginationService.pagerSeq(ps(currentPage = 1, totalPages = 1)) mustBe Seq(1)
     }
@@ -216,7 +221,6 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
     }
   }
-
 
   "getItemsPaginated (using charge type E for testing)" must {
     "return pagination info in reverse order for page one for all the members added, excluding the deleted member" in {

@@ -35,6 +35,7 @@ import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
 import viewmodels.Link
 
 class ChargePaginationService @Inject()(config: FrontendAppConfig) {
+  import ChargePaginationService._
   private case class NodeInfo(chargeRootNode:String,
     chargeDetailsNode:String,
     createItem: (JsValue, Int, BigDecimal, String, String) => Either[Member, Employer],
@@ -128,7 +129,6 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
         case _ => None
       }
     }
-
   }
 
   private def getItemsPaginatedWithAmount[A](
@@ -139,14 +139,15 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     nodeInfo: NodeInfo,
     amount: A=>BigDecimal
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
-    def extractAmount(m:JsValue):BigDecimal = (m \ nodeInfo.chargeDetailsNode).asOpt[A] match {
+    def extractAmount(item:JsValue):BigDecimal = (item \ nodeInfo.chargeDetailsNode).asOpt[A] match {
         case Some(chargeDetails) => amount(chargeDetails)
         case None => BigDecimal(0)
       }
     val pageSize = config.membersPageSize
     val allItemsAsJsArray = (ua.data \ nodeInfo.chargeRootNode \ nodeInfo.listNode).asOpt[JsArray].map(_.value).getOrElse(Nil).zipWithIndex
-      .filter{ case (m, _) => !(m \ "memberStatus").asOpt[String].contains("Deleted")}
-    val (start, end) = ChargePaginationService.pageStartAndEnd(pageNo, allItemsAsJsArray.size, pageSize)
+      .filter{ case (item, _) => !(item \ "memberStatus").asOpt[String].contains("Deleted")}
+    val pages = totalPages(allItemsAsJsArray.size, pageSize)
+    val (start, end) = pageStartAndEnd(pageNo, allItemsAsJsArray.size, pageSize, pages)
     val pageItemsAsJsArray = allItemsAsJsArray.slice(start, end).reverse
 
     if (pageItemsAsJsArray.isEmpty) {
@@ -155,7 +156,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
       val startMember = (pageNo - 1) * pageSize + 1
 
       val items: Either[Seq[Member], Seq[Employer]] =
-        ChargePaginationService.toEitherSeq(
+        toEitherSeq(
           pageItemsAsJsArray.map{ case (item, index) =>
             nodeInfo.createItem(item, index, extractAmount(item), viewUrl(index).url, removeUrl(index).url)
           }
@@ -168,7 +169,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
           startMember = startMember,
           lastMember = startMember + pageItemsAsJsArray.size - 1,
           totalMembers = allItemsAsJsArray.size,
-          totalPages = ChargePaginationService.totalPages(allItemsAsJsArray.size, pageSize),
+          totalPages = pages,
           totalAmount = allItemsAsJsArray.map { case (item, _) => extractAmount(item)}.sum
         )
       ))
@@ -232,26 +233,23 @@ case class PaginatedMembersInfo(itemsForCurrentPage:Either[Seq[Member], Seq[Empl
 }
 
 object ChargePaginationService {
-  def totalPages(totalMembers:Int, pageSize: Int):Int = (totalMembers.toFloat / pageSize).ceil.toInt
+  private[services] def totalPages(totalMembers:Int, pageSize: Int):Int = (totalMembers.toFloat / pageSize).ceil.toInt
 
-  private def pageStart(pageNo:Int, totalPages: Int, pageSize: Int, totalMembers: Int):Int =
-    if (pageNo == totalPages) {
-      0
-    } else {
-      totalMembers - pageNo * pageSize
-    }
-
-  def pageStartAndEnd(pageNo:Int, totalMembers: Int, pageSize: Int):(Int, Int) = {
-    val pages = totalPages(totalMembers, pageSize)
-    val start = pageStart(pageNo, pages, pageSize, totalMembers)
+  private[services] def pageStartAndEnd(pageNo:Int, totalMembers: Int, pageSize: Int, totalPages: Int):(Int, Int) = {
+    def pageStart(pageNo:Int, totalPages: Int, pageSize: Int, totalMembers: Int):Int =
+      if (pageNo == totalPages) {
+        0
+      } else {
+        totalMembers - pageNo * pageSize
+      }
+    val start = pageStart(pageNo, totalPages, pageSize, totalMembers)
     val end = if (pageNo == 1) {
       totalMembers
     } else {
-      pageStart(pageNo - 1, pages, pageSize, totalMembers)
+      pageStart(pageNo - 1, totalPages, pageSize, totalMembers)
     }
     (start,end)
   }
-
 
   private[services] def toEitherSeq[A,B](seq:Seq[Either[A, B]]):Either[Seq[A], Seq[B]] = {
     if (seq.exists(_.isLeft)) {
