@@ -165,7 +165,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
           lastMember = startMember + pageItemsAsJsArray.size - 1,
           totalMembers = allItemsAsJsArray.size,
           totalPages = ChargePaginationService.totalPages(allItemsAsJsArray.size, pageSize),
-          totalAmount = allItemsAsJsArray.map { case (m, _) => extractAmount(m, amount, nodeInfo)}.sum
+          totalAmount = allItemsAsJsArray.map { case (item, _) => extractAmount(item, amount, nodeInfo)}.sum
         )
       ))
     }
