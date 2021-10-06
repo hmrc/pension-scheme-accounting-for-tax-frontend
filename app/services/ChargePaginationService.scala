@@ -137,7 +137,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     viewUrl: Int => Call,
     removeUrl: Int => Call,
     nodeInfo: NodeInfo,
-    amount: A=>BigDecimal,
+    amount: A=>BigDecimal
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
     val pageSize = config.membersPageSize
     val allItemsAsJsArray = (ua.data \ nodeInfo.chargeRootNode \ nodeInfo.listNode).asOpt[JsArray].map(_.value).getOrElse(Nil).zipWithIndex
