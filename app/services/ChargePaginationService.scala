@@ -139,6 +139,10 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     nodeInfo: NodeInfo,
     amount: A=>BigDecimal
   )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
+    def extractAmount(m:JsValue):BigDecimal = (m \ nodeInfo.chargeDetailsNode).asOpt[A] match {
+        case Some(chargeDetails) => amount(chargeDetails)
+        case None => BigDecimal(0)
+      }
     val pageSize = config.membersPageSize
     val allItemsAsJsArray = (ua.data \ nodeInfo.chargeRootNode \ nodeInfo.listNode).asOpt[JsArray].map(_.value).getOrElse(Nil).zipWithIndex
       .filter{ case (m, _) => !(m \ "memberStatus").asOpt[String].contains("Deleted")}
@@ -153,7 +157,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
       val items: Either[Seq[Member], Seq[Employer]] =
         ChargePaginationService.toEitherSeq(
           pageItemsAsJsArray.map{ case (item, index) =>
-            nodeInfo.createItem(item, index, extractAmount(item, amount, nodeInfo), viewUrl(index).url, removeUrl(index).url)
+            nodeInfo.createItem(item, index, extractAmount(item), viewUrl(index).url, removeUrl(index).url)
           }
         )
 
@@ -165,16 +169,9 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
           lastMember = startMember + pageItemsAsJsArray.size - 1,
           totalMembers = allItemsAsJsArray.size,
           totalPages = ChargePaginationService.totalPages(allItemsAsJsArray.size, pageSize),
-          totalAmount = allItemsAsJsArray.map { case (item, _) => extractAmount(item, amount, nodeInfo)}.sum
+          totalAmount = allItemsAsJsArray.map { case (item, _) => extractAmount(item)}.sum
         )
       ))
-    }
-  }
-
-  private def extractAmount[A](m:JsValue, amount: A => BigDecimal, nodeInfo:NodeInfo)(implicit reads: Reads[A]):BigDecimal = {
-    (m \ nodeInfo.chargeDetailsNode).asOpt[A] match {
-      case Some(chargeDetails) => amount(chargeDetails)
-      case None => BigDecimal(0)
     }
   }
 
