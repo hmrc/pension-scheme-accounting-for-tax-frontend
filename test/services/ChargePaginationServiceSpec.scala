@@ -97,6 +97,22 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
     Link(id = s"nav-$pageNo", url = u, linkText = Literal(s"$pageNo"), hiddenText = None)
   }
 
+  "toEitherSeq" must {
+    "Return a Left where there are all Lefts in sequence" in {
+      ChargePaginationService.toEitherSeq[String, Int](
+        Seq(Left("A"), Left("B"))) mustBe Left(Seq("A", "B"))
+    }
+
+    "Return a Right where there are all Rights in sequence" in {
+      ChargePaginationService.toEitherSeq[String, Int](
+        Seq(Right(1), Right(2))) mustBe Right(Seq(1, 2))
+    }
+
+    "Return a Right Nil there is an empty sequence" in {
+      ChargePaginationService.toEitherSeq[String, Int](Nil) mustBe Right(Nil)
+    }
+  }
+
   "ChargePaginationService.totalPages" must {
     "give correct total pages where divide exactly" in {
       ChargePaginationService.totalPages(200, 25) mustBe 8

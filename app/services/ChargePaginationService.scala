@@ -151,7 +151,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
       val startMember = (pageNo - 1) * pageSize + 1
 
       val items: Either[Seq[Member], Seq[Employer]] =
-        toEitherSeq(
+        ChargePaginationService.toEitherSeq(
           pageItemsAsJsArray.map{ case (item, index) =>
             nodeInfo.createItem(item, index, extractAmount(item, amount, nodeInfo), viewUrl(index).url, removeUrl(index).url)
           }
@@ -168,14 +168,6 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
           totalAmount = allItemsAsJsArray.map { case (m, _) => extractAmount(m, amount, nodeInfo)}.sum
         )
       ))
-    }
-  }
-
-  private def toEitherSeq[A,B](seq:Seq[Either[A, B]]):Either[Seq[A], Seq[B]] = {
-    if (seq.exists(_.isLeft)) {
-      Left(seq.flatMap(_.fold[Seq[A]](Seq(_), _=>Nil)))
-    } else {
-      Right(seq.flatMap(_.fold[Seq[B]](_=>Nil, Seq(_))))
     }
   }
 
@@ -261,5 +253,14 @@ object ChargePaginationService {
       pageStart(pageNo - 1, pages, pageSize, totalMembers)
     }
     (start,end)
+  }
+
+
+  private[services] def toEitherSeq[A,B](seq:Seq[Either[A, B]]):Either[Seq[A], Seq[B]] = {
+    if (seq.exists(_.isLeft)) {
+      Left(seq.flatMap(_.fold[Seq[A]](Seq(_), _=>Nil)))
+    } else {
+      Right(seq.flatMap(_.fold[Seq[B]](_=>Nil, Seq(_))))
+    }
   }
 }
