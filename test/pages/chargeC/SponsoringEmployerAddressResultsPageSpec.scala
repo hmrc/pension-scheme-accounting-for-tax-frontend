@@ -16,16 +16,17 @@
 
 package pages.chargeC
 
+import models.TolerantAddress
 import pages.behaviours.PageBehaviours
 
 class SponsoringEmployerAddressResultsPageSpec extends PageBehaviours {
 
   "SponsoringEmployerAddressResultsPage" - {
 
-    beRetrievable[Int](SponsoringEmployerAddressResultsPage(0))
+    beRetrievable[TolerantAddress](SponsoringEmployerAddressResultsPage(0))
 
-    beSettable[Int](SponsoringEmployerAddressResultsPage(0))
+    beSettable[TolerantAddress](SponsoringEmployerAddressResultsPage(0))
 
-    beRemovable[Int](SponsoringEmployerAddressResultsPage(0))
+    beRemovable[TolerantAddress](SponsoringEmployerAddressResultsPage(0))
   }
 }
