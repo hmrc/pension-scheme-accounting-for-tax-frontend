@@ -41,8 +41,10 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
     val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr)
     http.POST[JsObject, HttpResponse](url, answers.data)(implicitly, implicitly, aftHc, implicitly).map {
       response =>
-        response.status match {
-          case OK => ()
+        val responseMessage = (response.json \ "message").asOpt[String]
+        (response.status, responseMessage) match {
+          case (OK, _) => ()
+          case (FORBIDDEN, Some(msg)) if msg.contains("RETURN_ALREADY_SUBMITTED") => throw ReturnAlreadySubmittedException()
           case _ => handleErrorResponse("POST", url)(response)
         }
     } andThen {
@@ -131,3 +133,5 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
     if (calculatedStartDate.isAfter(earliestStartDate)) calculatedStartDate else earliestStartDate
   }
 }
+
+case class ReturnAlreadySubmittedException() extends Exception
