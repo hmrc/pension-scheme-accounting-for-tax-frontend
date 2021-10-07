@@ -330,7 +330,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
       status(result) mustEqual SEE_OTHER
-      //redirectLocation(result).value mustBe controllers.routes.YourActionWasNotProcessedController.onPageLoad(srn, startDate).url
+      redirectLocation(result).value mustBe controllers.routes.CannotSubmitAFTController.onPageLoad(srn).url
     }
   }
 }

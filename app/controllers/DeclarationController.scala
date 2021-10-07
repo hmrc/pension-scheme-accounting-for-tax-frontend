@@ -96,7 +96,7 @@ class DeclarationController @Inject()(
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }) recoverWith {
           case ReturnAlreadySubmittedException() =>
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+            Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn)))
         } recoverWith recoverFrom5XX(srn, startDate)
       }
     }

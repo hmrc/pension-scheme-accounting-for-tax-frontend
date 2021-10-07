@@ -32,21 +32,17 @@ class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
                                                     override val messagesApi: MessagesApi,
                                                     val controllerComponents: MessagesControllerComponents,
                                                     identify: IdentifierAction,
-                                                    getData: DataRetrievalAction,
-                                                    requireData: DataRequiredAction,
                                                     renderer: Renderer
                                                    )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] =
+    identify.async {
       implicit request =>
-        DataRetrievals.retrieveSchemeName { schemeName =>
-          val json = Json.obj(
-            "returnUrl" -> appConfig.managePensionsSchemeSummaryUrl
-          )
-          renderer.render("cannotSubmitAFT.njk", json).map(Ok(_))
-        }
+        val json = Json.obj(
+          "returnUrl" -> appConfig.managePensionsSchemeSummaryUrl.format(srn)
+        )
+        renderer.render("cannotSubmitAFT.njk", json).map(Ok(_))
     }
 }
