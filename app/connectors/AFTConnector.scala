@@ -39,12 +39,16 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
     val url = config.aftFileReturn.format(journeyType.toString)
     val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr)
+    println("\n>>JHERE:" + pstr)
+    println("\n>>JHER2E:" + url)
     http.POST[JsObject, HttpResponse](url, answers.data)(implicitly, implicitly, aftHc, implicitly).map {
       response =>
-        val responseMessage = (response.json \ "message").asOpt[String]
-        (response.status, responseMessage) match {
-          case (OK, _) => ()
-          case (FORBIDDEN, Some(msg)) if msg.contains("RETURN_ALREADY_SUBMITTED") => throw ReturnAlreadySubmittedException()
+        println("\n>>bd>>" + response.body)
+        println("\n>>st>>" + response.status)
+        response.status match {
+          case OK => ()
+          case FORBIDDEN if response.body.contains("RETURN_ALREADY_SUBMITTED") =>
+            throw ReturnAlreadySubmittedException()
           case _ => handleErrorResponse("POST", url)(response)
         }
     } andThen {
