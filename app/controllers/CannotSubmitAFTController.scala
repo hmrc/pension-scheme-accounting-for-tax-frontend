@@ -53,7 +53,6 @@ class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
   def onClick(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate)).async {
       implicit request =>
-        //val id = s"$srn$startDt"
         userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
           Redirect(appConfig.managePensionsSchemeSummaryUrl.format(srn))
         }
