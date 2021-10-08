@@ -17,8 +17,12 @@
 package controllers
 
 import controllers.base.ControllerSpecBase
+import controllers.financialStatement.penalties.SelectSchemeControllerSpec.year
+import controllers.financialStatement.penalties.routes
 import data.SampleData._
 import matchers.JsonMatchers
+import models.LocalDateBinder._
+import models.PenaltiesFilter.All
 import models.UserAnswers
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -32,22 +36,23 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
-import models.LocalDateBinder._
 
 import scala.concurrent.Future
 
 class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
   with JsonMatchers with OptionValues with TryValues {
  private val srn = "test-srn"
+  val startDate = QUARTER_START_DATE
 
   private val data = UserAnswers().set(SchemeNameQuery, schemeName).toOption
-  private def getRoute: String = routes.CannotSubmitAFTController.onPageLoad(srn).url
+  private def getRoute: String = routes.CannotSubmitAFTController.onPageLoad(srn, startDate).url
+  private def onClickRoute: String = routes.CannotSubmitAFTController.onClick(srn, startDate).url
 
   "Cannot submit AFT controller" must {
 
     "return OK and the correct view for a GET" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn("dummy-return-url/%s")
+//      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn("dummy-return-url/%s")
 
       val application = applicationBuilder(userAnswers = data).overrides().build()
       val request = FakeRequest(GET, getRoute)
@@ -61,11 +66,25 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "returnUrl" -> s"dummy-return-url/$srn"
+        "returnUrl" -> controllers.routes.CannotSubmitAFTController.onClick(srn, startDate).url
       )
 
       templateCaptor.getValue mustEqual "cannotSubmitAFT.njk"
       jsonCaptor.getValue must containJson(expectedJson)
+
+      application.stop()
+    }
+
+    "return redirect for the onClick GET" in {
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn("dummy-return-url/%s")
+
+      val application = applicationBuilder(userAnswers = data).overrides().build()
+      val request = FakeRequest(GET, onClickRoute)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(s"dummy-return-url/$srn")
 
       application.stop()
     }

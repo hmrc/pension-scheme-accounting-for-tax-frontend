@@ -17,12 +17,14 @@
 package controllers
 
 import config.FrontendAppConfig
-import controllers.actions.{IdentifierAction, DataRetrievalAction, DataRequiredAction}
+import connectors.cache.UserAnswersCacheConnector
+import controllers.actions.{IdentifierAction, DataRetrievalAction}
 import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import models.LocalDateBinder._
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -31,18 +33,29 @@ import scala.concurrent.ExecutionContext
 class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
                                                     override val messagesApi: MessagesApi,
                                                     val controllerComponents: MessagesControllerComponents,
+                                                    userAnswersCacheConnector: UserAnswersCacheConnector,
                                                     identify: IdentifierAction,
+                                                    getData: DataRetrievalAction,
                                                     renderer: Renderer
                                                    )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] =
-    identify.async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate)).async {
       implicit request =>
         val json = Json.obj(
-          "returnUrl" -> appConfig.managePensionsSchemeSummaryUrl.format(srn)
+          "returnUrl" -> controllers.routes.CannotSubmitAFTController.onClick(srn, startDate).url
         )
         renderer.render("cannotSubmitAFT.njk", json).map(Ok(_))
+    }
+
+  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate)).async {
+      implicit request =>
+        //val id = s"$srn$startDt"
+        userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+          Redirect(appConfig.managePensionsSchemeSummaryUrl.format(srn))
+        }
     }
 }

@@ -32,12 +32,10 @@ import navigators.CompoundNavigator
 import pages.{NameQuery, ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage}
 import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
-import play.api.mvc.Results.Redirect
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
-import uk.gov.hmrc.http.HttpReads.is4xx
-import uk.gov.hmrc.http.{UpstreamErrorResponse, HeaderCarrier}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterStartDate, formatSubmittedDate, dateFormatterDMY}
 
@@ -96,7 +94,7 @@ class DeclarationController @Inject()(
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }) recoverWith {
           case ReturnAlreadySubmittedException() =>
-            Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn)))
+            Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn, startDate)))
         } recoverWith recoverFrom5XX(srn, startDate)
       }
     }
