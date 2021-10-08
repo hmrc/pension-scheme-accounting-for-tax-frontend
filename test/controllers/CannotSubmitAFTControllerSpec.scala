@@ -17,12 +17,10 @@
 package controllers
 
 import controllers.base.ControllerSpecBase
-import controllers.financialStatement.penalties.SelectSchemeControllerSpec.year
-import controllers.financialStatement.penalties.routes
 import data.SampleData._
 import matchers.JsonMatchers
+import play.api.mvc.Results.Ok
 import models.LocalDateBinder._
-import models.PenaltiesFilter.All
 import models.UserAnswers
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -77,6 +75,7 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
 
     "return redirect for the onClick GET" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn("dummy-return-url/%s")
+      when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 
       val application = applicationBuilder(userAnswers = data).overrides().build()
       val request = FakeRequest(GET, onClickRoute)
@@ -85,6 +84,7 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) mustBe Some(s"dummy-return-url/$srn")
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
       application.stop()
     }
