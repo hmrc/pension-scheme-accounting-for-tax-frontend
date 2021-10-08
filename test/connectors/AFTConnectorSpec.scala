@@ -20,11 +20,11 @@ import java.time.LocalDate
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.LocalDateBinder._
-import models.SubmitterType.{PSA, PSP}
-import models.{AFTOverview, AFTVersion, JourneyType, SubmitterDetails, UserAnswers, VersionsWithSubmitter}
+import models.SubmitterType.{PSP, PSA}
+import models.{AFTOverview, UserAnswers, VersionsWithSubmitter, SubmitterDetails, AFTVersion, JourneyType}
 import org.scalatest._
 import play.api.http.Status
-import play.api.libs.json.{JsBoolean, JsNumber, Json}
+import play.api.libs.json.{JsNumber, Json, JsBoolean}
 import uk.gov.hmrc.http._
 import utils.{DateHelper, WireMockHelper}
 
@@ -78,364 +78,309 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
   "fileSubmitReturn" must {
 
-    //"return successfully when the backend has returned OK" in {
-    //  val data = Json.obj(fields = "Id" -> "value")
-    //  server.stubFor(
-    //    post(urlEqualTo(aftSubmitUrl))
-    //      .withRequestBody(equalTo(Json.stringify(data)))
-    //      .willReturn(
-    //        ok
-    //      )
-    //  )
-    //
-    //  connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN) map {
-    //    _ => server.findAll(postRequestedFor(urlEqualTo(aftSubmitUrl))).size() mustBe 1
-    //  }
-    //}
-    //
-    //"return BAD REQUEST when the backend has returned BadRequestException" in {
-    //  val data = Json.obj(fields = "Id" -> "value")
-    //  server.stubFor(
-    //    post(urlEqualTo(aftSubmitUrl))
-    //      .withRequestBody(equalTo(Json.stringify(data)))
-    //      .willReturn(
-    //        badRequest()
-    //      )
-    //  )
-    //
-    //  recoverToExceptionIf[BadRequestException] {
-    //    connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)
-    //  } map {
-    //    _.responseCode mustEqual Status.BAD_REQUEST
-    //  }
-    //}
-    //
-    //"return NOT FOUND when the backend has returned NotFoundException" in {
-    //  val data = Json.obj(fields = "Id" -> "value")
-    //  server.stubFor(
-    //    post(urlEqualTo(aftSubmitUrl))
-    //      .withRequestBody(equalTo(Json.stringify(data)))
-    //      .willReturn(
-    //        notFound()
-    //      )
-    //  )
-    //
-    //  recoverToExceptionIf[NotFoundException] {
-    //    connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)
-    //  } map {
-    //    _.responseCode mustEqual Status.NOT_FOUND
-    //  }
-    //}
+    "return successfully when the backend has returned OK" in {
+      val data = Json.obj(fields = "Id" -> "value")
+      server.stubFor(
+        post(urlEqualTo(aftSubmitUrl))
+          .withRequestBody(equalTo(Json.stringify(data)))
+          .willReturn(
+            ok
+          )
+      )
+
+      connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN) map {
+        _ => server.findAll(postRequestedFor(urlEqualTo(aftSubmitUrl))).size() mustBe 1
+      }
+    }
+
+    "return BAD REQUEST when the backend has returned BadRequestException" in {
+      val data = Json.obj(fields = "Id" -> "value")
+      server.stubFor(
+        post(urlEqualTo(aftSubmitUrl))
+          .withRequestBody(equalTo(Json.stringify(data)))
+          .willReturn(
+            badRequest()
+          )
+      )
+
+      recoverToExceptionIf[BadRequestException] {
+        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)
+      } map {
+        _.responseCode mustEqual Status.BAD_REQUEST
+      }
+    }
+
+    "return NOT FOUND when the backend has returned NotFoundException" in {
+      val data = Json.obj(fields = "Id" -> "value")
+      server.stubFor(
+        post(urlEqualTo(aftSubmitUrl))
+          .withRequestBody(equalTo(Json.stringify(data)))
+          .willReturn(
+            notFound()
+          )
+      )
+
+      recoverToExceptionIf[NotFoundException] {
+        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)
+      } map {
+        _.responseCode mustEqual Status.NOT_FOUND
+      }
+    }
 
     "throw ReturnAlreadySubmittedException when 403 returned with message containing RETURN_ALREADY_SUBMITTED" in {
       val data = Json.obj(fields = "Id" -> "value")
       server.stubFor(
         post(urlEqualTo(aftSubmitUrl))
+          .withRequestBody(equalTo(Json.stringify(data)))
           .willReturn(
             forbidden().withBody("""RETURN_ALREADY_SUBMITTED""")
           )
       )
 
-      a[ReturnAlreadySubmittedException] mustBe thrownBy {
-        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)
+      recoverToExceptionIf[ReturnAlreadySubmittedException](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
+        _ => assert( true)
       }
     }
-  //
-  //  "return UpstreamErrorResponse when the backend has returned Internal Server Error" in {
-  //    val data = Json.obj(fields = "Id" -> "value")
-  //    server.stubFor(
-  //      post(urlEqualTo(aftSubmitUrl))
-  //        .withRequestBody(equalTo(Json.stringify(data)))
-  //        .willReturn(
-  //          serverError()
-  //        )
-  //    )
-  //
-  //    recoverToExceptionIf[UpstreamErrorResponse](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
-  //      _.statusCode mustBe Status.INTERNAL_SERVER_ERROR
-  //    }
-  //  }
-  //}
-  //
-  //"getAFTDetails" must {
-  //  val data = Json.obj(fields = "Id" -> "value")
-  //  val startDate = "2020-01-01"
-  //  val aftVersion = "1"
-  //
-  //  "return addRequiredDetailsToUserAnswers when the backend has returned OK with UserAnswers Json" in {
-  //    server.stubFor(
-  //      get(urlEqualTo(getAftDetailsUrl))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo(startDate))
-  //        .withHeader("aftVersion", equalTo(aftVersion))
-  //        .willReturn(
-  //          ok(Json.stringify(UserAnswers(data).data))
-  //        )
-  //    )
-  //
-  //    connector.getAFTDetails(pstr, startDate, aftVersion) map { response =>
-  //      response mustBe data
-  //    }
-  //  }
-  //
-  //  "return BAD REQUEST when the backend has returned BadRequestException" in {
-  //    server.stubFor(
-  //      get(urlEqualTo(getAftDetailsUrl))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo(startDate))
-  //        .withHeader("aftVersion", equalTo(aftVersion))
-  //        .willReturn(
-  //          badRequest()
-  //        )
-  //    )
-  //
-  //    recoverToExceptionIf[BadRequestException] {
-  //      connector.getAFTDetails(pstr, startDate, aftVersion)
-  //    } map {
-  //      _.responseCode mustEqual Status.BAD_REQUEST
-  //    }
-  //  }
-  //
-  //  "return NOT FOUND when the backend has returned NotFoundException" in {
-  //    server.stubFor(
-  //      get(urlEqualTo(getAftDetailsUrl))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo(startDate))
-  //        .withHeader("aftVersion", equalTo(aftVersion))
-  //        .willReturn(
-  //          notFound()
-  //        )
-  //    )
-  //
-  //    recoverToExceptionIf[NotFoundException] {
-  //      connector.getAFTDetails(pstr, startDate, aftVersion)
-  //    } map { response =>
-  //      response.responseCode mustEqual Status.NOT_FOUND
-  //    }
-  //  }
-  //
-  //  "return UpstreamErrorResponse when the backend has returned Internal Server Error" in {
-  //    server.stubFor(
-  //      get(urlEqualTo(getAftDetailsUrl))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo(startDate))
-  //        .withHeader("aftVersion", equalTo(aftVersion))
-  //        .willReturn(
-  //          serverError()
-  //        )
-  //    )
-  //
-  //    recoverToExceptionIf[UpstreamErrorResponse](connector.getAFTDetails(pstr, startDate, aftVersion)) map { response =>
-  //      response.statusCode mustBe Status.INTERNAL_SERVER_ERROR
-  //    }
-  //  }
-  //}
-  //
-  //"getIsAftNonZero" must {
-  //  val startDate = "2020-01-01"
-  //  val aftVersion = "1"
-  //
-  //  "return the boolean which backend has returned with an OK" in {
-  //    server.stubFor(
-  //      get(urlEqualTo(getIsAftNonZeroUrl))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo(startDate))
-  //        .withHeader("aftVersion", equalTo(aftVersion))
-  //        .willReturn(
-  //          ok(Json.stringify(JsBoolean(true)))
-  //        )
-  //    )
-  //
-  //    connector.getIsAftNonZero(pstr, startDate, aftVersion) map { response =>
-  //      response mustBe true
-  //    }
-  //  }
-  //
-  //  "return BAD REQUEST when the backend has returned BadRequestException" in {
-  //    server.stubFor(
-  //      get(urlEqualTo(getIsAftNonZeroUrl))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo(startDate))
-  //        .withHeader("aftVersion", equalTo(aftVersion))
-  //        .willReturn(
-  //          badRequest()
-  //        )
-  //    )
-  //
-  //    recoverToExceptionIf[BadRequestException] {
-  //      connector.getIsAftNonZero(pstr, startDate, aftVersion)
-  //    } map {
-  //      _.responseCode mustEqual Status.BAD_REQUEST
-  //    }
-  //  }
-  //}
-  //
-  //"getListOfVersions" must {
-  //  "return successfully when the backend has returned OK" in {
-  //    val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17), "submitted")
-  //    val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17), "submitted")
-  //    val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17), "submitted")
-  //    val submitter1 = SubmitterDetails(PSA, "abc", "A1234567", None, LocalDate.of(2020, 4, 17))
-  //    val submitter2 = SubmitterDetails(PSP, "def", "12345678", Some("A1234567"), LocalDate.of(2020, 5, 17))
-  //    val submitter3 = SubmitterDetails(PSA, "ghi", "A2345678", None, LocalDate.of(2020, 6, 17))
-  //    val versions = Seq(VersionsWithSubmitter(version1, Some(submitter1)),
-  //                        VersionsWithSubmitter(version2, Some(submitter2)),
-  //                        VersionsWithSubmitter(version3, Some(submitter3)))
-  //
-  //    server.stubFor(
-  //      get(urlEqualTo(aftListOfVersionsUrl))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo(SampleData.startDate))
-  //        .willReturn(
-  //          ok(Json.stringify(Json.toJson(versions)))
-  //        )
-  //    )
-  //
-  //    connector.getListOfVersions(pstr, SampleData.startDate) map { result =>
-  //      result mustBe versions
-  //    }
-  //  }
-  //
-  //  "return Seq.empty for NOT_FOUND response" in {
-  //    server.stubFor(
-  //      get(urlEqualTo(aftListOfVersionsUrl))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo(SampleData.startDate))
-  //        .willReturn(
-  //          aResponse()
-  //            .withStatus(Status.NOT_FOUND)
-  //            .withHeader("Content-Type", "application/json")
-  //            .withBody(Json.arr().toString())
-  //        )
-  //    )
-  //
-  //    connector.getListOfVersions(pstr, SampleData.startDate) map { result =>
-  //      result mustBe Seq.empty
-  //    }
-  //  }
-  //
-  //  "throw exception when the backend has returned something other than OK" in {
-  //    server.stubFor(
-  //      get(urlEqualTo(aftListOfVersionsUrl))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo(SampleData.startDate))
-  //        .willReturn(
-  //          badRequest()
-  //        )
-  //    )
-  //
-  //    recoverToExceptionIf[BadRequestException] {
-  //      connector.getListOfVersions(pstr, SampleData.startDate)
-  //    }.map {
-  //      _.responseCode mustEqual Status.BAD_REQUEST
-  //    }
-  //  }
-  //}
-  //
-  //"getAftOverview" must {
-  //
-  //  "return the AFTOverview for a valid request/response with correct dates" in {
-  //
-  //    DateHelper.setDate(Some(LocalDate.of(2028, 5, 23)))
-  //
-  //    server.stubFor(
-  //      get(urlEqualTo(aftOverview))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo("2022-01-01"))
-  //        .withHeader("endDate", equalTo("2028-06-30"))
-  //        .willReturn(
-  //          aResponse()
-  //            .withStatus(Status.OK)
-  //            .withHeader("Content-Type", "application/json")
-  //            .withBody(validAftOverviewResponse)
-  //        )
-  //    )
-  //
-  //    val connector = injector.instanceOf[AFTConnector]
-  //
-  //    connector.getAftOverview(pstr).map(aftOverview =>
-  //      aftOverview mustBe aftOverviewModel
-  //    )
-  //
-  //  }
-  //
-  //  "throw BadRequestException for a 400 INVALID_PSTR response" in {
-  //
-  //    server.stubFor(
-  //      get(urlEqualTo(aftOverview))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo("2022-01-01"))
-  //        .withHeader("endDate", equalTo("2028-06-30"))
-  //        .willReturn(
-  //          badRequest
-  //            .withHeader("Content-Type", "application/json")
-  //            .withBody(errorResponse("INVALID_PSTR"))
-  //        )
-  //    )
-  //
-  //    val connector = injector.instanceOf[AFTConnector]
-  //    recoverToSucceededIf[BadRequestException] {
-  //      connector.getAftOverview(pstr)
-  //    }
-  //  }
-  //
-  //  "throw BadRequestException for a 400 INVALID_REPORT_TYPE response" in {
-  //
-  //    server.stubFor(
-  //      get(urlEqualTo(aftOverview))
-  //        .withHeader("pstr", equalTo(pstr))
-  //        .withHeader("startDate", equalTo("2022-01-01"))
-  //        .withHeader("endDate", equalTo("2028-06-30"))
-  //        .willReturn(
-  //          badRequest
-  //            .withHeader("Content-Type", "application/json")
-  //            .withBody(errorResponse("INVALID_REPORT_TYPE"))
-  //        )
-  //    )
-  //    val connector = injector.instanceOf[AFTConnector]
-  //
-  //    recoverToSucceededIf[BadRequestException] {
-  //      connector.getAftOverview(pstr)
-  //    }
-  //
-  //  }
-  //
-  //  "throw BadRequestException for a 400 INVALID_FROM_DATE response" in {
-  //
-  //    server.stubFor(
-  //      get(urlEqualTo(aftOverview))
-  //        .willReturn(
-  //          badRequest
-  //            .withHeader("Content-Type", "application/json")
-  //            .withBody(errorResponse("INVALID_FROM_DATE"))
-  //        )
-  //    )
-  //    val connector = injector.instanceOf[AFTConnector]
-  //
-  //    recoverToSucceededIf[BadRequestException] {
-  //      connector.getAftOverview(pstr)
-  //    }
-  //
-  //  }
-  //
-  //  "throw BadRequest for a 400 INVALID_TO_DATE response" in {
-  //
-  //    server.stubFor(
-  //      get(urlEqualTo(aftOverview))
-  //        .willReturn(
-  //          badRequest
-  //            .withHeader("Content-Type", "application/json")
-  //            .withBody(errorResponse("INVALID_TO_DATE"))
-  //        )
-  //    )
-  //    val connector = injector.instanceOf[AFTConnector]
-  //
-  //    recoverToSucceededIf[BadRequestException] {
-  //      connector.getAftOverview(pstr)
-  //    }
-  //
-  //  }
   }
+
+  "getAFTDetails" must {
+    val data = Json.obj(fields = "Id" -> "value")
+    val startDate = "2020-01-01"
+    val aftVersion = "1"
+
+    "return addRequiredDetailsToUserAnswers when the backend has returned OK with UserAnswers Json" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            ok(Json.stringify(UserAnswers(data).data))
+          )
+      )
+
+      connector.getAFTDetails(pstr, startDate, aftVersion) map { response =>
+        response mustBe data
+      }
+    }
+
+    "return BAD REQUEST when the backend has returned BadRequestException" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            badRequest()
+          )
+      )
+
+      recoverToExceptionIf[BadRequestException] {
+        connector.getAFTDetails(pstr, startDate, aftVersion)
+      } map {
+        _.responseCode mustEqual Status.BAD_REQUEST
+      }
+    }
+
+    "return NOT FOUND when the backend has returned NotFoundException" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            notFound()
+          )
+      )
+
+      recoverToExceptionIf[NotFoundException] {
+        connector.getAFTDetails(pstr, startDate, aftVersion)
+      } map { response =>
+        response.responseCode mustEqual Status.NOT_FOUND
+      }
+    }
+
+    "return UpstreamErrorResponse when the backend has returned Internal Server Error" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            serverError()
+          )
+      )
+
+      recoverToExceptionIf[UpstreamErrorResponse](connector.getAFTDetails(pstr, startDate, aftVersion)) map { response =>
+        response.statusCode mustBe Status.INTERNAL_SERVER_ERROR
+      }
+    }
+  }
+
+  "getIsAftNonZero" must {
+    val startDate = "2020-01-01"
+    val aftVersion = "1"
+
+    "return the boolean which backend has returned with an OK" in {
+      server.stubFor(
+        get(urlEqualTo(getIsAftNonZeroUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            ok(Json.stringify(JsBoolean(true)))
+          )
+      )
+
+      connector.getIsAftNonZero(pstr, startDate, aftVersion) map { response =>
+        response mustBe true
+      }
+    }
+
+    "return BAD REQUEST when the backend has returned BadRequestException" in {
+      server.stubFor(
+        get(urlEqualTo(getIsAftNonZeroUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            badRequest()
+          )
+      )
+
+      recoverToExceptionIf[BadRequestException] {
+        connector.getIsAftNonZero(pstr, startDate, aftVersion)
+      } map {
+        _.responseCode mustEqual Status.BAD_REQUEST
+      }
+    }
+  }
+
+  "getListOfVersions" must {
+    "return successfully when the backend has returned OK" in {
+      val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17), "submitted")
+      val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17), "submitted")
+      val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17), "submitted")
+      val submitter1 = SubmitterDetails(PSA, "abc", "A1234567", None, LocalDate.of(2020, 4, 17))
+      val submitter2 = SubmitterDetails(PSP, "def", "12345678", Some("A1234567"), LocalDate.of(2020, 5, 17))
+      val submitter3 = SubmitterDetails(PSA, "ghi", "A2345678", None, LocalDate.of(2020, 6, 17))
+      val versions = Seq(VersionsWithSubmitter(version1, Some(submitter1)),
+                          VersionsWithSubmitter(version2, Some(submitter2)),
+                          VersionsWithSubmitter(version3, Some(submitter3)))
+
+      server.stubFor(
+        get(urlEqualTo(aftListOfVersionsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(SampleData.startDate))
+          .willReturn(
+            ok(Json.stringify(Json.toJson(versions)))
+          )
+      )
+
+      connector.getListOfVersions(pstr, SampleData.startDate) map { result =>
+        result mustBe versions
+      }
+    }
+
+    "return Seq.empty for NOT_FOUND response" in {
+      server.stubFor(
+        get(urlEqualTo(aftListOfVersionsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(SampleData.startDate))
+          .willReturn(
+            aResponse()
+              .withStatus(Status.NOT_FOUND)
+              .withHeader("Content-Type", "application/json")
+              .withBody(Json.arr().toString())
+          )
+      )
+
+      connector.getListOfVersions(pstr, SampleData.startDate) map { result =>
+        result mustBe Seq.empty
+      }
+    }
+
+    "throw exception when the backend has returned something other than OK" in {
+      server.stubFor(
+        get(urlEqualTo(aftListOfVersionsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(SampleData.startDate))
+          .willReturn(
+            badRequest()
+          )
+      )
+
+      recoverToExceptionIf[BadRequestException] {
+        connector.getListOfVersions(pstr, SampleData.startDate)
+      }.map {
+        _.responseCode mustEqual Status.BAD_REQUEST
+      }
+    }
+  }
+
+  "getAftOverview" must {
+    "return the AFTOverview for a valid request/response with correct dates" in {
+      DateHelper.setDate(Some(LocalDate.of(2028, 5, 23)))
+
+      server.stubFor(
+        get(urlEqualTo(aftOverview)).withHeader("pstr", equalTo(pstr)).withHeader("startDate", equalTo("2022-01-01"))
+          .withHeader("endDate", equalTo("2028-06-30")).willReturn(
+          aResponse().withStatus(Status.OK).withHeader("Content-Type", "application/json").withBody(validAftOverviewResponse)))
+
+      val connector = injector.instanceOf[AFTConnector]
+
+      connector.getAftOverview(pstr).map(aftOverview => aftOverview mustBe aftOverviewModel)
+
+    }
+
+    "throw BadRequestException for a 400 INVALID_PSTR response" in {
+      server.stubFor(
+        get(urlEqualTo(aftOverview)).withHeader("pstr", equalTo(pstr)).withHeader("startDate", equalTo("2022-01-01"))
+          .withHeader("endDate", equalTo("2028-06-30")).willReturn(
+          badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_PSTR"))))
+
+      val connector = injector.instanceOf[AFTConnector]
+      recoverToSucceededIf[BadRequestException] {
+        connector.getAftOverview(pstr)
+      }
+    }
+
+    "throw BadRequestException for a 400 INVALID_REPORT_TYPE response" in {
+      server.stubFor(
+        get(urlEqualTo(aftOverview)).withHeader("pstr", equalTo(pstr)).withHeader("startDate", equalTo("2022-01-01"))
+          .withHeader("endDate", equalTo("2028-06-30")).willReturn(
+          badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_REPORT_TYPE"))))
+      val connector = injector.instanceOf[AFTConnector]
+
+      recoverToSucceededIf[BadRequestException] {
+        connector.getAftOverview(pstr)
+      }
+
+    }
+
+    "throw BadRequestException for a 400 INVALID_FROM_DATE response" in {
+      server.stubFor(get(urlEqualTo(aftOverview)).willReturn(
+        badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_FROM_DATE"))))
+      val connector = injector.instanceOf[AFTConnector]
+
+      recoverToSucceededIf[BadRequestException] {
+        connector.getAftOverview(pstr)
+      }
+
+    }
+
+    "throw BadRequest for a 400 INVALID_TO_DATE response" in {
+      server.stubFor(get(urlEqualTo(aftOverview)).willReturn(
+        badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_TO_DATE"))))
+      val connector = injector.instanceOf[AFTConnector]
+
+      recoverToSucceededIf[BadRequestException] {
+        connector.getAftOverview(pstr)
+      }
+
+    }
+  }
+
 
   def errorResponse(code: String): String = {
     Json.stringify(
