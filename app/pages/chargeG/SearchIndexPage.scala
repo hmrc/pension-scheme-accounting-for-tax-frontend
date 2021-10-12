@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package pages.chargeC
-import models.{TolerantAddress, UserAnswers}
+package pages.chargeG
+
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-import scala.util.Try
-
-case class SponsoringEmployerAddressResultsPage(index: Int) extends QuestionPage[TolerantAddress] {
-  override def path: JsPath = JsPath \ SponsoringEmployerAddressResultsPage.toString
-
-  override def cleanup(value: Option[TolerantAddress], userAnswers: UserAnswers): Try[UserAnswers] =
-   userAnswers.remove(SponsoringEmployerAddressPage(index)).flatMap { ua =>
-      super.cleanup(value, ua)
-    }
+case class SearchIndexPage(index: Int) extends QuestionPage[Int] {
+  override def path: JsPath = OverseasTransferMembersQuery(index).path \ SearchIndexPage.toString
 }
 
-object SponsoringEmployerAddressResultsPage {
-  override def toString: String = "sponsoringEmployerAddressResults"
+object SearchIndexPage {
+  override def toString: String = "idx"
 }

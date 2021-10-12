@@ -61,13 +61,12 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       totalAmount
     )
 
-  private def updateChargeTotalIfChargeExists[A](ua: UserAnswers, page: QuestionPage[A], totalAmount: UserAnswers => BigDecimal): Try[UserAnswers] = {
+  private def updateChargeTotalIfChargeExists[A](ua: UserAnswers, page: QuestionPage[A], totalAmount: UserAnswers => BigDecimal): Try[UserAnswers] =
     chargePath(page).asSingleJsResult(ua.data).asOpt match {
       case None => Try(ua)
       case _ =>
         ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
     }
-  }
 
   private def removeZeroOrUpdateAmendmentStatuses[A](ua: UserAnswers, page: QuestionPage[A], version: Int): UserAnswers = {
     // Either physically remove, zero or update the amendment status flags for the member-based charge
