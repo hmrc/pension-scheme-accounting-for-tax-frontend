@@ -520,7 +520,7 @@ addMembers.nino.header = National Insurance number
 addMembers.chargeE.amount.header = Charge amount
 addMembers.chargeD.amount.header = Total tax due
 addMembers.chargeG.amount.header = Tax due
-addMembers.total = Total
+addMembers.total = Total charge amount for this quarter
 
 chargeG.whatYouWillNeed.title = Overseas transfer charge
 chargeG.whatYouWillNeed.heading = Overseas transfer charge
@@ -1243,3 +1243,7 @@ yourActionWasNotProcessed.guidance.p1 = Try again later.
 yourActionWasNotProcessed.guidance.p2 = Any information entered will have been saved from the last ‘save and continue’.
 yourActionWasNotProcessed.guidance.p3 = If the problem persists you can tell us about it using the link below.
 
+paginationForMembers.pagerSummary = Showing {0} – {1} of {2} members
+paginationForEmployers.pagerSummary = Showing {0} – {1} of {2} employers
+paginationPreviousPage = Prev
+paginationNextPage = Next

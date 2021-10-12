@@ -18,7 +18,7 @@ package controllers
 
 import java.time.LocalDate
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.{AllowAccessActionProvider, _}
+import controllers.actions._
 import forms.{MemberSearchFormProvider, AFTSummaryFormProvider}
 import helpers.AFTSummaryHelper
 
@@ -41,7 +41,7 @@ import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Try, Success, Failure}
+import scala.util.{Try, Success}
 
 class AFTSummaryController @Inject()(
                                       override val messagesApi: MessagesApi,

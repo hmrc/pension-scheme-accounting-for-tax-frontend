@@ -17,28 +17,30 @@
 package controllers.chargeE
 
 import java.time.LocalDate
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
+import handlers.ErrorHandler
+import helpers.DeleteChargeHelper
 
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTQuarter, NormalMode, AccessType, GenericViewModel}
+import models.{Member, GenericViewModel, NormalMode, AFTQuarter, ChargeType, UserAnswers, AccessType}
 import navigators.CompoundNavigator
 import pages.chargeE.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
-import play.api.Logger
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc._
 import renderer.Renderer
-import services.ChargeEService
+import services.AddMembersService.mapChargeXMembersToTable
+import services.ChargePaginationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
+import viewmodels.Table
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -51,8 +53,9 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      requireData: DataRequiredAction,
                                      formProvider: AddMembersFormProvider,
                                      val controllerComponents: MessagesControllerComponents,
-                                     chargeEHelper: ChargeEService,
-                                     config: FrontendAppConfig,
+                                     chargePaginationService: ChargePaginationService,
+                                     deleteChargeHelper: DeleteChargeHelper,
+                                     errorHandler:ErrorHandler,
                                      renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -60,25 +63,34 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   def form: Form[Boolean] = formProvider("chargeE.addMembers.error")
 
-  private val logger = Logger(classOf[AddMembersController])
+  private def renderPage(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int)(implicit
+    request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(quarter)) =>
+        getJson(srn, startDate, form, schemeName, quarter, accessType, version, pageNumber).map{json =>
+          renderer.render(template = "chargeE/addMembers.njk", json)
+            .map(Ok(_))
+        }.getOrElse(errorHandler.onClientError(request.request, NOT_FOUND))
+
+      case _ => futureSessionExpired
+    }
+  }
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
-
-      logger.warn("Loading add members page for charge type E (annual allowance)")
-
-      (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
-        case (Some(schemeName), Some(quarter)) =>
-          renderer.render(template = "chargeE/addMembers.njk",
-            getJson(srn, startDate, form, schemeName, quarter, accessType, version))
-            .map(Ok(_))
-
-        case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-      }
+      renderPage(srn, startDate, accessType, version, pageNumber = 1)
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoadWithPageNo(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
+      renderPage(srn, startDate, accessType, version, pageNumber)
+    }
+
+  private def futureSessionExpired:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       form
@@ -87,9 +99,10 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
             (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
               case (Some(schemeName), Some(quarter)) =>
-                renderer.render(template = "chargeE/addMembers.njk", getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version)).map(BadRequest(_))
-
-              case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version, pageNumber).map { json =>
+                    renderer.render(template = "chargeE/addMembers.njk", json).map(BadRequest(_))
+                }.getOrElse(Future.successful(NotFound))
+              case _ => futureSessionExpired
             }
           },
           value => {
@@ -101,34 +114,62 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         )
   }
 
-  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: AFTQuarter, accessType: AccessType, version: Int)(
-      implicit request: DataRequest[AnyContent]): JsObject = {
-
-    logger.warn("Add members page for charge type E (annual allowance) - getJson called")
-
-    val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate, accessType, version).url,
-                                     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+  // scalastyle:off parameter.number
+  private def getJson(srn: String,
+    startDate: LocalDate,
+    form: Form[_],
+    schemeName: String,
+    quarter: AFTQuarter,
+    accessType: AccessType,
+    version: Int,
+    pageNumber: Int
+  )(implicit request: DataRequest[AnyContent]): Option[JsObject] = {
+    val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate, accessType, version, pageNumber).url,
+                                     returnUrl = controllers.routes.ReturnToSchemeDetailsController
+                                       .returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
-    val members = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate, accessType, version)
-
-    logger.warn(s"Add members page for charge type E (annual allowance) - getJson - total members: ${members.size}")
-
-    val json = Json.obj(
-      "srn" -> srn,
-      "startDate" -> Some(startDate),
-      "form" -> form,
-      "viewModel" -> viewModel,
-      "radios" -> Radios.yesNo(form("value")),
-      "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
-      "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-      "table" -> Json.toJson(chargeEHelper.mapToTable(members, !request.isViewOnly)),
-      "canChange" -> !request.isViewOnly
+    val optionPaginatedMembersInfo = chargePaginationService.getItemsPaginated(
+      pageNo = pageNumber,
+      ua = request.userAnswers,
+      viewUrl = viewUrl(srn, startDate, accessType, version),
+      removeUrl = removeUrl(srn, startDate, request.userAnswers, accessType, version),
+      chargeType = ChargeType.ChargeTypeAnnualAllowance
     )
 
-    logger.warn("Add members page for charge type E (annual allowance) - getJson call ended")
-
-    json
+    optionPaginatedMembersInfo.map { pmi =>
+      Json.obj(
+        "srn" -> srn,
+        "startDate" -> Some(startDate),
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "radios" -> Radios.yesNo(form("value")),
+        "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
+        "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
+        "table" -> Json.toJson(mapToTable(pmi.membersForCurrentPage, !request.isViewOnly, pmi.paginationStats.totalAmount)),
+        "pageLinksSeq" -> chargePaginationService.pagerNavSeq(
+          pmi.paginationStats,
+          controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, _)
+        ),
+        "paginationStatsStartMember" -> pmi.paginationStats.startMember,
+        "paginationStatsLastMember" -> pmi.paginationStats.lastMember,
+        "paginationStatsTotalMembers" -> pmi.paginationStats.totalMembers,
+        "canChange" -> !request.isViewOnly
+      )
+    }
   }
 
+  private def mapToTable(members: Seq[Member], canChange: Boolean, totalAmount:BigDecimal)(implicit messages: Messages): Table =
+    mapChargeXMembersToTable("chargeE", members, canChange, Some(totalAmount))
+
+  private def viewUrl(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Int => Call =
+    controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, _)
+
+  private def removeUrl(srn: String, startDate: LocalDate, ua: UserAnswers,
+    accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int => Call =
+    if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
+      controllers.chargeE.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, _)
+    } else {
+      controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, _)
+    }
 }
