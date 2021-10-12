@@ -86,30 +86,29 @@ class AFTSummaryHelper extends NunjucksSupport {
   )
 
   private def summaryRowsUK(ua: UserAnswers,
-    srn: String,
-    startDate: LocalDate,
-    accessType: AccessType,
-    version: Int)(implicit messages:Messages): Seq[SummaryList.Row] = {
+                            srn: String,
+                            startDate: LocalDate,
+                            accessType: AccessType,
+                            version: Int)(implicit messages:Messages): Seq[SummaryList.Row] =
     summaryDataUK(ua, srn, startDate, accessType, version).map { data =>
-    Row(
-      key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
-        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-      actions = if (data.totalAmount > BigDecimal(0)) {
-        List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
-            href = data.href.url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.view") + " " + messages(s"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
-            ))
+      Row(
+        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+        actions = if (data.totalAmount > BigDecimal(0)) {
+          List(
+            Action(
+              content = Html(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
+              href = data.href.url,
+              visuallyHiddenText = Some(Literal(
+                messages("site.view") + " " + messages(s"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+              ))
+            )
           )
-        )
-      } else {
-        Nil
-      }
-    )
-  }
+        } else {
+          Nil
+        }
+      )
   }
 
   private def summaryRowsNonUK(ua: UserAnswers,
