@@ -43,6 +43,8 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
       response =>
         response.status match {
           case OK => ()
+          case FORBIDDEN  if response.body.contains("RETURN_ALREADY_SUBMITTED") =>
+            throw ReturnAlreadySubmittedException()
           case _ => handleErrorResponse("POST", url)(response)
         }
     } andThen {
@@ -131,3 +133,5 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
     if (calculatedStartDate.isAfter(earliestStartDate)) calculatedStartDate else earliestStartDate
   }
 }
+
+case class ReturnAlreadySubmittedException() extends Exception

@@ -14,6 +14,7 @@ site.change = Change
 site.save_and_continue = Save and continue
 site.save_charge_and_continue = Save this charge and continue
 site.return_to_summary = Return to AFT summary
+site.return_to_scheme_overview = Return to pensions scheme overview
 site.service_name = Managing pension schemes
 site.textarea.char_limit = (Limit is {0} characters)
 site.title.suffix = - Managing pension schemes - GOV.UK
@@ -1242,6 +1243,11 @@ yourActionWasNotProcessed.heading = Sorry, your action was not processed
 yourActionWasNotProcessed.guidance.p1 = Try again later.
 yourActionWasNotProcessed.guidance.p2 = Any information entered will have been saved from the last ‘save and continue’.
 yourActionWasNotProcessed.guidance.p3 = If the problem persists you can tell us about it using the link below.
+
+cannotSubmitAFT.title = An AFT return for this period has already been submitted
+cannotSubmitAFT.heading = An AFT return for this period has already been submitted
+cannotSubmitAFT.p1 = An AFT return for this pension scheme for this period has already been submitted on the Pension Schemes Online service.
+cannotSubmitAFT.p2 = Any amendments to this return will need to be made on that service.
 
 paginationForMembers.pagerSummary = Showing {0} – {1} of {2} members
 paginationForEmployers.pagerSummary = Showing {0} – {1} of {2} employers
