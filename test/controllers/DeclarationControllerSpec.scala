@@ -20,7 +20,7 @@ import java.time.{ZoneId, ZonedDateTime}
 import audit.{AFTReturnEmailAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{EmailConnector, EmailSent}
+import connectors.{EmailSent, EmailConnector, ReturnAlreadySubmittedException}
 import controllers.actions._
 import controllers.base.ControllerSpecBase
 import data.SampleData
@@ -28,13 +28,13 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
-import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
+import models.ValueChangeType.{ChangeTypeSame, ChangeTypeDecrease, ChangeTypeIncrease}
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, AccessMode, AdministratorOrPractitioner, Declaration, GenericViewModel, JourneyType, SessionAccessData, UserAnswers}
+import models.{SessionAccessData, GenericViewModel, JourneyType, UserAnswers, AFTQuarter, AdministratorOrPractitioner, Declaration, AccessMode}
 import navigators.CompoundNavigator
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers, Mockito}
+import org.mockito.{ArgumentCaptor, Mockito, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
 import pages._
 import play.api.Application
@@ -46,8 +46,8 @@ import play.twirl.api.Html
 import services.AFTService
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
+import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
+import utils.DateHelper.{dateFormatterStartDate, formatSubmittedDate, dateFormatterDMY}
 
 import scala.concurrent.Future
 
@@ -318,6 +318,19 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.YourActionWasNotProcessedController.onPageLoad(srn, startDate).url
+    }
+
+    "redirect to cannot submit AFT page for a POST if 403 error is thrown" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(
+        userAnswersWithPSTREmailQuarter.map(_.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease))
+      )
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).
+        thenReturn(Future.failed(ReturnAlreadySubmittedException()))
+      val result = route(application, httpGETRequest(httpPathOnSubmit)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.CannotSubmitAFTController.onPageLoad(srn, startDate).url
     }
   }
 }

@@ -20,11 +20,11 @@ import java.time.LocalDate
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.LocalDateBinder._
-import models.SubmitterType.{PSA, PSP}
-import models.{AFTOverview, AFTVersion, JourneyType, SubmitterDetails, UserAnswers, VersionsWithSubmitter}
+import models.SubmitterType.{PSP, PSA}
+import models.{AFTOverview, UserAnswers, VersionsWithSubmitter, SubmitterDetails, AFTVersion, JourneyType}
 import org.scalatest._
 import play.api.http.Status
-import play.api.libs.json.{JsBoolean, JsNumber, Json}
+import play.api.libs.json.{JsNumber, Json, JsBoolean}
 import uk.gov.hmrc.http._
 import utils.{DateHelper, WireMockHelper}
 
@@ -127,18 +127,18 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       }
     }
 
-    "return UpstreamErrorResponse when the backend has returned Internal Server Error" in {
+    "throw ReturnAlreadySubmittedException when 403 returned with message containing RETURN_ALREADY_SUBMITTED" in {
       val data = Json.obj(fields = "Id" -> "value")
       server.stubFor(
         post(urlEqualTo(aftSubmitUrl))
           .withRequestBody(equalTo(Json.stringify(data)))
           .willReturn(
-            serverError()
+            forbidden().withBody("""RETURN_ALREADY_SUBMITTED""")
           )
       )
 
-      recoverToExceptionIf[UpstreamErrorResponse](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
-        _.statusCode mustBe Status.INTERNAL_SERVER_ERROR
+      recoverToExceptionIf[ReturnAlreadySubmittedException](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
+        _ => assert( true)
       }
     }
   }
@@ -319,45 +319,25 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
   }
 
   "getAftOverview" must {
-
     "return the AFTOverview for a valid request/response with correct dates" in {
-
       DateHelper.setDate(Some(LocalDate.of(2028, 5, 23)))
 
       server.stubFor(
-        get(urlEqualTo(aftOverview))
-          .withHeader("pstr", equalTo(pstr))
-          .withHeader("startDate", equalTo("2022-01-01"))
-          .withHeader("endDate", equalTo("2028-06-30"))
-          .willReturn(
-            aResponse()
-              .withStatus(Status.OK)
-              .withHeader("Content-Type", "application/json")
-              .withBody(validAftOverviewResponse)
-          )
-      )
+        get(urlEqualTo(aftOverview)).withHeader("pstr", equalTo(pstr)).withHeader("startDate", equalTo("2022-01-01"))
+          .withHeader("endDate", equalTo("2028-06-30")).willReturn(
+          aResponse().withStatus(Status.OK).withHeader("Content-Type", "application/json").withBody(validAftOverviewResponse)))
 
       val connector = injector.instanceOf[AFTConnector]
 
-      connector.getAftOverview(pstr).map(aftOverview =>
-        aftOverview mustBe aftOverviewModel
-      )
+      connector.getAftOverview(pstr).map(aftOverview => aftOverview mustBe aftOverviewModel)
 
     }
 
     "throw BadRequestException for a 400 INVALID_PSTR response" in {
-
       server.stubFor(
-        get(urlEqualTo(aftOverview))
-          .withHeader("pstr", equalTo(pstr))
-          .withHeader("startDate", equalTo("2022-01-01"))
-          .withHeader("endDate", equalTo("2028-06-30"))
-          .willReturn(
-            badRequest
-              .withHeader("Content-Type", "application/json")
-              .withBody(errorResponse("INVALID_PSTR"))
-          )
-      )
+        get(urlEqualTo(aftOverview)).withHeader("pstr", equalTo(pstr)).withHeader("startDate", equalTo("2022-01-01"))
+          .withHeader("endDate", equalTo("2028-06-30")).willReturn(
+          badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_PSTR"))))
 
       val connector = injector.instanceOf[AFTConnector]
       recoverToSucceededIf[BadRequestException] {
@@ -366,18 +346,10 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
     }
 
     "throw BadRequestException for a 400 INVALID_REPORT_TYPE response" in {
-
       server.stubFor(
-        get(urlEqualTo(aftOverview))
-          .withHeader("pstr", equalTo(pstr))
-          .withHeader("startDate", equalTo("2022-01-01"))
-          .withHeader("endDate", equalTo("2028-06-30"))
-          .willReturn(
-            badRequest
-              .withHeader("Content-Type", "application/json")
-              .withBody(errorResponse("INVALID_REPORT_TYPE"))
-          )
-      )
+        get(urlEqualTo(aftOverview)).withHeader("pstr", equalTo(pstr)).withHeader("startDate", equalTo("2022-01-01"))
+          .withHeader("endDate", equalTo("2028-06-30")).willReturn(
+          badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_REPORT_TYPE"))))
       val connector = injector.instanceOf[AFTConnector]
 
       recoverToSucceededIf[BadRequestException] {
@@ -387,15 +359,8 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
     }
 
     "throw BadRequestException for a 400 INVALID_FROM_DATE response" in {
-
-      server.stubFor(
-        get(urlEqualTo(aftOverview))
-          .willReturn(
-            badRequest
-              .withHeader("Content-Type", "application/json")
-              .withBody(errorResponse("INVALID_FROM_DATE"))
-          )
-      )
+      server.stubFor(get(urlEqualTo(aftOverview)).willReturn(
+        badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_FROM_DATE"))))
       val connector = injector.instanceOf[AFTConnector]
 
       recoverToSucceededIf[BadRequestException] {
@@ -405,15 +370,8 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
     }
 
     "throw BadRequest for a 400 INVALID_TO_DATE response" in {
-
-      server.stubFor(
-        get(urlEqualTo(aftOverview))
-          .willReturn(
-            badRequest
-              .withHeader("Content-Type", "application/json")
-              .withBody(errorResponse("INVALID_TO_DATE"))
-          )
-      )
+      server.stubFor(get(urlEqualTo(aftOverview)).willReturn(
+        badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_TO_DATE"))))
       val connector = injector.instanceOf[AFTConnector]
 
       recoverToSucceededIf[BadRequestException] {
@@ -422,6 +380,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
     }
   }
+
 
   def errorResponse(code: String): String = {
     Json.stringify(

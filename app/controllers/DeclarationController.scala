@@ -19,27 +19,27 @@ package controllers
 import audit.{AFTReturnEmailAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{EmailConnector, EmailStatus}
+import connectors.{EmailConnector, EmailStatus, ReturnAlreadySubmittedException}
 import controllers.actions._
 import helpers.ErrorHelper.recoverFrom5XX
 import models.AdministratorOrPractitioner._
 import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
-import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
+import models.ValueChangeType.{ChangeTypeSame, ChangeTypeDecrease, ChangeTypeIncrease}
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, Declaration, GenericViewModel, NormalMode}
+import models.{GenericViewModel, AccessType, NormalMode, AFTQuarter, Declaration}
 import navigators.CompoundNavigator
-import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage, NameQuery}
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import pages.{NameQuery, ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
+import utils.DateHelper.{dateFormatterStartDate, formatSubmittedDate, dateFormatterDMY}
 
-import java.time.{LocalDate, ZoneId, ZonedDateTime}
+import java.time.{ZoneId, ZonedDateTime, LocalDate}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -92,7 +92,10 @@ class DeclarationController @Inject()(
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
-        }) recoverWith recoverFrom5XX(srn, startDate)
+        }) recoverWith {
+          case ReturnAlreadySubmittedException() =>
+            Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn, startDate)))
+        } recoverWith recoverFrom5XX(srn, startDate)
       }
     }
 
