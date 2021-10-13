@@ -169,4 +169,5 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val gtmContainerId: String = configuration.get[String]("tracking-consent-frontend.gtm.container")
   lazy val trackingSnippetUrl: String = configuration.get[String]("tracking-consent-frontend.url")
+  lazy val membersPageSize: Int = configuration.get[Int]("members.pageSize")
 }

@@ -16,44 +16,50 @@
 
 package controllers.chargeG
 
+import java.time.LocalDate
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.AddMembersFormProvider
-import helpers.FormatHelper
+import helpers.{DeleteChargeHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, UserAnswers}
+import models.{UserAnswers, Member, GenericViewModel}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.{times, verify, reset, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeG._
 import play.api.Application
 import play.api.data.Form
+import play.api.inject.bind
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.api.test.Helpers.{route, redirectLocation, status, _}
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import services.{PaginationStats, ChargePaginationService, PaginatedMembersInfo}
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
+import viewmodels.Link
 
 import scala.concurrent.Future
 
 class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeG/addMembers.njk"
-  private val form = new AddMembersFormProvider()("chargeG.addMembers.error")
+  private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
   private def httpPathGET: String = controllers.chargeG.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url
-  private def httpPathPOST: String = controllers.chargeG.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt).url
+  private def httpPathGETWithPageNo(pageNo:Int): String =
+    controllers.chargeG.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, versionInt, pageNo).url
+  private def httpPathPOST(pageNo:Int): String = controllers.chargeG.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt, pageNo).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map.empty
-
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
   private def table = Json.obj(
     "firstCellIsHeader" -> false,
@@ -66,48 +72,42 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     ),
     "rows" -> Json.arr(
       Json.arr(
-      Json.obj("text" -> "first last","classes" -> cssQuarterWidth),
-      Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-      Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(50.00)),"classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-      Json.obj("html" -> s"<a class= govuk-link id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/overseas-transfer-charge/1/check-your-answers><span aria-hidden=true>View</span><span class= govuk-visually-hidden>View first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
-      Json.obj("html" -> s"<a class= govuk-link id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/overseas-transfer-charge/1/remove-charge><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
-    ),
-    Json.arr(
-      Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
-      Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-      Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(50.00)),"classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-      Json.obj("html" -> s"<a class= govuk-link id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/overseas-transfer-charge/2/check-your-answers><span aria-hidden=true>View</span><span class= govuk-visually-hidden>View Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
-      Json.obj("html" -> s"<a class= govuk-link id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/overseas-transfer-charge/2/remove-charge><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
-    ),
-    Json.arr(
-      Json.obj("text" -> ""),
-      Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
-      Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(100.00)),"classes" -> s"govuk-table__header--numeric"),
-      Json.obj("text" -> ""),
-      Json.obj("text" -> "")
+        Json.obj("text" -> "first last","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)),"classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
+        Json.obj("html" -> s"<a class= govuk-link id=member-0-view href=viewlink1><span aria-hidden=true>View</span><span class= govuk-visually-hidden>View first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a class= govuk-link id=member-0-remove href=removelink1><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
+      ),
+      Json.arr(
+        Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)),"classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
+        Json.obj("html" -> s"<a class= govuk-link id=member-1-view href=viewlink2><span aria-hidden=true>View</span><span class= govuk-visually-hidden>View Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a class= govuk-link id=member-1-remove href=removelink2><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
+      ),
+      Json.arr(
+        Json.obj("text" -> ""),
+        Json.obj("text" -> "Total charge amount for this quarter", "classes" -> "govuk-!-font-weight-bold govuk-table__header--numeric"),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> s"govuk-!-font-weight-bold govuk-table__header--numeric"),
+        Json.obj("text" -> ""),
+        Json.obj("text" -> "")
       )
     ),
     "attributes" -> Map("role" -> "table")
   )
 
-  private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(pageNo:Int):Form[Boolean]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt).url,
+      submitUrl = controllers.chargeG.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt, pageNo).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value")),
-    "quarterStart" -> QUARTER_START_DATE.format(dateFormatterDMY),
-    "quarterEnd" -> QUARTER_END_DATE.format(dateFormatterDMY),
-    "table" -> table
+    "quarterStart" -> LocalDate.parse(QUARTER_START_DATE).format(dateFormatterDMY),
+    "quarterEnd" -> LocalDate.parse(QUARTER_END_DATE).format(dateFormatterDMY),
+    "table" -> table,
+    "pageLinksSeq" -> dummyPagerNavSeq
   )
-
-  override def beforeEach: Unit = {
-    super.beforeEach
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-  }
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberGDetails).toOption.get
@@ -115,10 +115,60 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     .set(ChargeAmountsPage(0), chargeAmounts).toOption.get
     .set(ChargeAmountsPage(1), chargeAmounts2).toOption.get
     .set(TotalChargeAmountPage, BigDecimal(66.88)).toOption.get
+
+
+  private val expectedMembers = Seq(
+    Member(0, "first last", "AB123456C", BigDecimal(33.44), "viewlink1", "removelink1"),
+    Member(1, "Joe Bloggs", "AB123456C", BigDecimal(33.44), "viewlink2", "removelink2")
+  )
+
+  private val expectedPaginatedMembersInfo:Option[PaginatedMembersInfo] =
+    Some(PaginatedMembersInfo(
+      itemsForCurrentPage = Left(expectedMembers),
+      paginationStats = PaginationStats(
+        currentPage = 1,
+        startMember = 0,
+        lastMember = 0,
+        totalMembers = 1,
+        totalPages = 1,
+        totalAmount = BigDecimal(66.88)
+      )
+    ))
+
   val expectedJson: JsObject = ua.set(AddMembersPage, true).get.data
 
+  private val mockMemberPaginationService = mock[ChargePaginationService]
+  private val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
+
+  val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
+    bind[DeleteChargeHelper].toInstance(mockDeleteChargeHelper),
+    bind[ChargePaginationService].toInstance(mockMemberPaginationService)
+  )
+
+  private val dummyPagerNavSeq = Seq(Link(id = s"test-id", url = "test-target", linkText = Literal("test-text"), hiddenText = None))
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    reset(mockDeleteChargeHelper)
+    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockMemberPaginationService
+      .getItemsPaginated(any(), any(), any(), any(), any()))
+      .thenReturn(expectedPaginatedMembersInfo)
+    when(mockMemberPaginationService.pagerNavSeq(any(), any()))
+      .thenReturn(dummyPagerNavSeq)
+  }
+
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+  private val pageCaptor = ArgumentCaptor.forClass(classOf[Int])
+
   "AddMembers Controller" must {
-    "return OK and the correct view for a GET" in {
+    "return OK and the correct view for a GET and get first page" in {
+      when(mockMemberPaginationService
+        .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
+        .thenReturn(expectedPaginatedMembersInfo)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -130,10 +180,43 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(pageNo = 1).apply(form))
+      pageCaptor.getValue mustBe 1
+      verify(mockMemberPaginationService, times(1)).pagerNavSeq(any(), any())
     }
 
-    "redirect to Session Expired page for a GET when there is no data for Scheme Name and Quarters" in {
+    "return OK and the correct view for a GET with page no 2" in {
+      when(mockMemberPaginationService
+        .getItemsPaginated(pageCaptor.capture(), any(), any(), any(), any()))
+        .thenReturn(expectedPaginatedMembersInfo)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGETWithPageNo(pageNo = 2))).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(pageNo = 2).apply(form))
+      pageCaptor.getValue mustBe 2
+    }
+
+    "return NOT_FOUND when paginated info not available" in {
+      when(mockMemberPaginationService
+        .getItemsPaginated(any(), any(), any(), any(), any()))
+        .thenReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+      status(result) mustEqual NOT_FOUND
+    }
+
+    "redirect to Session Expired page for a GET when there is no data" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(UserAnswers()))
 
       val result = route(application, httpGETRequest(httpPathGET)).value
@@ -150,7 +233,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST(pageNo = 1), valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
@@ -163,17 +246,17 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "return a BAD REQUEST when invalid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST(pageNo = 1), valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
 
-    "redirect to Session Expired page for a POST when there is no data for scheme name and quarter" in {
+    "redirect to Session Expired page for a POST when there is no data" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(UserAnswers()))
 
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST(pageNo = 1), valuesInvalid)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url

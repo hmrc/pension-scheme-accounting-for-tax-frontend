@@ -521,7 +521,7 @@ addMembers.nino.header = National Insurance number
 addMembers.chargeE.amount.header = Charge amount
 addMembers.chargeD.amount.header = Total tax due
 addMembers.chargeG.amount.header = Tax due
-addMembers.total = Total
+addMembers.total = Total charge amount for this quarter
 
 chargeG.whatYouWillNeed.title = Overseas transfer charge
 chargeG.whatYouWillNeed.heading = Overseas transfer charge
@@ -1249,3 +1249,7 @@ cannotSubmitAFT.heading = An AFT return for this period has already been submitt
 cannotSubmitAFT.p1 = An AFT return for this pension scheme for this period has already been submitted on the Pension Schemes Online service.
 cannotSubmitAFT.p2 = Any amendments to this return will need to be made on that service.
 
+paginationForMembers.pagerSummary = Showing {0} – {1} of {2} members
+paginationForEmployers.pagerSummary = Showing {0} – {1} of {2} employers
+paginationPreviousPage = Prev
+paginationNextPage = Next

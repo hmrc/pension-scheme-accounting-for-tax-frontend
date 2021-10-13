@@ -21,26 +21,23 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import controllers.routes.YourActionWasNotProcessedController
 import forms.DeleteFormProvider
 import helpers.ErrorHelper.recoverFrom5XX
 
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{GenericViewModel, NormalMode, Index, UserAnswers, AccessType}
 import navigators.CompoundNavigator
-import pages.chargeD.{DeleteMemberPage, MemberDetailsPage}
+import pages.chargeD.{MemberDetailsPage, DeleteMemberPage}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{ChargeDService, DeleteAFTChargeService, UserAnswersService}
-import uk.gov.hmrc.http.HttpReads.is5xx
-import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 
 import scala.concurrent.{ExecutionContext, Future}
 
