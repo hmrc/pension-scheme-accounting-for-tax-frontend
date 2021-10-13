@@ -50,7 +50,6 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
 
     "return OK and the correct view for a GET" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-//      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn("dummy-return-url/%s")
 
       val application = applicationBuilder(userAnswers = data).overrides().build()
       val request = FakeRequest(GET, getRoute)
@@ -74,7 +73,7 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
     }
 
     "return redirect for the onClick GET" in {
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn("dummy-return-url/%s")
+      when(mockAppConfig.schemeDashboardUrl(any(), any())).thenReturn("dummy-return-url/%s")
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 
       val application = applicationBuilder(userAnswers = data).overrides().build()

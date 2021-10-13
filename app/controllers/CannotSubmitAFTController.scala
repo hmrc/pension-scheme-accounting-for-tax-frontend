@@ -54,7 +54,7 @@ class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
     (identify andThen getData(srn, startDate)).async {
       implicit request =>
         userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-          Redirect(appConfig.managePensionsSchemeSummaryUrl.format(srn))
+          Redirect(appConfig.schemeDashboardUrl(request.psaId, request.pspId).format(srn))
         }
     }
 }
