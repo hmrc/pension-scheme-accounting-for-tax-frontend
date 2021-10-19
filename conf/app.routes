@@ -335,3 +335,6 @@ GET         /:paymentsType/:srn/payments-and-charges/:period/:index/interest/ove
 
 GET         /:srn/:startDate/cannot-submit-aft                                                                                                    controllers.CannotSubmitAFTController.onPageLoad(srn: String, startDate: String)
 GET         /:srn/:startDate/on-click-cannot-submit-aft                                                                                           controllers.CannotSubmitAFTController.onClick(srn: String, startDate: String)
+
+GET         /:srn/:startDate/:accessType/:version/:chargeType/input-selection                                                                     controllers.fileUpload.InputSelectionController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String)
+POST        /:srn/:startDate/:accessType/:version/:chargeType/input-selection                                                                     controllers.fileUpload.InputSelectionController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String)

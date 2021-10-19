@@ -64,7 +64,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
 
       case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua, srn, startDate, accessType, version) == 0 =>
-        controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+        controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeType.ChargeTypeAnnualAllowance.toString)
 
       case Some(ChargeType.ChargeTypeAnnualAllowance) =>
         controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,

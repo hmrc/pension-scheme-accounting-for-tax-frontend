@@ -1253,3 +1253,9 @@ paginationForMembers.pagerSummary = Showing {0} – {1} of {2} members
 paginationForEmployers.pagerSummary = Showing {0} – {1} of {2} employers
 paginationPreviousPage = Prev
 paginationNextPage = Next
+
+fileupload.inputSelection.title = How do you want to add the {0} charge to the return
+fileupload.inputSelection.heading = How do you want to add the {0} charge to the return
+
+inputSelection.radio.manualInput = Manually enter the details
+inputSelection.radio.fileUploadInput = Upload a file

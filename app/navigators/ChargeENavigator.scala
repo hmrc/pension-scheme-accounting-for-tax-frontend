@@ -17,7 +17,6 @@
 package navigators
 
 import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -25,10 +24,11 @@ import controllers.chargeE.routes._
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{NormalMode, AccessType, UserAnswers}
+import models.{AccessType, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeE._
-import play.api.mvc.{Call, AnyContent}
+import pages.fileUpload.{InputSelectionManualPage, InputSelectionPage}
+import play.api.mvc.{AnyContent, Call}
 import services.ChargeEService
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
@@ -60,6 +60,10 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua, srn, startDate, accessType, version))
+
+    case InputSelectionManualPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
+      nextIndex(ua, srn, startDate, accessType, version))
+
     case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
