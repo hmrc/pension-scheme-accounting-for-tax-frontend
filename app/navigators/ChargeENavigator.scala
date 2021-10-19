@@ -61,8 +61,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua, srn, startDate, accessType, version))
 
-    case InputSelectionManualPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
-      nextIndex(ua, srn, startDate, accessType, version))
+    case InputSelectionManualPage => controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
 
     case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
