@@ -16,16 +16,12 @@
 
 package controllers.fileUpload
 
-import controllers.DataRetrievals
 import controllers.actions._
-import forms.fileUpload.InputSelectionFormProvider
 import models.LocalDateBinder._
-import models.fileUpload.InputSelection
-import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
-import pages.fileUpload.{InputSelectionManualPage, InputSelectionPage, InputSelectionUploadPage}
+import pages.fileUpload.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -34,9 +30,9 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-class InputSelectionController @Inject()(
+class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
     identify: IdentifierAction,
     getData: DataRetrievalAction,
@@ -44,55 +40,27 @@ class InputSelectionController @Inject()(
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
-    navigator: CompoundNavigator,
-    formProvider: InputSelectionFormProvider
+    navigator: CompoundNavigator
 )(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport {
-
-  private val form = formProvider()
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
-      val preparedForm = request.userAnswers.get(InputSelectionPage).fold(form)(form.fill)
 
       val viewModel = GenericViewModel(
-        submitUrl = "",
+        submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       )
 
-      renderer.render(template = "fileUpload/inputSelection.njk",
+      renderer.render(template = "fileUpload/whatYouWillNeed.njk",
         Json.obj(
           "chargeType" -> chargeType,
           "srn" -> srn, "startDate" -> Some(startDate),
-          "radios" -> InputSelection.radios(preparedForm),
           "viewModel" -> viewModel))
         .map(Ok(_))
     }
-
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
-      implicit request => DataRetrievals.retrieveSchemeName { _ =>
-        val ua = request.userAnswers
-        form
-          .bindFromRequest()
-          .fold(
-            formWithErrors => {
-              val json = Json.obj(
-                "chargeType" -> chargeType,
-                "srn" -> srn,
-                "startDate" -> Some(startDate),
-                "radios" -> InputSelection.radios(formWithErrors)
-              )
-              renderer.render(template = "fileUpload/inputSelection.njk", json).map(BadRequest(_))
-            },
-            {
-              case ManualInput => Future.successful(Redirect(navigator.nextPage(InputSelectionManualPage, NormalMode, ua, srn, startDate, accessType, version)))
-              case FileUploadInput => Future.successful(Redirect(navigator.nextPage(InputSelectionUploadPage, NormalMode, ua, srn, startDate, accessType, version)))
-            }
-          )
-      }
-    }
 }
+

@@ -338,3 +338,5 @@ GET         /:srn/:startDate/on-click-cannot-submit-aft                         
 
 GET         /:srn/:startDate/:accessType/:version/:chargeType/input-selection                                                                     controllers.fileUpload.InputSelectionController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String)
 POST        /:srn/:startDate/:accessType/:version/:chargeType/input-selection                                                                     controllers.fileUpload.InputSelectionController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String)
+
+GET         /:srn/:startDate/:accessType/:version/:chargeType/file-upload/what-you-will-need                                                      controllers.fileUpload.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String)

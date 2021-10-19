@@ -27,7 +27,7 @@ import models.requests.DataRequest
 import models.{AccessType, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeE._
-import pages.fileUpload.{InputSelectionManualPage, InputSelectionPage}
+import pages.fileUpload.{InputSelectionManualPage, InputSelectionPage, InputSelectionUploadPage}
 import play.api.mvc.{AnyContent, Call}
 import services.ChargeEService
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
@@ -62,6 +62,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       nextIndex(ua, srn, startDate, accessType, version))
 
     case InputSelectionManualPage => controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+    case InputSelectionUploadPage => controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge")
 
     case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
