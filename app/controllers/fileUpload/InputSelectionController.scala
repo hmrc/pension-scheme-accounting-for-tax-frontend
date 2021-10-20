@@ -74,7 +74,9 @@ class InputSelectionController @Inject()(
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
+
       implicit request => DataRetrievals.retrieveSchemeName { _ =>
+        println(s"########################################## ${navigator.getClass}")
         val ua = request.userAnswers
         form
           .bindFromRequest()
@@ -89,8 +91,8 @@ class InputSelectionController @Inject()(
               renderer.render(template = "fileUpload/inputSelection.njk", json).map(BadRequest(_))
             },
             {
-              case ManualInput => Future.successful(Redirect(navigator.nextPage(InputSelectionManualPage, NormalMode, ua, srn, startDate, accessType, version)))
-              case FileUploadInput => Future.successful(Redirect(navigator.nextPage(InputSelectionUploadPage, NormalMode, ua, srn, startDate, accessType, version)))
+              case ManualInput => Future.successful(Redirect(navigator.nextPage(InputSelectionManualPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
+              case FileUploadInput => Future.successful(Redirect(navigator.nextPage(InputSelectionUploadPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
             }
           )
       }

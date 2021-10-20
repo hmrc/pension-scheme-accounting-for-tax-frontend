@@ -24,10 +24,10 @@ import controllers.chargeE.routes._
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, NormalMode, UserAnswers}
+import models.{AccessType, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeE._
-import pages.fileUpload.{InputSelectionManualPage, InputSelectionPage, InputSelectionUploadPage}
+import pages.fileUpload.{FileUploadPage, InputSelectionManualPage, InputSelectionPage, InputSelectionUploadPage}
 import play.api.mvc.{AnyContent, Call}
 import services.ChargeEService
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
@@ -61,9 +61,11 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua, srn, startDate, accessType, version))
 
-    case InputSelectionManualPage => controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
-    case InputSelectionUploadPage => controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge")
-    case pages.fileUpload.WhatYouWillNeedPage => controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge")
+    // TODO: Refactor magic strings
+    case InputSelectionManualPage("annual-allowance-charge")  => controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+    case InputSelectionUploadPage("annual-allowance-charge") => controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge")
+    case pages.fileUpload.WhatYouWillNeedPage("annual-allowance-charge") => controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge")
+    case FileUploadPage("annual-allowance-charge") => controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge", UploadId(""))
 
     case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)

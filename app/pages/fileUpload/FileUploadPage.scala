@@ -18,4 +18,4 @@ package pages.fileUpload
 
 import pages.Page
 
-case class InputSelectionUploadPage(chargeType: String) extends Page
+case class FileUploadPage(chargeType: String) extends Page

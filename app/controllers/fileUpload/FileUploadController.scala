@@ -20,9 +20,10 @@ import config.FrontendAppConfig
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
+import models.{AccessType, GenericViewModel, InProgress, NormalMode, UploadId, UploadStatus, UploadedSuccessfully}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
+import pages.fileUpload.FileUploadPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -42,6 +43,7 @@ class FileUploadController @Inject()(
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
+    navigator: CompoundNavigator,
     upscanInitiateConnector: UpscanInitiateConnector,
     uploadProgressTracker: UploadProgressTracker
 )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
@@ -93,7 +95,7 @@ class FileUploadController @Inject()(
       val ua = request.userAnswers
 
       val viewModel = GenericViewModel(
-        submitUrl = "???", //s"${navigator.nextPage(FileUploadValidationPage, NormalMode, ua, srn, startDate, accessType, version).url}${uploadId.value}",
+        submitUrl = s"${navigator.nextPage(FileUploadPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url}${uploadId.value}",
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       )

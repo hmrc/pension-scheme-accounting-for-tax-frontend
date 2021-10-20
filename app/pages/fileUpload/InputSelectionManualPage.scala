@@ -18,4 +18,4 @@ package pages.fileUpload
 
 import pages.Page
 
-case object InputSelectionManualPage extends Page
+case class InputSelectionManualPage(chargeType: String) extends Page

@@ -342,6 +342,7 @@ POST        /:srn/:startDate/:accessType/:version/:chargeType/input-selection   
 GET         /:srn/:startDate/:accessType/:version/:chargeType/file-upload/what-you-will-need                                                      controllers.fileUpload.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String)
 GET         /:srn/:startDate/:accessType/:version/:chargeType/file-upload                                                                         controllers.fileUpload.FileUploadController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String)
 GET         /:srn/:startDate/:accessType/:version/:chargeType/file-upload/success                                                                 controllers.fileUpload.FileUploadController.showResult(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String, uploadId: models.UploadId)
+GET         /:srn/:startDate/:accessType/:version/:chargeType/file-upload/validation                                                              controllers.fileUpload.ValidationController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String, uploadId: models.UploadId)
 
 # upload file notification callback
 #NOCSRF

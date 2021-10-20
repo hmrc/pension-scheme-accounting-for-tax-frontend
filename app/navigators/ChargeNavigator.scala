@@ -74,7 +74,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
 
       case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua, srn, startDate, accessType, version) == 0 =>
-        controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+        controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge")
 
       case Some(ChargeType.ChargeTypeLifetimeAllowance) =>
         controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
