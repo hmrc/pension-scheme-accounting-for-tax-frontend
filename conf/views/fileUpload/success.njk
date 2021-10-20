@@ -1,0 +1,44 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"  import title %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+
+{% block pageTitle %}
+  {{ title(messages("fileupload.success.title", chargeType)) }}
+{% endblock %}
+
+
+{% block mainContent %}
+    {% if result == "Inprogress" %}
+        <meta http-equiv="refresh" content="1"/>
+    {% endif %}
+
+    <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+
+            <h1 class="govuk-heading-xl">
+              {{ messages("fileupload.success.heading", chargeType) }}
+            </h1>
+
+            <p class="govuk-body">{{ result }}</p>
+
+            {% if result == "Inprogress" %}
+            {{ govukButton({
+                text: messages("site.continue"),
+                disabled: true
+              }) }}
+            {% endif %}
+
+            {% if result == "Success" %}
+            {{ govukButton({
+                href: viewModel.submitUrl,
+                attributes: {id: "submit"},
+                text: messages("site.continue")
+              }) }}
+            {% endif %}
+
+      <p class="govuk-body"><a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
+      </p>
+{% endblock %}
