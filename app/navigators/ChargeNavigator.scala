@@ -22,10 +22,10 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{UserAnswers, ChargeType, NormalMode, AccessType}
+import models.{AccessType, ChargeType, MemberDetails, NormalMode, UserAnswers}
 import pages._
-import play.api.mvc.{Call, AnyContent}
-import services.{ChargeEService, ChargeDService, ChargeGService, AFTService}
+import play.api.mvc.{AnyContent, Call}
+import services.{AFTService, ChargeDService, ChargeEService, ChargeGService}
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
@@ -63,45 +63,42 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
       case Some(ChargeType.ChargeTypeAuthSurplus)  =>
         controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
 
-      case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua, srn, startDate, accessType, version) == 0 =>
+      case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua) == 0 =>
         controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
 
       case Some(ChargeType.ChargeTypeAnnualAllowance) =>
         controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
-          nextIndexChargeE(ua, srn, startDate, accessType, version))
+          nextIndexChargeE(ua))
 
       case Some(ChargeType.ChargeTypeDeRegistration) =>
         controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
 
-      case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua, srn, startDate, accessType, version) == 0 =>
+      case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua) == 0 =>
         controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
 
       case Some(ChargeType.ChargeTypeLifetimeAllowance) =>
         controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
-          nextIndexChargeD(ua, srn, startDate, accessType, version))
+          nextIndexChargeD(ua))
 
-      case Some(ChargeType.ChargeTypeOverseasTransfer) if nextIndexChargeG(ua, srn, startDate, accessType, version) == 0 =>
+      case Some(ChargeType.ChargeTypeOverseasTransfer) if nextIndexChargeG(ua) == 0 =>
         controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
 
       case Some(ChargeType.ChargeTypeOverseasTransfer) =>
         controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
-          nextIndexChargeG(ua, srn, startDate, accessType, version))
+          nextIndexChargeG(ua))
 
       case _ => sessionExpiredPage
     }
   //scalastyle:on cyclomatic.complexity
 
-  def nextIndexChargeD(ua: UserAnswers, srn: String, startDate: LocalDate,
-                       accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int =
-    chargeDHelper.getLifetimeAllowanceMembers(ua, srn, startDate, accessType, version).size
+  def nextIndexChargeD(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+    ua.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails").size
 
-  def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate,
-                       accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int =
-    chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate, accessType, version).size
+  def nextIndexChargeE(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+    ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").size
 
-  def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate,
-                       accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int =
-    chargeGHelper.getOverseasTransferMembers(ua, srn, startDate, accessType, version).size
+  def nextIndexChargeG(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+    ua.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").size
 
   private def confirmSubmitNavigation(ua: UserAnswers, srn: String, startDate: LocalDate,
                                       accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]) = {
