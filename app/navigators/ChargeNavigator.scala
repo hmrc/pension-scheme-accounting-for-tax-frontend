@@ -91,13 +91,13 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
     }
   //scalastyle:on cyclomatic.complexity
 
-  def nextIndexChargeD(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+  private def nextIndexChargeD(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails").size
 
-  def nextIndexChargeE(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+  private def nextIndexChargeE(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").size
 
-  def nextIndexChargeG(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+  private def nextIndexChargeG(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").size
 
   private def confirmSubmitNavigation(ua: UserAnswers, srn: String, startDate: LocalDate,
