@@ -17,7 +17,6 @@
 package navigators
 
 import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -25,10 +24,10 @@ import controllers.chargeE.routes._
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{NormalMode, AccessType, UserAnswers}
+import models.{AccessType, MemberDetails, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeE._
-import play.api.mvc.{Call, AnyContent}
+import play.api.mvc.{AnyContent, Call}
 import services.ChargeEService
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
@@ -36,13 +35,13 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int =
-    chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate, accessType, version).size
+  def nextIndex(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+    ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                 (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
-      nextIndex(ua, srn, startDate, accessType, version))
+      nextIndex(ua))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
   }
 
@@ -59,7 +58,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
-      nextIndex(ua, srn, startDate, accessType, version))
+      nextIndex(ua))
     case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)

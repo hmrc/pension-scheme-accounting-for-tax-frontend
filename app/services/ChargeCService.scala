@@ -39,7 +39,7 @@ import viewmodels.Table.Cell
 
 class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
-  private def numberOfEmployersIncludingDeleted(ua: UserAnswers): Int =
+   def numberOfEmployersIncludingDeleted(ua: UserAnswers): Int =
     (ua.data \ "chargeCDetails" \ "employers").toOption
       .map(_.as[JsArray].value.length)
       .getOrElse(0)

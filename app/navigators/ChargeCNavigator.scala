@@ -37,13 +37,13 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int =
-    chargeCHelper.getSponsoringEmployers(ua, srn, startDate, accessType, version).size
+  def nextIndex(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+    chargeCHelper.numberOfEmployersIncludingDeleted(ua)
 
   def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                   (implicit request: DataRequest[AnyContent]): Call = ua.get(AddEmployersPage) match {
     case Some(true) => WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, accessType, version,
-      nextIndex(ua, srn, startDate, accessType, version))
+      nextIndex(ua))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
   }
 
@@ -52,7 +52,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage =>
       WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, accessType, version,
-        nextIndex(ua, srn, startDate, accessType, version))
+        nextIndex(ua))
 
     case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeOrganisation) =>
       SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
