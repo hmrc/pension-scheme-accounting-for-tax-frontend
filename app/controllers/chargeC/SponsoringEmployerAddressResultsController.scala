@@ -38,7 +38,7 @@ import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-
+import scala.util.Try
 import scala.concurrent.{ExecutionContext, Future}
 
 class SponsoringEmployerAddressResultsController @Inject()(override val messagesApi: MessagesApi,
@@ -101,6 +101,15 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
     }
   }
 
+
+  private def mkString(p: TolerantAddress) = p.lines.mkString(" ").toLowerCase()
+
+  // Find numbers in proposed address in order of significance, from rightmost to leftmost.
+  // Pad with None to ensure we never return an empty sequence
+  private def numbersIn(p: TolerantAddress): Seq[Option[Int]] =
+    "([0-9]+)".r.findAllIn(mkString(p)).map(n => Try(n.toInt).toOption).toSeq.reverse :+ None
+
+
   private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status,
                           accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Future[Result] = {
     DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
@@ -112,8 +121,20 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = schemeName
           )
+          val addressesSorted = addresses.sortWith((a, b) => {
 
-          val addressesAsJson = transformAddressesForTemplate(addresses)
+            def sort(zipped: Seq[(Option[Int], Option[Int])]): Boolean = zipped match {
+              case (Some(nA), Some(nB)) :: tail =>
+                if (nA == nB) sort(tail) else nA < nB
+              case (Some(_), None) :: _ => true
+              case (None, Some(_)) :: _ => false
+              case _ => mkString(a) < mkString(b)
+            }
+
+            sort(numbersIn(a).zipAll(numbersIn(b), None, None).toList)
+          })
+
+          val addressesAsJson = transformAddressesForTemplate(addressesSorted)
 
           val json = Json.obj(
             "form" -> form,
