@@ -25,10 +25,6 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{ messages("selectScheme.title", messages(typeParam)) }}</h1>
-
-        <p class="govuk-body">{{ messages("selectScheme.text") }}</p>
-
         <form method="post" autocomplete="off" novalidate >
 
           {{ csrf() | safe }}
