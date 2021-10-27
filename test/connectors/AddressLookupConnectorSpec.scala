@@ -19,6 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import models.TolerantAddress
 import org.scalatest.{AsyncWordSpec, MustMatchers, RecoverMethods}
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import utils.WireMockHelper
@@ -28,7 +29,7 @@ class AddressLookupConnectorSpec extends AsyncWordSpec
   with WireMockHelper
   with RecoverMethods {
 
-  private def url = s"/v2/uk/addresses?postcode=ZZ1%201ZZ"
+  private def url = "/lookup"
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -40,7 +41,9 @@ class AddressLookupConnectorSpec extends AsyncWordSpec
     "returns an Ok and empty list" which {
       "means the AddressLookup has found no data for postcode" in {
         server.stubFor(
-          get(urlEqualTo(url)).willReturn
+          post(urlEqualTo(url))
+            .withRequestBody(equalTo(Json.obj("postcode"->"ZZ1 1ZZ").toString()))
+            .willReturn
           (
             aResponse().withStatus(OK)
               .withBody("[]")
@@ -93,8 +96,9 @@ class AddressLookupConnectorSpec extends AsyncWordSpec
 
 
         server.stubFor(
-          get(urlEqualTo(url))
+          post(urlEqualTo(url))
             .withHeader("user-agent", matching(".+"))
+            .withRequestBody(equalTo(Json.obj("postcode"->"ZZ1 1ZZ").toString()))
             .willReturn
             (
               aResponse().withStatus(OK)
@@ -148,8 +152,9 @@ class AddressLookupConnectorSpec extends AsyncWordSpec
 
 
         server.stubFor(
-          get(urlEqualTo(url))
+          post(urlEqualTo(url))
             .withHeader("user-agent", matching(".+"))
+            .withRequestBody(equalTo(Json.obj("postcode"->"ZZ1 1ZZ").toString()))
             .willReturn
             (
               aResponse().withStatus(OK)
@@ -171,7 +176,9 @@ class AddressLookupConnectorSpec extends AsyncWordSpec
       "means the Address Lookup has returned a non 200 response " in {
 
         server.stubFor(
-          get(urlEqualTo(url)).willReturn
+          post(urlEqualTo(url))
+            .withRequestBody(equalTo(Json.obj("postcode"->"ZZ1 1ZZ").toString()))
+            .willReturn
           (
             aResponse().withStatus(NOT_FOUND).withBody("Something is wrong")
           )
@@ -186,7 +193,9 @@ class AddressLookupConnectorSpec extends AsyncWordSpec
       "means the Address Lookup has returned a response in 200 range but not an OK" in {
 
         server.stubFor(
-          get(urlEqualTo(url)).willReturn
+          post(urlEqualTo(url))
+            .withRequestBody(equalTo(Json.obj("postcode"->"ZZ1 1ZZ").toString()))
+            .willReturn
           (
             aResponse().withStatus(NO_CONTENT)
           )
