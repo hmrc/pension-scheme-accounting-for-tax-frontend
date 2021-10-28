@@ -107,7 +107,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
             Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
           }) recoverWith recoverFrom5XX(srn, startDate)
         case _ =>
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
       }
     }
 }

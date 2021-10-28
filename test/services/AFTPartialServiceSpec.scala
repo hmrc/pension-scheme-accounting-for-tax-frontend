@@ -23,12 +23,12 @@ import data.SampleData.multiplePenalties
 import models._
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
-import org.mockito.Matchers
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -122,9 +122,9 @@ class AFTPartialServiceSpec
         when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 12, 31))
         when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
           .thenReturn(Future.successful(None))
-        when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-07-01"), any())(any(), any()))
+        when(aftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq("2020-07-01"), any())(any(), any()))
           .thenReturn(Future.successful(false))
-        when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-04-01"), any())(any(), any()))
+        when(aftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq("2020-04-01"), any())(any(), any()))
           .thenReturn(Future.successful(true))
 
         whenReady(service.retrievePspDashboardAftReturnsModel(srn, pstr, psaId)) {

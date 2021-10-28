@@ -143,5 +143,5 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
     }
   }
 
-  private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad()
+  private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad
 }

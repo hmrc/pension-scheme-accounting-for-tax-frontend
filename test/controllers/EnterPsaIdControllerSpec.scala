@@ -28,8 +28,8 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{GenericViewModel, SchemeStatus, UserAnswers, SchemeDetails, Enumerable}
 import navigators.CompoundNavigator
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.mockito.Matchers.any
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -93,7 +93,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    when(mockSchemeDetailsConnector.getPspSchemeDetails(Matchers.eq(pspId), any())(any(), any()))
+    when(mockSchemeDetailsConnector.getPspSchemeDetails(ArgumentMatchers.eq(pspId), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails(Some(psaId))))
   }
 
@@ -142,7 +142,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         val expectedJson = Json.obj(EnterPsaIdPage.toString -> psaId)
 
-        when(mockCompoundNavigator.nextPage(Matchers.eq(EnterPsaIdPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(EnterPsaIdPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -174,7 +174,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
       }
     }
   }

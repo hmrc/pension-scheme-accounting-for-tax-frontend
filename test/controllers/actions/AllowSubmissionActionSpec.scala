@@ -21,7 +21,7 @@ import data.SampleData
 import handlers.ErrorHandler
 import models.{AFTQuarter, UserAnswers}
 import models.requests.DataRequest
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures

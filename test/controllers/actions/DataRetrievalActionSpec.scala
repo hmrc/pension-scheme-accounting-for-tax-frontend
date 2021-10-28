@@ -21,10 +21,10 @@ import connectors.cache.UserAnswersCacheConnector
 import data.SampleData.{psaId, _}
 import models.SessionData
 import models.requests.{OptionalDataRequest, IdentifierRequest}
-import org.mockito.Matchers.{eq => eqTo, _}
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE

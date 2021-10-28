@@ -23,9 +23,9 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.UserAnswers
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeF.WhatYouWillNeedPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
@@ -60,7 +60,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 

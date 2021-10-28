@@ -119,7 +119,7 @@ class ConfirmationController @Inject()(
                 "list" -> rows,
                 "pensionSchemesUrl" -> listSchemesUrl,
                 "viewModel" -> GenericViewModel(
-                  submitUrl = SignOutController.signOut(srn, Some(startDate)).url,
+                  submitUrl = SignOutController.signOut(srn, Some(localDateToString(startDate))).url,
                   returnUrl = ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                   schemeName = schemeName
                 )

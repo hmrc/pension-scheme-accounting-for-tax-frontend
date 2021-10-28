@@ -28,9 +28,9 @@ import models.{NormalMode, GenericViewModel, UserAnswers}
 import models.chargeG.ChargeDetails
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, when, verify}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{Json, JsObject}
@@ -186,7 +186,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       val result = route(application, getRequest).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to Session Expired for a POST if no existing data is found" in {
@@ -197,7 +197,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

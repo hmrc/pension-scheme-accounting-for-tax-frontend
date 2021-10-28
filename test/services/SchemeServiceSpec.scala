@@ -19,12 +19,12 @@ package services
 import base.SpecBase
 import connectors.SchemeDetailsConnector
 import data.SampleData
-import org.mockito.Matchers
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -41,9 +41,9 @@ class SchemeServiceSpec extends SpecBase with MockitoSugar with ScalaFutures wit
     "if a PSA id then return scheme details by calling psa get scheme details" in {
       when(
         mockSchemeDetailsConnector.getSchemeDetails(
-          psaId = Matchers.eq(SampleData.psaId),
-          idNumber = Matchers.eq(SampleData.srn),
-          schemeIdType = Matchers.eq("srn")
+          psaId = ArgumentMatchers.eq(SampleData.psaId),
+          idNumber = ArgumentMatchers.eq(SampleData.srn),
+          schemeIdType = ArgumentMatchers.eq("srn")
         )(any(), any())
       ).thenReturn(Future.successful(SampleData.schemeDetails))
       val schemeService = new SchemeService(mockSchemeDetailsConnector)
@@ -56,8 +56,8 @@ class SchemeServiceSpec extends SpecBase with MockitoSugar with ScalaFutures wit
     "if a PSP id then return scheme details by calling psp get scheme details" in {
       when(
         mockSchemeDetailsConnector.getPspSchemeDetails(
-          pspId = Matchers.eq(SampleData.pspId),
-          srn = Matchers.eq(SampleData.srn)
+          pspId = ArgumentMatchers.eq(SampleData.pspId),
+          srn = ArgumentMatchers.eq(SampleData.srn)
         )(any(), any())
       ).thenReturn(Future.successful(SampleData.schemeDetails))
       val schemeService = new SchemeService(mockSchemeDetailsConnector)

@@ -24,12 +24,12 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{OptionValues, TryValues}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.chargeB.DeleteChargePage
 import pages.chargeD.MemberDetailsPage
 import play.api.Application
@@ -101,7 +101,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeleteChargePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeleteChargePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =
@@ -114,7 +114,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
+      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(ArgumentMatchers.eq(pstr),
         any())(any(), any(), any())
     }
 
@@ -157,7 +157,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to Session Expired for a POST if no existing data is found" in {
@@ -172,7 +172,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to your action was not processed page for a POST if 5XX error is thrown" in {

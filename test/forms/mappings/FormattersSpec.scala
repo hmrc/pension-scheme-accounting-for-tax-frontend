@@ -16,11 +16,13 @@
 
 package forms.mappings
 
-import org.scalatest.{OptionValues, FreeSpec, MustMatchers}
+import org.scalatest.OptionValues
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
 import play.api.data.FormError
 
 
-class FormattersSpec extends FreeSpec with MustMatchers with OptionValues with Mappings {
+class FormattersSpec extends AnyFreeSpec with Matchers with OptionValues with Mappings {
 
   val requiredKey = "error.required"
   val invalidKey = "error.invalid"

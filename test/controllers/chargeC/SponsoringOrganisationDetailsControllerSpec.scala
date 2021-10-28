@@ -25,11 +25,11 @@ import models.LocalDateBinder._
 import models.chargeC.SponsoringOrganisationDetails
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.{OptionValues, TryValues}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.chargeC.SponsoringOrganisationDetailsPage
 import play.api.Application
 import play.api.data.Form
@@ -123,7 +123,7 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
@@ -137,7 +137,7 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
       )
 
       when(mockCompoundNavigator.nextPage(
-        Matchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+        ArgumentMatchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -170,7 +170,7 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

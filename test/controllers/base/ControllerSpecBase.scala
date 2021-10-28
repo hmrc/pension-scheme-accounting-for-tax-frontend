@@ -23,11 +23,11 @@ import controllers.actions.{AllowAccessActionProvider, _}
 import models.UserAnswers
 import models.requests.{DataRequest, IdentifierRequest}
 import navigators.CompoundNavigator
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import play.api.http.HeaderNames
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}

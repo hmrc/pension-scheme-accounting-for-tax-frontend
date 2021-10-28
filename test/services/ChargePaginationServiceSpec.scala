@@ -22,10 +22,10 @@ import data.SampleData
 import helpers.DeleteChargeHelper
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.{Member, UserAnswers, Employer, AmendedChargeStatus, MemberDetails, ChargeType}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage, MemberStatusPage, MemberAFTVersionPage}
 import play.api.libs.json.JsArray
 import play.api.mvc.Call

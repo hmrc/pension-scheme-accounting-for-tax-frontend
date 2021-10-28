@@ -26,7 +26,7 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
 import models.{SchemeDetails, SchemeStatus, Enumerable}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -113,7 +113,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAmendAFTAuditEvent])
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(controllers.routes.SessionExpiredController.onPageLoad().url)
+        redirectLocation(result) mustBe Some(controllers.routes.SessionExpiredController.onPageLoad.url)
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
         eventCaptor.getValue mustBe expectedAuditEvent
       }

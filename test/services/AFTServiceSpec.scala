@@ -24,12 +24,12 @@ import data.SampleData
 import data.SampleData._
 import models.{SessionAccessData, JourneyType, UserAnswers, SessionData, AccessMode, LockDetail}
 import models.requests.{DataRequest, OptionalDataRequest}
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.mockito.Matchers.any
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.AFTStatusQuery
 import play.api.mvc.{Results, AnyContentAsEmpty}
 import uk.gov.hmrc.domain.PsaId
@@ -68,7 +68,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       when(mockAFTConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
       whenReady(aftService.fileSubmitReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
         verify(mockAFTConnector, times(1))
-          .fileAFTReturn(any(), jsonCaptor.capture(), Matchers.eq(JourneyType.AFT_SUBMIT_RETURN))(any(), any())
+          .fileAFTReturn(any(), jsonCaptor.capture(), ArgumentMatchers.eq(JourneyType.AFT_SUBMIT_RETURN))(any(), any())
       }
       jsonCaptor.getValue.getOrException(AFTStatusQuery) mustBe "Submitted"
     }
@@ -81,7 +81,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       when(mockAFTConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
       whenReady(aftService.fileCompileReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
         verify(mockAFTConnector, times(1))
-          .fileAFTReturn(any(), jsonCaptor.capture(), Matchers.eq(JourneyType.AFT_COMPILE_RETURN))(any(), any())
+          .fileAFTReturn(any(), jsonCaptor.capture(), ArgumentMatchers.eq(JourneyType.AFT_COMPILE_RETURN))(any(), any())
       }
       jsonCaptor.getValue.getOrException(AFTStatusQuery) mustBe "Compiled"
     }

@@ -30,7 +30,7 @@ import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
 import models.{SessionAccessData, GenericViewModel, UserAnswers, SessionData, AccessMode}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import pages.{EmailQuery, ConfirmSubmitAFTAmendmentValueChangeTypePage}
@@ -233,7 +233,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       val result = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

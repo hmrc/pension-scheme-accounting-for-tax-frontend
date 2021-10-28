@@ -22,8 +22,8 @@ import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-import org.mockito.{Matchers, ArgumentCaptor}
-import org.mockito.Matchers.any
+import org.mockito.{ArgumentMatchers, ArgumentCaptor}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -136,17 +136,17 @@ class PspSchemeDashboardPartialsControllerSpec
         status(result) mustEqual OK
 
         verify(mockRenderer, times(1))
-          .render(Matchers.eq("partials/pspDashboardAftReturnsCard.njk"), jsonCaptor.capture())(any())
+          .render(ArgumentMatchers.eq("partials/pspDashboardAftReturnsCard.njk"), jsonCaptor.capture())(any())
 
         jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
 
         verify(mockRenderer, times(1))
-          .render(Matchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
+          .render(ArgumentMatchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
 
         jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
 
         verify(mockRenderer, times(1))
-          .render(Matchers.eq("partials/pspDashboardOverdueAftChargesCard.njk"), jsonCaptor.capture())(any())
+          .render(ArgumentMatchers.eq("partials/pspDashboardOverdueAftChargesCard.njk"), jsonCaptor.capture())(any())
 
         jsonCaptor.getValue must containJson(pspDashboardOverdueChargesPartialJson)
       }

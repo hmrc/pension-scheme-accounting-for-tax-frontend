@@ -28,11 +28,11 @@ import helpers.FormatHelper
 import models.financialStatement.{PsaFSChargeType, PsaFS}
 import models.financialStatement.PsaFSChargeType._
 import models.{PenaltySchemes, ListSchemeDetails, ListOfSchemes, PenaltiesFilter}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
@@ -342,7 +342,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
       val apiResponse: Seq[PsaFS] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_6_MONTH_LPP))
 
       whenReady(penaltiesService.navFromAftYearsPage(apiResponse, 2020, psaId, All)){
-        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }
   }
@@ -379,7 +379,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     "redirect to SessionExpired if no charges are returned for given year" in {
       val apiResponse: Seq[PsaFS] = Seq(customPsaFS(CONTRACT_SETTLEMENT_INTEREST), customPsaFS(CONTRACT_SETTLEMENT))
       whenReady(penaltiesService.navFromPenaltiesTypePage(apiResponse, PensionsPenalties, psaId, All)){
-        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }
   }
@@ -399,7 +399,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
     "redirect to SessionExpired if no charges are returned for given year" in {
            whenReady(penaltiesService.navFromOverviewPage(Nil, psaId, All)){
-        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }
   }

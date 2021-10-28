@@ -89,7 +89,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
       renderPage(srn, startDate, accessType, version, pageNumber)
     }
 
-  private def futureSessionExpired:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+  private def futureSessionExpired:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
@@ -103,7 +103,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                 getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version, pageNumber).map { json =>
                   renderer.render(template = "chargeC/addEmployers.njk", json).map(BadRequest(_))
                 }.getOrElse(Future.successful(NotFound))
-              case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+              case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
             }
           },
           value => {
@@ -142,7 +142,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
     optionPaginatedMembersInfo.map { pmi =>
       Json.obj(
         "srn" -> srn,
-        "startDate" -> Some(startDate),
+        "startDate" -> Some(localDateToString(startDate)),
         "form" -> form,
         "viewModel" -> viewModel,
         "radios" -> Radios.yesNo(form("value")),

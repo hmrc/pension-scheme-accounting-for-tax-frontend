@@ -17,13 +17,13 @@
 package services.paymentsAndCharges
 
 
-import controllers.Assets.Redirect
 import controllers.financialStatement.paymentsAndCharges.routes._
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter._
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import play.api.mvc.Result
+import play.api.mvc.Results.Redirect
 
 import scala.concurrent.Future
 
@@ -38,7 +38,7 @@ class PaymentsNavigationService {
     } else if (paymentTypes.size == 1) {
       navFromPaymentsTypePage(payments, srn, paymentTypes.head, journeyType)
     } else {
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -52,7 +52,7 @@ class PaymentsNavigationService {
       case (AccountingForTaxCharges, 1) => navFromAFTYearsPage(payments, yearsSeq.head, srn, journeyType)
       case (_, 1) => Future.successful(Redirect(PaymentsAndChargesController.onPageLoad(srn, yearsSeq.head.toString, paymentType, journeyType)))
       case (_, size) if size > 1 => Future.successful(Redirect(SelectYearController.onPageLoad(srn, paymentType, journeyType)))
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
     }
 
@@ -68,7 +68,7 @@ class PaymentsNavigationService {
     } else if (quartersSeq.size == 1) {
       Future.successful(Redirect(PaymentsAndChargesController.onPageLoad(srn, quartersSeq.head.toString, AccountingForTaxCharges, journeyType)))
     } else {
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 

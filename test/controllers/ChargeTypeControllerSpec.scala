@@ -31,10 +31,10 @@ import models.Enumerable
 import models.GenericViewModel
 import models.UserAnswers
 import models.requests.IdentifierRequest
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers
+import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.ChargeTypePage
@@ -134,9 +134,9 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "on a POST" must {
       "Save data to user answers and redirect to next page when valid data is submitted" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(writes(ChargeType.enumerable)))
+        val expectedJson = Json.obj(ChargeTypePage.toString -> ChargeTypeAnnualAllowance.toString)
 
-        when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeTypePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -169,7 +169,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
       }
     }
   }

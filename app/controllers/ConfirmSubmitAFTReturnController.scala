@@ -69,7 +69,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
         val json = Json.obj(
           fields = "srn" -> srn,
-          "startDate" -> Some(startDate),
+          "startDate" -> Some(localDateToString(startDate)),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo(preparedForm("value"))
@@ -96,7 +96,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
               val json = Json.obj(
                 fields = "srn" -> srn,
-                "startDate" -> Some(startDate),
+                "startDate" -> Some(localDateToString(startDate)),
                 "form" -> formWithErrors,
                 "viewModel" -> viewModel,
                 "radios" -> Radios.yesNo(formWithErrors("value"))

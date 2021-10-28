@@ -88,7 +88,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val json = Json.obj(
           "srn" -> srn,
-          "startDate" -> Some(startDate),
+          "startDate" -> Some(localDateToString(startDate)),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "date" -> DateInput.localDate(preparedForm("deregistrationDate"))
@@ -116,7 +116,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
               val json = Json.obj(
                 "srn" -> srn,
-                "startDate" -> Some(startDate),
+                "startDate" -> Some(localDateToString(startDate)),
                 "form" -> formWithErrors,
                 "viewModel" -> viewModel,
                 "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))

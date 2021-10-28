@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import pages.ConfirmSubmitAFTReturnPage
@@ -159,7 +159,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       val result = route(application, request).value
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to Session Expired for a POST if no existing data is found" in {
@@ -171,7 +171,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       val result = route(application, request).value
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

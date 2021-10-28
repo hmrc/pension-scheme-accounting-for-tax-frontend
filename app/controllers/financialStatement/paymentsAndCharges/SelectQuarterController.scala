@@ -73,7 +73,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
           renderer.render(template = "financialStatement/paymentsAndCharges/selectQuarter.njk", json).map(Ok(_))
         } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
 
     }
@@ -105,7 +105,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
               }
             )
         } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
     }
   }

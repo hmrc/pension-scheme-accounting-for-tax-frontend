@@ -17,11 +17,11 @@
 package audit
 
 import config.FrontendAppConfig
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, when, verify}
-import org.scalatest._
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.ArgumentMatchers.any
+import org.mockito.{ArgumentCaptor, MockitoSugar}
+import org.scalatest.Inside
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.AnyContentAsEmpty
@@ -33,7 +33,7 @@ import uk.gov.hmrc.play.audit.model.DataEvent
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuditServiceSpec extends WordSpec with MustMatchers with MockitoSugar with Inside {
+class AuditServiceSpec extends AnyWordSpec with Matchers with MockitoSugar with Inside {
 
   private val mockAuditConnector = mock[AuditConnector]
   private val app = new GuiceApplicationBuilder()

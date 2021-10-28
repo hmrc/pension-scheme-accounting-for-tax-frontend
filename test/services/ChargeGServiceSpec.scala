@@ -28,10 +28,10 @@ import models.LocalDateBinder._
 import models.chargeG.MemberDetails
 import models.viewModels.ViewAmendmentDetails
 import models.{Member, AmendedChargeStatus, UserAnswers}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.chargeG.{MemberAFTVersionPage, MemberDetailsPage, ChargeAmountsPage, MemberStatusPage}
 import utils.AFTConstants.QUARTER_START_DATE
 class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {

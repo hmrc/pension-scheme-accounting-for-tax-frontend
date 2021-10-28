@@ -38,14 +38,14 @@ object DataRetrievals {
   def retrieveSchemeName(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(SchemeNameQuery) match {
       case Some(schemeName) => block(schemeName)
-      case _                => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
   def retrieveSchemeWithPSTR(block: (String, String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery)) match {
       case (Some(schemeName), Some(pstr)) => block(schemeName, pstr)
-      case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -53,7 +53,7 @@ object DataRetrievals {
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(EmailQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(email), Some(quarter)) => block(schemeName, email, quarter)
-      case _                                              => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                                              => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -64,21 +64,21 @@ object DataRetrievals {
       case (Some(schemeName), Some(pstr), Some(email), Some(quarter)) =>
         block(schemeName, pstr, email, quarter, request.isAmendment, request.aftVersion)
       case _ =>
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
   def retrieveSchemeAndQuarter(block: (String, AFTQuarter) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
-      case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
   def retrievePSTR(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(PSTRQuery) match {
       case Some(pstr) => block(pstr)
-      case _          => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _          => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -86,7 +86,7 @@ object DataRetrievals {
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case _                                       => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                                       => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -94,7 +94,7 @@ object DataRetrievals {
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case _                                       => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                                       => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -110,7 +110,7 @@ object DataRetrievals {
       case (Some(SponsoringEmployerTypeIndividual), _, Some(individual), Some(schemeName)) =>
         block(schemeName, individual.fullName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -126,7 +126,7 @@ object DataRetrievals {
       case (Some(SponsoringEmployerTypeIndividual), _, Some(individual), Some(schemeName)) =>
         block(schemeName, individual.fullName, SponsoringEmployerTypeIndividual)
       case _ =>
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 

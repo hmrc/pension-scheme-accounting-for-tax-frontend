@@ -50,7 +50,7 @@ class AmendYearsController @Inject()(
 
   private def amendQuartersPage(srn:String, year:Int):Future[Result] =
     Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year.toString)))
-  private def futureSessionExpiredPage:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+  private def futureSessionExpiredPage:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(

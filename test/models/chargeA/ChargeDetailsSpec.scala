@@ -16,9 +16,10 @@
 
 package models.chargeA
 
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
 
-class ChargeDetailsSpec extends FreeSpec with MustMatchers {
+class ChargeDetailsSpec extends AnyFreeSpec with Matchers {
 
   "calcTotalAmount" - {
 

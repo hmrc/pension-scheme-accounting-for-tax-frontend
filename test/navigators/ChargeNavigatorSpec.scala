@@ -73,7 +73,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 1), chargeDMemberExists),
         row(ChargeTypePage)(chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeOverseasTransfer)),
         row(ChargeTypePage)(chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 1), chargeGMemberExists),
-        row(ChargeTypePage)(routes.SessionExpiredController.onPageLoad()),
+        row(ChargeTypePage)(routes.SessionExpiredController.onPageLoad),
         row(ConfirmSubmitAFTReturnPage)(DeclarationController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
         row(ConfirmSubmitAFTReturnPage)(controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt),
           confirmSubmitAFTReturn(confirmSubmit = false)),
@@ -121,7 +121,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         ("Id", "UserAnswers", "Next Page", "Current Date", "Version"),
         rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt),
           aftSummaryYes, currentDate = LocalDate.now, version = 1),
-        rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad(), currentDate = LocalDate.now, version = 1),
+        rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad, currentDate = LocalDate.now, version = 1),
 
         rowWithDateAndVersion(AFTSummaryPage)(
           controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(srn, startDate),

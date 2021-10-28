@@ -16,10 +16,11 @@
 
 package models
 
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.Json
 
-class SchemeDetailsSpec extends FreeSpec with MustMatchers {
+class SchemeDetailsSpec extends AnyFreeSpec with Matchers {
 
   "api reads " - {
     "must map correctly to SchemeDetails" in {

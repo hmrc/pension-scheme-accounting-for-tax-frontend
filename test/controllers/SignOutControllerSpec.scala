@@ -23,7 +23,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{never, times, verify, when, _}
 import play.api.test.Helpers._
 import utils.AFTConstants._
@@ -73,7 +73,7 @@ class SignOutControllerSpec extends ControllerSpecBase {
       val result = route(application, FakeRequest(GET, signOutRoute(None))).value
 
       status(result) mustBe SEE_OTHER
-      verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
+      verify(mockUserAnswersCacheConnector, never).removeAll(any())(any(), any())
       redirectLocation(result) mustBe Some(frontendAppConfig.signOutUrl)
     }
   }

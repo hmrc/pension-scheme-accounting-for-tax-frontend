@@ -75,7 +75,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
 
             val json = Json.obj(
               fields = "srn" -> srn,
-              "startDate" -> Some(startDate),
+              "startDate" -> Some(localDateToString(startDate)),
               "viewModel" -> viewModel,
               "versionNumber" -> updatedVersion,
               "isDraft" -> (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile),

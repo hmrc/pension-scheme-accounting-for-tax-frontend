@@ -16,20 +16,20 @@
 
 package models
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import forms.mappings.Mappings
-import org.mockito.Mockito.when
-import org.scalatest.{FreeSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
 import play.api.data.Form
 import play.api.libs.json.{JsString, Json}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper
 import viewmodels.Radios
 
-class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
+import java.time.LocalDate
+
+class YearsSpec extends AnyFreeSpec with Matchers with MockitoSugar {
 
   private val form = {
     object DummyFormProvider extends Mappings {

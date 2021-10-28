@@ -24,8 +24,8 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import models.chargeB.ChargeBDetails
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.mockito.Matchers.any
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import pages.chargeB.ChargeBDetailsPage
 import play.api.Application
@@ -102,7 +102,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
         "chargeBDetails" -> Json.obj(ChargeBDetailsPage.toString -> Json.toJson(chargeBDetails))
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeBDetailsPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeBDetailsPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -139,7 +139,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "return a redirect when zero amount is submitted and new return flag is NOT set" in {
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeBDetailsPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeBDetailsPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataCompile))
@@ -156,7 +156,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
 

@@ -28,7 +28,7 @@ import models.LocalDateBinder._
 import models.ValueChangeType.ChangeTypeSame
 import models.requests.DataRequest
 import models.{AccessMode, GenericViewModel, AFTOverview, UserAnswers}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, never, when, verify}
 import org.mockito.{ArgumentCaptor, Mockito}
 import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTAmendmentValueChangeTypePage}
@@ -75,7 +75,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
 
   private def jsonToBePassed(form: Form[Boolean]): JsObject = Json.obj(
     fields = "srn" -> srn,
-    "startDate" -> Some(startDate),
+    "startDate" -> Some(localDateToString(startDate)),
     "form" -> form,
     "versionNumber" -> 3,
     "viewModel" -> GenericViewModel(
@@ -191,7 +191,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       val result = route(application, request).value
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to Session Expired for a POST if no existing data is found" in {
@@ -203,7 +203,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       val result = route(application, request).value
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

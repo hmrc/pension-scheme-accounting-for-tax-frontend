@@ -116,7 +116,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn, startDate, accessType, version))
             }) recoverWith recoverFrom5XX(srn, startDate)
           case _ =>
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
     }
 }

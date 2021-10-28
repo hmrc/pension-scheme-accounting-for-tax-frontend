@@ -25,27 +25,26 @@ import helpers.{AFTSummaryHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, UserAnswers, AFTQuarter, MemberDetails, AccessMode}
-import org.mockito.{Matchers, ArgumentCaptor}
-import org.mockito.Matchers.any
-import org.mockito.Mockito._
+import models.{AFTQuarter, AccessMode, GenericViewModel, MemberDetails, UserAnswers}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import pages._
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.{Html => TwirlHtml}
 import services.MemberSearchService.MemberRow
-import services.{AFTService, SchemeService, MemberSearchService}
-import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, Radios}
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
+import services.{AFTService, MemberSearchService, SchemeService}
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, Radios}
 import utils.AFTConstants.QUARTER_END_DATE
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.Future
 
@@ -96,7 +95,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     Json.obj(
       "srn" -> srn,
-      "startDate" -> Some(startDate),
+      "startDate" -> Some(localDateToString(startDate)),
       "form" -> form,
       "list" -> Nil,
       "isAmendment" -> isAmendment,
@@ -196,7 +195,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "calling onSubmit" when {
       "redirect to next page when user selects yes" in {
-        when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
         fakeDataSetupAction.setDataToReturn(userAnswers)
@@ -205,7 +204,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         status(result) mustEqual SEE_OTHER
 
-        verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
+        verify(mockUserAnswersCacheConnector, never).removeAll(any())(any(), any())
 
         redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
         verify(mockAFTService, never).isSubmissionDisabled(any())
@@ -213,7 +212,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       "redirect to next page when user selects no" in {
         when(mockAFTService.isSubmissionDisabled(any())).thenReturn(false)
-        when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
         fakeDataSetupAction.setDataToReturn(userAnswers)
@@ -222,7 +221,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         status(result) mustEqual SEE_OTHER
 
-        verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
+        verify(mockUserAnswersCacheConnector, never).removeAll(any())(any(), any())
 
         redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
       }
@@ -245,7 +244,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
         application.stop()
       }
     }
@@ -268,7 +267,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         status(result) mustEqual OK
 
-        verify(mockMemberSearchService, times(1)).search(any(), any(), any(), Matchers.eq("Search"), any(), any())(any())
+        verify(mockMemberSearchService, times(1)).search(any(), any(), any(), ArgumentMatchers.eq("Search"), any(), any())(any())
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
         templateCaptor.getValue mustBe templateToBeRendered
 

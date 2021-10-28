@@ -18,14 +18,15 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import models.SchemeDetails
-import org.scalatest.{AsyncWordSpec, MustMatchers}
-import play.api.libs.json.{JsString, JsBoolean, Json, JsResultException}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
+import play.api.libs.json.{JsBoolean, JsResultException, JsString, Json}
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
 
 class SchemeDetailsConnectorSpec
   extends AsyncWordSpec
-    with MustMatchers
+    with Matchers
     with WireMockHelper {
   override protected def portConfigKey: String = "microservice.services.pensions-scheme.port"
 

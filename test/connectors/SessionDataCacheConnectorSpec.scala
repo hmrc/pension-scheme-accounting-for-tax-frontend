@@ -19,14 +19,15 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import connectors.cache.SessionDataCacheConnector
 import models.AdministratorOrPractitioner
-import org.scalatest._
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import play.api.libs.json.Json
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
 
 class SessionDataCacheConnectorSpec
   extends AsyncWordSpec
-    with MustMatchers
+    with Matchers
     with WireMockHelper {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()

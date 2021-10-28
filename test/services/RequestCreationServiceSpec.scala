@@ -25,12 +25,11 @@ import data.SampleData
 import data.SampleData._
 import models.requests.IdentifierRequest
 import models.{AFTOverview, AccessMode, MinimalFlags, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, UserAnswers}
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, when, _}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterEach, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.matchers.must.Matchers
 import pages._
 import play.api.libs.json.JsObject
 import play.api.mvc.AnyContentAsEmpty
@@ -43,7 +42,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
+class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
 
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
@@ -127,8 +126,8 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         verify(mockUserAnswersCacheConnector, times(1))
           .saveAndLock(any(),
             any(),
-            Matchers.eq(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = true)),
-            Matchers.eq(false))(any(), any())
+            ArgumentMatchers.eq(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = true)),
+            ArgumentMatchers.eq(false))(any(), any())
 
         result.userAnswers.isDefined mustBe true
 

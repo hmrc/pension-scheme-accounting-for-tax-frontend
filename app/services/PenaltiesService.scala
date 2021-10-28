@@ -18,24 +18,24 @@ package services
 
 import com.google.inject.Inject
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{MinimalConnector, ListOfSchemesConnector, FinancialStatementConnector}
-import controllers.Assets.Redirect
+import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
 import controllers.financialStatement.penalties.routes._
 import helpers.FormatHelper
 import models.LocalDateBinder._
 import models.PenaltiesFilter.Outstanding
 import models.financialStatement.PenaltyType._
 import models.financialStatement.PsaFSChargeType.CONTRACT_SETTLEMENT
-import models.financialStatement.{PsaFS, PenaltyType}
-import models.{PenaltiesFilter, PenaltySchemes, ListSchemeDetails}
+import models.financialStatement.{PenaltyType, PsaFS}
+import models.{ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
 import play.api.Logger
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, OFormat, JsSuccess, Json}
+import play.api.libs.json.{JsObject, JsSuccess, Json, OFormat}
 import play.api.mvc.Result
+import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
-import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.dateFormatterDMY
 
@@ -301,7 +301,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       logger.debug(s"Skipping the penalty type page for type ${penaltyTypes.head}")
       navFromPenaltiesTypePage(penalties, penaltyTypes.head, psaId, journeyType)
     } else {
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -316,7 +316,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       case (AccountingForTaxPenalties, 1) => navFromAftYearsPage(penalties, yearsSeq.head, psaId, journeyType)
       case (_, 1) => navFromNonAftYearsPage(penalties, yearsSeq.head.toString, psaId, penaltyType, journeyType)
       case (_, size) if size > 1 => Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType, journeyType)))
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
 
   }
@@ -343,7 +343,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
             Redirect(penaltiesUrl(pstrIndex))
         }
       } else {
-        Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+        Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }
   }
@@ -361,7 +361,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       logger.debug(s"Skipping the select quarter page for year $year and type AFT")
       navFromAftQuartersPage(penalties, quartersSeq.head, psaId, journeyType)
     } else {
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -380,7 +380,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
             Redirect(PenaltiesController.onPageLoadAft(startDate, pstrIndex, journeyType))
         }
       } else {
-        Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+        Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }
 

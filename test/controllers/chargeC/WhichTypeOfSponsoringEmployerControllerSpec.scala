@@ -26,10 +26,10 @@ import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
@@ -180,7 +180,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to Session Expired for a POST if no existing data is found" in {
@@ -195,7 +195,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }
