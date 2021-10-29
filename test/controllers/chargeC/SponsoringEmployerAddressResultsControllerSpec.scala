@@ -121,6 +121,11 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
 
   "SponsoringEmployerAddressResults Controller with individual sponsor" must {
     "return OK and the correct view for a GET" in {
+      val seqAddresses =
+        Seq[TolerantAddress](
+          secondAddress,
+          firstAddress
+        )
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersIndividual)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -136,8 +141,9 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
       val expectedJson = jsonToPassToTemplate(sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}",
         sponsorType = SponsoringEmployerTypeIndividual)
         .apply(form)
+      val expected = expectedJson ++ Json.obj("addresses" -> transformAddressesForTemplate(seqAddresses))
 
-      jsonCaptor.getValue must containJson(expectedJson)
+      jsonCaptor.getValue must containJson(expected)
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
