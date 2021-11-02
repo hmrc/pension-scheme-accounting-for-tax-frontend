@@ -50,8 +50,7 @@ trait CommonYears extends Enumerable.Implicits {
     val earliestYear = currentYear - 6
     if(earliestYear > config.minimumYear) {
       earliestYear
-    }
-    else {
+    } else {
       config.minimumYear
     }
   }
@@ -61,7 +60,7 @@ trait CommonYears extends Enumerable.Implicits {
 
 object StartYears extends CommonYears with Enumerable.Implicits {
 
-  def values(implicit config: FrontendAppConfig): Seq[Year] = (minYear to currentYear).reverse.map(Year(_))
+  def values(implicit config: FrontendAppConfig): Seq[Year] = (minYear to currentYear).reverseMap(Year(_))
 
   def radios(form: Form[_])(implicit config: FrontendAppConfig): Seq[Radios.Item] = {
     Radios(form("value"), values.map(year => Radios.Radio(Literal(year.toString), year.toString)))
@@ -73,10 +72,10 @@ object StartYears extends CommonYears with Enumerable.Implicits {
 
 object AmendYears extends CommonYears with Enumerable.Implicits {
 
-  def values(years: Seq[Int]): Seq[Year] = years.reverse.map(Year(_))
+  def values(years: Seq[Int]): Seq[Year] = years.reverseMap(Year(_))
 
   def radios(form: Form[_], years: Seq[Int]): Seq[Radios.Item] = {
-    Radios(form("value"), years.reverse.map(year => Radios.Radio(Literal(year.toString), year.toString)))
+    Radios(form("value"), years.reverseMap(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
 
   implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =

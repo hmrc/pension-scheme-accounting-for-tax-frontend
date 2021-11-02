@@ -73,7 +73,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
     if (deleteChargeHelper.isLastCharge(ua)) { // Last charge/ member on last charge
       deleteChargeHelper.zeroOutLastCharge(ua)
-    } else if (version ==1 || isAddedInAmendmentOfSameVersion(ua, page, version)) {
+    } else if (version == 1 || isAddedInAmendmentOfSameVersion(ua, page, version)) {
       removeMemberOrCharge(ua, page)
     } else { // Amendments and not added in same version
       ua.removeWithPath(amendedVersionPath(page))
