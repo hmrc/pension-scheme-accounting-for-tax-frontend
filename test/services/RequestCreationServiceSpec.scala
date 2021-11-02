@@ -135,32 +135,6 @@ class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSuga
       }
     }
 
-    "when no user answers, no version, AFTSummaryPage and previous URL is within AFT" must {
-      "create empty data request" in {
-
-        val referer = Seq("Referer" -> "manage-pension-scheme-accounting-for-tax")
-
-        val request: IdentifierRequest[AnyContentAsEmpty.type] =
-          IdentifierRequest("id", fakeRequest.withHeaders(referer :_*), Some(psaIdInstance))
-
-        when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
-          .thenReturn(Future.successful(None))
-
-        when(mockUserAnswersCacheConnector.saveAndLock(any(), any(), any(), any())(any(), any()))
-          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
-
-        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
-
-        val result = Await.result(
-          requestCreationService
-            .retrieveAndCreateRequest(srn, QUARTER_START_DATE, 1, accessType, Some(AFTSummaryPage))(request, implicitly, implicitly),
-          Duration.Inf
-        )
-
-        result.userAnswers mustBe None
-      }
-    }
-
     "when no user answers, no version, AFTSummaryPage and previous URL is NOT within AFT" must {
       "create data request with details" in {
 
