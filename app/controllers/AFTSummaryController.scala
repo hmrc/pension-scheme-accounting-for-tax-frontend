@@ -187,7 +187,7 @@ class AFTSummaryController @Inject()(
 
     Json.obj(
       "srn" -> srn,
-      "startDate" -> Some(startDate),
+      "startDate" -> Some(localDateToString(startDate)),
       "form" -> form,
       "formSearchText" -> formSearchText,
       "isAmendment" -> request.isAmendment,

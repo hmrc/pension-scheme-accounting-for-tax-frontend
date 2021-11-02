@@ -70,7 +70,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
 
           val json = Json.obj(
             "srn" -> srn,
-            "startDate" -> Some(startDate),
+            "startDate" -> Some(localDateToString(startDate)),
             "form" -> form,
             "viewModel" -> viewModel,
             "radios" -> Radios.yesNo(form(implicitly)("value")),
@@ -97,7 +97,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
 
               val json = Json.obj(
                 "srn" -> srn,
-                "startDate" -> Some(startDate),
+                "startDate" -> Some(localDateToString(startDate)),
                 "form" -> formWithErrors,
                 "viewModel" -> viewModel,
                 "radios" -> Radios.yesNo(formWithErrors("value")),

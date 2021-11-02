@@ -72,7 +72,7 @@ class SelectPenaltiesQuarterController @Inject()(
 
           renderer.render(template = "financialStatement/penalties/selectQuarter.njk", json).map(Ok(_))
         } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
 
     }
@@ -103,7 +103,7 @@ class SelectPenaltiesQuarterController @Inject()(
               value => penaltiesService.navFromAftQuartersPage(penaltiesCache.penalties, value.startDate, request.psaIdOrException.id, journeyType)
             )
         } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
     }
   }

@@ -28,7 +28,7 @@ import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{SchemeFS, SchemeFSChargeType}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
@@ -147,7 +147,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
         .thenReturn(Future.successful(paymentsCache(Seq.empty)))
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

@@ -21,12 +21,12 @@ import data.SampleData.sessionId
 import helpers.DeleteChargeHelper
 import models.requests.DataRequest
 import models.{SessionAccessData, CheckMode, UserAnswers, NormalMode, AmendedChargeStatus, SessionData, AccessMode}
-import org.mockito.Matchers
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.QuestionPage
 import play.api.libs.json.{JsPath, Json}
 import play.api.mvc.AnyContent
@@ -58,7 +58,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
     "FIRST COMPILE - zero out a scheme level charge being deleted if version is 1 and it is the last charge" in {
       when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(true)
-      when(mockDeleteChargeHelper.zeroOutCharge(Matchers.eq(Page), any())).thenReturn(uaVersion2)
+      when(mockDeleteChargeHelper.zeroOutCharge(ArgumentMatchers.eq(Page), any())).thenReturn(uaVersion2)
       val result = service.removeSchemeBasedCharge(Page)(dataRequest(ua))
 
       result mustBe uaVersion2

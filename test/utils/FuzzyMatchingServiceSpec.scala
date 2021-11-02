@@ -16,10 +16,11 @@
 
 package utils
 
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
 import services.FuzzyMatchingService
 
-class FuzzyMatchingServiceSpec extends FreeSpec with MustMatchers {
+class FuzzyMatchingServiceSpec extends AnyFreeSpec with Matchers {
 
   private val fuzzyMatchingService = new FuzzyMatchingService
   private val inputString = "Bob Smith Steven Alastair Marrie Augustine Philip Cameron David Constantine ki Delaney Dave Atticus"

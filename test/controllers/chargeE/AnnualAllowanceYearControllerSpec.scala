@@ -27,9 +27,9 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import pages.chargeE.{AnnualAllowanceMembersQuery, AnnualAllowanceYearPage}
 import play.api.Application
@@ -140,7 +140,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -173,7 +173,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

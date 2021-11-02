@@ -23,10 +23,10 @@ import play.api.mvc.Results.Ok
 import models.LocalDateBinder._
 import models.UserAnswers
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.SchemeNameQuery
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest

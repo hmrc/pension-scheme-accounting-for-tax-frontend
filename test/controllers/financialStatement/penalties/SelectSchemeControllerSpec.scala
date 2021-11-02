@@ -29,7 +29,7 @@ import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.financialStatement.{PsaFS, PenaltyType}
 import models.{PenaltySchemes, Enumerable}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures

@@ -105,7 +105,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
       val amendedVersion = request.aftVersion
       val previousVersion = amendedVersion - 1
 
-      aftConnector.getAftOverview(pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate)).flatMap { seqOverview =>
+      aftConnector.getAftOverview(pstr, Some(localDateToString(startDate)), Some(Quarters.getQuarter(startDate).endDate)).flatMap { seqOverview =>
         val isCompilable = seqOverview.exists(_.compiledVersionAvailable == true)
 
         if (accessType == Draft && !isCompilable) {
@@ -129,7 +129,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
 
               val json = Json.obj(
                 fields = "srn" -> srn,
-                "startDate" -> Some(startDate),
+                "startDate" -> Some(localDateToString(startDate)),
                 "form" -> form,
                 "versionNumber" -> amendedVersion,
                 "viewModel" -> viewModel,

@@ -16,15 +16,16 @@
 
 package models
 
-import java.time.LocalDate
-
-import org.mockito.Matchers.any
-import org.mockito.Mockito.when
-import org.scalatest.{MustMatchers, WordSpec, BeforeAndAfterEach}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.ArgumentMatchers.any
+import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.PathBindable
 
-class LocalDateBinderSpec extends WordSpec with MustMatchers with MockitoSugar with BeforeAndAfterEach {
+import java.time.LocalDate
+
+class LocalDateBinderSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   private val mockStringBinder = mock[PathBindable[String]]
   private val localDateBinder = LocalDateBinder.datePathBindable(mockStringBinder)

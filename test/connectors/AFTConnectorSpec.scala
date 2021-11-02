@@ -16,19 +16,21 @@
 
 package connectors
 
-import java.time.LocalDate
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.LocalDateBinder._
-import models.SubmitterType.{PSP, PSA}
-import models.{AFTOverview, UserAnswers, VersionsWithSubmitter, SubmitterDetails, AFTVersion, JourneyType}
-import org.scalatest._
+import models.SubmitterType.{PSA, PSP}
+import models.{AFTOverview, AFTVersion, JourneyType, SubmitterDetails, UserAnswers, VersionsWithSubmitter}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status
-import play.api.libs.json.{JsNumber, Json, JsBoolean}
+import play.api.libs.json.{JsBoolean, JsNumber, Json}
 import uk.gov.hmrc.http._
 import utils.{DateHelper, WireMockHelper}
 
-class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
+import java.time.LocalDate
+
+class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 

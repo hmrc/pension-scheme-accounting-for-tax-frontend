@@ -58,7 +58,7 @@ class WhatYouWillNeedController @Inject()(
 
       renderer
         .render(template = "chargeB/whatYouWillNeed.njk",
-                Json.obj(fields = "srn" -> srn, "startDate" -> Some(startDate), "schemeName" -> schemeName, "nextPage" -> nextPage.url,
+                Json.obj(fields = "srn" -> srn, "startDate" -> Some(localDateToString(startDate)), "schemeName" -> schemeName, "nextPage" -> nextPage.url,
                 "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url))
         .map(Ok(_))
     }

@@ -85,7 +85,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect( routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index))
               case None =>
-                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
             }
 
           }
@@ -114,7 +114,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
                           accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Future[Result] = {
     DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
       request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
-        case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         case Some(addresses) =>
           val viewModel = GenericViewModel(
             submitUrl = routes.SponsoringEmployerAddressResultsController.onSubmit(mode, srn, startDate, accessType, version, index).url,

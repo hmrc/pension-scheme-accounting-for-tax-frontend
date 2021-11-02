@@ -69,7 +69,7 @@ class SelectSchemeController @Inject()(
 
             renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(Ok(_))
           } else {
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
           }
         }
       }

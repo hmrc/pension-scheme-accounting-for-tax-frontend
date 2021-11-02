@@ -28,11 +28,11 @@ import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.viewModels.ViewAmendmentDetails
 import models.{chargeA, AmendedChargeStatus, UserAnswers}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
 import pages.chargeB.ChargeBDetailsPage
 import pages.chargeC.{ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, MemberStatusPage => MemberCStatusPage, MemberAFTVersionPage => MemberCAFTVersionPage}

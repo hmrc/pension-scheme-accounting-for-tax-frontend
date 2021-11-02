@@ -17,14 +17,16 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import models.{SchemeStatus, ListSchemeDetails, ListOfSchemes}
-import org.scalatest.{OptionValues, BeforeAndAfterEach, AsyncWordSpec, MustMatchers}
+import models.{ListOfSchemes, ListSchemeDetails, SchemeStatus}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
+import org.scalatest.{BeforeAndAfterEach, OptionValues}
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
 
-class ListOfSchemesConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with BeforeAndAfterEach {
+class ListOfSchemesConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with BeforeAndAfterEach {
 
   import ListOfSchemesConnectorSpec._
 

@@ -16,13 +16,14 @@
 
 package models
 
-import java.time.{LocalDateTime, LocalDate}
-
 import base.SpecBase
-import org.scalatest.{OptionValues, MustMatchers}
+import org.scalatest.OptionValues
+import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.Json
 
-class MongoDateTimeFormatsSpec extends SpecBase with MustMatchers with OptionValues with MongoDateTimeFormats {
+import java.time.{LocalDate, LocalDateTime}
+
+class MongoDateTimeFormatsSpec extends SpecBase with Matchers with OptionValues with MongoDateTimeFormats {
 
   "a LocalDateTime" must {
 

@@ -69,7 +69,7 @@ class AFTAmendController @Inject()(
             }
           }
         } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
 
         futureResult.map { result =>

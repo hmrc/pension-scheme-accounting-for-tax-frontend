@@ -24,11 +24,11 @@ import matchers.JsonMatchers
 import models.GenericViewModel
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.{OptionValues, TryValues}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.PSTRQuery
 import pages.chargeE.{MemberDetailsPage, TotalChargeAmountPage}
 import play.api.Application
@@ -122,8 +122,8 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
         .set(PSTRQuery, pstr).success.value
         .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
 
-      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
-        Matchers.eq(expectedUA))(any(), any(), any())
+      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(ArgumentMatchers.eq(pstr),
+        ArgumentMatchers.eq(expectedUA))(any(), any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
@@ -165,7 +165,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to Session Expired for a POST if no existing data is found" in {
@@ -180,7 +180,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to your action was not processed page for a POST if 5XX error is thrown" in {

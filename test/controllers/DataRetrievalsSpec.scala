@@ -16,29 +16,30 @@
 
 package controllers
 
-import java.time.LocalDate
-
 import data.SampleData
-import data.SampleData.{versionInt, accessType}
+import data.SampleData.{accessType, versionInt}
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
-import models.chargeC.{SponsoringOrganisationDetails, SponsoringEmployerAddress, ChargeCDetails}
+import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeG.{MemberDetails => ChargeGMemberDetails}
 import models.requests.DataRequest
-import models.{SponsoringEmployerType, UserAnswers, AFTQuarter, Draft, MemberDetails}
-import org.scalatest.{OptionValues, FreeSpec, MustMatchers}
+import models.{AFTQuarter, Draft, MemberDetails, SponsoringEmployerType, UserAnswers}
+import org.scalatest.OptionValues
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
 import pages._
 import pages.chargeC._
 import pages.chargeE.MemberDetailsPage
 import pages.chargeG.{MemberDetailsPage => ChargeGMemberDetailsPage}
 import play.api.mvc.Results.Ok
-import play.api.mvc.{Result, AnyContent}
+import play.api.mvc.{AnyContent, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{OK, status, _}
 import uk.gov.hmrc.domain.PsaId
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
-class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
+class DataRetrievalsSpec extends AnyFreeSpec with Matchers with OptionValues {
 
   private val startDate = LocalDate.of(2020, 1, 1)
   private val endDate = LocalDate.of(2020, 3, 31)
@@ -56,7 +57,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"),
         "test-internal-id", Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeName(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 
@@ -75,7 +76,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"),
         "test-internal-id", Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeNameWithEmailAndQuarter(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 
@@ -94,7 +95,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 
@@ -114,7 +115,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndQuarter(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 
@@ -132,7 +133,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrievePSTR(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 
@@ -151,7 +152,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(0))(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 
@@ -172,7 +173,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeMemberChargeG(ChargeGMemberDetailsPage(0))(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 
@@ -205,7 +206,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndSponsoringEmployer(index = 0)(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 
@@ -238,7 +239,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index = 0)(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 

@@ -93,14 +93,14 @@ class PaymentsAndChargeDetailsController @Inject()(
             s"No Payments and Charge details found for the " +
               s"selected charge reference ${chargeRefs(index.toInt)}"
           )
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
       }
     } else {
       logger.warn(
         s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
           s"index $period/$index of attempted"
       )
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 

@@ -32,10 +32,10 @@ import models.ValueChangeType.{ChangeTypeSame, ChangeTypeDecrease, ChangeTypeInc
 import models.requests.IdentifierRequest
 import models.{SessionAccessData, GenericViewModel, JourneyType, UserAnswers, AFTQuarter, AdministratorOrPractitioner, Declaration, AccessMode}
 import navigators.CompoundNavigator
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito, Matchers}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.{ArgumentCaptor, Mockito, ArgumentMatchers}
+import org.mockito.MockitoSugar
 import pages._
 import play.api.Application
 import play.api.inject.bind
@@ -151,7 +151,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       val uaCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
@@ -166,7 +166,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         hasAgreed = true
       ))
       verify(mockEmailConnector, times(1)).sendEmail(
-        Matchers.eq(AdministratorOrPractitioner.Administrator),
+        ArgumentMatchers.eq(AdministratorOrPractitioner.Administrator),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
@@ -185,7 +185,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       val uaCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(applicationPsp, httpGETRequest(httpPathOnSubmit)).value
@@ -200,7 +200,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         hasAgreed = true
       ))
       verify(mockEmailConnector, times(1)).sendEmail(
-        Matchers.eq(AdministratorOrPractitioner.Practitioner),
+        ArgumentMatchers.eq(AdministratorOrPractitioner.Practitioner),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
@@ -223,7 +223,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
@@ -231,7 +231,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       status(result) mustEqual SEE_OTHER
 
       verify(mockEmailConnector, times(1)).sendEmail(
-        Matchers.eq(AdministratorOrPractitioner.Administrator),
+        ArgumentMatchers.eq(AdministratorOrPractitioner.Administrator),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
 
@@ -250,7 +250,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
@@ -258,7 +258,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       status(result) mustEqual SEE_OTHER
 
       verify(mockEmailConnector, times(1)).sendEmail(
-        Matchers.eq(AdministratorOrPractitioner.Administrator),
+        ArgumentMatchers.eq(AdministratorOrPractitioner.Administrator),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
@@ -276,7 +276,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
@@ -284,7 +284,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       status(result) mustEqual SEE_OTHER
 
       verify(mockEmailConnector, times(1)).sendEmail(
-        Matchers.eq(AdministratorOrPractitioner.Administrator),
+        ArgumentMatchers.eq(AdministratorOrPractitioner.Administrator),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
@@ -304,7 +304,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to your action was not processed page for a POST if 5XX error is thrown" in {

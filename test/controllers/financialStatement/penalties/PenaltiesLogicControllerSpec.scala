@@ -27,7 +27,7 @@ import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.{PenaltyType, PsaFS}
 import models.requests.IdentifierRequest
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures

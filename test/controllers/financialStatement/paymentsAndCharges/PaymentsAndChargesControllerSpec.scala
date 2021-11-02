@@ -26,8 +26,8 @@ import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.mockito.Matchers.any
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
@@ -70,7 +70,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
@@ -97,7 +97,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     "redirect to Session Expired page when there is no data for the selected year for a GET" in {
       val result = route(application, httpGETRequest(httpPathGET(startDate = "2022-01-01"))).value
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

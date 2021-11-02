@@ -68,7 +68,7 @@ class ReturnHistoryController @Inject()(
     val json = for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
       schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
-      seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(endDate))
+      seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(localDateToString(startDate)), Some(endDate))
       versions <- aftConnector.getListOfVersions(schemeDetails.pstr, startDate)
       _ <- userAnswersCacheConnector.removeAll(internalId)
       table <- tableOfVersions(srn, versions.sortBy(_.versionDetails.reportVersion).reverse, startDate, seqAFTOverview)
@@ -84,7 +84,7 @@ class ReturnHistoryController @Inject()(
 
       Json.obj(
         fields = "srn" -> srn,
-        "startDate" -> Some(startDate),
+        "startDate" -> Some(localDateToString(startDate)),
         "quarterStart" -> startDate.format(dateFormatterStartDate),
         "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn),

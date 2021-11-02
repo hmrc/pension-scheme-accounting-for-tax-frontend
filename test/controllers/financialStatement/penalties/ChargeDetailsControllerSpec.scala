@@ -26,7 +26,7 @@ import models.PenaltiesFilter.All
 import models.financialStatement.PsaFS
 import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -146,7 +146,7 @@ class ChargeDetailsControllerSpec
         val result = route(application, httpGETRequest(httpPathGETAssociated("2"))).value
 
         status(result) mustBe SEE_OTHER
-        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
       }
     }
   }

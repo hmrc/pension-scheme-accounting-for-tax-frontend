@@ -25,12 +25,12 @@ import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
 import models._
 import models.financialStatement.{SchemeFS, SchemeFSChargeType}
-import org.mockito.Matchers
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import play.api.i18n.Messages
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
@@ -114,9 +114,9 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
         when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 12, 31))
         when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
           .thenReturn(Future.successful(None))
-        when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-07-01"), any())(any(), any()))
+        when(aftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq("2020-07-01"), any())(any(), any()))
           .thenReturn(Future.successful(false))
-        when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-04-01"), any())(any(), any()))
+        when(aftConnector.getIsAftNonZero(any(), ArgumentMatchers.eq("2020-04-01"), any())(any(), any()))
           .thenReturn(Future.successful(true))
 
         whenReady(service.aftCardModel(schemeDetails, srn)) {

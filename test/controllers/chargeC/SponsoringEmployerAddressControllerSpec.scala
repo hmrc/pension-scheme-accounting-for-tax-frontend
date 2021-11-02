@@ -26,11 +26,11 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
 import models.chargeC.SponsoringEmployerAddress
 import models.requests.IdentifierRequest
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.mockito.Matchers.any
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
 import play.api.data.Form
@@ -159,7 +159,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 
@@ -206,7 +206,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
@@ -221,7 +221,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(SponsoringEmployerAddressPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
 
@@ -255,7 +255,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

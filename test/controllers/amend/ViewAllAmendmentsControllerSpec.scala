@@ -30,7 +30,7 @@ import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{AccessMode, GenericViewModel}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
@@ -107,7 +107,7 @@ class ViewAllAmendmentsControllerSpec
 
   private def expectedJson: JsObject = Json.obj(
     fields = "srn" -> srn,
-    "startDate" -> Some(startDate),
+    "startDate" -> Some(localDateToString(startDate)),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version = 3).url,
       returnUrl = dummyCall.url,
@@ -143,7 +143,7 @@ class ViewAllAmendmentsControllerSpec
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

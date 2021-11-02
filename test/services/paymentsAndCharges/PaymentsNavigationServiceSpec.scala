@@ -17,7 +17,6 @@
 package services.paymentsAndCharges
 
 import base.SpecBase
-import controllers.Assets.Redirect
 import controllers.financialStatement.paymentsAndCharges.routes._
 import data.SampleData._
 import models.ChargeDetailsFilter
@@ -27,7 +26,8 @@ import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{SchemeFS, SchemeFSChargeType}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
+import play.api.mvc.Results.Redirect
 import utils.AFTConstants._
 
 import java.time.LocalDate
@@ -84,7 +84,7 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "redirect to SessionExpired page if there are no quarters in the given year" in {
       whenReady(paymentsNavigationService.navFromAFTYearsPage(Nil, year, srn, journeyType)){
-        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }
   }
@@ -115,7 +115,7 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "redirect to SessionExpired page if there are no quarters in the given year" in {
       whenReady(paymentsNavigationService.navFromPaymentsTypePage(Nil, srn, ContractSettlementCharges, journeyType)){
-        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }
   }
@@ -135,7 +135,7 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "redirect to SessionExpired page if there are no quarters in the given year" in {
       whenReady(paymentsNavigationService.navFromSchemeDashboard(Nil, srn, journeyType)){
-        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+        _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }
   }
