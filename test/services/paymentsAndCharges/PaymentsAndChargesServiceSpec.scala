@@ -31,7 +31,7 @@ import models.financialStatement.{SchemeFS, SchemeFSChargeType}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import services.{PenaltiesCache, SchemeService}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -45,7 +45,7 @@ import viewmodels.Table.Cell
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json

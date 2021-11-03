@@ -16,13 +16,11 @@
 
 package helpers
 
-import java.time.LocalDate
-
 import base.SpecBase
 import controllers._
 import controllers.chargeB.{routes => _}
 import data.SampleData
-import data.SampleData.{version, versionInt, sessionAccessDataCompile, accessType}
+import data.SampleData.{accessType, sessionAccessDataCompile, version, versionInt}
 import models.ChargeType.{ChargeTypeAnnualAllowance, _}
 import models.LocalDateBinder._
 import models.chargeA.{ChargeDetails => ChargeADetails}
@@ -30,18 +28,21 @@ import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.requests.DataRequest
 import models.{AccessMode, ChargeType, SessionAccessData, UserAnswers}
-import org.scalatest.{MustMatchers, BeforeAndAfterEach}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.GET
 import play.twirl.api.{Html => TwirlHtml}
 import uk.gov.hmrc.domain.PsaId
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 
-class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar with BeforeAndAfterEach {
+import java.time.LocalDate
+
+class AFTSummaryHelperSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   private val userAnswers = UserAnswers(Json.obj())
     .setOrException(pages.chargeE.TotalChargeAmountPage, BigDecimal(100.00))

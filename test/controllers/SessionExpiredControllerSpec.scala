@@ -18,7 +18,7 @@ package controllers
 
 import controllers.base.ControllerSpecBase
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -37,7 +37,7 @@ class SessionExpiredControllerSpec extends ControllerSpecBase {
 
       val application = applicationBuilder(userAnswers = None).build()
 
-      val request = FakeRequest(GET, routes.SessionExpiredController.onPageLoad().url)
+      val request = FakeRequest(GET, routes.SessionExpiredController.onPageLoad.url)
 
       val result = route(application, request).value
 

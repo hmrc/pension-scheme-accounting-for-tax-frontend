@@ -28,7 +28,7 @@ import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.IdentifierRequest
 import models.{AFTOverview, AFTVersion, AccessType, Draft, Submission, SubmitterDetails, VersionsWithSubmitter}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import play.api.Application
 import play.api.inject.bind

@@ -17,18 +17,17 @@
 package navigators
 
 import java.time.LocalDate
-
 import base.SpecBase
 import models.requests.DataRequest
-import models.{SessionAccessData, UserAnswers, AccessType, Mode, AccessMode}
-import org.scalatest.MustMatchers
-import org.scalatest.prop.{TableFor5, TableFor3}
+import models.{AccessMode, AccessType, Mode, SessionAccessData, UserAnswers}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.prop.{TableFor3, TableFor5}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages.Page
 import play.api.mvc.{AnyContent, Call}
 import utils.DateHelper
 
-trait NavigatorBehaviour extends SpecBase with MustMatchers with ScalaCheckPropertyChecks {
+trait NavigatorBehaviour extends SpecBase with Matchers with ScalaCheckPropertyChecks {
 
   protected def row(page: Page)(call: Call, ua: Option[UserAnswers] = None): (Page, UserAnswers, Call) = {
     Tuple3(page, ua.getOrElse(UserAnswers()), call)

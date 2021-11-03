@@ -25,11 +25,11 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.{OptionValues, TryValues}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import pages.PSTRQuery
 import pages.chargeC._
 import play.api.Application
@@ -187,8 +187,8 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
         .set(PSTRQuery, pstr).success.value
         .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
-      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
-        Matchers.eq(expectedUA))(any(), any(), any())
+      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(ArgumentMatchers.eq(pstr),
+        ArgumentMatchers.eq(expectedUA))(any(), any(), any())
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted organisation marked as deleted" in {
@@ -217,8 +217,8 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
           .set(PSTRQuery, pstr).success.value
           .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
-      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
-        Matchers.eq(expectedUA))(any(), any(), any())
+      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(ArgumentMatchers.eq(pstr),
+        ArgumentMatchers.eq(expectedUA))(any(), any(), any())
     }
 
     "redirect to your action was not processed page for a POST if 5XX error is thrown" in {

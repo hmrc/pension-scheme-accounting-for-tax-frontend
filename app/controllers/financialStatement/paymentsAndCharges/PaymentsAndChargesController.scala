@@ -77,7 +77,7 @@ class PaymentsAndChargesController @Inject()(
 
               } else {
                 logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
-                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
               }
 
       }

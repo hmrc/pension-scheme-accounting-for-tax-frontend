@@ -16,15 +16,16 @@
 
 package models
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
-import org.mockito.Mockito.when
-import org.scalatest.{MustMatchers, WordSpec, BeforeAndAfterEach}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import utils.DateHelper
 
-class QuartersSpec extends WordSpec with MustMatchers with MockitoSugar with BeforeAndAfterEach {
+import java.time.LocalDate
+
+class QuartersSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
 

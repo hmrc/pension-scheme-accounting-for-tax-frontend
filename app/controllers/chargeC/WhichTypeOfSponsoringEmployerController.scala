@@ -72,7 +72,7 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
 
         val json = Json.obj(
           "srn" -> srn,
-          "startDate" -> Some(startDate),
+          "startDate" -> Some(localDateToString(startDate)),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "radios" -> SponsoringEmployerType.radios(preparedForm)

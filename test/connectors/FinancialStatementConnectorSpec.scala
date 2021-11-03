@@ -20,7 +20,8 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.financialStatement.PsaFS
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
-import org.scalatest._
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status
 import play.api.libs.json.Json
 import uk.gov.hmrc.http._
@@ -28,7 +29,7 @@ import utils.WireMockHelper
 
 import java.time.LocalDate
 
-class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
+class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
 
   import FinancialStatementConnectorSpec._
 

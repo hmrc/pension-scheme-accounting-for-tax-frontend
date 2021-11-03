@@ -25,8 +25,8 @@ import models.LocalDateBinder._
 import models.SchemeStatus.{WoundUp, Rejected, Open}
 import models.requests.{IdentifierRequest, DataRequest}
 import models.{SessionAccessData, SessionData, UserAnswers, MinimalFlags, AccessMode, LockDetail}
-import org.mockito.Matchers
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages._
@@ -136,7 +136,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
       val errorResult = Ok("error")
-      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
+      when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
       val testHarness = new TestHarness(srn)
 
@@ -155,7 +155,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
         .thenReturn(Future.successful(false))
 
       val errorResult = Ok("error")
-      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
+      when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
       val testHarness = new TestHarness(srn)
 
@@ -186,7 +186,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val ua = userAnswersWithSchemeName
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
-      val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+      val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad)
 
       val testHarness = new TestHarness(srn)
 
@@ -201,7 +201,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val ua = userAnswersWithSchemeName
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
-      val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+      val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad)
 
       val testHarness = new TestHarness(srn)
 

@@ -56,7 +56,9 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
     val url = config.getAftDetails
     val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
+    logger.warn(s"Calling getAFT details")
     http.GET[HttpResponse](url)(implicitly, aftHc, implicitly).map { response =>
+      logger.warn(s"GetAFT details resturned response with status ${response.status}")
       response.status match {
         case OK => Json.parse(response.body)
         case _ => handleErrorResponse("GET", url)(response)

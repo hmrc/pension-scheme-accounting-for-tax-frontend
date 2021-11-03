@@ -19,14 +19,15 @@ package services
 import java.time.LocalDate
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{MinimalConnector, AFTConnector}
+import connectors.{AFTConnector, MinimalConnector}
 
 import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import models.{AFTOverview, SessionAccessData, Quarters, Draft, SchemeDetails, AccessMode, UserAnswers, MinimalFlags, AccessType}
+import models.{AFTOverview, AccessMode, AccessType, Draft, MinimalFlags, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
 import pages._
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
@@ -41,7 +42,7 @@ class RequestCreationService @Inject()(
                                         minimalConnector: MinimalConnector
                                       ) {
 
-
+  private val logger = Logger(classOf[RequestCreationService])
   private def isPreviousPageWithinAFT(implicit request: Request[_]): Boolean =
     request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
@@ -58,15 +59,16 @@ class RequestCreationService @Inject()(
                                  ): Future[OptionalDataRequest[A]] = {
 
     val id = s"$srn$startDate"
-
+    logger.warn("Entered retrieveAndCreateRequest method 1")
     userAnswersCacheConnector.fetch(id).flatMap { data =>
-      (data, version, accessType, optionCurrentPage, isPreviousPageWithinAFT) match {
-        case (None, 1, Draft, Some(AFTSummaryPage), true) =>
-          Future.successful(OptionalDataRequest[A](request, id, request.psaId, request.pspId, None, None))
-        case _ =>
+
           val optionUA = data.map { jsValue => UserAnswers(jsValue.as[JsObject]) }
+          if(optionUA.nonEmpty)
+            logger.warn(s"Some data found in cache for ${optionCurrentPage.getOrElse("unrecognised page")}")
+          else
+            logger.warn(s"No data found in cache but user in default case for ${optionCurrentPage.getOrElse("unrecognised page")}")
           retrieveAFTRequiredDetails(srn, startDate, version, accessType, optionUA)
-      }
+
     }
   }
 
@@ -154,22 +156,26 @@ class RequestCreationService @Inject()(
                                                ec: ExecutionContext): Future[UserAnswers] = {
 
     if (seqAFTOverview.isEmpty) {
+      logger.warn("seqAFTOverview is empty - getAftDetails will not be called")
       Future.successful(
         ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))
           .setOrException(AFTStatusQuery, value = "Compiled")
           .setOrException(SchemeNameQuery, schemeDetails.schemeName)
           .setOrException(PSTRQuery, schemeDetails.pstr))
     } else {
+      logger.warn("seqAFTOverview non empty - getAftDetails will be called")
       val isCompilable = seqAFTOverview.headOption.map(_.compiledVersionAvailable)
 
       val updatedVersion = (accessType, isCompilable) match {
         case (Draft, Some(false)) => version - 1
         case _ => version
       }
-
+      logger.warn(s"seqAFTOverview non empty - getAftDetails will be called for version $updatedVersion")
       aftConnector
         .getAFTDetails(schemeDetails.pstr, startDate, updatedVersion.toString)
-        .map(aftDetails => UserAnswers(ua.data ++ aftDetails.as[JsObject]))
+        .map { aftDetails =>
+          UserAnswers(ua.data ++ aftDetails.as[JsObject])
+        }
     }
   }
 }

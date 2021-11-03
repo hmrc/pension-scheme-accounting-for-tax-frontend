@@ -23,7 +23,7 @@ import controllers.routes
 import data.SampleData._
 import models.AdministratorOrPractitioner
 import models.AdministratorOrPractitioner.{Practitioner, Administrator}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito._
 import play.api.libs.json.Json
@@ -235,7 +235,7 @@ class IdentifierActionSpec
 
         status(result) mustBe SEE_OTHER
 
-        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad().url)
+        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad.url)
       }
     }
 
@@ -252,7 +252,7 @@ class IdentifierActionSpec
 
         status(result) mustBe SEE_OTHER
 
-        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad().url)
+        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad.url)
       }
     }
 
@@ -269,7 +269,7 @@ class IdentifierActionSpec
 
         status(result) mustBe SEE_OTHER
 
-        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad().url)
+        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad.url)
       }
     }
 
@@ -286,7 +286,7 @@ class IdentifierActionSpec
 
         status(result) mustBe SEE_OTHER
 
-        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad().url)
+        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad.url)
       }
     }
 
@@ -303,7 +303,7 @@ class IdentifierActionSpec
 
         status(result) mustBe SEE_OTHER
 
-        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad().url)
+        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad.url)
       }
     }
   }

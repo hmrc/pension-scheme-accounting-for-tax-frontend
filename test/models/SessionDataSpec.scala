@@ -17,10 +17,12 @@
 package models
 
 import data.SampleData
-import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class SessionDataSpec extends WordSpec with MustMatchers with MockitoSugar with BeforeAndAfterEach {
+class SessionDataSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   "deriveMinimumChargeValueAllowed" must {
     "give 0.01 when version is 1 and access mode is pre-compile" in {

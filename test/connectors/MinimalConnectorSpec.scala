@@ -18,7 +18,8 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import models.requests.IdentifierRequest
-import org.scalatest._
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import uk.gov.hmrc.domain.PsaId
@@ -27,7 +28,7 @@ import utils.WireMockHelper
 
 class MinimalConnectorSpec
   extends AsyncWordSpec
-    with MustMatchers
+    with Matchers
     with WireMockHelper {
 
   import MinimalConnector._

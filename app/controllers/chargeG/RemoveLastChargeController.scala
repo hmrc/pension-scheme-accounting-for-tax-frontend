@@ -58,7 +58,7 @@ class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi
 
           val json = Json.obj(
             "srn" -> srn,
-            "startDate" -> Some(startDate),
+            "startDate" -> Some(localDateToString(startDate)),
             "viewModel" -> viewModel
           )
 

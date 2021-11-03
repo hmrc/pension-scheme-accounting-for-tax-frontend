@@ -53,7 +53,7 @@ class AmendQuartersController @Inject()(
     formProvider(messages("amendQuarters.error.required"), quarters)
 
   private def futureSessionExpiredPage: Future[Result] =
-    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
   private def futureReturnHistoryPage(srn: String, startDate: LocalDate): Future[Result] =
     Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate)))

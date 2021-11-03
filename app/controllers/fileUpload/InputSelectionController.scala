@@ -52,7 +52,7 @@ class InputSelectionController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
       val preparedForm = request.userAnswers.get(InputSelectionPage).fold(form)(form.fill)
@@ -72,7 +72,7 @@ class InputSelectionController @Inject()(
         .map(Ok(_))
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
 
       implicit request => DataRetrievals.retrieveSchemeName { _ =>

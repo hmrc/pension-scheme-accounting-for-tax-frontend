@@ -50,7 +50,7 @@ class FileUploadController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       val uploadId           = UploadId.generate

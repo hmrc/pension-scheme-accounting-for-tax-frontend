@@ -74,7 +74,7 @@ class ContinueQuartersController @Inject()(
 
           renderer.render(template = "amend/continueQuarters.njk", json).map(Ok(_))
         } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
       }
     }
@@ -117,7 +117,7 @@ class ContinueQuartersController @Inject()(
                 }
               )
           } else {
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
           }
         }
       }

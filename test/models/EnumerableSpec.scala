@@ -16,7 +16,9 @@
 
 package models
 
-import org.scalatest.{OptionValues, FreeSpec, EitherValues, MustMatchers}
+import org.scalatest.freespec.AnyFreeSpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.{EitherValues, OptionValues}
 import play.api.libs.json._
 
 object EnumerableSpec {
@@ -34,7 +36,7 @@ object EnumerableSpec {
   }
 }
 
-class EnumerableSpec extends FreeSpec with MustMatchers with EitherValues with OptionValues with Enumerable.Implicits {
+class EnumerableSpec extends AnyFreeSpec with Matchers with EitherValues with OptionValues with Enumerable.Implicits {
 
   import EnumerableSpec._
 

@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, SchemeStatus, Year, SchemeDetails, Enumerable, AmendYears}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -113,7 +113,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
       when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpGETRequest(httpPathGET)).value
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to next page when valid data is submitted" in {
@@ -138,7 +138,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
       when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

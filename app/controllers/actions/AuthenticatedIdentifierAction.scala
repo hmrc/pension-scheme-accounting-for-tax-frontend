@@ -77,7 +77,7 @@ class AuthenticatedIdentifierAction @Inject()(
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))
       case e: AuthorisationException =>
         logger.warn(s"Authorization Failed with error $e")
-        Redirect(routes.UnauthorisedController.onPageLoad())
+        Redirect(routes.UnauthorisedController.onPageLoad)
     }
   }
 

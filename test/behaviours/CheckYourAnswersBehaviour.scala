@@ -24,9 +24,9 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.UserAnswers
 import models.requests.IdentifierRequest
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers, Mockito}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
 import pages.Page
 import play.api.Application
 import play.api.inject.bind
@@ -94,7 +94,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 
@@ -107,7 +107,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(page), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       when(mockAftConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(
         Future.successful(()))
@@ -131,7 +131,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(page), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       when(mockAftConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(
         Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))

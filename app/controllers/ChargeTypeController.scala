@@ -76,7 +76,7 @@ class ChargeTypeController @Inject()(
         val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
         val json = Json.obj(
           fields = "srn" -> srn,
-          "startDate" -> Some(startDate),
+          "startDate" -> Some(localDateToString(startDate)),
           "form" -> preparedForm,
           "radios" -> ChargeType.radios(preparedForm),
           "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate, accessType, version)
@@ -95,7 +95,7 @@ class ChargeTypeController @Inject()(
               formWithErrors => {
                 val json = Json.obj(
                   fields = "srn" -> srn,
-                  "startDate" -> Some(startDate),
+                  "startDate" -> Some(localDateToString(startDate)),
                   "form" -> formWithErrors,
                   "radios" -> ChargeType.radios(formWithErrors),
                   "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)

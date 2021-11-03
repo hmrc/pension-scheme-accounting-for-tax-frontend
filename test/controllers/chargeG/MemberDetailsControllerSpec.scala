@@ -25,9 +25,9 @@ import models.LocalDateBinder._
 import models.chargeG.MemberDetails
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeG.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
@@ -143,7 +143,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(MemberDetailsPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(MemberDetailsPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -176,7 +176,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
@@ -186,7 +186,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

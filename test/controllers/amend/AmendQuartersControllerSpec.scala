@@ -25,7 +25,7 @@ import matchers.JsonMatchers
 import models.requests.IdentifierRequest
 import models.{DisplayQuarter, Quarters, GenericViewModel, SchemeStatus, AFTQuarter, SchemeDetails, Enumerable}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -124,7 +124,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "redirect to next page when valid data is submitted" in {
@@ -153,7 +153,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

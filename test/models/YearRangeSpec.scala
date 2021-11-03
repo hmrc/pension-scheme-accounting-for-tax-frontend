@@ -16,20 +16,22 @@
 
 package models
 
-import java.time.LocalDate
-
 import generators.Generators
+import org.mockito.MockitoSugar
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
-import org.scalatest.{AsyncWordSpec, MustMatchers, OptionValues}
-import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.OptionValues
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json.{JsString, Json}
 import utils.DateHelper
 
+import java.time.LocalDate
+
 class YearRangeSpec
     extends AsyncWordSpec
-    with MustMatchers
+    with Matchers
     with ScalaCheckPropertyChecks
     with Generators
     with OptionValues

@@ -23,7 +23,7 @@ import matchers.JsonMatchers
 import models.Enumerable
 import models.PenaltiesFilter.All
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -44,7 +44,7 @@ import scala.concurrent.Future
 class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
-  private def httpPathGET: String = controllers.financialStatement.penalties.routes.PenaltiesPartialController.penaltiesPartial().url
+  private def httpPathGET: String = controllers.financialStatement.penalties.routes.PenaltiesPartialController.penaltiesPartial.url
 
 
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]

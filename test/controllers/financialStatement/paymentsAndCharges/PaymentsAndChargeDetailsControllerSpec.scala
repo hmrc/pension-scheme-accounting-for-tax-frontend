@@ -29,7 +29,7 @@ import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
 import models.financialStatement.{PsaFS, SchemeFS}
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest._
 import play.api.Application
@@ -263,7 +263,7 @@ class PaymentsAndChargeDetailsControllerSpec
       val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
 
       status(result) mustBe SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "return charge details for XY002610150184 for startDate 2020-04-01 index 3" in {

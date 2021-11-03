@@ -23,12 +23,12 @@ import data.SampleData._
 import helpers.DeleteChargeHelper
 import models.requests.DataRequest
 import models.{SessionAccessData, UserAnswers, SessionData, AccessMode, LockDetail}
-import org.mockito.Matchers
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.mvc.{Results, AnyContent}
 import uk.gov.hmrc.domain.PsaId
@@ -64,7 +64,7 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
         verify(mockDeleteChargeHelper, times(1)).allChargesDeletedOrZeroed(any())
         verify(mockAFTService, times(1)).fileCompileReturn(any(), any())(any(), any(), any())
         verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-        verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
+        verify(mockUserAnswersCacheConnector, never).save(any(), any())(any(), any())
       }
     }
 
@@ -76,7 +76,7 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
       whenReady(deleteChargeService.deleteAndFileAFTReturn(pstr, emptyUserAnswers)(implicitly, implicitly, dataRequest(emptyUserAnswers, 2))) { _ =>
         verify(mockDeleteChargeHelper, times(1)).allChargesDeletedOrZeroed(any())
         verify(mockAFTService, times(1)).fileCompileReturn(any(), any())(any(), any(), any())
-        verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
+        verify(mockUserAnswersCacheConnector, never).removeAll(any())(any(), any())
         verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
       }
     }
@@ -91,9 +91,9 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
 
       whenReady(deleteChargeService.deleteAndFileAFTReturn(pstr, ua)(implicitly, implicitly, dataRequest(ua, 1))) {
         _ =>
-          verify(mockAFTService, times(1)).fileCompileReturn(Matchers.eq(pstr), Matchers.eq(ua))(any(), any(), any())
+          verify(mockAFTService, times(1)).fileCompileReturn(ArgumentMatchers.eq(pstr), ArgumentMatchers.eq(ua))(any(), any(), any())
           verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
-          verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
+          verify(mockUserAnswersCacheConnector, never).removeAll(any())(any(), any())
       }
     }
   }

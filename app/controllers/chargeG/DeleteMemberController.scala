@@ -78,7 +78,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
 
             val json = Json.obj(
               "srn" -> srn,
-              "startDate" -> Some(startDate),
+              "startDate" -> Some(localDateToString(startDate)),
               "form" -> form(memberDetails.fullName),
               "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(form(memberDetails.fullName)(implicitly)("value")),
@@ -86,7 +86,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
             )
 
             renderer.render("chargeG/deleteMember.njk", json).map(Ok(_))
-          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
       }
     }
@@ -109,7 +109,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
 
                   val json = Json.obj(
                     "srn" -> srn,
-                    "startDate" -> Some(startDate),
+                    "startDate" -> Some(localDateToString(startDate)),
                     "form" -> formWithErrors,
                     "viewModel" -> viewModel,
                     "radios" -> Radios.yesNo(formWithErrors("value")),
@@ -135,7 +135,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                     Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate, accessType, version)))
                   }
               )
-          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
       }
     }

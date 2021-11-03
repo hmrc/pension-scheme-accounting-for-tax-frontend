@@ -46,7 +46,7 @@ class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator])
 
   private def defaultPage(id: Page, mode: Mode): Call = {
     logger.warn(s"No navigation defined for id $id in mode $mode")
-    controllers.routes.IndexController.onPageLoad()
+    controllers.routes.IndexController.onPageLoad
   }
 
   def nextPage(

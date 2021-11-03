@@ -25,8 +25,8 @@ import models.LocalDateBinder._
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import models.chargeC.ChargeCDetails
 import models.requests.IdentifierRequest
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.mockito.Matchers.any
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import pages.chargeC.{ChargeCDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
@@ -131,7 +131,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
@@ -147,7 +147,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -184,7 +184,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "Return a redirect when zero amount is submitted and new return flag is NOT set" in {
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataCompile))
@@ -201,7 +201,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

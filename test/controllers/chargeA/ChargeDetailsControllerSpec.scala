@@ -25,8 +25,8 @@ import models.LocalDateBinder._
 import models.{NormalMode, GenericViewModel, UserAnswers}
 import models.chargeA.ChargeDetails
 import models.requests.IdentifierRequest
-import org.mockito.{Matchers, ArgumentCaptor}
-import org.mockito.Matchers.any
+import org.mockito.{ArgumentMatchers, ArgumentCaptor}
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, when, verify}
 import pages.chargeA.ChargeDetailsPage
 import play.api.Application
@@ -80,7 +80,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+    when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeDetailsPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
   }
 
 
@@ -160,7 +160,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }

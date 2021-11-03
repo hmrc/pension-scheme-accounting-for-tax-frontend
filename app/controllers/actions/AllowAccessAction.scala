@@ -88,7 +88,7 @@ class AllowAccessAction(
           }
         }
       //todo redirect to new error page for invalid dates once it is created
-      case _ => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
+      case _ => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad)))
     }
   }
 
