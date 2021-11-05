@@ -21,6 +21,7 @@ import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
+import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.{AFTQuarter, AccessType, MemberDetails, UploadId, UploadedSuccessfully, UserAnswers, YearRange}
@@ -73,74 +74,17 @@ class ValidationController @Inject()(
             val lines = contents.body.split("\n").toList
 
             val updatedUserAnswers: UserAnswers = chargeType match {
-              case "annual-allowance-charge" => annualAllowanceChargeParser(request.userAnswers, lines)
-              case "lifetime-allowance-charge" => lifeTimeAllowanceChargeParser(request.userAnswers, lines)
+              case "annual-allowance-charge" => AnnualAllowanceParser.parse(request.userAnswers, lines)
+              case "lifetime-allowance-charge" => LifetimeAllowanceParser.parse(request.userAnswers, lines)
               case _ => ???
             }
 
-            println(s"#################################################### $updatedUserAnswers")
-
             userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
             aftService.fileCompileReturn(pstr, updatedUserAnswers)
-            Redirect(s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/S2400000001/2021-01-01/draft/1/$chargeType/1/on-click-check-your-answers")
+            Redirect(s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/S2400000001/2021-01-01/draft/1/$chargeType/1/on-click-check-your-answers") // TODO: Refactor
           }
         }
     }
-
-  def annualAllowanceChargeParser(request: UserAnswers, lines: List[String]): UserAnswers = {
-
-    val userAnswers = request.setOrException(TotalChargeAmountPage, BigDecimal(100)) // TODO: Calculate
-
-    val memberDetails = lines.map { case line =>
-      val items = line.split(",")
-      val a = MemberDetails(items(0), items(1), items(2))
-      val b = ChargeEDetails(BigDecimal(items(4)), LocalDate.parse(items(5)), true) // TODO: IsPaymentMandatory
-      (a, b)
-    }
-
-    addNextAnnualAllowanceCharge(userAnswers, memberDetails)
-  }
-
-  def addNextAnnualAllowanceCharge(userAnswers: UserAnswers, memberDetails: List[(MemberDetails, ChargeEDetails)], index: Int = 0): UserAnswers = {
-
-    memberDetails.length match {
-      case 0 => userAnswers
-      case _ => addNextAnnualAllowanceCharge(userAnswers
-        .setOrException(AddMembersPage, true)
-        .setOrException(MemberDetailsPage(index), memberDetails.head._1)
-        .setOrException(ChargeDetailsPage(index), memberDetails.head._2)
-        .setOrException(AnnualAllowanceYearPage(index), YearRange("2021")), // TODO: Year
-        memberDetails.tail,
-        index + 1)
-    }
-  }
-
-  def lifeTimeAllowanceChargeParser(request: UserAnswers, lines: List[String]): UserAnswers = {
-
-    val userAnswers = request.setOrException(pages.chargeD.TotalChargeAmountPage, BigDecimal(100)) // TODO: Calculate
-
-    val memberDetails = lines.map { case line =>
-      val items = line.split(",")
-      val a = MemberDetails(items(0), items(1), items(2))
-      val b = ChargeDDetails(LocalDate.parse(items(4)), Some(BigDecimal(items(5))), Some(BigDecimal(items(6))))
-      (a, b)
-    }
-
-    addNextLifeTimeAllowanceCharge(userAnswers, memberDetails)
-  }
-
-  def addNextLifeTimeAllowanceCharge(userAnswers: UserAnswers, memberDetails: List[(MemberDetails, ChargeDDetails)], index: Int = 0): UserAnswers = {
-
-    memberDetails.length match {
-      case 0 => userAnswers
-      case _ => addNextLifeTimeAllowanceCharge(userAnswers
-        .setOrException(pages.chargeD.AddMembersPage, true)
-        .setOrException(pages.chargeD.MemberDetailsPage(index), memberDetails.head._1)
-        .setOrException(pages.chargeD.ChargeDetailsPage(index), memberDetails.head._2),
-        memberDetails.tail,
-        index + 1)
-    }
-  }
 
   private def uploadDetails(uploadId: UploadId) = {
     for (uploadResult <- uploadProgressTracker.getUploadResult(uploadId))
