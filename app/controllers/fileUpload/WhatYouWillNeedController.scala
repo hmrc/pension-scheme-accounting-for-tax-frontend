@@ -58,6 +58,7 @@ class WhatYouWillNeedController @Inject()(
       renderer.render(template = "fileUpload/whatYouWillNeed.njk",
         Json.obj(
           "chargeType" -> chargeType,
+          "chargeTypeText" -> chargeType.replace("-", " "),
           "srn" -> srn, "startDate" -> Some(startDate),
           "viewModel" -> viewModel))
         .map(Ok(_))

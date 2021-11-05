@@ -32,7 +32,6 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
-import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -65,7 +64,7 @@ class InputSelectionController @Inject()(
 
       renderer.render(template = "fileUpload/inputSelection.njk",
         Json.obj(
-          "chargeType" -> chargeType,
+          "chargeType" -> chargeType.replace("-", " "),
           "srn" -> srn, "startDate" -> Some(startDate),
           "radios" -> InputSelection.radios(preparedForm),
           "viewModel" -> viewModel))
@@ -76,7 +75,6 @@ class InputSelectionController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData).async {
 
       implicit request => DataRetrievals.retrieveSchemeName { _ =>
-        println(s"########################################## ${navigator.getClass}")
         val ua = request.userAnswers
         form
           .bindFromRequest()

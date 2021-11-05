@@ -6,7 +6,7 @@
 
 
 {% block pageTitle %}
-  {{ title(messages("fileupload.whatYouWillNeed.title", chargeType)) }}
+  {{ title(messages("fileupload.whatYouWillNeed.title", chargeTypeText)) }}
 {% endblock %}
 
 
@@ -16,7 +16,8 @@
           <div class="govuk-grid-column-two-thirds">
 
             <h1 class="govuk-heading-xl">
-              {{ messages("fileupload.whatYouWillNeed.heading", chargeType) }}
+              {{ messages("fileupload.whatYouWillNeed.heading", chargeTypeText)}}
+
             </h1>
 
             {% include "partials/fileUpload/" + chargeType + ".njk" %}

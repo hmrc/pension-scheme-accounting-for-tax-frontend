@@ -80,6 +80,7 @@ class FileUploadController @Inject()(
         renderer.render(template = "fileUpload/fileupload.njk",
           Json.obj(
             "chargeType" -> chargeType,
+            "chargeTypeText" -> chargeType.replace("-", " "),
             "srn" -> srn,
             "startDate" -> Some(startDate),
             "formFields" -> x.formFields.toList,
