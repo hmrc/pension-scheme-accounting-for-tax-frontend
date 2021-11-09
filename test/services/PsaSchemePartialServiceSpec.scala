@@ -16,21 +16,16 @@
 
 package services
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
 import models._
 import models.financialStatement.{SchemeFS, SchemeFSChargeType}
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
+import org.mockito.{ArgumentMatchers, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.mockito.MockitoSugar
 import play.api.i18n.Messages
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
@@ -38,6 +33,8 @@ import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels._
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import scala.concurrent.{ExecutionContext, Future}
 
 class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
@@ -191,18 +188,18 @@ object PsaSchemePartialServiceSpec {
   private val upcomingChargesSingle: Seq[SchemeFS] = Seq(charge1)
 
   private val upcomingPastChargesLink: Seq[Link] = Seq(Link(
-                                                id = "past-payments-and-charges",
-                                                url = viewPastChargesUrl,
-                                                linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
-                                                hiddenText = None
-                                              ))
+    id = "past-payments-and-charges",
+    url = viewPastChargesUrl,
+    linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+    hiddenText = None
+  ))
 
   def upcomingChargesSingleModel(implicit messages: Messages): Seq[CardViewModel] = upcomingChargesMultipleModel(
     messages("pspDashboardUpcomingAftChargesCard.span.singleDueDate", LocalDate.parse(dueDate).format(dateFormatterDMY)),
     msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
       LocalDate.parse(startDate).format(smallDatePattern),
       LocalDate.parse(endDate).format(smallDatePattern)),
-      Nil,
+    Nil,
     "£100.00",
     viewUpcomingChargesUrl
   )
@@ -247,7 +244,7 @@ object PsaSchemePartialServiceSpec {
     id = "aft-overdue-charges",
     heading = messages("pspDashboardOverdueAftChargesCard.h2"),
     subHeadings = Seq(CardSubHeading(
-      subHeading =  messages("pspDashboardOverdueAftChargesCard.total.span"),
+      subHeading = messages("pspDashboardOverdueAftChargesCard.total.span"),
       subHeadingClasses = "card-sub-heading",
       subHeadingParams = Seq(CardSubHeadingParam(
         subHeadingParam = s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
@@ -255,7 +252,7 @@ object PsaSchemePartialServiceSpec {
       ))
     ),
       CardSubHeading(
-        subHeading =  messages("pspDashboardOverdueAftChargesCard.interestAccruing.span"),
+        subHeading = messages("pspDashboardOverdueAftChargesCard.interestAccruing.span"),
         subHeadingClasses = "card-sub-heading",
         subHeadingParams = Seq(
           CardSubHeadingParam(
@@ -281,34 +278,42 @@ object PsaSchemePartialServiceSpec {
   val overviewApril20: AFTOverview = AFTOverview(
     LocalDate.of(2020, 4, 1),
     LocalDate.of(2020, 6, 30),
-    2,
-    submittedVersionAvailable = true,
-    compiledVersionAvailable = false
-  )
+    tpssReportPresent = false,
+    Some(AFTOverviewVersion(
+      2,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = false
+    )))
 
   val overviewJuly20: AFTOverview = AFTOverview(
     LocalDate.of(2020, 7, 1),
     LocalDate.of(2020, 9, 30),
-    2,
-    submittedVersionAvailable = true,
-    compiledVersionAvailable = false
-  )
+    tpssReportPresent = false,
+    Some(AFTOverviewVersion(
+      2,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = false
+    )))
 
   val overviewOctober20: AFTOverview = AFTOverview(
     LocalDate.of(2020, 10, 1),
     LocalDate.of(2020, 12, 31),
-    2,
-    submittedVersionAvailable = true,
-    compiledVersionAvailable = true
-  )
+    tpssReportPresent = false,
+    Some(AFTOverviewVersion(
+      2,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = true
+    )))
 
   val overviewJan21: AFTOverview = AFTOverview(
     LocalDate.of(2021, 1, 1),
     LocalDate.of(2021, 3, 31),
-    2,
-    submittedVersionAvailable = true,
-    compiledVersionAvailable = true
-  )
+    tpssReportPresent = false,
+    Some(AFTOverviewVersion(
+      2,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = true
+    )))
 
   val allTypesMultipleReturnsPresent = Seq(overviewApril20, overviewJuly20, overviewOctober20, overviewJan21)
   val noInProgress = Seq(overviewApril20, overviewJuly20)
@@ -380,11 +385,10 @@ object PsaSchemePartialServiceSpec {
 
   def oneCompileZeroedOut: Seq[AFTOverview] =
     Seq(
-      overviewApril20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
-      overviewJuly20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
-      overviewOctober20.copy(numberOfVersions = 2, compiledVersionAvailable = true)
+      overviewApril20.copy(versionDetails = Some(overviewApril20.versionDetails.get.copy(numberOfVersions = 1, compiledVersionAvailable = true))),
+      overviewJuly20.copy(versionDetails = Some(overviewJuly20.versionDetails.get.copy(numberOfVersions = 1, compiledVersionAvailable = true))),
+      overviewOctober20.copy(versionDetails = Some(overviewOctober20.versionDetails.get.copy(numberOfVersions = 2, compiledVersionAvailable = true)))
     )
-
 
 
 }

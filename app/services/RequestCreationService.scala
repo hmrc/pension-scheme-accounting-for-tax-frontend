@@ -16,22 +16,21 @@
 
 package services
 
-import java.time.LocalDate
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalConnector}
-
-import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import models.{AFTOverview, AccessMode, AccessType, Draft, MinimalFlags, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
+import models.{AFTOverviewOnPODS, AccessMode, AccessType, Draft, MinimalFlags, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
 import pages._
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.LocalDate
+import javax.inject.Singleton
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -43,8 +42,6 @@ class RequestCreationService @Inject()(
                                       ) {
 
   private val logger = Logger(classOf[RequestCreationService])
-  private def isPreviousPageWithinAFT(implicit request: Request[_]): Boolean =
-    request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
   def retrieveAndCreateRequest[A](
                                    srn: String,
@@ -63,11 +60,12 @@ class RequestCreationService @Inject()(
     userAnswersCacheConnector.fetch(id).flatMap { data =>
 
           val optionUA = data.map { jsValue => UserAnswers(jsValue.as[JsObject]) }
-          if(optionUA.nonEmpty)
+          if(optionUA.nonEmpty) {
             logger.warn(s"Some data found in cache for ${optionCurrentPage.getOrElse("unrecognised page")}")
-          else
+          } else {
             logger.warn(s"No data found in cache but user in default case for ${optionCurrentPage.getOrElse("unrecognised page")}")
-          retrieveAFTRequiredDetails(srn, startDate, version, accessType, optionUA)
+          }
+      retrieveAFTRequiredDetails(srn, startDate, version, accessType, optionUA)
 
     }
   }
@@ -90,8 +88,9 @@ class RequestCreationService @Inject()(
       schemeDetails <- schemeService.retrieveSchemeDetails(psaId, srn, "srn")
       seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
       uaWithMinPsaDetails <- updateMinimalDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus)
-      updatedUA <- updateUserAnswersWithAFTDetails(version, schemeDetails, startDate, accessType, uaWithMinPsaDetails, seqAFTOverview)
-      sessionAccessData <- createSessionAccessData(version, seqAFTOverview, srn, startDate)
+      seqAFTOverviewPODS = seqAFTOverview.filter(_.versionDetails.isDefined).map(_.toPodsReport)
+      updatedUA <- updateUserAnswersWithAFTDetails(version, schemeDetails, startDate, accessType, uaWithMinPsaDetails, seqAFTOverviewPODS)
+      sessionAccessData <- createSessionAccessData(version, seqAFTOverviewPODS, srn, startDate)
       userAnswers <- userAnswersCacheConnector.saveAndLock(
         id = id,
         value = updatedUA.data,
@@ -107,7 +106,7 @@ class RequestCreationService @Inject()(
 
   private def createSessionAccessData[A](
                                           versionInt: Int,
-                                          seqAFTOverview: Seq[AFTOverview],
+                                          seqAFTOverview: Seq[AFTOverviewOnPODS],
                                           srn: String,
                                           startDate: LocalDate
                                         )(
@@ -151,7 +150,7 @@ class RequestCreationService @Inject()(
 
   private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate,
                                               accessType: AccessType, ua: UserAnswers,
-                                              seqAFTOverview: Seq[AFTOverview])(
+                                              seqAFTOverview: Seq[AFTOverviewOnPODS])(
                                                implicit hc: HeaderCarrier,
                                                ec: ExecutionContext): Future[UserAnswers] = {
 

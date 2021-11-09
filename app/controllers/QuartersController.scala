@@ -82,11 +82,7 @@ class QuartersController @Inject()(
   }
 
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(
-      psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
-    ) flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
           if (displayQuarters.nonEmpty) {
@@ -96,11 +92,6 @@ class QuartersController @Inject()(
               .bindFromRequest()
               .fold(
                 formWithErrors => {
-                  schemeService.retrieveSchemeDetails(
-                    psaId = request.idOrException,
-                    srn = srn,
-                    schemeIdType = "srn"
-                  ) flatMap { schemeDetails =>
                     val json = Json.obj(
                       fields = "srn" -> srn,
                       "startDate" -> None,
@@ -110,16 +101,22 @@ class QuartersController @Inject()(
                       "year" -> year
                     )
                     renderer.render(template = "quarters.njk", json).map(BadRequest(_))
-                  }
                 },
                 value => {
-                  val selectedDisplayQuarter = displayQuarters.find(_.quarter == value).getOrElse(throw InvalidValueSelected)
-                  selectedDisplayQuarter.hintText match {
-                    case None => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate, Draft, version = 1)))
-                    case Some(SubmittedHint) => Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
-                    case _ =>
-                      val version = aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected).numberOfVersions
-                      Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version)))
+                  val tpssReports = aftOverview.filter(_.periodStartDate == value.startDate).filter(_.tpssReportPresent)
+                  if (tpssReports.nonEmpty) {
+                    Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn, value.startDate)))
+                  } else {
+                    val selectedDisplayQuarter = displayQuarters.find(_.quarter == value).getOrElse(throw InvalidValueSelected)
+                    selectedDisplayQuarter.hintText match {
+                      case None => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate, Draft, version = 1)))
+                      case Some(SubmittedHint) => Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
+                      case _ =>
+                        val version = aftOverview.find(_.periodStartDate == value.startDate)
+                          .filter(_.versionDetails.nonEmpty).map(_.toPodsReport)
+                          .getOrElse(throw InvalidValueSelected).numberOfVersions
+                        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version)))
+                    }
                   }
                 }
               )

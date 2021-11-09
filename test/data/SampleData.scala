@@ -16,8 +16,6 @@
 
 package data
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeB.ChargeBDetails
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
@@ -25,9 +23,9 @@ import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
-import models.financialStatement.{PsaFS, SchemeFS}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, AFTQuarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.financialStatement.{PsaFS, SchemeFS}
+import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -36,6 +34,9 @@ import play.api.mvc.Call
 import services.paymentsAndCharges.PaymentsCache
 import utils.AFTConstants._
 import viewmodels.Table
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 object SampleData {
   //scalastyle.off: magic.number
@@ -58,7 +59,7 @@ object SampleData {
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, Some(chargeAmount1), Some(BigDecimal(34.34)), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
-  val chargeCDetails = ChargeCDetails(paymentDate = QUARTER_START_DATE,amountTaxDue = chargeAmount1)
+  val chargeCDetails = ChargeCDetails(paymentDate = QUARTER_START_DATE, amountTaxDue = chargeAmount1)
   val chargeDDetails = ChargeDDetails(QUARTER_START_DATE, Option(chargeAmount1), Option(chargeAmount2))
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "123456", qropsTransferDate = QUARTER_START_DATE)
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString, None)
@@ -94,7 +95,7 @@ object SampleData {
 
   def sessionData(
                    sessionId: String = sessionId,
-                   name: Option[LockDetail]= lockedByName,
+                   name: Option[LockDetail] = lockedByName,
                    sessionAccessData: SessionAccessData = sessionAccessDataCompile
                  ) =
     SessionData(sessionId, lockedByName, sessionAccessData)
@@ -156,30 +157,36 @@ object SampleData {
 
   val overview1: AFTOverview =
     AFTOverview(
-      periodStartDate = LocalDate.of(2020,4,1),
-      periodEndDate = LocalDate.of(2028,6,30),
-      numberOfVersions = 2,
-      submittedVersionAvailable = false,
-      compiledVersionAvailable = true
-    )
+      periodStartDate = LocalDate.of(2020, 4, 1),
+      periodEndDate = LocalDate.of(2028, 6, 30),
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(
+        numberOfVersions = 2,
+        submittedVersionAvailable = false,
+        compiledVersionAvailable = true
+      )))
 
   val overview2: AFTOverview =
     AFTOverview(
-      periodStartDate = LocalDate.of(2020,10,1),
-      periodEndDate = LocalDate.of(2020,12,31),
-      numberOfVersions = 3,
-      submittedVersionAvailable = false,
-      compiledVersionAvailable = true
-    )
+      periodStartDate = LocalDate.of(2020, 10, 1),
+      periodEndDate = LocalDate.of(2020, 12, 31),
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(
+        numberOfVersions = 3,
+        submittedVersionAvailable = false,
+        compiledVersionAvailable = true
+      )))
 
   val overview3: AFTOverview =
     AFTOverview(
-      periodStartDate = LocalDate.of(2022,1,1),
-      periodEndDate = LocalDate.of(2022,3,31),
-      numberOfVersions = 1,
-      submittedVersionAvailable = true,
-      compiledVersionAvailable = false
-    )
+      periodStartDate = LocalDate.of(2022, 1, 1),
+      periodEndDate = LocalDate.of(2022, 3, 31),
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(
+        numberOfVersions = 1,
+        submittedVersionAvailable = true,
+        compiledVersionAvailable = false
+      )))
 
   val q22020: AFTQuarter = AFTQuarter(LocalDate.of(2020, 4, 1), LocalDate.of(2020, 6, 30))
   val q32020: AFTQuarter = AFTQuarter(LocalDate.of(2020, 7, 1), LocalDate.of(2020, 9, 30))
@@ -192,13 +199,21 @@ object SampleData {
   val displayQuarterStart: DisplayQuarter = DisplayQuarter(q12021, displayYear = false, None, None)
 
   val aftOverviewQ22020: AFTOverview =
-    AFTOverview(q22020.startDate, q22020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+    AFTOverview(q22020.startDate, q22020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)))
   val aftOverviewQ32020: AFTOverview =
-    AFTOverview(q32020.startDate, q32020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = true)
+    AFTOverview(q32020.startDate, q32020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = true)))
   val aftOverviewQ42020: AFTOverview =
-    AFTOverview(q42020.startDate, q42020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+    AFTOverview(q42020.startDate, q42020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)))
   val aftOverviewQ12021: AFTOverview =
-    AFTOverview(q12021.startDate, q12021.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+    AFTOverview(q12021.startDate, q12021.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)))
 
   val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
   val emptyChargesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)

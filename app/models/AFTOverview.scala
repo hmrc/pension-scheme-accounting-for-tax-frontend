@@ -16,17 +16,58 @@
 
 package models
 
-import java.time.LocalDate
-
 import play.api.libs.json.{Format, Json}
 
-case class AFTOverview(
+import java.time.LocalDate
+
+case class AFTOverviewVersion(
+                               numberOfVersions: Int,
+                               submittedVersionAvailable: Boolean,
+                               compiledVersionAvailable: Boolean
+                             )
+
+object AFTOverviewVersion {
+  implicit val formats: Format[AFTOverviewVersion] = Json.format[AFTOverviewVersion]
+}
+
+case class AFTOverviewOnPODS(
                         periodStartDate: LocalDate,
                         periodEndDate: LocalDate,
                         numberOfVersions: Int,
                         submittedVersionAvailable: Boolean,
                         compiledVersionAvailable: Boolean
-                      )
+                      ) {
+  def toFullReport: AFTOverview =
+    AFTOverview(
+      periodStartDate,
+      periodEndDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(numberOfVersions, submittedVersionAvailable, compiledVersionAvailable)))
+}
+
+
+
+object AFTOverviewOnPODS {
+  implicit val formats: Format[AFTOverviewOnPODS] = Json.format[AFTOverviewOnPODS]
+}
+
+case class AFTOverview(
+                        periodStartDate: LocalDate,
+                        periodEndDate: LocalDate,
+                        tpssReportPresent: Boolean,
+                        versionDetails: Option[AFTOverviewVersion]
+                      ) {
+  def toPodsReport: AFTOverviewOnPODS = versionDetails.fold(throw ConversionCalledOnInvalidItem)(version =>
+    AFTOverviewOnPODS(
+      periodStartDate,
+      periodEndDate,
+      version.numberOfVersions,
+      version.submittedVersionAvailable,
+      version.compiledVersionAvailable))
+}
+
+case object ConversionCalledOnInvalidItem extends Exception("Method 'toPodsReport' should not be called on items which have only tpss report available")
+
 
 object AFTOverview {
   implicit val formats: Format[AFTOverview] = Json.format[AFTOverview]

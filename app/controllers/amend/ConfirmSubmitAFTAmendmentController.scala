@@ -106,7 +106,8 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
       val previousVersion = amendedVersion - 1
 
       aftConnector.getAftOverview(pstr, Some(localDateToString(startDate)), Some(Quarters.getQuarter(startDate).endDate)).flatMap { seqOverview =>
-        val isCompilable = seqOverview.exists(_.compiledVersionAvailable == true)
+        val isCompilable = seqOverview.filter(_.versionDetails.isDefined)
+          .map(_.toPodsReport).exists(_.compiledVersionAvailable == true)
 
         if (accessType == Draft && !isCompilable) {
           Future.successful(Redirect(Call("GET", config.schemeDashboardUrl(request).format(srn))))

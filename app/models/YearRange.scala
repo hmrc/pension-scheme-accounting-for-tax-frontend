@@ -49,7 +49,7 @@ object YearRange extends Enumerable.Implicits {
         currentYear - 1
       }
 
-    (2018 to maxYear).reverse.map(year => YearRange(year.toString))
+    (2018 to maxYear).reverseMap(year => YearRange(year.toString))
   }
 
   def getLabel(yr: YearRange)(implicit messages: Messages): Literal = {

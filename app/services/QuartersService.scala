@@ -21,10 +21,10 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
-import models.{DisplayQuarter, InProgressHint, Quarters, AFTQuarter, SubmittedHint, CommonQuarters, LockedHint}
+import models.{AFTQuarter, CommonQuarters, DisplayQuarter, InProgressHint, LockedHint, Quarters, SubmittedHint}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class QuartersService @Inject()(
                                  config: FrontendAppConfig,
@@ -39,6 +39,8 @@ class QuartersService @Inject()(
 
         aftOverview
           .filter(_.periodStartDate.getYear == year)
+          .filter(_.versionDetails.isDefined)
+          .map(_.toPodsReport)
           .filter(_.submittedVersionAvailable)
           .map { overviewElement =>
             val quarter = Quarters.getQuarter(overviewElement.periodStartDate)
@@ -54,7 +56,8 @@ class QuartersService @Inject()(
   def getPastYears(pstr: String)
     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Int]] = {
     aftConnector.getAftOverview(pstr).map (
-      _.filter(_.submittedVersionAvailable)
+      _.filter(_.versionDetails.isDefined)
+        .map(_.toPodsReport).filter(_.submittedVersionAvailable)
         .map(overviewElement => Quarters.getQuarter(overviewElement.periodStartDate).startDate.getYear)
         .distinct
     )
@@ -67,6 +70,8 @@ class QuartersService @Inject()(
 
         val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] =
           aftOverview
+            .filter(_.versionDetails.isDefined)
+            .map(_.toPodsReport)
             .filter(_.compiledVersionAvailable)
             .map { overviewElement =>
 
@@ -113,39 +118,30 @@ class QuartersService @Inject()(
         val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] = availableQuarters(year)(config).map { x =>
           val availableQuarter = getQuarter(x, year)
 
-          userAnswersCacheConnector.lockDetail(srn, availableQuarter.startDate).flatMap {
-            case Some(lockDetail) =>
-              Future.successful(Seq(DisplayQuarter(
-                availableQuarter, displayYear = false, Some(lockDetail.name), Some(LockedHint)
-              )))
-            case _ =>
-              val overviewElementForAvailableQuarter =
-                aftOverview.filter(_.periodStartDate == availableQuarter.startDate)
-              if (overviewElementForAvailableQuarter.nonEmpty) {
-                if (overviewElementForAvailableQuarter.head.submittedVersionAvailable) {
-                  Future.successful(Seq(DisplayQuarter(
-                    availableQuarter, displayYear = false, None, Some(SubmittedHint)
-                  )))
-                } else {
-                  aftConnector.getIsAftNonZero(
-                    pstr, overviewElementForAvailableQuarter.head.periodStartDate.toString, "1"
-                  ).map {
-                    case true =>
-                      Seq(DisplayQuarter(
-                        availableQuarter, displayYear = false, None, Some(InProgressHint)
-                      ))
-                    case _ =>
-                      Seq(DisplayQuarter(
-                        availableQuarter, displayYear = false, None, None)
-                      )
+            userAnswersCacheConnector.lockDetail(srn, availableQuarter.startDate).flatMap {
+              case Some(lockDetail) =>
+                Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, Some(lockDetail.name), Some(LockedHint))))
+              case _ =>
+                val podsReportsForQuarter = aftOverview
+                  .filter(_.periodStartDate == availableQuarter.startDate)
+                  .filter(_.versionDetails.isDefined).map(_.toPodsReport)
+
+                if (podsReportsForQuarter.nonEmpty) {
+                  if (podsReportsForQuarter.head.submittedVersionAvailable) {
+                    Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, None, Some(SubmittedHint))))
+                  } else {
+                    aftConnector.getIsAftNonZero(pstr, podsReportsForQuarter.head.periodStartDate.toString, "1").map {
+                      case true =>
+                        Seq(DisplayQuarter(availableQuarter, displayYear = false, None, Some(InProgressHint)))
+                      case _ =>
+                        Seq(DisplayQuarter(availableQuarter, displayYear = false, None, None))
+                    }
                   }
+                } else {
+                  Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, None, None)))
                 }
-              } else {
-                Future.successful(Seq(DisplayQuarter(
-                  availableQuarter, displayYear = false, None, None)
-                ))
-              }
-          }
+            }
+
         }
         Future.sequence(displayQuarters).map(_.flatten)
       } else {

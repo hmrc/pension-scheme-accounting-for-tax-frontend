@@ -99,7 +99,11 @@ class ReturnHistoryController @Inject()(
                               ec: ExecutionContext,
                               hc: HeaderCarrier): Future[JsObject] = {
     if (versions.nonEmpty) {
-      val isCompileAvailable: Option[Boolean] = seqAftOverview.find(_.periodStartDate == stringToLocalDate(startDate)).map(_.compiledVersionAvailable)
+      val isCompileAvailable: Option[Boolean] = seqAftOverview
+        .filter(_.versionDetails.isDefined)
+        .map(_.toPodsReport)
+        .find(_.periodStartDate == stringToLocalDate(startDate))
+        .map(_.compiledVersionAvailable)
 
       def url: (AccessType, Int) => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _, _)
 

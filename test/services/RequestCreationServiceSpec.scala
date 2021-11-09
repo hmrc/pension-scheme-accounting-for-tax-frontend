@@ -24,7 +24,7 @@ import connectors.{AFTConnector, MinimalConnector}
 import data.SampleData
 import data.SampleData._
 import models.requests.IdentifierRequest
-import models.{AFTOverview, AccessMode, MinimalFlags, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, UserAnswers}
+import models.{AFTOverview, AFTOverviewVersion, AccessMode, MinimalFlags, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
@@ -82,7 +82,7 @@ class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSuga
     reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
 
     when(mockUserAnswersCacheConnector.fetch(any())(any(), any())).thenReturn(Future.successful(Some(userAnswersWithSchemeName.data)))
-    when(mockSchemeService.retrieveSchemeDetails(any(),any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockMinimalPsaConnector.getMinimalDetails(any(), any(), any()))
       .thenReturn(Future.successful(MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = true)))
     when(mockUserAnswersCacheConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
@@ -98,10 +98,12 @@ class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSuga
           AFTOverview(
             periodStartDate = LocalDate.of(2020, 4, 1),
             periodEndDate = LocalDate.of(2020, 6, 28),
-            numberOfVersions = 2,
-            submittedVersionAvailable = true,
-            compiledVersionAvailable = true
-          )
+            tpssReportPresent = false,
+            Some(AFTOverviewVersion(
+              numberOfVersions = 2,
+              submittedVersionAvailable = true,
+              compiledVersionAvailable = true
+            )))
         )
 
         when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
@@ -145,10 +147,12 @@ class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSuga
           AFTOverview(
             periodStartDate = LocalDate.of(2020, 4, 1),
             periodEndDate = LocalDate.of(2020, 6, 28),
-            numberOfVersions = 2,
-            submittedVersionAvailable = true,
-            compiledVersionAvailable = true
-          )
+            tpssReportPresent = false,
+            Some(AFTOverviewVersion(
+              numberOfVersions = 2,
+              submittedVersionAvailable = true,
+              compiledVersionAvailable = true
+            )))
         )
         when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
@@ -185,10 +189,12 @@ class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSuga
           AFTOverview(
             periodStartDate = LocalDate.of(2020, 4, 1),
             periodEndDate = LocalDate.of(2020, 6, 28),
-            numberOfVersions = 2,
-            submittedVersionAvailable = true,
-            compiledVersionAvailable = true
-          )
+            tpssReportPresent = false,
+            Some(AFTOverviewVersion(
+              numberOfVersions = 2,
+              submittedVersionAvailable = true,
+              compiledVersionAvailable = true
+            )))
         )
         when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))

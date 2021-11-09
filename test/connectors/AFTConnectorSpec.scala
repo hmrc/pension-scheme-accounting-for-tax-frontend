@@ -20,7 +20,7 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.LocalDateBinder._
 import models.SubmitterType.{PSA, PSP}
-import models.{AFTOverview, AFTVersion, JourneyType, SubmitterDetails, UserAnswers, VersionsWithSubmitter}
+import models.{AFTOverview, AFTOverviewVersion, AFTVersion, JourneyType, SubmitterDetails, UserAnswers, VersionsWithSubmitter}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status
@@ -46,36 +46,44 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
 
   private val validAftOverviewResponse = Json.arr(
     Json.obj(
-      "periodStartDate"-> "2028-04-01",
-      "periodEndDate"-> "2028-06-30",
-      "numberOfVersions"->  JsNumber(1),
-      "submittedVersionAvailable"-> false,
-      "compiledVersionAvailable"-> true
+      "periodStartDate" -> "2028-04-01",
+      "periodEndDate" -> "2028-06-30",
+      "tpssReportPresent" -> false,
+      "versionDetails" -> Json.obj(
+      "numberOfVersions" -> JsNumber(1),
+      "submittedVersionAvailable" -> false,
+      "compiledVersionAvailable" -> true)
     ),
     Json.obj(
-      "periodStartDate"-> "2022-01-01",
-      "periodEndDate"-> "2022-03-31",
-      "numberOfVersions"-> JsNumber(1),
-      "submittedVersionAvailable"-> true,
-      "compiledVersionAvailable"-> false
+      "periodStartDate" -> "2022-01-01",
+      "periodEndDate" -> "2022-03-31",
+      "tpssReportPresent" -> false,
+      "versionDetails" -> Json.obj(
+      "numberOfVersions" -> JsNumber(1),
+      "submittedVersionAvailable" -> true,
+      "compiledVersionAvailable" -> false)
     )
   ).toString()
 
   val aftOverviewModel = Seq(
     AFTOverview(
-      periodStartDate = LocalDate.of(2028,4,1),
-      periodEndDate = LocalDate.of(2028,6,30),
-      numberOfVersions = 1,
-      submittedVersionAvailable = false,
-      compiledVersionAvailable = true
-    ),
+      periodStartDate = LocalDate.of(2028, 4, 1),
+      periodEndDate = LocalDate.of(2028, 6, 30),
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(
+        numberOfVersions = 1,
+        submittedVersionAvailable = false,
+        compiledVersionAvailable = true
+      ))),
     AFTOverview(
-      periodStartDate = LocalDate.of(2022,1,1),
-      periodEndDate = LocalDate.of(2022,3,31),
-      numberOfVersions = 1,
-      submittedVersionAvailable = true,
-      compiledVersionAvailable = false
-    )
+      periodStartDate = LocalDate.of(2022, 1, 1),
+      periodEndDate = LocalDate.of(2022, 3, 31),
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(
+        numberOfVersions = 1,
+        submittedVersionAvailable = true,
+        compiledVersionAvailable = false
+      )))
   )
 
   "fileSubmitReturn" must {
@@ -140,7 +148,7 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       )
 
       recoverToExceptionIf[ReturnAlreadySubmittedException](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
-        _ => assert( true)
+        _ => assert(true)
       }
     }
   }
@@ -267,8 +275,8 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       val submitter2 = SubmitterDetails(PSP, "def", "12345678", Some("A1234567"), LocalDate.of(2020, 5, 17))
       val submitter3 = SubmitterDetails(PSA, "ghi", "A2345678", None, LocalDate.of(2020, 6, 17))
       val versions = Seq(VersionsWithSubmitter(version1, Some(submitter1)),
-                          VersionsWithSubmitter(version2, Some(submitter2)),
-                          VersionsWithSubmitter(version3, Some(submitter3)))
+        VersionsWithSubmitter(version2, Some(submitter2)),
+        VersionsWithSubmitter(version3, Some(submitter3)))
 
       server.stubFor(
         get(urlEqualTo(aftListOfVersionsUrl))
