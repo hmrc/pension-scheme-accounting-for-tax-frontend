@@ -18,13 +18,14 @@ package controllers
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.{IdentifierAction, DataRetrievalAction}
-import play.api.i18n.{MessagesApi, I18nSupport}
+import controllers.actions.{DataRetrievalAction, IdentifierAction}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import models.LocalDateBinder._
+import services.SchemeService
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -36,18 +37,21 @@ class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
                                                     userAnswersCacheConnector: UserAnswersCacheConnector,
                                                     identify: IdentifierAction,
                                                     getData: DataRetrievalAction,
+                                                    schemeService: SchemeService,
                                                     renderer: Renderer
                                                    )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate)).async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
       implicit request =>
-        val json = Json.obj(
-          "returnUrl" -> controllers.routes.CannotSubmitAFTController.onClick(srn, startDate).url
-        )
-        renderer.render("cannotSubmitAFT.njk", json).map(Ok(_))
+        schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+          val json = Json.obj(
+            "schemeName" -> schemeDetails.schemeName,
+            "returnUrl" -> controllers.routes.CannotSubmitAFTController.onClick(srn, startDate).url
+          )
+          renderer.render("cannotSubmitAFT.njk", json).map(Ok(_))
+        }
     }
 
   def onClick(srn: String, startDate: LocalDate): Action[AnyContent] =

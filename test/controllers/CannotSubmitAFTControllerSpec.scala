@@ -21,17 +21,20 @@ import data.SampleData._
 import matchers.JsonMatchers
 import play.api.mvc.Results.Ok
 import models.LocalDateBinder._
-import models.UserAnswers
+import models.{SchemeDetails, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.mockito.MockitoSugar
 import pages.SchemeNameQuery
+import play.api.inject.bind
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
 
@@ -42,6 +45,14 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
  private val srn = "test-srn"
   val startDate = QUARTER_START_DATE
 
+  private val mockSchemeService = mock[SchemeService]
+
+  private val extraModules: Seq[GuiceableModule] =
+    Seq[GuiceableModule](
+      bind[SchemeService].toInstance(mockSchemeService)
+    )
+
+
   private val data = UserAnswers().set(SchemeNameQuery, schemeName).toOption
   private def getRoute: String = routes.CannotSubmitAFTController.onPageLoad(srn, startDate).url
   private def onClickRoute: String = routes.CannotSubmitAFTController.onClick(srn, startDate).url
@@ -50,8 +61,9 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
 
     "return OK and the correct view for a GET" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
 
-      val application = applicationBuilder(userAnswers = data).overrides().build()
+      val application = applicationBuilder(userAnswers = data, extraModules).overrides().build()
       val request = FakeRequest(GET, getRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -63,6 +75,7 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
+        "schemeName" -> schemeName,
         "returnUrl" -> controllers.routes.CannotSubmitAFTController.onClick(srn, startDate).url
       )
 
