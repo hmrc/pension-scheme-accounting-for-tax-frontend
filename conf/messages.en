@@ -1265,3 +1265,5 @@ fileupload.whatYouWillNeed.heading = Adding your {0} upload
 
 fileupload.fileupload.title = Upload the {0}
 fileupload.fileupload.heading = Upload the {0}
+
+inputSelection.error.required = Select how you would like to add your data

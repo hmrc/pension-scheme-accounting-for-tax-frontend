@@ -31,6 +31,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -47,7 +48,8 @@ class InputSelectionController @Inject()(
     formProvider: InputSelectionFormProvider
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+      with NunjucksSupport  {
 
   private val form = formProvider()
 
@@ -67,6 +69,7 @@ class InputSelectionController @Inject()(
           "chargeType" -> chargeType.replace("-", " "),
           "srn" -> srn, "startDate" -> Some(startDate),
           "radios" -> InputSelection.radios(preparedForm),
+          "form" -> preparedForm,
           "viewModel" -> viewModel))
         .map(Ok(_))
     }
@@ -84,6 +87,7 @@ class InputSelectionController @Inject()(
                 "chargeType" -> chargeType,
                 "srn" -> srn,
                 "startDate" -> Some(startDate),
+                "form" -> formWithErrors,
                 "radios" -> InputSelection.radios(formWithErrors)
               )
               renderer.render(template = "fileUpload/inputSelection.njk", json).map(BadRequest(_))

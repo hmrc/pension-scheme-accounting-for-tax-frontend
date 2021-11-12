@@ -3,7 +3,7 @@
 {% from "macros/title.njk"  import title %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
-
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
 {% block pageTitle %}
   {{ title(messages("fileupload.inputSelection.title")) }}
@@ -14,6 +14,13 @@
 
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
+
+      {% if form.errors.length > 0 %}
+        {{ govukErrorSummary({
+          "titleText": messages("error.summary.title"),
+          "errorList": form.errors
+        }) }}
+      {% endif %}
 
         <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
             {{ csrf() | safe }}
@@ -27,7 +34,8 @@
                     classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8"
                   }
                 },
-                items: radios
+                items: radios,
+                errorMessage: form.value.error
               }) }}
 
             {{ govukButton({
