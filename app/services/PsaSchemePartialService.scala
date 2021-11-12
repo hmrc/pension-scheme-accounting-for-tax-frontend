@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFS
-import models.{AFTOverview, Draft, Quarters, SchemeDetails}
+import models.{AFTOverview, AFTOverviewOnPODS, Draft, Quarters, SchemeDetails}
 import play.api.i18n.Messages
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -79,17 +79,18 @@ class PsaSchemePartialService @Inject()(
     if (isReturnNotInitiatedForAnyQuarter) {
       Future.successful(Seq(startLink))
     } else {
-      retrieveZeroedOutReturns(overview, pstr).map {
+      val reportsOnPODS = overview.filter(_.versionDetails.isDefined).map(_.toPodsReport)
+      retrieveZeroedOutReturns(reportsOnPODS, pstr).map {
         case zeroedReturns if zeroedReturns.nonEmpty => Seq(startLink) //if any returns in first compile are zeroed out, display start link
         case _ => Nil
       }
     }
   }
 
-  /* Returns a seq of the aftReturns in their first compile have been zeroed out due to deletion of all charges
+  /* Returns a seq of the aftReturns in their first compile that have been zeroed out due to deletion of all charges
   */
-  private def retrieveZeroedOutReturns(overview: Seq[AFTOverview], pstr: String)
-                                      (implicit hc: HeaderCarrier): Future[Seq[AFTOverview]] = {
+  private def retrieveZeroedOutReturns(overview: Seq[AFTOverviewOnPODS], pstr: String)
+                                      (implicit hc: HeaderCarrier): Future[Seq[AFTOverviewOnPODS]] = {
     val firstCompileReturns = overview.filter(_.compiledVersionAvailable).filter(_.numberOfVersions == 1)
 
     Future.sequence(firstCompileReturns.map(aftReturn =>
@@ -99,7 +100,8 @@ class PsaSchemePartialService @Inject()(
   }
 
   private def getPastReturnsLink(overview: Seq[AFTOverview], srn: String): Seq[Link] = {
-    val pastReturns = overview.filter(!_.compiledVersionAvailable)
+    val pastReturns = overview.filter(_.versionDetails.isDefined)
+      .map(_.toPodsReport).filter(!_.compiledVersionAvailable)
 
     if (pastReturns.nonEmpty) {
       Seq(Link(
@@ -116,7 +118,8 @@ class PsaSchemePartialService @Inject()(
                                         srn: String,
                                         pstr: String
                                        )(implicit hc: HeaderCarrier, messages: Messages): Future[(Seq[CardSubHeading], Seq[Link])] = {
-    val inProgressReturns = overview.filter(_.compiledVersionAvailable)
+    val inProgressReturns = overview.filter(_.versionDetails.isDefined)
+      .map(_.toPodsReport).filter(_.compiledVersionAvailable)
 
     if (inProgressReturns.size == 1) {
       val startDate: LocalDate = inProgressReturns.head.periodStartDate
@@ -142,7 +145,7 @@ class PsaSchemePartialService @Inject()(
                                               srn: String,
                                               startDate: LocalDate,
                                               endDate: LocalDate,
-                                              overview: AFTOverview
+                                              overview: AFTOverviewOnPODS
                                             )(implicit hc: HeaderCarrier, messages: Messages): Future[(Seq[CardSubHeading], Seq[Link])] = {
 
     def returnTuple(subHeadingParam: String, linkText: Text): (Seq[CardSubHeading], Seq[Link]) = (
@@ -177,7 +180,7 @@ class PsaSchemePartialService @Inject()(
   private def modelForMultipleInProgressReturns(
                                                  srn: String,
                                                  pstr: String,
-                                                 inProgressReturns: Seq[AFTOverview]
+                                                 inProgressReturns: Seq[AFTOverviewOnPODS]
                                                )(implicit hc: HeaderCarrier,
                                                  messages: Messages): Future[(Seq[CardSubHeading], Seq[Link])] =
     retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>

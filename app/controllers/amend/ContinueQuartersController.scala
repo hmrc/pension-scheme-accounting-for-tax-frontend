@@ -106,7 +106,8 @@ class ContinueQuartersController @Inject()(
                   renderer.render(template = "amend/continueQuarters.njk", json).map(BadRequest(_))
                 },
                 value => {
-                  val aftOverviewElement = aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected)
+                  val aftOverviewElement = aftOverview.filter(_.versionDetails.isDefined)
+                    .map(_.toPodsReport).find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected)
                   if (!aftOverviewElement.submittedVersionAvailable) {
                     Future.successful(
                       Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version = 1)))

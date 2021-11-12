@@ -26,7 +26,7 @@ import models.LocalDateBinder._
 import models.SubmitterType.{PSA, PSP}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.IdentifierRequest
-import models.{AFTOverview, AFTVersion, AccessType, Draft, Submission, SubmitterDetails, VersionsWithSubmitter}
+import models.{AFTOverview, AFTOverviewVersion, AFTVersion, AccessType, Draft, Submission, SubmitterDetails, VersionsWithSubmitter}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -67,10 +67,12 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
     AFTOverview(
       periodStartDate = LocalDate.of(2020, 4, 1),
       periodEndDate = LocalDate.of(2020, 6, 28),
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion(
       numberOfVersions = 3,
       submittedVersionAvailable = true,
       compiledVersionAvailable = true
-    )
+    )))
   )
 
   val mockSchemeService: SchemeService = mock[SchemeService]
