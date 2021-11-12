@@ -22,7 +22,7 @@ import forms.fileUpload.InputSelectionFormProvider
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.fileUpload.{InputSelectionManualPage, InputSelectionPage, InputSelectionUploadPage}
@@ -58,19 +58,13 @@ class InputSelectionController @Inject()(
       val ua = request.userAnswers
       val preparedForm = request.userAnswers.get(InputSelectionPage).fold(form)(form.fill)
 
-      val viewModel = GenericViewModel(
-        submitUrl = "",
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-        schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      )
-
       renderer.render(template = "fileUpload/inputSelection.njk",
         Json.obj(
           "chargeType" -> chargeType.replace("-", " "),
           "srn" -> srn, "startDate" -> Some(startDate),
           "radios" -> InputSelection.radios(preparedForm),
           "form" -> preparedForm,
-          "viewModel" -> viewModel))
+          "viewModel" -> viewModel(srn, startDate, accessType, version, ua)))
         .map(Ok(_))
     }
 
@@ -84,11 +78,12 @@ class InputSelectionController @Inject()(
           .fold(
             formWithErrors => {
               val json = Json.obj(
-                "chargeType" -> chargeType,
+                "chargeType" -> chargeType.replace("-", " "),
                 "srn" -> srn,
                 "startDate" -> Some(startDate),
                 "form" -> formWithErrors,
-                "radios" -> InputSelection.radios(formWithErrors)
+                "radios" -> InputSelection.radios(formWithErrors),
+                "viewModel" -> viewModel(srn, startDate, accessType, version, ua)
               )
               renderer.render(template = "fileUpload/inputSelection.njk", json).map(BadRequest(_))
             },
@@ -99,4 +94,10 @@ class InputSelectionController @Inject()(
           )
       }
     }
+
+  def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int, ua: UserAnswers) = GenericViewModel(
+    submitUrl = "",
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+    schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme") // TODO: error handling
+  )
 }
