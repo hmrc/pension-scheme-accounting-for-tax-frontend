@@ -26,3 +26,4 @@ object LockedHint extends WithName("quarters.hint.locked") with DisplayHint
 object InProgressHint extends WithName("quarters.hint.inProgress") with DisplayHint
 object SubmittedHint extends WithName("quarters.hint.submitted") with DisplayHint
 object PaymentOverdue extends WithName("hint.paymentOverdue") with DisplayHint
+object TpssReportPresentHint extends WithName("hint.tpssReportPresent") with DisplayHint

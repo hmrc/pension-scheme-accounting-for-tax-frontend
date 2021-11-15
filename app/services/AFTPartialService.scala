@@ -20,8 +20,9 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.{PsaFS, SchemeFS}
-import models.{AFTOverview, Draft, LockDetail, Quarters}
+import models.{AFTOverviewOnPODS, Draft, LockDetail, Quarters}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -35,7 +36,6 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import models.financialStatement.PaymentOrChargeType.{getPaymentOrChargeType, AccountingForTaxCharges}
 
 class AFTPartialService @Inject()(
                                    appConfig: FrontendAppConfig,
@@ -48,15 +48,16 @@ class AFTPartialService @Inject()(
                                          (implicit hc: HeaderCarrier, messages: Messages): Future[DashboardAftViewModel] =
       for {
         overview <- aftConnector.getAftOverview(pstr)
-        inProgressReturnsLinkOpt <- pspAftDashboardGetInProgressReturnsModel(overview, srn, pstr)
-        inProgressReturns = overview.filter(_.compiledVersionAvailable)
+        reportsOnPods = overview.filter(_.versionDetails.isDefined).map(_.toPodsReport)
+        inProgressReturnsLinkOpt <- pspAftDashboardGetInProgressReturnsModel(reportsOnPods, srn, pstr)
+        inProgressReturns = reportsOnPods.filter(_.compiledVersionAvailable)
         subHeading <- optionSubHeading(inProgressReturns, pstr, srn, authorisingPsaId)
       } yield {
 
         val links: Seq[Link] = Seq(
             inProgressReturnsLinkOpt,
             Option(Link("aftLoginLink", appConfig.aftLoginUrl.format(srn), msg"aftPartial.start.link")),
-            getPastReturnsModelOpt(overview, srn).map(_.link)
+            getPastReturnsModelOpt(reportsOnPods, srn).map(_.link)
           ).flatten
 
         DashboardAftViewModel(subHeading, links)
@@ -174,7 +175,7 @@ class AFTPartialService @Inject()(
   val endDate: Seq[SchemeFS] => LocalDate = schemeFs => schemeFs.map(_.periodEndDate).distinct.head
 
   private def optionSubHeading(
-                                inProgressReturns: Seq[AFTOverview],
+                                inProgressReturns: Seq[AFTOverviewOnPODS],
                                 schemePstr: String,
                                 srn: String,
                                 authorisingPsaId: String
@@ -205,14 +206,14 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def multipleReturnSubHeading(inProgressReturns: Seq[AFTOverview])
+  private def multipleReturnSubHeading(inProgressReturns: Seq[AFTOverviewOnPODS])
                                       (implicit messages: Messages): JsObject =
     Json.obj(
       "h3" -> msg"pspDashboardAftReturnsCard.h3.multiple".withArgs(inProgressReturns.size.toString).resolve,
       "span" -> msg"pspDashboardAftReturnsCard.span.multiple".resolve
     )
 
-  private def singleReturnSubHeading(inProgressReturns: Seq[AFTOverview], lockDetail: Option[LockDetail], authorisingPsaId: String)
+  private def singleReturnSubHeading(inProgressReturns: Seq[AFTOverviewOnPODS], lockDetail: Option[LockDetail], authorisingPsaId: String)
                                     (implicit messages: Messages): JsObject = {
 
     val startDate: LocalDate = inProgressReturns.head.periodStartDate
@@ -240,8 +241,8 @@ class AFTPartialService @Inject()(
 
   /* Returns a seq of the aftReturns in their first compile have been zeroed out due to deletion of all charges
   */
-  private def retrieveZeroedOutReturns(overview: Seq[AFTOverview], pstr: String)
-                                      (implicit hc: HeaderCarrier): Future[Seq[AFTOverview]] = {
+  private def retrieveZeroedOutReturns(overview: Seq[AFTOverviewOnPODS], pstr: String)
+                                      (implicit hc: HeaderCarrier): Future[Seq[AFTOverviewOnPODS]] = {
     val firstCompileReturns = overview.filter(_.compiledVersionAvailable).filter(_.numberOfVersions == 1)
 
     Future.sequence(firstCompileReturns.map(aftReturn =>
@@ -250,7 +251,7 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def getPastReturnsModelOpt(overview: Seq[AFTOverview], srn: String): Option[AFTViewModel] = {
+  private def getPastReturnsModelOpt(overview: Seq[AFTOverviewOnPODS], srn: String): Option[AFTViewModel] = {
     val pastReturns = overview.filter(!_.compiledVersionAvailable)
 
     if (pastReturns.nonEmpty) {
@@ -261,7 +262,7 @@ class AFTPartialService @Inject()(
   }
 
   private def pspAftDashboardGetInProgressReturnsModel(
-                                                        overview: Seq[AFTOverview],
+                                                        overview: Seq[AFTOverviewOnPODS],
                                                         srn: String,
                                                         pstr: String
                                                       )(
@@ -294,7 +295,7 @@ class AFTPartialService @Inject()(
                                                          srn: String,
                                                          startDate: LocalDate,
                                                          endDate: LocalDate,
-                                                         overview: AFTOverview
+                                                         overview: AFTOverviewOnPODS
                                                        )(
                                                          implicit hc: HeaderCarrier
                                                        ): Future[Option[Link]] = {
@@ -325,7 +326,7 @@ class AFTPartialService @Inject()(
   private def pspAftDashboardMultipleInProgressReturnLink(
                                                            srn: String,
                                                            pstr: String,
-                                                           inProgressReturns: Seq[AFTOverview]
+                                                           inProgressReturns: Seq[AFTOverviewOnPODS]
                                                          )(
                                                            implicit hc: HeaderCarrier
                                                          ): Future[Option[Link]] = {
@@ -347,7 +348,7 @@ class AFTPartialService @Inject()(
     }
   }
 
-  def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFS], psaId: String)
+  def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFS])
     (implicit messages: Messages): DashboardAftViewModel = {
 
     val upcomingCharges: Seq[PsaFS] =

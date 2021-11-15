@@ -23,12 +23,10 @@ import data.SampleData.multiplePenalties
 import models._
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
+import org.mockito.{ArgumentMatchers, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -62,7 +60,7 @@ class AFTPartialServiceSpec
   def service: AFTPartialService =
     new AFTPartialService(frontendAppConfig, paymentsAndChargesService, aftConnector, aftCacheConnector)
 
- "retrievePspDashboardAftReturnsModel" must {
+  "retrievePspDashboardAftReturnsModel" must {
     "return overview api returns multiple returns in progress, " +
       "multiple past returns and start link needs to be displayed" in {
       DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))
@@ -351,7 +349,7 @@ class AFTPartialServiceSpec
           multiplePenalties(1).copy(amountDue = BigDecimal(0.00))
         )
 
-        service.retrievePsaPenaltiesCardModel(penalties, psaId) mustBe
+        service.retrievePsaPenaltiesCardModel(penalties) mustBe
           aftViewModel(upcomingLink = Nil, upcomingAmount = "£0.00", overdueAmount = "£0.00")
       }
 
@@ -364,7 +362,7 @@ class AFTPartialServiceSpec
         val message = msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate".withArgs(
           dueDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
 
-        service.retrievePsaPenaltiesCardModel(penalties, psaId) mustBe aftViewModel(message)
+        service.retrievePsaPenaltiesCardModel(penalties) mustBe aftViewModel(message)
       }
 
       "there are upcoming payments for multiple due dates" in {
@@ -372,7 +370,7 @@ class AFTPartialServiceSpec
           multiplePenalties(0).copy(dueDate = Some(LocalDate.now().plusDays(5))),
           multiplePenalties(1).copy(dueDate = Some(LocalDate.now().plusMonths(5)))
         )
-        service.retrievePsaPenaltiesCardModel(penalties, psaId) mustBe aftViewModel()
+        service.retrievePsaPenaltiesCardModel(penalties) mustBe aftViewModel()
       }
     }
   }
@@ -465,34 +463,42 @@ object AFTPartialServiceSpec {
   val overviewApril20: AFTOverview = AFTOverview(
     LocalDate.of(2020, 4, 1),
     LocalDate.of(2020, 6, 30),
-    2,
-    submittedVersionAvailable = true,
-    compiledVersionAvailable = false
-  )
+    tpssReportPresent = false,
+    Some(AFTOverviewVersion(
+      2,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = false
+    )))
 
   val overviewJuly20: AFTOverview = AFTOverview(
     LocalDate.of(2020, 7, 1),
     LocalDate.of(2020, 9, 30),
-    2,
-    submittedVersionAvailable = true,
-    compiledVersionAvailable = false
-  )
+    tpssReportPresent = false,
+    Some(AFTOverviewVersion(
+      2,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = false
+    )))
 
   val overviewOctober20: AFTOverview = AFTOverview(
     LocalDate.of(2020, 10, 1),
     LocalDate.of(2020, 12, 31),
-    2,
-    submittedVersionAvailable = true,
-    compiledVersionAvailable = true
-  )
+    tpssReportPresent = false,
+    Some(AFTOverviewVersion(
+      2,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = true
+    )))
 
   val overviewJan21: AFTOverview = AFTOverview(
     LocalDate.of(2021, 1, 1),
     LocalDate.of(2021, 3, 31),
-    2,
-    submittedVersionAvailable = true,
-    compiledVersionAvailable = true
-  )
+    tpssReportPresent = false,
+    Some(AFTOverviewVersion(
+      2,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = true
+    )))
 
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
 
@@ -557,9 +563,9 @@ object AFTPartialServiceSpec {
 
   def oneCompileZeroedOut: Seq[AFTOverview] =
     Seq(
-      overviewApril20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
-      overviewJuly20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
-      overviewOctober20.copy(numberOfVersions = 2, compiledVersionAvailable = true)
+      overviewApril20.copy(versionDetails = Some(overviewApril20.versionDetails.get.copy(numberOfVersions = 1, compiledVersionAvailable = true))),
+      overviewJuly20.copy(versionDetails = Some(overviewJuly20.versionDetails.get.copy(numberOfVersions = 1, compiledVersionAvailable = true))),
+      overviewOctober20.copy(versionDetails = Some(overviewOctober20.versionDetails.get.copy(numberOfVersions = 2, compiledVersionAvailable = true)))
     )
 
   def oneCompileZeroedOutModel: Seq[AFTViewModel] =
@@ -577,7 +583,6 @@ object AFTPartialServiceSpec {
         pastReturnsModel
       ).map(_.link)
     )
-
 
 
   def pspDashboardOneInProgressModelWithLocking(

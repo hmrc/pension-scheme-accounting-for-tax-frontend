@@ -16,21 +16,19 @@
 
 package services
 
-import java.time.LocalDate
 import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData._
-import models.{SubmittedHint, LockDetail, LockedHint, DisplayQuarter, InProgressHint, AFTOverview}
-import org.mockito.ArgumentMatchers
+import models.{AFTOverview, AFTOverviewVersion, DisplayQuarter, InProgressHint, LockDetail, LockedHint, SubmittedHint}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
+import org.mockito.{ArgumentMatchers, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.mockito.MockitoSugar
 import play.api.mvc.Results
 import utils.DateHelper
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -187,31 +185,55 @@ object QuartersServiceSpec {
   val newDate: LocalDate = LocalDate.of(2021,4,1)
 
   val pastOneYear: Seq[AFTOverview] = Seq(
-    AFTOverview(q22020.startDate, q22020.endDate, 1, submittedVersionAvailable = true, compiledVersionAvailable = false),
-    AFTOverview(q32020.startDate, q32020.endDate, 2, submittedVersionAvailable = false, compiledVersionAvailable = true),
-    AFTOverview(q42020.startDate, q42020.endDate, 3, submittedVersionAvailable = true, compiledVersionAvailable = true)
+    AFTOverview(q22020.startDate, q22020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 1, submittedVersionAvailable = true, compiledVersionAvailable = false))),
+    AFTOverview(q32020.startDate, q32020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 2, submittedVersionAvailable = false, compiledVersionAvailable = true))),
+    AFTOverview(q42020.startDate, q42020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 3, submittedVersionAvailable = true, compiledVersionAvailable = true)))
   )
 
   val pastMultipleYears: Seq[AFTOverview] =
     pastOneYear ++
     Seq(
-    AFTOverview(q12021.startDate, q12021.endDate, 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+    AFTOverview(q12021.startDate, q12021.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 1, submittedVersionAvailable = true, compiledVersionAvailable = false)))
   )
 
   val inProgress: Seq[AFTOverview] = Seq(
-    AFTOverview(q22020.startDate, q22020.endDate, 1, submittedVersionAvailable = true, compiledVersionAvailable = false),
-    AFTOverview(q32020.startDate, q32020.endDate, 2, submittedVersionAvailable = true, compiledVersionAvailable = true),
-    AFTOverview(q42020.startDate, q42020.endDate, 3, submittedVersionAvailable = false, compiledVersionAvailable = true),
-    AFTOverview(q12021.startDate, q12021.endDate, 1, submittedVersionAvailable = false, compiledVersionAvailable = true)
+    AFTOverview(q22020.startDate, q22020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 1, submittedVersionAvailable = true, compiledVersionAvailable = false))),
+    AFTOverview(q32020.startDate, q32020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 2, submittedVersionAvailable = true, compiledVersionAvailable = true))),
+    AFTOverview(q42020.startDate, q42020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 3, submittedVersionAvailable = false, compiledVersionAvailable = true))),
+    AFTOverview(q12021.startDate, q12021.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 1, submittedVersionAvailable = false, compiledVersionAvailable = true)))
   )
 
   val startQuartersInProgress: Seq[AFTOverview] = Seq(
-    AFTOverview(q32020.startDate, q32020.endDate, 2, submittedVersionAvailable = true, compiledVersionAvailable = true),
-    AFTOverview(q42020.startDate, q42020.endDate, 3, submittedVersionAvailable = false, compiledVersionAvailable = true)
+    AFTOverview(q32020.startDate, q32020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 2, submittedVersionAvailable = true, compiledVersionAvailable = true))),
+    AFTOverview(q42020.startDate, q42020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 3, submittedVersionAvailable = false, compiledVersionAvailable = true)))
   )
 
   val startQuartersCurrentAndPast: Seq[AFTOverview] = Seq(
-    AFTOverview(q22020.startDate, q22020.endDate, 1, submittedVersionAvailable = true, compiledVersionAvailable = false),
-    AFTOverview(q42020.startDate, q42020.endDate, 3, submittedVersionAvailable = false, compiledVersionAvailable = true))
+    AFTOverview(q22020.startDate, q22020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 1, submittedVersionAvailable = true, compiledVersionAvailable = false))),
+    AFTOverview(q42020.startDate, q42020.endDate,
+      tpssReportPresent = false,
+      Some(AFTOverviewVersion( 3, submittedVersionAvailable = false, compiledVersionAvailable = true))))
 
 }
