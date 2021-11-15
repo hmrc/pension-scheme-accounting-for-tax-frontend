@@ -175,4 +175,6 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val callbackEndpointTarget   = loadConfig("upscan.callback-endpoint")
   lazy val initiateUrl              = servicesConfig.baseUrl("upscan-initiate") + "/upscan/initiate"
   lazy val initiateV2Url            = servicesConfig.baseUrl("upscan-initiate") + "/upscan/v2/initiate"
+
+  lazy val maxUploadFileSize: Int = configuration.getOptional[Int]("upscan.maxUploadFileSizeMb").getOrElse(1)
 }

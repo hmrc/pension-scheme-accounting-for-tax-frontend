@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{AccessType, GenericViewModel, InProgress, NormalMode, UploadId, UploadStatus, UploadedSuccessfully}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
@@ -31,7 +32,6 @@ import renderer.Renderer
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
-import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
@@ -63,10 +63,18 @@ class FileUploadController @Inject()(
         uploadId)
         .url
 
+      val errorRedirectUrl = appConfig.uploadRedirectTargetBase + routes.FileUploadController.onPageLoad(
+        srn,
+        startDate,
+        accessType,
+        version,
+        chargeType)
+        .url
+
       val ua = request.userAnswers
 
       def upscanInitiateResponse = for {
-        uir <- upscanInitiateConnector.initiateV1(Some(successRedirectUrl))
+        uir <- upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl))
         _ <- uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference))
       } yield uir
 
@@ -77,6 +85,8 @@ class FileUploadController @Inject()(
           schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
         )
 
+        val error = getErrorCode(request)
+
         renderer.render(template = "fileUpload/fileupload.njk",
           Json.obj(
             "chargeType" -> chargeType,
@@ -84,6 +94,8 @@ class FileUploadController @Inject()(
             "srn" -> srn,
             "startDate" -> Some(startDate),
             "formFields" -> x.formFields.toList,
+            "error" -> error,
+            "maxFileUploadSize" -> appConfig.maxUploadFileSize,
             "viewModel" -> viewModel))
           .map(Ok(_))
 
@@ -121,5 +133,12 @@ class FileUploadController @Inject()(
         case UploadedSuccessfully(_, _, _, _) => "Success"
         case InProgress => "Inprogress"
       }
+  }
+
+  def getErrorCode(request: DataRequest[AnyContent]) = {
+      if (request.queryString.contains("errorCode") && request.queryString("errorCode").nonEmpty)
+        Some(request.queryString("errorCode").head)
+      else
+        None
   }
 }

@@ -42,7 +42,8 @@ case class UpscanInitiateRequestV2(
   successRedirect: Option[String] = None,
   errorRedirect: Option[String]   = None,
   minimumFileSize: Option[Int]    = None,
-  maximumFileSize: Option[Int]    = Some(512))
+  maximumFileSize: Option[Int]    = Some(512),
+  expectedContentType: Option[String] = None)
     extends UpscanInitiateRequest
 
 case class UploadForm(href: String, fields: Map[String, String])
@@ -89,7 +90,8 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
     val request = UpscanInitiateRequestV2(
       callbackUrl = appConfig.callbackEndpointTarget,
       successRedirect = redirectOnSuccess,
-      errorRedirect = redirectOnError
+      errorRedirect = redirectOnError,
+      maximumFileSize = Some(appConfig.maxUploadFileSize  * (1024 * 1024))
     )
     initiate(appConfig.initiateV2Url, request)
   }

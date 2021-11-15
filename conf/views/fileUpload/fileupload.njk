@@ -3,6 +3,7 @@
 {% from "macros/title.njk"  import title %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
 
 
 {% block pageTitle %}
@@ -27,15 +28,36 @@
 
             <div class="">
                 <div class="form-group">
-                    <label class="form-label" for="file-input">
-                        <span class="">File to upload</span>
-                    </label>
+
                     <div class="form-control-wrapper">
-                        <input
-                        type="file"
-                        id="file-input"
-                        name="file"
-                        accept=".csv" />
+
+                        <div class="govuk-inset-text">
+                          Accepted file type: .csv
+                        </div>
+
+                        {% if error == null %}
+                        {{ govukFileUpload({
+                              id: "file-input",
+                              name: "file",
+                              label: {
+                                text: "Upload a file"
+                              }
+                        }) }}
+
+                        {% else %}
+
+                        {{ govukFileUpload({
+                          id: "file-input",
+                          name: "file",
+                          label: {
+                            text: "Upload a file"
+                          },
+                          errorMessage: {
+                            text: messages(error, maxFileUploadSize)
+                          }
+                        }) }}
+
+                        {% endif %}
                     </div>
                 </div>
             </div>
