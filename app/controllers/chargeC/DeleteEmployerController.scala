@@ -21,6 +21,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
+import helpers.ChargeServiceHelper
 import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
@@ -33,7 +34,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{ChargeCService, DeleteAFTChargeService, UserAnswersService}
+import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -53,7 +54,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                          deleteAFTChargeService: DeleteAFTChargeService,
                                          formProvider: DeleteFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
-                                         chargeCHelper: ChargeCService,
+                                         chargeServiceHelper: ChargeServiceHelper,
                                          config: FrontendAppConfig,
                                          renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -138,20 +139,18 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       ua.get(SponsoringOrganisationDetailsPage(index))) match {
 
       case (Some(SponsoringEmployerTypeIndividual), Some(_), _) =>
-        userAnswersService.removeMemberBasedCharge(SponsoringIndividualDetailsPage(index), totalAmount(srn, startDate, accessType, version))
+        userAnswersService.removeMemberBasedCharge(SponsoringIndividualDetailsPage(index), totalAmount)
 
       case (Some(SponsoringEmployerTypeOrganisation), _, Some(_)) =>
-        userAnswersService.removeMemberBasedCharge(SponsoringOrganisationDetailsPage(index), totalAmount(srn, startDate, accessType, version))
+        userAnswersService.removeMemberBasedCharge(SponsoringOrganisationDetailsPage(index), totalAmount)
 
       case _ => Try(ua)
     }
   }
 
-  private def totalAmount(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                         (implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal = {
-    chargeCHelper.getSponsoringEmployers(_, srn, startDate, accessType, version).map(_.amount).sum
+  private def totalAmount : UserAnswers => BigDecimal = {
+    chargeServiceHelper.totalAmount(_, "chargeCDetails")
   }
-
 
   case object EmployerTypeUnidentified extends Exception("Employer did not match individual or organisation type")
 }

@@ -16,29 +16,29 @@
 
 package controllers.chargeD
 
-import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
+import helpers.ChargeServiceHelper
 import helpers.ErrorHelper.recoverFrom5XX
-
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode, Index, UserAnswers, AccessType}
+import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeD.{MemberDetailsPage, DeleteMemberPage}
+import pages.chargeD.{DeleteMemberPage, MemberDetailsPage}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{ChargeDService, DeleteAFTChargeService, UserAnswersService}
+import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
@@ -52,7 +52,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        deleteAFTChargeService: DeleteAFTChargeService,
                                        formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
-                                       chargeDHelper: ChargeDService,
+                                       chargeServiceHelper: ChargeServiceHelper,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -139,5 +139,5 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
     }
 
   private def totalAmount(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
-    chargeDHelper.getLifetimeAllowanceMembers(_, srn, startDate, accessType, version).map(_.amount).sum
+    chargeServiceHelper.totalAmount(_, "chargeDDetails")
 }

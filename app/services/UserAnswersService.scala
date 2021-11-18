@@ -26,7 +26,8 @@ import play.api.mvc.AnyContent
 
 import scala.util.Try
 
-class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
+class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
+                                   chargeCService: ChargeCService) {
 
   /* Use this set for add/change journeys for a member or scheme based charge */
   def set[A](page: QuestionPage[A], value: A, mode: Mode, isMemberBased: Boolean = true)(implicit request: DataRequest[AnyContent],

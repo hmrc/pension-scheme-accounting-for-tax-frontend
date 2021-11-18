@@ -16,22 +16,22 @@
 
 package navigators
 
-import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeE.routes._
-import helpers.DeleteChargeHelper
+import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, MemberDetails, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeE._
 import play.api.mvc.{AnyContent, Call}
-import services.ChargeEService
+
+import java.time.LocalDate
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
-                                 chargeEHelper: ChargeEService,
+                                 chargeServiceHelper: ChargeServiceHelper,
                                  config: FrontendAppConfig)
   extends Navigator {
 
@@ -49,7 +49,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                         (implicit request: DataRequest[AnyContent]): Call =
     if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
-    } else if(chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate, accessType, version).nonEmpty) {
+    } else if(chargeServiceHelper.isEmployerOrMemberPresent(ua, "chargeEDetails")) {
         AddMembersController.onPageLoad(srn, startDate, accessType, version)
      } else {
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)

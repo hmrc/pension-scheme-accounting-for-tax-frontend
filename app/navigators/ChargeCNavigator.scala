@@ -17,23 +17,23 @@
 package navigators
 
 import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeC.routes._
-import helpers.DeleteChargeHelper
+import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.SponsoringEmployerType._
 import models.requests.DataRequest
-import models.{NormalMode, AccessType, CheckMode, UserAnswers}
+import models.{AccessType, CheckMode, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, _}
-import play.api.mvc.{Call, AnyContent}
+import play.api.mvc.{AnyContent, Call}
 import services.ChargeCService
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
                                  chargeCHelper: ChargeCService,
+                                 chargeServiceHelper: ChargeServiceHelper,
                                  config: FrontendAppConfig)
   extends Navigator {
 
@@ -87,7 +87,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case DeleteEmployerPage if deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment =>
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
 
-    case DeleteEmployerPage if chargeCHelper.getSponsoringEmployers(ua, srn, startDate, accessType, version).nonEmpty =>
+    case DeleteEmployerPage if chargeServiceHelper.isEmployerOrMemberPresent(ua, "chargeCDetails") =>
       AddEmployersController.onPageLoad(srn, startDate, accessType, version)
 
     case DeleteEmployerPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)

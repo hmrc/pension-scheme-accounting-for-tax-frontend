@@ -16,22 +16,22 @@
 
 package navigators
 
-import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.chargeD.routes.{MemberDetailsController, _}
-import helpers.DeleteChargeHelper
+import controllers.chargeD.routes._
+import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, MemberDetails, NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeD.{AddMembersPage, _}
+import pages.chargeD._
 import play.api.mvc.{AnyContent, Call}
-import services.ChargeDService
+
+import java.time.LocalDate
 class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
-                                 chargeDHelper: ChargeDService,
+                                 chargeServiceHelper: ChargeServiceHelper,
                                  config: FrontendAppConfig)
   extends Navigator {
 
@@ -49,7 +49,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                         (implicit request: DataRequest[AnyContent]): Call =
     if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
-    } else if(chargeDHelper.getLifetimeAllowanceMembers(ua, srn, startDate, accessType, version).nonEmpty) {
+    } else if(chargeServiceHelper.isEmployerOrMemberPresent(ua, "chargeDDetails")) {
       AddMembersController.onPageLoad(srn, startDate, accessType, version)
     } else {
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)

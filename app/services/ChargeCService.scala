@@ -16,26 +16,27 @@
 
 package services
 
-import java.time.LocalDate
-
 import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{amendedChargeStatus, Unknown}
+import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Employer, AccessType, UserAnswers}
+import models.{AccessType, Employer, UserAnswers}
 import pages.chargeC._
 import play.api.i18n.Messages
-import play.api.libs.json.JsArray
-import play.api.mvc.{Call, AnyContent}
+import play.api.libs.json.{JsArray, JsValue}
+import play.api.mvc.{AnyContent, Call}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import viewmodels.Table
 import viewmodels.Table.Cell
+
+import java.time.LocalDate
+import scala.math.Numeric.BigDecimalIsFractional
 
 class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
@@ -44,6 +45,28 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       .map(_.as[JsArray].value.length)
       .getOrElse(0)
 
+  def totalAmount(ua: UserAnswers): BigDecimal = {
+    val deletedFilter: JsValue => Boolean = employer => !{(employer \ "memberStatus").asOpt[String].contains("Deleted")}
+    (ua.data \ "chargeCDetails" \ "employers")
+      .validate[JsArray]
+        .asOpt
+          .getOrElse(JsArray()).value
+            .filter(deletedFilter)
+              .map { nonDeletedEmployer =>
+                (nonDeletedEmployer \ "chargeDetails" \ "amountTaxDue").as[BigDecimal]}.seq.sum
+  }
+
+  def isEmployerPresent(ua: UserAnswers): Boolean = {
+    val nonDeletedEmployer =
+      (ua.data \ "chargeCDetails" \ "employers")
+        .validate[JsArray]
+          .asOpt.getOrElse(JsArray())
+          .value
+            .find{ employer =>
+              !(employer \ "memberStatus").validate[String].asOpt.contains("Deleted")}
+    nonDeletedEmployer.nonEmpty
+  }
+
   private def getEmployerDetails(ua: UserAnswers, index: Int): Option[String] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
     case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(_.fullName)
     case _ => ua.get(SponsoringOrganisationDetailsPage(index)).map(_.name)
@@ -51,11 +74,10 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                             (implicit request: DataRequest[AnyContent]): Seq[Employer] = {
-
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
       ua.get(MemberStatusPage(index)) match {
         case Some(status) if status == "Deleted" => Nil
-        case _ =>
+        case _ => {
           getEmployerDetails(ua, index).flatMap { name =>
             ua.get(ChargeCDetailsPage(index)).map { chargeDetails =>
               Employer(
@@ -67,6 +89,7 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
               )
             }
           }.toSeq
+        }
       }
     }
   }
@@ -147,4 +170,4 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
         s"<span class= $hiddenTag>${messages(text)} ${messages(s"chargeC.addEmployers.visuallyHidden", name)}</span> </a>")
   }
 
-}
+    }
