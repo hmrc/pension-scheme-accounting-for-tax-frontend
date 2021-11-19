@@ -173,6 +173,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val uploadRedirectTargetBase = loadConfig("upload-redirect-target-base")
   lazy val callbackEndpointTarget   = loadConfig("upscan.callback-endpoint")
+  lazy val upscanUrl                = servicesConfig.baseUrl("upscan-initiate")
   lazy val initiateUrl              = servicesConfig.baseUrl("upscan-initiate") + "/upscan/initiate"
   lazy val initiateV2Url            = servicesConfig.baseUrl("upscan-initiate") + "/upscan/v2/initiate"
 

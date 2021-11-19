@@ -24,7 +24,7 @@ import controllers.actions._
 import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
-import models.{AFTQuarter, AccessType, MemberDetails, UploadId, UploadedSuccessfully, UserAnswers, YearRange}
+import models.{AFTQuarter, AccessType, Index, MemberDetails, UploadId, UploadedSuccessfully, UserAnswers, YearRange}
 import navigators.CompoundNavigator
 import pages.QuarterPage
 import pages.chargeE._
@@ -68,20 +68,25 @@ class ValidationController @Inject()(
 
           for {
             ud <- uploadDetails(uploadId)
-            contents <- httpClient.GET(s"http://localhost:9570${ud.downloadUrl}") // TODO: Refactor
+            contents <- upscanInitiateConnector.download(ud.downloadUrl)
           } yield {
 
             val lines = contents.body.split("\n").toList
 
-            val updatedUserAnswers: UserAnswers = chargeType match {
-              case "annual-allowance-charge" => AnnualAllowanceParser.parse(request.userAnswers, lines)
-              case "lifetime-allowance-charge" => LifetimeAllowanceParser.parse(request.userAnswers, lines)
+            chargeType match {
+
+              case "annual-allowance-charge" =>
+                val updatedUserAnswers = AnnualAllowanceParser.parse(request.userAnswers, lines)
+                userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
+                Redirect(controllers.chargeE.routes.CheckYourAnswersController.onClick(
+                  srn, startDate.toString, accessType, version, Index(1)))
+              case "lifetime-allowance-charge" =>
+                val updatedUserAnswers = LifetimeAllowanceParser.parse(request.userAnswers, lines)
+                userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
+                Redirect(controllers.chargeD.routes.CheckYourAnswersController.onClick(
+                  srn, startDate.toString, accessType, version, Index(1)))
               case _ => ???
             }
-
-            userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
-            aftService.fileCompileReturn(pstr, updatedUserAnswers)
-            Redirect(s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/S2400000001/2021-01-01/draft/1/$chargeType/1/on-click-check-your-answers") // TODO: Refactor
           }
         }
     }

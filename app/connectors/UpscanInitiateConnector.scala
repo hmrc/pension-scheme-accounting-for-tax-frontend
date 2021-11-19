@@ -29,14 +29,6 @@ import scala.concurrent.{ExecutionContext, Future}
 sealed trait UpscanInitiateRequest
 
 // TODO expectedContentType is also an optional value
-case class UpscanInitiateRequestV1(
-  callbackUrl: String,
-  successRedirect: Option[String] = None,
-  minimumFileSize: Option[Int]    = None,
-  maximumFileSize: Option[Int]    = Some(10000))
-    extends UpscanInitiateRequest
-
-// TODO expectedContentType is also an optional value
 case class UpscanInitiateRequestV2(
   callbackUrl: String,
   successRedirect: Option[String] = None,
@@ -56,10 +48,6 @@ object Reference {
 
 case class PreparedUpload(reference: Reference, uploadRequest: UploadForm)
 
-object UpscanInitiateRequestV1 {
-  implicit val format: OFormat[UpscanInitiateRequestV1] = Json.format[UpscanInitiateRequestV1]
-}
-
 object UpscanInitiateRequestV2 {
   implicit val format: OFormat[UpscanInitiateRequestV2] = Json.format[UpscanInitiateRequestV2]
 }
@@ -76,14 +64,6 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
   private val headers = Map(
     HeaderNames.CONTENT_TYPE -> "application/json"
   )
-
-  def initiateV1(redirectOnSuccess: Option[String])(implicit hc: HeaderCarrier): Future[UpscanInitiateResponse] = {
-    val request = UpscanInitiateRequestV1(
-      callbackUrl = appConfig.callbackEndpointTarget,
-      successRedirect = redirectOnSuccess
-    )
-    initiate(appConfig.initiateUrl, request)
-  }
 
   def initiateV2(redirectOnSuccess: Option[String], redirectOnError: Option[String])
                 (implicit hc: HeaderCarrier): Future[UpscanInitiateResponse] = {
@@ -106,4 +86,7 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
       formFields    = response.uploadRequest.fields
     } yield UpscanInitiateResponse(fileReference, postTarget, formFields)
 
+  def download(downloadUrl: String)(implicit hc: HeaderCarrier) = {
+    httpClient.GET(s"${appConfig.upscanUrl}$downloadUrl")
+  }
 }
