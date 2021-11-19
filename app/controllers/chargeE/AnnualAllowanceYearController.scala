@@ -87,7 +87,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
       }
     }
 
-  def getMinYear(implicit hc: HeaderCarrier, ec: ExecutionContext):Future[Int]={
+  private def getMinYear(implicit hc: HeaderCarrier, ec: ExecutionContext):Future[Int]={
     val defaultMinYear=2018
     val minYear=2011
     featureToggleService.get(MigrationTransferAft)
