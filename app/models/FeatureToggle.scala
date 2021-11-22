@@ -35,9 +35,16 @@ sealed trait FeatureToggleName {
 
 object FeatureToggleName {
 
-  val toggles = Nil
+  case object MigrationTransferAft extends FeatureToggleName {
+    val asString = "migration-transfer-aft"
+  }
 
-  implicit val reads: Reads[FeatureToggleName] = Reads {  _ => JsError("Unrecognised feature toggle name")}
+  val toggles = Seq(MigrationTransferAft)
+
+  implicit val reads: Reads[FeatureToggleName] = Reads {
+    case JsString(MigrationTransferAft.asString) => JsSuccess(MigrationTransferAft)
+    case _ => JsError("Unrecognised feature toggle name")
+  }
 
   implicit val writes: Writes[FeatureToggleName] =
     Writes(value => JsString(value.asString))

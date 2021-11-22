@@ -45,7 +45,7 @@ class YearRangeSpec
 
     "must deserialise valid values" in {
 
-      val gen = Gen.oneOf(YearRange.values)
+      val gen = Gen.oneOf(YearRange.values(2011))
 
       forAll(gen) { yearRange =>
         JsString(yearRange.toString)
@@ -57,7 +57,7 @@ class YearRangeSpec
 
     "must fail to deserialise invalid values" in {
 
-      val gen = arbitrary[String] suchThat (!YearRange.values
+      val gen = arbitrary[String] suchThat (!YearRange.values(2011)
         .map(_.toString)
         .contains(_))
 
@@ -70,7 +70,7 @@ class YearRangeSpec
     }
 
     "must serialise" in {
-      val gen = Gen.oneOf(YearRange.values)
+      val gen = Gen.oneOf(YearRange.values(2011))
 
       forAll(gen) { yearRange =>
         Json.toJson(yearRange) mustEqual JsString(yearRange.toString)
@@ -84,8 +84,8 @@ class YearRangeSpec
       forAll(genYear -> "valid years") { year =>
         DateHelper.setDate(Some(LocalDate.of(year, 4, 5)))
         val expectedResult =
-          (2018 until year).reverse.map(yr => YearRange(yr.toString))
-        YearRange.values mustBe expectedResult
+          (2011 until year).reverse.map(yr => YearRange(yr.toString))
+        YearRange.values(2011) mustBe expectedResult
       }
     }
 
@@ -94,8 +94,8 @@ class YearRangeSpec
       forAll(genYear -> "valid years") { year =>
         DateHelper.setDate(Some(LocalDate.of(year, 4, 6)))
         val expectedResult =
-          (2018 to year).reverse.map(yr => YearRange(yr.toString))
-        YearRange.values mustBe expectedResult
+          (2011 to year).reverse.map(yr => YearRange(yr.toString))
+        YearRange.values(2011) mustBe expectedResult
       }
     }
   }
