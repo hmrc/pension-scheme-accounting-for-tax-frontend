@@ -19,7 +19,7 @@ package connectors.cache
 import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{SessionAccessData, LockDetail, SessionData}
+import models.{SessionAccessData, LockDetail, SessionData, ChargeType}
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.mvc.Result
@@ -63,7 +63,36 @@ class UserAnswersCacheConnectorImpl @Inject()(
   def save(id: String, value: JsValue)
           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
 
-    val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json"))
+    val allExtraHeaders = Seq(
+      Tuple2("id", id), Tuple2("content-type", "application/json")
+    )
+
+    savePost(allExtraHeaders, saveUrl, value)
+  }
+
+  /*
+  chargeA = Short service refund lump sum charge
+chargeB = Special lump sum death benefits charge
+chargeD = Lifetime allowance charge
+chargeE = Annual allowance charge
+chargeF = De-registration charge
+chargeG = Overseas transfer charge
+   */
+  def saveCharge(id: String, value: JsValue, chargeType:ChargeType, memberNo:Option[Int] = None)
+    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+
+    val memberNoHeader = memberNo match {
+      case Some(mn) => Seq(Tuple2("memberNo", mn.toString))
+      case _ => Nil
+    }
+
+    val allExtraHeaders = Seq(
+      Tuple2("id", id),
+      Tuple2("content-type", "application/json"),
+      Tuple2("chargeType", chargeType.toString)
+    ) ++ memberNoHeader
+
+    println("\nSAVE CHARGE:" + chargeType)
 
     savePost(allExtraHeaders, saveUrl, value)
   }
@@ -85,7 +114,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
   override def saveAndLock(id: String, value: JsValue, sessionAccessData: SessionAccessData, lockReturn: Boolean = false)
                           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-
     val useURL = if (lockReturn) saveSessionAndLockUrl else saveSessionUrl
 
     val sessionDataHeaders = Seq(
@@ -94,7 +122,11 @@ class UserAnswersCacheConnectorImpl @Inject()(
       Tuple2("areSubmittedVersionsAvailable", sessionAccessData.areSubmittedVersionsAvailable.toString))
     val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json")) ++ sessionDataHeaders
 
-    savePost(allExtraHeaders, useURL, value)
+    val xx = savePost(allExtraHeaders, useURL, value)
+    xx.foreach { yy =>
+      println("\nsave and lock returns=" + yy)
+    }
+    xx
   }
 
   override def removeAll(id: String)
@@ -168,6 +200,9 @@ trait UserAnswersCacheConnector {
 
   def save(cacheId: String, value: JsValue)
           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
+
+  def saveCharge(id: String, value: JsValue, chargeType:ChargeType, memberNo:Option[Int] = None)
+    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)
                (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]

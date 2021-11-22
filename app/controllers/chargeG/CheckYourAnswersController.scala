@@ -20,21 +20,21 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.{IdentifierAction, AllowAccessActionProvider, DataRetrievalAction, DataRequiredAction}
 import helpers.CYAChargeGHelper
 import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, NormalMode}
+import models.{GenericViewModel, AccessType, NormalMode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeG.{CheckYourAnswersPage, TotalChargeAmountPage}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, ChargeGService}
+import services.{ChargeGService, AFTService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import uk.gov.hmrc.viewmodels.{SummaryList, NunjucksSupport}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
@@ -92,7 +92,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         val totalAmount = chargeGHelper.getOverseasTransferMembers(request.userAnswers, srn, startDate, accessType, version).map(_.amount).sum
         (for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
-          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+          _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeOverseasTransfer)
           _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
         } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))

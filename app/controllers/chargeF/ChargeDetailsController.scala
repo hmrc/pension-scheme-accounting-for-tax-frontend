@@ -17,21 +17,21 @@
 package controllers.chargeF
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeF.ChargeDetailsFormProvider
 import helpers.DeleteChargeHelper
+
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Mode, GenericViewModel, Quarters, AccessType}
+import models.{Quarters, GenericViewModel, AccessType, Mode, ChargeType}
 import models.chargeF.ChargeDetails
 import navigators.CompoundNavigator
 import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -126,7 +126,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             value => {
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeDetailsPage, value, mode, isMemberBased = false))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeDeRegistration)
               } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn, startDate, accessType, version))
             }
           )

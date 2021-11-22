@@ -27,11 +27,11 @@ import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
 
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, Mode}
+import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.chargeC.SponsoringEmployerAddressSearchPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -122,7 +122,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
                 auditService.sendEvent(AddressLookupAuditEvent(value))
                 for {
                   updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressSearchPage(index), addresses))
-                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                  _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAuthSurplus, Some(index.id))
                 } yield Redirect(navigator.nextPage(SponsoringEmployerAddressSearchPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
             }
         )

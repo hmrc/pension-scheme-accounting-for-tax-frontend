@@ -23,11 +23,11 @@ import forms.YearRangeFormProvider
 import models.FeatureToggle.Enabled
 import models.FeatureToggleName.MigrationTransferAft
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, Mode, YearRange}
+import models.{YearRange, GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.chargeE.AnnualAllowanceYearPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -122,7 +122,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
               value => {
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(AnnualAllowanceYearPage(index), value, mode))
-                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                  _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAnnualAllowance, Some(index.id))
                 } yield Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
               }
             )

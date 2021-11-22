@@ -21,22 +21,22 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeG.ChargeAmountsFormProvider
+
 import javax.inject.Inject
 import models.chargeG.ChargeAmounts
-import models.{Mode, GenericViewModel, AccessType, Index}
+import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.chargeG.{MemberDetailsPage, ChargeAmountsPage}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDate
-
 import models.LocalDateBinder._
 import services.UserAnswersService
 
@@ -116,7 +116,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
             value => {
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeAmountsPage(index), value, mode))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeOverseasTransfer, Some(index.id))
               } yield Redirect(navigator.nextPage(ChargeAmountsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
             }
           )

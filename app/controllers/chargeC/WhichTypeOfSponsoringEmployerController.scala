@@ -17,26 +17,26 @@
 package controllers.chargeC
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.IsSponsoringEmployerIndividualFormProvider
+
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, SponsoringEmployerType, AccessType, Mode, Index}
+import models.{AccessType, Mode, ChargeType, Index, GenericViewModel, SponsoringEmployerType}
 import navigators.CompoundNavigator
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi: MessagesApi,
                                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -107,7 +107,7 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
             value =>
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(WhichTypeOfSponsoringEmployerPage(index), value, mode))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAuthSurplus, Some(index.id))
               } yield Redirect(navigator.nextPage(WhichTypeOfSponsoringEmployerPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }

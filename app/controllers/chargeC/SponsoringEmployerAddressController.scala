@@ -26,11 +26,11 @@ import forms.chargeC.SponsoringEmployerAddressFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeC.SponsoringEmployerAddress
-import models.{AccessType, GenericViewModel, Index, Mode}
+import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressResultsPage}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -144,7 +144,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
             value =>
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), value, mode))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAuthSurplus, Some(index.id))
               } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }

@@ -21,20 +21,20 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringIndividualDetailsFormProvider
+
 import javax.inject.Inject
-import models.{Mode, GenericViewModel, AccessType, Index}
+import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.chargeC.SponsoringIndividualDetailsPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDate
-
 import models.LocalDateBinder._
 import services.UserAnswersService
 
@@ -107,7 +107,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
             value =>
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringIndividualDetailsPage(index), value, mode))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAuthSurplus, Some(index.id))
               } yield Redirect(navigator.nextPage(SponsoringIndividualDetailsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
