@@ -54,19 +54,29 @@ class ChargeServiceHelperSpec extends SpecBase with MockitoSugar with BeforeAndA
     }
   }
 
-//  "totalAmount in charge D" must {
-//    "return total amount in charge D when it is not the last charge" in {
-//      chargeServiceHelper.totalAmount(allMembersChargeD, "chargeDDetails") mustBe 66.88
-//    }
-//
-//    "return total amount in charge D when it has deleted charge" in {
-//      chargeServiceHelper.totalAmount(allMembersChargeDIncludingDeleted, "chargeDDetails") mustBe 66.88
-//    }
-//
-//    "return total amount as zero in Charge D when it has only deleted charge" in {
-//      chargeServiceHelper.totalAmount(deletedEmployersChargeD, "chargeDDetails") mustBe 0
-//    }
-//  }
+  "totalAmount in charge D" must {
+    "return total amount in charge D when it is not the last charge" in {
+      chargeServiceHelper.totalAmount(allMembersChargeD, "chargeDDetails") mustBe 166.88
+    }
+
+    "return total amount in charge D when it has deleted charge" in {
+      chargeServiceHelper.totalAmount(allMembersChargeDIncludingDeleted, "chargeDDetails") mustBe 166.88
+    }
+
+    "return total amount as zero in Charge D when it has only deleted charge" in {
+      chargeServiceHelper.totalAmount(deletedEmployersChargeD, "chargeDDetails") mustBe 0
+    }
+  }
+
+  "isEmployerPresent in charge D" must {
+    "return true when any non-deleted employee present in charge D" in {
+      chargeServiceHelper.isEmployerOrMemberPresent(allMembersChargeDIncludingDeleted, "chargeDDetails") mustBe true
+    }
+
+    "return false when only deleted employee present in charge D" in {
+      chargeServiceHelper.isEmployerOrMemberPresent(deletedEmployersChargeD, "chargeDDetails") mustBe false
+    }
+  }
 
   "totalAmount in charge E" must {
     "return total amount in charge E when it is not the last charge" in {

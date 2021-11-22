@@ -28,10 +28,11 @@ class ChargeServiceHelper {
   private case class NodeInfo(
                               chargeDetailsNode:String,
                               memberOrEmployerNode: String,
-                              amountNode:String
+                              calculateAmount:JsValue => BigDecimal
                              )
 
   def totalAmount(ua: UserAnswers, chargeType: String): BigDecimal = {
+
     val nodes : NodeInfo = nodeInfo(chargeType).get
     val deletedFilter: JsValue => Boolean = memberOrEmployer => !{(memberOrEmployer \ "memberStatus").asOpt[String].contains("Deleted")}
     (ua.data \ chargeType \ nodes.memberOrEmployerNode)
@@ -40,8 +41,9 @@ class ChargeServiceHelper {
       .getOrElse(JsArray()).value
       .filter(deletedFilter)
       .map { nonDeletedMemberOrEmployer =>
-        (nonDeletedMemberOrEmployer \ nodes.chargeDetailsNode \ nodes.amountNode).as[BigDecimal]}.seq.sum
+        nodes.calculateAmount(nonDeletedMemberOrEmployer)}.seq.sum
   }
+
 
   def isEmployerOrMemberPresent(ua: UserAnswers,  chargeType: String): Boolean = {
     val nodes : NodeInfo = nodeInfo(chargeType).get
@@ -56,27 +58,32 @@ class ChargeServiceHelper {
   }
 
   private def nodeInfo(chargeType:String):Option[NodeInfo] = {
+    val bigDecimal_zero = BigDecimal(0.0)
     chargeType match {
       case "chargeEDetails" =>
         Some(NodeInfo(
           chargeDetailsNode = pages.chargeE.ChargeDetailsPage.toString,
           memberOrEmployerNode = AnnualAllowanceMembersQuery.toString,
-          amountNode = "chargeAmount"))
+          calculateAmount =  rootNode => (rootNode \ pages.chargeE.ChargeDetailsPage.toString \ "chargeAmount").asOpt[BigDecimal].getOrElse(bigDecimal_zero)))
       case "chargeCDetails" =>
         Some(NodeInfo(
           chargeDetailsNode = pages.chargeC.ChargeCDetailsPage.toString,
           memberOrEmployerNode = SponsoringEmployersQuery.toString,
-          amountNode = "amountTaxDue"))
+          calculateAmount =  rootNode => (rootNode \ pages.chargeC.ChargeCDetailsPage.toString \ "amountTaxDue").asOpt[BigDecimal].getOrElse(bigDecimal_zero)))
       case "chargeDDetails" =>
         Some(NodeInfo(
           chargeDetailsNode = pages.chargeD.ChargeDetailsPage.toString,
           memberOrEmployerNode = LifetimeAllowanceMembersQuery.toString,
-          amountNode = "total"))
+          calculateAmount =  rootNode => {
+            val amount1 = (rootNode \ pages.chargeD.ChargeDetailsPage.toString \ "taxAt25Percent").asOpt[BigDecimal].getOrElse(bigDecimal_zero)
+            val amount2 = (rootNode \ pages.chargeD.ChargeDetailsPage.toString \ "taxAt55Percent").asOpt[BigDecimal].getOrElse(bigDecimal_zero)
+            amount1 + amount2
+          }))
       case "chargeGDetails" =>
         Some(NodeInfo(
           chargeDetailsNode = ChargeAmountsPage.toString,
           memberOrEmployerNode = OverseasTransferMembersQuery.toString,
-          amountNode = "amountTaxDue"))
+          calculateAmount =  rootNode => (rootNode \ ChargeAmountsPage.toString \ "amountTaxDue").asOpt[BigDecimal].getOrElse(bigDecimal_zero)))
       case _ => None
     }
   }
