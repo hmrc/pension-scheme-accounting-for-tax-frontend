@@ -16,9 +16,9 @@
 
 package models.chargeC
 
-import java.time.LocalDate
-
 import play.api.libs.json.{Format, Json}
+
+import java.time.LocalDate
 
 case class ChargeCDetails(paymentDate: LocalDate, amountTaxDue: BigDecimal)
 

@@ -16,15 +16,14 @@
 
 package navigators
 
-import java.time.LocalDate
-
 import com.google.inject.Inject
 import models.requests.DataRequest
-import models.{Mode, AccessType, UserAnswers}
+import models.{AccessType, Mode, UserAnswers}
 import pages.Page
 import play.api.Logger
-import play.api.mvc.{Call, AnyContent}
+import play.api.mvc.{AnyContent, Call}
 
+import java.time.LocalDate
 import scala.collection.JavaConverters._
 
 trait CompoundNavigator {

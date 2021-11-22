@@ -20,11 +20,11 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.PenaltyType._
-import models.financialStatement.{PsaFS, PenaltyType}
+import models.financialStatement.{PenaltyType, PsaFS}
 import models.requests.IdentifierRequest
-import models.{DisplayYear, PaymentOverdue, Year, Enumerable, PenaltiesFilter, FSYears}
+import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, PenaltiesFilter, Year}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer

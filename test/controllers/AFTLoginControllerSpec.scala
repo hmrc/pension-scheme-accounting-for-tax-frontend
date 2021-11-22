@@ -16,8 +16,6 @@
 
 package controllers
 
-import java.time.LocalDate
-
 import audit.{AuditService, StartNewAFTAuditEvent}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
@@ -29,7 +27,6 @@ import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -41,6 +38,7 @@ import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers

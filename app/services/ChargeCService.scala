@@ -16,20 +16,18 @@
 
 package services
 
-import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
-import helpers.{DeleteChargeHelper, FormatHelper}
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{AccessType, Employer, UserAnswers}
 import pages.chargeC._
 import play.api.i18n.Messages
-import play.api.libs.json.{JsArray, JsValue}
-import play.api.mvc.{AnyContent, Call}
+import play.api.libs.json.JsArray
+import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import viewmodels.Table
@@ -38,60 +36,16 @@ import viewmodels.Table.Cell
 import java.time.LocalDate
 import scala.math.Numeric.BigDecimalIsFractional
 
-class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
+class ChargeCService {
 
    def numberOfEmployersIncludingDeleted(ua: UserAnswers): Int =
     (ua.data \ "chargeCDetails" \ "employers").toOption
       .map(_.as[JsArray].value.length)
       .getOrElse(0)
 
-  def totalAmount(ua: UserAnswers): BigDecimal = {
-    val deletedFilter: JsValue => Boolean = employer => !{(employer \ "memberStatus").asOpt[String].contains("Deleted")}
-    (ua.data \ "chargeCDetails" \ "employers")
-      .validate[JsArray]
-        .asOpt
-          .getOrElse(JsArray()).value
-            .filter(deletedFilter)
-              .map { nonDeletedEmployer =>
-                (nonDeletedEmployer \ "chargeDetails" \ "amountTaxDue").as[BigDecimal]}.seq.sum
-  }
-
-  def isEmployerPresent(ua: UserAnswers): Boolean = {
-    val nonDeletedEmployer =
-      (ua.data \ "chargeCDetails" \ "employers")
-        .validate[JsArray]
-          .asOpt.getOrElse(JsArray())
-          .value
-            .find{ employer =>
-              !(employer \ "memberStatus").validate[String].asOpt.contains("Deleted")}
-    nonDeletedEmployer.nonEmpty
-  }
-
   private def getEmployerDetails(ua: UserAnswers, index: Int): Option[String] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
     case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(_.fullName)
     case _ => ua.get(SponsoringOrganisationDetailsPage(index)).map(_.name)
-  }
-
-  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                            (implicit request: DataRequest[AnyContent]): Seq[Employer] = {
-    (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
-      ua.get(MemberStatusPage(index)) match {
-        case Some(status) if status == "Deleted" => Nil
-        case _ => {
-          getEmployerDetails(ua, index).flatMap { name =>
-            ua.get(ChargeCDetailsPage(index)).map { chargeDetails =>
-              Employer(
-                index,
-                name,
-                chargeDetails.amountTaxDue,
-                viewUrl(index, srn, startDate, accessType, version).url,
-                removeUrl(index, srn, startDate, ua, accessType, version).url
-              )
-            }
-          }.toSeq
-        }
-      }
-    }
   }
 
   def getAllAuthSurplusAmendments(ua: UserAnswers, currentVersion: Int): Seq[ViewAmendmentDetails] = {
@@ -119,14 +73,6 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
     controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-
-  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers, accessType: AccessType, version: Int)
-                       (implicit request: DataRequest[AnyContent]): Call =
-    if (request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
-      controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
-    } else {
-      controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, version, index)
-    }
 
   def mapToTable(members: Seq[Employer], canChange: Boolean)
                 (implicit messages: Messages): Table = {

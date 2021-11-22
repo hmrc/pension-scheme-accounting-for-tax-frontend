@@ -19,12 +19,10 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
-
-import javax.inject.Inject
 import models.requests.IdentifierRequest
-import models.{Year, StartYears, GenericViewModel}
+import models.{GenericViewModel, StartYears, Year}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -32,6 +30,7 @@ import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class YearsController @Inject()(

@@ -16,14 +16,13 @@
 
 package forms.mappings
 
-import java.text.DecimalFormat
-
 import models.Enumerable
 import play.api.data.FormError
 import play.api.data.format.Formatter
 
+import java.text.DecimalFormat
 import scala.util.control.Exception.nonFatalCatch
-import scala.util.{Success, Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 trait Formatters extends Transforms with Constraints {
   private[mappings] val decimalFormat = new DecimalFormat("0.00")

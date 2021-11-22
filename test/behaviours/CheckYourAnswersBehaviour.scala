@@ -25,7 +25,6 @@ import models.LocalDateBinder._
 import models.UserAnswers
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
 import pages.Page
 import play.api.Application

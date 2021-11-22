@@ -16,11 +16,8 @@
 
 package controllers.actions
 
-import java.time.LocalDate
 import com.google.inject.ImplementedBy
 import connectors.cache.UserAnswersCacheConnector
-
-import javax.inject.Inject
 import models.UserAnswers
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 import play.api.Logger
@@ -29,6 +26,8 @@ import play.api.mvc.ActionTransformer
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 

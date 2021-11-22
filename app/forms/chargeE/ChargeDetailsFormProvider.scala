@@ -16,14 +16,14 @@
 
 package forms.chargeE
 
-import java.time.LocalDate
-
 import forms.mappings.{Constraints, Mappings}
-import javax.inject.Inject
 import models.chargeE.ChargeEDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import utils.DateHelper.formatDateDMY
+
+import java.time.LocalDate
+import javax.inject.Inject
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 

@@ -16,18 +16,17 @@
 
 package services
 
-import java.time.LocalDate
-
 import com.google.inject.Inject
 import connectors.AFTConnector
-import javax.inject.Singleton
 import models.requests.DataRequest
-import uk.gov.hmrc.http.HeaderCarrier
-import utils.DateHelper
 import models.{JourneyType, UserAnswers}
 import pages.AFTStatusQuery
+import uk.gov.hmrc.http.HeaderCarrier
+import utils.DateHelper
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import javax.inject.Singleton
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AFTService @Inject()(

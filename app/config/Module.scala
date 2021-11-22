@@ -18,7 +18,7 @@ package config
 
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
-import connectors.cache.{UserAnswersCacheConnectorImpl, FinancialInfoCacheConnector, UserAnswersCacheConnector, CacheConnector}
+import connectors.cache.{CacheConnector, FinancialInfoCacheConnector, UserAnswersCacheConnector, UserAnswersCacheConnectorImpl}
 import controllers.actions._
 import navigators._
 

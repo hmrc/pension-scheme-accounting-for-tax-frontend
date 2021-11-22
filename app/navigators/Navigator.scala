@@ -16,12 +16,12 @@
 
 package navigators
 
-import java.time.LocalDate
-
 import models._
 import models.requests.DataRequest
 import pages.Page
-import play.api.mvc.{Call, AnyContent}
+import play.api.mvc.{AnyContent, Call}
+
+import java.time.LocalDate
 
 trait Navigator {
   protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate,

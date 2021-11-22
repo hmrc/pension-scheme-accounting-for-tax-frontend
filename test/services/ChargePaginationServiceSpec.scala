@@ -21,15 +21,14 @@ import config.FrontendAppConfig
 import data.SampleData
 import helpers.DeleteChargeHelper
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
-import models.{Member, UserAnswers, Employer, AmendedChargeStatus, MemberDetails, ChargeType}
+import models.{AmendedChargeStatus, ChargeType, Employer, Member, MemberDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
-import org.scalatest.BeforeAndAfterEach
 import org.mockito.MockitoSugar
-import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage, MemberStatusPage, MemberAFTVersionPage}
+import org.scalatest.BeforeAndAfterEach
+import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import play.api.libs.json.JsArray
 import play.api.mvc.Call
-import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import viewmodels.Link
 
 class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {

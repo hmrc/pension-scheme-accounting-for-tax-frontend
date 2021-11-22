@@ -18,7 +18,7 @@ package models
 
 import play.api.data.Form
 import uk.gov.hmrc.viewmodels.Radios
-import uk.gov.hmrc.viewmodels.Radios.{Radio, Item}
+import uk.gov.hmrc.viewmodels.Radios.{Item, Radio}
 import uk.gov.hmrc.viewmodels.Text.Literal
 
 import scala.language.implicitConversions

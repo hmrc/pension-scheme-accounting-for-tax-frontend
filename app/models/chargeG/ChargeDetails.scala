@@ -16,9 +16,9 @@
 
 package models.chargeG
 
-import java.time.LocalDate
-
 import play.api.libs.json.{Format, Json}
+
+import java.time.LocalDate
 
 case class ChargeDetails(qropsReferenceNumber: String, qropsTransferDate: LocalDate)
 

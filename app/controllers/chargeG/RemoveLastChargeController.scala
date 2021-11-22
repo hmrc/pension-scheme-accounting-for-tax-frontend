@@ -16,12 +16,9 @@
 
 package controllers.chargeG
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions._
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.{AccessType, CheckMode, GenericViewModel, Index}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -31,6 +28,8 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi,

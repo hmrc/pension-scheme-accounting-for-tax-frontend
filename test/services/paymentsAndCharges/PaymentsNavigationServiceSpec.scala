@@ -24,9 +24,9 @@ import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{SchemeFS, SchemeFSChargeType}
+import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.mockito.MockitoSugar
 import play.api.mvc.Results.Redirect
 import utils.AFTConstants._
 

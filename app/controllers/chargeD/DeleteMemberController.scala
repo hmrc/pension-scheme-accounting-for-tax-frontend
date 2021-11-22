@@ -24,7 +24,6 @@ import forms.DeleteFormProvider
 import helpers.ChargeServiceHelper
 import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeD.{DeleteMemberPage, MemberDetailsPage}
@@ -122,7 +121,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                       pstr =>
                         (for {
                           updatedAnswers <- Future.fromTry(userAnswersService
-                            .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount(srn, startDate, accessType, version)))
+                            .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount))
 
                           _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                         } yield {
@@ -138,6 +137,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  private def totalAmount(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
+  private def totalAmount : UserAnswers => BigDecimal =
     chargeServiceHelper.totalAmount(_, "chargeDDetails")
 }

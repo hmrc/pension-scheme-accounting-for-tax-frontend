@@ -26,9 +26,8 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
 import org.scalatest.{OptionValues, TryValues}
-import org.mockito.MockitoSugar
 import pages.PSTRQuery
 import pages.chargeC._
 import play.api.Application

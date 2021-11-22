@@ -21,12 +21,12 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeC.SponsoringIndividualDetailsFormProvider
 import matchers.JsonMatchers
+import models.LocalDateBinder._
+import models.requests.IdentifierRequest
 import models.{GenericViewModel, MemberDetails, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
 import org.scalatest.{OptionValues, TryValues}
-import org.mockito.MockitoSugar
 import pages.chargeC.SponsoringIndividualDetailsPage
 import play.api.Application
 import play.api.data.Form
@@ -36,8 +36,6 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
-import models.requests.IdentifierRequest
 
 class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with MockitoSugar
   with NunjucksSupport with JsonMatchers with OptionValues with TryValues {

@@ -22,10 +22,9 @@ import controllers.base.ControllerSpecBase
 import controllers.routes
 import data.SampleData._
 import models.AdministratorOrPractitioner
-import models.AdministratorOrPractitioner.{Practitioner, Administrator}
+import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
-import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{Action, AnyContent, BodyParsers}

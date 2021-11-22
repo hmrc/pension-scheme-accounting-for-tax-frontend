@@ -16,13 +16,13 @@
 
 package forms.chargeG
 
-import java.time.LocalDate
-
-import forms.behaviours.{StringFieldBehaviours, DateBehaviours}
+import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
 import models.chargeG.MemberDetails
 import play.api.data.FormError
 import utils.AFTConstants.MIN_DATE
 import utils.DateHelper
+
+import java.time.LocalDate
 
 class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehaviours {
 

@@ -19,7 +19,6 @@ package controllers
 import audit.{AuditService, StartNewAFTAuditEvent}
 import config.FrontendAppConfig
 import controllers.actions._
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.{Draft, Quarters, StartYears}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -28,6 +27,7 @@ import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class AFTLoginController @Inject()(

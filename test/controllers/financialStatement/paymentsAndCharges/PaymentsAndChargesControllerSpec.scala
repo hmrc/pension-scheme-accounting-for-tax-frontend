@@ -19,6 +19,7 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
+import controllers.financialStatement.paymentsAndCharges.routes._
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.All
@@ -26,9 +27,8 @@ import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -42,7 +42,6 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import scala.concurrent.Future
-import controllers.financialStatement.paymentsAndCharges.routes._
 
 class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
 

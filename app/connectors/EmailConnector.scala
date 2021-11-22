@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{SendEmailRequest, AdministratorOrPractitioner, JourneyType}
+import models.{AdministratorOrPractitioner, JourneyType, SendEmailRequest}
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}

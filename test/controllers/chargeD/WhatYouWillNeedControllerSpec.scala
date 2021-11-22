@@ -20,9 +20,10 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
+import models.LocalDateBinder._
+import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeD.WhatYouWillNeedPage
 import play.api.Application
@@ -32,8 +33,6 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
-import models.requests.IdentifierRequest
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()

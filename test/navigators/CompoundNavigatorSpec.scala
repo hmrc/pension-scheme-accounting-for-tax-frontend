@@ -16,17 +16,16 @@
 
 package navigators
 
-import java.time.LocalDate
-
 import base.SpecBase
-import data.SampleData.{versionInt, accessType}
+import data.SampleData.{accessType, versionInt}
 import models.requests.DataRequest
-import models.{NormalMode, AccessType, UserAnswers}
+import models.{AccessType, NormalMode, UserAnswers}
 import pages.Page
 import play.api.libs.json.Json
-import play.api.mvc.{Call, AnyContent}
+import play.api.mvc.{AnyContent, Call}
 import utils.AFTConstants.QUARTER_START_DATE
 
+import java.time.LocalDate
 import scala.collection.JavaConverters._
 
 class CompoundNavigatorSpec extends SpecBase {

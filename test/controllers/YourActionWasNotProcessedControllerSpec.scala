@@ -19,12 +19,11 @@ package controllers
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.UserAnswers
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest.{OptionValues, TryValues}
-import org.mockito.MockitoSugar
 import pages.SchemeNameQuery
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
@@ -32,7 +31,6 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
-import models.LocalDateBinder._
 
 import scala.concurrent.Future
 

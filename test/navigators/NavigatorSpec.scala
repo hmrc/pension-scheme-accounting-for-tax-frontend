@@ -16,16 +16,16 @@
 
 package navigators
 
-import java.time.LocalDate
-
 import base.SpecBase
-import data.SampleData.{versionInt, accessType}
+import data.SampleData.{accessType, versionInt}
 import models._
 import models.requests.DataRequest
 import pages.Page
 import play.api.libs.json.Json
-import play.api.mvc.{Call, AnyContent}
+import play.api.mvc.{AnyContent, Call}
 import utils.AFTConstants.QUARTER_START_DATE
+
+import java.time.LocalDate
 
 class NavigatorSpec extends SpecBase {
   private val srn = "test-srn"

@@ -16,7 +16,6 @@
 
 package navigators
 
-import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -27,9 +26,11 @@ import models.SponsoringEmployerType._
 import models.requests.DataRequest
 import models.{AccessType, CheckMode, NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeC.{SponsoringEmployerAddressSearchPage, _}
+import pages.chargeC._
 import play.api.mvc.{AnyContent, Call}
 import services.ChargeCService
+
+import java.time.LocalDate
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
                                  chargeCHelper: ChargeCService,
@@ -37,11 +38,11 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+  def nextIndex(ua: UserAnswers): Int =
     chargeCHelper.numberOfEmployersIncludingDeleted(ua)
 
   def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                  (implicit request: DataRequest[AnyContent]): Call = ua.get(AddEmployersPage) match {
+                  : Call = ua.get(AddEmployersPage) match {
     case Some(true) => WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)

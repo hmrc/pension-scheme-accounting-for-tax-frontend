@@ -17,7 +17,7 @@
 package viewmodels
 
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{OWrites, _}
+import play.api.libs.json._
 
 
 final case class LabelClasses(classes: Seq[String] = Seq.empty,

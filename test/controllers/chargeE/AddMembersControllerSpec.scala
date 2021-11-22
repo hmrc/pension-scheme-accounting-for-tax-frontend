@@ -16,7 +16,6 @@
 
 package controllers.chargeE
 
-import java.time.LocalDate
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -25,9 +24,8 @@ import helpers.{DeleteChargeHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{UserAnswers, YearRange, Member, GenericViewModel}
+import models.{GenericViewModel, Member, UserAnswers, YearRange}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, reset, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeE._
 import play.api.Application
@@ -35,15 +33,16 @@ import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{route, redirectLocation, status, _}
+import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
-import services.{PaginationStats, ChargePaginationService, PaginatedMembersInfo}
+import services.{ChargePaginationService, PaginatedMembersInfo, PaginationStats}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.Link
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {

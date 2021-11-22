@@ -16,24 +16,22 @@
 
 package services
 
-import java.time.LocalDate
-
 import base.SpecBase
 import data.SampleData
-import data.SampleData.{versionInt, accessType}
-import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Updated, Deleted}
+import data.SampleData.{accessType, versionInt}
+import helpers.FormatHelper
+import models.AmendedChargeStatus.{Deleted, Updated}
 import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
 import models.chargeG.MemberDetails
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, AmendedChargeStatus, UserAnswers}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
-import org.scalatest.BeforeAndAfterEach
+import models.{AmendedChargeStatus, Member, UserAnswers}
 import org.mockito.MockitoSugar
-import pages.chargeG.{MemberAFTVersionPage, MemberDetailsPage, ChargeAmountsPage, MemberStatusPage}
+import org.scalatest.BeforeAndAfterEach
+import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import utils.AFTConstants.QUARTER_START_DATE
+
+import java.time.LocalDate
 class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
@@ -49,10 +47,6 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(MemberDetailsPage(1), SampleData.memberGDetails2).toOption.get
     .set(ChargeAmountsPage(1), SampleData.chargeAmounts2).toOption.get
 
-  val allMembersIncludingDeleted: UserAnswers = allMembers
-    .set(MemberDetailsPage(2), SampleData.memberGDetails).toOption.get
-    .set(ChargeAmountsPage(2), SampleData.chargeAmounts).toOption.get
-
   def viewLink(index: Int): String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def removeLink(index: Int): String = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int): Member =
@@ -61,19 +55,7 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   def expectedAllMembersMinusDeleted: Seq[Member] = Seq(
     expectedMember(SampleData.memberGDetails2, 1))
 
-  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  val chargeGHelper: ChargeGService = new ChargeGService(mockDeleteChargeHelper)
-
-  override def beforeEach: Unit = {
-    reset(mockDeleteChargeHelper)
-    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
-  }
-
-  ".getOverseasTransferMembers" must {
-    "return all the members added in charge G" in {
-      chargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate, accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
-    }
-  }
+  val chargeGHelper: ChargeGService = new ChargeGService()
 
   "getAllOverseasTransferAmendments" must {
 

@@ -35,11 +35,11 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+  def nextIndex(ua: UserAnswers) : Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
+                : Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)

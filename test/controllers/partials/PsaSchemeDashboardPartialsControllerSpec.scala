@@ -18,12 +18,11 @@ package controllers.partials
 
 import connectors.FinancialStatementConnector
 import controllers.base.ControllerSpecBase
-import data.SampleData.{srn, _}
+import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application

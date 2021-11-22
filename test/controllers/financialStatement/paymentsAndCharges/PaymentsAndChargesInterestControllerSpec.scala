@@ -29,7 +29,6 @@ import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RET
 import models.financialStatement.{SchemeFS, SchemeFSChargeType}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind

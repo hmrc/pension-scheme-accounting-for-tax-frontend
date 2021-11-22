@@ -19,20 +19,16 @@ package services
 import base.SpecBase
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
-import helpers.{DeleteChargeHelper, FormatHelper}
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Added, Updated}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{AmendedChargeStatus, Employer, MemberDetails, UserAnswers}
-import org.mockito.ArgumentMatchers.any
 import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import pages.chargeC._
-import play.api.mvc.AnyContent
-import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
 import java.time.LocalDate
@@ -60,25 +56,6 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(SponsoringOrganisationDetailsPage(1), SampleData.sponsoringOrganisationDetails).toOption.get
     .set(ChargeCDetailsPage(1), SampleData.chargeCDetails).toOption.get
 
-  val allEmployersIncludingDeleted: UserAnswers = allEmployers
-    .set(MemberAFTVersionPage(2), SampleData.version.toInt).toOption.get
-    .set(WhichTypeOfSponsoringEmployerPage(2), SponsoringEmployerTypeIndividual).toOption.get
-    .set(MemberStatusPage(2), AmendedChargeStatus.Deleted.toString).toOption.get
-    .set(SponsoringIndividualDetailsPage(2), SampleData.memberDetails).toOption.get
-    .set(ChargeCDetailsPage(2), SampleData.chargeCDetails).toOption.get
-
-  val deletedEmployers: UserAnswers = UserAnswers()
-    .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
-    .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual).toOption.get
-    .set(MemberStatusPage(0), AmendedChargeStatus.Deleted.toString).toOption.get
-    .set(SponsoringIndividualDetailsPage(0), SampleData.memberDetails).toOption.get
-    .set(ChargeCDetailsPage(0), SampleData.chargeCDetails).toOption.get
-    .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
-    .set(WhichTypeOfSponsoringEmployerPage(1), SponsoringEmployerTypeIndividual).toOption.get
-    .set(MemberStatusPage(1), AmendedChargeStatus.Deleted.toString).toOption.get
-    .set(SponsoringIndividualDetailsPage(1), SampleData.memberDetails).toOption.get
-    .set(ChargeCDetailsPage(1), SampleData.chargeCDetails).toOption.get
-
   def viewLink(index: Int): String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def removeLink(index: Int): String = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def lastChargeLink(index: Int): String = controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, versionInt, index).url
@@ -96,28 +73,7 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
       viewLink(1), removeLink(1))
   )
 
-  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  val chargeCHelper: ChargeCService = new ChargeCService(mockDeleteChargeHelper)
-
-  private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContent] =
-    DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, ua,
-      SampleData.sessionData(name = None, sessionAccessData = SampleData.sessionAccessData(2)))
-
-  override def beforeEach: Unit = {
-    reset(mockDeleteChargeHelper)
-    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
-  }
-
-  ".getSponsoringEmployers" must {
-    "return all the members added in charge C when it is not the last charge" in {
-      chargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate, accessType, versionInt)(request()) mustBe expectedAllEmployers
-    }
-
-    "return all the members added in charge C when it is the last charge" in {
-      when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(true)
-      chargeCHelper.getSponsoringEmployers(oneEmployerLastCharge, srn, startDate, accessType, versionInt)(dataRequest()) mustBe expectedLastChargeEmployer
-    }
-  }
+  val chargeCHelper: ChargeCService = new ChargeCService()
 
   "getAllAuthSurplusAmendments" must {
     "return all the amendments for auth surplus charge" in {
@@ -134,30 +90,6 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
         )
       )
       chargeCHelper.getAllAuthSurplusAmendments(allEmployers, versionInt) mustBe expectedAmendments
-    }
-  }
-
-  "totalAmount" must {
-    "return total amount in charge C when it is not the last charge" in {
-      chargeCHelper.totalAmount(allEmployers) mustBe 66.88
-    }
-
-    "return total amount in charge C when it has deleted charge" in {
-      chargeCHelper.totalAmount(allEmployersIncludingDeleted) mustBe 66.88
-    }
-
-    "return total amount as zero when it has only deleted charge" in {
-      chargeCHelper.totalAmount(deletedEmployers) mustBe 0
-    }
-  }
-
-  "isEmployerPresent" must {
-    "return true when any non-deleted employee present" in {
-      chargeCHelper.isEmployerPresent(allEmployersIncludingDeleted) mustBe true
-    }
-
-    "return false when only deleted employee present" in {
-      chargeCHelper.isEmployerPresent(deletedEmployers) mustBe false
     }
   }
 }

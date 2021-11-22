@@ -16,33 +16,31 @@
 
 package controllers.chargeG
 
-import java.time.LocalDate
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
 import handlers.ErrorHandler
 import helpers.DeleteChargeHelper
-
-import javax.inject.Inject
 import models.LocalDateBinder._
-import models.chargeG.ChargeAmounts
 import models.requests.DataRequest
-import models.{Member, GenericViewModel, NormalMode, AFTQuarter, ChargeType, UserAnswers, AccessType}
+import models.{AFTQuarter, AccessType, ChargeType, GenericViewModel, Member, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeG.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
 import services.AddMembersService.mapChargeXMembersToTable
 import services.ChargePaginationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.Table
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AddMembersController @Inject()(override val messagesApi: MessagesApi,

@@ -16,9 +16,9 @@
 
 package models.viewModels.paymentsAndCharges
 import play.api.i18n.Messages
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import viewmodels.Table
-import play.api.libs.functional.syntax._
 
 case class PaymentsAndChargesTable(caption: String, table: Table)
 

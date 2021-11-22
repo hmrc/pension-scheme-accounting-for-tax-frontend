@@ -15,59 +15,15 @@
  */
 
 package services
-import play.api.libs.json.Reads._
-
-import java.time.{LocalDateTime, LocalDate}
-import com.google.inject.Inject
-import helpers.{DeleteChargeHelper, FormatHelper}
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeAnnualAllowance
-import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{UserAnswers, MemberDetails, Member, AccessType}
-import pages.chargeE.{ChargeDetailsPage, MemberStatusPage, MemberAFTVersionPage}
-import play.api.Logger
-import play.api.mvc.{Call, AnyContent}
+import models.{MemberDetails, UserAnswers}
+import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
+import play.api.libs.json.Reads._
 
-import java.time.format.{FormatStyle, DateTimeFormatter}
-
-class ChargeEService @Inject()(
-  deleteChargeHelper: DeleteChargeHelper
-) {
-  private val logger = Logger(classOf[ChargeEService])
-
-  private def now: String =
-    LocalDateTime.now.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM))
-
-  def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                                 (implicit request: DataRequest[AnyContent]): Seq[Member] = {
-
-    logger.warn("Get annual allowance members for charge type E (annual allowance)")
-
-    val allMembers = ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails")
-
-    logger.warn(s"Get annual allowance members for charge type E (annual allowance) - total members: ${allMembers.size} and start time: $now")
-
-    val m = allMembers.zipWithIndex.flatMap { case (member, index) =>
-      ua.get(MemberStatusPage(index)) match {
-        case Some(status) if status == "Deleted" => Nil
-        case _ =>
-          ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-            Member(
-              index,
-              member.fullName,
-              member.nino,
-              chargeDetails.chargeAmount,
-              viewUrl(index, srn, startDate, accessType, version).url,
-              removeUrl(index, srn, startDate, ua, accessType, version).url
-            )
-          }.toSeq
-      }
-    }
-    logger.warn(s"Get annual allowance members for charge type E (annual allowance) - exiting at end time: $now")
-    m
-  }
+class ChargeEService {
 
   def getAllAnnualAllowanceAmendments(ua: UserAnswers, currentVersion: Int): Seq[ViewAmendmentDetails] = {
     ua.getAllMembersInCharge[MemberDetails]("chargeEDetails")
@@ -94,14 +50,4 @@ class ChargeEService @Inject()(
       .flatten
   }
 
-  private def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
-    controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-
-  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers,
-                        accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Call =
-    if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
-      controllers.chargeE.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
-    } else {
-      controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, index)
-    }
 }

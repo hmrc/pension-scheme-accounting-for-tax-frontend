@@ -17,18 +17,18 @@
 package controllers.financialStatement.penalties
 
 import config.Constants._
-import controllers.actions.{IdentifierAction, AllowAccessActionProviderForIdentifierRequest}
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.PenaltiesFilter
 import models.financialStatement.PsaFS
 import models.requests.IdentifierRequest
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

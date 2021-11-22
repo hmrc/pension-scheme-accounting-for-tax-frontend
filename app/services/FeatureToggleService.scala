@@ -17,10 +17,10 @@
 package services
 
 import connectors.admin.FeatureToggleConnector
-import javax.inject.{Inject, Singleton}
 import models._
 import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

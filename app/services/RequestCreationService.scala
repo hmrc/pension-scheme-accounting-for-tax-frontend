@@ -26,7 +26,6 @@ import models.{AFTOverviewOnPODS, AccessMode, AccessType, Draft, MinimalFlags, Q
 import pages._
 import play.api.Logger
 import play.api.libs.json._
-import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate

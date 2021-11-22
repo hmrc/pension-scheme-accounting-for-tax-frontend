@@ -16,13 +16,13 @@
 
 package generators
 
-import java.time.{ZoneOffset, Instant, LocalDate}
-
 import models._
-import models.chargeC.{SponsoringOrganisationDetails, SponsoringEmployerAddress, ChargeCDetails}
+import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeF.ChargeDetails
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
+
+import java.time.{Instant, LocalDate, ZoneOffset}
 
 trait ModelGenerators {
 

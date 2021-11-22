@@ -19,15 +19,14 @@ package controllers.actions
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import handlers.ErrorHandler
-import models.{AFTQuarter, UserAnswers}
 import models.requests.DataRequest
+import models.{AFTQuarter, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.QuarterPage
 import play.api.mvc.Result
-import play.api.mvc.Results.{NotFound, BadRequest}
+import play.api.mvc.Results.{BadRequest, NotFound}
 import services.AFTService
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants._

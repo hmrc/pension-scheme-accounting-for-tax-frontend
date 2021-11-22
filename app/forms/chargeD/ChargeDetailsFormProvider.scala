@@ -16,10 +16,7 @@
 
 package forms.chargeD
 
-import java.time.LocalDate
-
-import forms.mappings.{Formatters, Constraints, Mappings}
-import javax.inject.Inject
+import forms.mappings.{Constraints, Formatters, Mappings}
 import models.chargeD.ChargeDDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
@@ -27,6 +24,9 @@ import play.api.i18n.Messages
 import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
 import utils.DateHelper.formatDateDMY
+
+import java.time.LocalDate
+import javax.inject.Inject
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with Formatters {
   private def otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField: String): Condition =

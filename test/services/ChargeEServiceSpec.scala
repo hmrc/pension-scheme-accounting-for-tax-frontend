@@ -16,23 +16,22 @@
 
 package services
 
-import java.time.LocalDate
 import base.SpecBase
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
-import helpers.{DeleteChargeHelper, FormatHelper}
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Added, Deleted}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{UserAnswers, MemberDetails, Member, AmendedChargeStatus}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
-import org.scalatest.BeforeAndAfterEach
+import models.{AmendedChargeStatus, Member, MemberDetails, UserAnswers}
 import org.mockito.MockitoSugar
-import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage, MemberStatusPage, MemberAFTVersionPage}
+import org.scalatest.BeforeAndAfterEach
+import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import play.api.libs.json.JsArray
 import utils.AFTConstants.QUARTER_START_DATE
+
+import java.time.LocalDate
 class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
@@ -73,20 +72,7 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     expectedMember(SampleData.memberDetails6, 5)
   )
 
-  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper)
-
-  override def beforeEach: Unit = {
-    reset(mockDeleteChargeHelper)
-    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
-  }
-
-  ".getAnnualAllowanceMembers" must {
-    "return all the members added in charge E" in {
-      chargeEHelper.getAnnualAllowanceMembers(allMembers, srn, startDate,
-        accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
-    }
-   }
+  val chargeEHelper: ChargeEService = new ChargeEService()
 
   "getAllAnnualAllowanceAmendments" must {
     "return all the amendments for annual allowance charge" in {

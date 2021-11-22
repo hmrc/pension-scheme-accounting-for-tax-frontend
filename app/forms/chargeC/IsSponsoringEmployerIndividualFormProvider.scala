@@ -17,9 +17,10 @@
 package forms.chargeC
 
 import forms.mappings.Mappings
-import javax.inject.Inject
 import models.SponsoringEmployerType
 import play.api.data.Form
+
+import javax.inject.Inject
 
 class IsSponsoringEmployerIndividualFormProvider @Inject() extends Mappings {
 

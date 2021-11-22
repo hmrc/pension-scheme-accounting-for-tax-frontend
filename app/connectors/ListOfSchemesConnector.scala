@@ -16,14 +16,14 @@
 
 package connectors
 
-import com.google.inject.{Inject, Singleton, ImplementedBy}
+import com.google.inject.{ImplementedBy, Inject, Singleton}
 import config.FrontendAppConfig
 import models.ListOfSchemes
 import play.api.Logger
 import play.api.http.Status._
-import play.api.libs.json.{JsResultException, JsError, JsSuccess, Json}
+import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HttpClient, HttpResponse, HeaderCarrier}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
