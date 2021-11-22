@@ -70,14 +70,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
     savePost(allExtraHeaders, saveUrl, value)
   }
 
-  /*
-  chargeA = Short service refund lump sum charge
-chargeB = Special lump sum death benefits charge
-chargeD = Lifetime allowance charge
-chargeE = Annual allowance charge
-chargeF = De-registration charge
-chargeG = Overseas transfer charge
-   */
   def saveCharge(id: String, value: JsValue, chargeType:ChargeType, memberNo:Option[Int] = None)
     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
 
