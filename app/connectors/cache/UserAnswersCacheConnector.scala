@@ -75,8 +75,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
     value: JsValue,
     chargeType:Option[ChargeType] = None,
     memberNo:Option[Int] = None
-  )
-    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
 
     val memberNoHeader = memberNo match {
       case Some(mn) => Seq(Tuple2("memberNo", mn.toString))
