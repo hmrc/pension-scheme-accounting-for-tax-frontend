@@ -150,7 +150,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
       val uaCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
 
@@ -159,7 +159,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       status(result) mustEqual SEE_OTHER
 
       verify(mockAFTService, times(1)).fileSubmitReturn(any(), any())(any(), any(), any())
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
       uaCaptor.getValue.get(DeclarationPage) mustBe Some(Declaration(
         submittedBy = "PSA",
         submittedID = psaId,
@@ -184,7 +184,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
       val uaCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
 
@@ -193,7 +193,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       status(result) mustEqual SEE_OTHER
 
       verify(mockAFTService, times(1)).fileSubmitReturn(any(), any())(any(), any(), any())
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
       uaCaptor.getValue.get(DeclarationPage) mustBe Some(Declaration(
         submittedBy = "PSP",
         submittedID = pspId,
@@ -222,7 +222,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData =
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
@@ -249,7 +249,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData =
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
@@ -275,7 +275,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData =
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
@@ -311,7 +311,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setDataToReturn(
         userAnswersWithPSTREmailQuarter.map(_.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease))
       )
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).
         thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
@@ -324,7 +324,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setDataToReturn(
         userAnswersWithPSTREmailQuarter.map(_.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease))
       )
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).
         thenReturn(Future.failed(ReturnAlreadySubmittedException()))
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value

@@ -109,7 +109,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
 
     "return OK and the correct view for a GET and store flag indicating that value has not changed" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       val request = FakeRequest(GET, confirmSubmitAFTAmendmentRoute)
       val expectedJson = jsonToBePassed(form)
 
@@ -121,7 +121,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       templateCaptor.getValue mustEqual templateToBeRendered
       jsonCaptor.getValue must containJson(expectedJson)
 
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture(), any())(any(), any())
       val storedValueChangeType = UserAnswers(jsonCaptor.getValue).get(ConfirmSubmitAFTAmendmentValueChangeTypePage)
       storedValueChangeType mustEqual Some(ChangeTypeSame)
     }
@@ -129,7 +129,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
     "populate the view correctly on a GET when the question has previously been answered" in {
       val filledAnswers = userAnswers.map(_.set(ConfirmSubmitAFTAmendmentPage, value = true).getOrElse(UserAnswers()))
       mutableFakeDataRetrievalAction.setDataToReturn(filledAnswers)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       val request = FakeRequest(GET, confirmSubmitAFTAmendmentRoute)
       val filledForm = form.bind(Map("value" -> "true"))
       val expectedJson = jsonToBePassed(filledForm)
@@ -146,7 +146,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
 
     "redirect to the next page when submits with value true" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       val request =
         FakeRequest(POST, confirmSubmitAFTAmendmentRoute)
@@ -156,7 +156,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual onwardRoute.url
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
     }
 
     "remove the data and redirect to the pension scheme url when user submits with value false" in {
@@ -171,19 +171,19 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual dummyCall.url
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-      verify(mockUserAnswersCacheConnector, never).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, never).savePartial(any(), any(), any(), any())(any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       val request = FakeRequest(POST, confirmSubmitAFTAmendmentRoute).withFormUrlEncodedBody(("value", ""))
 
       val result = route(application, request).value
       status(result) mustEqual BAD_REQUEST
 
       verify(mockRenderer, times(1)).render(any(), any())(any())
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

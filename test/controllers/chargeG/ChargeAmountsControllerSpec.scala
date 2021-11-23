@@ -24,15 +24,14 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.chargeG.ChargeAmounts
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{UserAnswers, NormalMode, GenericViewModel}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
-import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
+import pages.chargeG.{MemberDetailsPage, ChargeAmountsPage}
 import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.api.test.Helpers.{route, redirectLocation, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -72,7 +71,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
@@ -136,7 +135,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
       jsonCaptor.getValue must containJson(expectedJson)
 
       redirectLocation(result) mustBe Some(dummyCall.url)
