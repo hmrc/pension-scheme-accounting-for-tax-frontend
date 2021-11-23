@@ -107,7 +107,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
             value =>
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTReturnPage, value))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
           )
       }

@@ -122,7 +122,8 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
               value => {
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(AnnualAllowanceYearPage(index), value, mode))
-                  _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAnnualAllowance, Some(index.id))
+                  _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                    chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
                 } yield Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
               }
             )

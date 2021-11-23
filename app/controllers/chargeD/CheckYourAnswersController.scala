@@ -101,8 +101,10 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           (for {
             ua1 <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
             ua2 <- Future.fromTry(ua1.set(ChargeDetailsPage(index), updatedChargeDetails))
-            _ <- userAnswersCacheConnector.saveCharge(request.internalId, ua2.data, ChargeType.ChargeTypeLifetimeAllowance)
-            _ <- userAnswersCacheConnector.saveCharge(request.internalId, ua2.data, ChargeType.ChargeTypeLifetimeAllowance, Some(index.id))
+            _ <- userAnswersCacheConnector.savePartial(request.internalId, ua2.data,
+              chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance))
+            _ <- userAnswersCacheConnector.savePartial(request.internalId, ua2.data,
+              chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance), memberNo = Some(index.id))
             _ <- aftService.fileCompileReturn(pstr, ua2)
           } yield {
             Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))

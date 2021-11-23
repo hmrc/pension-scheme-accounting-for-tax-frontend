@@ -109,7 +109,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
           value => {
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AddEmployersPage, value))
-              _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAuthSurplus)
+              _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAuthSurplus))
             } yield Redirect(navigator.nextPage(AddEmployersPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
           }
         )

@@ -92,7 +92,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         val totalAmount = chargeGHelper.getOverseasTransferMembers(request.userAnswers, srn, startDate, accessType, version).map(_.amount).sum
         (for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
-          _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeOverseasTransfer)
+          _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+            chargeType = Some(ChargeType.ChargeTypeOverseasTransfer))
           _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
         } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))

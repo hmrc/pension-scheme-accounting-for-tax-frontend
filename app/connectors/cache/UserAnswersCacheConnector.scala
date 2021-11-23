@@ -70,7 +70,12 @@ class UserAnswersCacheConnectorImpl @Inject()(
     savePost(allExtraHeaders, saveUrl, value)
   }
 
-  def saveCharge(id: String, value: JsValue, chargeType:ChargeType, memberNo:Option[Int] = None)
+  def savePartial(
+    id: String,
+    value: JsValue,
+    chargeType:Option[ChargeType] = None,
+    memberNo:Option[Int] = None
+  )
     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
 
     val memberNoHeader = memberNo match {
@@ -78,13 +83,17 @@ class UserAnswersCacheConnectorImpl @Inject()(
       case _ => Nil
     }
 
+    val chargeTypeHeader = chargeType match {
+      case Some(ct) => Seq(Tuple2("chargeType", ct.toString))
+      case _ => Seq(Tuple2("chargeType", "none"))
+    }
+
     val allExtraHeaders = Seq(
       Tuple2("id", id),
-      Tuple2("content-type", "application/json"),
-      Tuple2("chargeType", chargeType.toString)
-    ) ++ memberNoHeader
+      Tuple2("content-type", "application/json")
+    ) ++ chargeTypeHeader ++ memberNoHeader
 
-    println("\nSAVE CHARGE:" + chargeType)
+    println("\nSAVE PARTIAL:" + chargeType)
 
     savePost(allExtraHeaders, saveUrl, value)
   }
@@ -193,7 +202,7 @@ trait UserAnswersCacheConnector {
   def save(cacheId: String, value: JsValue)
           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
-  def saveCharge(id: String, value: JsValue, chargeType:ChargeType, memberNo:Option[Int] = None)
+  def savePartial(id: String, value: JsValue, chargeType:Option[ChargeType] = None, memberNo:Option[Int] = None)
     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)

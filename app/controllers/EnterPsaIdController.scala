@@ -113,7 +113,7 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
             value =>
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPsaIdPage, value))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(EnterPsaIdPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
           )
          }

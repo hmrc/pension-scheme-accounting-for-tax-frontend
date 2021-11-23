@@ -127,7 +127,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             value =>
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeCDetailsPage(index), value, mode))
-                _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAuthSurplus, Some(index.id))
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                  chargeType = Some(ChargeType.ChargeTypeAuthSurplus), memberNo = Some(index.id))
               } yield Redirect(navigator.nextPage(ChargeCDetailsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }

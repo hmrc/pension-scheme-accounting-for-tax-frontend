@@ -78,11 +78,13 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
                 val address = addresses(value).toAddress.get.copy(country = "GB")
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), address, mode))
-                  _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAuthSurplus, Some(index.id))
+                  _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                    chargeType = Some(ChargeType.ChargeTypeAuthSurplus), memberNo = Some(index.id))
                 } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
               case Some(addresses) => for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressResultsPage(index), addresses(value), mode))
-                _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAuthSurplus, Some(index.id))
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                  chargeType = Some(ChargeType.ChargeTypeAuthSurplus), memberNo = Some(index.id))
               } yield Redirect( routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index))
               case None =>
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))

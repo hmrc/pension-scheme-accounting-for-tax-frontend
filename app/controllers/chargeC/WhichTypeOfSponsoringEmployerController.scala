@@ -107,7 +107,8 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
             value =>
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(WhichTypeOfSponsoringEmployerPage(index), value, mode))
-                _ <- userAnswersCacheConnector.saveCharge(request.internalId, updatedAnswers.data, ChargeType.ChargeTypeAuthSurplus, Some(index.id))
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                  chargeType = Some(ChargeType.ChargeTypeAuthSurplus), memberNo = Some(index.id))
               } yield Redirect(navigator.nextPage(WhichTypeOfSponsoringEmployerPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
