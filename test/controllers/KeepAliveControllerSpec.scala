@@ -19,7 +19,6 @@ package controllers
 import controllers.base.ControllerSpecBase
 import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._

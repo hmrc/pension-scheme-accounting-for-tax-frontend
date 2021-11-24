@@ -26,7 +26,6 @@ import models.chargeG.MemberDetails
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeG.MemberDetailsPage
 import play.api.Application

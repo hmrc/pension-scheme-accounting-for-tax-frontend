@@ -18,7 +18,7 @@ package forms
 
 import org.scalatest.OptionValues
 import org.scalatestplus.play.PlaySpec
-import play.api.data.{FormError, Form}
+import play.api.data.{Form, FormError}
 
 trait FormSpec extends PlaySpec with OptionValues {
 

@@ -16,16 +16,16 @@
 
 package helpers
 
-import java.time.LocalDate
-
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
-import models.chargeC.{SponsoringOrganisationDetails, SponsoringEmployerAddress, ChargeCDetails}
-import models.{AccessType, SponsoringEmployerType, CheckMode}
+import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.{AccessType, CheckMode, SponsoringEmployerType}
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, Content, _}
+import uk.gov.hmrc.viewmodels.{Content, Html, _}
+
+import java.time.LocalDate
 
 class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 

@@ -16,17 +16,14 @@
 
 package controllers.chargeC
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.ChargeDetailsFormProvider
-import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, GenericViewModel, AccessType, Mode, Index}
 import models.chargeC.ChargeCDetails
+import models.{AccessType, GenericViewModel, Index, Mode, Quarters}
 import navigators.CompoundNavigator
 import pages.chargeC.ChargeCDetailsPage
 import play.api.data.Form
@@ -38,6 +35,8 @@ import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,

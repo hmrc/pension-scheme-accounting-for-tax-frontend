@@ -17,10 +17,11 @@
 package forms.chargeC
 
 import forms.mappings.{CrnMapping, Mappings}
-import javax.inject.Inject
 import models.chargeC.SponsoringOrganisationDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
+
+import javax.inject.Inject
 
 class SponsoringOrganisationDetailsFormProvider @Inject() extends Mappings with CrnMapping {
 

@@ -29,7 +29,6 @@ import models.ValueChangeType.ChangeTypeSame
 import models.requests.DataRequest
 import models.{AFTOverview, AFTOverviewVersion, AccessMode, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTAmendmentValueChangeTypePage}
 import play.api.Application

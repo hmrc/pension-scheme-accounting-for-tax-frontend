@@ -16,24 +16,23 @@
 
 package controllers.chargeB
 
-import java.time.LocalDate
-
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import javax.inject.Inject
-import models.{NormalMode, AccessType}
+import models.LocalDateBinder._
+import models.{AccessType, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.chargeB.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
-import models.LocalDateBinder._
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,

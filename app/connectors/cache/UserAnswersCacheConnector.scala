@@ -16,16 +16,17 @@
 
 package connectors.cache
 
-import scala.concurrent.{ExecutionContext, Future}
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{SessionAccessData, LockDetail, SessionData}
+import models.{LockDetail, SessionAccessData, SessionData}
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class UserAnswersCacheConnectorImpl @Inject()(
                                                config: FrontendAppConfig,

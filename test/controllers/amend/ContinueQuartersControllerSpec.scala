@@ -23,17 +23,16 @@ import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{DisplayQuarter, Quarters, GenericViewModel, SchemeStatus, AFTQuarter, SchemeDetails, Enumerable}
+import models.{AFTQuarter, DisplayQuarter, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html

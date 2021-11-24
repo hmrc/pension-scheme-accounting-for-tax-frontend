@@ -16,11 +16,10 @@
 
 package controllers
 
-import java.time.{ZoneId, ZonedDateTime}
 import audit.{AFTReturnEmailAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{EmailSent, EmailConnector, ReturnAlreadySubmittedException}
+import connectors.{EmailConnector, EmailSent, ReturnAlreadySubmittedException}
 import controllers.actions._
 import controllers.base.ControllerSpecBase
 import data.SampleData
@@ -28,14 +27,12 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
-import models.ValueChangeType.{ChangeTypeSame, ChangeTypeDecrease, ChangeTypeIncrease}
+import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.requests.IdentifierRequest
-import models.{SessionAccessData, GenericViewModel, JourneyType, UserAnswers, AFTQuarter, AdministratorOrPractitioner, Declaration, AccessMode}
+import models.{AFTQuarter, AccessMode, AdministratorOrPractitioner, Declaration, GenericViewModel, JourneyType, SessionAccessData, UserAnswers}
 import navigators.CompoundNavigator
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito, ArgumentMatchers}
-import org.mockito.MockitoSugar
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito, MockitoSugar}
 import pages._
 import play.api.Application
 import play.api.inject.bind
@@ -46,9 +43,10 @@ import play.twirl.api.Html
 import services.AFTService
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
-import utils.DateHelper.{dateFormatterStartDate, formatSubmittedDate, dateFormatterDMY}
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
+import java.time.{ZoneId, ZonedDateTime}
 import scala.concurrent.Future
 
 class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {

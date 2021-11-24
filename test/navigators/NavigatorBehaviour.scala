@@ -16,7 +16,6 @@
 
 package navigators
 
-import java.time.LocalDate
 import base.SpecBase
 import models.requests.DataRequest
 import models.{AccessMode, AccessType, Mode, SessionAccessData, UserAnswers}
@@ -26,6 +25,8 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages.Page
 import play.api.mvc.{AnyContent, Call}
 import utils.DateHelper
+
+import java.time.LocalDate
 
 trait NavigatorBehaviour extends SpecBase with Matchers with ScalaCheckPropertyChecks {
 

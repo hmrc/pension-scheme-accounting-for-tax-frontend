@@ -16,16 +16,16 @@
 
 package navigators
 
-import controllers.chargeB.routes.{CheckYourAnswersController, ChargeDetailsController}
+import controllers.chargeB.routes.{ChargeDetailsController, CheckYourAnswersController}
 import controllers.routes.AFTSummaryController
-import data.SampleData.{versionInt, accessType}
-import models.{NormalMode, CheckMode, UserAnswers}
+import data.SampleData.{accessType, versionInt}
+import models.LocalDateBinder._
+import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
-import models.LocalDateBinder._
 
 class ChargeBNavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]

@@ -21,6 +21,7 @@ import models.financialStatement.PsaFSChargeType._
 import play.api.data.Form
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.viewmodels._
+
 import scala.language.implicitConversions
 
 sealed trait PenaltyType

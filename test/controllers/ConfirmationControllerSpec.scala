@@ -17,23 +17,22 @@
 package controllers
 
 import connectors.FinancialStatementConnector
-import controllers.actions.{FakeAllowSubmissionAction, MutableFakeDataRetrievalAction, AllowSubmissionAction}
+import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
-import models.ValueChangeType.{ChangeTypeSame, ChangeTypeDecrease, ChangeTypeIncrease}
+import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
-import models.{SessionAccessData, GenericViewModel, UserAnswers, SessionData, AccessMode}
+import models.{AccessMode, GenericViewModel, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
-import pages.{EmailQuery, ConfirmSubmitAFTAmendmentValueChangeTypePage}
+import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, EmailQuery}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
@@ -43,14 +42,14 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
 import utils.DateHelper.formatSubmittedDate
 
 import java.time.format.DateTimeFormatter
-import java.time.{ZoneId, ZonedDateTime, LocalDate}
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import scala.concurrent.Future
 
 class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {

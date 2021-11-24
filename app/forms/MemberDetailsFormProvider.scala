@@ -17,10 +17,11 @@
 package forms
 
 import forms.mappings.{Constraints, Mappings}
-import javax.inject.Inject
 import models.MemberDetails
 import play.api.data.Form
 import play.api.data.Forms._
+
+import javax.inject.Inject
 
 class MemberDetailsFormProvider @Inject() extends Mappings with Constraints {
 

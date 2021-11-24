@@ -25,7 +25,6 @@ import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, MemberDetails, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeD.MemberDetailsPage
 import play.api.Application

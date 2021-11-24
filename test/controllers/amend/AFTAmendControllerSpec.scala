@@ -16,18 +16,17 @@
 
 package controllers.amend
 
-import audit.{StartAmendAFTAuditEvent, AuditService}
+import audit.{AuditService, StartAmendAFTAuditEvent}
 import connectors.AFTConnector
 import controllers.actions.MutableFakeDataRetrievalAction
-import org.mockito.ArgumentCaptor
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{SchemeDetails, SchemeStatus, Enumerable}
+import models.{Enumerable, SchemeDetails, SchemeStatus}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{when, _}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application

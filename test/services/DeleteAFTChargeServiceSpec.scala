@@ -22,15 +22,13 @@ import data.SampleData
 import data.SampleData._
 import helpers.DeleteChargeHelper
 import models.requests.DataRequest
-import models.{SessionAccessData, UserAnswers, SessionData, AccessMode, LockDetail}
-import org.mockito.ArgumentMatchers
+import models.{AccessMode, LockDetail, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
+import org.mockito.{ArgumentMatchers, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.mockito.MockitoSugar
 import play.api.libs.json.Json
-import play.api.mvc.{Results, AnyContent}
+import play.api.mvc.{AnyContent, Results}
 import uk.gov.hmrc.domain.PsaId
 
 import scala.concurrent.ExecutionContext.Implicits.global

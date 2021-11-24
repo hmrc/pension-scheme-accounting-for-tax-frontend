@@ -16,7 +16,7 @@
 
 package forms.behaviours
 
-import play.api.data.{FormError, Form}
+import play.api.data.{Form, FormError}
 
 trait StringFieldBehaviours extends FieldBehaviours {
 

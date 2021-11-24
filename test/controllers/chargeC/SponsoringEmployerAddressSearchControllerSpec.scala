@@ -20,18 +20,16 @@ import audit.{AddressLookupAuditEvent, AuditService, StartNewAFTAuditEvent}
 import connectors.AddressLookupConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData.{companyName, dummyCall, srn, startDate, userAnswersWithSchemeNameAndIndividual, userAnswersWithSchemeNameAndOrganisation, _}
+import data.SampleData._
 import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, SponsoringEmployerType, TolerantAddress, UserAnswers}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when, _}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
 import org.scalatest.{OptionValues, TryValues}
-import org.mockito.MockitoSugar
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
 import play.api.data.Form

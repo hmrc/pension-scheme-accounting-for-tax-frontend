@@ -19,10 +19,10 @@ package controllers.financialStatement.penalties
 import config.Constants._
 import controllers.actions._
 import models.LocalDateBinder._
-import models.{PenaltiesFilter, Quarters}
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFS}
 import models.requests.IdentifierRequest
+import models.{PenaltiesFilter, Quarters}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}

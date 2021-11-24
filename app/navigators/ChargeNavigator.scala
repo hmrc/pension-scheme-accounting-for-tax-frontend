@@ -16,7 +16,6 @@
 
 package navigators
 
-import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -26,6 +25,8 @@ import models.{AccessType, ChargeType, MemberDetails, NormalMode, UserAnswers}
 import pages._
 import play.api.mvc.{AnyContent, Call}
 import services.{AFTService, ChargeDService, ChargeEService, ChargeGService}
+
+import java.time.LocalDate
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
@@ -52,7 +53,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
 
   //scalastyle:off cyclomatic.complexity
   private def chargeTypeNavigation(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                                  (implicit request: DataRequest[AnyContent]): Call =
+                                 : Call =
     ua.get(ChargeTypePage) match {
       case Some(ChargeType.ChargeTypeShortService) =>
         controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
@@ -91,13 +92,13 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
     }
   //scalastyle:on cyclomatic.complexity
 
-  private def nextIndexChargeD(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+  private def nextIndexChargeD(ua: UserAnswers) : Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails").size
 
-  private def nextIndexChargeE(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+  private def nextIndexChargeE(ua: UserAnswers) : Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").size
 
-  private def nextIndexChargeG(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Int =
+  private def nextIndexChargeG(ua: UserAnswers) : Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").size
 
   private def confirmSubmitNavigation(ua: UserAnswers, srn: String, startDate: LocalDate,

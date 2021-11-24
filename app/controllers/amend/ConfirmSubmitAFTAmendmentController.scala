@@ -16,7 +16,6 @@
 
 package controllers.amend
 
-import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -24,8 +23,6 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
-
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, Draft, GenericViewModel, NormalMode, Quarters, UserAnswers, ValueChangeType}
@@ -39,6 +36,8 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios, SummaryList}
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: MessagesApi,

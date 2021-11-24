@@ -22,11 +22,11 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
+import models.StartYears.enumerable
 import models.requests.IdentifierRequest
 import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, StartYears, UserAnswers, Year}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -41,7 +41,6 @@ import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import models.StartYears.enumerable
 
 class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {

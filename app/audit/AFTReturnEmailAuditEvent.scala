@@ -16,7 +16,7 @@
 
 package audit
 
-import models.{JourneyType, AdministratorOrPractitioner}
+import models.{AdministratorOrPractitioner, JourneyType}
 
 case class AFTReturnEmailAuditEvent(
                                psaOrPspId: String,

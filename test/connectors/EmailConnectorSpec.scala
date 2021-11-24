@@ -16,7 +16,7 @@
 
 package connectors
 
-import com.github.tomakehurst.wiremock.client.WireMock.{urlEqualTo, _}
+import com.github.tomakehurst.wiremock.client.WireMock._
 import models.{AdministratorOrPractitioner, JourneyType}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec

@@ -26,22 +26,21 @@ import forms.SelectSchemeFormProvider
 import matchers.JsonMatchers
 import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.ContractSettlementCharges
-import models.financialStatement.{PsaFS, PenaltyType}
-import models.{PenaltySchemes, Enumerable}
+import models.financialStatement.{PenaltyType, PsaFS}
+import models.{Enumerable, PenaltySchemes}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json, JsValue}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.{PenaltiesService, PenaltiesCache}
+import services.{PenaltiesCache, PenaltiesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future

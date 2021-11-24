@@ -16,34 +16,32 @@
 
 package controllers.chargeC
 
-import java.time.LocalDate
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
 import handlers.ErrorHandler
 import helpers.{DeleteChargeHelper, FormatHelper}
-
-import javax.inject.Inject
 import models.LocalDateBinder._
-import models.chargeC.ChargeCDetails
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode, Employer, AFTQuarter, ChargeType, UserAnswers, AccessType}
+import models.{AFTQuarter, AccessType, ChargeType, Employer, GenericViewModel, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC.AddEmployersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
 import services.ChargePaginationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, Radios, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.Table
 import viewmodels.Table.Cell
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AddEmployersController @Inject()(override val messagesApi: MessagesApi,

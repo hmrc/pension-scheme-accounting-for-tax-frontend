@@ -16,6 +16,6 @@
 
 package pages
 
-import queries.{Settable, Gettable}
+import queries.{Gettable, Settable}
 
 trait QuestionPage[A] extends Page with Gettable[A] with Settable[A]

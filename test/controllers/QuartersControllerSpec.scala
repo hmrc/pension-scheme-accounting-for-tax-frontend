@@ -16,8 +16,6 @@
 
 package controllers
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.actions.MutableFakeDataRetrievalAction
@@ -27,10 +25,9 @@ import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{Enumerable, GenericViewModel, AFTQuarter, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
+import models.{AFTQuarter, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -45,6 +42,7 @@ import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers

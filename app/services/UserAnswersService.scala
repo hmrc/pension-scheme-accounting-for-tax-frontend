@@ -19,14 +19,15 @@ package services
 import com.google.inject.Inject
 import helpers.DeleteChargeHelper
 import models.requests.DataRequest
-import models.{Mode, NormalMode, AmendedChargeStatus, UserAnswers}
+import models.{AmendedChargeStatus, Mode, NormalMode, UserAnswers}
 import pages.QuestionPage
 import play.api.libs.json._
 import play.api.mvc.AnyContent
 
 import scala.util.Try
 
-class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
+class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
+                                   chargeCService: ChargeCService) {
 
   /* Use this set for add/change journeys for a member or scheme based charge */
   def set[A](page: QuestionPage[A], value: A, mode: Mode, isMemberBased: Boolean = true)(implicit request: DataRequest[AnyContent],
