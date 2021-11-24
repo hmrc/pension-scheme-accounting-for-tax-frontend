@@ -22,10 +22,9 @@ import data.SampleData._
 import forms.amend.AmendYearsFormProvider
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, SchemeStatus, Year, SchemeDetails, Enumerable, AmendYears}
+import models.{AmendYears, Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, Year}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -36,7 +35,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.{SchemeService, QuartersService}
+import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future

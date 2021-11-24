@@ -16,20 +16,17 @@
 
 package controllers.chargeE
 
-import java.time.LocalDate
-
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeE.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, NormalMode, UserAnswers}
 import models.chargeE.ChargeEDetails
 import models.requests.IdentifierRequest
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.Application
 import play.api.data.Form
@@ -38,6 +35,7 @@ import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {

@@ -18,7 +18,7 @@ package generators
 
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
-import org.scalacheck.{Shrink, Gen}
+import org.scalacheck.{Gen, Shrink}
 
 import scala.math.BigDecimal.RoundingMode
 

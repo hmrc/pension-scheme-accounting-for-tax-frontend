@@ -21,11 +21,11 @@ import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.libs.json.{JsString, JsValue, Writes}
 import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
+import utils.DateHelper.dateFormatterDMY
 import viewmodels.Radios.Radio
 import viewmodels.{Hint, Radios}
-import uk.gov.hmrc.viewmodels._
-import utils.DateHelper.dateFormatterDMY
 
 import java.time.{LocalDate, Month}
 

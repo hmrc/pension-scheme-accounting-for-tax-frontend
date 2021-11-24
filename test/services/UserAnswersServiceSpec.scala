@@ -20,13 +20,11 @@ import base.SpecBase
 import data.SampleData.sessionId
 import helpers.DeleteChargeHelper
 import models.requests.DataRequest
-import models.{SessionAccessData, CheckMode, UserAnswers, NormalMode, AmendedChargeStatus, SessionData, AccessMode}
-import org.mockito.ArgumentMatchers
+import models.{AccessMode, AmendedChargeStatus, CheckMode, NormalMode, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.{ArgumentMatchers, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.mockito.MockitoSugar
 import pages.QuestionPage
 import play.api.libs.json.{JsPath, Json}
 import play.api.mvc.AnyContent
@@ -40,7 +38,8 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
   import UserAnswersServiceSpec._
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  val service: UserAnswersService = new UserAnswersService(mockDeleteChargeHelper)
+  val mockChargeCService: ChargeCService = mock[ChargeCService]
+  val service: UserAnswersService = new UserAnswersService(mockDeleteChargeHelper, mockChargeCService)
 
   override def beforeEach: Unit = {
     super.beforeEach()

@@ -16,28 +16,22 @@
 
 package services
 
-import java.time.LocalDate
-
 import base.SpecBase
 import data.SampleData
-import data.SampleData.{versionInt, accessType}
-import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Updated, Added}
+import data.SampleData.{accessType, versionInt}
+import helpers.FormatHelper
+import models.AmendedChargeStatus.{Added, Updated}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Employer, AmendedChargeStatus, UserAnswers, MemberDetails}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
-import org.scalatest.BeforeAndAfterEach
+import models.{AmendedChargeStatus, Employer, MemberDetails, UserAnswers}
 import org.mockito.MockitoSugar
-import pages.chargeC.{SponsoringOrganisationDetailsPage, ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, _}
-import play.api.mvc.AnyContent
-import uk.gov.hmrc.domain.PsaId
+import org.scalatest.BeforeAndAfterEach
+import pages.chargeC._
 import utils.AFTConstants.QUARTER_START_DATE
 
+import java.time.LocalDate
 import scala.collection.mutable.ArrayBuffer
 
 class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -62,11 +56,6 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(SponsoringOrganisationDetailsPage(1), SampleData.sponsoringOrganisationDetails).toOption.get
     .set(ChargeCDetailsPage(1), SampleData.chargeCDetails).toOption.get
 
-  val allEmployersIncludingDeleted: UserAnswers = allEmployers
-    .set(WhichTypeOfSponsoringEmployerPage(2), SponsoringEmployerTypeIndividual).toOption.get
-    .set(SponsoringIndividualDetailsPage(2), SampleData.memberDetails).toOption.get
-    .set(ChargeCDetailsPage(2), SampleData.chargeCDetails).toOption.get
-
   def viewLink(index: Int): String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def removeLink(index: Int): String = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def lastChargeLink(index: Int): String = controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, versionInt, index).url
@@ -84,28 +73,7 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
       viewLink(1), removeLink(1))
   )
 
-  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  val chargeCHelper: ChargeCService = new ChargeCService(mockDeleteChargeHelper)
-
-  private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContent] =
-    DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, ua,
-      SampleData.sessionData(name = None, sessionAccessData = SampleData.sessionAccessData(2)))
-
-  override def beforeEach: Unit = {
-    reset(mockDeleteChargeHelper)
-    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
-  }
-
-  ".getSponsoringEmployers" must {
-    "return all the members added in charge C when it is not the last charge" in {
-      chargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate, accessType, versionInt)(request()) mustBe expectedAllEmployers
-    }
-
-    "return all the members added in charge C when it is the last charge" in {
-      when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(true)
-      chargeCHelper.getSponsoringEmployers(oneEmployerLastCharge, srn, startDate, accessType, versionInt)(dataRequest()) mustBe expectedLastChargeEmployer
-    }
-  }
+  val chargeCHelper: ChargeCService = new ChargeCService()
 
   "getAllAuthSurplusAmendments" must {
     "return all the amendments for auth surplus charge" in {
@@ -124,5 +92,4 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
       chargeCHelper.getAllAuthSurplusAmendments(allEmployers, versionInt) mustBe expectedAmendments
     }
   }
-
 }

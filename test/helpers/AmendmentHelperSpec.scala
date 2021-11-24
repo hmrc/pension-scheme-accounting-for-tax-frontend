@@ -16,34 +16,32 @@
 
 package helpers
 
-import java.time.LocalDate
-
 import base.SpecBase
 import data.SampleData
-import models.AmendedChargeStatus.{Updated, Deleted, Added}
-import models.ChargeType.{ChargeTypeDeRegistration, ChargeTypeShortService, ChargeTypeAuthSurplus, ChargeTypeAnnualAllowance, ChargeTypeLumpSumDeath, ChargeTypeOverseasTransfer, ChargeTypeLifetimeAllowance}
+import models.AmendedChargeStatus.{Added, Deleted, Updated}
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeAuthSurplus, ChargeTypeDeRegistration, ChargeTypeLifetimeAllowance, ChargeTypeLumpSumDeath, ChargeTypeOverseasTransfer, ChargeTypeShortService}
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.viewModels.ViewAmendmentDetails
-import models.{chargeA, AmendedChargeStatus, UserAnswers}
+import models.{AmendedChargeStatus, UserAnswers, chargeA}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito
-import org.mockito.Mockito.when
+import org.mockito.{Mockito, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
-import org.mockito.MockitoSugar
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
 import pages.chargeB.ChargeBDetailsPage
-import pages.chargeC.{ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, MemberStatusPage => MemberCStatusPage, MemberAFTVersionPage => MemberCAFTVersionPage}
-import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberStatusPage => MemberDStatusPage, MemberDetailsPage => MemberDDetailsPage, MemberAFTVersionPage => MemberDAFTVersionPage}
-import pages.chargeE.{ChargeDetailsPage => ChargeEDetailsPage, MemberStatusPage => MemberEStatusPage, MemberDetailsPage => MemberEDetailsPage, MemberAFTVersionPage => MemberEAFTVersionPage}
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, WhichTypeOfSponsoringEmployerPage, MemberAFTVersionPage => MemberCAFTVersionPage, MemberStatusPage => MemberCStatusPage}
+import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberAFTVersionPage => MemberDAFTVersionPage, MemberDetailsPage => MemberDDetailsPage, MemberStatusPage => MemberDStatusPage}
+import pages.chargeE.{ChargeDetailsPage => ChargeEDetailsPage, MemberAFTVersionPage => MemberEAFTVersionPage, MemberDetailsPage => MemberEDetailsPage, MemberStatusPage => MemberEStatusPage}
 import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
-import pages.chargeG.{ChargeAmountsPage, MemberStatusPage => MemberGStatusPage, MemberDetailsPage => MemberGDetailsPage, MemberAFTVersionPage => MemberGAFTVersionPage}
-import services.{ChargeDService, ChargeEService, ChargeGService, ChargeCService}
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
+import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage => MemberGAFTVersionPage, MemberDetailsPage => MemberGDetailsPage, MemberStatusPage => MemberGStatusPage}
+import services.{ChargeCService, ChargeDService, ChargeEService, ChargeGService}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
+
+import java.time.LocalDate
 
 class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 

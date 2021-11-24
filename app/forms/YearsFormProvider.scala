@@ -17,10 +17,10 @@
 package forms
 
 import forms.mappings.Mappings
+import models.{Enumerable, Year}
+import play.api.data.Form
 
 import javax.inject.Inject
-import models.{Year, Enumerable}
-import play.api.data.Form
 
 class YearsFormProvider @Inject() extends Mappings {
 

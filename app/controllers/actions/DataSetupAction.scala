@@ -16,19 +16,18 @@
 
 package controllers.actions
 
-import java.time.LocalDate
-
 import com.google.inject.ImplementedBy
-import javax.inject.Inject
 import models.AccessType
-import models.requests.{OptionalDataRequest, IdentifierRequest}
+import models.requests.{IdentifierRequest, OptionalDataRequest}
 import pages.Page
 import play.api.mvc.ActionTransformer
 import services.RequestCreationService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 
 class DataSetupImpl(

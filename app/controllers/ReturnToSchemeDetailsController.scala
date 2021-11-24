@@ -16,17 +16,16 @@
 
 package controllers
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.IdentifierAction
-import javax.inject.Inject
 import models.AccessType
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class ReturnToSchemeDetailsController @Inject()(

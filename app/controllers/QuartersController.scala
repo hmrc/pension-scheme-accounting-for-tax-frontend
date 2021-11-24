@@ -20,10 +20,9 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.actions._
 import forms.QuartersFormProvider
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{Draft, GenericViewModel, AFTQuarter, Quarters, SubmittedHint}
+import models.{AFTQuarter, Draft, GenericViewModel, Quarters, SubmittedHint}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -33,6 +32,7 @@ import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class QuartersController @Inject()(

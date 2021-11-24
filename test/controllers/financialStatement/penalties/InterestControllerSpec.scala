@@ -22,10 +22,9 @@ import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{SchemeDetails, Enumerable, PenaltiesFilter}
+import models.{Enumerable, PenaltiesFilter, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -34,9 +33,9 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import services.{PenaltiesService, SchemeService, PenaltiesCache}
-import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
-import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
+import services.{PenaltiesCache, PenaltiesService, SchemeService}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, _}
 
 import java.time.LocalDate

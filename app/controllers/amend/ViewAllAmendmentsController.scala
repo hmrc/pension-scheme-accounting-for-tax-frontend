@@ -16,19 +16,18 @@
 
 package controllers.amend
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import helpers.AmendmentHelper
-import javax.inject.Inject
+import models.AccessMode.PageAccessModeCompile
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{GenericViewModel, UserAnswers, AccessType, Draft, AmendedChargeStatus}
+import models.{AccessType, AmendedChargeStatus, Draft, GenericViewModel, UserAnswers}
+import pages.ViewOnlyAccessiblePage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -37,9 +36,9 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import viewmodels.Table
 import viewmodels.Table.Cell
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
-import models.AccessMode.PageAccessModeCompile
-import pages.ViewOnlyAccessiblePage
 
 class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesApi,
                                             identify: IdentifierAction,

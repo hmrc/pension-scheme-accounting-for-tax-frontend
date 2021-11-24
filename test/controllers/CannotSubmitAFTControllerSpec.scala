@@ -19,18 +19,16 @@ package controllers
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import play.api.mvc.Results.Ok
 import models.LocalDateBinder._
 import models.{SchemeDetails, UserAnswers}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest.{OptionValues, TryValues}
-import org.mockito.MockitoSugar
 import pages.SchemeNameQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html

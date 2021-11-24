@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import connectors.cache.SessionDataCacheConnector
 import controllers.routes
 import models.AdministratorOrPractitioner
-import models.AdministratorOrPractitioner.{Practitioner, Administrator}
+import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.mvc.Results._

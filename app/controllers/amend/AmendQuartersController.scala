@@ -21,7 +21,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, AFTQuarter, Quarters}
+import models.{AFTQuarter, GenericViewModel, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json

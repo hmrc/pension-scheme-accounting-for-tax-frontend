@@ -24,7 +24,6 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeF.WhatYouWillNeedPage
 import play.api.Application

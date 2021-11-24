@@ -19,12 +19,12 @@ package navigators
 import config.FrontendAppConfig
 import controllers.chargeE.routes._
 import data.SampleData
-import data.SampleData.{versionInt, accessType}
+import data.SampleData.{accessType, versionInt}
 import models.LocalDateBinder._
-import models.{NormalMode, CheckMode, UserAnswers}
+import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{Page, chargeA, chargeB}
 import pages.chargeE._
+import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 

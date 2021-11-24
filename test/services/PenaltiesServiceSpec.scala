@@ -16,39 +16,37 @@
 
 package services
 
-import java.time.LocalDate
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.MinimalConnector.MinimalDetails
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{MinimalConnector, ListOfSchemesConnector, FinancialStatementConnector}
+import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
 import controllers.financialStatement.penalties.routes._
-import data.SampleData.{psaFsSeq, psaId, paymentsCache, schemeFSResponseAftAndOTC}
+import data.SampleData.{paymentsCache, psaFsSeq, psaId, schemeFSResponseAftAndOTC}
 import helpers.FormatHelper
-import models.financialStatement.{PsaFSChargeType, PsaFS}
+import models.LocalDateBinder._
+import models.PenaltiesFilter.All
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, PensionsPenalties}
 import models.financialStatement.PsaFSChargeType._
-import models.{PenaltySchemes, ListSchemeDetails, ListOfSchemes, PenaltiesFilter}
+import models.financialStatement.{PsaFS, PsaFSChargeType}
+import models.{ListOfSchemes, ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
+import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
-import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import models.LocalDateBinder._
-import models.PenaltiesFilter.All
-import models.financialStatement.PenaltyType.{PensionsPenalties, AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties}
-import models.financialStatement.PenaltyType.{PensionsPenalties, AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties}
 
 class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
 

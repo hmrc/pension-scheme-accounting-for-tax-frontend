@@ -23,6 +23,7 @@ import controllers.actions._
 import forms.chargeG.ChargeAmountsFormProvider
 
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.chargeG.ChargeAmounts
 import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
@@ -32,13 +33,12 @@ import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDate
-import models.LocalDateBinder._
-import services.UserAnswersService
 
 class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,

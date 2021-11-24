@@ -16,13 +16,12 @@
 
 package controllers.chargeC
 
-import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import models.LocalDateBinder._
 import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
+import models.LocalDateBinder._
 
 import javax.inject.Inject
 import models.{TolerantAddress, GenericViewModel, AccessType, Mode, ChargeType, Index}
@@ -38,6 +37,7 @@ import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import scala.util.Try
 import scala.concurrent.{ExecutionContext, Future}
 

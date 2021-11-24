@@ -19,6 +19,7 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
+import controllers.financialStatement.paymentsAndCharges.routes._
 import data.SampleData._
 import helpers.FormatHelper
 import matchers.JsonMatchers
@@ -30,7 +31,6 @@ import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RET
 import models.financialStatement.{PsaFS, SchemeFS}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest._
 import play.api.Application
 import play.api.inject.bind
@@ -45,7 +45,6 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import scala.concurrent.Future
-import controllers.financialStatement.paymentsAndCharges.routes._
 
 class PaymentsAndChargeDetailsControllerSpec
   extends ControllerSpecBase

@@ -16,25 +16,22 @@
 
 package services
 
-import java.time.format.DateTimeFormatter
-
 import base.SpecBase
 import connectors.AFTConnector
 import data.SampleData
 import data.SampleData._
-import models.{SessionAccessData, JourneyType, UserAnswers, SessionData, AccessMode, LockDetail}
 import models.requests.{DataRequest, OptionalDataRequest}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import models.{AccessMode, JourneyType, LockDetail, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.mockito.MockitoSugar
 import pages.AFTStatusQuery
-import play.api.mvc.{Results, AnyContentAsEmpty}
+import play.api.mvc.{AnyContentAsEmpty, Results}
 import uk.gov.hmrc.domain.PsaId
 import utils.DateHelper
 
+import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

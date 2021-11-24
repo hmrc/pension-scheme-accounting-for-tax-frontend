@@ -19,15 +19,15 @@ package controllers.amend
 import audit.{AuditService, StartAmendAFTAuditEvent}
 import connectors.AFTConnector
 import controllers.actions._
-import javax.inject.Inject
-import models.Quarters
 import models.LocalDateBinder._
+import models.Quarters
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AFTAmendController @Inject()(

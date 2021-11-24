@@ -21,7 +21,7 @@ import connectors.SchemeDetailsConnector
 import models.SchemeDetails
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class SchemeService @Inject()(schemeDetailsConnector: SchemeDetailsConnector)  {
 

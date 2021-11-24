@@ -19,10 +19,10 @@ package controllers.financialStatement.penalties
 import controllers.actions._
 import controllers.financialStatement.penalties.routes._
 import forms.SelectSchemeFormProvider
-import models.{PenaltiesFilter, PenaltySchemes}
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFS}
 import models.requests.IdentifierRequest
+import models.{PenaltiesFilter, PenaltySchemes}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json

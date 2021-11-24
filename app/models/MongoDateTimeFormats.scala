@@ -16,9 +16,9 @@
 
 package models
 
-import java.time.{ZoneOffset, LocalDateTime, Instant}
-
 import play.api.libs.json._
+
+import java.time.{Instant, LocalDateTime, ZoneOffset}
 
 trait MongoDateTimeFormats {
 

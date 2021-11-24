@@ -21,8 +21,8 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import helpers.CYAChargeCHelper
 import helpers.ErrorHelper.recoverFrom5XX
+import helpers.{CYAChargeCHelper, ChargeServiceHelper}
 import models.LocalDateBinder._
 import models.{GenericViewModel, AccessType, NormalMode, ChargeType, Index}
 import navigators.CompoundNavigator
@@ -32,7 +32,7 @@ import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{ChargeCService, AFTService}
+import services.AFTService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{SummaryList, NunjucksSupport}
 
@@ -49,7 +49,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
-                                           chargeCHelper: ChargeCService,
+                                           chargeServiceHelper: ChargeServiceHelper,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -91,7 +91,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = chargeCHelper.getSponsoringEmployers(request.userAnswers, srn, startDate, accessType, version).map(_.amount).sum
+        val totalAmount = chargeServiceHelper.totalAmount(request.userAnswers, "chargeCDetails")
         (for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAuthSurplus))

@@ -16,22 +16,22 @@
 
 package services
 
-import config.FrontendAppConfig
-import play.api.mvc.Call
 import com.google.inject.Inject
-import models.ChargeType.{ChargeTypeAuthSurplus, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer, ChargeTypeAnnualAllowance}
+import config.FrontendAppConfig
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeAuthSurplus, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringOrganisationDetails}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.ChargeAmounts
-import play.api.libs.json._
-import models.{Member, SponsoringEmployerType, UserAnswers, Employer, MemberDetails, ChargeType}
-import pages.chargeC.{WhichTypeOfSponsoringEmployerPage, SponsoringEmployersQuery, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import models.{ChargeType, Employer, Member, MemberDetails, SponsoringEmployerType, UserAnswers}
+import pages.chargeC.{SponsoringEmployersQuery, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import pages.chargeD.LifetimeAllowanceMembersQuery
 import pages.chargeE.AnnualAllowanceMembersQuery
 import pages.chargeG.{ChargeAmountsPage, OverseasTransferMembersQuery}
-import uk.gov.hmrc.viewmodels.Text.{Message, Literal}
+import play.api.libs.json._
+import play.api.mvc.Call
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import viewmodels.Link
 
 class ChargePaginationService @Inject()(config: FrontendAppConfig) {

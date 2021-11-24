@@ -16,18 +16,19 @@
 
 package config
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
 import models.AdministratorOrPractitioner.Administrator
+import models.requests.{DataRequest, IdentifierRequest}
 import models.{AdministratorOrPractitioner, JourneyType}
-import models.requests.{IdentifierRequest, DataRequest}
 import play.api.Configuration
 import play.api.i18n.Lang
 import play.api.mvc.Call
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Singleton
 class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: ServicesConfig) {

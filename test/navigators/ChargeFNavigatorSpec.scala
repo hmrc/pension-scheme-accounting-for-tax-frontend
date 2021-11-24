@@ -16,14 +16,14 @@
 
 package navigators
 
-import controllers.chargeF.routes.{CheckYourAnswersController, ChargeDetailsController}
+import controllers.chargeF.routes.{ChargeDetailsController, CheckYourAnswersController}
 import controllers.routes.AFTSummaryController
-import data.SampleData.{versionInt, accessType}
+import data.SampleData.{accessType, versionInt}
 import models.LocalDateBinder._
-import models.{NormalMode, CheckMode, UserAnswers}
+import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeF.{CheckYourAnswersPage, ChargeDetailsPage, WhatYouWillNeedPage}
+import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 

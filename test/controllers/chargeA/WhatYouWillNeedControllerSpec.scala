@@ -20,20 +20,19 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, when, verify}
-import org.mockito.{ArgumentMatchers, ArgumentCaptor}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeA.WhatYouWillNeedPage
 import play.api.Application
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
-import utils.AFTConstants.QUARTER_START_DATE
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)

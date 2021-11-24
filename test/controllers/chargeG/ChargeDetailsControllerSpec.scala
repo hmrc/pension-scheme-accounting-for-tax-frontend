@@ -16,32 +16,29 @@
 
 package controllers.chargeG
 
-import java.time.LocalDate
-
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeG.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{NormalMode, GenericViewModel, UserAnswers}
 import models.chargeG.ChargeDetails
 import models.requests.IdentifierRequest
-import org.mockito.ArgumentCaptor
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, when, verify}
-import org.mockito.MockitoSugar
+import org.mockito.{ArgumentCaptor, MockitoSugar}
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{Json, JsObject}
-import play.api.mvc.{Call, AnyContentAsFormUrlEncoded, AnyContentAsEmpty}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Call}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, DateInput}
-import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
+import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import utils.DateHelper
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {

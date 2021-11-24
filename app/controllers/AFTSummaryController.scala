@@ -16,32 +16,31 @@
 
 package controllers
 
-import java.time.LocalDate
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import forms.{MemberSearchFormProvider, AFTSummaryFormProvider}
+import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
 import helpers.AFTSummaryHelper
-
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{Quarters, GenericViewModel, NormalMode, Mode, UserAnswers, AccessType}
+import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.Logger
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import services._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Try, Success}
+import scala.util.{Success, Try}
 
 class AFTSummaryController @Inject()(
                                       override val messagesApi: MessagesApi,

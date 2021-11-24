@@ -20,8 +20,8 @@ import base.SpecBase
 import config.FrontendAppConfig
 import data.SampleData._
 import forms.behaviours.OptionFieldBehaviours
-import models.{AFTQuarter, QuarterType}
 import models.Quarters._
+import models.{AFTQuarter, QuarterType}
 import play.api.data.FormError
 
 class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {

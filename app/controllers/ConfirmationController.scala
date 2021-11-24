@@ -21,29 +21,29 @@ import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import controllers.financialStatement.paymentsAndCharges.routes._
-import controllers.routes.{SignOutController, ReturnToSchemeDetailsController}
-import models.AdministratorOrPractitioner.{Practitioner, Administrator}
+import controllers.routes.{ReturnToSchemeDetailsController, SignOutController}
+import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
-import models.ValueChangeType.{ChangeTypeSame, ChangeTypeDecrease, ChangeTypeIncrease}
+import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.DataRequest
 import models.{AccessType, GenericViewModel}
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.Logger
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
-import utils.DateHelper.{dateFormatterStartDate, formatSubmittedDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
-import java.time.{ZoneId, ZonedDateTime, LocalDate}
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 

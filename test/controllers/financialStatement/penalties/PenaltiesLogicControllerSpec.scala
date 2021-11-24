@@ -28,7 +28,6 @@ import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.{PenaltyType, PsaFS}
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{when, _}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application

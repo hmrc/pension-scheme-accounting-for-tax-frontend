@@ -16,17 +16,16 @@
 
 package controllers.actions
 
-import java.time.LocalDate
 import com.google.inject.{ImplementedBy, Inject}
 import config.FrontendAppConfig
 import connectors.{AFTConnector, DelimitedAdminException, MinimalConnector, SchemeDetailsConnector}
 import handlers.ErrorHandler
-import models.LocalDateBinder._
 import models.AdministratorOrPractitioner.Administrator
+import models.LocalDateBinder._
 import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.{DataRequest, IdentifierRequest}
 import models.{AccessType, AdministratorOrPractitioner, MinimalFlags}
-import pages.{MinimalFlagsQuery, _}
+import pages._
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
 import play.api.mvc.{ActionFilter, Call, Result}
@@ -34,6 +33,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 import utils.DateHelper
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AllowAccessCommon {

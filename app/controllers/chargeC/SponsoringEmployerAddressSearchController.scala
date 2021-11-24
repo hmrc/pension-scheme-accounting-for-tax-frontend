@@ -16,7 +16,6 @@
 
 package controllers.chargeC
 
-import java.time.LocalDate
 import audit.{AddressLookupAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.AddressLookupConnector
@@ -24,8 +23,6 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
-
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
@@ -38,6 +35,8 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class SponsoringEmployerAddressSearchController @Inject()(override val messagesApi: MessagesApi,

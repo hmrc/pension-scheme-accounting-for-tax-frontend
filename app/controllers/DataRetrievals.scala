@@ -16,13 +16,11 @@
 
 package controllers
 
-import java.time.LocalDate
-
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
-import models.{AccessType, Index, MemberDetails, AFTQuarter, SponsoringEmployerType, YearRange}
+import models.{AFTQuarter, AccessType, Index, MemberDetails, SponsoringEmployerType, YearRange}
 import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
@@ -31,6 +29,7 @@ import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 object DataRetrievals {

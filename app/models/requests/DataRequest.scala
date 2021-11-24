@@ -18,9 +18,9 @@ package models.requests
 
 import controllers.actions.IdNotFound
 import models.AdministratorOrPractitioner.{Administrator, Practitioner}
+import models.{AccessMode, AdministratorOrPractitioner, SessionData, UserAnswers}
 import play.api.mvc.{Request, WrappedRequest}
-import models.{AccessMode, SessionData, AdministratorOrPractitioner, UserAnswers}
-import uk.gov.hmrc.domain.{PspId, PsaId}
+import uk.gov.hmrc.domain.{PsaId, PspId}
 
 case class OptionalDataRequest[A] (
                                     request: Request[A],

@@ -19,7 +19,7 @@ package controllers.base
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.{AllowAccessActionProvider, _}
+import controllers.actions._
 import models.UserAnswers
 import models.requests.{DataRequest, IdentifierRequest}
 import navigators.CompoundNavigator

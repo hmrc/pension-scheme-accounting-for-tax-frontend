@@ -22,11 +22,10 @@ import data.SampleData._
 import forms.chargeB.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, NormalMode, UserAnswers}
 import models.chargeB.ChargeBDetails
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeB.ChargeBDetailsPage
 import play.api.Application
 import play.api.data.Form
