@@ -18,7 +18,7 @@ package models.requests
 
 import controllers.actions.IdNotFound
 import models.AdministratorOrPractitioner
-import models.AdministratorOrPractitioner.{Practitioner, Administrator}
+import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import play.api.mvc.{Request, WrappedRequest}
 import uk.gov.hmrc.domain.{PsaId, PspId}
 

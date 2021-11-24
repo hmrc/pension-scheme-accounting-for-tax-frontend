@@ -16,14 +16,14 @@
 
 package models
 
-import java.time.{Month, LocalDate}
-
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json._
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
+
+import java.time.{LocalDate, Month}
 
 case class YearRange(startYear: String)  {
   override def toString: String = startYear

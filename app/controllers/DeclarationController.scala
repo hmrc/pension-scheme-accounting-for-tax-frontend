@@ -25,21 +25,21 @@ import helpers.ErrorHelper.recoverFrom5XX
 import models.AdministratorOrPractitioner._
 import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
-import models.ValueChangeType.{ChangeTypeSame, ChangeTypeDecrease, ChangeTypeIncrease}
+import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.requests.DataRequest
-import models.{GenericViewModel, AccessType, NormalMode, AFTQuarter, Declaration}
+import models.{AFTQuarter, AccessType, Declaration, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.{NameQuery, ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage}
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage, NameQuery}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.DateHelper.{dateFormatterStartDate, formatSubmittedDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
-import java.time.{ZoneId, ZonedDateTime, LocalDate}
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -17,10 +17,11 @@
 package forms.chargeB
 
 import forms.mappings.{Constraints, Mappings}
-import javax.inject.Inject
 import models.chargeB.ChargeBDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
+
+import javax.inject.Inject
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 

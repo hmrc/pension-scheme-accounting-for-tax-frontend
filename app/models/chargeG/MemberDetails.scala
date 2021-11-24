@@ -16,9 +16,9 @@
 
 package models.chargeG
 
-import java.time.LocalDate
-
 import play.api.libs.json._
+
+import java.time.LocalDate
 
 case class MemberDetails (firstName: String, lastName: String, dob: LocalDate, nino: String) {
   def fullName: String = s"$firstName $lastName"

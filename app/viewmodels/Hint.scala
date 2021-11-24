@@ -18,8 +18,8 @@ package viewmodels
 
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{OWrites, _}
-import uk.gov.hmrc.viewmodels.{Html, Text, Content, WithContent}
+import play.api.libs.json._
+import uk.gov.hmrc.viewmodels.{Content, Html, Text, WithContent}
 
 final case class Hint(content: Content, id: String, classes: Seq[String] = Seq.empty,
                       attributes: Map[String, String] = Map.empty) extends WithContent

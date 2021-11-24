@@ -17,18 +17,18 @@
 package helpers
 import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
-import models.AmendedChargeStatus.{Updated, Deleted, Unknown, Added}
-import models.ChargeType.{ChargeTypeShortService, ChargeTypeLumpSumDeath, ChargeTypeDeRegistration}
+import models.AmendedChargeStatus.{Added, Deleted, Unknown, Updated}
+import models.ChargeType.{ChargeTypeDeRegistration, ChargeTypeLumpSumDeath, ChargeTypeShortService}
 import models.viewModels.ViewAmendmentDetails
-import models.{ChargeType, AmendedChargeStatus, UserAnswers}
+import models.{AmendedChargeStatus, ChargeType, UserAnswers}
 import pages.QuestionPage
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
 import pages.chargeB.ChargeBDetailsPage
 import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
 import play.api.i18n.Messages
-import play.api.libs.json.{Reads, JsResultException, JsValue}
-import services.{ChargeDService, ChargeEService, ChargeGService, ChargeCService}
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
+import play.api.libs.json.{JsResultException, JsValue, Reads}
+import services.{ChargeCService, ChargeDService, ChargeEService, ChargeGService}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 

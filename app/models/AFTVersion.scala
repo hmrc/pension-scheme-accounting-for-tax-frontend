@@ -16,9 +16,9 @@
 
 package models
 
-import java.time.LocalDate
-
 import play.api.libs.json.{Format, Json}
+
+import java.time.LocalDate
 
 case class AFTVersion(reportVersion: Int, date: LocalDate, reportStatus: String)
 

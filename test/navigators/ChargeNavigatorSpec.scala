@@ -20,7 +20,7 @@ import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import models.ChargeType._
 import models.LocalDateBinder._
-import models.{ChargeType, NormalMode, AFTQuarter, UserAnswers}
+import models.{AFTQuarter, ChargeType, NormalMode, UserAnswers}
 import org.scalatest.prop.{TableFor3, TableFor5}
 import pages._
 import play.api.mvc.Call

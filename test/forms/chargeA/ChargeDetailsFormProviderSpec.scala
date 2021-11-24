@@ -19,7 +19,7 @@ package forms.chargeA
 import base.SpecBase
 import forms.behaviours._
 import models.chargeA.ChargeDetails
-import play.api.data.{FormError, Form}
+import play.api.data.{Form, FormError}
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours with IntFieldBehaviours {
 

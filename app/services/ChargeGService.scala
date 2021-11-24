@@ -16,44 +16,22 @@
 
 package services
 
-import java.time.LocalDate
-
-import com.google.inject.Inject
-import AddMembersService.mapChargeXMembersToTable
-import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{amendedChargeStatus, Unknown}
+import helpers.FormatHelper
+import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
 import models.chargeG.{MemberDetails => ChargeGMemberDetails}
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, AccessType, UserAnswers, MemberDetails}
-import pages.chargeG.{MemberAFTVersionPage, ChargeAmountsPage, MemberStatusPage}
+import models.{AccessType, Member, UserAnswers}
+import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberStatusPage}
 import play.api.i18n.Messages
-import play.api.mvc.{Call, AnyContent}
+import play.api.mvc.Call
+import services.AddMembersService.mapChargeXMembersToTable
 import viewmodels.Table
 
-class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
+import java.time.LocalDate
 
-  def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                               (implicit request: DataRequest[AnyContent]): Seq[Member] = {
-    ua.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").zipWithIndex.flatMap { case (member, index) =>
-      ua.get(MemberStatusPage(index)) match {
-        case Some(status) if status == "Deleted" => Nil
-        case _ =>
-          ua.get(ChargeAmountsPage(index)).map { chargeAmounts =>
-            Member(
-              index,
-              member.fullName,
-              member.nino,
-              chargeAmounts.amountTaxDue,
-              viewUrl(index, srn, startDate, accessType, version).url,
-              removeUrl(index, srn, startDate, ua, accessType, version).url
-            )
-          }.toSeq
-      }
-    }
-  }
+class ChargeGService {
 
   def getAllOverseasTransferAmendments(ua: UserAnswers, currentVersion: Int): Seq[ViewAmendmentDetails] = {
     ua.getAllMembersInCharge[ChargeGMemberDetails](charge = "chargeGDetails")
@@ -82,14 +60,6 @@ class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
     controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-
-  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers,
-                        accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Call =
-    if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
-      controllers.chargeG.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
-    } else {
-      controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, index)
-    }
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeG", members, canChange)

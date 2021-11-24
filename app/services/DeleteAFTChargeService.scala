@@ -19,13 +19,13 @@ package services
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import helpers.DeleteChargeHelper
-import javax.inject.Singleton
 import models.UserAnswers
 import models.requests.DataRequest
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{Future, ExecutionContext}
+import javax.inject.Singleton
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DeleteAFTChargeService @Inject()(

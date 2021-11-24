@@ -16,12 +16,12 @@
 
 package models
 
+import config.Constants._
 import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.PathBindable
 
 import scala.language.implicitConversions
 import scala.util.matching.Regex
-import config.Constants._
 case class SchemeReferenceNumber(id: String)
 
 object SchemeReferenceNumber {

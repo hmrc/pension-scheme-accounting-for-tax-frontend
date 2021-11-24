@@ -19,19 +19,18 @@ package controllers.amend
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.amend.AmendYearsFormProvider
-
-import javax.inject.Inject
-import models.{AmendYears, Year, GenericViewModel}
 import models.requests.IdentifierRequest
+import models.{AmendYears, GenericViewModel, Year}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
-import services.{SchemeService, QuartersService}
+import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AmendYearsController @Inject()(

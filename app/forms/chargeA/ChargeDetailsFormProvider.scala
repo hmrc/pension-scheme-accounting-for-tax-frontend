@@ -17,13 +17,14 @@
 package forms.chargeA
 
 import forms.mappings.{Constraints, Mappings}
-import javax.inject.Inject
 import models.chargeA.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.i18n.Messages
 import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
+
+import javax.inject.Inject
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
   private def otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField: String): Condition =

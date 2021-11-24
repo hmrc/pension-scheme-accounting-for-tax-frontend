@@ -16,43 +16,21 @@
 
 package services
 
-import java.time.LocalDate
-
-import com.google.inject.Inject
-import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{amendedChargeStatus, Unknown}
+import helpers.FormatHelper
+import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, AccessType, UserAnswers, MemberDetails}
+import models.{AccessType, Member, MemberDetails, UserAnswers}
 import pages.chargeD.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
 import play.api.i18n.Messages
-import play.api.mvc.{Call, AnyContent}
+import play.api.mvc.Call
 import services.AddMembersService.mapChargeXMembersToTable
 import viewmodels.Table
 
-class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
+import java.time.LocalDate
 
-  def getLifetimeAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                                 (implicit request: DataRequest[AnyContent]): Seq[Member] = {
-    ua.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails").zipWithIndex.flatMap { case (member, index) =>
-      ua.get(MemberStatusPage(index)) match {
-        case Some(status) if status == "Deleted" => Nil
-        case _ =>
-            ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-              Member(
-                index,
-                member.fullName,
-                member.nino,
-                chargeDetails.total,
-                viewUrl(index, srn, startDate, accessType, version).url,
-                removeUrl(index, srn, startDate, ua, accessType, version).url
-              )
-            }.toSeq
-      }
-    }
-  }
+class ChargeDService {
 
   def getAllLifetimeAllowanceAmendments(ua: UserAnswers, currentVersion: Int): Seq[ViewAmendmentDetails] = {
     ua.getAllMembersInCharge[MemberDetails]("chargeDDetails")
@@ -81,14 +59,6 @@ class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
     controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-
-  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers,
-                        accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Call =
-    if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
-      controllers.chargeD.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
-    } else {
-      controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, index)
-    }
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeD", members, canChange)

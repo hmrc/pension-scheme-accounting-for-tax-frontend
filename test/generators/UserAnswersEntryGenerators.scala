@@ -21,9 +21,9 @@ import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import pages._
 import pages.chargeC._
-import pages.chargeE.{MemberDetailsPage, DeleteMemberPage}
+import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
 import pages.chargeF.ChargeDetailsPage
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{JsValue, Json}
 
 trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
 

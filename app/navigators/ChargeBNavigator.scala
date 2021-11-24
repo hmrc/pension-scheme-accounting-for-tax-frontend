@@ -16,18 +16,18 @@
 
 package navigators
 
-import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{NormalMode, AccessType, UserAnswers}
+import models.{AccessType, NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage, DeleteChargePage}
-import play.api.mvc.{Call, AnyContent}
+import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, DeleteChargePage, WhatYouWillNeedPage}
+import play.api.mvc.{AnyContent, Call}
+
+import java.time.LocalDate
 class ChargeBNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig) extends Navigator {
 

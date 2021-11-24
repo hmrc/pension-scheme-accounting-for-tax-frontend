@@ -26,11 +26,10 @@ import data.SampleData._
 import forms.EnterPsaIdFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, SchemeStatus, UserAnswers, SchemeDetails, Enumerable}
+import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, UserAnswers}
 import navigators.CompoundNavigator
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.EnterPsaIdPage

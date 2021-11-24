@@ -16,18 +16,14 @@
 
 package controllers.chargeC
 
-import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import models.LocalDateBinder._
 import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
-
-import javax.inject.Inject
-import models.{AccessType, GenericViewModel, Index, Mode, TolerantAddress}
-import models.chargeC.SponsoringEmployerAddress
+import models.LocalDateBinder._
 import models.requests.DataRequest
+import models.{AccessType, GenericViewModel, Index, Mode, TolerantAddress}
 import navigators.CompoundNavigator
 import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressResultsPage, SponsoringEmployerAddressSearchPage}
 import play.api.data.Form
@@ -38,8 +34,11 @@ import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import scala.util.Try
+
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 class SponsoringEmployerAddressResultsController @Inject()(override val messagesApi: MessagesApi,
                                                            userAnswersCacheConnector: UserAnswersCacheConnector,

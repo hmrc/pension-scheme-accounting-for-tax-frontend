@@ -19,8 +19,6 @@ package controllers.partials
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import play.api.Logger
-
-import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -30,6 +28,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewmodels.CardViewModel
 
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class PsaSchemeDashboardPartialsController @Inject()(

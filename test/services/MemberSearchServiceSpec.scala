@@ -16,19 +16,17 @@
 
 package services
 
-import java.time.LocalDate
 import base.SpecBase
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import helpers.{DeleteChargeHelper, FormatHelper}
+import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessMode, Member, UserAnswers}
+import models.{AccessMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito
-import org.mockito.Mockito.when
+import org.mockito.{Mockito, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.mockito.MockitoSugar
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
@@ -37,7 +35,8 @@ import play.api.mvc.{AnyContent, Results}
 import services.MemberSearchService.MemberRow
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
-import models.LocalDateBinder._
+
+import java.time.LocalDate
 
 class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
 
@@ -83,7 +82,6 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
 
   "search" must {
     "return member row for member found in search" in {
-      val memberModel = Member(0, "Bill Bloggs", "CS121212C", BigDecimal(55.55), "view-link", "remove-link")
 
       memberSearchService.search(UserAnswers(uaJs), srn, startDate, "bloggs", accessType, versionInt) mustBe
         searchResultsMemberDetailsChargeE("Bill Bloggs", "CS121212C", BigDecimal("110.02"))
@@ -94,7 +92,6 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
 
     "return valid results with no remove link when read only" in {
       val fakeDataRequest: DataRequest[AnyContent] = request(sessionAccessData = SampleData.sessionAccessData(accessMode = AccessMode.PageAccessModeViewOnly))
-      val memberModel = Member(0, "Bill Bloggs", "CS121212C", BigDecimal(55.55), "view-link", "remove-link")
 
       List(memberSearchService.search(UserAnswers(uaJs), srn, startDate, "CS121212C", accessType, versionInt)(fakeDataRequest)(1)) mustBe
         searchResultsMemberDetailsChargeE("Bill Bloggs", "CS121212C", BigDecimal("110.02"), removeLink = false)

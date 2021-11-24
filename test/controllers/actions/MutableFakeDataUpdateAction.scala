@@ -16,13 +16,12 @@
 
 package controllers.actions
 
-import java.time.LocalDate
-
-import models.{SessionAccessData, UserAnswers, AccessType, SessionData, AccessMode}
-import models.requests.{OptionalDataRequest, IdentifierRequest}
+import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.{AccessMode, AccessType, SessionAccessData, SessionData, UserAnswers}
 import pages.Page
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import scala.concurrent.{ExecutionContext, Future}
 
 class MutableFakeDataSetupAction extends DataSetupAction {
   private var dataToReturn: Option[UserAnswers] = None

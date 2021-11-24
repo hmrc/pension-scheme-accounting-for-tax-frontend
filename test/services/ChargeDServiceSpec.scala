@@ -16,23 +16,21 @@
 
 package services
 
-import java.time.LocalDate
-
 import base.SpecBase
 import data.SampleData
-import data.SampleData.{versionInt, accessType}
-import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Updated, Deleted}
+import data.SampleData.{accessType, versionInt}
+import helpers.FormatHelper
+import models.AmendedChargeStatus.{Deleted, Updated}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, AmendedChargeStatus, UserAnswers, MemberDetails}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
-import org.scalatest.BeforeAndAfterEach
+import models.{AmendedChargeStatus, Member, MemberDetails, UserAnswers}
 import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
 import pages.chargeD.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import utils.AFTConstants.QUARTER_START_DATE
+
+import java.time.LocalDate
 class ChargeDServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
@@ -60,19 +58,7 @@ class ChargeDServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   def expectedAllMembersMinusDeleted: Seq[Member] = Seq(
     expectedMember(SampleData.memberDetails2, 1))
 
-  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  val chargeDHelper: ChargeDService = new ChargeDService(mockDeleteChargeHelper)
-
-  override def beforeEach: Unit = {
-    reset(mockDeleteChargeHelper)
-    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
-  }
-
-  ".getAnnualAllowanceMembers" must {
-    "return all the members added in charge E" in {
-      chargeDHelper.getLifetimeAllowanceMembers(allMembers, srn, startDate, accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
-    }
-  }
+  val chargeDHelper: ChargeDService = new ChargeDService()
 
   "getAllLifetimeAllowanceAmendments" must {
 

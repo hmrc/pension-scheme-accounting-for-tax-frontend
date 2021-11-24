@@ -54,7 +54,7 @@ class EnumerableSpec extends AnyFreeSpec with Matchers with EitherValues with Op
     }
 
     "must fail to bind for invalid values" in {
-      a [RuntimeException] shouldBe thrownBy {
+      a[RuntimeException] shouldBe thrownBy {
         Json.fromJson[Foo](JsString("invalid")).asEither.left.value
       }
     }

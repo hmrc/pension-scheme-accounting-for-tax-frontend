@@ -17,21 +17,20 @@
 package controllers.actions
 
 import connectors.MinimalConnector.MinimalDetails
-import connectors.{SchemeDetailsConnector, MinimalConnector, AFTConnector}
+import connectors.{AFTConnector, MinimalConnector, SchemeDetailsConnector}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{accessType, srn, versionInt, _}
+import data.SampleData._
 import handlers.ErrorHandler
 import models.LocalDateBinder._
-import models.SchemeStatus.{WoundUp, Rejected, Open}
-import models.requests.{IdentifierRequest, DataRequest}
-import models.{SessionAccessData, SessionData, UserAnswers, MinimalFlags, AccessMode, LockDetail}
+import models.SchemeStatus.{Open, Rejected, WoundUp}
+import models.requests.{DataRequest, IdentifierRequest}
+import models.{AccessMode, LockDetail, MinimalFlags, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.mvc.Results._
-import play.api.mvc.{Call, AnyContent, Result}
+import play.api.mvc.{AnyContent, Call, Result}
 import play.api.test.Helpers.NOT_FOUND
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import utils.AFTConstants.QUARTER_START_DATE

@@ -16,14 +16,12 @@
 
 package controllers.actions
 
-import java.time.LocalDate
-
-import data.SampleData
+import data.SampleData._
+import models.requests.{IdentifierRequest, OptionalDataRequest}
 import models.{SessionData, UserAnswers}
-import models.requests.{OptionalDataRequest, IdentifierRequest}
 
-import scala.concurrent.{Future, ExecutionContext}
-import SampleData._
+import java.time.LocalDate
+import scala.concurrent.{ExecutionContext, Future}
 
 class FakeDataRetrievalAction(json: Option[UserAnswers],
                               sessionData: SessionData = FakeDataRetrievalAction.defaultSessionData

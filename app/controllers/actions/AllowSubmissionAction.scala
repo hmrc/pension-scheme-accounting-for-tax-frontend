@@ -22,10 +22,10 @@ import models.LocalDateBinder._
 import models.requests.DataRequest
 import pages.QuarterPage
 import play.api.http.Status.NOT_FOUND
-import play.api.mvc.{Result, ActionFilter}
+import play.api.mvc.{ActionFilter, Result}
 import services.AFTService
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class AllowSubmissionActionImpl @Inject()(aftService: AFTService, errorHandler: ErrorHandler)(implicit val executionContext: ExecutionContext)
     extends AllowSubmissionAction {

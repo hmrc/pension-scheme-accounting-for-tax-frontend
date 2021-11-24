@@ -16,7 +16,6 @@
 
 package models
 
-import java.time.{Month, LocalDate}
 import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -26,6 +25,7 @@ import utils.DateHelper._
 import viewmodels.Radios.Radio
 import viewmodels.{Hint, LabelClasses, Radios}
 
+import java.time.{LocalDate, Month}
 import scala.language.implicitConversions
 
 sealed trait QuarterType {

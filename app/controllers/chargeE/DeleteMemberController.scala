@@ -21,9 +21,9 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
+import helpers.ChargeServiceHelper
 import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
@@ -32,7 +32,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{ChargeEService, DeleteAFTChargeService, UserAnswersService}
+import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -51,7 +51,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        deleteAFTChargeService: DeleteAFTChargeService,
                                        formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
-                                       chargeEHelper: ChargeEService,
+                                       chargeServiceHelper: ChargeServiceHelper,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -116,7 +116,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                     DataRetrievals.retrievePSTR { pstr =>
                       (for {
                           updatedAnswers <- Future.fromTry(userAnswersService
-                            .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount(srn, startDate, accessType, version)))
+                            .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount))
                           _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                         } yield {
                           Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
@@ -131,6 +131,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  private def totalAmount(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
-    chargeEHelper.getAnnualAllowanceMembers(_, srn, startDate, accessType, version).map(_.amount).sum
+  private def totalAmount: UserAnswers => BigDecimal =
+    chargeServiceHelper.totalAmount(_, "chargeEDetails")
 }

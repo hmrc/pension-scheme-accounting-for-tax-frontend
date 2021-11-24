@@ -17,10 +17,11 @@
 package forms.chargeC
 
 import forms.mappings.Mappings
-import javax.inject.Inject
 import models.MemberDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
+
+import javax.inject.Inject
 
 class SponsoringIndividualDetailsFormProvider @Inject() extends Mappings {
 

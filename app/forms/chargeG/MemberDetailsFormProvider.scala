@@ -16,13 +16,13 @@
 
 package forms.chargeG
 
-import java.time.LocalDate
-
-import forms.mappings.{Constraints, Transforms, Mappings}
-import javax.inject.Inject
+import forms.mappings.{Constraints, Mappings, Transforms}
 import models.chargeG.MemberDetails
 import play.api.data.Form
 import play.api.data.Forms._
+
+import java.time.LocalDate
+import javax.inject.Inject
 
 class MemberDetailsFormProvider @Inject() extends Mappings with Constraints with Transforms {
 
