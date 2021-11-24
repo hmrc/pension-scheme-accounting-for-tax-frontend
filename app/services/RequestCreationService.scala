@@ -99,8 +99,6 @@ class RequestCreationService @Inject()(
       )
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
-      println("\n>>>>RCSERVICE 1 - sd=" + sessionData)
-      println("\n>>>>RCSERVICE 1 - ua=" + userAnswers)
       OptionalDataRequest[A](request, id, request.psaId, request.pspId, Some(UserAnswers(userAnswers.as[JsObject])), sessionData)
     }
   }
@@ -156,16 +154,14 @@ class RequestCreationService @Inject()(
                                                implicit hc: HeaderCarrier,
                                                ec: ExecutionContext): Future[UserAnswers] = {
 
-    if (seqAFTOverview.isEmpty) { // New return
-      println( "\n>>>>updateUserAnswersWithAFTDetails: seqAFTOverview is empty")
+    if (seqAFTOverview.isEmpty) {
       logger.warn("seqAFTOverview is empty - getAftDetails will not be called")
       Future.successful(
         ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))
           .setOrException(AFTStatusQuery, value = "Compiled")
           .setOrException(SchemeNameQuery, schemeDetails.schemeName)
           .setOrException(PSTRQuery, schemeDetails.pstr))
-    } else { // Amendment??
-      println( "\n>>>>updateUserAnswersWithAFTDetails: seqAFTOverview is NOT empty")
+    } else {
       logger.warn("seqAFTOverview non empty - getAftDetails will be called")
       val isCompilable = seqAFTOverview.headOption.map(_.compiledVersionAvailable)
 

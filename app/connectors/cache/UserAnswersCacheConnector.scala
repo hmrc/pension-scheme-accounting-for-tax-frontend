@@ -91,9 +91,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
       Tuple2("id", id),
       Tuple2("content-type", "application/json")
     ) ++ chargeTypeHeader ++ memberNoHeader
-
-    println("\nSAVE PARTIAL:" + chargeType)
-
     savePost(allExtraHeaders, saveUrl, value)
   }
 
@@ -122,11 +119,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
       Tuple2("areSubmittedVersionsAvailable", sessionAccessData.areSubmittedVersionsAvailable.toString))
     val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json")) ++ sessionDataHeaders
 
-    val xx = savePost(allExtraHeaders, useURL, value)
-    xx.foreach { yy =>
-      println("\nsave and lock returns=" + yy)
-    }
-    xx
+    savePost(allExtraHeaders, useURL, value)
   }
 
   override def removeAll(id: String)

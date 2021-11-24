@@ -121,7 +121,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       templateCaptor.getValue mustEqual templateToBeRendered
       jsonCaptor.getValue must containJson(expectedJson)
 
-      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture(), any(), any())(any(), any())
       val storedValueChangeType = UserAnswers(jsonCaptor.getValue).get(ConfirmSubmitAFTAmendmentValueChangeTypePage)
       storedValueChangeType mustEqual Some(ChangeTypeSame)
     }
