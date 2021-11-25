@@ -83,8 +83,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
                 } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
               case Some(addresses) => for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressResultsPage(index), addresses(value), mode))
-                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                  chargeType = Some(ChargeType.ChargeTypeAuthSurplus), memberNo = Some(index.id))
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data)
               } yield Redirect( routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index))
               case None =>
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
