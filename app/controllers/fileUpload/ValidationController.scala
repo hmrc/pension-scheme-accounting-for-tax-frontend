@@ -29,16 +29,18 @@ import navigators.CompoundNavigator
 import pages.QuarterPage
 import pages.chargeE._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.{AFTService, UserAnswersService}
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class ValidationController @Inject()(
     override val messagesApi: MessagesApi,
@@ -57,7 +59,7 @@ class ValidationController @Inject()(
     userAnswersService: UserAnswersService,
 )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
@@ -65,29 +67,46 @@ class ValidationController @Inject()(
       implicit request =>
 
         DataRetrievals.retrievePSTR { pstr =>
-
-          for {
+          val l = for {
             ud <- uploadDetails(uploadId)
             contents <- upscanInitiateConnector.download(ud.downloadUrl)
           } yield {
+            contents.body.split("\n").toList
+          }
 
-            val lines = contents.body.split("\n").toList
+          val foo = l.map { lines => {
 
             chargeType match {
-
               case "annual-allowance-charge" =>
                 val updatedUserAnswers = AnnualAllowanceParser.parse(request.userAnswers, lines)
-                userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
-                Redirect(controllers.chargeE.routes.CheckYourAnswersController.onClick(
-                  srn, startDate.toString, accessType, version, Index(1)))
+
+                updatedUserAnswers.fold(
+                  x => {
+                    renderer.render(template = "fileUpload/invalid.njk",
+                      Json.obj(
+                        "chargeType" -> chargeType,
+                        "chargeTypeText" -> chargeType.replace("-", " "),
+                        "srn" -> srn, "startDate" -> Some(startDate),
+                        "viewModel" -> x))
+                      .map(Ok(_))
+                  },
+                  y => {
+                    userAnswersCacheConnector.save(request.internalId, y.data)
+                    Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController.onClick(
+                      srn, startDate.toString, accessType, version, Index(1))))
+                  }
+                )
+
               case "lifetime-allowance-charge" =>
                 val updatedUserAnswers = LifetimeAllowanceParser.parse(request.userAnswers, lines)
                 userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
-                Redirect(controllers.chargeD.routes.CheckYourAnswersController.onClick(
-                  srn, startDate.toString, accessType, version, Index(1)))
+                Future.successful(Redirect(controllers.chargeD.routes.CheckYourAnswersController.onClick(
+                  srn, startDate.toString, accessType, version, Index(1))))
               case _ => ???
-            }
+            }}
           }
+
+          foo.flatMap(a => a)
         }
     }
 
