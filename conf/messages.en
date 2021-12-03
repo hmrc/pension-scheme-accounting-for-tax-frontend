@@ -1122,6 +1122,7 @@ penalties.hint2 = in full. You can only pay the interest once a charge reference
 
 paymentsAndCharges.partial.h1 = Payments and charges
 paymentsAndCharges.partial.view.link = View payments and charges for 2020
+paymentsAndCharges.amend.view.link = View payments and charges for {0}
 
 paymentsAndChargesUpcoming.h1.singlePeriod = Payments and charges for {0} to {1}
 paymentsAndChargesUpcoming.h1.multiplePeriod = Upcoming payments and charges
