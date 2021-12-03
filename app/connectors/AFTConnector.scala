@@ -106,15 +106,15 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
     val url = config.aftOverviewUrl
     val schemeHc = hc.withExtraHeaders(
       "pstr" -> pstr,
-      "startDate" -> startDate.getOrElse(aftOverviewStartDate.toString),
-      "endDate" -> endDate.getOrElse(aftOverviewEndDate.toString)
+      "startDate" -> aftOverviewStartDate.toString,
+      "endDate" -> aftOverviewEndDate.toString
     )
 
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
           Json.parse(response.body).validate[Seq[AFTOverview]] match {
-            case JsSuccess(value, _) => value
+            case JsSuccess(value, _) => filterOverviewResponse(startDate, endDate, value)
             case JsError(errors) => throw JsResultException(errors)
           }
         case _ =>
@@ -123,6 +123,12 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
     } andThen {
       case Failure(t: Throwable) => logger.warn("Unable to get aft overview", t)
     }
+  }
+
+   def filterOverviewResponse(startDate: Option[String], endDate: Option[String], seqOverview: Seq[AFTOverview]): Seq[AFTOverview] = {
+    val startDt = startDate.fold(aftOverviewStartDate)(LocalDate.parse)
+    val endDt = endDate.fold(aftOverviewEndDate)(LocalDate.parse)
+    seqOverview.filterNot(item => item.periodStartDate.isBefore(startDt) || item.periodEndDate.isAfter(endDt))
   }
 
   def aftOverviewEndDate: LocalDate = Quarters.getQuarter(DateHelper.today).endDate
