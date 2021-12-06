@@ -89,7 +89,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockSchemeDetailsConnector)
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeDetailsConnector.getPspSchemeDetails(ArgumentMatchers.eq(pspId), any())(any(), any()))
@@ -149,7 +149,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         status(result) mustEqual SEE_OTHER
 
-        verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+        verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
         verify(mockSchemeDetailsConnector, times(1)).getPspSchemeDetails(any(), any())(any(), any())
 
         jsonCaptor.getValue must containJson(expectedJson)
@@ -163,7 +163,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         status(result) mustEqual BAD_REQUEST
 
-        verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+        verify(mockUserAnswersCacheConnector, times(0)).savePartial(any(), any(), any(), any())(any(), any())
 
       }
 

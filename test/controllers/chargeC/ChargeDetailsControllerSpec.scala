@@ -79,7 +79,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
@@ -105,7 +105,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       val ua = userAnswers.map(_.set(ChargeCDetailsPage(index), chargeCDetails)).get.toOption.get
-      
+
       mutableFakeDataRetrievalAction.setDataToReturn(Option(ua))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -156,7 +156,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
 
       jsonCaptor.getValue must containJson(expectedJson)
 
@@ -170,7 +170,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(0)).savePartial(any(), any(), any(), any())(any(), any())
     }
 
     "return a BAD REQUEST when zero amount is submitted and in precompile mode" in {

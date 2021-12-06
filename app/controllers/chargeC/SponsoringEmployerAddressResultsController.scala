@@ -22,12 +22,14 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
 import models.LocalDateBinder._
+
+import javax.inject.Inject
+import models.{TolerantAddress, GenericViewModel, AccessType, Mode, ChargeType, Index}
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, Index, Mode, TolerantAddress}
 import navigators.CompoundNavigator
-import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressResultsPage, SponsoringEmployerAddressSearchPage}
+import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressSearchPage, SponsoringEmployerAddressResultsPage}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
@@ -36,9 +38,8 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
-import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
+import scala.concurrent.{ExecutionContext, Future}
 
 class SponsoringEmployerAddressResultsController @Inject()(override val messagesApi: MessagesApi,
                                                            userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -77,11 +78,12 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
                 val address = addresses(value).toAddress.get.copy(country = "GB")
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), address, mode))
-                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                  _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                    chargeType = Some(ChargeType.ChargeTypeAuthSurplus), memberNo = Some(index.id))
                 } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
               case Some(addresses) => for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressResultsPage(index), addresses(value), mode))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data)
               } yield Redirect( routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index))
               case None =>
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))

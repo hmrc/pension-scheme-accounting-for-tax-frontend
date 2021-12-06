@@ -71,7 +71,6 @@ class AFTSummaryController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(AFTSummaryPage)) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
-
       Try(request.userAnswers.data \ "chargeEDetails" \ "members" \\ "memberDetails") match {
         case Success(value) =>
           logger.warn(s"Loading aft summary page: success getting member details: size = ${value.size}")

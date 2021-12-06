@@ -20,17 +20,17 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.{IdentifierAction, AllowAccessActionProvider, DataRetrievalAction, DataRequiredAction}
 import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeAHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{ChargeType, NormalMode, AccessType, GenericViewModel}
 import navigators.CompoundNavigator
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
-import pages.{PSTRQuery, ViewOnlyAccessiblePage}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import pages.{ViewOnlyAccessiblePage, PSTRQuery}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -110,7 +110,8 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
 
             (for {
               updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeDetails))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
+              _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedUserAnswers.data,
+                chargeType = Some(ChargeType.ChargeTypeShortService))
               _ <- aftService.fileCompileReturn(pstr, updatedUserAnswers)
             } yield {
               Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn, startDate, accessType, version))
