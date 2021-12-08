@@ -1,0 +1,25 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk" import title %}
+
+{% block pageTitle %}
+    {{ title(messages("aft.notSubmissionTime.title")) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+          <h1 class="govuk-heading-xl">
+              {{ messages("aft.notSubmissionTime.heading") }}
+          </h1>
+
+          <p class="govuk-body"> {{ messages("aft.notSubmissionTime.p1") }} </p>
+
+          <p class="govuk-button" <a href="returnUrl"> {{ messages("site.continue_to_scheme_overview") }} </p>
+
+      </div>
+    </div>
+
+{% endblock %}
