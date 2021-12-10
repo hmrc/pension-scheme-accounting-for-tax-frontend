@@ -38,7 +38,7 @@ class NotSubmissionTimeController @Inject()(renderer: Renderer,
 
         val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 
-        val date = startDate.format(dateFormatterDMY)
+        val date = DateHelper.startDateOfNextQuarter(startDate).format(dateFormatterDMY)
 
         val json = Json.obj(
           "date" -> date
@@ -47,9 +47,4 @@ class NotSubmissionTimeController @Inject()(renderer: Renderer,
         renderer.render("notSubmissionTime.njk", json).map(Ok(_))
     }
   }
-
-//  def isSubmissionDisabled(quarterEndDate: String): Boolean = {
-//    val nextDay = LocalDate.parse(quarterEndDate).plusDays(1)
-//    !(DateHelper.today.compareTo(nextDay) >= 0)
-//  }
 }
