@@ -33,8 +33,10 @@ class AllowSubmissionActionImpl @Inject()(aftService: AFTService, errorHandler: 
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] =
     request.userAnswers.get(QuarterPage) match {
       case Some(quarter) if !aftService.isSubmissionDisabled(quarter.endDate) =>
+        println("\n\n\n\n*****************\n\n\n\ngot to case 1\n\n\n******************\n\n\n\n")
         Future.successful(None)
       case _ =>
+        println("\n\n\n\n************got to case 2\n\n\n\n\n\n*************\n\n\n\n\n")
         errorHandler.onClientError(request, NOT_FOUND).map(Some.apply)
     }
 }
