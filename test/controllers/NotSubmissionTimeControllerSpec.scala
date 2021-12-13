@@ -21,6 +21,7 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.SchemeDetails
+import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest.{OptionValues, TryValues}
@@ -56,7 +57,7 @@ class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSug
     "Return OK and the correct view for a GET" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
-      when(mockAppConfig.schemeDashboardUrl(any(), any())).thenReturn(dummyCall.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
 
       val application = applicationBuilder(extraModules = extraModules).overrides().build()
       val request = FakeRequest(GET, getRoute)
