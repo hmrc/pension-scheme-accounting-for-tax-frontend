@@ -16,7 +16,6 @@
 
 package controllers
 
-import config.FrontendAppConfig
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
@@ -47,7 +46,7 @@ class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSug
 
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
-      bind[SchemeService].toInstance(mockSchemeService),
+      bind[SchemeService].toInstance(mockSchemeService)
     )
 
   private def getRoute: String = routes.NotSubmissionTimeController.onPageLoad(srn, startDate).url
@@ -72,7 +71,7 @@ class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSug
 
       val expectedJson = Json.obj(
         "date" -> "1 July 2020",
-        "continueLink" -> "foo"
+        "continueLink" -> dummyCall.url
       )
 
       templateCaptor.getValue mustEqual "notSubmissionTime.njk"
