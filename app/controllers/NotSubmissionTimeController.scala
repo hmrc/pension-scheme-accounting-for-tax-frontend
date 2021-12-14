@@ -18,8 +18,10 @@ package controllers
 
 import controllers.actions.IdentifierAction
 import helpers.FormatHelper
+import play.api.libs.json.Json
 import renderer.Renderer
 import play.api.mvc.Results.Ok
+
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
@@ -32,11 +34,13 @@ class NotSubmissionTimeController @Inject()(renderer: Renderer,
     identify.async {
       implicit request =>
 
-        val date = FormatHelper.dateFormatter(startDate)
+        val date = startDate.format(FormatHelper.dateFormatter)
 
-        startDate.format(FormatHelper.dateFormatter))
+        val json = Json.obj(
+          "date" -> date
+        )
 
-        renderer.render("notSubmissionTime.njk").map(Ok(_))
+        renderer.render("notSubmissionTime.njk", json).map(Ok(_))
     }
   }
 }
