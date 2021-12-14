@@ -20,10 +20,9 @@ import config.FrontendAppConfig
 import controllers.actions.IdentifierAction
 import models.CommonQuarters
 import play.api.libs.json.Json
-import renderer.Renderer
-import play.api.mvc.Results.Ok
-
 import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.Results.Ok
+import renderer.Renderer
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -38,6 +37,8 @@ class NotSubmissionTimeController  @Inject()(renderer: Renderer,
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = {
     identify.async {
       implicit request =>
+
+        val x = appConfig.schemeDashboardUrl(request)
 
         val json = Json.obj(
           "continueLink" ->  appConfig.schemeDashboardUrl(request).format(srn),
