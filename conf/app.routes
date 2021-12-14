@@ -201,7 +201,7 @@ GET         /:srn/:startDate/:accessType/:version/summary                       
 POST        /:srn/:startDate/:accessType/:version/summary                                                                                            controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
 POST        /:srn/:startDate/:accessType/:version/summary-results                                                                                    controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, accessType: AccessType, version: Int)
 
-GET         /:srn/not-submission-time                                                                                                                controllers.NotSubmissionTimeController.onPageLoad(srn: String)
+GET         /:srn/:startDate/not-submission-time                                                                                                    controllers.NotSubmissionTimeController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/:startDate/draft/1/want-to-submit                                                                                                  controllers.ConfirmSubmitAFTReturnController.onPageLoad(srn: String, startDate: String, accessType: AccessType = Draft, version: Int = 1)
 POST        /:srn/:startDate/draft/1/want-to-submit                                                                                                  controllers.ConfirmSubmitAFTReturnController.onSubmit(srn: String, startDate: String, accessType: AccessType = Draft, version: Int = 1)

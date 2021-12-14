@@ -17,6 +17,7 @@
 package controllers
 
 import controllers.actions.IdentifierAction
+import helpers.FormatHelper
 import renderer.Renderer
 import play.api.mvc.Results.Ok
 import java.time.LocalDate
@@ -27,9 +28,14 @@ class NotSubmissionTimeController @Inject()(renderer: Renderer,
                                             identify: IdentifierAction
                                            )(implicit val executionContext: ExecutionContext) {
 
-  def onPageLoad(srn: String) = {
+  def onPageLoad(srn: String, startDate: LocalDate) = {
     identify.async {
       implicit request =>
+
+        val date = FormatHelper.dateFormatter(startDate)
+
+        startDate.format(FormatHelper.dateFormatter))
+
         renderer.render("notSubmissionTime.njk").map(Ok(_))
     }
   }
