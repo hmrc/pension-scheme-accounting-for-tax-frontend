@@ -18,11 +18,10 @@ package controllers
 
 import config.FrontendAppConfig
 import controllers.actions.IdentifierAction
-import play.api.libs.json.Json
 import models.CommonQuarters
+import play.api.libs.json.Json
 import renderer.Renderer
 import play.api.mvc.Results.Ok
-import utils.DateHelper
 
 import play.api.mvc.{Action, AnyContent}
 
