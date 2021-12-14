@@ -39,7 +39,7 @@ class NotSubmissionTimeController  @Inject()(renderer: Renderer,
       implicit request =>
 
         val json = Json.obj(
-          "continueLink" ->  appConfig.schemeDashboardUrl(request.psaId, request.pspId).format(srn),
+          "continueLink" ->  appConfig.schemeDashboardUrl(request).format(srn),
           "date" -> getNextQuarterDateAndFormat(startDate)
         )
 
