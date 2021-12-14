@@ -20,9 +20,9 @@ import config.FrontendAppConfig
 import controllers.actions.IdentifierAction
 import models.CommonQuarters
 import play.api.libs.json.Json
+import renderer.Renderer
 import play.api.mvc.Results.Ok
 import play.api.mvc.{Action, AnyContent}
-import renderer.Renderer
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
