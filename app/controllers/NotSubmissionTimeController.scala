@@ -17,34 +17,37 @@
 package controllers
 
 import controllers.actions.IdentifierAction
-import helpers.FormatHelper
+import models.CommonQuarters
 import play.api.libs.json.Json
-import renderer.Renderer
 import play.api.mvc.Results.Ok
-import utils.DateHelper
+import renderer.Renderer
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class NotSubmissionTimeController @Inject()(renderer: Renderer,
+class NotSubmissionTimeController  @Inject()(renderer: Renderer,
                                             identify: IdentifierAction
-                                           )(implicit val executionContext: ExecutionContext) {
+                                           )(implicit val executionContext: ExecutionContext) extends CommonQuarters {
 
   def onPageLoad(srn: String, startDate: LocalDate) = {
     identify.async {
       implicit request =>
 
-        val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-
-        val date = DateHelper.startDateOfNextQuarter(startDate).format(dateFormatterDMY)
-
         val json = Json.obj(
-          "date" -> date
+          "date" -> getNextQuarterDateAndFormat(startDate)
         )
 
         renderer.render("notSubmissionTime.njk", json).map(Ok(_))
     }
+  }
+
+  private def getNextQuarterDateAndFormat(startDate: LocalDate): String = {
+    val firstDayOfNextQuarter = getQuarter(startDate).endDate.plusDays(1)
+
+    val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+
+    firstDayOfNextQuarter.format(dateFormatterDMY)
   }
 }

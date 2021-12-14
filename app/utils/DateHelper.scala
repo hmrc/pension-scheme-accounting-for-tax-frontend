@@ -41,4 +41,9 @@ object DateHelper {
     val prefix = str.take(str.length -2)
     prefix + suffix
   }
+
+  def startDateOfNextQuarter(quarterStartDate: LocalDate): LocalDate = {
+    //    LocalDate.parse(quarterStartDate).plusDays(1)
+    quarterStartDate
+  }
 }
