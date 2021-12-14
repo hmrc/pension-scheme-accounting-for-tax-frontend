@@ -31,7 +31,7 @@ import scala.concurrent.ExecutionContext
 
 class NotSubmissionTimeController  @Inject()(renderer: Renderer,
                                              identify: IdentifierAction,
-                                             appConfig: FrontendAppConfig,
+                                             appConfig: FrontendAppConfig
                                             )(implicit val executionContext: ExecutionContext) extends CommonQuarters {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = {
