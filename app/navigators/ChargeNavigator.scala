@@ -132,7 +132,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version)
       case (Some(false), Some(quarter)) =>
           if (aftService.isSubmissionDisabled(quarter.endDate)) {
-            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version)
+            controllers.routes.NotSubmissionTimeController.onPageLoad(srn, startDate)
           } else {
             if (request.isAmendment) {
               controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate, accessType, version)
