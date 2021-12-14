@@ -461,7 +461,7 @@ aft.summary.heading.search.results = Search results for
 
 aft.notSubmissionTime.title = You cannot submit this AFT return to HMRC yet
 aft.notSubmissionTime.heading = You cannot submit this AFT return to HMRC yet
-aft.notSubmissionTime.p1 = You can only submit this AFT return on or {0}
+aft.notSubmissionTime.p1 = You can only submit this AFT return on or after {0}
 
 chargeG.chargeDetails.title = Overseas transfer charge details for the member
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
