@@ -136,7 +136,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
           version = 2),
 
         rowWithDateAndVersion(AFTSummaryPage)(
-          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt),
+          controllers.routes.NotSubmissionTimeController.onPageLoad(srn, startDate),
           aftSummaryNo(quarter = SampleData.q32020),
           currentDate = SampleData.q32020.endDate,
           version = 1)

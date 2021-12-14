@@ -17,8 +17,12 @@
 
           <p class="govuk-body"> {{ messages("aft.notSubmissionTime.p1", date) }} </p>
 
-          <p class="govuk-button" <a href="returnUrl"> {{ messages("site.continue_to_scheme_overview") }} </p>
-
+          <p class="govuk-body">
+                  <a href="{{ continueLink }}"
+                     class="govuk-link">
+                      {{ messages("site.continue_to_scheme_overview") }}
+                  </a>
+              </p>
       </div>
     </div>
 
