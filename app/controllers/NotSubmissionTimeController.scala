@@ -21,8 +21,10 @@ import helpers.FormatHelper
 import play.api.libs.json.Json
 import renderer.Renderer
 import play.api.mvc.Results.Ok
+import utils.DateHelper
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
@@ -34,7 +36,9 @@ class NotSubmissionTimeController @Inject()(renderer: Renderer,
     identify.async {
       implicit request =>
 
-        val date = startDate.format(FormatHelper.dateFormatter)
+        val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+
+        val date = startDate.format(dateFormatterDMY)
 
         val json = Json.obj(
           "date" -> date
@@ -43,4 +47,9 @@ class NotSubmissionTimeController @Inject()(renderer: Renderer,
         renderer.render("notSubmissionTime.njk", json).map(Ok(_))
     }
   }
+
+//  def isSubmissionDisabled(quarterEndDate: String): Boolean = {
+//    val nextDay = LocalDate.parse(quarterEndDate).plusDays(1)
+//    !(DateHelper.today.compareTo(nextDay) >= 0)
+//  }
 }
