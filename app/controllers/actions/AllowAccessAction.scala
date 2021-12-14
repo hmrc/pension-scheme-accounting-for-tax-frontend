@@ -75,20 +75,27 @@ class AllowAccessAction(
     val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
 
     (isInvalidDate, request.userAnswers.get(SchemeStatusQuery), minimalFlagChecks(request)) match {
-      case (_, _, optionRedirectUrl@Some(_)) => Future.successful(optionRedirectUrl)
+      case (_, _, optionRedirectUrl@Some(_)) => println("\n\n\n\n\n*****case number 1 *****************\n\n\n\n\n\n")
+        Future.successful(optionRedirectUrl)
       case (false, Some(schemeStatus), _) =>
+        println("\n\n\n\n\n*****case number 2 *****************\n\n\n\n\n\n")
         if (!validStatuses.contains(schemeStatus)) {
           errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
         } else {
+          println("\n\n\n\n\n*****case number 3 *****************\n\n\n\n\n\n")
           schemeDetailsConnector.checkForAssociation(request.idOrException, srn, getIdType(request))(hc, implicitly).flatMap {
             case true =>
+              println("\n\n\n\n\n*****case number 4 *****************\n\n\n\n\n\n")
               associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
             case _ =>
+              println("\n\n\n\n\n*****case number 5 *****************\n\n\n\n\n\n")
               errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
           }
         }
       //todo redirect to new error page for invalid dates once it is created
-      case _ => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad)))
+      case _ =>
+        println("\n\n\n\n\n*****case number 6 *****************\n\n\n\n\n\n")
+        Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad)))
     }
   }
 
