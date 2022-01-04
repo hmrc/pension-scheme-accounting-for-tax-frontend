@@ -1,10 +1,10 @@
 <div class="card" id="penalties">
     <div class="card-body">
-        <h2 class="card-heading">
+        <h2 class="card-heading govuk-heading-l">
             {{ messages("psaPenaltiesCard.h2") }}
         </h2>
         {% for subHeading in viewModel.subHeadings %}
-            <p class="card-sub-heading ">
+            <p class="card-sub-heading bold govuk-body-m">
                 <span class="font-xsmall">{{ subHeading.span }}</span>
                 <span class="font-large bold">
                     {{ subHeading.total }}
@@ -13,10 +13,10 @@
         {% endfor %}
     </div>
     <div class="card-action">
-        <ul>
+        <ul class="govuk-list">
             {% for link in viewModel.links %}
                 <li>
-                    <a id="{{ link.id }}" href="{{ link.url }}">{{ link.linkText }}</a>
+                    <a class="govuk-link" id="{{ link.id }}" href="{{ link.url }}">{{ link.linkText }}</a>
                 </li>
             {% endfor %}
         </ul>
