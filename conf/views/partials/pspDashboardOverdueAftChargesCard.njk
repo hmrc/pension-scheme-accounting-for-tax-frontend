@@ -6,12 +6,12 @@
         {% for subHeading in overdueCharges.subHeadings %}
             <p class="card-sub-heading bold govuk-body-m">
                 <span class="font-xsmall">{{ subHeading.span }}</span>
-                <span class="font-large bold">
-                    {{ subHeading.total }}
-                    {% if loop.index == 2 %}
-                        <span class="font-xsmall">{{ messages("pspDashboardOverdueAftChargesCard.toDate.span") }}</span>
-                    {% endif %}
-                </span>
+                <span class="font-large bold govuk-!-display-inline-block">
+                {{ subHeading.total }}</span>
+                   {% if loop.index == 2 %}
+                       <span class="font-xsmall govuk-!-display-inline-block">{{ messages("pspDashboardOverdueAftChargesCard.toDate.span") }}</span>
+                   {% endif %}
+
             </p>
         {% endfor %}
     </div>
