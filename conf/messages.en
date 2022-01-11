@@ -28,6 +28,7 @@ site.view.link = View link
 site.remove.link = Remove link
 site.return_to_overview = Return to overview
 return.to.link = Return to {0}
+site.continue_to_scheme_overview = Continue to scheme overview
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
