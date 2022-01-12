@@ -1,10 +1,10 @@
 <div class="card" id="upcoming-aft-charges">
     <div class="card-body">
-        <h2 class="card-heading heading-small">
+        <h2 class="card-heading govuk-heading-l">
             {{ messages("pspDashboardUpcomingAftChargesCard.h2") }}
         </h2>
         {% for subHeading in upcomingCharges.subHeadings %}
-            <p class="card-sub-heading">
+             <p class="card-sub-heading bold govuk-body-m">
                 <span class="font-xsmall">{{ subHeading.span }}</span>
                 <span class="font-large bold">{{ subHeading.total }}</span>
             </p>
@@ -12,10 +12,10 @@
     </div>
     <div class="card-action">
         {% if upcomingCharges.links %}
-        <ul>
+        <ul class="govuk-list">
             {% for link in upcomingCharges.links %}
                 <li>
-                    <a id="{{ link.id }}" href="{{ link.url }}">{{ link.linkText }}</a>
+                    <a id="{{ link.id }}" class="govuk-link" href="{{ link.url }}">{{ link.linkText }}</a>
                 </li>
             {% endfor %}
         </ul>

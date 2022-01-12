@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, Mode}
+import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.chargeC.SponsoringEmployerAddressSearchPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -121,7 +121,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
                 auditService.sendEvent(AddressLookupAuditEvent(value))
                 for {
                   updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressSearchPage(index), addresses))
-                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                  _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data)
                 } yield Redirect(navigator.nextPage(SponsoringEmployerAddressSearchPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
             }
         )

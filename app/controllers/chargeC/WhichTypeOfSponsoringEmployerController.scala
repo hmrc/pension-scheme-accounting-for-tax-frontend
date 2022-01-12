@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,19 @@
 
 package controllers.chargeC
 
+import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.IsSponsoringEmployerIndividualFormProvider
+
+import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, Mode, SponsoringEmployerType}
+import models.{AccessType, Mode, ChargeType, Index, GenericViewModel, SponsoringEmployerType}
 import navigators.CompoundNavigator
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -33,8 +36,6 @@ import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
-import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi: MessagesApi,
@@ -106,7 +107,8 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
             value =>
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(WhichTypeOfSponsoringEmployerPage(index), value, mode))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                  chargeType = Some(ChargeType.ChargeTypeAuthSurplus), memberNo = Some(index.id))
               } yield Redirect(navigator.nextPage(WhichTypeOfSponsoringEmployerPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }

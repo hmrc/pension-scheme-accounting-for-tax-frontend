@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,8 @@ class ReturnHistoryController @Inject()(
         "quarterStart" -> startDate.format(dateFormatterStartDate),
         "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn),
-        "schemeName" -> schemeDetails.schemeName
+        "schemeName" -> schemeDetails.schemeName,
+        "startYear"-> startDate.getYear.toString
       ) ++ table ++ paymentJson
     }
     json.flatMap(renderer.render("amend/returnHistory.njk", _).map(Ok(_)))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,22 +20,22 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.{IdentifierAction, AllowAccessActionProvider, DataRetrievalAction, DataRequiredAction}
 import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeDHelper, ChargeServiceHelper}
 import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
-import models.{AccessType, GenericViewModel, Index, NormalMode}
+import models.{GenericViewModel, AccessType, NormalMode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
-import pages.{PSTRQuery, ViewOnlyAccessiblePage}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import pages.{ViewOnlyAccessiblePage, PSTRQuery}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, ChargeDService}
+import services.{ChargeDService, AFTService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import uk.gov.hmrc.viewmodels.{SummaryList, NunjucksSupport}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
@@ -101,7 +101,10 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           (for {
             ua1 <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
             ua2 <- Future.fromTry(ua1.set(ChargeDetailsPage(index), updatedChargeDetails))
-            _ <- userAnswersCacheConnector.save(request.internalId, ua2.data)
+            _ <- userAnswersCacheConnector.savePartial(request.internalId, ua2.data,
+              chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance))
+            _ <- userAnswersCacheConnector.savePartial(request.internalId, ua2.data,
+              chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance), memberNo = Some(index.id))
             _ <- aftService.fileCompileReturn(pstr, ua2)
           } yield {
             Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))

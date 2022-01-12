@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
             } else {
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTAmendmentPage, value))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(ConfirmSubmitAFTAmendmentPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
           }
         )
@@ -114,11 +114,11 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
             val (currentTotalAmountUK, currentTotalAmountNonUK) = amendmentHelper.getTotalAmount(ua)
             val (previousTotalAmountUK, previousTotalAmountNonUK) = amendmentHelper.getTotalAmount(UserAnswers(previousVersionJsValue.as[JsObject]))
 
-           val updatedUA = ua.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage,ValueChangeType.valueChangeType(
+           val updatedUA = ua.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ValueChangeType.valueChangeType(
               currentTotalAmountNonUK + currentTotalAmountUK,
               previousTotalAmountNonUK + previousTotalAmountUK
             ))
-            userAnswersCacheConnector.save(request.internalId, updatedUA.data).
+            userAnswersCacheConnector.savePartial(request.internalId, updatedUA.data).
             flatMap{ _ =>
 
               val tableRowsUK: Seq[SummaryList.Row] = amendmentHelper.amendmentSummaryRows(

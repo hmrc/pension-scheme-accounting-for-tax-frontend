@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{LockDetail, SessionAccessData, SessionData}
+import models.{ChargeType, SessionAccessData, LockDetail, SessionData}
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.mvc.Result
@@ -64,8 +64,33 @@ class UserAnswersCacheConnectorImpl @Inject()(
   def save(id: String, value: JsValue)
           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
 
-    val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json"))
+    val allExtraHeaders = Seq(
+      Tuple2("id", id), Tuple2("content-type", "application/json")
+    )
 
+    savePost(allExtraHeaders, saveUrl, value)
+  }
+
+  def savePartial(
+    id: String,
+    value: JsValue,
+    chargeType:Option[ChargeType] = None,
+    memberNo:Option[Int] = None
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+    val memberNoHeader = memberNo match {
+      case Some(mn) => Seq(Tuple2("memberNo", (mn + 1).toString))
+      case _ => Nil
+    }
+
+    val chargeTypeHeader = chargeType match {
+      case Some(ct) => Seq(Tuple2("chargeType", ct.toString))
+      case _ => Seq(Tuple2("chargeType", "none"))
+    }
+
+    val allExtraHeaders = Seq(
+      Tuple2("id", id),
+      Tuple2("content-type", "application/json")
+    ) ++ chargeTypeHeader ++ memberNoHeader
     savePost(allExtraHeaders, saveUrl, value)
   }
 
@@ -86,7 +111,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
   override def saveAndLock(id: String, value: JsValue, sessionAccessData: SessionAccessData, lockReturn: Boolean = false)
                           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-
     val useURL = if (lockReturn) saveSessionAndLockUrl else saveSessionUrl
 
     val sessionDataHeaders = Seq(
@@ -169,6 +193,9 @@ trait UserAnswersCacheConnector {
 
   def save(cacheId: String, value: JsValue)
           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
+
+  def savePartial(id: String, value: JsValue, chargeType:Option[ChargeType] = None, memberNo:Option[Int] = None)
+    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)
                (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,17 @@ import controllers.actions._
 import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeCHelper, ChargeServiceHelper}
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, NormalMode}
+import models.{GenericViewModel, AccessType, NormalMode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeC._
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import uk.gov.hmrc.viewmodels.{SummaryList, NunjucksSupport}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
@@ -94,7 +94,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         val totalAmount = chargeServiceHelper.totalAmount(request.userAnswers, "chargeCDetails")
         (for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
-          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+          _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAuthSurplus))
           _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
         } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))

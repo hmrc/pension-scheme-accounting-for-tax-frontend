@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import forms.YearRangeFormProvider
 import models.FeatureToggle.Enabled
 import models.FeatureToggleName.MigrationTransferAft
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, Mode, YearRange}
+import models.{YearRange, GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.chargeE.AnnualAllowanceYearPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -122,8 +122,11 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
               value => {
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(AnnualAllowanceYearPage(index), value, mode))
-                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                } yield Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
+                  _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                    chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
+                } yield {
+                    Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
+                }
               }
             )
         }

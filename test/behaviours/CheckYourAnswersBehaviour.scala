@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,12 @@ import models.LocalDateBinder._
 import models.UserAnswers
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
+import org.mockito.{ArgumentCaptor, Mockito, ArgumentMatchers}
 import pages.Page
 import play.api.Application
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.api.test.Helpers.{route, redirectLocation, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -47,7 +47,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
   override def beforeEach: Unit = {
     super.beforeEach
     Mockito.reset(mockAftConnector)
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
 
@@ -104,7 +104,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
 
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(page), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
@@ -128,7 +128,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
     "redirect to your action was not processed page on a POST when 5XX error is thrown" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
 
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(page), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 

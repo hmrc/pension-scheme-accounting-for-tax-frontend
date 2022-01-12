@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ class DeclarationController @Inject()(
         val declaration = Declaration(schemeAdministratorType, request.idOrException, hasAgreed = true)
         (for {
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
-          _ <- userAnswersCacheConnector.save(request.internalId, answersWithDeclaration.data)
+          _ <- userAnswersCacheConnector.savePartial(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
