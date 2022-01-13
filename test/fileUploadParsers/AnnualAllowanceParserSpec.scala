@@ -17,26 +17,48 @@
 package fileUploadParsers
 
 import base.SpecBase
+import data.SampleData
+import forms.MemberDetailsFormProvider
+import models.UserAnswers
 import org.mockito.MockitoSugar
+import org.mockito.MockitoSugar.mock
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
+import pages.chargeE.MemberDetailsPage
 
 class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   import AnnualAllowanceParserSpec._
 
+
   "Annual allowance parser" must {
     "return validation errors when present" when {
-
+      val result = parser.parse(emptyUa, invalidCsvFile)
+      result.errors mustBe List(ParserValidationErrors(0, Seq("")))
     }
 
     "return charges in user answers when there are no validation errors" in {
+      val result = parser.parse(emptyUa, validCsvFile)
 
+      result.errors mustBe Nil
+      result.ua.getOrException(MemberDetailsPage(0)) mustBe SampleData.memberDetails2
+    }
+
+    "return validation errors when not enough fields" when {
+      val result = parser.parse(emptyUa, List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
+
+      result.errors mustBe List(ParserValidationErrors(0, Seq("toofew")))
     }
   }
 }
 
 object AnnualAllowanceParserSpec {
 
-  private val parser = new AnnualAllowanceParser()
+  private val validCsvFile = List("Joe,Bloggs,AB123456C,2020,268.28,2020-01-01,true")
+  private val invalidCsvFile = List(",Bloggs,AB123456C,2020,268.28,2020-01-01,true")
+  private val emptyUa = UserAnswers()
+  private val formProvider = new MemberDetailsFormProvider
+//  private val mockMemberDetailsFormProvider = mock[MemberDetailsFormProvider]
+
+  private val parser = new AnnualAllowanceParser(formProvider)
 }

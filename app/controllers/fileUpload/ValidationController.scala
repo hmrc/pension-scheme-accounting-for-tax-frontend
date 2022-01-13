@@ -77,24 +77,26 @@ class ValidationController @Inject()(
           val foo = l.map { lines => {
             chargeType match {
               case "annual-allowance-charge" =>
-                val updatedUserAnswers = annualAllowanceParser.parse(request.userAnswers, lines)
-
-                updatedUserAnswers.fold(
-                  x => {
-                    renderer.render(template = "fileUpload/invalid.njk",
-                      Json.obj(
-                        "chargeType" -> chargeType,
-                        "chargeTypeText" -> chargeType.replace("-", " "),
-                        "srn" -> srn, "startDate" -> Some(startDate),
-                        "viewModel" -> x))
-                      .map(Ok(_))
-                  },
-                  y => {
-                    userAnswersCacheConnector.save(request.internalId, y.data)
-                    Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController.onClick(
-                      srn, startDate.toString, accessType, version, Index(1))))
-                  }
-                )
+//                val updatedUserAnswers = annualAllowanceParser.parse(request.userAnswers, lines)
+//
+//                updatedUserAnswers.fold(
+//                  x => {
+//                    renderer.render(template = "fileUpload/invalid.njk",
+//                      Json.obj(
+//                        "chargeType" -> chargeType,
+//                        "chargeTypeText" -> chargeType.replace("-", " "),
+//                        "srn" -> srn, "startDate" -> Some(startDate),
+//                        "viewModel" -> x))
+//                      .map(Ok(_))
+//                  },
+//                  y => {
+//                    userAnswersCacheConnector.save(request.internalId, y.data)
+//                    Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController.onClick(
+//                      srn, startDate.toString, accessType, version, Index(1))))
+//                  }
+//                )
+                Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController.onClick(
+                                    srn, startDate.toString, accessType, version, Index(1))))
 
               case "lifetime-allowance-charge" =>
                 val updatedUserAnswers = LifetimeAllowanceParser.parse(request.userAnswers, lines)

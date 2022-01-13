@@ -45,7 +45,7 @@ class AnnualAllowanceParser @Inject()(
     }
   }
 
-  def validateFields(ua:UserAnswers, index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, UserAnswers] = {
+  private def validateFields(ua:UserAnswers, index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, UserAnswers] = {
     val m =
       Map(
         "firstName" -> chargeFields(0),
