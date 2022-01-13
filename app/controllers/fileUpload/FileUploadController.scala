@@ -115,7 +115,9 @@ class FileUploadController @Inject()(
       uploadProgressTracker
         .getUploadResult(uploadId)
         .map {
-          case Some(uploadResult) => renderer.render(template = "fileUpload/success.njk",
+          case Some(uploadResult) =>
+          println("\n>>>HHHHHHHHHHHHH" + viewModel)
+            renderer.render(template = "fileUpload/success.njk",
               Json.obj(
                 "result" -> uplResult(uploadResult),
                 "viewModel" -> viewModel)
