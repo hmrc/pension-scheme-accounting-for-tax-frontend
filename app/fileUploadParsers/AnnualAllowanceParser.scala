@@ -20,32 +20,14 @@ import com.google.inject.Inject
 import forms.MemberDetailsFormProvider
 import models.UserAnswers
 import pages.chargeE.MemberDetailsPage
-import play.api.libs.json.{Format, Json}
 
 class AnnualAllowanceParser @Inject()(
                                        memberDetailsFormProvider: MemberDetailsFormProvider
-                                     ) {
+                                     ) extends BaseParser {
 
-  private val totalFields:Int = 7
+  override protected val totalFields:Int = 7
 
-  def parse(ua: UserAnswers, rows: List[String]): ValidationResult = {
-    rows.zipWithIndex.foldLeft[ValidationResult](ValidationResult(ua, Nil)){
-      case (acc, Tuple2(row, index)) =>
-        val cells = row.split(",")
-        cells.length match {
-          case this.totalFields =>
-            validateFields(acc.ua, index, cells) match {
-              case Left(validationErrors) =>
-                ValidationResult(acc.ua, acc.errors ++ List(validationErrors))
-              case Right(updatedUA) => ValidationResult(updatedUA, acc.errors)
-            }
-          case _ =>
-            ValidationResult(acc.ua, acc.errors ++ List(ParserValidationErrors(index, List("Not enough fields"))))
-        }
-    }
-  }
-
-  private def validateFields(ua:UserAnswers, index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, UserAnswers] = {
+  override protected def validateFields(ua:UserAnswers, index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, UserAnswers] = {
     val m =
       Map(
         "firstName" -> chargeFields(0),
@@ -58,13 +40,4 @@ class AnnualAllowanceParser @Inject()(
       value => Right(ua.setOrException(MemberDetailsPage(index), value))
     )
   }
-}
-
-case class ParserValidationErrors(row: Int, errors: Seq[String])
-
-case class ValidationResult(ua:UserAnswers, errors: List[ParserValidationErrors])
-
-object ParserValidationErrors {
-  implicit lazy val formats: Format[ParserValidationErrors] =
-    Json.format[ParserValidationErrors]
 }

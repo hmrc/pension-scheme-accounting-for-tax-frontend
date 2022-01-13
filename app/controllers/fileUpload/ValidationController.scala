@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, ValidationResult}
+import fileUploadParsers.{AnnualAllowanceParser, BaseParser, ValidationResult}
 import models.requests.DataRequest
 import models.{AccessType, Index, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
@@ -53,6 +53,14 @@ class ValidationController @Inject()(
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
 
+  private def getParser(chargeType:String):BaseParser = {
+    chargeType match {
+      case "annual-allowance-charge" => annualAllowanceParser
+      case "lifetime-allowance-charge" => annualAllowanceParser
+      case _ => throw new RuntimeException("unknown charge type")
+    }
+  }
+
   private def parse(
            srn: String,
            startDate: LocalDate,
@@ -60,33 +68,26 @@ class ValidationController @Inject()(
            version: Int,
            chargeType: String,
            linesFromCSV:List[String])(implicit request: DataRequest[AnyContent]):Future[Result] = {
-    chargeType match {
-      case "annual-allowance-charge" =>
-        val validationResult = annualAllowanceParser.parse(request.userAnswers, linesFromCSV)
-        validationResult match {
-          case ValidationResult(ua, Nil) =>
-            userAnswersCacheConnector.save(request.internalId, ua.data)
-            Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController
-              .onClick(srn, startDate.toString, accessType, version, Index(1))))
-          case ValidationResult(_, errors) =>
-//            println("\nERRORS")
-//            errors.foreach{ e =>
-//              println("\nERROR:" + e)
-//            }
-            renderer.render(template = "fileUpload/invalid.njk",
-              Json.obj(
-                "chargeType" -> chargeType,
-                "chargeTypeText" -> chargeType.replace("-", " "),
-                "srn" -> srn, "startDate" -> Some(startDate),
-                "viewModel" -> errors))
-              .map(Ok(_))
+
+    val validationResult = getParser(chargeType).parse(request.userAnswers, linesFromCSV)
+    validationResult match {
+      case ValidationResult(ua, Nil) =>
+        userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
+          Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController
+            .onClick(srn, startDate.toString, accessType, version, Index(1))))
         }
-      case "lifetime-allowance-charge" =>
-        val updatedUserAnswers = LifetimeAllowanceParser.parse(request.userAnswers, linesFromCSV)
-        userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
-        Future.successful(Redirect(controllers.chargeD.routes.CheckYourAnswersController.onClick(
-          srn, startDate.toString, accessType, version, Index(1))))
-      case _ => ???
+      case ValidationResult(_, errors) =>
+                    println("\nERRORS")
+                    errors.foreach{ e =>
+                      println("\nERROR:" + e)
+                    }
+        renderer.render(template = "fileUpload/invalid.njk",
+          Json.obj(
+            "chargeType" -> chargeType,
+            "chargeTypeText" -> chargeType.replace("-", " "),
+            "srn" -> srn, "startDate" -> Some(startDate),
+            "viewModel" -> errors))
+          .map(Ok(_))
     }
   }
 
