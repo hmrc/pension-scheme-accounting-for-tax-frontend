@@ -21,7 +21,6 @@ import data.SampleData
 import forms.MemberDetailsFormProvider
 import models.UserAnswers
 import org.mockito.MockitoSugar
-import org.mockito.MockitoSugar.mock
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import pages.chargeE.MemberDetailsPage
@@ -30,11 +29,10 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
 
   import AnnualAllowanceParserSpec._
 
-
   "Annual allowance parser" must {
-    "return validation errors when present" when {
+    "return validation errors when present" in {
       val result = parser.parse(emptyUa, invalidCsvFile)
-      result.errors mustBe List(ParserValidationErrors(0, Seq("")))
+      result.errors mustBe List(ParserValidationErrors(0, Seq("memberDetails.error.firstName.required")))
     }
 
     "return charges in user answers when there are no validation errors" in {
@@ -44,10 +42,10 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       result.ua.getOrException(MemberDetailsPage(0)) mustBe SampleData.memberDetails2
     }
 
-    "return validation errors when not enough fields" when {
+    "return validation errors when not enough fields" in {
       val result = parser.parse(emptyUa, List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
 
-      result.errors mustBe List(ParserValidationErrors(0, Seq("toofew")))
+      result.errors mustBe List(ParserValidationErrors(0, Seq("Not enough fields")))
     }
   }
 }

@@ -26,14 +26,14 @@ class AnnualAllowanceParser @Inject()(
                                        memberDetailsFormProvider: MemberDetailsFormProvider
                                      ) {
 
-  private val totalFields = 7
+  private val totalFields:Int = 7
 
   def parse(ua: UserAnswers, rows: List[String]): ValidationResult = {
     rows.zipWithIndex.foldLeft[ValidationResult](ValidationResult(ua, Nil)){
       case (acc, Tuple2(row, index)) =>
         val cells = row.split(",")
         cells.length match {
-          case totalFields =>
+          case this.totalFields =>
             validateFields(acc.ua, index, cells) match {
               case Left(validationErrors) =>
                 ValidationResult(acc.ua, acc.errors ++ List(validationErrors))
