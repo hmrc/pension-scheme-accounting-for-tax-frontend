@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ class ValidationController @Inject()(
     aftService: AFTService,
     userAnswersCacheConnector: UserAnswersCacheConnector,
     userAnswersService: UserAnswersService,
+    annualAllowanceParser:AnnualAllowanceParser
 )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -65,7 +66,6 @@ class ValidationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
 
       implicit request =>
-
         DataRetrievals.retrievePSTR { pstr =>
           val l = for {
             ud <- uploadDetails(uploadId)
@@ -75,10 +75,9 @@ class ValidationController @Inject()(
           }
 
           val foo = l.map { lines => {
-
             chargeType match {
               case "annual-allowance-charge" =>
-                val updatedUserAnswers = AnnualAllowanceParser.parse(request.userAnswers, lines)
+                val updatedUserAnswers = annualAllowanceParser.parse(request.userAnswers, lines)
 
                 updatedUserAnswers.fold(
                   x => {

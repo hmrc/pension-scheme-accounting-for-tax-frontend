@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,6 @@ class FileUploadController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       val ua = request.userAnswers
-
       val viewModel = GenericViewModel(
         submitUrl = s"${navigator.nextPage(FileUploadPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url}${uploadId.value}",
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
