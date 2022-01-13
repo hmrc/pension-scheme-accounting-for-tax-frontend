@@ -54,11 +54,11 @@ class ValidationController @Inject()(
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
 
-  private def getParser(chargeType:String):BaseParser = {
+  private def getParser(chargeType:String):Option[BaseParser] = {
     chargeType match {
-      case "annual-allowance-charge" => annualAllowanceParser
-      case "lifetime-allowance-charge" => lifeTimeAllowanceParser
-      case _ => throw new RuntimeException("unknown charge type")
+      case "annual-allowance-charge" => Some(annualAllowanceParser)
+      case "lifetime-allowance-charge" => Some(lifeTimeAllowanceParser)
+      case _ => None
     }
   }
 
@@ -70,22 +70,22 @@ class ValidationController @Inject()(
            chargeType: String,
            linesFromCSV:List[String])(implicit request: DataRequest[AnyContent]):Future[Result] = {
 
-    val validationResult = getParser(chargeType).parse(request.userAnswers, linesFromCSV)
-    validationResult match {
-      case ValidationResult(ua, Nil) =>
-        userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
-          Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController
-            .onClick(srn, startDate.toString, accessType, version, Index(1))))
-        }
-      case ValidationResult(_, errors) =>
-        renderer.render(template = "fileUpload/invalid.njk",
-          Json.obj(
-            "chargeType" -> chargeType,
-            "chargeTypeText" -> chargeType.replace("-", " "),
-            "srn" -> srn, "startDate" -> Some(startDate),
-            "viewModel" -> errors))
-          .map(Ok(_))
-    }
+    getParser(chargeType).map{ _.parse(request.userAnswers, linesFromCSV) match {
+        case ValidationResult(ua, Nil) =>
+          userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
+            Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController
+              .onClick(srn, startDate.toString, accessType, version, Index(1))))
+          }
+        case ValidationResult(_, errors) =>
+          renderer.render(template = "fileUpload/invalid.njk",
+            Json.obj(
+              "chargeType" -> chargeType,
+              "chargeTypeText" -> chargeType.replace("-", " "),
+              "srn" -> srn, "startDate" -> Some(startDate),
+              "viewModel" -> errors))
+            .map(Ok(_))
+      }
+    }.fold(Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad)))(identity)
   }
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String, uploadId: UploadId): Action[AnyContent] =
