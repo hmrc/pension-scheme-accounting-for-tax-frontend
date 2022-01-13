@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import fileUploadParsers.{AnnualAllowanceParser, BaseParser, ValidationResult}
+import fileUploadParsers.{AnnualAllowanceParser, BaseParser, LifeTimeAllowanceParser, ValidationResult}
 import models.requests.DataRequest
 import models.{AccessType, Index, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
@@ -48,7 +48,8 @@ class ValidationController @Inject()(
     upscanInitiateConnector: UpscanInitiateConnector,
     uploadProgressTracker: UploadProgressTracker,
     userAnswersCacheConnector: UserAnswersCacheConnector,
-    annualAllowanceParser:AnnualAllowanceParser
+    annualAllowanceParser:AnnualAllowanceParser,
+    lifeTimeAllowanceParser: LifeTimeAllowanceParser
 )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -56,7 +57,7 @@ class ValidationController @Inject()(
   private def getParser(chargeType:String):BaseParser = {
     chargeType match {
       case "annual-allowance-charge" => annualAllowanceParser
-      case "lifetime-allowance-charge" => annualAllowanceParser
+      case "lifetime-allowance-charge" => lifeTimeAllowanceParser
       case _ => throw new RuntimeException("unknown charge type")
     }
   }
@@ -77,10 +78,6 @@ class ValidationController @Inject()(
             .onClick(srn, startDate.toString, accessType, version, Index(1))))
         }
       case ValidationResult(_, errors) =>
-                    println("\nERRORS")
-                    errors.foreach{ e =>
-                      println("\nERROR:" + e)
-                    }
         renderer.render(template = "fileUpload/invalid.njk",
           Json.obj(
             "chargeType" -> chargeType,
