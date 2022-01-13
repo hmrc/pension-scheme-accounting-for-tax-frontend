@@ -56,7 +56,6 @@ object AnnualAllowanceParserSpec {
   private val invalidCsvFile = List(",Bloggs,AB123456C,2020,268.28,2020-01-01,true")
   private val emptyUa = UserAnswers()
   private val formProvider = new MemberDetailsFormProvider
-//  private val mockMemberDetailsFormProvider = mock[MemberDetailsFormProvider]
 
   private val parser = new AnnualAllowanceParser(formProvider)
 }
