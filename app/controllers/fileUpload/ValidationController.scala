@@ -19,22 +19,15 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
-import controllers.DataRetrievals
 import controllers.actions._
-import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser}
-import models.chargeD.ChargeDDetails
-import models.chargeE.ChargeEDetails
-import models.{AFTQuarter, AccessType, Index, MemberDetails, UploadId, UploadedSuccessfully, UserAnswers, YearRange}
+import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, Parser, ValidationResult}
+import models.{AccessType, Index, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
-import pages.QuarterPage
-import pages.chargeE._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, UserAnswersService}
 import services.fileUpload.UploadProgressTracker
-import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -43,71 +36,50 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ValidationController @Inject()(
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    allowAccess: AllowAccessActionProvider,
-    requireData: DataRequiredAction,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    navigator: CompoundNavigator,
-    upscanInitiateConnector: UpscanInitiateConnector,
-    uploadProgressTracker: UploadProgressTracker,
-    httpClient: HttpClient,
-    aftService: AFTService,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    userAnswersService: UserAnswersService
-)(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
+                                      override val messagesApi: MessagesApi,
+                                      identify: IdentifierAction,
+                                      getData: DataRetrievalAction,
+                                      allowAccess: AllowAccessActionProvider,
+                                      requireData: DataRequiredAction,
+                                      val controllerComponents: MessagesControllerComponents,
+                                      renderer: Renderer,
+                                      navigator: CompoundNavigator,
+                                      upscanInitiateConnector: UpscanInitiateConnector,
+                                      uploadProgressTracker: UploadProgressTracker,
+                                      userAnswersCacheConnector: UserAnswersCacheConnector,
+                                      annualAllowanceParser: AnnualAllowanceParser,
+                                      lifeTimeAllowanceParser: LifetimeAllowanceParser
+                                    )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
-
       implicit request =>
-
-        DataRetrievals.retrievePSTR { pstr =>
-          val l = for {
-            ud <- uploadDetails(uploadId)
-            contents <- upscanInitiateConnector.download(ud.downloadUrl)
-          } yield {
-            contents.body.split("\n").toList
+        val fileContent = uploadDetails(uploadId)
+          .flatMap(ud => upscanInitiateConnector.download(ud.downloadUrl))
+          .map(_.body.split("\n").toList)
+        fileContent.flatMap { linesFromCSV =>
+          parser(chargeType) match {
+            case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+            case Some(parser) => parser.parse(request.userAnswers, linesFromCSV) match {
+              case ValidationResult(ua, Nil) =>
+                userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
+                  Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController
+                    .onClick(srn, startDate.toString, accessType, version, Index(1))))
+                }
+              case ValidationResult(_, errors) =>
+                renderer.render(template = "fileUpload/invalid.njk",
+                  Json.obj(
+                    "chargeType" -> chargeType,
+                    "chargeTypeText" -> chargeType.replace("-", " "),
+                    "srn" -> srn, "startDate" -> Some(startDate),
+                    "viewModel" -> errors))
+                  .map(Ok(_))
+            }
           }
-
-          val foo = l.map { lines => {
-
-            chargeType match {
-              case "annual-allowance-charge" =>
-                val updatedUserAnswers = AnnualAllowanceParser.parse(request.userAnswers, lines)
-
-                updatedUserAnswers.fold(
-                  x => {
-                    renderer.render(template = "fileUpload/invalid.njk",
-                      Json.obj(
-                        "chargeType" -> chargeType,
-                        "chargeTypeText" -> chargeType.replace("-", " "),
-                        "srn" -> srn, "startDate" -> Some(startDate),
-                        "viewModel" -> x))
-                      .map(Ok(_))
-                  },
-                  y => {
-                    userAnswersCacheConnector.save(request.internalId, y.data)
-                    Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController.onClick(
-                      srn, startDate.toString, accessType, version, Index(1))))
-                  }
-                )
-
-              case "lifetime-allowance-charge" =>
-                val updatedUserAnswers = LifetimeAllowanceParser.parse(request.userAnswers, lines)
-                userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
-                Future.successful(Redirect(controllers.chargeD.routes.CheckYourAnswersController.onClick(
-                  srn, startDate.toString, accessType, version, Index(1))))
-              case _ => ???
-            }}
-          }
-
-          foo.flatMap(a => a)
         }
+
     }
 
   private def uploadDetails(uploadId: UploadId) = {
@@ -118,5 +90,13 @@ class ValidationController @Inject()(
           case _ => ???
         }
       }
+  }
+
+  private def parser(chargeType: String): Option[Parser] = {
+    chargeType match {
+      case "annual-allowance-charge" => Some(annualAllowanceParser)
+      case "lifetime-allowance-charge" => Some(lifeTimeAllowanceParser)
+      case _ => None
+    }
   }
 }

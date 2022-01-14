@@ -23,13 +23,13 @@ import models.UserAnswers
 import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
-import pages.chargeE.MemberDetailsPage
+import pages.chargeD.MemberDetailsPage
 
-class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
+class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
 
-  import AnnualAllowanceParserSpec._
+  import LifetimeAllowanceParserSpec._
 
-  "Annual allowance parser" must {
+  "LifeTime allowance parser" must {
     "return validation errors when present" in {
       val result = parser.parse(emptyUa, invalidCsvFile)
       result.errors mustBe List(
@@ -52,14 +52,16 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       result.errors mustBe List(ParserValidationErrors(0, Seq("Not enough fields")))
     }
   }
+
 }
 
-object AnnualAllowanceParserSpec {
+object LifetimeAllowanceParserSpec {
 
   private val validCsvFile = List("Joe,Bloggs,AB123456C,2020,268.28,2020-01-01,true", "Joe,Bliggs,AB123457C,2020,268.28,2020-01-01,true")
   private val invalidCsvFile = List(",Bloggs,AB123456C,2020,268.28,2020-01-01,true", "Ann,,3456C,2020,268.28,2020-01-01,true")
   private val emptyUa = UserAnswers()
   private val formProvider = new MemberDetailsFormProvider
 
-  private val parser = new AnnualAllowanceParser(formProvider)
+  private val parser = new LifetimeAllowanceParser(formProvider)
 }
+

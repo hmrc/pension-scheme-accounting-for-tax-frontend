@@ -16,34 +16,27 @@
 
 package fileUploadParsers
 
-import models.chargeD.ChargeDDetails
-import models.{MemberDetails, UserAnswers}
+import com.google.inject.Inject
+import forms.MemberDetailsFormProvider
+import models.UserAnswers
+import pages.chargeD.MemberDetailsPage
 
-import java.time.LocalDate
+class LifetimeAllowanceParser @Inject()(
+                                       memberDetailsFormProvider: MemberDetailsFormProvider
+                                     ) extends Parser {
 
-object LifetimeAllowanceParser {
-  def parse(request: UserAnswers, lines: List[String]): UserAnswers = {
+  override protected val totalFields:Int = 7
 
-    val memberDetails = lines.map { case line =>
-      val items = line.split(",")
-      val a = MemberDetails(items(0), items(1), items(2))
-      val b = ChargeDDetails(LocalDate.parse(items(4)), Some(BigDecimal(items(5).trim)), Some(BigDecimal(items(6).trim)))
-      (a, b)
-    }
-
-    add(request, memberDetails)
-  }
-
-  def add(userAnswers: UserAnswers, memberDetails: List[(MemberDetails, ChargeDDetails)], index: Int = 0): UserAnswers = {
-
-    memberDetails.length match {
-      case 0 => userAnswers
-      case _ => add(userAnswers
-        .setOrException(pages.chargeD.AddMembersPage, true)
-        .setOrException(pages.chargeD.MemberDetailsPage(index), memberDetails.head._1)
-        .setOrException(pages.chargeD.ChargeDetailsPage(index), memberDetails.head._2),
-        memberDetails.tail,
-        index + 1)
-    }
+  override protected def validateFields(ua:UserAnswers, index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, UserAnswers] = {
+    val m = Map(
+      "firstName" -> firstNameField(chargeFields),
+      "lastName" -> lastNameField(chargeFields),
+      "nino" -> ninoField(chargeFields)
+    )
+    val form = memberDetailsFormProvider.apply()
+    form.bind(m).fold(
+      formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
+      value => Right(ua.setOrException(MemberDetailsPage(index), value))
+    )
   }
 }

@@ -106,7 +106,6 @@ class FileUploadController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       val ua = request.userAnswers
-
       val viewModel = GenericViewModel(
         submitUrl = s"${navigator.nextPage(FileUploadPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url}${uploadId.value}",
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
@@ -116,7 +115,8 @@ class FileUploadController @Inject()(
       uploadProgressTracker
         .getUploadResult(uploadId)
         .map {
-          case Some(uploadResult) => renderer.render(template = "fileUpload/success.njk",
+          case Some(uploadResult) =>
+            renderer.render(template = "fileUpload/success.njk",
               Json.obj(
                 "result" -> uplResult(uploadResult),
                 "viewModel" -> viewModel)
