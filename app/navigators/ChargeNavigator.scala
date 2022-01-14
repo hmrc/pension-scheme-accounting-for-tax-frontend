@@ -24,6 +24,7 @@ import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, MemberDetails, NormalMode, UserAnswers}
 import pages._
+import pages.fileUpload.ValidationPage
 import play.api.mvc.{AnyContent, Call}
 import services._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -50,6 +51,13 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
     case ConfirmSubmitAFTAmendmentPage  => confirmSubmitAmendmentNavigation(ua, srn, startDate, accessType, version)
     case DeclarationPage                => controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version)
     case EnterPsaIdPage                 => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
+    case ValidationPage(chargeType)     =>
+      chargeType match {
+        case "lifetime-allowance-charge" =>
+          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate.toString, accessType, version, 1)
+        case "annual-allowance-charge" =>
+          controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate.toString, accessType, version, 1)
+      }
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)

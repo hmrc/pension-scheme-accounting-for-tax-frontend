@@ -21,11 +21,12 @@ import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, Parser, ValidationResult}
-import models.{AccessType, Index, UploadId, UploadedSuccessfully}
+import models.{AccessType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
+import pages.fileUpload.ValidationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -56,41 +57,36 @@ class ValidationController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
-        val fileContent = uploadDetails(uploadId)
-          .flatMap(ud => upscanInitiateConnector.download(ud.downloadUrl))
-          .map(_.body.split("\n").toList)
-        fileContent.flatMap { linesFromCSV =>
-          parser(chargeType) match {
-            case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-            case Some(parser) => parser.parse(request.userAnswers, linesFromCSV) match {
-              case ValidationResult(ua, Nil) =>
-                userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
-                  Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController
-                    .onClick(srn, startDate.toString, accessType, version, Index(1))))
+        uploadProgressTracker.getUploadResult(uploadId).flatMap {
+          // TODO: Pages for below responses will be required (None, Failed, InProgress). For now just sending to session expired page
+          case None => sessionExpired
+          case Some(Failed) => sessionExpired
+          case Some(InProgress) => sessionExpired
+          case Some(ud: UploadedSuccessfully) =>
+            val fileContent = upscanInitiateConnector.download(ud.downloadUrl).map(_.body.split("\n").toList)
+            fileContent.flatMap { linesFromCSV =>
+              parser(chargeType) match {
+                case None => sessionExpired
+                case Some(parser) => parser.parse(request.userAnswers, linesFromCSV) match {
+                  case ValidationResult(ua, Nil) =>
+                    userAnswersCacheConnector.save(request.internalId, ua.data).map( _ =>
+                      Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, ua, srn, startDate, accessType, version))
+                    )
+                  case ValidationResult(_, errors) =>
+                    renderer.render(template = "fileUpload/invalid.njk",
+                      Json.obj(
+                        "chargeType" -> chargeType,
+                        "chargeTypeText" -> chargeType.replace("-", " "),
+                        "srn" -> srn, "startDate" -> Some(startDate),
+                        "viewModel" -> errors))
+                      .map(Ok(_))
                 }
-              case ValidationResult(_, errors) =>
-                renderer.render(template = "fileUpload/invalid.njk",
-                  Json.obj(
-                    "chargeType" -> chargeType,
-                    "chargeTypeText" -> chargeType.replace("-", " "),
-                    "srn" -> srn, "startDate" -> Some(startDate),
-                    "viewModel" -> errors))
-                  .map(Ok(_))
+              }
             }
-          }
         }
-
     }
 
-  private def uploadDetails(uploadId: UploadId) = {
-    for (uploadResult <- uploadProgressTracker.getUploadResult(uploadId))
-      yield {
-        uploadResult match {
-          case Some(s: UploadedSuccessfully) => s // TODO: Validation
-          case _ => ???
-        }
-      }
-  }
+  private def sessionExpired:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
   private def parser(chargeType: String): Option[Parser] = {
     chargeType match {
