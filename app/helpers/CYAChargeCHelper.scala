@@ -66,7 +66,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(lit"${answer.fullName}"),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(Literal(
               messages("site.edit") + " " + messages("chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel")

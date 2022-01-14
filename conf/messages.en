@@ -28,6 +28,7 @@ site.view.link = View link
 site.remove.link = Remove link
 site.return_to_overview = Return to overview
 return.to.link = Return to {0}
+site.continue_to_scheme_overview = Continue to scheme overview
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
@@ -457,6 +458,10 @@ aft.summary.search.clearSearch = Clear search
 aft.summary.search.result = result found
 aft.summary.search.results = results found
 aft.summary.heading.search.results = Search results for
+
+aft.notSubmissionTime.title = You cannot submit this AFT return to HMRC yet
+aft.notSubmissionTime.heading = You cannot submit this AFT return to HMRC yet
+aft.notSubmissionTime.p1 = You can only submit this AFT return on or after {0}
 
 chargeG.chargeDetails.title = Overseas transfer charge details for the member
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
@@ -1122,6 +1127,7 @@ penalties.hint2 = in full. You can only pay the interest once a charge reference
 
 paymentsAndCharges.partial.h1 = Payments and charges
 paymentsAndCharges.partial.view.link = View payments and charges for 2020
+paymentsAndCharges.amend.view.link = View payments and charges for {0}
 
 paymentsAndChargesUpcoming.h1.singlePeriod = Payments and charges for {0} to {1}
 paymentsAndChargesUpcoming.h1.multiplePeriod = Upcoming payments and charges

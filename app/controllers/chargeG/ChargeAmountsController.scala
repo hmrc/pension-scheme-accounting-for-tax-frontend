@@ -21,13 +21,15 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeG.ChargeAmountsFormProvider
+
+import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeG.ChargeAmounts
-import models.{AccessType, GenericViewModel, Index, Mode}
+import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
-import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
+import pages.chargeG.{MemberDetailsPage, ChargeAmountsPage}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -35,9 +37,8 @@ import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
-import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
 
 class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -115,7 +116,8 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
             value => {
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeAmountsPage(index), value, mode))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                  chargeType = Some(ChargeType.ChargeTypeOverseasTransfer), memberNo = Some(index.id))
               } yield Redirect(navigator.nextPage(ChargeAmountsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
             }
           )

@@ -93,7 +93,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
@@ -185,7 +185,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
 
       jsonCaptor.getValue must containJson(expectedJson)
 
@@ -214,7 +214,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
 
       jsonCaptor.getValue must containJson(expectedJson)
 

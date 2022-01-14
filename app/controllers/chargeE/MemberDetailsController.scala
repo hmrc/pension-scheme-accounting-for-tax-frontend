@@ -16,16 +16,19 @@
 
 package controllers.chargeE
 
+import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.MemberDetailsFormProvider
+
+import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, Mode}
+import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.chargeE.MemberDetailsPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -33,8 +36,6 @@ import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
-import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
@@ -108,7 +109,8 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
             value =>
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(MemberDetailsPage(index), value, mode))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                  chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
               } yield Redirect(navigator.nextPage(MemberDetailsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }

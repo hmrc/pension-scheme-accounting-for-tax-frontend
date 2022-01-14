@@ -66,24 +66,25 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
   ).toString()
 
   val aftOverviewModel = Seq(
-    AFTOverview(
-      periodStartDate = LocalDate.of(2028, 4, 1),
-      periodEndDate = LocalDate.of(2028, 6, 30),
-      tpssReportPresent = false,
-      Some(AFTOverviewVersion(
-        numberOfVersions = 1,
-        submittedVersionAvailable = false,
-        compiledVersionAvailable = true
-      ))),
-    AFTOverview(
-      periodStartDate = LocalDate.of(2022, 1, 1),
-      periodEndDate = LocalDate.of(2022, 3, 31),
-      tpssReportPresent = false,
-      Some(AFTOverviewVersion(
-        numberOfVersions = 1,
-        submittedVersionAvailable = true,
-        compiledVersionAvailable = false
-      )))
+    AFTOverview(LocalDate.of(2028, 4, 1), LocalDate.of(2028, 6, 30), tpssReportPresent = false,
+      Some(AFTOverviewVersion(1, submittedVersionAvailable = false, compiledVersionAvailable = true))),
+    AFTOverview(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 3, 31), tpssReportPresent = false,
+      Some(AFTOverviewVersion(1, submittedVersionAvailable = true, compiledVersionAvailable = false)))
+  )
+
+  val aftOverviewVersion: Option[AFTOverviewVersion] = Some(AFTOverviewVersion(
+    numberOfVersions = 1,
+    submittedVersionAvailable = false,
+    compiledVersionAvailable = true
+  ))
+
+  val seqAftOverview = Seq(
+    AFTOverview(LocalDate.of(2020, 4, 1), LocalDate.of(2020, 6, 30), tpssReportPresent = false, aftOverviewVersion),
+    AFTOverview(LocalDate.of(2020, 7, 1), LocalDate.of(2020, 9, 30), tpssReportPresent = false, aftOverviewVersion),
+    AFTOverview(LocalDate.of(2020, 10, 1), LocalDate.of(2020, 12, 31), tpssReportPresent = false, aftOverviewVersion),
+    AFTOverview(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 3, 31), tpssReportPresent = false, aftOverviewVersion),
+    AFTOverview(LocalDate.of(2021, 4, 1), LocalDate.of(2021, 6, 30), tpssReportPresent = false, aftOverviewVersion),
+    AFTOverview(LocalDate.of(2021, 7, 1), LocalDate.of(2021, 9, 30), tpssReportPresent = false, aftOverviewVersion)
   )
 
   "fileSubmitReturn" must {
@@ -337,8 +338,6 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           .withHeader("endDate", equalTo("2028-06-30")).willReturn(
           aResponse().withStatus(Status.OK).withHeader("Content-Type", "application/json").withBody(validAftOverviewResponse)))
 
-      val connector = injector.instanceOf[AFTConnector]
-
       connector.getAftOverview(pstr).map(aftOverview => aftOverview mustBe aftOverviewModel)
 
     }
@@ -349,7 +348,6 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
           .withHeader("endDate", equalTo("2028-06-30")).willReturn(
           badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_PSTR"))))
 
-      val connector = injector.instanceOf[AFTConnector]
       recoverToSucceededIf[BadRequestException] {
         connector.getAftOverview(pstr)
       }
@@ -360,7 +358,6 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
         get(urlEqualTo(aftOverview)).withHeader("pstr", equalTo(pstr)).withHeader("startDate", equalTo("2022-01-01"))
           .withHeader("endDate", equalTo("2028-06-30")).willReturn(
           badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_REPORT_TYPE"))))
-      val connector = injector.instanceOf[AFTConnector]
 
       recoverToSucceededIf[BadRequestException] {
         connector.getAftOverview(pstr)
@@ -371,7 +368,6 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
     "throw BadRequestException for a 400 INVALID_FROM_DATE response" in {
       server.stubFor(get(urlEqualTo(aftOverview)).willReturn(
         badRequest.withHeader("Content-Type", "application/json").withBody(errorResponse("INVALID_FROM_DATE"))))
-      val connector = injector.instanceOf[AFTConnector]
 
       recoverToSucceededIf[BadRequestException] {
         connector.getAftOverview(pstr)
@@ -388,6 +384,13 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
         connector.getAftOverview(pstr)
       }
 
+    }
+  }
+
+  "filterOverviewResponse" must {
+    "filter records before startDate and after endDate" in {
+      connector.filterOverviewResponse(Some("2020-10-01"), Some("2021-06-30"), seqAftOverview) mustBe
+        Seq(seqAftOverview(2), seqAftOverview(3), seqAftOverview(4))
     }
   }
 

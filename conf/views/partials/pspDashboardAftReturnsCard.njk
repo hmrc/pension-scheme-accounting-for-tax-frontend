@@ -1,20 +1,20 @@
 <div class="card" id="aft-returns">
     <div class="card-body">
-        <h2 class="card-heading heading-small">
+        <h2 class="card-heading govuk-heading-l">
             {{ messages("pspDashboardAftReturnsCard.h2") }}
         </h2>
         {% for subHeading in aft.subHeadings %}
-            <p class="card-sub-heading bold">
-                <span class="font-xsmall">{{ subHeading.span }}</span>
-                {{ subHeading.h3 }}
+            <p class="card-sub-heading bold govuk-body-m">
+                <span >{{ subHeading.span }}</span>
+                 <span class="font-large bold">{{ subHeading.h3 }} </span>
             </p>
         {% endfor %}
     </div>
     <div class="card-action">
-        <ul>
+       <ul class="govuk-list">
             {% for link in aft.links %}
                 <li>
-                    <a id="{{ link.id }}" href="{{ link.url }}">{{ link.linkText }}</a>
+                    <a id="{{ link.id }}" class=govuk-link href="{{ link.url }}">{{ link.linkText }}</a>
                 </li>
             {% endfor %}
         </ul>

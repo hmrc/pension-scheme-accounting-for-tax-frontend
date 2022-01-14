@@ -134,7 +134,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
     "redirect to the next page when valid data is submitted" in {
       DateHelper.setDate(Some(startDate))
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
