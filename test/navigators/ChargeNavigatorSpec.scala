@@ -19,18 +19,42 @@ package navigators
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import models.ChargeType._
+import models.FeatureToggle.Disabled
+import models.FeatureToggleName.AftBulkUpload
 import models.LocalDateBinder._
 import models.{AFTQuarter, ChargeType, NormalMode, UserAnswers}
+import org.mockito.ArgumentMatchers.any
+import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.prop.{TableFor3, TableFor5}
 import pages._
+import play.api.Application
+import play.api.inject.bind
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.Call
+import services.FeatureToggleService
 import utils.AFTConstants._
 
 import java.time.LocalDate
+import scala.concurrent.Future
 
-class ChargeNavigatorSpec extends NavigatorBehaviour {
+class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with BeforeAndAfterEach {
+  private val mockFeatureToggleService = mock[FeatureToggleService]
+
+  override lazy val app: Application = new GuiceApplicationBuilder()
+    .overrides(
+      Seq[GuiceableModule](
+        bind[FeatureToggleService].toInstance(mockFeatureToggleService)
+      ): _*
+    ).build()
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockFeatureToggleService.get(any())(any(), any())).thenReturn(Future.successful(Disabled(AftBulkUpload)))
+  }
+
   private val srn = "test-srn"
   private val startDate = QUARTER_START_DATE
 
