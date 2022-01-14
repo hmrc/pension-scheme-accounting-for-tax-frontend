@@ -23,7 +23,7 @@ import pages.chargeE.MemberDetailsPage
 
 class AnnualAllowanceParser @Inject()(
                                        memberDetailsFormProvider: MemberDetailsFormProvider
-                                     ) extends BaseParser {
+                                     ) extends Parser {
 
   override protected val totalFields:Int = 7
 

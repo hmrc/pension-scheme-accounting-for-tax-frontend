@@ -19,7 +19,7 @@ package fileUploadParsers
 import models.UserAnswers
 import play.api.libs.json.{Format, Json}
 
-trait BaseParser {
+trait Parser {
   protected val totalFields:Int
 
   def parse(ua: UserAnswers, rows: List[String]): ValidationResult = {

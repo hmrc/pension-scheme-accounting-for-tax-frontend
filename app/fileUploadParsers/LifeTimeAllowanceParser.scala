@@ -23,7 +23,7 @@ import pages.chargeD.MemberDetailsPage
 
 class LifeTimeAllowanceParser @Inject()(
                                        memberDetailsFormProvider: MemberDetailsFormProvider
-                                     ) extends BaseParser {
+                                     ) extends Parser {
 
   override protected val totalFields:Int = 7
 
