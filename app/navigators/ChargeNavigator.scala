@@ -19,22 +19,28 @@ package navigators
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
+import models.FeatureToggleName.AftBulkUpload
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, MemberDetails, NormalMode, UserAnswers}
 import pages._
 import play.api.mvc.{AnyContent, Call}
-import services.{AFTService, ChargeDService, ChargeEService, ChargeGService}
+import services._
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import java.time.LocalDate
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext}
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
                                 chargeDHelper: ChargeDService,
                                 chargeEHelper: ChargeEService,
                                 chargeGHelper: ChargeGService,
-                                aftService: AFTService
-                               ) extends Navigator {
+                                aftService: AFTService,
+                                featureToggleService: FeatureToggleService
+                               )(implicit ec: ExecutionContext) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
@@ -53,7 +59,11 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
 
   //scalastyle:off cyclomatic.complexity
   private def chargeTypeNavigation(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                                 : Call =
+                                  (implicit request: DataRequest[AnyContent])
+                                 : Call = {
+
+    implicit val hc: HeaderCarrier =
+      HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     ua.get(ChargeTypePage) match {
       case Some(ChargeType.ChargeTypeShortService) =>
         controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
@@ -65,8 +75,11 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
 
       case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua) == 0 =>
-        controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
-
+          if (isAftUploadToggleEnabled(hc,implicitly)) {
+            controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge")
+          } else {
+            controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+          }
       case Some(ChargeType.ChargeTypeAnnualAllowance) =>
         controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
           nextIndexChargeE(ua))
@@ -75,7 +88,11 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
 
       case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua) == 0 =>
-        controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+        if (isAftUploadToggleEnabled(hc,implicitly)) {
+          controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge")
+        } else {
+          controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+        }
 
       case Some(ChargeType.ChargeTypeLifetimeAllowance) =>
         controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
@@ -90,6 +107,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
 
       case _ => sessionExpiredPage
     }
+  }
   //scalastyle:on cyclomatic.complexity
 
   private def nextIndexChargeD(ua: UserAnswers) : Int =
@@ -142,6 +160,11 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
           }
       case _ => sessionExpiredPage
     }
+  }
+
+  private def isAftUploadToggleEnabled(implicit hc: HeaderCarrier, ec: ExecutionContext):Boolean={
+   val toggleResult=Await.result(featureToggleService.get(AftBulkUpload),Duration.Inf)
+    toggleResult.isEnabled
   }
 
   private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad

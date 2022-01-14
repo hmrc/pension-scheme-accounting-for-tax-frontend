@@ -171,4 +171,12 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val gtmContainerId: String = configuration.get[String]("tracking-consent-frontend.gtm.container")
   lazy val trackingSnippetUrl: String = configuration.get[String]("tracking-consent-frontend.url")
   lazy val membersPageSize: Int = configuration.get[Int]("members.pageSize")
+
+  lazy val uploadRedirectTargetBase = loadConfig("upload-redirect-target-base")
+  lazy val callbackEndpointTarget   = loadConfig("upscan.callback-endpoint")
+  lazy val upscanUrl                = servicesConfig.baseUrl("upscan-initiate")
+  lazy val initiateUrl              = servicesConfig.baseUrl("upscan-initiate") + "/upscan/initiate"
+  lazy val initiateV2Url            = servicesConfig.baseUrl("upscan-initiate") + "/upscan/v2/initiate"
+
+  lazy val maxUploadFileSize: Int = configuration.getOptional[Int]("upscan.maxUploadFileSizeMb").getOrElse(1)
 }

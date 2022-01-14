@@ -23,12 +23,14 @@ import controllers.chargeE.routes._
 import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, MemberDetails, NormalMode, UserAnswers}
+import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeE._
+import pages.fileUpload.{FileUploadPage, InputSelectionManualPage, InputSelectionUploadPage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
+
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
                                  chargeServiceHelper: ChargeServiceHelper,
@@ -59,6 +61,13 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua))
+
+    // TODO: Refactor magic strings
+    case InputSelectionManualPage("annual-allowance-charge")  => controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+    case InputSelectionUploadPage("annual-allowance-charge") => controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge")
+    case pages.fileUpload.WhatYouWillNeedPage("annual-allowance-charge") => controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge")
+    case FileUploadPage("annual-allowance-charge") => controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge", UploadId(""))
+
     case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)

@@ -1259,3 +1259,19 @@ paginationForMembers.pagerSummary = Showing {0} – {1} of {2} members
 paginationForEmployers.pagerSummary = Showing {0} – {1} of {2} employers
 paginationPreviousPage = Prev
 paginationNextPage = Next
+
+fileupload.inputSelection.title = How do you want to add the {0} to the AFT return?
+fileupload.inputSelection.heading = How do you want to add the {0} to the AFT return?
+
+inputSelection.radio.manualInput = Manually enter the details
+inputSelection.radio.fileUploadInput = Upload a file
+
+fileupload.whatYouWillNeed.title = Adding your {0} upload
+fileupload.whatYouWillNeed.heading = Adding your {0} upload
+
+fileupload.fileupload.title = Upload the {0}
+fileupload.fileupload.heading = Upload the {0}
+
+inputSelection.error.required = Select how you would like to add your data
+InvalidArgument = Please choose a file
+EntityTooLarge = The CSV must be smaller than {0}M

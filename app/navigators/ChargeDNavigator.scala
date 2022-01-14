@@ -23,9 +23,10 @@ import controllers.chargeD.routes._
 import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, MemberDetails, NormalMode, UserAnswers}
+import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeD._
+import pages.fileUpload.{FileUploadPage, InputSelectionManualPage, InputSelectionUploadPage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
@@ -59,6 +60,12 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua))
+
+    case InputSelectionManualPage("lifetime-allowance-charge") => controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+    case InputSelectionUploadPage("lifetime-allowance-charge")  => controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge")
+    case pages.fileUpload.WhatYouWillNeedPage("lifetime-allowance-charge") => controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge")
+    case FileUploadPage("lifetime-allowance-charge") => controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge", UploadId(""))
+
     case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)

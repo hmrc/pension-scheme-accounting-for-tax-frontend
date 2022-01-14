@@ -1,0 +1,76 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"  import title %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
+
+
+{% block pageTitle %}
+  {{ title(messages("fileupload.fileupload.title", chargeType)) }}
+{% endblock %}
+
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+
+            <h1 class="govuk-heading-xl">
+              {{ messages("fileupload.fileupload.heading", chargeTypeText) }}
+            </h1>
+
+            <form action="{{ viewModel.submitUrl }}" method="post" enctype="multipart/form-data" class="govuk-body">
+
+            {% for field in formFields %}
+                <input type="hidden" name="{{field[0]}}" value="{{field[1]}}"/>
+            {% endfor %}
+
+            <div class="">
+                <div class="form-group">
+
+                    <div class="form-control-wrapper">
+
+                        <div class="govuk-inset-text">
+                          Accepted file type: .csv
+                        </div>
+
+                        {% if error == null %}
+                        {{ govukFileUpload({
+                              id: "file-input",
+                              name: "file",
+                              label: {
+                                text: "Upload a file"
+                              }
+                        }) }}
+
+                        {% else %}
+
+                        {{ govukFileUpload({
+                          id: "file-input",
+                          name: "file",
+                          label: {
+                            text: "Upload a file"
+                          },
+                          errorMessage: {
+                            text: messages(error, maxFileUploadSize)
+                          }
+                        }) }}
+
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+             {{ govukButton({
+             text: messages("site.continue"),
+             attributes: {id: "submit"}
+           }) }}
+          </div>
+        </div>
+
+         </form>
+
+      <p class="govuk-body"><a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
+      </p>
+{% endblock %}

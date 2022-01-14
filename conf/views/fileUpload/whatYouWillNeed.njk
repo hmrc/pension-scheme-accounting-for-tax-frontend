@@ -1,0 +1,35 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"  import title %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+
+{% block pageTitle %}
+  {{ title(messages("fileupload.whatYouWillNeed.title", chargeTypeText)) }}
+{% endblock %}
+
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+
+            <h1 class="govuk-heading-xl">
+              {{ messages("fileupload.whatYouWillNeed.heading", chargeTypeText)}}
+
+            </h1>
+
+            {% include "partials/fileUpload/" + chargeType + ".njk" %}
+
+             {{ govukButton({
+                href: viewModel.submitUrl,
+                attributes: {id: "submit"},
+                text: messages("site.continue")
+              }) }}
+          </div>
+        </div>
+
+      <p class="govuk-body"><a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
+      </p>
+{% endblock %}
