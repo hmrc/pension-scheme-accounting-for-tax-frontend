@@ -53,14 +53,14 @@ class InputSelectionController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
       val preparedForm = request.userAnswers.get(InputSelectionPage).fold(form)(form.fill)
 
       renderer.render(template = "fileUpload/inputSelection.njk",
         Json.obj(
-          "chargeType" -> chargeType.replace("-", " "),
+          "chargeType" -> chargeType.toString,
           "srn" -> srn, "startDate" -> Some(startDate),
           "radios" -> InputSelection.radios(preparedForm),
           "form" -> preparedForm,
@@ -68,7 +68,7 @@ class InputSelectionController @Inject()(
         .map(Ok(_))
     }
 
-  def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
 
       implicit request => DataRetrievals.retrieveSchemeName { _ =>
@@ -78,7 +78,7 @@ class InputSelectionController @Inject()(
           .fold(
             formWithErrors => {
               val json = Json.obj(
-                "chargeType" -> chargeType.replace("-", " "),
+                "chargeType" -> chargeType.toString,
                 "srn" -> srn,
                 "startDate" -> Some(startDate),
                 "form" -> formWithErrors,
@@ -88,8 +88,10 @@ class InputSelectionController @Inject()(
               renderer.render(template = "fileUpload/inputSelection.njk", json).map(BadRequest(_))
             },
             {
-              case ManualInput => Future.successful(Redirect(navigator.nextPage(InputSelectionManualPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
-              case FileUploadInput => Future.successful(Redirect(navigator.nextPage(InputSelectionUploadPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
+              case ManualInput =>
+                Future.successful(Redirect(navigator.nextPage(InputSelectionManualPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
+              case FileUploadInput =>
+                Future.successful(Redirect(navigator.nextPage(InputSelectionUploadPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
             }
           )
       }
