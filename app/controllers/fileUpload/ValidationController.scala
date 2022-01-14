@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import fileUploadParsers.{AnnualAllowanceParser, LifeTimeAllowanceParser, Parser, ValidationResult}
+import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, Parser, ValidationResult}
 import models.requests.DataRequest
 import models.{AccessType, Index, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
@@ -49,7 +49,7 @@ class ValidationController @Inject()(
     uploadProgressTracker: UploadProgressTracker,
     userAnswersCacheConnector: UserAnswersCacheConnector,
     annualAllowanceParser:AnnualAllowanceParser,
-    lifeTimeAllowanceParser: LifeTimeAllowanceParser
+    lifeTimeAllowanceParser: LifetimeAllowanceParser
 )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {

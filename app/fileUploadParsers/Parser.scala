@@ -40,6 +40,10 @@ trait Parser {
   }
 
   protected def validateFields(ua:UserAnswers, index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, UserAnswers]
+
+  protected def firstNameField(fields: Array[String]):String =fields(0)
+  protected def lastNameField(fields: Array[String]):String =fields(1)
+  protected def ninoField(fields: Array[String]):String =fields(2)
 }
 
 case class ParserValidationErrors(row: Int, errors: Seq[String])

@@ -25,15 +25,14 @@ class AnnualAllowanceParser @Inject()(
                                        memberDetailsFormProvider: MemberDetailsFormProvider
                                      ) extends Parser {
 
-  override protected val totalFields:Int = 7
+  override protected val totalFields: Int = 7
 
-  override protected def validateFields(ua:UserAnswers, index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, UserAnswers] = {
-    val m =
-      Map(
-        "firstName" -> chargeFields(0),
-        "lastName" -> chargeFields(1),
-        "nino" -> chargeFields(2)
-      )
+  override protected def validateFields(ua: UserAnswers, index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, UserAnswers] = {
+    val m = Map(
+      "firstName" -> firstNameField(chargeFields),
+      "lastName" -> lastNameField(chargeFields),
+      "nino" -> ninoField(chargeFields)
+    )
     val form = memberDetailsFormProvider.apply()
     form.bind(m).fold(
       formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),

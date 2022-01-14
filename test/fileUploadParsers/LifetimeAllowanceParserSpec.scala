@@ -25,9 +25,9 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import pages.chargeD.MemberDetailsPage
 
-class LifeTimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
+class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
 
-  import LifeTimeAllowanceParserSpec._
+  import LifetimeAllowanceParserSpec._
 
   "LifeTime allowance parser" must {
     "return validation errors when present" in {
@@ -51,13 +51,13 @@ class LifeTimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
 
 }
 
-object LifeTimeAllowanceParserSpec {
+object LifetimeAllowanceParserSpec {
 
   private val validCsvFile = List("Joe,Bloggs,AB123456C,2020,268.28,2020-01-01,true")
   private val invalidCsvFile = List(",Bloggs,AB123456C,2020,268.28,2020-01-01,true")
   private val emptyUa = UserAnswers()
   private val formProvider = new MemberDetailsFormProvider
 
-  private val parser = new LifeTimeAllowanceParser(formProvider)
+  private val parser = new LifetimeAllowanceParser(formProvider)
 }
 
