@@ -56,7 +56,7 @@ class ValidationController @Inject()(
     httpClient: HttpClient,
     aftService: AFTService,
     userAnswersCacheConnector: UserAnswersCacheConnector,
-    userAnswersService: UserAnswersService,
+    userAnswersService: UserAnswersService
 )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
