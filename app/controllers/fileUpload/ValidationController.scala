@@ -21,7 +21,8 @@ import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, Parser, ValidationResult}
-import models.{AccessType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
+import models.{AccessType, ChargeType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
 import pages.fileUpload.ValidationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -54,7 +55,7 @@ class ValidationController @Inject()(
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String, uploadId: UploadId): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         uploadProgressTracker.getUploadResult(uploadId).flatMap {
@@ -76,7 +77,7 @@ class ValidationController @Inject()(
                     renderer.render(template = "fileUpload/invalid.njk",
                       Json.obj(
                         "chargeType" -> chargeType,
-                        "chargeTypeText" -> chargeType.replace("-", " "),
+                        "chargeTypeText" -> chargeType.toString,
                         "srn" -> srn, "startDate" -> Some(startDate),
                         "viewModel" -> errors))
                       .map(Ok(_))
@@ -88,10 +89,10 @@ class ValidationController @Inject()(
 
   private def sessionExpired:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
-  private def parser(chargeType: String): Option[Parser] = {
+  private def parser(chargeType: ChargeType): Option[Parser] = {
     chargeType match {
-      case "annual-allowance-charge" => Some(annualAllowanceParser)
-      case "lifetime-allowance-charge" => Some(lifeTimeAllowanceParser)
+      case ChargeTypeAnnualAllowance => Some(annualAllowanceParser)
+      case ChargeTypeLifetimeAllowance => Some(lifeTimeAllowanceParser)
       case _ => None
     }
   }

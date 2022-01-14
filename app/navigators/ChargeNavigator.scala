@@ -19,6 +19,7 @@ package navigators
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.FeatureToggleName.AftBulkUpload
 import models.LocalDateBinder._
 import models.requests.DataRequest
@@ -53,10 +54,11 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
     case EnterPsaIdPage                 => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
     case ValidationPage(chargeType)     =>
       chargeType match {
-        case "lifetime-allowance-charge" =>
+        case ChargeTypeLifetimeAllowance =>
           controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate.toString, accessType, version, 1)
-        case "annual-allowance-charge" =>
+        case ChargeTypeAnnualAllowance=>
           controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate.toString, accessType, version, 1)
+        case _ => sessionExpiredPage
       }
   }
 

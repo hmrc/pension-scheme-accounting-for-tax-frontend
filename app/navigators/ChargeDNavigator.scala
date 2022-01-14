@@ -21,6 +21,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeD.routes._
 import helpers.{ChargeServiceHelper, DeleteChargeHelper}
+import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
@@ -64,7 +65,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case InputSelectionManualPage("lifetime-allowance-charge") => controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
     case InputSelectionUploadPage("lifetime-allowance-charge")  => controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge")
     case pages.fileUpload.WhatYouWillNeedPage("lifetime-allowance-charge") => controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge")
-    case FileUploadPage("lifetime-allowance-charge") => controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge", UploadId(""))
+    case FileUploadPage("lifetime-allowance-charge") => controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance, UploadId(""))
 
     case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
