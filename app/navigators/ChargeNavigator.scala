@@ -86,7 +86,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
 
       case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua) == 0 =>
           if (isAftUploadToggleEnabled(hc,implicitly)) {
-            controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge")
+            controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
           } else {
             controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
           }
@@ -99,7 +99,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
 
       case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua) == 0 =>
         if (isAftUploadToggleEnabled(hc,implicitly)) {
-          controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge")
+          controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
         } else {
           controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
         }

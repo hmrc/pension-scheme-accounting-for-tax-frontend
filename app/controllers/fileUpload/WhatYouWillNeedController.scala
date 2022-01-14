@@ -18,7 +18,7 @@ package controllers.fileUpload
 
 import controllers.actions._
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.fileUpload.WhatYouWillNeedPage
@@ -28,7 +28,6 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
-import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
@@ -45,7 +44,7 @@ class WhatYouWillNeedController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
 
@@ -57,8 +56,8 @@ class WhatYouWillNeedController @Inject()(
 
       renderer.render(template = "fileUpload/whatYouWillNeed.njk",
         Json.obj(
-          "chargeType" -> chargeType,
-          "chargeTypeText" -> chargeType.replace("-", " "),
+          "chargeType" -> chargeType.toString,
+          "chargeTypeText" -> chargeType.toString,
           "srn" -> srn, "startDate" -> Some(startDate),
           "viewModel" -> viewModel))
         .map(Ok(_))

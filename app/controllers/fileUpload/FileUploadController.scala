@@ -21,7 +21,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, InProgress, NormalMode, UploadId, UploadStatus, UploadedSuccessfully, Failed}
+import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, NormalMode, UploadId, UploadStatus, UploadedSuccessfully}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.fileUpload.FileUploadPage
@@ -50,7 +50,7 @@ class FileUploadController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       val uploadId = UploadId.generate
@@ -70,8 +70,8 @@ class FileUploadController @Inject()(
 
           renderer.render(template = "fileUpload/fileupload.njk",
             Json.obj(
-              "chargeType" -> chargeType,
-              "chargeTypeText" -> chargeType.replace("-", " "),
+              "chargeType" -> chargeType.toString,
+              "chargeTypeText" -> chargeType.toString,
               "srn" -> srn,
               "startDate" -> Some(startDate),
               "formFields" -> uir.formFields.toList,
@@ -84,7 +84,7 @@ class FileUploadController @Inject()(
       }
     }
 
-  def showResult(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: String, uploadId: UploadId): Action[AnyContent] =
+  def showResult(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       val ua = request.userAnswers

@@ -62,10 +62,10 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua))
 
-    case InputSelectionManualPage("lifetime-allowance-charge") => controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
-    case InputSelectionUploadPage("lifetime-allowance-charge")  => controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge")
-    case pages.fileUpload.WhatYouWillNeedPage("lifetime-allowance-charge") => controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge")
-    case FileUploadPage("lifetime-allowance-charge") => controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance, UploadId(""))
+    case InputSelectionManualPage(ChargeTypeLifetimeAllowance) => controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+    case InputSelectionUploadPage(ChargeTypeLifetimeAllowance)  => controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
+    case pages.fileUpload.WhatYouWillNeedPage(ChargeTypeLifetimeAllowance) => controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
+    case FileUploadPage(ChargeTypeLifetimeAllowance) => controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance, UploadId(""))
 
     case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
