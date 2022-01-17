@@ -29,7 +29,7 @@ import org.mockito.ArgumentMatchers.any
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsNull, JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
@@ -70,31 +70,19 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     bind[UploadProgressTracker].toInstance(fakeUploadProgressTracker)
   )
 
-  private val formFieldsMap = Map(
-    "testField1" -> "value1",
-    "testField2" -> "value2"
-  )
-
-  private val upscanInitiateResponse = UpscanInitiateResponse(
-    fileReference = UpscanFileReference(""),
-    postTarget = "/postTarget",
-    formFields = formFieldsMap
-  )
-
-  private val maxUploadFileSize = 99
 
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockUpscanInitiateConnector, mockAppConfig, mockRenderer, mockAnnualAllowanceParser)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.maxUploadFileSize).thenReturn(maxUploadFileSize)
+    when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK, "Joy,Smith,9717C,2020,268.28,2020-01-01,true")))
   }
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   "onPageLoad" must {
     "return OK and the correct view for a GET" in {
-      when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK, "Joy,Smith,9717C,2020,268.28,2020-01-01,true")))
+
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
@@ -123,6 +111,24 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       )
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+    }
+    "redirect OK to the next page and save into the Mongo database" in {
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
+        .thenReturn(Future.successful(JsNull))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+
+      val errors : List[ParserValidationErrors]= List()
+
+      when(mockAnnualAllowanceParser.parse(any(),any())).thenReturn(ValidationResult(UserAnswers(), errors))
+      when(mockCompoundNavigator.nextPage(any(), any(),any(), any(),any(), any(),any())(any())).thenReturn(dummyCall)
+      val result = route(application,
+        httpGETRequest(controllers.fileUpload
+          .routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustEqual dummyCall.url
+
     }
   }
 
