@@ -16,14 +16,14 @@
 
 package controllers.fileUpload
 
-import connectors.UpscanInitiateConnector
+import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import models.LocalDateBinder._
 import fileUploadParsers.{AnnualAllowanceParser, ParserValidationErrors, ValidationResult}
 import matchers.JsonMatchers
-import models.{ChargeType, UploadId, UploadedSuccessfully, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
+import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import play.api.Application
@@ -33,6 +33,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -47,14 +48,26 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   val expectedJson: JsObject = Json.obj()
 
   private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
-  private val mockUploadProgressTracker: UploadProgressTracker = mock[UploadProgressTracker]
+
+  private val fakeUploadProgressTracker: UploadProgressTracker = new UploadProgressTracker {
+    override def requestUpload(uploadId: UploadId, fileReference: Reference): Future[Unit] = Future.successful(())
+
+    override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus): Future[Unit] = Future.successful(())
+
+    override def getUploadResult(id: UploadId): Future[Option[UploadStatus]] = Future.successful(Some(UploadedSuccessfully(
+      name = "name",
+      mimeType = "mime",
+      downloadUrl = "/test",
+      size = Some(1L)
+    )))
+  }
 
   private val mockAnnualAllowanceParser = mock[AnnualAllowanceParser]
 
   private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[UpscanInitiateConnector].toInstance(mockUpscanInitiateConnector),
     bind[AnnualAllowanceParser].toInstance(mockAnnualAllowanceParser),
-    bind[UploadProgressTracker].toInstance(mockUploadProgressTracker)
+    bind[UploadProgressTracker].toInstance(fakeUploadProgressTracker)
   )
 
   private val formFieldsMap = Map(
@@ -81,7 +94,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   "onPageLoad" must {
     "return OK and the correct view for a GET" in {
-      when(mockUpscanInitiateConnector.initiateV2(any(), any())(any())).thenReturn(Future.successful(upscanInitiateResponse))
+      when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK, "Joy,Smith,9717C,2020,268.28,2020-01-01,true")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
@@ -91,15 +104,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         ParserValidationErrors (0, Seq("haha"))
       )
 
-      val uploadStatus = UploadedSuccessfully(
-        name = "name",
-        mimeType = "mime",
-        downloadUrl = "/test",
-        size = Some(1L)
-      )
-
       when(mockAnnualAllowanceParser.parse(any(),any())).thenReturn(ValidationResult(UserAnswers(), errors))
-      when(mockUploadProgressTracker.getUploadResult(any())).thenReturn(Future.successful(Some(uploadStatus)))
 
       val result = route(application,
         httpGETRequest(controllers.fileUpload
