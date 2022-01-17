@@ -38,7 +38,7 @@ import scala.concurrent.Future
 
 class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val templateToBeRendered = "fileUpload/fileupload.njk"
+  private val templateToBeRendered = "2/fileupload.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   private def ua: UserAnswers = userAnswersWithSchemeName
