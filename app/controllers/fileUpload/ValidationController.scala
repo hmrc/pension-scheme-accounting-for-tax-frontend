@@ -83,6 +83,8 @@ class ValidationController @Inject()(
       implicit request =>
         val parser = findParser(chargeType)
         uploadProgressTracker.getUploadResult(uploadId).flatMap { uploadStatus =>
+          println("\n>>>" + parser)
+          println("\n>>st>" + uploadStatus)
           (parser, uploadStatus) match {
             case (Some(_), None | Some(Failed) | Some(InProgress)) => sessionExpired
             case (None, _) => sessionExpired
