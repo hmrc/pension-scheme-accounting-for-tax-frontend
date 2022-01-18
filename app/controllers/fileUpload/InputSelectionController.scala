@@ -61,7 +61,8 @@ class InputSelectionController @Inject()(
       renderer.render(template = "fileUpload/inputSelection.njk",
         Json.obj(
           "chargeType" -> chargeType.toString,
-          "srn" -> srn, "startDate" -> Some(startDate),
+          "srn" -> srn,
+          "startDate" -> Some(startDate),
           "radios" -> InputSelection.radios(preparedForm),
           "form" -> preparedForm,
           "viewModel" -> viewModel(srn, startDate, accessType, version, ua)))

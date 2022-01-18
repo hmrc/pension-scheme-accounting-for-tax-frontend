@@ -20,13 +20,16 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import models.LocalDateBinder._
 import fileUploadParsers.{AnnualAllowanceParser, ParserValidationErrors, ValidationResult}
 import matchers.JsonMatchers
-import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
+import models.LocalDateBinder._
+import models.fileUpload.InputSelection
+import models.{AccessType, ChargeType, GenericViewModel, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import pages.SchemeNameQuery
 import play.api.Application
+import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsNull, JsObject, Json}
@@ -35,10 +38,11 @@ import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import viewmodels.Radios
 
 import scala.concurrent.Future
 
-class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val templateToBeRendered = "fileUpload/invalid.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
@@ -79,8 +83,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-
-  "onPageLoad" must {
+    "onPageLoad" must {
     "return OK and the correct view for a GET" in {
 
 
@@ -88,49 +91,52 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val errors : List[ParserValidationErrors]= List(
-        ParserValidationErrors (0, Seq("Cry"))
-      )
 
-      when(mockAnnualAllowanceParser.parse(any(),any())).thenReturn(ValidationResult(UserAnswers(), errors))
 
       val result = route(application,
         httpGETRequest(controllers.fileUpload
-          .routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)).value
-
+          .routes.InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)).value
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-      val jsonToPassToTemplate = Json.obj(
+      val jsonToPassToTemplate= Json.obj(
         "chargeType" -> chargeType.toString,
+//        "form" -> form ,
+        "startDate" -> Some(startDate)  ,
         "chargeTypeText" -> chargeType.toString,
         "srn" -> srn,
-        "viewModel" -> errors
+        "radios" -> InputSelection.radios(form),
+        "viewModel" -> viewModel(srn, startDate, accessType, version, ua)
       )
+
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
-    "redirect OK to the next page and save into the Mongo database" in {
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
-        .thenReturn(Future.successful(JsNull))
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-
-
-      val errors : List[ParserValidationErrors]= List()
-
-      when(mockAnnualAllowanceParser.parse(any(),any())).thenReturn(ValidationResult(UserAnswers(), errors))
-      when(mockCompoundNavigator.nextPage(any(), any(),any(), any(),any(), any(),any())(any())).thenReturn(dummyCall)
-      val result = route(application,
-        httpGETRequest(controllers.fileUpload
-          .routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)).value
-
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual dummyCall.url
-
-    }
+//    "redirect OK to the next page and save into the Mongo database" in {
+//      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
+//        .thenReturn(Future.successful(JsNull))
+//      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+//
+//
+//      val errors : List[ParserValidationErrors]= List()
+//
+//      when(mockAnnualAllowanceParser.parse(any(),any())).thenReturn(ValidationResult(UserAnswers(), errors))
+//      when(mockCompoundNavigator.nextPage(any(), any(),any(), any(),any(), any(),any())(any())).thenReturn(dummyCall)
+//      val result = route(application,
+//        httpGETRequest(controllers.fileUpload
+//          .routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)).value
+//
+//      status(result) mustEqual SEE_OTHER
+//      redirectLocation(result).value mustEqual dummyCall.url
+//
+//    }
   }
 
-  
+  def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int, ua: UserAnswers) = GenericViewModel(
+    submitUrl = "",
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+    schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme") // TODO: error handling
+  )
   
 }
