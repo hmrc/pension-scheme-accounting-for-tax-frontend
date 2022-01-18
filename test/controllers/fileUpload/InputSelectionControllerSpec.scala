@@ -20,7 +20,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import fileUploadParsers.{AnnualAllowanceParser, ParserValidationErrors, ValidationResult}
+import fileUploadParsers.AnnualAllowanceParser
 import forms.fileUpload.InputSelectionFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
@@ -33,13 +33,12 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsNull, JsObject, Json}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import viewmodels.Radios
 
 import scala.concurrent.Future
 
@@ -49,46 +48,18 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   private def ua: UserAnswers = userAnswersWithSchemeName
-
   val expectedJson: JsObject = Json.obj()
-
-  private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
-
-  private val fakeUploadProgressTracker: UploadProgressTracker = new UploadProgressTracker {
-    override def requestUpload(uploadId: UploadId, fileReference: Reference): Future[Unit] = Future.successful(())
-
-    override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus): Future[Unit] = Future.successful(())
-
-    override def getUploadResult(id: UploadId): Future[Option[UploadStatus]] = Future.successful(Some(UploadedSuccessfully(
-      name = "name",
-      mimeType = "mime",
-      downloadUrl = "/test",
-      size = Some(1L)
-    )))
-  }
-
-  private val mockAnnualAllowanceParser = mock[AnnualAllowanceParser]
-
-  private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[UpscanInitiateConnector].toInstance(mockUpscanInitiateConnector),
-    bind[AnnualAllowanceParser].toInstance(mockAnnualAllowanceParser),
-    bind[UploadProgressTracker].toInstance(fakeUploadProgressTracker)
-  )
-
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockUpscanInitiateConnector, mockAppConfig, mockRenderer, mockAnnualAllowanceParser)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK, "Joy,Smith,9717C,2020,268.28,2020-01-01,true")))
   }
 
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val formProvider = new InputSelectionFormProvider
   private val form:Form[InputSelection] = formProvider()
   "onPageLoad" must {
     "return OK and the correct view for a GET" in {
-
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
@@ -99,11 +70,11 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
         httpGETRequest(controllers.fileUpload
           .routes.InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)).value
       status(result) mustEqual OK
-
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-  val jsonToPassToTemplate= Json.obj(
+
+      val jsonToPassToTemplate= Json.obj(
         "chargeType" -> chargeType.toString,
         "form" -> form ,
         "startDate" -> Some("2020-04-01"),
