@@ -1,12 +1,12 @@
 <div class="card" id="aft-returns">
     <div class="card-body">
-        <h2 class="card-heading govuk-heading-l">
+        <h2 class="card-heading govuk-heading-m">
             {{ messages("pspDashboardAftReturnsCard.h2") }}
         </h2>
         {% for subHeading in aft.subHeadings %}
             <p class="card-sub-heading bold govuk-body-m">
                 <span >{{ subHeading.span }}</span>
-                 <span class="font-large bold">{{ subHeading.h3 }} </span>
+                 <span class="font-large bold govuk-!-font-weight-bold">{{ subHeading.h3 }} </span>
             </p>
         {% endfor %}
     </div>
