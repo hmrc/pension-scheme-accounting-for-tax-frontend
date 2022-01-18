@@ -21,6 +21,7 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import fileUploadParsers.{AnnualAllowanceParser, ParserValidationErrors, ValidationResult}
+import forms.fileUpload.InputSelectionFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
@@ -44,7 +45,7 @@ import scala.concurrent.Future
 
 class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val templateToBeRendered = "fileUpload/invalid.njk"
+  private val templateToBeRendered = "fileUpload/inputSelection.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   private def ua: UserAnswers = userAnswersWithSchemeName
@@ -83,7 +84,9 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
   }
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-    "onPageLoad" must {
+  private val formProvider = new InputSelectionFormProvider
+  private val form:Form[InputSelection] = formProvider()
+  "onPageLoad" must {
     "return OK and the correct view for a GET" in {
 
 
@@ -91,7 +94,6 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
 
       val result = route(application,
         httpGETRequest(controllers.fileUpload
@@ -101,14 +103,14 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-      val jsonToPassToTemplate= Json.obj(
+  val jsonToPassToTemplate= Json.obj(
         "chargeType" -> chargeType.toString,
-//        "form" -> form ,
-        "startDate" -> Some(startDate)  ,
+        "form" -> form ,
+        "startDate" -> Some("2020-04-01"),
         "chargeTypeText" -> chargeType.toString,
         "srn" -> srn,
         "radios" -> InputSelection.radios(form),
-        "viewModel" -> viewModel(srn, startDate, accessType, version, ua)
+        "viewModel" -> viewModel(srn, startDate, accessType, versionInt, ua)
       )
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
