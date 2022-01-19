@@ -23,10 +23,11 @@ import data.SampleData._
 import fileUploadParsers.AnnualAllowanceParser
 import forms.fileUpload.InputSelectionFormProvider
 import matchers.JsonMatchers
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
-import models.{AccessType, ChargeType, GenericViewModel, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
-import org.mockito.ArgumentCaptor
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.ArgumentMatchers.any
 import pages.SchemeNameQuery
 import play.api.Application
@@ -54,6 +55,14 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
     super.beforeEach
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
+
+  private def httpPathPOST: String = controllers.fileUpload.routes.InputSelectionController
+    .onSubmit(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance).url
+
+  private val valuesValid: Map[String, Seq[String]] = Map(
+    "name" -> Seq("Big Company"),
+    "crn" -> Seq("AB121212")
+  )
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val formProvider = new InputSelectionFormProvider
@@ -85,24 +94,36 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
-//    "redirect OK to the next page and save into the Mongo database" in {
-//      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
-//        .thenReturn(Future.successful(JsNull))
-//      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-//
-//
-//      val errors : List[ParserValidationErrors]= List()
-//
-//      when(mockAnnualAllowanceParser.parse(any(),any())).thenReturn(ValidationResult(UserAnswers(), errors))
-//      when(mockCompoundNavigator.nextPage(any(), any(),any(), any(),any(), any(),any())(any())).thenReturn(dummyCall)
-//      val result = route(application,
-//        httpGETRequest(controllers.fileUpload
-//          .routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)).value
-//
-//      status(result) mustEqual SEE_OTHER
-//      redirectLocation(result).value mustEqual dummyCall.url
-//
-//    }
+  }
+
+  "onSubmit" must {
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+
+      when(mockCompoundNavigator.nextPage(
+        ArgumentMatchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
+
+      val expectedJson = Json.obj(
+        "chargeCDetails" -> Json.obj(
+          "employers" -> Json.arr(Json.obj(
+            SponsoringOrganisationDetailsPage.toString -> Json.toJson(sponsoringOrganisationDetails)
+          ))
+        )
+      )
+
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      redirectLocation(result) mustBe Some(dummyCall.url)
+    }
   }
 
   private def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int) = GenericViewModel(
