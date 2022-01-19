@@ -16,16 +16,15 @@
 
 package controllers.fileUpload
 
+import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.fileUpload.InputSelectionFormProvider
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
-import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode, UserAnswers}
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.SchemeNameQuery
-import pages.fileUpload.{InputSelectionManualPage, InputSelectionPage, InputSelectionUploadPage}
+import pages.fileUpload.InputSelectionPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -34,7 +33,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class InputSelectionController @Inject()(
     override val messagesApi: MessagesApi,
@@ -45,7 +44,8 @@ class InputSelectionController @Inject()(
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
     navigator: CompoundNavigator,
-    formProvider: InputSelectionFormProvider
+    formProvider: InputSelectionFormProvider,
+    userAnswersCacheConnector: UserAnswersCacheConnector
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -55,23 +55,27 @@ class InputSelectionController @Inject()(
 
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      val ua = request.userAnswers
-      val preparedForm = request.userAnswers.get(InputSelectionPage).fold(form)(form.fill)
+      val preparedForm = request.userAnswers.get(InputSelectionPage(chargeType)).fold(form)(form.fill)
 
-      renderer.render(template = "fileUpload/inputSelection.njk",
-        Json.obj(
-          "chargeType" -> chargeType.toString,
-          "srn" -> srn, "startDate" -> Some(startDate),
-          "radios" -> InputSelection.radios(preparedForm),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel(srn, startDate, accessType, version, ua)))
-        .map(Ok(_))
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        renderer.render(template = "fileUpload/inputSelection.njk",
+          Json.obj(
+            "chargeType" -> chargeType.toString,
+            "srn" -> srn,
+            "startDate" -> Some(startDate),
+            "radios" -> InputSelection.radios(preparedForm),
+            "form" -> preparedForm,
+            "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
+          )
+        )
+          .map(Ok(_))
+      }
     }
 
   def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
 
-      implicit request => DataRetrievals.retrieveSchemeName { _ =>
+      implicit request => DataRetrievals.retrieveSchemeName { schemeName =>
         val ua = request.userAnswers
         form
           .bindFromRequest()
@@ -83,23 +87,23 @@ class InputSelectionController @Inject()(
                 "startDate" -> Some(startDate),
                 "form" -> formWithErrors,
                 "radios" -> InputSelection.radios(formWithErrors),
-                "viewModel" -> viewModel(srn, startDate, accessType, version, ua)
+                "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
               )
               renderer.render(template = "fileUpload/inputSelection.njk", json).map(BadRequest(_))
             },
-            {
-              case ManualInput =>
-                Future.successful(Redirect(navigator.nextPage(InputSelectionManualPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
-              case FileUploadInput =>
-                Future.successful(Redirect(navigator.nextPage(InputSelectionUploadPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
+            { inputSelection =>
+              val updatedUA = ua.setOrException(InputSelectionPage(chargeType), inputSelection)
+              userAnswersCacheConnector.savePartial(request.internalId, updatedUA.data).map{ _ =>
+                Redirect(navigator.nextPage(InputSelectionPage(chargeType), NormalMode, updatedUA, srn, startDate, accessType, version))
+              }
             }
           )
       }
     }
 
-  def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int, ua: UserAnswers) = GenericViewModel(
+  private def viewModel(schemeName: String, srn: String, startDate: String, accessType: AccessType, version: Int) = GenericViewModel(
     submitUrl = "",
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-    schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme") // TODO: error handling
+    schemeName = schemeName
   )
 }

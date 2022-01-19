@@ -20,10 +20,13 @@ import config.FrontendAppConfig
 import controllers.chargeD.routes._
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
+import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
+import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeD._
+import pages.fileUpload.InputSelectionPage
 import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
@@ -47,8 +50,11 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),
         row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
-        row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeDMember))
-
+        row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeDMember)),
+        row(InputSelectionPage(ChargeTypeLifetimeAllowance))(controllers.chargeD.routes.WhatYouWillNeedController
+          .onPageLoad(srn, startDate, accessType, versionInt), Some(manualInput)),
+        row(InputSelectionPage(ChargeTypeLifetimeAllowance))(controllers.fileUpload.routes.WhatYouWillNeedController
+          .onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance), Some(fileUploadInput))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate, accessType, versionInt)
@@ -77,4 +83,6 @@ object ChargeDNavigatorSpec {
     SampleData.chargeAChargeDetails.copy(totalAmount = BigDecimal(0.00))).toOption
   private val multipleCharges = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails)
     .flatMap(_.set(chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)).toOption
+  private val manualInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), ManualInput)
+  private val fileUploadInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), FileUploadInput)
 }
