@@ -16,11 +16,12 @@
 
 package pages.fileUpload
 
+import models.ChargeType
 import models.fileUpload.InputSelection
-import pages.{Page, QuestionPage}
+import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object InputSelectionPage extends QuestionPage[InputSelection] {
+case class InputSelectionPage(chargeType: ChargeType) extends QuestionPage[InputSelection] {
 
   override def path: JsPath = JsPath \ toString
 

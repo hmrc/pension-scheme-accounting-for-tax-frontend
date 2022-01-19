@@ -23,11 +23,12 @@ import controllers.chargeD.routes._
 import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
+import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
 import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeD._
-import pages.fileUpload.{FileUploadPage, InputSelectionManualPage, InputSelectionPage, InputSelectionUploadPage}
+import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
@@ -57,15 +58,17 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
     }
 
+  //scalastyle:off cyclomatic.complexity
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
-      nextIndex(ua))
+    case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
-    case InputSelectionManualPage(ChargeTypeLifetimeAllowance) => controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
-    case InputSelectionUploadPage(ChargeTypeLifetimeAllowance)  => controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
-    case pages.fileUpload.WhatYouWillNeedPage(ChargeTypeLifetimeAllowance) => controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
-    case FileUploadPage(ChargeTypeLifetimeAllowance) => controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance, UploadId(""))
+    case InputSelectionPage(ChargeTypeLifetimeAllowance) => inputSelectionNav(ua, srn, startDate, accessType, version)
+
+    case pages.fileUpload.WhatYouWillNeedPage(ChargeTypeLifetimeAllowance) =>
+      controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
+    case FileUploadPage(ChargeTypeLifetimeAllowance) =>
+      controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance, UploadId(""))
 
     case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
@@ -74,9 +77,21 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case DeleteMemberPage  => deleteMemberRoutes(ua, srn, startDate, accessType, version)
   }
 
+  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int):Call = {
+    ua.get(InputSelectionPage(ChargeTypeLifetimeAllowance)) match {
+      case Some(ManualInput) =>
+        controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+      case Some(FileUploadInput) =>
+        controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
+      case _ => sessionExpiredPage
+    }
+  }
+
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                      (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case MemberDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
   }
+
+  private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad
 }
