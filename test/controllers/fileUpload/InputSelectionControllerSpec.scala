@@ -16,30 +16,24 @@
 
 package controllers.fileUpload
 
-import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import fileUploadParsers.AnnualAllowanceParser
 import forms.fileUpload.InputSelectionFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import models.fileUpload.InputSelection.FileUploadInput
+import models.{AccessType, ChargeType, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import pages.SchemeNameQuery
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.fileUpload.InputSelectionPage
 import play.api.Application
 import play.api.data.Form
-import play.api.inject.bind
-import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.fileUpload.UploadProgressTracker
-import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -103,7 +97,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
   }
 
   "onSubmit" must {
-    "Throw error when invalid data is submitted" in {
+    "Show error when invalid data is submitted" in {
 
       val boundForm = form.bind(Map("value" -> "invalid value"))
 
@@ -131,6 +125,32 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
       templateCaptor.getValue mustEqual "fileUpload/inputSelection.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
+    }
+
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+
+      val expectedJson = Json.obj(
+        InputSelectionPage(chargeType).toString -> FileUploadInput.toString
+      )
+
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(InputSelectionPage(chargeType)),
+        any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
+
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      redirectLocation(result) mustBe Some(dummyCall.url)
     }
   }
 
