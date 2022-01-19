@@ -30,6 +30,7 @@ import models.{AccessType, ChargeType, GenericViewModel, NormalMode, UploadId, U
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.ArgumentMatchers.any
 import pages.SchemeNameQuery
+import pages.fileUpload.InputSelectionPage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
@@ -60,8 +61,13 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
     .onSubmit(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "name" -> Seq("Big Company"),
-    "crn" -> Seq("AB121212")
+    "schemeName" -> Seq(schemeName),
+    "value" -> Seq("fileUploadInput")
+  )
+
+  private val valuesInvalid: Map[String, Seq[String]] = Map(
+    "schemeName" -> Seq(schemeName),
+    "value" -> Seq("invalid value")
   )
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
@@ -97,32 +103,34 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
   }
 
   "onSubmit" must {
-    "Save data to user answers and redirect to next page when valid data is submitted" in {
+    "Throw error when invalid data is submitted" in {
+
+      val boundForm = form.bind(Map("value" -> "invalid value"))
 
       when(mockCompoundNavigator.nextPage(
-        ArgumentMatchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+        ArgumentMatchers.eq(InputSelectionPage(chargeType)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
-      status(result) mustEqual SEE_OTHER
-
-      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
+      status(result) mustEqual BAD_REQUEST
 
       val expectedJson = Json.obj(
-        "chargeCDetails" -> Json.obj(
-          "employers" -> Json.arr(Json.obj(
-            SponsoringOrganisationDetailsPage.toString -> Json.toJson(sponsoringOrganisationDetails)
-          ))
-        )
+        "chargeType" -> chargeType.toString,
+        "srn" -> srn,
+        "startDate" -> Some("2020-04-01"),
+        "form" -> boundForm,
+        "radios" -> InputSelection.radios(form),
+        "viewModel" -> viewModel(srn, startDate, accessType, versionInt)
       )
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
+      templateCaptor.getValue mustEqual "fileUpload/inputSelection.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
-      redirectLocation(result) mustBe Some(dummyCall.url)
     }
   }
 

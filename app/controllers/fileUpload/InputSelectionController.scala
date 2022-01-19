@@ -93,7 +93,7 @@ class InputSelectionController @Inject()(
             },
             { inputSelection =>
               val updatedUA = ua.setOrException(InputSelectionPage(chargeType), inputSelection)
-              userAnswersCacheConnector.save(request.internalId, updatedUA.data).map{ _ =>
+              userAnswersCacheConnector.savePartial(request.internalId, updatedUA.data).map{ _ =>
                 Redirect(navigator.nextPage(InputSelectionPage(chargeType), NormalMode, updatedUA, srn, startDate, accessType, version))
               }
             }
