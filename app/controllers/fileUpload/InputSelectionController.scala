@@ -92,7 +92,6 @@ class InputSelectionController @Inject()(
               renderer.render(template = "fileUpload/inputSelection.njk", json).map(BadRequest(_))
             },
             { inputSelection =>
-              println("\n>>>>CT=" + chargeType)
               val updatedUA = ua.setOrException(InputSelectionPage(chargeType), inputSelection)
               userAnswersCacheConnector.save(request.internalId, updatedUA.data).map{ _ =>
                 Redirect(navigator.nextPage(InputSelectionPage(chargeType), NormalMode, updatedUA, srn, startDate, accessType, version))

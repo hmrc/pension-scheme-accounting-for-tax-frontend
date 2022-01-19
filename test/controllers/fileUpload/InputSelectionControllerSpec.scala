@@ -76,12 +76,11 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
       val jsonToPassToTemplate= Json.obj(
         "chargeType" -> chargeType.toString,
-        "form" -> form ,
-        "startDate" -> Some("2020-04-01"),
-        "chargeTypeText" -> chargeType.toString,
         "srn" -> srn,
+        "startDate" -> Some("2020-04-01"),
+        "form" -> form ,
         "radios" -> InputSelection.radios(form),
-        "viewModel" -> viewModel(srn, startDate, accessType, versionInt, ua)
+        "viewModel" -> viewModel(srn, startDate, accessType, versionInt)
       )
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
@@ -106,10 +105,10 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
 //    }
   }
 
-  def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int, ua: UserAnswers) = GenericViewModel(
+  private def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int) = GenericViewModel(
     submitUrl = "",
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-    schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme") // TODO: error handling
+    schemeName = schemeName
   )
   
 }
