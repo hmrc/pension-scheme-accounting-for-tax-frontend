@@ -29,7 +29,13 @@ case class SchemeFS(chargeReference: String,
                     outstandingAmount: BigDecimal,
                     stoodOverAmount: BigDecimal,
                     periodStartDate: LocalDate,
-                    periodEndDate: LocalDate)
+                    periodEndDate: LocalDate,
+                    formBundleNumber: Option[String] = None,
+                    clearedAmountItem: Option[BigDecimal] = None,
+                    sourceChargeRefForInterest: Option[String] = None,
+                    clearingDate: Option[LocalDate] = None,
+                    clearingReason:Option[String] = None)
+                   )
 
 object SchemeFS {
   implicit val formats: Format[SchemeFS] = Json.format[SchemeFS]
