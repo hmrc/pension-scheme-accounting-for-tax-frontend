@@ -34,7 +34,7 @@ case class SchemeFS(chargeReference: String,
                     clearedAmountItem: Option[BigDecimal] = None,
                     sourceChargeRefForInterest: Option[String] = None,
                     clearingDate: Option[LocalDate] = None,
-                    clearingReason:Option[String] = None)
+                    clearingReason:Option[String] = None
                    )
 
 object SchemeFS {
