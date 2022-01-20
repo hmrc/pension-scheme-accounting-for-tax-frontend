@@ -18,14 +18,17 @@ package utils
 
 import models.ChargeType
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
-import config.FrontendAppConfig
+import play.api.Configuration
 
-object ValidationHelper {
+import javax.inject.Inject
 
-  def isHeaderValid(header: String, chargeType: ChargeType, config: FrontendAppConfig): Boolean = {
+class ValidationHelper @Inject() (config: Configuration){
+
+  def isHeaderValid(header: String, chargeType: ChargeType): Boolean = {
     chargeType match {
-      case ChargeTypeAnnualAllowance => header.equalsIgnoreCase(config.validAnnualAllowanceHeader)
-      case ChargeTypeLifetimeAllowance => header.equalsIgnoreCase(config.validLifeTimeAllowanceHeader)
+      case ChargeTypeAnnualAllowance => header.equalsIgnoreCase(config.get[String]("validAnnualAllowanceHeader"))
+      case ChargeTypeLifetimeAllowance => header.equalsIgnoreCase(config.get[String]("validLifeTimeAllowanceHeader"))
+      //TODO : Other Charge Type Cases to be implemented
     }
   }
 }
