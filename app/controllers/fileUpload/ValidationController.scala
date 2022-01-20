@@ -25,6 +25,7 @@ import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
+import org.joda.time.LocalDate
 import pages.fileUpload.ValidationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -34,7 +35,6 @@ import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -64,7 +64,7 @@ class ValidationController @Inject()(
                    chargeType: ChargeType,
                    linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]):Future[Result] = {
 
-    val result = validateHeader(linesFromCSV.head, chargeType: ChargeType) match {
+    val result = utils.ValidationHelper.isHeaderValid(linesFromCSV.head, chargeType: ChargeType, appConfig) match {
       case true => parser.parse(request.userAnswers, linesFromCSV.tail)
       case false => ValidationResult(request.userAnswers, List(ParserValidationErrors (0, Seq("Header invalid"))))
     }
@@ -108,15 +108,4 @@ class ValidationController @Inject()(
       case _ => None
     }
   }
-
-  private def validateHeader(header: String, chargeType: ChargeType): Boolean = {
-    val annualAllowanceHeader = "FirstName,LastName,Nino,TaxYear,ChargeAmount,DateReceived,PaymentTypeMandatory"
-    val lifeTimeAllowanceHeader = "FirstName,LastName,Nino,TaxYear"
-    chargeType match {
-      case ChargeTypeAnnualAllowance => header.equalsIgnoreCase(annualAllowanceHeader)
-      case ChargeTypeLifetimeAllowance => header.equalsIgnoreCase(lifeTimeAllowanceHeader)
-    }
-  }
-
-
 }
