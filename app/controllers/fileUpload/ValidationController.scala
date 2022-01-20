@@ -28,6 +28,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.fileUpload.UploadProgressTracker
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -82,7 +83,7 @@ class ValidationController @Inject()(
 
     }
 
-  private def uploadDetails(uploadId: UploadId) = {
+  private def uploadDetails(uploadId: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier) = {
     for (uploadResult <- uploadProgressTracker.getUploadResult(uploadId))
       yield {
         uploadResult match {

@@ -16,6 +16,7 @@
 
 package models
 
+import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.QueryStringBindable
 
 import java.util.UUID
@@ -31,6 +32,22 @@ sealed trait UploadStatus
 case object InProgress extends UploadStatus
 case object Failed extends UploadStatus
 case class UploadedSuccessfully(name: String, mimeType: String, downloadUrl: String, size: Option[Long]) extends UploadStatus
+object UploadedSuccessfully {
+  implicit val uploadedSuccessfullyFormat: OFormat[UploadedSuccessfully] = Json.format[UploadedSuccessfully]
+}
+
+
+case class Status(_type: String, downloadUrl: Option[String]=None , mimeType: Option[String]=None, name: Option[String]=None, size: Option[Long]=None)
+
+object Status {
+  implicit val reads: OFormat[Status] = Json.format[Status]
+}
+
+case class FileUploadDataCache(uploadId: String, reference: String, status: Status)
+
+object FileUploadDataCache {
+  implicit val reads: OFormat[FileUploadDataCache] = Json.format[FileUploadDataCache]
+}
 
 case class UploadId(value : String) extends AnyVal
 

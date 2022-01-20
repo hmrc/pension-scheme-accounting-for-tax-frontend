@@ -21,7 +21,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, InProgress, NormalMode, UploadId, UploadStatus, UploadedSuccessfully}
+import models.{AccessType, GenericViewModel, InProgress,Failed, NormalMode, UploadId, UploadStatus, UploadedSuccessfully}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.fileUpload.FileUploadPage
@@ -131,7 +131,8 @@ class FileUploadController @Inject()(
   def uplResult(uploadStatus: UploadStatus) = {
       uploadStatus match {
         case UploadedSuccessfully(_, _, _, _) => "Success"
-        case InProgress => "Inprogress"
+        case InProgress => "InProgress"
+        case Failed => "Failed"
       }
   }
 

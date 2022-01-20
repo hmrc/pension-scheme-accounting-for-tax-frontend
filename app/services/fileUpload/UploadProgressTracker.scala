@@ -18,18 +18,20 @@ package services.fileUpload
 
 import com.google.inject.ImplementedBy
 import connectors.Reference
+import connectors.cache.FileUploadCacheConnector
 import models.{UploadId, UploadStatus}
+import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 
-@ImplementedBy(classOf[InMemoryUploadProgressTracker])
+@ImplementedBy(classOf[FileUploadCacheConnector])
 trait UploadProgressTracker {
 
-  def requestUpload(uploadId : UploadId, fileReference : Reference) : Future[Unit]
+  def requestUpload(uploadId: UploadId, fileReference: Reference)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit]
 
-  def registerUploadResult(reference : Reference, uploadStatus : UploadStatus): Future[Unit]
+  def registerUploadResult(reference: Reference, uploadStatus: UploadStatus)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit]
 
-  def getUploadResult(id : UploadId): Future[Option[UploadStatus]]
+  def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UploadStatus]]
 
 }

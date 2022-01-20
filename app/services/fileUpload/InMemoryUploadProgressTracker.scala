@@ -18,12 +18,14 @@ package services.fileUpload
 
 import connectors.Reference
 import models.{InProgress, UploadId, UploadStatus}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.UnaryOperator
 import javax.inject.Singleton
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
+@deprecated("use FileUploadCacheConnector to store upload result into mongo db")
 @Singleton
 class InMemoryUploadProgressTracker extends UploadProgressTracker {
 
@@ -31,16 +33,16 @@ class InMemoryUploadProgressTracker extends UploadProgressTracker {
 
   var entries: AtomicReference[Set[Entry]] = new AtomicReference[Set[Entry]](Set.empty)
 
-  def getUploadResult(id : UploadId): Future[Option[UploadStatus]] = Future.successful(entries.get.find(_.uploadId == id).map(_.uploadStatus))
+  def getUploadResult(id : UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UploadStatus]] = Future.successful(entries.get.find(_.uploadId == id).map(_.uploadStatus))
 
-  override def requestUpload(uploadId: UploadId, fileReference: Reference): Future[Unit] = {
+  override def requestUpload(uploadId: UploadId, fileReference: Reference)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
     entries.updateAndGet(new UnaryOperator[Set[Entry]] {
       override def apply(t: Set[Entry]): Set[Entry] = t.filterNot(in => in.uploadId == uploadId|| in.reference == fileReference) + Entry(uploadId, fileReference, InProgress)
     })
     Future.successful(())
   }
 
-  override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus): Future[Unit] = {
+  override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
     entries.updateAndGet(new UnaryOperator[Set[Entry]] {
       override def apply(t: Set[Entry]): Set[Entry] = {
         val existing = t.find(_.reference == reference).getOrElse(throw new RuntimeException("Doesn't exist"))
