@@ -24,19 +24,19 @@
 
             <p class="govuk-body">{{ result }}</p>
 
-            {% if result == "Inprogress" %}
-            {{ govukButton({
-                text: messages("site.continue"),
-                disabled: true
-              }) }}
-            {% endif %}
 
             {% if result == "Success" %}
-            {{ govukButton({
-                href: viewModel.submitUrl,
-                attributes: {id: "submit"},
-                text: messages("site.continue")
-              }) }}
+                {{ govukButton({
+                    href: viewModel.submitUrl,
+                    attributes: {id: "submit"},
+                    text: messages("site.continue")
+                  }) }}
+
+            {% else %}
+                {{ govukButton({
+                    text: messages("site.continue"),
+                    disabled: true
+                  }) }}
             {% endif %}
 
       <p class="govuk-body"><a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>

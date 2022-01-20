@@ -25,7 +25,7 @@ import java.util.function.UnaryOperator
 import javax.inject.Singleton
 import scala.concurrent.{ExecutionContext, Future}
 
-@deprecated("use FileUploadCacheConnector to store upload result into mongo db")
+@deprecated(message="use FileUploadCacheConnector to store upload result into mongo db",since = "v0.541.0")
 @Singleton
 class InMemoryUploadProgressTracker extends UploadProgressTracker {
 

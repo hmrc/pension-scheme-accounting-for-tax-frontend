@@ -25,7 +25,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import pages.chargeD.MemberDetailsPage
 
-class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
+class  LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   import LifetimeAllowanceParserSpec._
 

@@ -21,14 +21,16 @@ import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, Parser, ValidationResult}
-import models.{AccessType, Index, UploadId, UploadedSuccessfully}
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
+import models.requests.DataRequest
+import models.{AccessType, ChargeType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
+import pages.fileUpload.ValidationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.fileUpload.UploadProgressTracker
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -54,49 +56,50 @@ class ValidationController @Inject()(
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: String, uploadId: UploadId): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
-      implicit request =>
-        val fileContent = uploadDetails(uploadId)
-          .flatMap(ud => upscanInitiateConnector.download(ud.downloadUrl))
-          .map(_.body.split("\n").toList)
-        fileContent.flatMap { linesFromCSV =>
-          parser(chargeType) match {
-            case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-            case Some(parser) => parser.parse(request.userAnswers, linesFromCSV) match {
-              case ValidationResult(ua, Nil) =>
-                userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
-                  Future.successful(Redirect(controllers.chargeE.routes.CheckYourAnswersController
-                    .onClick(srn, startDate.toString, accessType, version, Index(1))))
-                }
-              case ValidationResult(_, errors) =>
-                renderer.render(template = "fileUpload/invalid.njk",
-                  Json.obj(
-                    "chargeType" -> chargeType,
-                    "chargeTypeText" -> chargeType.replace("-", " "),
-                    "srn" -> srn, "startDate" -> Some(startDate),
-                    "viewModel" -> errors))
-                  .map(Ok(_))
-            }
-          }
-        }
-
+  private def parseAndRenderResult(
+                   srn: String,
+                   startDate: LocalDate,
+                   accessType: AccessType,
+                   version: Int,
+                   chargeType: ChargeType,
+                   linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]):Future[Result] = {
+    parser.parse(request.userAnswers, linesFromCSV) match {
+      case ValidationResult(ua, Nil) =>
+        userAnswersCacheConnector.save(request.internalId, ua.data)
+          .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
+      case ValidationResult(_, errors) =>
+        renderer.render(template = "fileUpload/invalid.njk",
+          Json.obj(
+            "chargeType" -> chargeType,
+            "chargeTypeText" -> chargeType.toString,
+            "srn" -> srn, "startDate" -> Some(startDate),
+            "viewModel" -> errors))
+          .map(Ok(_))
     }
-
-  private def uploadDetails(uploadId: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier) = {
-    for (uploadResult <- uploadProgressTracker.getUploadResult(uploadId))
-      yield {
-        uploadResult match {
-          case Some(s: UploadedSuccessfully) => s // TODO: Validation
-          case _ => ???
-        }
-      }
   }
 
-  private def parser(chargeType: String): Option[Parser] = {
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
+      implicit request =>
+        val parser = findParser(chargeType)
+        uploadProgressTracker.getUploadResult(uploadId).flatMap { uploadStatus =>
+          (parser, uploadStatus) match {
+            case (Some(_), None | Some(Failed) | Some(InProgress)) => sessionExpired
+            case (None, _) => sessionExpired
+            case (Some(parser), Some(ud: UploadedSuccessfully)) =>
+              upscanInitiateConnector.download(ud.downloadUrl)
+                .map(_.body.split("\n").toList)
+                .flatMap(linesFromCSV => parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser))
+          }
+        }
+    }
+
+  private def sessionExpired: Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+
+  private def findParser(chargeType: ChargeType): Option[Parser] = {
     chargeType match {
-      case "annual-allowance-charge" => Some(annualAllowanceParser)
-      case "lifetime-allowance-charge" => Some(lifeTimeAllowanceParser)
+      case ChargeTypeAnnualAllowance => Some(annualAllowanceParser)
+      case ChargeTypeLifetimeAllowance => Some(lifeTimeAllowanceParser)
       case _ => None
     }
   }

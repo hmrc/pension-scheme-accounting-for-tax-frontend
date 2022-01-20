@@ -16,6 +16,7 @@
 
 package pages.fileUpload
 
+import models.ChargeType
 import pages.Page
 
-case class InputSelectionManualPage(chargeType: String) extends Page
+case class ValidationPage(chargeType: ChargeType) extends Page

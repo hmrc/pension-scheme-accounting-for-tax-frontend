@@ -19,6 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.FrontendAppConfig
 import controllers.fileUpload.routes
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.{Draft, UploadId}
 import org.mockito.MockitoSugar.mock
 import org.scalatest._
@@ -40,11 +41,11 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
 
   ".initiateV2" must {
     val successRedirectUrl = appConfig.uploadRedirectTargetBase + routes.FileUploadController
-      .showResult("srn", "01-01-2020", Draft, 1, "chargeType", UploadId("uploadId"))
+      .showResult("srn", "01-01-2020", Draft, 1, ChargeTypeAnnualAllowance, UploadId("uploadId"))
       .url
 
     val errorRedirectUrl = appConfig.uploadRedirectTargetBase + routes.FileUploadController
-      .onPageLoad("srn", "01-01-2020", Draft, 1, "chargeType")
+      .onPageLoad("srn", "01-01-2020", Draft, 1, ChargeTypeAnnualAllowance)
       .url
     val response1 = s"""{
                   |    "reference": "11370e18-6e24-453e-b45a-76d3e32ea33d",

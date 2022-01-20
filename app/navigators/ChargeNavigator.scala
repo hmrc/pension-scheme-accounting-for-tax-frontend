@@ -19,11 +19,13 @@ package navigators
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.FeatureToggleName.AftBulkUpload
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, MemberDetails, NormalMode, UserAnswers}
 import pages._
+import pages.fileUpload.ValidationPage
 import play.api.mvc.{AnyContent, Call}
 import services._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -50,6 +52,14 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
     case ConfirmSubmitAFTAmendmentPage  => confirmSubmitAmendmentNavigation(ua, srn, startDate, accessType, version)
     case DeclarationPage                => controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version)
     case EnterPsaIdPage                 => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
+    case ValidationPage(chargeType)     =>
+      chargeType match {
+        case ChargeTypeLifetimeAllowance =>
+          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate.toString, accessType, version, 1)
+        case ChargeTypeAnnualAllowance=>
+          controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate.toString, accessType, version, 1)
+        case _ => sessionExpiredPage
+      }
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
@@ -76,7 +86,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
 
       case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua) == 0 =>
           if (isAftUploadToggleEnabled(hc,implicitly)) {
-            controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, "annual-allowance-charge")
+            controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
           } else {
             controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
           }
@@ -89,7 +99,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
 
       case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua) == 0 =>
         if (isAftUploadToggleEnabled(hc,implicitly)) {
-          controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, "lifetime-allowance-charge")
+          controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
         } else {
           controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
         }

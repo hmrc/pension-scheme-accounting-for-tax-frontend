@@ -17,11 +17,19 @@
 package models
 
 import play.api.data.Form
+import play.api.mvc.JavascriptLiteral
 import uk.gov.hmrc.viewmodels._
 
 sealed trait ChargeType
 
 object ChargeType extends Enumerable.Implicits {
+
+  implicit val jsLiteral: JavascriptLiteral[ChargeType] = new JavascriptLiteral[ChargeType] {
+    override def to(value: ChargeType): String = value match {
+      case ChargeTypeAnnualAllowance => "ChargeTypeAnnualAllowance"
+      case ChargeTypeLifetimeAllowance => "ChargeTypeLifetimeAllowance"
+    }
+  }
 
   case object ChargeTypeAnnualAllowance extends WithName("annualAllowance") with ChargeType
   case object ChargeTypeAuthSurplus extends WithName("authSurplus") with ChargeType
