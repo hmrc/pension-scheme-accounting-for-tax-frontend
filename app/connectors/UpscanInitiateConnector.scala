@@ -18,12 +18,11 @@ package connectors
 
 import config.FrontendAppConfig
 import models.{UpscanFileReference, UpscanInitiateResponse}
-
-import javax.inject.Inject
 import play.api.libs.json.{Json, OFormat, Reads, Writes}
 import play.mvc.Http.HeaderNames
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait UpscanInitiateRequest

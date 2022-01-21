@@ -19,7 +19,7 @@ package connectors.cache
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.Reference
-import models.{Failed, InProgress, Status, UploadId, UploadStatus, UploadedSuccessfully}
+import models.{Failed, FileUploadStatus, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json._
@@ -93,9 +93,9 @@ class FileUploadCacheConnector @Inject()(
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
     val status = uploadStatus match {
-      case InProgress => Status(InProgress.toString, None, None, None, None)
-      case Failed => Status(Failed.toString, None, None, None, None)
-      case s: UploadedSuccessfully => Status("UploadedSuccessfully", Some(s.downloadUrl), Some(s.mimeType), Some(s.name), s.size)
+      case InProgress => FileUploadStatus(InProgress.toString, None, None, None, None)
+      case Failed => FileUploadStatus(Failed.toString, None, None, None, None)
+      case s: UploadedSuccessfully => FileUploadStatus("UploadedSuccessfully", Some(s.downloadUrl), Some(s.mimeType), Some(s.name), s.size)
     }
     http.POST[JsValue, HttpResponse](urlUploadResult, Json.toJson(status))(implicitly, implicitly, hc, implicitly)
       .map { response =>

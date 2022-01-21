@@ -37,13 +37,13 @@ object UploadedSuccessfully {
 }
 
 
-case class Status(_type: String, downloadUrl: Option[String]=None , mimeType: Option[String]=None, name: Option[String]=None, size: Option[Long]=None)
+case class FileUploadStatus(_type: String, downloadUrl: Option[String]=None , mimeType: Option[String]=None, name: Option[String]=None, size: Option[Long]=None)
 
-object Status {
-  implicit val reads: OFormat[Status] = Json.format[Status]
+object FileUploadStatus {
+  implicit val reads: OFormat[FileUploadStatus] = Json.format[FileUploadStatus]
 }
 
-case class FileUploadDataCache(uploadId: String, reference: String, status: Status)
+case class FileUploadDataCache(uploadId: String, reference: String, status: FileUploadStatus)
 
 object FileUploadDataCache {
   implicit val reads: OFormat[FileUploadDataCache] = Json.format[FileUploadDataCache]

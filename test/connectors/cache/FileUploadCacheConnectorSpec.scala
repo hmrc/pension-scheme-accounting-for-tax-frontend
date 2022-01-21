@@ -18,7 +18,7 @@ package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import connectors.Reference
-import models.{InProgress, Status, UploadId, UploadedSuccessfully}
+import models.{FileUploadStatus, InProgress, UploadId, UploadedSuccessfully}
 import org.scalatest._
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
@@ -117,7 +117,7 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
 
   ".registerUploadResult" must {
     val fileUploadStatus=UploadedSuccessfully("test.csv","text/binary","www.test.com",Some("100".toLong))
-    val response=Json.toJson(Status("UploadedSuccessfully", Some("www.test.com"), Some("text/binary"), Some("test.csv"), Some("100".toLong)))
+    val response=Json.toJson(FileUploadStatus("UploadedSuccessfully", Some("www.test.com"), Some("text/binary"), Some("test.csv"), Some("100".toLong)))
     "save the data in the collection" in {
       server.stubFor(
         post(urlEqualTo(urlFileUploadResult))
