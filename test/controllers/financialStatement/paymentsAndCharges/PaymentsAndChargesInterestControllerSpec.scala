@@ -165,7 +165,10 @@ object PaymentsAndChargesInterestControllerSpec {
       amountDue = 1234.00,
       accruedInterestTotal = 2000.00,
       periodStartDate = LocalDate.parse(QUARTER_START_DATE),
-      periodEndDate = LocalDate.parse(QUARTER_END_DATE)
+      periodEndDate = LocalDate.parse(QUARTER_END_DATE),
+      formBundleNumber = None,
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     )
   }
 
