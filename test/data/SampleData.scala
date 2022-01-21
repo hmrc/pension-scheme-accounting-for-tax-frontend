@@ -25,7 +25,8 @@ import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement.{PsaFS, SchemeFS}
-import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint,
+  MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -229,7 +230,10 @@ object SampleData {
       amountDue = 1029.05,
       accruedInterestTotal = 23000.55,
       periodStartDate = LocalDate.parse("2020-04-01"),
-      periodEndDate = LocalDate.parse("2020-06-30")
+      periodEndDate = LocalDate.parse("2020-06-30"),
+      formBundleNumber = None,
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     ),
     SchemeFS(
       chargeReference = "XY002610150184",
@@ -241,7 +245,10 @@ object SampleData {
       amountDue = 1029.05,
       accruedInterestTotal = 24000.41,
       periodStartDate = LocalDate.parse("2020-04-01"),
-      periodEndDate = LocalDate.parse("2020-06-30")
+      periodEndDate = LocalDate.parse("2020-06-30"),
+      formBundleNumber = None,
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     )
   )
 

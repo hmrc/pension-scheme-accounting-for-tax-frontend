@@ -42,7 +42,6 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val templateToBeRendered = "fileUpload/invalid.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
-
   private def ua: UserAnswers = userAnswersWithSchemeName
 
   val expectedJson: JsObject = Json.obj()
@@ -79,8 +78,8 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     super.beforeEach
     reset(mockUpscanInitiateConnector, mockAppConfig, mockRenderer, mockAnnualAllowanceParser)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockUpscanInitiateConnector.download(any())(any()))
-      .thenReturn(Future.successful(HttpResponse(OK, "Joy,Smith,9717C,2020,268.28,2020-01-01,true")))
+    when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK,
+      "FirstName,LastName,Nino,TaxYear,ChargeAmount,DateReceived,PaymentTypeMandatory\nJoy,Smith,9717C,2020,268.28,2020-01-01,true")))
   }
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()

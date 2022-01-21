@@ -371,7 +371,10 @@ object PaymentsAndChargesServiceSpec {
       amountDue = amountDue,
       accruedInterestTotal = 153.00,
       periodStartDate = QUARTER_START_DATE,
-      periodEndDate = QUARTER_END_DATE
+      periodEndDate = QUARTER_END_DATE,
+      formBundleNumber = None,
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     )
   }
 
@@ -385,7 +388,10 @@ object PaymentsAndChargesServiceSpec {
     amountDue = 0.00,
     accruedInterestTotal = 0.00,
     periodStartDate = QUARTER_START_DATE,
-    periodEndDate = QUARTER_END_DATE
+    periodEndDate = QUARTER_END_DATE,
+    formBundleNumber = None,
+    sourceChargeRefForInterest = None,
+    documentLineItemDetails = Nil
   )
 
   private def paymentsAndChargesForAGivenPeriod(chargeType: SchemeFSChargeType,

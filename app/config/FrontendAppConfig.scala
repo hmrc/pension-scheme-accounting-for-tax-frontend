@@ -179,4 +179,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val initiateV2Url            = servicesConfig.baseUrl("upscan-initiate") + "/upscan/v2/initiate"
 
   lazy val maxUploadFileSize: Int = configuration.getOptional[Int]("upscan.maxUploadFileSizeMb").getOrElse(1)
+
+  lazy val validAnnualAllowanceHeader: String = configuration.get[String]("validAnnualAllowanceHeader")
+  lazy val validLifeTimeAllowanceHeader: String = configuration.get[String]("validLifeTimeAllowanceHeader")
 }
