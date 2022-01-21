@@ -632,7 +632,10 @@ object AFTPartialServiceSpec {
       amountDue = 1029.05,
       accruedInterestTotal = accruedInterestTotal,
       periodStartDate = LocalDate.parse(startDate),
-      periodEndDate = LocalDate.parse(endDate)
+      periodEndDate = LocalDate.parse(endDate),
+      formBundleNumber = None,
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     )
   }
 
