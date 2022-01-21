@@ -25,7 +25,6 @@ import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
-import org.joda.time.LocalDate
 import pages.fileUpload.ValidationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -34,7 +33,9 @@ import renderer.Renderer
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.ValidationHelper
 
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -51,7 +52,8 @@ class ValidationController @Inject()(
                                       uploadProgressTracker: UploadProgressTracker,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                       annualAllowanceParser: AnnualAllowanceParser,
-                                      lifeTimeAllowanceParser: LifetimeAllowanceParser
+                                      lifeTimeAllowanceParser: LifetimeAllowanceParser,
+                                      validationHelper: ValidationHelper
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -64,7 +66,7 @@ class ValidationController @Inject()(
                    chargeType: ChargeType,
                    linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]):Future[Result] = {
 
-    val result = utils.ValidationHelper.isHeaderValid(linesFromCSV.head, chargeType: ChargeType, appConfig) match {
+    val result = validationHelper.isHeaderValid(linesFromCSV.head, chargeType: ChargeType) match {
       case true => parser.parse(request.userAnswers, linesFromCSV.tail)
       case false => ValidationResult(request.userAnswers, List(ParserValidationErrors (0, Seq("Header invalid"))))
     }

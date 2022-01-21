@@ -16,35 +16,36 @@
 
 package utils
 
-import config.FrontendAppConfig
+import base.SpecBase
 import models.ChargeType
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
-import org.mockito.MockitoSugar.mock
-import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
+import org.mockito.MockitoSugar
+import play.api.Configuration
 
-class ValidationHelperSpec {
+class ValidationHelperSpec extends SpecBase with MockitoSugar{
 
   val validAnnualAllowanceHeader = "FirstName,LastName,Nino,TaxYear,ChargeAmount,DateReceived,PaymentTypeMandatory"
   val validLifeTimeAllowanceHeader = "FirstName,LastName,Nino,TaxYear"
   val invalidHeader = "Invalid Header"
-  val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
+  val appConfig: Configuration = injector.instanceOf[Configuration]
+
+  private val validationHelper = new ValidationHelper(appConfig)
 
   "ValidationHelper" must {
 
-    "should return true if header is valid for Annual Allowance" in {
-      ValidationHelper.isHeaderValid(validAnnualAllowanceHeader, ChargeType.ChargeTypeAnnualAllowance, mockAppConfig)
+    "return true if header is valid for Annual Allowance" in {
+      validationHelper.isHeaderValid(validAnnualAllowanceHeader, ChargeType.ChargeTypeAnnualAllowance) mustBe true
     }
 
-    "should return false if header is invalid for Annual Allowance" in {
-      ValidationHelper.isHeaderValid(invalidHeader, ChargeType.ChargeTypeAnnualAllowance, mockAppConfig)
+    "return false if header is invalid for Annual Allowance" in {
+      validationHelper.isHeaderValid(invalidHeader, ChargeType.ChargeTypeAnnualAllowance)  mustBe false
     }
 
-    "should return true if header is valid for LifeTime Allowance" in {
-      ValidationHelper.isHeaderValid(validLifeTimeAllowanceHeader, ChargeType.ChargeTypeAnnualAllowance, mockAppConfig)
+    "return true if header is valid for LifeTime Allowance" in {
+      validationHelper.isHeaderValid(validLifeTimeAllowanceHeader, ChargeType.ChargeTypeLifetimeAllowance)  mustBe true
     }
 
-    "should return false if header is invalid for LifeTime Allowance" in {
-      ValidationHelper.isHeaderValid(invalidHeader, ChargeType.ChargeTypeAnnualAllowance, mockAppConfig)
+    "return false if header is invalid for LifeTime Allowance" in {
+      validationHelper.isHeaderValid(invalidHeader, ChargeType.ChargeTypeLifetimeAllowance)  mustBe false
     }
 
   }
