@@ -181,9 +181,9 @@ object PsaSchemePartialServiceSpec {
   val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
 
   private val charge1: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
-    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), LocalDate.parse(startDate), LocalDate.parse(endDate))
+    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), LocalDate.parse(startDate), LocalDate.parse(endDate), None, None, Nil)
   private val charge2: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
-    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), LocalDate.parse("2021-01-01"), LocalDate.parse("2021-03-31"))
+    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), LocalDate.parse("2021-01-01"), LocalDate.parse("2021-03-31"), None, None, Nil)
   private val upcomingChargesMultiple: Seq[SchemeFS] = Seq(charge1, charge2)
   private val upcomingChargesSingle: Seq[SchemeFS] = Seq(charge1)
 
