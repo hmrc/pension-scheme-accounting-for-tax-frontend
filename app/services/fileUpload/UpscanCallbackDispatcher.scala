@@ -18,13 +18,14 @@ package services.fileUpload
 
 import controllers.fileUpload.{CallbackBody, FailedCallbackBody, ReadyCallbackBody}
 import models._
+import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class UpscanCallbackDispatcher @Inject() (sessionStorage: UploadProgressTracker) {
+class UpscanCallbackDispatcher @Inject()(sessionStorage: UploadProgressTracker) {
 
-  def handleCallback(callback : CallbackBody): Future[Unit] = {
+  def handleCallback(callback: CallbackBody)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
 
     val uploadStatus = callback match {
       case s: ReadyCallbackBody =>

@@ -18,12 +18,11 @@ package connectors
 
 import config.FrontendAppConfig
 import models.{UpscanFileReference, UpscanInitiateResponse}
-
-import javax.inject.Inject
 import play.api.libs.json.{Json, OFormat, Reads, Writes}
 import play.mvc.Http.HeaderNames
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait UpscanInitiateRequest
@@ -40,10 +39,11 @@ case class UpscanInitiateRequestV2(
 
 case class UploadForm(href: String, fields: Map[String, String])
 
-case class Reference(value: String) extends AnyVal
+case class Reference(reference: String) extends AnyVal
 
 object Reference {
   implicit val referenceReader: Reads[Reference] = Reads.StringReads.map(Reference(_))
+  implicit val referenceWrites = Json.writes[Reference]
 }
 
 case class PreparedUpload(reference: Reference, uploadRequest: UploadForm)
@@ -81,7 +81,7 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
     wts: Writes[T]): Future[UpscanInitiateResponse] =
     for {
       response <- httpClient.POST[T, PreparedUpload](url, request, headers.toSeq)
-      fileReference = UpscanFileReference(response.reference.value)
+      fileReference = UpscanFileReference(response.reference.reference)
       postTarget    = response.uploadRequest.href
       formFields    = response.uploadRequest.fields
     } yield UpscanInitiateResponse(fileReference, postTarget, formFields)

@@ -32,9 +32,10 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -48,16 +49,21 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
 
   private val fakeUploadProgressTracker: UploadProgressTracker = new UploadProgressTracker {
-    override def requestUpload(uploadId: UploadId, fileReference: Reference): Future[Unit] = Future.successful(())
+    override def requestUpload(uploadId: UploadId, fileReference: Reference)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] =
+      Future.successful(())
 
-    override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus): Future[Unit] = Future.successful(())
+    override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus)(implicit ec: ExecutionContext,
+                                                                                        hc: HeaderCarrier): Future[Unit] = Future.successful(())
 
-    override def getUploadResult(id: UploadId): Future[Option[UploadStatus]] = Future.successful(Some(UploadedSuccessfully(
-      name = "name",
-      mimeType = "mime",
-      downloadUrl = "/test",
-      size = Some(1L)
-    )))
+    override def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UploadStatus]] =
+      Future.successful(
+        Some(
+          UploadedSuccessfully(
+            name = "name",
+            mimeType = "mime",
+            downloadUrl = "/test",
+            size = Some(1L)
+          )))
   }
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
@@ -96,7 +102,8 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application,
+      val result = route(
+        application,
         httpGETRequest(controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)).value
 
       status(result) mustEqual OK
@@ -116,7 +123,8 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
         "viewModel" -> GenericViewModel(
           submitUrl = upscanInitiateResponse.postTarget,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-          schemeName = schemeName)
+          schemeName = schemeName
+        )
       )
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
@@ -135,8 +143,11 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val uploadId = UploadId("")
 
-      val result = route(application,
-        httpGETRequest(controllers.fileUpload.routes.FileUploadController.showResult(srn, startDate, accessType, versionInt, chargeType, uploadId).url)).value
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.FileUploadController.showResult(srn, startDate, accessType, versionInt, chargeType, uploadId).url)
+      ).value
 
       status(result) mustEqual OK
 
@@ -149,7 +160,8 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
         "viewModel" -> GenericViewModel(
           submitUrl = dummyCall.url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-          schemeName = schemeName)
+          schemeName = schemeName
+        )
       )
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)

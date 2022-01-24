@@ -33,10 +33,10 @@ import play.api.libs.json.{JsNull, JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -49,16 +49,21 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
 
   private val fakeUploadProgressTracker: UploadProgressTracker = new UploadProgressTracker {
-    override def requestUpload(uploadId: UploadId, fileReference: Reference): Future[Unit] = Future.successful(())
+    override def requestUpload(uploadId: UploadId, fileReference: Reference)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] =
+      Future.successful(())
 
-    override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus): Future[Unit] = Future.successful(())
+    override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus)(implicit ec: ExecutionContext,
+                                                                                        hc: HeaderCarrier): Future[Unit] = Future.successful(())
 
-    override def getUploadResult(id: UploadId): Future[Option[UploadStatus]] = Future.successful(Some(UploadedSuccessfully(
-      name = "name",
-      mimeType = "mime",
-      downloadUrl = "/test",
-      size = Some(1L)
-    )))
+    override def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UploadStatus]] =
+      Future.successful(
+        Some(
+          UploadedSuccessfully(
+            name = "name",
+            mimeType = "mime",
+            downloadUrl = "/test",
+            size = Some(1L)
+          )))
   }
 
   private val mockAnnualAllowanceParser = mock[AnnualAllowanceParser]
@@ -82,20 +87,21 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   "onPageLoad" must {
     "return OK and the correct view for a GET" in {
 
-
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val errors : List[ParserValidationErrors]= List(
-        ParserValidationErrors (0, Seq("Cry"))
+      val errors: List[ParserValidationErrors] = List(
+        ParserValidationErrors(0, Seq("Cry"))
       )
 
-      when(mockAnnualAllowanceParser.parse(any(),any())).thenReturn(ValidationResult(UserAnswers(), errors))
+      when(mockAnnualAllowanceParser.parse(any(), any())).thenReturn(ValidationResult(UserAnswers(), errors))
 
-      val result = route(application,
-        httpGETRequest(controllers.fileUpload
-          .routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)).value
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
 
       status(result) mustEqual OK
 
@@ -115,14 +121,15 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         .thenReturn(Future.successful(JsNull))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
+      val errors: List[ParserValidationErrors] = List()
 
-      val errors : List[ParserValidationErrors]= List()
-
-      when(mockAnnualAllowanceParser.parse(any(),any())).thenReturn(ValidationResult(UserAnswers(), errors))
-      when(mockCompoundNavigator.nextPage(any(), any(),any(), any(),any(), any(),any())(any())).thenReturn(dummyCall)
-      val result = route(application,
-        httpGETRequest(controllers.fileUpload
-          .routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)).value
+      when(mockAnnualAllowanceParser.parse(any(), any())).thenReturn(ValidationResult(UserAnswers(), errors))
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual dummyCall.url
@@ -130,6 +137,4 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
   }
 
-  
-  
 }
