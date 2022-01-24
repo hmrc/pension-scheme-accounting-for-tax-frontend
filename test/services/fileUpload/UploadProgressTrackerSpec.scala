@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package connectors.cache
+package services.fileUpload
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import connectors.Reference
@@ -24,11 +24,10 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status.OK
 import play.api.libs.json.Json
-import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import utils.WireMockHelper
 
-class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with OptionValues with RecoverMethods {
+class UploadProgressTrackerSpec extends AsyncWordSpec with Matchers with WireMockHelper with OptionValues with RecoverMethods {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
