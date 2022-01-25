@@ -1,12 +1,12 @@
 <div class="card" id="overdue-aft-charges">
     <div class="card-body">
-        <h2 class="card-heading govuk-heading-l">
+        <h2 class="card-heading govuk-heading-m">
             {{ messages("pspDashboardOverdueAftChargesCard.h2") }}
         </h2>
         {% for subHeading in overdueCharges.subHeadings %}
             <p class="card-sub-heading bold govuk-body-m">
                 <span class="font-xsmall">{{ subHeading.span }}</span>
-                <span class="font-large bold govuk-!-display-inline-block">
+                <span class="font-large bold govuk-!-font-weight-bold govuk-!-display-inline-block">
                 {{ subHeading.total }}</span>
                    {% if loop.index == 2 %}
                        <span class="font-xsmall govuk-!-display-inline-block">{{ messages("pspDashboardOverdueAftChargesCard.toDate.span") }}</span>

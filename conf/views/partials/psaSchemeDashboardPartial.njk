@@ -2,7 +2,7 @@
 {% for card in cards %}
     <div class="card" id={{ card.id }}>
         <div class="card-body">
-            <h2 class="card-heading govuk-heading-l">
+            <h2 class="card-heading govuk-heading-m">
                 {{ card.heading }}
             </h2>
             {% for subHead in card.subHeadings %}
@@ -10,7 +10,7 @@
                     <span class="font-xsmall">{{ subHead.subHeading }}</span>
                     {% for subHeadParams in subHead.subHeadingParams %}
                           {% if loop.index == 1 %}
-                        <span class='font-large bold govuk-!-display-inline-block'>{{ subHeadParams.subHeadingParam  }}</span>
+                        <span class=' bold govuk-!-font-weight-bold govuk-!-display-inline-block {{subHeadParams.subHeadingParamClasses}}'>{{ subHeadParams.subHeadingParam  }}</span>
                          {% endif %}
                         {% if loop.index == 2 %}
                         <span class="font-xsmall govuk-!-display-inline-block">{{ messages("pspDashboardOverdueAftChargesCard.toDate.span") }}</span>
