@@ -24,14 +24,15 @@ import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import pages.chargeD.MemberDetailsPage
+import play.api.libs.json.Json
 
-class  LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
+class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   import LifetimeAllowanceParserSpec._
 
   "LifeTime allowance parser" must {
     "return validation errors when present" in {
-      val result = parser.parse(emptyUa, invalidCsvFile)
+      val result = parser.parse(invalidCsvFile)
       result.errors mustBe List(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required")),
         ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid"))
@@ -39,15 +40,17 @@ class  LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSu
     }
 
     "return charges in user answers when there are no validation errors" in {
-      val result = parser.parse(emptyUa, validCsvFile)
+      val result = parser.parse(validCsvFile)
 
       result.errors mustBe Nil
-      result.ua.getOrException(MemberDetailsPage(0)) mustBe SampleData.memberDetails2
-      result.ua.getOrException(MemberDetailsPage(1)) mustBe SampleData.memberDetails3
+      result.commitItems mustBe Seq(
+        CommitItem(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2)),
+        CommitItem(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3))
+      )
     }
 
     "return validation errors when not enough fields" in {
-      val result = parser.parse(emptyUa, List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
+      val result = parser.parse(List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
 
       result.errors mustBe List(ParserValidationErrors(0, Seq("Not enough fields")))
     }

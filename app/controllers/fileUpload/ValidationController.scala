@@ -20,8 +20,8 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, Parser, ParserValidationErrors, ValidationResult}
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
+import fileUploadParsers.{AnnualAllowanceParser, Parser, ParserValidationErrors, ValidationResult}
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
@@ -52,39 +52,44 @@ class ValidationController @Inject()(
                                       uploadProgressTracker: UploadProgressTracker,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                       annualAllowanceParser: AnnualAllowanceParser,
-                                      lifeTimeAllowanceParser: LifetimeAllowanceParser,
+                                      //                                      ,
+                                      //                                      lifeTimeAllowanceParser: LifetimeAllowanceParser,
                                       validationHelper: ValidationHelper
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
 
   private def parseAndRenderResult(
-                   srn: String,
-                   startDate: LocalDate,
-                   accessType: AccessType,
-                   version: Int,
-                   chargeType: ChargeType,
-                   linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]):Future[Result] = {
+                                    srn: String,
+                                    startDate: LocalDate,
+                                    accessType: AccessType,
+                                    version: Int,
+                                    chargeType: ChargeType,
+                                    linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
+
     //removes non-printable characters like ^M$
-    val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}",""))
+    val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
     val result = validationHelper.isHeaderValid(filteredLinesFromCSV.head, chargeType: ChargeType) match {
-      case true => parser.parse(request.userAnswers, filteredLinesFromCSV.tail)
-      case false => ValidationResult(request.userAnswers, List(ParserValidationErrors (0, Seq("Header invalid"))))
+      case true => parser.parse(filteredLinesFromCSV.tail)
+      case false => ValidationResult(Nil, List(ParserValidationErrors(0, Seq("Header invalid"))))
     }
     result match {
-          case ValidationResult(ua, Nil) =>
-            userAnswersCacheConnector.save(request.internalId, ua.data)
-              .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
-          case ValidationResult(_, errors) =>
-            renderer.render(template = "fileUpload/invalid.njk",
-              Json.obj(
-                "chargeType" -> chargeType,
-                "chargeTypeText" -> chargeType.toString,
-                "srn" -> srn, "startDate" -> Some(startDate),
-                "viewModel" -> errors))
-              .map(Ok(_))
+      case ValidationResult(commitItems, Nil) =>
+        val ua = commitItems.foldLeft(request.userAnswers) { (acc, ci) =>
+          acc.setOrException(ci.jsPath, ci.value)
         }
+        userAnswersCacheConnector.save(request.internalId, ua.data)
+          .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
+      case ValidationResult(_, errors) =>
+        renderer.render(template = "fileUpload/invalid.njk",
+          Json.obj(
+            "chargeType" -> chargeType,
+            "chargeTypeText" -> chargeType.toString,
+            "srn" -> srn, "startDate" -> Some(startDate),
+            "viewModel" -> errors))
+          .map(Ok(_))
     }
+  }
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
@@ -107,7 +112,7 @@ class ValidationController @Inject()(
   private def findParser(chargeType: ChargeType): Option[Parser] = {
     chargeType match {
       case ChargeTypeAnnualAllowance => Some(annualAllowanceParser)
-      case ChargeTypeLifetimeAllowance => Some(lifeTimeAllowanceParser)
+      //     case ChargeTypeLifetimeAllowance => Some(lifeTimeAllowanceParser)
       case _ => None
     }
   }

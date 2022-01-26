@@ -20,9 +20,9 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import models.LocalDateBinder._
 import fileUploadParsers.{AnnualAllowanceParser, ParserValidationErrors, ValidationResult}
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -95,7 +95,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         ParserValidationErrors(0, Seq("Cry"))
       )
 
-      when(mockAnnualAllowanceParser.parse(any(), any())).thenReturn(ValidationResult(UserAnswers(), errors))
+      when(mockAnnualAllowanceParser.parse(any())).thenReturn(ValidationResult(Nil, errors))
 
       val result = route(
         application,
@@ -123,7 +123,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val errors: List[ParserValidationErrors] = List()
 
-      when(mockAnnualAllowanceParser.parse(any(), any())).thenReturn(ValidationResult(UserAnswers(), errors))
+      when(mockAnnualAllowanceParser.parse(any())).thenReturn(ValidationResult(Nil, errors))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       val result = route(
         application,

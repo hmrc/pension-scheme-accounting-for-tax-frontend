@@ -17,29 +17,29 @@
 package fileUploadParsers
 
 import models.UserAnswers
-import play.api.libs.json.{Format, Json}
+import pages.Page
+import play.api.libs.json.{Format, JsPath, JsValue, Json}
 
 trait Parser {
   protected val totalFields:Int
 
-  def parse(ua: UserAnswers, rows: List[String]): ValidationResult = {
-    rows.zipWithIndex.foldLeft[ValidationResult](ValidationResult(ua, Nil)){
+  def parse(rows: List[String]): ValidationResult = {
+    rows.zipWithIndex.foldLeft[ValidationResult](ValidationResult(Nil, Nil)){
       case (acc, Tuple2(row, index)) =>
         val cells = row.split(",")
         cells.length match {
           case this.totalFields =>
-            validateFields(acc.ua, index, cells) match {
-              case Left(validationErrors) =>
-                ValidationResult(acc.ua, acc.errors ++ List(validationErrors))
-              case Right(updatedUA) => ValidationResult(updatedUA, acc.errors)
+            validateFields(index, cells) match {
+              case Left(validationErrors) => ValidationResult(acc.commitItems, acc.errors ++ List(validationErrors))
+              case Right(commitItems) => ValidationResult(acc.commitItems ++ commitItems, acc.errors)
             }
           case _ =>
-            ValidationResult(acc.ua, acc.errors ++ List(ParserValidationErrors(index, List("Not enough fields"))))
+            ValidationResult(acc.commitItems, acc.errors ++ List(ParserValidationErrors(index, List("Not enough fields"))))
         }
     }
   }
 
-  protected def validateFields(ua:UserAnswers, index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, UserAnswers]
+  protected def validateFields(index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, Seq[CommitItem]]
 
   protected def firstNameField(fields: Array[String]):String =fields(0)
   protected def lastNameField(fields: Array[String]):String =fields(1)
@@ -53,4 +53,6 @@ object ParserValidationErrors {
     Json.format[ParserValidationErrors]
 }
 
-case class ValidationResult(ua:UserAnswers, errors: List[ParserValidationErrors])
+case class CommitItem(jsPath: JsPath, value: JsValue)
+
+case class ValidationResult(commitItems:Seq[CommitItem], errors: List[ParserValidationErrors])

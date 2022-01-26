@@ -18,16 +18,16 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import forms.MemberDetailsFormProvider
-import models.UserAnswers
 import pages.chargeD.MemberDetailsPage
+import play.api.libs.json.Json
 
 class LifetimeAllowanceParser @Inject()(
-                                       memberDetailsFormProvider: MemberDetailsFormProvider
-                                     ) extends Parser {
+                                         memberDetailsFormProvider: MemberDetailsFormProvider
+                                       ) extends Parser {
 
-  override protected val totalFields:Int = 7
+  override protected val totalFields: Int = 7
 
-  override protected def validateFields(ua:UserAnswers, index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, UserAnswers] = {
+  override protected def validateFields(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, Seq[CommitItem]] = {
     val m = Map(
       "firstName" -> firstNameField(chargeFields),
       "lastName" -> lastNameField(chargeFields),
@@ -36,7 +36,12 @@ class LifetimeAllowanceParser @Inject()(
     val form = memberDetailsFormProvider.apply()
     form.bind(m).fold(
       formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
-      value => Right(ua.setOrException(MemberDetailsPage(index), value))
+      memberDetails =>
+        Right(
+          Seq(
+            CommitItem(MemberDetailsPage(index).path, Json.toJson(memberDetails))
+          )
+        )
     )
   }
 }
