@@ -359,3 +359,11 @@ GET         /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/file
 # upload file notification callback
 #NOCSRF
 POST        /fileupload/upscan-callback                                                                                                           controllers.fileUpload.UploadCallbackController.callback
+
+# file download
+GET         /annual-allowance-charge/templateFile                                                                                                 controllers.FileDownloadController.templateFile(chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance)
+GET         /lifetime-allowance-charge/templateFile                                                                                               controllers.FileDownloadController.templateFile(chargeType: ChargeType = ChargeType.ChargeTypeLifetimeAllowance)
+GET         /overseas-transfer-charge/templateFile                                                                                                controllers.FileDownloadController.templateFile(chargeType: ChargeType = ChargeType.ChargeTypeOverseasTransfer)
+GET         /annual-allowance-charge/instructionsFile                                                                                             controllers.FileDownloadController.instructionsFile(chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance)
+GET         /lifetime-allowance-charge/instructionsFile                                                                                           controllers.FileDownloadController.instructionsFile(chargeType: ChargeType = ChargeType.ChargeTypeLifetimeAllowance)
+GET         /overseas-transfer-charge/instructionsFile                                                                                            controllers.FileDownloadController.instructionsFile(chargeType: ChargeType = ChargeType.ChargeTypeOverseasTransfer)
