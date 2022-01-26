@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
-import models.UserAnswers
+import models.{MemberDetails, UserAnswers}
 import models.chargeE.ChargeEDetails
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
@@ -35,7 +35,7 @@ class AnnualAllowanceParser @Inject()(
   //scalastyle:off magic.number
   override protected val totalFields: Int = 7
 
-  private def memberDetailsValidation(ua: UserAnswers, index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, UserAnswers] = {
+  private def memberDetailsValidation(ua: UserAnswers, index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, MemberDetails] = {
     val memberDetailsForm = memberDetailsFormProvider()
     memberDetailsForm.bind(
       Map(
@@ -45,7 +45,7 @@ class AnnualAllowanceParser @Inject()(
       )
     ).fold(
       formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
-      value => Right(ua.setOrException(MemberDetailsPage(index), value))
+      value => Right(value)
     )
   }
 
@@ -60,7 +60,7 @@ class AnnualAllowanceParser @Inject()(
 
   private def stringToBoolean(s:String): String = if (s == "yes") "true" else "false"
 
-  private def chargeDetailsValidation(ua: UserAnswers, index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, UserAnswers] = {
+  private def chargeDetailsValidation(ua: UserAnswers, index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, ChargeEDetails] = {
     val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
       minimumChargeValueAllowed = BigDecimal("0.01"),
       minimumDate = config.earliestDateOfNotice
@@ -79,7 +79,7 @@ class AnnualAllowanceParser @Inject()(
         ).fold(
           formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
           value => {
-            Right(ua.setOrException(ChargeDetailsPage(index), value))
+            Right(value)
           }
         )
     }
@@ -89,14 +89,23 @@ class AnnualAllowanceParser @Inject()(
 
   override protected def validateFields(ua: UserAnswers, index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, UserAnswers] = {
     memberDetailsValidation(ua, index, chargeFields) match {
-      case memberErrors@Left(memberDetailsErrors) =>
+      case Left(memberDetailsErrors) =>
         chargeDetailsValidation(ua, index, chargeFields) match {
           case Left(chargeDetailsErrors) =>
             Left(ParserValidationErrors(memberDetailsErrors.row, memberDetailsErrors.errors ++ chargeDetailsErrors.errors))
-          case _ => memberErrors
+          case _ => Left(memberDetailsErrors)
         }
-      case Right(updatedUA) =>
-        chargeDetailsValidation(updatedUA, index, chargeFields)
+
+      case Right(memberDetails) =>
+        chargeDetailsValidation(ua, index, chargeFields) match {
+          case Left(errors) => Left(errors)
+          case Right(chargeDetails) =>
+            Right(
+              ua
+                .setOrException(MemberDetailsPage(index), memberDetails)
+                .setOrException(ChargeDetailsPage(index), chargeDetails)
+            )
+        }
     }
   }
 }

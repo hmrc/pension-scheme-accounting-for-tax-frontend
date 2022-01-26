@@ -48,12 +48,8 @@ final case class UserAnswers(
         response => response
     )
   }
-/*
-INNER SET:/chargeEDetails/members(1)/chargeDetails:ChargeEDetails(268.28,2020-01-01,true) as json = {"chargeAmount":268.28,"dateNoticeReceived":"2020-01-01","isPaymentMandatory":true}
 
- */
   def set[A](page: QuestionPage[A], value: A)(implicit writes: Writes[A]): Try[UserAnswers] = {
- println("\nINNER SET:" + page.path + ":" + value + " as json = " + Json.toJson(value))
     val updatedData = data.setObject(page.path, Json.toJson(value)) match {
       case JsSuccess(jsValue, _) =>
         Success(jsValue)

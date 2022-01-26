@@ -40,12 +40,13 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
   }
 
   "Annual allowance parser" must {
-    /*
- List(ParserValidationErrors(0,List(memberDetails.error.firstName.required)), ParserValidationErrors(1,List(memberDetails.error.lastName.required,
- memberDetails.error.nino.invalid, error.boolean))) was not equal to List(ParserValidationErrors(0,List(memberDetails.error.firstName.required)),
- ParserValidationErrors(1,List(memberDetails.error.lastName.required, memberDetails.error.nino.invalid))) (AnnualAllowanceParserSpec.scala:52)
+    "return charges in user answers when there are no validation errors" in {
+      val result = parser.parse(emptyUa, validCsvFile)
+      result.errors mustBe Nil
+      result.ua.getOrException(MemberDetailsPage(0)) mustBe SampleData.memberDetails2
+      result.ua.getOrException(MemberDetailsPage(1)) mustBe SampleData.memberDetails3
+    }
 
-     */
     "return validation errors for member details when present" in {
       val result = parser.parse(emptyUa, invalidMemberDetailsCsvFile)
       result.errors mustBe List(
@@ -54,25 +55,33 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       )
     }
 
-//    "return validation errors for charge details when present" in {
-//      val result = parser.parse(emptyUa, invalidChargeDetailsCsvFile)
-//      result.errors mustBe List(
-//        ParserValidationErrors(0, Seq("chargeAmount.error.required")),
-//        ParserValidationErrors(1, Seq("dateNoticeReceived.error.invalid"))
-//      )
-//    }
-//
-//    "return charges in user answers when there are no validation errors" in {
-//      val result = parser.parse(emptyUa, validCsvFile)
-//      result.errors mustBe Nil
-//      result.ua.getOrException(MemberDetailsPage(0)) mustBe SampleData.memberDetails2
-//      result.ua.getOrException(MemberDetailsPage(1)) mustBe SampleData.memberDetails3
-//    }
-//
-//    "return validation errors when not enough fields" in {
-//      val result = parser.parse(emptyUa, List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
-//      result.errors mustBe List(ParserValidationErrors(0, Seq("Not enough fields")))
-//    }
+    "return validation errors for charge details when present" in {
+      val result = parser.parse(emptyUa, invalidChargeDetailsCsvFile)
+      result.errors mustBe List(
+        ParserValidationErrors(0, Seq("chargeAmount.error.required")),
+        ParserValidationErrors(1, Seq("dateNoticeReceived.error.invalid"))
+      )
+    }
+
+    "return validation errors for member details AND charge details when both present" in {
+      val result = parser.parse(emptyUa, invalidMemberDetailsAndChargeDetailsCsvFile)
+      result.errors mustBe List(
+        ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "chargeAmount.error.required")),
+        ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid", "dateNoticeReceived.error.invalid"))
+      )
+    }
+
+    "return validation errors for member details AND charge details when both present in first row but not in second" in {
+      val result = parser.parse(emptyUa, invalidMemberDetailsAndChargeDetailsFirstRowCsvFile)
+      result.errors mustBe List(
+        ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "chargeAmount.error.required"))
+      )
+    }
+
+    "return validation errors when not enough fields" in {
+      val result = parser.parse(emptyUa, List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
+      result.errors mustBe List(ParserValidationErrors(0, Seq("Not enough fields")))
+    }
   }
 }
 
@@ -90,11 +99,16 @@ object AnnualAllowanceParserSpec extends MockitoSugar {
   )
   private val invalidChargeDetailsCsvFile = List(
     "Joe,Bloggs,AB123456C,2020,,01/01/2020,yes",
-    "Ann,Bliggs,AB123457C,2020,268.28,01/01/2020,yes"
+    "Ann,Bliggs,AB123457C,2020,268.28,01/13/2020,yes"
   )
   private val invalidMemberDetailsAndChargeDetailsCsvFile = List(
     ",Bloggs,AB123456C,2020,,01/01/2020,yes",
-    "Ann,,3456C,2020,268.28,01/01/2020,yes"
+    "Ann,,3456C,2020,268.28,01/13/2020,yes"
+  )
+
+  private val invalidMemberDetailsAndChargeDetailsFirstRowCsvFile = List(
+    ",Bloggs,AB123456C,2020,,01/01/2020,yes",
+    "Joe,Bliggs,AB123457C,2020,268.28,01/01/2020,yes"
   )
   private val emptyUa = UserAnswers()
   private val formProviderMemberDetails = new MemberDetailsFormProvider
