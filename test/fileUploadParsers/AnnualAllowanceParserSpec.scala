@@ -21,7 +21,6 @@ import config.FrontendAppConfig
 import data.SampleData
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
-import models.UserAnswers
 import models.chargeE.ChargeEDetails
 import org.mockito.{Mockito, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
@@ -62,11 +61,11 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       )
     }
 
-    "return validation errors for charge details when present" in {
+    "return validation errors for charge details when present, including invalid boolean value and missing year" in {
       val result = parser.parse(invalidChargeDetailsCsvFile)
       result.errors mustBe List(
-        ParserValidationErrors(0, Seq("chargeAmount.error.required")),
-        ParserValidationErrors(1, Seq("dateNoticeReceived.error.invalid"))
+        ParserValidationErrors(0, Seq("chargeAmount.error.required", "dateNoticeReceived.error.incomplete", "error.boolean")),
+        ParserValidationErrors(1, Seq("dateNoticeReceived.error.incomplete"))
       )
     }
 
@@ -105,8 +104,8 @@ object AnnualAllowanceParserSpec extends MockitoSugar {
     "Ann,,3456C,2020,268.28,01/01/2020,yes"
   )
   private val invalidChargeDetailsCsvFile = List(
-    "Joe,Bloggs,AB123456C,2020,,01/01/2020,yes",
-    "Ann,Bliggs,AB123457C,2020,268.28,01/13/2020,yes"
+    "Joe,Bloggs,AB123456C,2020,,01/01,nah",
+    "Ann,Bliggs,AB123457C,2020,268.28,01,yes"
   )
   private val invalidMemberDetailsAndChargeDetailsCsvFile = List(
     ",Bloggs,AB123456C,2020,,01/01/2020,yes",
@@ -117,7 +116,6 @@ object AnnualAllowanceParserSpec extends MockitoSugar {
     ",Bloggs,AB123456C,2020,,01/01/2020,yes",
     "Joe,Bliggs,AB123457C,2020,268.28,01/01/2020,yes"
   )
-  private val emptyUa = UserAnswers()
   private val formProviderMemberDetails = new MemberDetailsFormProvider
   private val formProviderChargeDetails = new ChargeDetailsFormProvider
 

@@ -57,7 +57,12 @@ class AnnualAllowanceParser @Inject()(
     }
   }
 
-  private def stringToBoolean(s:String): String = if (s == "yes") "true" else "false"
+  private def stringToBoolean(s:String): String =
+    s match {
+      case "yes" => "true"
+      case "no" => "false"
+      case _ => s
+    }
 
   private def chargeDetailsValidation(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, ChargeEDetails] = {
     val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
