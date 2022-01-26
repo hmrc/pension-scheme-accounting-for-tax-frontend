@@ -43,6 +43,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
     s"$protocol://$host:$port"
   }
 
+  def urlInThisService(uri:String):String = servicesConfig.baseUrl("aft-frontend") + uri
+
   private def getConfigString(key: String) = servicesConfig.getConfString(key, throw new Exception(s"Could not find config '$key'"))
 
   lazy val contactHost: String = baseUrl("contact-frontend")
@@ -172,11 +174,9 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val trackingSnippetUrl: String = configuration.get[String]("tracking-consent-frontend.url")
   lazy val membersPageSize: Int = configuration.get[Int]("members.pageSize")
 
-  lazy val uploadRedirectTargetBase = loadConfig("upload-redirect-target-base")
-  lazy val callbackEndpointTarget   = loadConfig("upscan.callback-endpoint")
-  lazy val upscanUrl                = servicesConfig.baseUrl("upscan-initiate")
-  lazy val initiateUrl              = servicesConfig.baseUrl("upscan-initiate") + "/upscan/initiate"
-  lazy val initiateV2Url            = servicesConfig.baseUrl("upscan-initiate") + "/upscan/v2/initiate"
+  lazy val upscanUrl:String                = servicesConfig.baseUrl("upscan-initiate")
+  lazy val initiateUrl:String              = servicesConfig.baseUrl("upscan-initiate") + "/upscan/initiate"
+  lazy val initiateV2Url:String            = servicesConfig.baseUrl("upscan-initiate") + "/upscan/v2/initiate"
 
   lazy val maxUploadFileSize: Int = configuration.getOptional[Int]("upscan.maxUploadFileSizeMb").getOrElse(1)
 
