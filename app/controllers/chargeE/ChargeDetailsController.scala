@@ -98,6 +98,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
+        println("\n>>>" + request.request.body)
+
         form(mininimumChargeValue)
           .bindFromRequest()
           .fold(
