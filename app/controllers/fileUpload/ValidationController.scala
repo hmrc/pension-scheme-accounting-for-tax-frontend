@@ -20,8 +20,8 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import fileUploadParsers.{AnnualAllowanceParser, Parser, ParserValidationErrors, ValidationResult}
-import models.ChargeType.ChargeTypeAnnualAllowance
+import fileUploadParsers._
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
@@ -52,8 +52,7 @@ class ValidationController @Inject()(
                                       uploadProgressTracker: UploadProgressTracker,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                       annualAllowanceParser: AnnualAllowanceParser,
-                                      //                                      ,
-                                      //                                      lifeTimeAllowanceParser: LifetimeAllowanceParser,
+                                      lifeTimeAllowanceParser: LifetimeAllowanceParser,
                                       validationHelper: ValidationHelper
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
@@ -112,7 +111,7 @@ class ValidationController @Inject()(
   private def findParser(chargeType: ChargeType): Option[Parser] = {
     chargeType match {
       case ChargeTypeAnnualAllowance => Some(annualAllowanceParser)
-      //     case ChargeTypeLifetimeAllowance => Some(lifeTimeAllowanceParser)
+      case ChargeTypeLifetimeAllowance => Some(lifeTimeAllowanceParser)
       case _ => None
     }
   }
