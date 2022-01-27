@@ -54,16 +54,14 @@ class AnnualAllowanceParser @Inject()(
   }
 
   private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, ChargeEDetails] = {
-    val validationResult = year(
+    val taxYearErrors: Seq[String] = year(
       minYear = 2011,
       maxYear = startDate.getYear,
       requiredKey = "annualAllowanceYear.fileUpload.error.required",
       invalidKey = "annualAllowanceYear.fileUpload.error.invalid",
       minKey = "annualAllowanceYear.fileUpload.error.past",
       maxKey = "annualAllowanceYear.fileUpload.error.future"
-    ).apply(chargeFields(3))
-
-    val taxYearErrors = validationResult match {
+    )(chargeFields(3)) match {
       case Valid => Nil
       case Invalid(errors) => errors.map(_.message)
     }
