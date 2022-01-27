@@ -104,5 +104,3 @@ object ParserValidationErrors {
 }
 
 case class CommitItem(jsPath: JsPath, value: JsValue)
-
-case class ValidationResult(commitItems:Seq[CommitItem], errors: Seq[ParserValidationErrors])

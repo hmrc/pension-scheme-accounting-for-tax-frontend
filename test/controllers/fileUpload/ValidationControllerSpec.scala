@@ -20,7 +20,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import fileUploadParsers.{AnnualAllowanceParser, CommitItem, ParserValidationErrors, ValidationResult}
+import fileUploadParsers.{AnnualAllowanceParser, CommitItem, ParserValidationErrors}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
@@ -29,7 +29,7 @@ import org.mockito.ArgumentMatchers.any
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsNull, JsObject, JsPath, JsString, Json}
+import play.api.libs.json._
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
