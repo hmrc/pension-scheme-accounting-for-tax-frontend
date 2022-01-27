@@ -71,7 +71,7 @@ class AnnualAllowanceParser @Inject()(
     splitDayMonthYear(chargeFields(5)) match {
       case Tuple3(day, month, year) =>
         val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
-          minimumChargeValueAllowed = BigDecimal("0.01"),
+          minimumChargeValueAllowed = minChargeValueAllowed,
           minimumDate = config.earliestDateOfNotice
         )
         chargeDetailsForm.bind(

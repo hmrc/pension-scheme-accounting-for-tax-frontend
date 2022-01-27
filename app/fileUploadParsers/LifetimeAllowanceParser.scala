@@ -58,7 +58,7 @@ class LifetimeAllowanceParser @Inject()(
         val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
           min = startDate,
           max = Quarters.getQuarter(startDate).endDate,
-          minimumChargeValueAllowed = BigDecimal("0.01")
+          minimumChargeValueAllowed = minChargeValueAllowed
         )
         chargeDetailsForm.bind(
           Map(

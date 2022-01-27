@@ -23,6 +23,7 @@ import java.time.LocalDate
 
 trait Parser {
   protected val totalFields:Int
+  protected val minChargeValueAllowed = BigDecimal("0.01")
 
   def parse(startDate: LocalDate, rows: List[String])(implicit messages: Messages): ValidationResult = {
     rows.zipWithIndex.foldLeft[ValidationResult](ValidationResult(Nil, Nil)){
