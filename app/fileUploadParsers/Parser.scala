@@ -30,10 +30,11 @@ trait Parser {
         val cells = row.split(",")
         cells.length match {
           case this.totalFields =>
-            validateFields(startDate, index, cells) match {
-              case Left(validationErrors) => Left(acc.left.getOrElse(Nil) ++ Seq(validationErrors))
-              case Right(_) if acc.isLeft => Left(acc.left.getOrElse(Nil))
-              case Right(commitItems) => Right(acc.right.getOrElse(Nil) ++ commitItems)
+            (acc, validateFields(startDate, index, cells)) match {
+              case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ Seq(newErrors))
+              case (Right(_), Left(newErrors)) => Left(Seq(newErrors))
+              case (currentErrors@Left(_), Right(_)) => currentErrors
+              case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
             }
           case _ =>
             Left(acc.left.getOrElse(Nil) ++ Seq(ParserValidationErrors(index, List("Not enough fields"))))
