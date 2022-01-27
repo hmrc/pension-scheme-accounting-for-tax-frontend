@@ -71,7 +71,7 @@ class FileUploadController @Inject()(
           renderer.render(template = "fileUpload/fileupload.njk",
             Json.obj(
               "chargeType" -> chargeType.toString,
-              "chargeTypeText" -> chargeType.toString,
+              "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
               "srn" -> srn,
               "startDate" -> Some(startDate),
               "formFields" -> uir.formFields.toList,
@@ -118,6 +118,7 @@ class FileUploadController @Inject()(
   }
 
   private def getErrorCode(request: DataRequest[AnyContent]):Option[String] = {
+
     if (request.queryString.contains("errorCode") && request.queryString("errorCode").nonEmpty) {
       Some(request.queryString("errorCode").head)
     } else {

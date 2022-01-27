@@ -18,8 +18,9 @@ package models.fileUpload
 
 import models.{Enumerable, WithName}
 import play.api.data.Form
-import uk.gov.hmrc.viewmodels.Radios
-import uk.gov.hmrc.viewmodels._
+import viewmodels.{Hint, Radios}
+import viewmodels.Radios.MessageInterpolators
+
 
 sealed trait InputSelection
 
@@ -38,7 +39,8 @@ object InputSelection extends Enumerable.Implicits {
     val field = form("value")
     val items = Seq(
       Radios.Radio(msg"inputSelection.radio.manualInput", "manualInput"),
-      Radios.Radio(msg"inputSelection.radio.fileUploadInput", "fileUploadInput")
+      Radios.Radio(msg"inputSelection.radio.fileUploadInput", "fileUploadInput",
+        Some(Hint(msg"fileupload.inputSelection.fileUploadInput.hint", "hint-id")))
     )
 
     Radios(field, items)

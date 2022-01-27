@@ -20,12 +20,13 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.fileUpload.InputSelectionFormProvider
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
 import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.fileUpload.InputSelectionPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -49,33 +50,35 @@ class InputSelectionController @Inject()(
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
-      with NunjucksSupport  {
+    with NunjucksSupport {
 
   private val form = formProvider()
 
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      val preparedForm = request.userAnswers.get(InputSelectionPage(chargeType)).fold(form)(form.fill)
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
+      implicit request =>
+        val preparedForm = request.userAnswers.get(InputSelectionPage(chargeType)).fold(form)(form.fill)
 
-      DataRetrievals.retrieveSchemeName { schemeName =>
-        renderer.render(template = "fileUpload/inputSelection.njk",
-          Json.obj(
-            "chargeType" -> chargeType.toString,
-            "srn" -> srn,
-            "startDate" -> Some(startDate),
-            "radios" -> InputSelection.radios(preparedForm),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
-          )
-        )
-          .map(Ok(_))
-      }
+        DataRetrievals.retrieveSchemeName { schemeName =>
+          renderer
+            .render(
+              template = "fileUpload/inputSelection.njk",
+              Json.obj(
+                "chargeType" -> ChargeType.fileUploadText(chargeType),
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "radios" -> InputSelection.radios(preparedForm),
+                "form" -> preparedForm,
+                "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
+              )
+            )
+            .map(Ok(_))
+        }
     }
 
   def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
-
-      implicit request => DataRetrievals.retrieveSchemeName { schemeName =>
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
         val ua = request.userAnswers
         form
           .bindFromRequest()
@@ -90,10 +93,9 @@ class InputSelectionController @Inject()(
                 "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
               )
               renderer.render(template = "fileUpload/inputSelection.njk", json).map(BadRequest(_))
-            },
-            { inputSelection =>
+            }, { inputSelection =>
               val updatedUA = ua.setOrException(InputSelectionPage(chargeType), inputSelection)
-              userAnswersCacheConnector.savePartial(request.internalId, updatedUA.data).map{ _ =>
+              userAnswersCacheConnector.savePartial(request.internalId, updatedUA.data).map { _ =>
                 Redirect(navigator.nextPage(InputSelectionPage(chargeType), NormalMode, updatedUA, srn, startDate, accessType, version))
               }
             }

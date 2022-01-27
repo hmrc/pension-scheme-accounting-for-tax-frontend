@@ -4,12 +4,14 @@
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
-
+{% from "govuk/components/details/macro.njk" import govukDetails %}
 
 {% block pageTitle %}
-  {{ title(messages("fileupload.fileupload.title", chargeType)) }}
+  {{ title(messages("fileupload.fileupload.title", chargeTypeText)) }}
 {% endblock %}
-
+{% set details %}
+    {% include "partials/uploadDetails/" + chargeType + ".njk" %}
+{% endset %}
 
 {% block mainContent %}
 
@@ -31,16 +33,25 @@
 
                     <div class="form-control-wrapper">
 
+                        {{ govukDetails({
+                          summaryText: messages("fileupload.upload.details.summary"),
+                          html:details
+                        }) }}
+
                         <div class="govuk-inset-text">
-                          Accepted file type: .csv
+                           <p class="govuk-body govuk-!-margin-bottom-0">{{ messages("fileupload.upload.inset.text1") }}</p>
+                           <p class="govuk-body govuk-!-margin-bottom-0">{{ messages("fileupload.upload.inset.text2") }}</p>
                         </div>
 
                         {% if error == null %}
                         {{ govukFileUpload({
                               id: "file-input",
                               name: "file",
+                              attributes: {
+                                "accept": ".csv,application/csv"
+                                    },
                               label: {
-                                text: "Upload a file"
+                                text: messages("inputSelection.radio.fileUploadInput")
                               }
                         }) }}
 
@@ -49,8 +60,11 @@
                         {{ govukFileUpload({
                           id: "file-input",
                           name: "file",
+                           attributes: {
+                                                          "accept": ".csv,application/csv"
+                                                              },
                           label: {
-                            text: "Upload a file"
+                            text: messages("inputSelection.radio.fileUploadInput")
                           },
                           errorMessage: {
                             text: messages(error, maxFileUploadSize)

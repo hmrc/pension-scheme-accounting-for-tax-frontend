@@ -57,8 +57,10 @@ class WhatYouWillNeedController @Inject()(
       renderer.render(template = "fileUpload/whatYouWillNeed.njk",
         Json.obj(
           "chargeType" -> chargeType.toString,
-          "chargeTypeText" -> chargeType.toString,
+          "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
           "srn" -> srn, "startDate" -> Some(startDate),
+          "instructionsLink" -> "",
+          "templateLink" -> "",
           "viewModel" -> viewModel))
         .map(Ok(_))
     }

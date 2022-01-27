@@ -17,9 +17,9 @@
 package models
 
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.mvc.JavascriptLiteral
 import uk.gov.hmrc.viewmodels._
-
 sealed trait ChargeType
 
 object ChargeType extends Enumerable.Implicits {
@@ -63,6 +63,19 @@ object ChargeType extends Enumerable.Implicits {
     )
 
     Radios(field, items)
+  }
+
+   def fileUploadText(chargeType: ChargeType)(implicit messages: Messages): String = {
+    chargeType match {
+      case ChargeTypeAnnualAllowance   => messages("fileupload.annualAllowance")
+      case ChargeTypeLifetimeAllowance => messages("fileupload.lifeTimeAllowance")
+      case ChargeTypeOverseasTransfer  => messages("fileupload.overseasTransfer")
+      case ChargeTypeAuthSurplus  => messages("fileupload.authSurplus")
+      case ChargeTypeDeRegistration  => messages("fileupload.deRegistration")
+      case ChargeTypeShortService  => messages("fileupload.shortService")
+      case ChargeTypeLumpSumDeath  => messages("fileupload.lumpSumDeath")
+      case _                           => chargeType.toString
+    }
   }
 
   implicit val enumerable: Enumerable[ChargeType] =
