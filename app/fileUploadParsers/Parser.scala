@@ -84,7 +84,7 @@ trait Parser {
   }
 
   protected def stringToBoolean(s:String): String =
-    s match {
+    s.toLowerCase match {
       case "yes" => "true"
       case "no" => "false"
       case _ => s
