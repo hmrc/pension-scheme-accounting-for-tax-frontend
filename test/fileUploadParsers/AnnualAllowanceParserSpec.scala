@@ -19,6 +19,7 @@ package fileUploadParsers
 import base.SpecBase
 import config.FrontendAppConfig
 import data.SampleData
+import data.SampleData.startDate
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import models.chargeE.ChargeEDetails
@@ -43,7 +44,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
   "Annual allowance parser" must {
     "return charges in user answers when there are no validation errors" in {
       val chargeDetails = ChargeEDetails(BigDecimal(268.28), LocalDate.of(2020,1,1), isPaymentMandatory = true)
-      val result = parser.parse(validCsvFile)
+      val result = parser.parse(startDate, validCsvFile)
       result.errors mustBe Nil
       result.commitItems mustBe Seq(
         CommitItem(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2)),
@@ -54,7 +55,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     }
 
     "return validation errors for member details when present" in {
-      val result = parser.parse(invalidMemberDetailsCsvFile)
+      val result = parser.parse(startDate, invalidMemberDetailsCsvFile)
       result.errors mustBe List(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required")),
         ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid"))
@@ -62,7 +63,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     }
 
     "return validation errors for charge details when present, including invalid boolean value and missing year" in {
-      val result = parser.parse(invalidChargeDetailsCsvFile)
+      val result = parser.parse(startDate, invalidChargeDetailsCsvFile)
       result.errors mustBe List(
         ParserValidationErrors(0, Seq("chargeAmount.error.required", "dateNoticeReceived.error.incomplete", "error.boolean")),
         ParserValidationErrors(1, Seq("dateNoticeReceived.error.incomplete"))
@@ -70,7 +71,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     }
 
     "return validation errors for member details AND charge details when both present" in {
-      val result = parser.parse(invalidMemberDetailsAndChargeDetailsCsvFile)
+      val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsCsvFile)
       result.errors mustBe List(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "chargeAmount.error.required")),
         ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid", "dateNoticeReceived.error.invalid"))
@@ -78,14 +79,14 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     }
 
     "return validation errors for member details AND charge details when errors present in first row but not in second" in {
-      val result = parser.parse(invalidMemberDetailsAndChargeDetailsFirstRowCsvFile)
+      val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsFirstRowCsvFile)
       result.errors mustBe List(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "chargeAmount.error.required"))
       )
     }
 
     "return validation errors when not enough fields" in {
-      val result = parser.parse(List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
+      val result = parser.parse(startDate, List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
       result.errors mustBe List(ParserValidationErrors(0, Seq("Not enough fields")))
     }
   }

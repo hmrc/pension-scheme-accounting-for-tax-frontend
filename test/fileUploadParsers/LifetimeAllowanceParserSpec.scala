@@ -18,39 +18,68 @@ package fileUploadParsers
 
 import base.SpecBase
 import data.SampleData
+import data.SampleData.startDate
 import forms.MemberDetailsFormProvider
-import models.UserAnswers
+import forms.chargeD.ChargeDetailsFormProvider
+import models.chargeD.ChargeDDetails
 import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
-import pages.chargeD.MemberDetailsPage
+import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 
-class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
+import java.time.LocalDate
 
+class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
+  //scalastyle:off magic.number
   import LifetimeAllowanceParserSpec._
 
   "LifeTime allowance parser" must {
-    "return validation errors when present" in {
-      val result = parser.parse(invalidCsvFile)
+    "return charges in user answers when there are no validation errors" in {
+      val chargeDetails = ChargeDDetails(LocalDate.of(2020,4,1), Some(BigDecimal(268.28)), None)
+      val result = parser.parse(startDate, validCsvFile)
+      result.errors mustBe Nil
+      result.commitItems mustBe Seq(
+        CommitItem(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2)),
+        CommitItem(ChargeDetailsPage(0).path, Json.toJson(chargeDetails)),
+        CommitItem(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3)),
+        CommitItem(ChargeDetailsPage(1).path, Json.toJson(chargeDetails)),
+      )
+    }
+
+    "return validation errors for member details when present" in {
+      val result = parser.parse(startDate, invalidMemberDetailsCsvFile)
       result.errors mustBe List(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required")),
         ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid"))
       )
     }
 
-    "return charges in user answers when there are no validation errors" in {
-      val result = parser.parse(validCsvFile)
+    "return validation errors for charge details when present, including missing year and missing month" in {
+      val result = parser.parse(startDate, invalidChargeDetailsCsvFile)
+      result.errors mustBe List(
+        ParserValidationErrors(0, Seq("dateOfEvent.error.incomplete")),
+        ParserValidationErrors(1, Seq("dateOfEvent.error.incomplete"))
+      )
+    }
 
-      result.errors mustBe Nil
-      result.commitItems mustBe Seq(
-        CommitItem(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2)),
-        CommitItem(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3))
+    "return validation errors for member details AND charge details when both present" in {
+      val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsCsvFile)
+      result.errors mustBe List(
+        ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "dateOfEvent.error.incomplete")),
+        ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid", "dateOfEvent.error.incomplete"))
+      )
+    }
+
+    "return validation errors for member details AND charge details when errors present in first row but not in second" in {
+      val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsFirstRowCsvFile)
+      result.errors mustBe List(
+        ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "dateOfEvent.error.incomplete")),
       )
     }
 
     "return validation errors when not enough fields" in {
-      val result = parser.parse(List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
+      val result = parser.parse(startDate, List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
 
       result.errors mustBe List(ParserValidationErrors(0, Seq("Not enough fields")))
     }
@@ -59,12 +88,30 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
 }
 
 object LifetimeAllowanceParserSpec {
+  private val validCsvFile = List(
+    "Joe,Bloggs,AB123456C,01/04/2020,268.28,0.00",
+    "Joe,Bliggs,AB123457C,01/04/2020,268.28,0.00"
+  )
+  private val invalidMemberDetailsCsvFile = List(
+    ",Bloggs,AB123456C,01/04/2020,268.28,0.00",
+    "Ann,,3456C,01/04/2020,268.28,0.00"
+  )
+  private val invalidChargeDetailsCsvFile = List(
+    "Joe,Bloggs,AB123456C,01/04,268.28,0.00",
+    "Ann,Bliggs,AB123457C,01,268.28,0.00"
+  )
+  private val invalidMemberDetailsAndChargeDetailsCsvFile = List(
+    ",Bloggs,AB123456C,01/04,268.28,0.00",
+    "Ann,,3456C,01,268.28,0.00"
+  )
 
-  private val validCsvFile = List("Joe,Bloggs,AB123456C,2020,268.28,2020-01-01,true", "Joe,Bliggs,AB123457C,2020,268.28,2020-01-01,true")
-  private val invalidCsvFile = List(",Bloggs,AB123456C,2020,268.28,2020-01-01,true", "Ann,,3456C,2020,268.28,2020-01-01,true")
-  private val emptyUa = UserAnswers()
-  private val formProvider = new MemberDetailsFormProvider
+  private val invalidMemberDetailsAndChargeDetailsFirstRowCsvFile = List(
+    ",Bloggs,AB123456C,01/04,268.28,0.00",
+    "Joe,Bliggs,AB123457C,01/04/2020,268.28,0.00"
+  )
 
-  private val parser = new LifetimeAllowanceParser(formProvider)
+  private val memberDetailsFormProvider = new MemberDetailsFormProvider
+  private val chargeDetailsFormProvider = new ChargeDetailsFormProvider
+
+  private val parser = new LifetimeAllowanceParser(memberDetailsFormProvider, chargeDetailsFormProvider)
 }
-

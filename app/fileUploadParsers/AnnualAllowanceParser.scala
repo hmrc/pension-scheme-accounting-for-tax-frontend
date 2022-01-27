@@ -24,7 +24,10 @@ import models.MemberDetails
 import models.chargeE.ChargeEDetails
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.libs.json.Json
+
+import java.time.LocalDate
 
 class AnnualAllowanceParser @Inject()(
                                        memberDetailsFormProvider: MemberDetailsFormProvider,
@@ -73,7 +76,9 @@ class AnnualAllowanceParser @Inject()(
     }
   }
 
-  override protected def validateFields(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, Seq[CommitItem]] = {
+  override protected def validateFields(startDate: LocalDate,
+                                        index: Int,
+                                        chargeFields: Array[String])(implicit messages: Messages): Either[ParserValidationErrors, Seq[CommitItem]] = {
     combineValidationResults[MemberDetails, ChargeEDetails](
       memberDetailsValidation(index, chargeFields),
       chargeDetailsValidation(index, chargeFields),

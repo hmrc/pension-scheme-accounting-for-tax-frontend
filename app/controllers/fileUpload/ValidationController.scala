@@ -69,7 +69,7 @@ class ValidationController @Inject()(
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
     val result = if (validationHelper.isHeaderValid(filteredLinesFromCSV.head, chargeType: ChargeType)) {
-      parser.parse(filteredLinesFromCSV.tail)
+      parser.parse(startDate, filteredLinesFromCSV.tail)
     } else {
       ValidationResult(Nil, List(ParserValidationErrors(0, Seq("Header invalid"))))
     }

@@ -16,20 +16,23 @@
 
 package fileUploadParsers
 
+import play.api.i18n.Messages
 import play.api.libs.json.{Format, JsPath, JsValue, Json}
+
+import java.time.LocalDate
 
 trait Parser {
   protected val totalFields:Int
 
-  def parse(rows: List[String]): ValidationResult = {
+  def parse(startDate: LocalDate, rows: List[String])(implicit messages: Messages): ValidationResult = {
     rows.zipWithIndex.foldLeft[ValidationResult](ValidationResult(Nil, Nil)){
       case (acc, Tuple2(row, index)) =>
         val cells = row.split(",")
         cells.length match {
           case this.totalFields =>
-            validateFields(index, cells) match {
+            validateFields(startDate, index, cells) match {
               case Left(validationErrors) => ValidationResult(Nil, acc.errors ++ List(validationErrors))
-              case Right(commitItems) if acc.errors.nonEmpty => ValidationResult(Nil, acc.errors)
+              case Right(_) if acc.errors.nonEmpty => ValidationResult(Nil, acc.errors)
               case Right(commitItems) => ValidationResult(acc.commitItems ++ commitItems, acc.errors)
             }
           case _ =>
@@ -68,7 +71,9 @@ trait Parser {
     }
   }
 
-  protected def validateFields(index: Int, chargeFields: Array[String]) : Either[ParserValidationErrors, Seq[CommitItem]]
+  protected def validateFields(startDate: LocalDate,
+                               index: Int,
+                               chargeFields: Array[String])(implicit messages: Messages) : Either[ParserValidationErrors, Seq[CommitItem]]
 
   protected def firstNameField(fields: Array[String]):String =fields(0)
   protected def lastNameField(fields: Array[String]):String =fields(1)

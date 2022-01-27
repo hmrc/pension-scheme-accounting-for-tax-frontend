@@ -18,30 +18,75 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import forms.MemberDetailsFormProvider
-import pages.chargeD.MemberDetailsPage
+import forms.chargeD.ChargeDetailsFormProvider
+import models.chargeD.ChargeDDetails
+import models.{MemberDetails, Quarters}
+import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
+import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.libs.json.Json
 
+import java.time.LocalDate
+
 class LifetimeAllowanceParser @Inject()(
-                                         memberDetailsFormProvider: MemberDetailsFormProvider
+                                         memberDetailsFormProvider: MemberDetailsFormProvider,
+                                         chargeDetailsFormProvider: ChargeDetailsFormProvider
                                        ) extends Parser {
+  //scalastyle:off magic.number
+  override protected val totalFields: Int = 6
 
-  override protected val totalFields: Int = 7
-
-  override protected def validateFields(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, Seq[CommitItem]] = {
-    val m = Map(
-      "firstName" -> firstNameField(chargeFields),
-      "lastName" -> lastNameField(chargeFields),
-      "nino" -> ninoField(chargeFields)
-    )
-    val form = memberDetailsFormProvider.apply()
-    form.bind(m).fold(
+  private def memberDetailsValidation(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, MemberDetails] = {
+    val memberDetailsForm = memberDetailsFormProvider()
+    memberDetailsForm.bind(
+      Map(
+        "firstName" -> firstNameField(chargeFields),
+        "lastName" -> lastNameField(chargeFields),
+        "nino" -> ninoField(chargeFields)
+      )
+    ).fold(
       formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
-      memberDetails =>
-        Right(
-          Seq(
-            CommitItem(MemberDetailsPage(index).path, Json.toJson(memberDetails))
+      value => Right(value)
+    )
+  }
+
+  private def chargeDetailsValidation(startDate: LocalDate,
+                                      index: Int,
+                                      chargeFields: Array[String])(implicit messages: Messages): Either[ParserValidationErrors, ChargeDDetails] = {
+    val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
+      min = startDate,
+      max = Quarters.getQuarter(startDate).endDate,
+      minimumChargeValueAllowed = BigDecimal("0.01")
+    )
+
+    splitDayMonthYear(chargeFields(3)) match {
+      case Tuple3(day, month, year) =>
+        chargeDetailsForm.bind(
+          Map(
+            "dateOfEvent.day" -> day,
+            "dateOfEvent.month" -> month,
+            "dateOfEvent.year" -> year,
+            "taxAt25Percent" -> chargeFields(4),
+            "taxAt55Percent" -> chargeFields(5)
           )
+        ).fold(
+          formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
+          value => {
+            Right(value)
+          }
         )
+    }
+  }
+
+  override protected def validateFields(startDate: LocalDate,
+                                        index: Int,
+                                        chargeFields: Array[String])(implicit messages: Messages): Either[ParserValidationErrors, Seq[CommitItem]] = {
+    combineValidationResults[MemberDetails, ChargeDDetails](
+      memberDetailsValidation(index, chargeFields),
+      chargeDetailsValidation(startDate, index, chargeFields),
+      MemberDetailsPage(index).path,
+      Json.toJson(_),
+      ChargeDetailsPage(index).path,
+      Json.toJson(_)
     )
   }
 }
