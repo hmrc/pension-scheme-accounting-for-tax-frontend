@@ -20,7 +20,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import fileUploadParsers.{AnnualAllowanceParser, ParserValidationErrors, ValidationResult}
+import fileUploadParsers.{AnnualAllowanceParser, CommitItem, ParserValidationErrors, ValidationResult}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
@@ -29,7 +29,7 @@ import org.mockito.ArgumentMatchers.any
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsNull, JsObject, Json}
+import play.api.libs.json.{JsNull, JsObject, JsPath, JsString, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
@@ -85,7 +85,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   "onPageLoad" must {
-    "return OK and the correct view for a GET" in {
+    "return OK and the correct view for a GET where there are validation errors" in {
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
@@ -116,14 +116,21 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       )
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
-    "redirect OK to the next page and save into the Mongo database" in {
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
+
+    "redirect OK to the next page and save items to be committed into the Mongo database when there are no validation errors" in {
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      when(mockUserAnswersCacheConnector.save(any(), jsonCaptor.capture())(any(), any()))
         .thenReturn(Future.successful(JsNull))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
       val errors: List[ParserValidationErrors] = List()
 
-      when(mockAnnualAllowanceParser.parse(any())).thenReturn(ValidationResult(Nil, errors))
+      val ci = Seq(
+        CommitItem( JsPath \ "testNode1", JsString("test1")),
+        CommitItem( JsPath \ "testNode2", JsString("test2"))
+      )
+
+      when(mockAnnualAllowanceParser.parse(any())).thenReturn(ValidationResult(ci, errors))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       val result = route(
         application,
@@ -133,6 +140,12 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual dummyCall.url
+      jsonCaptor.getValue must containJson(
+        Json.obj(
+          "testNode1" -> "test1",
+          "testNode2" -> "test2"
+        )
+      )
 
     }
   }

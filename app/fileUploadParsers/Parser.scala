@@ -16,8 +16,6 @@
 
 package fileUploadParsers
 
-import models.UserAnswers
-import pages.Page
 import play.api.libs.json.{Format, JsPath, JsValue, Json}
 
 trait Parser {
@@ -30,11 +28,42 @@ trait Parser {
         cells.length match {
           case this.totalFields =>
             validateFields(index, cells) match {
-              case Left(validationErrors) => ValidationResult(acc.commitItems, acc.errors ++ List(validationErrors))
+              case Left(validationErrors) => ValidationResult(Nil, acc.errors ++ List(validationErrors))
+              case Right(commitItems) if acc.errors.nonEmpty => ValidationResult(Nil, acc.errors)
               case Right(commitItems) => ValidationResult(acc.commitItems ++ commitItems, acc.errors)
             }
           case _ =>
             ValidationResult(acc.commitItems, acc.errors ++ List(ParserValidationErrors(index, List("Not enough fields"))))
+        }
+    }
+  }
+
+  protected def combineValidationResults[A, B](
+                                                resultA: Either[ParserValidationErrors, A],
+                                                resultB: Either[ParserValidationErrors, B],
+                                                resultAJsPath: => JsPath,
+                                                resultAJsValue: A => JsValue,
+                                                resultBJsPath: => JsPath,
+                                                resultBJsValue: => B => JsValue
+                                              ): Either[ParserValidationErrors, Seq[CommitItem]] = {
+    resultA match {
+      case Left(resultAErrors) =>
+        resultB match {
+          case Left(resultBErrors) =>
+            Left(ParserValidationErrors(resultAErrors.row, resultAErrors.errors ++ resultBErrors.errors))
+          case _ => Left(resultAErrors)
+        }
+
+      case Right(resultAObject) =>
+        resultB match {
+          case Left(resultBErrors) => Left(resultBErrors)
+          case Right(resultBObject) =>
+            Right(
+              Seq(
+                CommitItem(resultAJsPath, resultAJsValue(resultAObject)),
+                CommitItem(resultBJsPath, resultBJsValue(resultBObject))
+              )
+            )
         }
     }
   }
@@ -44,6 +73,22 @@ trait Parser {
   protected def firstNameField(fields: Array[String]):String =fields(0)
   protected def lastNameField(fields: Array[String]):String =fields(1)
   protected def ninoField(fields: Array[String]):String =fields(2)
+
+  protected def splitDayMonthYear(date:String):(String, String, String) = {
+    date.split("/").toSeq match {
+      case Seq(d,m,y) => Tuple3(d,m,y)
+      case Seq(d,m) => Tuple3(d,m,"")
+      case Seq(d) => Tuple3(d, "", "")
+      case _ => Tuple3("", "", "")
+    }
+  }
+
+  protected def stringToBoolean(s:String): String =
+    s match {
+      case "yes" => "true"
+      case "no" => "false"
+      case _ => s
+    }
 }
 
 case class ParserValidationErrors(row: Int, errors: Seq[String])

@@ -48,22 +48,6 @@ class AnnualAllowanceParser @Inject()(
     )
   }
 
-  private def splitDayMonthYear(date:String):(String, String, String) = {
-    date.split("/").toSeq match {
-      case Seq(d,m,y) => Tuple3(d,m,y)
-      case Seq(d,m) => Tuple3(d,m,"")
-      case Seq(d) => Tuple3(d, "", "")
-      case _ => Tuple3("", "", "")
-    }
-  }
-
-  private def stringToBoolean(s:String): String =
-    s match {
-      case "yes" => "true"
-      case "no" => "false"
-      case _ => s
-    }
-
   private def chargeDetailsValidation(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, ChargeEDetails] = {
     val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
       minimumChargeValueAllowed = BigDecimal("0.01"),
@@ -87,30 +71,16 @@ class AnnualAllowanceParser @Inject()(
           }
         )
     }
-
-
   }
 
   override protected def validateFields(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, Seq[CommitItem]] = {
-    memberDetailsValidation(index, chargeFields) match {
-      case Left(memberDetailsErrors) =>
-        chargeDetailsValidation(index, chargeFields) match {
-          case Left(chargeDetailsErrors) =>
-            Left(ParserValidationErrors(memberDetailsErrors.row, memberDetailsErrors.errors ++ chargeDetailsErrors.errors))
-          case _ => Left(memberDetailsErrors)
-        }
-
-      case Right(memberDetails) =>
-        chargeDetailsValidation(index, chargeFields) match {
-          case Left(errors) => Left(errors)
-          case Right(chargeDetails) =>
-          Right(
-            Seq(
-              CommitItem(MemberDetailsPage(index).path, Json.toJson(memberDetails)),
-              CommitItem(ChargeDetailsPage(index).path, Json.toJson(chargeDetails))
-            )
-          )
-        }
-    }
+    combineValidationResults[MemberDetails, ChargeEDetails](
+      memberDetailsValidation(index, chargeFields),
+      chargeDetailsValidation(index, chargeFields),
+      MemberDetailsPage(index).path,
+      Json.toJson(_),
+      ChargeDetailsPage(index).path,
+      Json.toJson(_)
+    )
   }
 }

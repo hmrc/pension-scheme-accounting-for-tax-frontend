@@ -68,17 +68,18 @@ class ValidationController @Inject()(
 
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
-    val result = validationHelper.isHeaderValid(filteredLinesFromCSV.head, chargeType: ChargeType) match {
-      case true => parser.parse(filteredLinesFromCSV.tail)
-      case false => ValidationResult(Nil, List(ParserValidationErrors(0, Seq("Header invalid"))))
+    val result = if (validationHelper.isHeaderValid(filteredLinesFromCSV.head, chargeType: ChargeType)) {
+      parser.parse(filteredLinesFromCSV.tail)
+    } else {
+      ValidationResult(Nil, List(ParserValidationErrors(0, Seq("Header invalid"))))
     }
     result match {
       case ValidationResult(commitItems, Nil) =>
-        val ua = commitItems.foldLeft(request.userAnswers) { (acc, ci) =>
+        val updatedUA = commitItems.foldLeft(request.userAnswers) { (acc, ci) =>
           acc.setOrException(ci.jsPath, ci.value)
         }
-        userAnswersCacheConnector.save(request.internalId, ua.data)
-          .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
+        userAnswersCacheConnector.save(request.internalId, updatedUA.data)
+          .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, updatedUA, srn, startDate, accessType, version)))
       case ValidationResult(_, errors) =>
         renderer.render(template = "fileUpload/invalid.njk",
           Json.obj(
