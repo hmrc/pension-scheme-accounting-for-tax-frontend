@@ -92,7 +92,7 @@ trait Parser {
     s.toLowerCase match {
       case "yes" => "true"
       case "no" => "false"
-      case _ => s
+      case l => l
     }
 }
 
