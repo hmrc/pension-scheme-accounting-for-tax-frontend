@@ -53,17 +53,17 @@ class AnnualAllowanceParser @Inject()(
     )
   }
 
-  private def chargeDetailsValidation(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, ChargeEDetails] = {
+  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, ChargeEDetails] = {
     val validationResult = year(
       minYear = 2011,
-      maxYear = 2022,
+      maxYear = startDate.getYear,
       requiredKey = "annualAllowanceYear.fileUpload.error.required",
       invalidKey = "annualAllowanceYear.fileUpload.error.invalid",
       minKey = "annualAllowanceYear.fileUpload.error.past",
       maxKey = "annualAllowanceYear.fileUpload.error.future"
     ).apply(chargeFields(3))
 
-    val errors = validationResult match {
+    val taxYearErrors = validationResult match {
       case Valid => Nil
       case Invalid(errors) => errors.map(_.message)
     }
@@ -83,8 +83,13 @@ class AnnualAllowanceParser @Inject()(
             "isPaymentMandatory" -> stringToBoolean(chargeFields(6))
           )
         ).fold(
-          formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
-          value => Right(value)
+          formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message) ++ taxYearErrors)),
+          value =>
+            if (taxYearErrors.nonEmpty) {
+              Left(ParserValidationErrors(index, taxYearErrors))
+            }  else {
+              Right(value)
+            }
         )
     }
   }
@@ -94,7 +99,7 @@ class AnnualAllowanceParser @Inject()(
                                         chargeFields: Array[String])(implicit messages: Messages): Either[ParserValidationErrors, Seq[CommitItem]] = {
     combineValidationResults[MemberDetails, ChargeEDetails](
       memberDetailsValidation(index, chargeFields),
-      chargeDetailsValidation(index, chargeFields),
+      chargeDetailsValidation(startDate, index, chargeFields),
       MemberDetailsPage(index).path,
       Json.toJson(_),
       ChargeDetailsPage(index).path,

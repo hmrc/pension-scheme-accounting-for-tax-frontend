@@ -73,6 +73,16 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       )
     }
 
+    "return validation errors for tax year only, including missing, invalid, future and past tax years" in {
+      val result = parser.parse(startDate, invalidTaxYearCsvFile)
+      result.errors mustBe List(
+        ParserValidationErrors(0, Seq("annualAllowanceYear.fileUpload.error.required")),
+        ParserValidationErrors(1, Seq("annualAllowanceYear.fileUpload.error.invalid")),
+        ParserValidationErrors(2, Seq("annualAllowanceYear.fileUpload.error.future")),
+        ParserValidationErrors(3, Seq("annualAllowanceYear.fileUpload.error.past"))
+      )
+    }
+
     "return validation errors for member details AND charge details when both present" in {
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsCsvFile)
       result.errors mustBe List(
@@ -110,6 +120,12 @@ object AnnualAllowanceParserSpec extends MockitoSugar {
   private val invalidChargeDetailsCsvFile = List(
     "Joe,Bloggs,AB123456C,,,01/01,nah",
     "Ann,Bliggs,AB123457C,22,268.28,01,yes",
+    "Joe,Blaggs,AB123454C,2021,268.28,01/01/2020,yes",
+    "Jim,Bloggs,AB123455C,2010,268.28,01/01/2020,yes"
+  )
+  private val invalidTaxYearCsvFile = List(
+    "Joe,Bloggs,AB123456C,,268.28,01/01/2020,yes",
+    "Ann,Bliggs,AB123457C,22,268.28,01/01/2020,yes",
     "Joe,Blaggs,AB123454C,2021,268.28,01/01/2020,yes",
     "Jim,Bloggs,AB123455C,2010,268.28,01/01/2020,yes"
   )
