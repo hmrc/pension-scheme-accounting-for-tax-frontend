@@ -45,62 +45,61 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     "return charges in user answers when there are no validation errors" in {
       val chargeDetails = ChargeEDetails(BigDecimal(268.28), LocalDate.of(2020,1,1), isPaymentMandatory = true)
       val result = parser.parse(startDate, validCsvFile)
-      result.errors mustBe Nil
-      result.commitItems mustBe Seq(
+      result mustBe Left(Seq(
         CommitItem(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2)),
         CommitItem(ChargeDetailsPage(0).path, Json.toJson(chargeDetails)),
         CommitItem(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3)),
         CommitItem(ChargeDetailsPage(1).path, Json.toJson(chargeDetails)),
-      )
+      ))
     }
 
     "return validation errors for member details" in {
       val result = parser.parse(startDate, invalidMemberDetailsCsvFile)
-      result.errors mustBe List(
+      result mustBe Right(List(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required")),
         ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid"))
-      )
+      ))
     }
 
     "return validation errors for charge details, including missing, invalid, future and past tax years" in {
       val result = parser.parse(startDate, invalidChargeDetailsCsvFile)
-      result.errors mustBe List(
+      result mustBe Right(List(
         ParserValidationErrors(0, Seq(
           "chargeAmount.error.required", "dateNoticeReceived.error.incomplete", "error.boolean", "annualAllowanceYear.fileUpload.error.required")),
         ParserValidationErrors(1, Seq("dateNoticeReceived.error.incomplete", "annualAllowanceYear.fileUpload.error.invalid")),
         ParserValidationErrors(2, Seq("annualAllowanceYear.fileUpload.error.future")),
         ParserValidationErrors(3, Seq("annualAllowanceYear.fileUpload.error.past"))
-      )
+      ))
     }
 
     "return validation errors for tax year only, including missing, invalid, future and past tax years" in {
       val result = parser.parse(startDate, invalidTaxYearCsvFile)
-      result.errors mustBe List(
+      result mustBe Right(List(
         ParserValidationErrors(0, Seq("annualAllowanceYear.fileUpload.error.required")),
         ParserValidationErrors(1, Seq("annualAllowanceYear.fileUpload.error.invalid")),
         ParserValidationErrors(2, Seq("annualAllowanceYear.fileUpload.error.future")),
         ParserValidationErrors(3, Seq("annualAllowanceYear.fileUpload.error.past"))
-      )
+      ))
     }
 
     "return validation errors for member details AND charge details when both present" in {
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsCsvFile)
-      result.errors mustBe List(
+      result mustBe Right(List(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "chargeAmount.error.required")),
         ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid", "dateNoticeReceived.error.invalid"))
-      )
+      ))
     }
 
     "return validation errors for member details AND charge details when errors present in first row but not in second" in {
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsFirstRowCsvFile)
-      result.errors mustBe List(
+      result mustBe Right(List(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "chargeAmount.error.required"))
-      )
+      ))
     }
 
     "return validation errors when not enough fields" in {
-      val result = parser.parse(startDate, List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
-      result.errors mustBe List(ParserValidationErrors(0, Seq("Not enough fields")))
+      val result = parser.parse(startDate, Seq("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
+      result mustBe Right(List(ParserValidationErrors(0, Seq("Not enough fields"))))
     }
   }
 }

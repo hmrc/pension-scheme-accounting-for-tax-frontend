@@ -71,16 +71,16 @@ class ValidationController @Inject()(
     val result = if (validationHelper.isHeaderValid(filteredLinesFromCSV.head, chargeType: ChargeType)) {
       parser.parse(startDate, filteredLinesFromCSV.tail)
     } else {
-      ValidationResult(Nil, List(ParserValidationErrors(0, Seq("Header invalid"))))
+      Right(Seq(ParserValidationErrors(0, Seq("Header invalid"))))
     }
     result match {
-      case ValidationResult(commitItems, Nil) =>
+      case Left(commitItems) =>
         val updatedUA = commitItems.foldLeft(request.userAnswers) { (acc, ci) =>
           acc.setOrException(ci.jsPath, ci.value)
         }
         userAnswersCacheConnector.save(request.internalId, updatedUA.data)
           .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, updatedUA, srn, startDate, accessType, version)))
-      case ValidationResult(_, errors) =>
+      case Right(errors) =>
         renderer.render(template = "fileUpload/invalid.njk",
           Json.obj(
             "chargeType" -> chargeType,

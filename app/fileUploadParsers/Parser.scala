@@ -24,20 +24,19 @@ import java.time.LocalDate
 trait Parser {
   protected val totalFields:Int
   protected val minChargeValueAllowed = BigDecimal("0.01")
-
-  def parse(startDate: LocalDate, rows: List[String])(implicit messages: Messages): ValidationResult = {
-    rows.zipWithIndex.foldLeft[ValidationResult](ValidationResult(Nil, Nil)){
+  def parse(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[CommitItem], Seq[ParserValidationErrors]] = {
+    rows.zipWithIndex.foldLeft[Either[Seq[CommitItem], Seq[ParserValidationErrors]]](Left(Nil)){
       case (acc, Tuple2(row, index)) =>
         val cells = row.split(",")
         cells.length match {
           case this.totalFields =>
             validateFields(startDate, index, cells) match {
-              case Left(validationErrors) => ValidationResult(Nil, acc.errors ++ List(validationErrors))
-              case Right(_) if acc.errors.nonEmpty => ValidationResult(Nil, acc.errors)
-              case Right(commitItems) => ValidationResult(acc.commitItems ++ commitItems, acc.errors)
+              case Left(validationErrors) => Right(acc.toSeq.flatten ++ List(validationErrors))
+              case Right(_) if acc.isRight => Right(acc.toSeq.flatten)
+              case Right(commitItems) => Left(acc.left.getOrElse(Nil) ++ commitItems)
             }
           case _ =>
-            ValidationResult(Nil, acc.errors ++ List(ParserValidationErrors(index, List("Not enough fields"))))
+            Right(acc.toSeq.flatten ++ List(ParserValidationErrors(index, List("Not enough fields"))))
         }
     }
   }

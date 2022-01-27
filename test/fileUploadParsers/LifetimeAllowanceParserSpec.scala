@@ -38,74 +38,73 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
     "return charges in user answers when there are no validation errors" in {
       val chargeDetails = ChargeDDetails(LocalDate.of(2020,4,1), Some(BigDecimal(268.28)), None)
       val result = parser.parse(startDate, validCsvFile)
-      result.errors mustBe Nil
-      result.commitItems mustBe Seq(
+      result mustBe Left(Seq(
         CommitItem(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2)),
         CommitItem(ChargeDetailsPage(0).path, Json.toJson(chargeDetails)),
         CommitItem(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3)),
         CommitItem(ChargeDetailsPage(1).path, Json.toJson(chargeDetails)),
-      )
+      ))
     }
 
     "return validation errors for member details when present" in {
       val result = parser.parse(startDate, invalidMemberDetailsCsvFile)
-      result.errors mustBe List(
+      result mustBe Right(Seq(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required")),
         ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid"))
-      )
+      ))
     }
 
     "return validation errors for charge details when present, including missing year and missing month" in {
       val result = parser.parse(startDate, invalidChargeDetailsCsvFile)
-      result.errors mustBe List(
+      result mustBe Right(Seq(
         ParserValidationErrors(0, Seq("dateOfEvent.error.incomplete")),
         ParserValidationErrors(1, Seq("dateOfEvent.error.incomplete"))
-      )
+      ))
     }
 
     "return validation errors for member details AND charge details when both present" in {
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsCsvFile)
-      result.errors mustBe List(
+      result mustBe Right(Seq(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "dateOfEvent.error.incomplete")),
         ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid", "dateOfEvent.error.incomplete"))
-      )
+      ))
     }
 
     "return validation errors for member details AND charge details when errors present in first row but not in second" in {
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsFirstRowCsvFile)
-      result.errors mustBe List(
+      result mustBe Right(Seq(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "dateOfEvent.error.incomplete")),
-      )
+      ))
     }
 
     "return validation errors when not enough fields" in {
-      val result = parser.parse(startDate, List("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
+      val result = parser.parse(startDate, Seq("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
 
-      result.errors mustBe List(ParserValidationErrors(0, Seq("Not enough fields")))
+      result mustBe Right(Seq(ParserValidationErrors(0, Seq("Not enough fields"))))
     }
   }
 
 }
 
 object LifetimeAllowanceParserSpec {
-  private val validCsvFile = List(
+  private val validCsvFile = Seq(
     "Joe,Bloggs,AB123456C,01/04/2020,268.28,0.00",
     "Joe,Bliggs,AB123457C,01/04/2020,268.28,0.00"
   )
-  private val invalidMemberDetailsCsvFile = List(
+  private val invalidMemberDetailsCsvFile = Seq(
     ",Bloggs,AB123456C,01/04/2020,268.28,0.00",
     "Ann,,3456C,01/04/2020,268.28,0.00"
   )
-  private val invalidChargeDetailsCsvFile = List(
+  private val invalidChargeDetailsCsvFile = Seq(
     "Joe,Bloggs,AB123456C,01/04,268.28,0.00",
     "Ann,Bliggs,AB123457C,01,268.28,0.00"
   )
-  private val invalidMemberDetailsAndChargeDetailsCsvFile = List(
+  private val invalidMemberDetailsAndChargeDetailsCsvFile = Seq(
     ",Bloggs,AB123456C,01/04,268.28,0.00",
     "Ann,,3456C,01,268.28,0.00"
   )
 
-  private val invalidMemberDetailsAndChargeDetailsFirstRowCsvFile = List(
+  private val invalidMemberDetailsAndChargeDetailsFirstRowCsvFile = Seq(
     ",Bloggs,AB123456C,01/04,268.28,0.00",
     "Joe,Bliggs,AB123457C,01/04/2020,268.28,0.00"
   )
