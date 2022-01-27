@@ -54,7 +54,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       )
     }
 
-    "return validation errors for member details when present" in {
+    "return validation errors for member details" in {
       val result = parser.parse(startDate, invalidMemberDetailsCsvFile)
       result.errors mustBe List(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required")),
@@ -62,11 +62,14 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       )
     }
 
-    "return validation errors for charge details when present, including invalid boolean value and missing year" in {
+    "return validation errors for charge details, including missing, invalid, future and past tax years" in {
       val result = parser.parse(startDate, invalidChargeDetailsCsvFile)
       result.errors mustBe List(
-        ParserValidationErrors(0, Seq("chargeAmount.error.required", "dateNoticeReceived.error.incomplete", "error.boolean")),
-        ParserValidationErrors(1, Seq("dateNoticeReceived.error.incomplete"))
+        ParserValidationErrors(0, Seq(
+          "chargeAmount.error.required", "dateNoticeReceived.error.incomplete", "error.boolean", "annualAllowanceYear.fileUpload.error.required")),
+        ParserValidationErrors(1, Seq("dateNoticeReceived.error.incomplete", "annualAllowanceYear.fileUpload.error.invalid")),
+        ParserValidationErrors(2, Seq("annualAllowanceYear.fileUpload.error.future")),
+        ParserValidationErrors(3, Seq("annualAllowanceYear.fileUpload.error.past"))
       )
     }
 
@@ -105,8 +108,10 @@ object AnnualAllowanceParserSpec extends MockitoSugar {
     "Ann,,3456C,2020,268.28,01/01/2020,yes"
   )
   private val invalidChargeDetailsCsvFile = List(
-    "Joe,Bloggs,AB123456C,2020,,01/01,nah",
-    "Ann,Bliggs,AB123457C,2020,268.28,01,yes"
+    "Joe,Bloggs,AB123456C,,,01/01,nah",
+    "Ann,Bliggs,AB123457C,22,268.28,01,yes",
+    "Joe,Blaggs,AB123454C,2021,268.28,01/01/2020,yes",
+    "Jim,Bloggs,AB123455C,2010,268.28,01/01/2020,yes"
   )
   private val invalidMemberDetailsAndChargeDetailsCsvFile = List(
     ",Bloggs,AB123456C,2020,,01/01/2020,yes",

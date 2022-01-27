@@ -57,6 +57,13 @@ class AnnualAllowanceParser @Inject()(
       minimumDate = config.earliestDateOfNotice
     )
 
+    /*
+  annualAllowanceYear.fileUpload.error.required
+  annualAllowanceYear.fileUpload.error.invalid
+  annualAllowanceYear.fileUpload.error.future
+  annualAllowanceYear.fileUpload.error.past
+     */
+
     splitDayMonthYear(chargeFields(5)) match {
       case Tuple3(day, month, year) =>
         chargeDetailsForm.bind(
