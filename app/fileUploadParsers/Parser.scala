@@ -37,7 +37,7 @@ trait Parser {
               case Right(commitItems) => ValidationResult(acc.commitItems ++ commitItems, acc.errors)
             }
           case _ =>
-            ValidationResult(acc.commitItems, acc.errors ++ List(ParserValidationErrors(index, List("Not enough fields"))))
+            ValidationResult(Nil, acc.errors ++ List(ParserValidationErrors(index, List("Not enough fields"))))
         }
     }
   }
