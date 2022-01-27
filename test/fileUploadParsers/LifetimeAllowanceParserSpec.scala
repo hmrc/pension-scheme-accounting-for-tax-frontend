@@ -38,7 +38,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
     "return charges in user answers when there are no validation errors" in {
       val chargeDetails = ChargeDDetails(LocalDate.of(2020,4,1), Some(BigDecimal(268.28)), None)
       val result = parser.parse(startDate, validCsvFile)
-      result mustBe Left(Seq(
+      result mustBe Right(Seq(
         CommitItem(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2)),
         CommitItem(ChargeDetailsPage(0).path, Json.toJson(chargeDetails)),
         CommitItem(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3)),
@@ -48,7 +48,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
 
     "return validation errors for member details when present" in {
       val result = parser.parse(startDate, invalidMemberDetailsCsvFile)
-      result mustBe Right(Seq(
+      result mustBe Left(Seq(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required")),
         ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid"))
       ))
@@ -56,7 +56,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
 
     "return validation errors for charge details when present, including missing year and missing month" in {
       val result = parser.parse(startDate, invalidChargeDetailsCsvFile)
-      result mustBe Right(Seq(
+      result mustBe Left(Seq(
         ParserValidationErrors(0, Seq("dateOfEvent.error.incomplete")),
         ParserValidationErrors(1, Seq("dateOfEvent.error.incomplete"))
       ))
@@ -64,7 +64,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
 
     "return validation errors for member details AND charge details when both present" in {
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsCsvFile)
-      result mustBe Right(Seq(
+      result mustBe Left(Seq(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "dateOfEvent.error.incomplete")),
         ParserValidationErrors(1, Seq("memberDetails.error.lastName.required", "memberDetails.error.nino.invalid", "dateOfEvent.error.incomplete"))
       ))
@@ -72,7 +72,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
 
     "return validation errors for member details AND charge details when errors present in first row but not in second" in {
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsFirstRowCsvFile)
-      result mustBe Right(Seq(
+      result mustBe Left(Seq(
         ParserValidationErrors(0, Seq("memberDetails.error.firstName.required", "dateOfEvent.error.incomplete")),
       ))
     }
@@ -80,7 +80,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
     "return validation errors when not enough fields" in {
       val result = parser.parse(startDate, Seq("Bloggs,AB123456C,2020268.28,2020-01-01,true"))
 
-      result mustBe Right(Seq(ParserValidationErrors(0, Seq("Not enough fields"))))
+      result mustBe Left(Seq(ParserValidationErrors(0, Seq("Not enough fields"))))
     }
   }
 
