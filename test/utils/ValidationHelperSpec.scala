@@ -24,7 +24,7 @@ import play.api.Configuration
 class ValidationHelperSpec extends SpecBase with MockitoSugar{
 
   val validAnnualAllowanceHeader = "FirstName,LastName,Nino,TaxYear,ChargeAmount,DateReceived,PaymentTypeMandatory"
-  val validLifeTimeAllowanceHeader = "FirstName,LastName,Nino,TaxYear"
+  val validLifeTimeAllowanceHeader = "First name,Last name,National Insurance number,Date,Tax due 25%,Tax due 55%"
   val invalidHeader = "Invalid Header"
   val appConfig: Configuration = injector.instanceOf[Configuration]
 
