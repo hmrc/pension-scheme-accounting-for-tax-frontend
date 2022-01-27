@@ -91,7 +91,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val errors: List[ParserValidationErrors] = List(
+      val errors: Seq[ParserValidationErrors] = List(
         ParserValidationErrors(0, Seq("Cry"))
       )
 
@@ -123,7 +123,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         .thenReturn(Future.successful(JsNull))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
-      val errors: List[ParserValidationErrors] = List()
+      val errors: Seq[ParserValidationErrors] = List()
 
       val ci = Seq(
         CommitItem( JsPath \ "testNode1", JsString("test1")),
