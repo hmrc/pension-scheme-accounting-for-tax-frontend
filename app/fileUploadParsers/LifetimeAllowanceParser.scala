@@ -52,14 +52,14 @@ class LifetimeAllowanceParser @Inject()(
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
                                       chargeFields: Array[String])(implicit messages: Messages): Either[ParserValidationErrors, ChargeDDetails] = {
-    val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
-      min = startDate,
-      max = Quarters.getQuarter(startDate).endDate,
-      minimumChargeValueAllowed = BigDecimal("0.01")
-    )
 
     splitDayMonthYear(chargeFields(3)) match {
       case Tuple3(day, month, year) =>
+        val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
+          min = startDate,
+          max = Quarters.getQuarter(startDate).endDate,
+          minimumChargeValueAllowed = BigDecimal("0.01")
+        )
         chargeDetailsForm.bind(
           Map(
             "dateOfEvent.day" -> day,
@@ -70,9 +70,7 @@ class LifetimeAllowanceParser @Inject()(
           )
         ).fold(
           formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
-          value => {
-            Right(value)
-          }
+          value => Right(value)
         )
     }
   }

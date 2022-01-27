@@ -26,7 +26,7 @@ import play.api.data.validation.{Invalid, Valid}
 import java.time.LocalDate
 
 class ConstraintsSpec extends AnyFreeSpec with Matchers with ScalaCheckPropertyChecks with Generators  with Constraints {
-
+  //scalastyle:off magic.number
 
   "firstError" - {
 
@@ -48,6 +48,39 @@ class ConstraintsSpec extends AnyFreeSpec with Matchers with ScalaCheckPropertyC
     "must return Invalid for the first error when both constraints fail" in {
       val result = firstError(maxLength(-1, "error.length"), regexp("""^\w+$""", "error.regexp"))("")
       result mustEqual Invalid("error.length", -1)
+    }
+  }
+
+  "year" - {
+
+    "must return Valid when valid year" in {
+      val result =
+        year(minYear = 2000, maxYear = 2020, requiredKey = "required", invalidKey = "invalid", minKey = "min", maxKey = "max").apply("2015")
+      result mustEqual Valid
+    }
+
+    "must return Invalid for an required year" in {
+      val result =
+        year(minYear = 2000, maxYear = 2020, requiredKey = "required", invalidKey = "invalid", minKey = "min", maxKey = "max").apply("")
+      result mustEqual Invalid("required")
+    }
+
+    "must return Invalid for an invalid year" in {
+      val result =
+        year(minYear = 2000, maxYear = 2020, requiredKey = "required", invalidKey = "invalid", minKey = "min", maxKey = "max").apply("201")
+      result mustEqual Invalid("invalid")
+    }
+
+    "must return Invalid for an year less than min" in {
+      val result =
+        year(minYear = 2000, maxYear = 2020, requiredKey = "required", invalidKey = "invalid", minKey = "min", maxKey = "max").apply("1999")
+      result mustEqual Invalid("min")
+    }
+
+    "must return Invalid for an year greater than max" in {
+      val result =
+        year(minYear = 2000, maxYear = 2020, requiredKey = "required", invalidKey = "invalid", minKey = "min", maxKey = "max").apply("2021")
+      result mustEqual Invalid("max")
     }
   }
 

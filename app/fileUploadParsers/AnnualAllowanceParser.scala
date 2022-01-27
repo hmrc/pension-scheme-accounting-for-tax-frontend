@@ -20,10 +20,12 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
+import forms.mappings.Constraints
 import models.MemberDetails
 import models.chargeE.ChargeEDetails
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
+import play.api.data.validation.{Invalid, Valid}
 import play.api.i18n.Messages
 import play.api.libs.json.Json
 
@@ -33,7 +35,7 @@ class AnnualAllowanceParser @Inject()(
                                        memberDetailsFormProvider: MemberDetailsFormProvider,
                                        chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                        config: FrontendAppConfig
-                                     ) extends Parser {
+                                     ) extends Parser with Constraints {
   //scalastyle:off magic.number
   override protected val totalFields: Int = 7
 
@@ -52,20 +54,26 @@ class AnnualAllowanceParser @Inject()(
   }
 
   private def chargeDetailsValidation(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, ChargeEDetails] = {
-    val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
-      minimumChargeValueAllowed = BigDecimal("0.01"),
-      minimumDate = config.earliestDateOfNotice
-    )
+    val validationResult = year(
+      minYear = 2011,
+      maxYear = 2022,
+      requiredKey = "annualAllowanceYear.fileUpload.error.required",
+      invalidKey = "annualAllowanceYear.fileUpload.error.invalid",
+      minKey = "annualAllowanceYear.fileUpload.error.past",
+      maxKey = "annualAllowanceYear.fileUpload.error.future"
+    ).apply(chargeFields(3))
 
-    /*
-  annualAllowanceYear.fileUpload.error.required
-  annualAllowanceYear.fileUpload.error.invalid
-  annualAllowanceYear.fileUpload.error.future
-  annualAllowanceYear.fileUpload.error.past
-     */
+    val errors = validationResult match {
+      case Valid => Nil
+      case Invalid(errors) => errors.map(_.message)
+    }
 
     splitDayMonthYear(chargeFields(5)) match {
       case Tuple3(day, month, year) =>
+        val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
+          minimumChargeValueAllowed = BigDecimal("0.01"),
+          minimumDate = config.earliestDateOfNotice
+        )
         chargeDetailsForm.bind(
           Map(
             "chargeAmount" -> chargeFields(4),
@@ -76,9 +84,7 @@ class AnnualAllowanceParser @Inject()(
           )
         ).fold(
           formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
-          value => {
-            Right(value)
-          }
+          value => Right(value)
         )
     }
   }
