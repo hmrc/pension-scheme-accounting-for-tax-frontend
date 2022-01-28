@@ -103,7 +103,9 @@ class ValidationController @Inject()(
             case (Some(parser), Some(ud: UploadedSuccessfully)) =>
               upscanInitiateConnector.download(ud.downloadUrl)
                 .map(_.body.split("\n").toList)
-                .flatMap(linesFromCSV => parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser))
+                .flatMap { linesFromCSV =>
+                  parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                }
           }
         }
     }

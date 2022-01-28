@@ -37,30 +37,6 @@ class LifetimeAllowanceParser @Inject()(
   //scalastyle:off magic.number
   override protected val totalFields: Int = 6
 
-  private def memberDetailsValidation(index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], MemberDetails] = {
-    val fields = Seq(
-      Field(MemberDetailsFieldNames.firstName, firstNameField(chargeFields), MemberDetailsFieldNames.firstName, 0),
-      Field(MemberDetailsFieldNames.lastName, lastNameField(chargeFields), MemberDetailsFieldNames.lastName, 1),
-      Field(MemberDetailsFieldNames.nino, ninoField(chargeFields), MemberDetailsFieldNames.nino, 2)
-    )
-    val memberDetailsForm = memberDetailsFormProvider()
-    memberDetailsForm
-      .bind(Field.seqToMap(fields))
-      .fold(
-        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-        value => Right(value)
-      )
-  }
-
-  private object ChargeDetailsFieldNames {
-    val dateOfEventDay: String = "dateOfEvent.day"
-    val dateOfEventMonth: String = "dateOfEvent.month"
-    val dateOfEventYear: String = "dateOfEvent.year"
-    val taxAt25Percent: String = "taxAt25Percent"
-    val taxAt55Percent: String = "taxAt55Percent"
-    val dateOfEvent: String = "dateOfEvent"
-  }
-
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
                                       chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDDetails] = {
@@ -68,11 +44,11 @@ class LifetimeAllowanceParser @Inject()(
     splitDayMonthYear(chargeFields(3)) match {
       case Tuple3(day, month, year) =>
         val fields = Seq(
-          Field(ChargeDetailsFieldNames.dateOfEventDay, day, ChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(ChargeDetailsFieldNames.dateOfEventMonth, month, ChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(ChargeDetailsFieldNames.dateOfEventYear, year, ChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(ChargeDetailsFieldNames.taxAt25Percent, chargeFields(4), ChargeDetailsFieldNames.taxAt25Percent, 4),
-          Field(ChargeDetailsFieldNames.taxAt55Percent, chargeFields(5), ChargeDetailsFieldNames.taxAt55Percent, 5)
+          Field(LifetimeAllowanceChargeDetailsFieldNames.dateOfEventDay, day, LifetimeAllowanceChargeDetailsFieldNames.dateOfEvent, 3),
+          Field(LifetimeAllowanceChargeDetailsFieldNames.dateOfEventMonth, month, LifetimeAllowanceChargeDetailsFieldNames.dateOfEvent, 3),
+          Field(LifetimeAllowanceChargeDetailsFieldNames.dateOfEventYear, year, LifetimeAllowanceChargeDetailsFieldNames.dateOfEvent, 3),
+          Field(LifetimeAllowanceChargeDetailsFieldNames.taxAt25Percent, chargeFields(4), LifetimeAllowanceChargeDetailsFieldNames.taxAt25Percent, 4),
+          Field(LifetimeAllowanceChargeDetailsFieldNames.taxAt55Percent, chargeFields(5), LifetimeAllowanceChargeDetailsFieldNames.taxAt55Percent, 5)
         )
         val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
           min = startDate,
@@ -92,7 +68,7 @@ class LifetimeAllowanceParser @Inject()(
                                         index: Int,
                                         chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     combineValidationResults[MemberDetails, ChargeDDetails](
-      memberDetailsValidation(index, chargeFields),
+      memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
       chargeDetailsValidation(startDate, index, chargeFields),
       MemberDetailsPage(index).path,
       Json.toJson(_),

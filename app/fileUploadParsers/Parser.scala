@@ -16,6 +16,7 @@
 
 package fileUploadParsers
 
+import models.MemberDetails
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{Format, JsPath, JsValue, Json}
@@ -23,8 +24,6 @@ import play.api.libs.json.{Format, JsPath, JsValue, Json}
 import java.time.LocalDate
 
 trait Parser {
-  protected val totalFields:Int
-  protected val minChargeValueAllowed = BigDecimal("0.01")
   def parse(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)){
       case (acc, Tuple2(row, index)) =>
@@ -43,7 +42,28 @@ trait Parser {
     }
   }
 
-  protected def errorsFromForm[A](formWithErrors:Form[A], fields: Seq[Field], index:Int): Seq[ParserValidationError] = {
+  protected val totalFields:Int
+
+  protected def validateFields(startDate: LocalDate,
+                               index: Int,
+                               chargeFields: Array[String])(implicit messages: Messages) : Either[Seq[ParserValidationError], Seq[CommitItem]]
+
+  protected def memberDetailsValidation(index: Int, chargeFields: Array[String],
+                                      memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
+    val fields = Seq(
+      Field(MemberDetailsFieldNames.firstName, firstNameField(chargeFields), MemberDetailsFieldNames.firstName, 0),
+      Field(MemberDetailsFieldNames.lastName, lastNameField(chargeFields), MemberDetailsFieldNames.lastName, 1),
+      Field(MemberDetailsFieldNames.nino, ninoField(chargeFields), MemberDetailsFieldNames.nino, 2)
+    )
+    memberDetailsForm
+      .bind(Field.seqToMap(fields))
+      .fold(
+        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+        value => Right(value)
+      )
+  }
+
+  protected final def errorsFromForm[A](formWithErrors:Form[A], fields: Seq[Field], index:Int): Seq[ParserValidationError] = {
     formWithErrors
       .errors
       .map { formError =>
@@ -55,7 +75,7 @@ trait Parser {
       }
   }
 
-  protected def combineValidationResults[A, B](
+  protected final def combineValidationResults[A, B](
                                                 resultA: Either[Seq[ParserValidationError], A],
                                                 resultB: Either[Seq[ParserValidationError], B],
                                                 resultAJsPath: => JsPath,
@@ -85,21 +105,43 @@ trait Parser {
     }
   }
 
-  protected def validateFields(startDate: LocalDate,
-                               index: Int,
-                               chargeFields: Array[String])(implicit messages: Messages) : Either[Seq[ParserValidationError], Seq[CommitItem]]
+  protected final def firstNameField(fields: Array[String]):String = fields(0)
+  protected final def lastNameField(fields: Array[String]):String = fields(1)
+  protected final def ninoField(fields: Array[String]):String = fields(2)
 
-  protected def firstNameField(fields: Array[String]):String =fields(0)
-  protected def lastNameField(fields: Array[String]):String =fields(1)
-  protected def ninoField(fields: Array[String]):String =fields(2)
+  protected final val minChargeValueAllowed = BigDecimal("0.01")
 
-  protected object MemberDetailsFieldNames {
+  protected final object MemberDetailsFieldNames {
     val firstName = "firstName"
     val lastName = "lastName"
     val nino = "nino"
   }
 
-  protected def splitDayMonthYear(date:String):(String, String, String) = {
+  protected final object AnnualAllowanceChargeDetailsFieldNames {
+    val chargeAmount: String = "chargeAmount"
+    val dateNoticeReceivedDay: String = "dateNoticeReceived.day"
+    val dateNoticeReceivedMonth: String = "dateNoticeReceived.month"
+    val dateNoticeReceivedYear: String = "dateNoticeReceived.year"
+    val dateNoticeReceived: String = "dateNoticeReceived"
+    val isPaymentMandatory= "isPaymentMandatory"
+  }
+  protected final object AnnualAllowanceYearErrorKeys {
+    val requiredKey = "annualAllowanceYear.fileUpload.error.required"
+    val invalidKey = "annualAllowanceYear.fileUpload.error.invalid"
+    val minKey = "annualAllowanceYear.fileUpload.error.past"
+    val maxKey = "annualAllowanceYear.fileUpload.error.future"
+  }
+
+  protected final object LifetimeAllowanceChargeDetailsFieldNames {
+    val dateOfEventDay: String = "dateOfEvent.day"
+    val dateOfEventMonth: String = "dateOfEvent.month"
+    val dateOfEventYear: String = "dateOfEvent.year"
+    val taxAt25Percent: String = "taxAt25Percent"
+    val taxAt55Percent: String = "taxAt55Percent"
+    val dateOfEvent: String = "dateOfEvent"
+  }
+
+  protected final def splitDayMonthYear(date:String):(String, String, String) = {
     date.split("/").toSeq match {
       case Seq(d,m,y) => Tuple3(d,m,y)
       case Seq(d,m) => Tuple3(d,m,"")
@@ -108,7 +150,7 @@ trait Parser {
     }
   }
 
-  protected def stringToBoolean(s:String): String =
+  protected final def stringToBoolean(s:String): String =
     s.toLowerCase match {
       case "yes" => "true"
       case "no" => "false"

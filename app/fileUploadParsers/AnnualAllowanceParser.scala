@@ -38,36 +38,20 @@ class AnnualAllowanceParser @Inject()(
                                      ) extends Parser with Constraints {
   //First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory
 
-  import AnnualAllowanceParser._
-
   //scalastyle:off magic.number
   override protected val totalFields: Int = 7
-
-  private def memberDetailsValidation(index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], MemberDetails] = {
-    val fields = Seq(
-      Field(MemberDetailsFieldNames.firstName, firstNameField(chargeFields), MemberDetailsFieldNames.firstName, 0),
-      Field(MemberDetailsFieldNames.lastName, lastNameField(chargeFields), MemberDetailsFieldNames.lastName, 1),
-      Field(MemberDetailsFieldNames.nino, ninoField(chargeFields), MemberDetailsFieldNames.nino, 2)
-    )
-    val memberDetailsForm = memberDetailsFormProvider()
-    memberDetailsForm
-      .bind(Field.seqToMap(fields))
-      .fold(
-        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-        value => Right(value)
-      )
-  }
 
   private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], ChargeEDetails] = {
     val taxYearsErrors = validateTaxYear(startDate, index, chargeFields(3))
     splitDayMonthYear(chargeFields(5)) match {
       case Tuple3(day, month, year) =>
         val fields = Seq(
-          Field(ChargeDetailsFieldNames.chargeAmount, chargeFields(4), ChargeDetailsFieldNames.chargeAmount, 4),
-          Field(ChargeDetailsFieldNames.dateNoticeReceivedDay, day, ChargeDetailsFieldNames.dateNoticeReceived, 5),
-          Field(ChargeDetailsFieldNames.dateNoticeReceivedMonth, month, ChargeDetailsFieldNames.dateNoticeReceived, 5),
-          Field(ChargeDetailsFieldNames.dateNoticeReceivedYear, year, ChargeDetailsFieldNames.dateNoticeReceived, 5),
-          Field(ChargeDetailsFieldNames.isPaymentMandatory, stringToBoolean(chargeFields(6)), ChargeDetailsFieldNames.isPaymentMandatory, 6)
+          Field(AnnualAllowanceChargeDetailsFieldNames.chargeAmount, chargeFields(4), AnnualAllowanceChargeDetailsFieldNames.chargeAmount, 4),
+          Field(AnnualAllowanceChargeDetailsFieldNames.dateNoticeReceivedDay, day, AnnualAllowanceChargeDetailsFieldNames.dateNoticeReceived, 5),
+          Field(AnnualAllowanceChargeDetailsFieldNames.dateNoticeReceivedMonth, month, AnnualAllowanceChargeDetailsFieldNames.dateNoticeReceived, 5),
+          Field(AnnualAllowanceChargeDetailsFieldNames.dateNoticeReceivedYear, year, AnnualAllowanceChargeDetailsFieldNames.dateNoticeReceived, 5),
+          Field(AnnualAllowanceChargeDetailsFieldNames.isPaymentMandatory, stringToBoolean(chargeFields(6)),
+            AnnualAllowanceChargeDetailsFieldNames.isPaymentMandatory, 6)
 
         )
         val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
@@ -92,10 +76,10 @@ class AnnualAllowanceParser @Inject()(
     year(
       minYear = 2011,
       maxYear = startDate.getYear,
-      requiredKey = YearErrorKeys.requiredKey,
-      invalidKey = YearErrorKeys.invalidKey,
-      minKey = YearErrorKeys.minKey,
-      maxKey = YearErrorKeys.maxKey
+      requiredKey = AnnualAllowanceYearErrorKeys.requiredKey,
+      invalidKey = AnnualAllowanceYearErrorKeys.invalidKey,
+      minKey = AnnualAllowanceYearErrorKeys.minKey,
+      maxKey = AnnualAllowanceYearErrorKeys.maxKey
     )(fieldValue) match {
       case Valid => Nil
       case Invalid(errors) => errors.map(error => ParserValidationError(index, 3, error.message))
@@ -106,29 +90,12 @@ class AnnualAllowanceParser @Inject()(
                                         index: Int,
                                         chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     combineValidationResults[MemberDetails, ChargeEDetails](
-      memberDetailsValidation(index, chargeFields),
+      memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
       chargeDetailsValidation(startDate, index, chargeFields),
       MemberDetailsPage(index).path,
       Json.toJson(_),
       ChargeDetailsPage(index).path,
       Json.toJson(_)
     )
-  }
-}
-
-object AnnualAllowanceParser {
-  private object ChargeDetailsFieldNames {
-    val chargeAmount: String = "chargeAmount"
-    val dateNoticeReceivedDay: String = "dateNoticeReceived.day"
-    val dateNoticeReceivedMonth: String = "dateNoticeReceived.month"
-    val dateNoticeReceivedYear: String = "dateNoticeReceived.year"
-    val dateNoticeReceived: String = "dateNoticeReceived"
-    val isPaymentMandatory= "isPaymentMandatory"
-  }
-  private object YearErrorKeys {
-    val requiredKey = "annualAllowanceYear.fileUpload.error.required"
-    val invalidKey = "annualAllowanceYear.fileUpload.error.invalid"
-    val minKey = "annualAllowanceYear.fileUpload.error.past"
-    val maxKey = "annualAllowanceYear.fileUpload.error.future"
   }
 }
