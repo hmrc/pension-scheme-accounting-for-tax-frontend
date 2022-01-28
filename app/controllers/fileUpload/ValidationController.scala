@@ -71,7 +71,7 @@ class ValidationController @Inject()(
     val result = if (validationHelper.isHeaderValid(filteredLinesFromCSV.head, chargeType: ChargeType)) {
       parser.parse(startDate, filteredLinesFromCSV.tail)
     } else {
-      Left(Seq(ParserValidationErrors(0, Seq("Header invalid"))))
+      Left(Seq(ParserValidationError(0, -1, "Header invalid")))
     }
     result match {
       case Left(errors) =>

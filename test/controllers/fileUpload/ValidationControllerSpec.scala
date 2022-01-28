@@ -20,7 +20,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import fileUploadParsers.{AnnualAllowanceParser, CommitItem, ParserValidationErrors}
+import fileUploadParsers.{AnnualAllowanceParser, CommitItem, ParserValidationError}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
@@ -91,8 +91,8 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val errors: Seq[ParserValidationErrors] = List(
-        ParserValidationErrors(0, Seq("Cry"))
+      val errors: Seq[ParserValidationError] = Seq(
+        ParserValidationError(0, 0, "Cry")
       )
 
       when(mockAnnualAllowanceParser.parse(any(), any())(any())).thenReturn(Left(errors))

@@ -16,6 +16,7 @@
 
 package fileUploadParsers
 
+import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{Format, JsPath, JsValue, Json}
 
@@ -24,37 +25,49 @@ import java.time.LocalDate
 trait Parser {
   protected val totalFields:Int
   protected val minChargeValueAllowed = BigDecimal("0.01")
-  def parse(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationErrors], Seq[CommitItem]] = {
-    rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationErrors], Seq[CommitItem]]](Right(Nil)){
+  def parse(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+    rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)){
       case (acc, Tuple2(row, index)) =>
         val cells = row.split(",")
         cells.length match {
           case this.totalFields =>
             (acc, validateFields(startDate, index, cells)) match {
-              case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ Seq(newErrors))
-              case (Right(_), Left(newErrors)) => Left(Seq(newErrors))
+              case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ newErrors)
+              case (Right(_), Left(newErrors)) => Left(newErrors)
               case (currentErrors@Left(_), Right(_)) => currentErrors
               case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
             }
           case _ =>
-            Left(acc.left.getOrElse(Nil) ++ Seq(ParserValidationErrors(index, List("Not enough fields"))))
+            Left(acc.left.getOrElse(Nil) ++ Seq(ParserValidationError(index, -1, "Not enough fields")))
         }
     }
   }
 
+  protected def errorsFromForm[A](formWithErrors:Form[A], fields: Seq[Field], index:Int): Seq[ParserValidationError] = {
+    formWithErrors
+      .errors
+      .map { formError =>
+        val col = fields.find(_.columnName == formError.key) match {
+          case Some(f) => f.columnNo
+          case _ => -1
+        }
+        ParserValidationError(index, col, formError.message)
+      }
+  }
+
   protected def combineValidationResults[A, B](
-                                                resultA: Either[ParserValidationErrors, A],
-                                                resultB: Either[ParserValidationErrors, B],
+                                                resultA: Either[Seq[ParserValidationError], A],
+                                                resultB: Either[Seq[ParserValidationError], B],
                                                 resultAJsPath: => JsPath,
                                                 resultAJsValue: A => JsValue,
                                                 resultBJsPath: => JsPath,
                                                 resultBJsValue: => B => JsValue
-                                              ): Either[ParserValidationErrors, Seq[CommitItem]] = {
+                                              ): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     resultA match {
       case Left(resultAErrors) =>
         resultB match {
           case Left(resultBErrors) =>
-            Left(ParserValidationErrors(resultAErrors.row, resultAErrors.errors ++ resultBErrors.errors))
+            Left(resultAErrors ++ resultBErrors)
           case _ => Left(resultAErrors)
         }
 
@@ -74,7 +87,7 @@ trait Parser {
 
   protected def validateFields(startDate: LocalDate,
                                index: Int,
-                               chargeFields: Array[String])(implicit messages: Messages) : Either[ParserValidationErrors, Seq[CommitItem]]
+                               chargeFields: Array[String])(implicit messages: Messages) : Either[Seq[ParserValidationError], Seq[CommitItem]]
 
   protected def firstNameField(fields: Array[String]):String =fields(0)
   protected def lastNameField(fields: Array[String]):String =fields(1)
@@ -97,11 +110,21 @@ trait Parser {
     }
 }
 
-case class ParserValidationErrors(row: Int, errors: Seq[String])
+case class ParserValidationError(row: Int, col:Int, errors: String)
 
-object ParserValidationErrors {
-  implicit lazy val formats: Format[ParserValidationErrors] =
-    Json.format[ParserValidationErrors]
+object ParserValidationError {
+  implicit lazy val formats: Format[ParserValidationError] =
+    Json.format[ParserValidationError]
 }
 
 case class CommitItem(jsPath: JsPath, value: JsValue)
+
+case class Field(fieldName:String, fieldValue: String, columnName: String, columnNo:Int)
+
+object Field {
+  def seqToMap(s:Seq[Field]):Map[String,String] = {
+    s.map{ f =>
+      f.fieldName -> f.fieldValue
+    }.toMap
+  }
+}

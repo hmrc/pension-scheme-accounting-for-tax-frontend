@@ -38,53 +38,45 @@ class AnnualAllowanceParser @Inject()(
                                      ) extends Parser with Constraints {
   //scalastyle:off magic.number
   override protected val totalFields: Int = 7
-
-  private def memberDetailsValidation(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, MemberDetails] = {
+  //First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory
+  private def memberDetailsValidation(index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], MemberDetails] = {
+    val fields = Seq(
+      Field("firstName", firstNameField(chargeFields), "firstName", 0),
+      Field("lastName", lastNameField(chargeFields), "lastName", 1),
+        Field("nino", ninoField(chargeFields), "nino", 2)
+    )
     val memberDetailsForm = memberDetailsFormProvider()
     memberDetailsForm.bind(
-      Map(
-        "firstName" -> firstNameField(chargeFields),
-        "lastName" -> lastNameField(chargeFields),
-        "nino" -> ninoField(chargeFields)
-      )
+      Field.seqToMap(fields)
     ).fold(
-      formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
+      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
       value => Right(value)
     )
   }
 
-  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, ChargeEDetails] = {
-    val taxYearErrors: Seq[String] = year(
-      minYear = 2011,
-      maxYear = startDate.getYear,
-      requiredKey = "annualAllowanceYear.fileUpload.error.required",
-      invalidKey = "annualAllowanceYear.fileUpload.error.invalid",
-      minKey = "annualAllowanceYear.fileUpload.error.past",
-      maxKey = "annualAllowanceYear.fileUpload.error.future"
-    )(chargeFields(3)) match {
-      case Valid => Nil
-      case Invalid(errors) => errors.map(_.message)
-    }
-
+  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], ChargeEDetails] = {
+    val taxYearsErrors = validateTaxYear(startDate, index, chargeFields(3))
     splitDayMonthYear(chargeFields(5)) match {
       case Tuple3(day, month, year) =>
+        val fields = Seq(
+            Field("chargeAmount", chargeFields(4), "chargeAmount", 4),
+            Field("dateNoticeReceived.day", day, "dateNoticeReceived", 5),
+            Field("dateNoticeReceived.month", month, "dateNoticeReceived", 5),
+            Field("dateNoticeReceived.year", year, "dateNoticeReceived", 5),
+            Field("isPaymentMandatory", stringToBoolean(chargeFields(6)), "isPaymentMandatory", 6)
+
+        )
         val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
           minimumChargeValueAllowed = minChargeValueAllowed,
           minimumDate = config.earliestDateOfNotice
         )
         chargeDetailsForm.bind(
-          Map(
-            "chargeAmount" -> chargeFields(4),
-            "dateNoticeReceived.day" -> day,
-            "dateNoticeReceived.month" -> month,
-            "dateNoticeReceived.year" -> year,
-            "isPaymentMandatory" -> stringToBoolean(chargeFields(6))
-          )
+          Field.seqToMap(fields)
         ).fold(
-          formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message) ++ taxYearErrors)),
+          formWithErrors => Left(errorsFromForm(formWithErrors, fields, index) ++ taxYearsErrors),
           value =>
-            if (taxYearErrors.nonEmpty) {
-              Left(ParserValidationErrors(index, taxYearErrors))
+            if (taxYearsErrors.nonEmpty) {
+              Left(taxYearsErrors)
             }  else {
               Right(value)
             }
@@ -92,9 +84,23 @@ class AnnualAllowanceParser @Inject()(
     }
   }
 
+  private def validateTaxYear(startDate:LocalDate,  index: Int, fieldValue: String): Seq[ParserValidationError] = {
+    year(
+      minYear = 2011,
+      maxYear = startDate.getYear,
+      requiredKey = "annualAllowanceYear.fileUpload.error.required",
+      invalidKey = "annualAllowanceYear.fileUpload.error.invalid",
+      minKey = "annualAllowanceYear.fileUpload.error.past",
+      maxKey = "annualAllowanceYear.fileUpload.error.future"
+    )(fieldValue) match {
+      case Valid => Nil
+      case Invalid(errors) => errors.map(error => ParserValidationError(index, 3, error.message))
+    }
+  }
+
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
-                                        chargeFields: Array[String])(implicit messages: Messages): Either[ParserValidationErrors, Seq[CommitItem]] = {
+                                        chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     combineValidationResults[MemberDetails, ChargeEDetails](
       memberDetailsValidation(index, chargeFields),
       chargeDetailsValidation(startDate, index, chargeFields),

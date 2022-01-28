@@ -34,42 +34,44 @@ class LifetimeAllowanceParser @Inject()(
                                        ) extends Parser {
   //scalastyle:off magic.number
   override protected val totalFields: Int = 6
-
-  private def memberDetailsValidation(index: Int, chargeFields: Array[String]): Either[ParserValidationErrors, MemberDetails] = {
-    val memberDetailsForm = memberDetailsFormProvider()
-    memberDetailsForm.bind(
-      Map(
-        "firstName" -> firstNameField(chargeFields),
-        "lastName" -> lastNameField(chargeFields),
-        "nino" -> ninoField(chargeFields)
-      )
-    ).fold(
-      formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
-      value => Right(value)
+  //First name,Last name,National Insurance number,Date,Tax due 25%,Tax due 55%
+  private def memberDetailsValidation(index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], MemberDetails] = {
+    val fields = Seq(
+      Field("firstName", firstNameField(chargeFields), "firstName", 0),
+      Field("lastName", lastNameField(chargeFields), "lastName", 1),
+      Field("nino", ninoField(chargeFields), "nino", 2)
     )
+    val memberDetailsForm = memberDetailsFormProvider()
+    memberDetailsForm
+      .bind(Field.seqToMap(fields))
+      .fold(
+        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+        value => Right(value)
+      )
   }
 
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
-                                      chargeFields: Array[String])(implicit messages: Messages): Either[ParserValidationErrors, ChargeDDetails] = {
+                                      chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDDetails] = {
 
     splitDayMonthYear(chargeFields(3)) match {
       case Tuple3(day, month, year) =>
+        val fields = Seq(
+          Field("dateOfEvent.day", day, "dateOfEvent", 3),
+          Field("dateOfEvent.month", month, "dateOfEvent", 3),
+          Field("dateOfEvent.year", year, "dateOfEvent", 3),
+          Field("taxAt25Percent", chargeFields(4), "taxAt25Percent", 4),
+          Field("taxAt55Percent", chargeFields(5), "taxAt55Percent", 5)
+        )
         val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
           min = startDate,
           max = Quarters.getQuarter(startDate).endDate,
           minimumChargeValueAllowed = minChargeValueAllowed
         )
         chargeDetailsForm.bind(
-          Map(
-            "dateOfEvent.day" -> day,
-            "dateOfEvent.month" -> month,
-            "dateOfEvent.year" -> year,
-            "taxAt25Percent" -> chargeFields(4),
-            "taxAt55Percent" -> chargeFields(5)
-          )
+          Field.seqToMap(fields)
         ).fold(
-          formWithErrors => Left(ParserValidationErrors(index, formWithErrors.errors.map(_.message))),
+          formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
           value => Right(value)
         )
     }
@@ -77,7 +79,7 @@ class LifetimeAllowanceParser @Inject()(
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
-                                        chargeFields: Array[String])(implicit messages: Messages): Either[ParserValidationErrors, Seq[CommitItem]] = {
+                                        chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     combineValidationResults[MemberDetails, ChargeDDetails](
       memberDetailsValidation(index, chargeFields),
       chargeDetailsValidation(startDate, index, chargeFields),
