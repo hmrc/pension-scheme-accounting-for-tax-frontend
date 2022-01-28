@@ -38,7 +38,7 @@ trait Parser {
 
   private def parseDataRows(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
-      case (acc, Tuple2(row, 0)) => acc
+      case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) =>
         val cells = row.split(",")
         cells.length match {
@@ -77,12 +77,10 @@ trait Parser {
   protected final def errorsFromForm[A](formWithErrors: Form[A], fields: Seq[Field], index: Int): Seq[ParserValidationError] = {
     formWithErrors
       .errors
-      .map { formError =>
-        val col = fields.find(_.columnName == formError.key) match {
-          case Some(f) => f.columnNo
-          case _ => -1
-        }
-        ParserValidationError(index, col, formError.message)
+      .flatMap { formError =>
+        fields.find(_.columnName == formError.key)
+          .map(f => ParserValidationError(index, f.columnNo, formError.message))
+          .toSeq
       }
   }
 
