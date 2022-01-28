@@ -75,6 +75,10 @@ class ValidationController @Inject()(
     }
     result match {
       case Left(errors) =>
+        errors.foreach{ e =>
+          println("\n>>" + e)
+
+        }
         renderer.render(template = "fileUpload/invalid.njk",
           Json.obj(
             "chargeType" -> chargeType,
