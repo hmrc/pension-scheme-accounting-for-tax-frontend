@@ -179,12 +179,12 @@ object ParserValidationError {
 
 case class CommitItem(jsPath: JsPath, value: JsValue)
 
-case class Field(fieldName: String, fieldValue: String, columnName: String, columnNo: Int)
+case class Field(formValidationFieldName: String, fieldValue: String, columnName: String, columnNo: Int)
 
 object Field {
   def seqToMap(s: Seq[Field]): Map[String, String] = {
     s.map { f =>
-      f.fieldName -> f.fieldValue
+      f.formValidationFieldName -> f.fieldValue
     }.toMap
   }
 }
