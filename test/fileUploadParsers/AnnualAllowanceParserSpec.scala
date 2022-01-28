@@ -76,7 +76,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       )
       )
     }
-    //First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory
+
     "return validation errors for tax year only, including missing, invalid, future and past tax years" in {
       val result = parser.parse(startDate, invalidTaxYearCsvFile)
       result mustBe Left(Seq(

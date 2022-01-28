@@ -32,11 +32,12 @@ import java.time.LocalDate
 
 class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
   //scalastyle:off magic.number
+
   import LifetimeAllowanceParserSpec._
 
   "LifeTime allowance parser" must {
     "return charges in user answers when there are no validation errors" in {
-      val chargeDetails = ChargeDDetails(LocalDate.of(2020,4,1), Some(BigDecimal(268.28)), None)
+      val chargeDetails = ChargeDDetails(LocalDate.of(2020, 4, 1), Some(BigDecimal(268.28)), None)
       val result = parser.parse(startDate, validCsvFile)
       result mustBe Right(Seq(
         CommitItem(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2)),
@@ -45,7 +46,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
         CommitItem(ChargeDetailsPage(1).path, Json.toJson(chargeDetails)),
       ))
     }
-    //First name,Last name,National Insurance number,Date,Tax due 25%,Tax due 55%
+
     "return validation errors for member details when present" in {
       val result = parser.parse(startDate, invalidMemberDetailsCsvFile)
       result mustBe Left(Seq(

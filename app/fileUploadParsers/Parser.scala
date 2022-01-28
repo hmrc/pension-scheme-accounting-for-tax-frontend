@@ -93,6 +93,12 @@ trait Parser {
   protected def lastNameField(fields: Array[String]):String =fields(1)
   protected def ninoField(fields: Array[String]):String =fields(2)
 
+  protected object MemberDetailsFieldNames {
+    val firstName = "firstName"
+    val lastName = "lastName"
+    val nino = "nino"
+  }
+
   protected def splitDayMonthYear(date:String):(String, String, String) = {
     date.split("/").toSeq match {
       case Seq(d,m,y) => Tuple3(d,m,y)
