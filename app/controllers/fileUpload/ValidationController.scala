@@ -33,7 +33,6 @@ import renderer.Renderer
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.ValidationHelper
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -52,8 +51,7 @@ class ValidationController @Inject()(
                                       uploadProgressTracker: UploadProgressTracker,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                       annualAllowanceParser: AnnualAllowanceParser,
-                                      lifeTimeAllowanceParser: LifetimeAllowanceParser,
-                                      validationHelper: ValidationHelper
+                                      lifeTimeAllowanceParser: LifetimeAllowanceParser
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -68,12 +66,7 @@ class ValidationController @Inject()(
 
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
-    val result = if (validationHelper.isHeaderValid(filteredLinesFromCSV.head, chargeType: ChargeType)) {
-      parser.parse(startDate, filteredLinesFromCSV)
-    } else {
-      Left(Seq(ParserValidationError(0, 0, "Header invalid")))
-    }
-    result match {
+    parser.parse(startDate, filteredLinesFromCSV) match {
       case Left(errors) =>
         println("\n*****************INVALID - ERRORS:-")
         errors.foreach{ e =>

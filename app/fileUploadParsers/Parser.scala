@@ -24,9 +24,21 @@ import play.api.libs.json.{Format, JsPath, JsValue, Json}
 import java.time.LocalDate
 
 trait Parser {
+  protected def validHeader: String
+
+  protected val totalFields: Int
+
   def parse(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)){
-      case (acc, Tuple2(_, 0)) => acc
+    rows.headOption match {
+      case Some(row) if row.equalsIgnoreCase(validHeader) => parseDataRows(startDate, rows)
+      case Some(_) => Left(Seq(ParserValidationError(0, 0, "Header invalid")))
+      case None => Left(Seq(ParserValidationError(0, 0, "File is empty")))
+    }
+  }
+
+  private def parseDataRows(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+    rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
+      case (acc, Tuple2(row, 0)) => acc
       case (acc, Tuple2(row, index)) =>
         val cells = row.split(",")
         cells.length match {
@@ -43,14 +55,12 @@ trait Parser {
     }
   }
 
-  protected val totalFields:Int
-
   protected def validateFields(startDate: LocalDate,
                                index: Int,
-                               chargeFields: Array[String])(implicit messages: Messages) : Either[Seq[ParserValidationError], Seq[CommitItem]]
+                               chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
 
   protected def memberDetailsValidation(index: Int, chargeFields: Array[String],
-                                      memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
+                                        memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
       Field(MemberDetailsFieldNames.firstName, firstNameField(chargeFields), MemberDetailsFieldNames.firstName, 0),
       Field(MemberDetailsFieldNames.lastName, lastNameField(chargeFields), MemberDetailsFieldNames.lastName, 1),
@@ -64,7 +74,7 @@ trait Parser {
       )
   }
 
-  protected final def errorsFromForm[A](formWithErrors:Form[A], fields: Seq[Field], index:Int): Seq[ParserValidationError] = {
+  protected final def errorsFromForm[A](formWithErrors: Form[A], fields: Seq[Field], index: Int): Seq[ParserValidationError] = {
     formWithErrors
       .errors
       .map { formError =>
@@ -77,13 +87,13 @@ trait Parser {
   }
 
   protected final def combineValidationResults[A, B](
-                                                resultA: Either[Seq[ParserValidationError], A],
-                                                resultB: Either[Seq[ParserValidationError], B],
-                                                resultAJsPath: => JsPath,
-                                                resultAJsValue: A => JsValue,
-                                                resultBJsPath: => JsPath,
-                                                resultBJsValue: => B => JsValue
-                                              ): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+                                                      resultA: Either[Seq[ParserValidationError], A],
+                                                      resultB: Either[Seq[ParserValidationError], B],
+                                                      resultAJsPath: => JsPath,
+                                                      resultAJsValue: A => JsValue,
+                                                      resultBJsPath: => JsPath,
+                                                      resultBJsValue: => B => JsValue
+                                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     resultA match {
       case Left(resultAErrors) =>
         resultB match {
@@ -106,9 +116,11 @@ trait Parser {
     }
   }
 
-  protected final def firstNameField(fields: Array[String]):String = fields(0)
-  protected final def lastNameField(fields: Array[String]):String = fields(1)
-  protected final def ninoField(fields: Array[String]):String = fields(2)
+  protected final def firstNameField(fields: Array[String]): String = fields(0)
+
+  protected final def lastNameField(fields: Array[String]): String = fields(1)
+
+  protected final def ninoField(fields: Array[String]): String = fields(2)
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 
@@ -124,8 +136,9 @@ trait Parser {
     val dateNoticeReceivedMonth: String = "dateNoticeReceived.month"
     val dateNoticeReceivedYear: String = "dateNoticeReceived.year"
     val dateNoticeReceived: String = "dateNoticeReceived"
-    val isPaymentMandatory= "isPaymentMandatory"
+    val isPaymentMandatory = "isPaymentMandatory"
   }
+
   protected final object AnnualAllowanceYearErrorKeys {
     val requiredKey = "annualAllowanceYear.fileUpload.error.required"
     val invalidKey = "annualAllowanceYear.fileUpload.error.invalid"
@@ -142,16 +155,16 @@ trait Parser {
     val dateOfEvent: String = "dateOfEvent"
   }
 
-  protected final def splitDayMonthYear(date:String):(String, String, String) = {
+  protected final def splitDayMonthYear(date: String): (String, String, String) = {
     date.split("/").toSeq match {
-      case Seq(d,m,y) => Tuple3(d,m,y)
-      case Seq(d,m) => Tuple3(d,m,"")
+      case Seq(d, m, y) => Tuple3(d, m, y)
+      case Seq(d, m) => Tuple3(d, m, "")
       case Seq(d) => Tuple3(d, "", "")
       case _ => Tuple3("", "", "")
     }
   }
 
-  protected final def stringToBoolean(s:String): String =
+  protected final def stringToBoolean(s: String): String =
     s.toLowerCase match {
       case "yes" => "true"
       case "no" => "false"
@@ -159,7 +172,7 @@ trait Parser {
     }
 }
 
-case class ParserValidationError(row: Int, col:Int, error: String)
+case class ParserValidationError(row: Int, col: Int, error: String)
 
 object ParserValidationError {
   implicit lazy val formats: Format[ParserValidationError] =
@@ -168,11 +181,11 @@ object ParserValidationError {
 
 case class CommitItem(jsPath: JsPath, value: JsValue)
 
-case class Field(fieldName:String, fieldValue: String, columnName: String, columnNo:Int)
+case class Field(fieldName: String, fieldValue: String, columnName: String, columnNo: Int)
 
 object Field {
-  def seqToMap(s:Seq[Field]):Map[String,String] = {
-    s.map{ f =>
+  def seqToMap(s: Seq[Field]): Map[String, String] = {
+    s.map { f =>
       f.fieldName -> f.fieldValue
     }.toMap
   }

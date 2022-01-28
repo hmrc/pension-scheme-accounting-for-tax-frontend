@@ -39,7 +39,7 @@ class AnnualAllowanceParser @Inject()(
   //scalastyle:off magic.number
   override protected val totalFields: Int = 7
 
-  private val header = "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory"
+  override protected def validHeader: String = config.validAnnualAllowanceHeader
 
   private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], ChargeEDetails] = {
     val taxYearsErrors = validateTaxYear(startDate, index, chargeFields(3))

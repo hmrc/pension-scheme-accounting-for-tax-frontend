@@ -17,6 +17,7 @@
 package fileUploadParsers
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import models.chargeD.ChargeDDetails
@@ -30,9 +31,11 @@ import java.time.LocalDate
 
 class LifetimeAllowanceParser @Inject()(
                                          memberDetailsFormProvider: MemberDetailsFormProvider,
-                                         chargeDetailsFormProvider: ChargeDetailsFormProvider
+                                         chargeDetailsFormProvider: ChargeDetailsFormProvider,
+                                         config: FrontendAppConfig
                                        ) extends Parser {
-  private val header = "First name,Last name,National Insurance number,Date,Tax due 25%,Tax due 55%"
+
+  override protected def validHeader: String = config.validLifeTimeAllowanceHeader
 
   //scalastyle:off magic.number
   override protected val totalFields: Int = 6

@@ -17,12 +17,14 @@
 package fileUploadParsers
 
 import base.SpecBase
+import config.FrontendAppConfig
 import data.SampleData
 import data.SampleData.startDate
+import fileUploadParsers.AnnualAllowanceParserSpec.mock
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import models.chargeD.ChargeDDetails
-import org.mockito.MockitoSugar
+import org.mockito.{Mockito, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
@@ -34,6 +36,11 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
   //scalastyle:off magic.number
 
   import LifetimeAllowanceParserSpec._
+
+  override def beforeEach: Unit = {
+    Mockito.reset(mockFrontendAppConfig)
+    when(mockFrontendAppConfig.validLifeTimeAllowanceHeader).thenReturn(header)
+  }
 
   "LifeTime allowance parser" must {
     "return charges in user answers when there are no validation errors" in {
@@ -94,6 +101,9 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
 
 object LifetimeAllowanceParserSpec {
   private val header = "First name,Last name,National Insurance number,Date,Tax due 25%,Tax due 55%"
+
+  private val mockFrontendAppConfig = mock[FrontendAppConfig]
+
   private val validCsvFile = Seq(
     header,
     "Joe,Bloggs,AB123456C,01/04/2020,268.28,0.00",
@@ -124,5 +134,5 @@ object LifetimeAllowanceParserSpec {
   private val memberDetailsFormProvider = new MemberDetailsFormProvider
   private val chargeDetailsFormProvider = new ChargeDetailsFormProvider
 
-  private val parser = new LifetimeAllowanceParser(memberDetailsFormProvider, chargeDetailsFormProvider)
+  private val parser = new LifetimeAllowanceParser(memberDetailsFormProvider, chargeDetailsFormProvider, mockFrontendAppConfig)
 }

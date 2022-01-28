@@ -39,6 +39,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
   override def beforeEach: Unit = {
     Mockito.reset(mockFrontendAppConfig)
     when(mockFrontendAppConfig.earliestDateOfNotice).thenReturn(LocalDate.of(1900, 1, 1))
+    when(mockFrontendAppConfig.validAnnualAllowanceHeader).thenReturn(header)
   }
 
   "Annual allowance parser" must {
