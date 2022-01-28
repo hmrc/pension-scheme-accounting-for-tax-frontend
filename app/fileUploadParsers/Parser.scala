@@ -158,7 +158,7 @@ trait Parser {
     }
 }
 
-case class ParserValidationError(row: Int, col:Int, errors: String)
+case class ParserValidationError(row: Int, col:Int, error: String)
 
 object ParserValidationError {
   implicit lazy val formats: Format[ParserValidationError] =
