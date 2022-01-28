@@ -34,11 +34,19 @@ class LifetimeAllowanceParser @Inject()(
                                          chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                          config: FrontendAppConfig
                                        ) extends Parser {
-
+  //scalastyle:off magic.number
   override protected def validHeader: String = config.validLifeTimeAllowanceHeader
 
-  //scalastyle:off magic.number
   override protected val totalFields: Int = 6
+
+  private final object ChargeDetailsFieldNames {
+    val dateOfEventDay: String = "dateOfEvent.day"
+    val dateOfEventMonth: String = "dateOfEvent.month"
+    val dateOfEventYear: String = "dateOfEvent.year"
+    val taxAt25Percent: String = "taxAt25Percent"
+    val taxAt55Percent: String = "taxAt55Percent"
+    val dateOfEvent: String = "dateOfEvent"
+  }
 
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
@@ -47,11 +55,11 @@ class LifetimeAllowanceParser @Inject()(
     splitDayMonthYear(chargeFields(3)) match {
       case Tuple3(day, month, year) =>
         val fields = Seq(
-          Field(LifetimeAllowanceChargeDetailsFieldNames.dateOfEventDay, day, LifetimeAllowanceChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(LifetimeAllowanceChargeDetailsFieldNames.dateOfEventMonth, month, LifetimeAllowanceChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(LifetimeAllowanceChargeDetailsFieldNames.dateOfEventYear, year, LifetimeAllowanceChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(LifetimeAllowanceChargeDetailsFieldNames.taxAt25Percent, chargeFields(4), LifetimeAllowanceChargeDetailsFieldNames.taxAt25Percent, 4),
-          Field(LifetimeAllowanceChargeDetailsFieldNames.taxAt55Percent, chargeFields(5), LifetimeAllowanceChargeDetailsFieldNames.taxAt55Percent, 5)
+          Field(ChargeDetailsFieldNames.dateOfEventDay, day, ChargeDetailsFieldNames.dateOfEvent, 3),
+          Field(ChargeDetailsFieldNames.dateOfEventMonth, month, ChargeDetailsFieldNames.dateOfEvent, 3),
+          Field(ChargeDetailsFieldNames.dateOfEventYear, year, ChargeDetailsFieldNames.dateOfEvent, 3),
+          Field(ChargeDetailsFieldNames.taxAt25Percent, chargeFields(4), ChargeDetailsFieldNames.taxAt25Percent, 4),
+          Field(ChargeDetailsFieldNames.taxAt55Percent, chargeFields(5), ChargeDetailsFieldNames.taxAt55Percent, 5)
         )
         val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
           min = startDate,

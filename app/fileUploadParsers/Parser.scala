@@ -128,31 +128,6 @@ trait Parser {
     val nino = "nino"
   }
 
-  protected final object AnnualAllowanceChargeDetailsFieldNames {
-    val chargeAmount: String = "chargeAmount"
-    val dateNoticeReceivedDay: String = "dateNoticeReceived.day"
-    val dateNoticeReceivedMonth: String = "dateNoticeReceived.month"
-    val dateNoticeReceivedYear: String = "dateNoticeReceived.year"
-    val dateNoticeReceived: String = "dateNoticeReceived"
-    val isPaymentMandatory = "isPaymentMandatory"
-  }
-
-  protected final object AnnualAllowanceYearErrorKeys {
-    val requiredKey = "annualAllowanceYear.fileUpload.error.required"
-    val invalidKey = "annualAllowanceYear.fileUpload.error.invalid"
-    val minKey = "annualAllowanceYear.fileUpload.error.past"
-    val maxKey = "annualAllowanceYear.fileUpload.error.future"
-  }
-
-  protected final object LifetimeAllowanceChargeDetailsFieldNames {
-    val dateOfEventDay: String = "dateOfEvent.day"
-    val dateOfEventMonth: String = "dateOfEvent.month"
-    val dateOfEventYear: String = "dateOfEvent.year"
-    val taxAt25Percent: String = "taxAt25Percent"
-    val taxAt55Percent: String = "taxAt55Percent"
-    val dateOfEvent: String = "dateOfEvent"
-  }
-
   protected final def splitDayMonthYear(date: String): (String, String, String) = {
     date.split("/").toSeq match {
       case Seq(d, m, y) => Tuple3(d, m, y)
