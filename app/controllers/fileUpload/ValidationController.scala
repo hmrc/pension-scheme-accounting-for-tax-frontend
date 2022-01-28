@@ -75,8 +75,9 @@ class ValidationController @Inject()(
     }
     result match {
       case Left(errors) =>
+        println("\n*****************INVALID - ERRORS:-")
         errors.foreach{ e =>
-          println("\n>>" + e)
+          println(s"${e.row} ${e.col} : ${e.error}")
 
         }
         renderer.render(template = "fileUpload/invalid.njk",
