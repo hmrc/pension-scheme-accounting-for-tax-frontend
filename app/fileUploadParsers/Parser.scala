@@ -45,7 +45,7 @@ trait Parser {
           case this.totalFields =>
             (acc, validateFields(startDate, index, cells)) match {
               case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ newErrors)
-              case (Right(_), Left(newErrors)) => Left(newErrors)
+              case (Right(_), newErrors@Left(_)) => newErrors
               case (currentErrors@Left(_), Right(_)) => currentErrors
               case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
             }
