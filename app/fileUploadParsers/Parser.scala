@@ -26,6 +26,7 @@ import java.time.LocalDate
 trait Parser {
   def parse(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)){
+      case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) =>
         val cells = row.split(",")
         cells.length match {
@@ -37,7 +38,7 @@ trait Parser {
               case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
             }
           case _ =>
-            Left(acc.left.getOrElse(Nil) ++ Seq(ParserValidationError(index, -1, "Not enough fields")))
+            Left(acc.left.getOrElse(Nil) ++ Seq(ParserValidationError(index, 0, "Not enough fields")))
         }
     }
   }

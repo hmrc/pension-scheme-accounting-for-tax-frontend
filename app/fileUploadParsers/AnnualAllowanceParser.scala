@@ -36,10 +36,10 @@ class AnnualAllowanceParser @Inject()(
                                        chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                        config: FrontendAppConfig
                                      ) extends Parser with Constraints {
-  //First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory
-
   //scalastyle:off magic.number
   override protected val totalFields: Int = 7
+
+  private val header = "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory"
 
   private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], ChargeEDetails] = {
     val taxYearsErrors = validateTaxYear(startDate, index, chargeFields(3))
@@ -92,9 +92,9 @@ class AnnualAllowanceParser @Inject()(
     combineValidationResults[MemberDetails, ChargeEDetails](
       memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
       chargeDetailsValidation(startDate, index, chargeFields),
-      MemberDetailsPage(index).path,
+      MemberDetailsPage(index - 1).path,
       Json.toJson(_),
-      ChargeDetailsPage(index).path,
+      ChargeDetailsPage(index - 1).path,
       Json.toJson(_)
     )
   }

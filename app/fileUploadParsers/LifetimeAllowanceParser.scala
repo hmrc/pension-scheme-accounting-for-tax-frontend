@@ -32,7 +32,7 @@ class LifetimeAllowanceParser @Inject()(
                                          memberDetailsFormProvider: MemberDetailsFormProvider,
                                          chargeDetailsFormProvider: ChargeDetailsFormProvider
                                        ) extends Parser {
-  //First name,Last name,National Insurance number,Date,Tax due 25%,Tax due 55%
+  private val header = "First name,Last name,National Insurance number,Date,Tax due 25%,Tax due 55%"
 
   //scalastyle:off magic.number
   override protected val totalFields: Int = 6
@@ -70,9 +70,9 @@ class LifetimeAllowanceParser @Inject()(
     combineValidationResults[MemberDetails, ChargeDDetails](
       memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
       chargeDetailsValidation(startDate, index, chargeFields),
-      MemberDetailsPage(index).path,
+      MemberDetailsPage(index - 1).path,
       Json.toJson(_),
-      ChargeDetailsPage(index).path,
+      ChargeDetailsPage(index - 1).path,
       Json.toJson(_)
     )
   }

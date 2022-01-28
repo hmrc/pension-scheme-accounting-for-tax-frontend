@@ -79,7 +79,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockUpscanInitiateConnector, mockAppConfig, mockRenderer, mockAnnualAllowanceParser)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK,
-      "FirstName,LastName,Nino,TaxYear,ChargeAmount,DateReceived,PaymentTypeMandatory\nJoy,Smith,9717C,2020,268.28,2020-01-01,true")))
+      "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory\nJoy,Smith,9717C,2020,268.28,2020-01-01,true")))
   }
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
