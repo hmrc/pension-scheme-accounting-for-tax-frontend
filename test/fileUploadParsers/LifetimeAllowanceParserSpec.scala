@@ -54,6 +54,27 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
       ))
     }
 
+    "return validation error for incorrect header" in {
+      val result = parser.parse(startDate, Seq("test"))
+      result mustBe Left(Seq(
+        ParserValidationError(0, 0, "Header invalid")
+      ))
+    }
+
+    "return validation error for empty file" in {
+      val result = parser.parse(startDate, Nil)
+      result mustBe Left(Seq(
+        ParserValidationError(0, 0, "File is empty")
+      ))
+    }
+
+    "return validation error for not enough fields" in {
+      val result = parser.parse(startDate, Seq(header, "one,two"))
+      result mustBe Left(Seq(
+        ParserValidationError(1, 0, "Not enough fields")
+      ))
+    }
+
     "return validation errors for member details when present" in {
       val result = parser.parse(startDate, invalidMemberDetailsCsvFile)
       result mustBe Left(Seq(

@@ -54,6 +54,27 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       ))
     }
 
+    "return validation error for incorrect header" in {
+      val result = parser.parse(startDate, Seq("test"))
+      result mustBe Left(Seq(
+        ParserValidationError(0, 0, "Header invalid")
+      ))
+    }
+
+    "return validation error for empty file" in {
+      val result = parser.parse(startDate, Nil)
+      result mustBe Left(Seq(
+        ParserValidationError(0, 0, "File is empty")
+      ))
+    }
+
+    "return validation error for not enough fields" in {
+      val result = parser.parse(startDate, Seq(header, "one,two"))
+      result mustBe Left(Seq(
+        ParserValidationError(1, 0, "Not enough fields")
+      ))
+    }
+
     "return validation errors for member details" in {
       val result = parser.parse(startDate, invalidMemberDetailsCsvFile)
       result mustBe Left(Seq(
@@ -119,37 +140,37 @@ object AnnualAllowanceParserSpec extends MockitoSugar {
 
   private val mockFrontendAppConfig = mock[FrontendAppConfig]
 
-  private val validCsvFile = List(
+  private val validCsvFile = Seq(
     header,
     "Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,yes",
     "Joe,Bliggs,AB123457C,2020,268.28,01/01/2020,yes"
   )
-  private val invalidMemberDetailsCsvFile = List(
+  private val invalidMemberDetailsCsvFile = Seq(
     header,
     ",Bloggs,AB123456C,2020,268.28,01/01/2020,yes",
     "Ann,,3456C,2020,268.28,01/01/2020,yes"
   )
-  private val invalidChargeDetailsCsvFile = List(
+  private val invalidChargeDetailsCsvFile = Seq(
     header,
     "Joe,Bloggs,AB123456C,,,01/01,nah",
     "Ann,Bliggs,AB123457C,22,268.28,01,yes",
     "Joe,Blaggs,AB123454C,2021,268.28,01/01/2020,yes",
     "Jim,Bloggs,AB123455C,2010,268.28,01/01/2020,yes"
   )
-  private val invalidTaxYearCsvFile = List(
+  private val invalidTaxYearCsvFile = Seq(
     header,
     "Joe,Bloggs,AB123456C,,268.28,01/01/2020,yes",
     "Ann,Bliggs,AB123457C,22,268.28,01/01/2020,yes",
     "Joe,Blaggs,AB123454C,2021,268.28,01/01/2020,yes",
     "Jim,Bloggs,AB123455C,2010,268.28,01/01/2020,yes"
   )
-  private val invalidMemberDetailsAndChargeDetailsCsvFile = List(
+  private val invalidMemberDetailsAndChargeDetailsCsvFile = Seq(
     header,
     ",Bloggs,AB123456C,2020,,01/01/2020,yes",
     "Ann,,3456C,2020,268.28,01/13/2020,yes"
   )
 
-  private val invalidMemberDetailsAndChargeDetailsFirstRowCsvFile = List(
+  private val invalidMemberDetailsAndChargeDetailsFirstRowCsvFile = Seq(
     header,
     ",Bloggs,AB123456C,2020,,01/01/2020,yes",
     "Joe,Bliggs,AB123457C,2020,268.28,01/01/2020,yes"
