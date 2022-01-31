@@ -126,8 +126,8 @@ object OverseasTransferParserSpec {
 
   private val validCsvFile = Seq(
     header,
-    "first,last,AB123456C,01/04/2020,123123,01/04/2020,0.00,0.00",
-    "Joe,Bliggs,AB123456C,01/04/2020,123123,01/04/2020,0.00,0.00"
+    "first,last,AB123456C,01/04/2000,123123,01/04/2020,0.00,0.00",
+    "Joe,Bloggs,AB123456C,01/04/2000,123123,01/04/2020,0.00,0.00"
   )
   private val invalidMemberDetailsCsvFile = Seq(
     header,

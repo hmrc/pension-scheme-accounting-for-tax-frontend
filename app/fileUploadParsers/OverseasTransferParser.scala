@@ -54,7 +54,7 @@ class OverseasTransferParser @Inject()(
                                         memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
 
 
-    splitDayMonthYear(chargeFields(5)) match {
+    splitDayMonthYear(chargeFields(3)) match {
       case Tuple3(dotDay, dotMonth, dotYear) =>
         val fields = Seq(
           Field(MemberDetailsFieldNames.firstName, firstNameField(chargeFields), MemberDetailsFieldNames.firstName, 0),
