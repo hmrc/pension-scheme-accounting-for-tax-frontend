@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeFileEmpty, FileLevelParserValidationErrorTypeHeaderInvalid}
 import fileUploadParsers._
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
@@ -52,7 +52,8 @@ class ValidationController @Inject()(
                                       uploadProgressTracker: UploadProgressTracker,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                       annualAllowanceParser: AnnualAllowanceParser,
-                                      lifeTimeAllowanceParser: LifetimeAllowanceParser
+                                      lifeTimeAllowanceParser: LifetimeAllowanceParser,
+                                      overseasTransferParser: OverseasTransferParser
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -120,6 +121,7 @@ class ValidationController @Inject()(
     chargeType match {
       case ChargeTypeAnnualAllowance => Some(annualAllowanceParser)
       case ChargeTypeLifetimeAllowance => Some(lifeTimeAllowanceParser)
+      case ChargeTypeOverseasTransfer => Some(overseasTransferParser)
       case _ => None
     }
   }
