@@ -18,11 +18,10 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import forms.MemberDetailsFormProvider
-import forms.chargeD.ChargeDetailsFormProvider
-import models.chargeD.ChargeDDetails
-import models.{MemberDetails, Quarters}
-import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
+import forms.chargeG.{ChargeDetailsFormProvider, MemberDetailsFormProvider}
+import models.chargeG.{ChargeDetails, MemberDetails}
+import models.Quarters
+import pages.chargeG.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.Json
@@ -39,32 +38,59 @@ class OverseasTransferParser @Inject()(
 
   override protected val totalFields: Int = 8
 
-  private final object ChargeDetailsFieldNames {
-    val dateOfEventDay: String = "dateOfEvent.day"
-    val dateOfEventMonth: String = "dateOfEvent.month"
-    val dateOfEventYear: String = "dateOfEvent.year"
-    val taxAt25Percent: String = "taxAt25Percent"
-    val taxAt55Percent: String = "taxAt55Percent"
-    val dateOfEvent: String = "dateOfEvent"
+  private final object ChargeGetailsFieldNames {
+    val dateOfBirthDay: String = "dob.day"
+    val dateOfBirthMonth: String = "dob.month"
+    val dateOfBirthYear: String = "dob.year"
+    val dateOfTransferDay: String = "qropsTransferDate.day"
+    val dateOfTransferMonth: String = "qropsTransferDate.month"
+    val dateOfTransferYear: String = "qropsTransferDate.year"
+    val qropsReferenceNumber: String = "qropsReferenceNumber"
+    val dateOfBirth: String = "dob"
+    val dateOfTransfer: String = "qropsTransferDate"
   }
 
+  def chargeMemberDetailsValidation(index: Int, chargeFields: Array[String],
+                                        memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
+
+
+    splitDayMonthYear(chargeFields(5)) match {
+      case Tuple3(dotDay, dotMonth, dotYear) =>
+        val fields = Seq(
+          Field(MemberDetailsFieldNames.firstName, firstNameField(chargeFields), MemberDetailsFieldNames.firstName, 0),
+          Field(MemberDetailsFieldNames.lastName, lastNameField(chargeFields), MemberDetailsFieldNames.lastName, 1),
+          Field(MemberDetailsFieldNames.nino, ninoField(chargeFields), MemberDetailsFieldNames.nino, 2),
+          Field(ChargeGetailsFieldNames.dateOfBirthDay, dotDay, ChargeGetailsFieldNames.dateOfBirth, 3),
+          Field(ChargeGetailsFieldNames.dateOfBirthMonth, dotMonth, ChargeGetailsFieldNames.dateOfBirth, 3),
+          Field(ChargeGetailsFieldNames.dateOfBirthYear, dotYear, ChargeGetailsFieldNames.dateOfBirth, 3)
+        )
+        memberDetailsForm
+          .bind(Field.seqToMap(fields))
+          .fold(
+            formWithErrors => {
+            println("\n>>>>>>" + formWithErrors)
+              Left(errorsFromForm(formWithErrors, fields, index))},
+            value => Right(value)
+          )
+    }
+  }
+
+//First name,Last name,National Insurance number,Date of birth,Reference number,Transfer date,Amount,Tax due
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
-                                      chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDDetails] = {
+                                      chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDetails] = {
 
-    splitDayMonthYear(chargeFields(3)) match {
-      case Tuple3(day, month, year) =>
+    splitDayMonthYear(chargeFields(5)) match {
+      case Tuple3(dotDay, dotMonth, dotYear) =>
         val fields = Seq(
-          Field(ChargeDetailsFieldNames.dateOfEventDay, day, ChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(ChargeDetailsFieldNames.dateOfEventMonth, month, ChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(ChargeDetailsFieldNames.dateOfEventYear, year, ChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(ChargeDetailsFieldNames.taxAt25Percent, chargeFields(4), ChargeDetailsFieldNames.taxAt25Percent, 4),
-          Field(ChargeDetailsFieldNames.taxAt55Percent, chargeFields(5), ChargeDetailsFieldNames.taxAt55Percent, 5)
+          Field(ChargeGetailsFieldNames.dateOfTransferDay, dotDay, ChargeGetailsFieldNames.dateOfTransfer, 5),
+          Field(ChargeGetailsFieldNames.dateOfTransferMonth, dotMonth, ChargeGetailsFieldNames.dateOfTransfer, 5),
+          Field(ChargeGetailsFieldNames.dateOfTransferYear, dotYear, ChargeGetailsFieldNames.dateOfTransfer, 5),
+          Field(ChargeGetailsFieldNames.qropsReferenceNumber, chargeFields(4), ChargeGetailsFieldNames.qropsReferenceNumber, 4)
         )
-        val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
+        val chargeDetailsForm: Form[ChargeDetails] = chargeDetailsFormProvider(
           min = startDate,
-          max = Quarters.getQuarter(startDate).endDate,
-          minimumChargeValueAllowed = minChargeValueAllowed
+          max = Quarters.getQuarter(startDate).endDate
         )
         chargeDetailsForm.bind(
           Field.seqToMap(fields)
@@ -78,8 +104,8 @@ class OverseasTransferParser @Inject()(
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    combineValidationResults[MemberDetails, ChargeDDetails](
-      memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
+    combineValidationResults[MemberDetails, ChargeDetails](
+      chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
       chargeDetailsValidation(startDate, index, chargeFields),
       MemberDetailsPage(index - 1).path,
       Json.toJson(_),
