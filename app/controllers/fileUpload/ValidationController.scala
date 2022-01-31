@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
+import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeFileEmpty, FileLevelParserValidationErrorTypeHeaderInvalid}
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.requests.DataRequest
@@ -56,6 +57,31 @@ class ValidationController @Inject()(
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
 
+  private def processInvalid(
+                              srn: String,
+                              startDate: LocalDate,
+                              chargeType: ChargeType,
+                              errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    println("\n*****************INVALID - ERRORS:-")
+    errors.foreach { e =>
+      println(s"${e.row} ${e.col} : ${e.error}")
+
+    }
+    errors match {
+      // TODO: Error handling for following two scenarios
+      //      case Seq(FileLevelParserValidationErrorTypeHeaderInvalid) =>
+      //      case Seq(FileLevelParserValidationErrorTypeFileEmpty) =>
+      case _ =>
+        renderer.render(template = "fileUpload/invalid.njk",
+          Json.obj(
+            "chargeType" -> chargeType,
+            "chargeTypeText" -> chargeType.toString,
+            "srn" -> srn, "startDate" -> Some(startDate),
+            "viewModel" -> errors))
+          .map(Ok(_))
+    }
+  }
+
   private def parseAndRenderResult(
                                     srn: String,
                                     startDate: LocalDate,
@@ -66,45 +92,33 @@ class ValidationController @Inject()(
 
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
-    parser.parse(startDate, filteredLinesFromCSV) match {
-      case Left(errors) =>
-        println("\n*****************INVALID - ERRORS:-")
-        errors.foreach{ e =>
-          println(s"${e.row} ${e.col} : ${e.error}")
 
-        }
-        renderer.render(template = "fileUpload/invalid.njk",
-          Json.obj(
-            "chargeType" -> chargeType,
-            "chargeTypeText" -> chargeType.toString,
-            "srn" -> srn, "startDate" -> Some(startDate),
-            "viewModel" -> errors))
-          .map(Ok(_))
-
-      case Right(commitItems) =>
-        val updatedUA = commitItems.foldLeft(request.userAnswers) { (acc, ci) =>
-          acc.setOrException(ci.jsPath, ci.value)
-        }
+    parser.parse(startDate, filteredLinesFromCSV).fold[Future[Result]](processInvalid(srn, startDate, chargeType, _),
+      commitItems => {
+        val updatedUA = commitItems.foldLeft(request.userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
         userAnswersCacheConnector.save(request.internalId, updatedUA.data)
           .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, updatedUA, srn, startDate, accessType, version)))
-    }
+      }
+    )
   }
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         val parser = findParser(chargeType)
-        uploadProgressTracker.getUploadResult(uploadId).flatMap { uploadStatus =>
-          (parser, uploadStatus) match {
-            case (Some(_), None | Some(Failed) | Some(InProgress)) => sessionExpired
-            case (None, _) => sessionExpired
-            case (Some(parser), Some(ud: UploadedSuccessfully)) =>
-              upscanInitiateConnector.download(ud.downloadUrl)
-                .map(_.body.split("\n").toList)
-                .flatMap { linesFromCSV =>
-                  parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
-                }
-          }
+        uploadProgressTracker.getUploadResult(uploadId).flatMap {
+          uploadStatus =>
+            (parser, uploadStatus) match {
+              case (Some(_), None | Some(Failed) | Some(InProgress)) => sessionExpired
+              case (None, _) => sessionExpired
+              case (Some(parser), Some(ud: UploadedSuccessfully)) =>
+                upscanInitiateConnector.download(ud.downloadUrl)
+                  .map(_.body.split("\n").toList)
+                  .flatMap {
+                    linesFromCSV =>
+                      parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                  }
+            }
         }
     }
 
