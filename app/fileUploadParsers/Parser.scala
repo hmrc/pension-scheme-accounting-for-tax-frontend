@@ -46,7 +46,7 @@ trait Parser {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) =>
-        val cells = row.split(",")
+        val cells = row.split(",") // TODO: If ends with comma then get too few fields error
         cells.length match {
           case this.totalFields =>
             (acc, validateFields(startDate, index, cells)) match {
@@ -88,6 +88,30 @@ trait Parser {
           .map(f => ParserValidationError(index, f.columnNo, formError.message))
           .toSeq
       }
+  }
+
+
+  protected final def addToValidationResults[A](
+                                                      resultA: Either[Seq[ParserValidationError], A],
+                                                      resultB: Either[Seq[ParserValidationError], Seq[CommitItem]],
+                                                      resultAJsPath: => JsPath,
+                                                      resultAJsValue: A => JsValue
+                                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+    resultA match {
+      case Left(resultAErrors) =>
+        resultB match {
+          case Left(existingErrors) => Left(existingErrors ++ resultAErrors)
+          case Right(_) => Left(resultAErrors)
+        }
+      case Right(resultAObject) =>
+        resultB match {
+          case Left(existingErrors) => Left(existingErrors)
+          case Right(existingCommits) =>
+            Right(
+              existingCommits ++ Seq(CommitItem(resultAJsPath, resultAJsValue(resultAObject)))
+            )
+        }
+    }
   }
 
   protected final def combineValidationResults[A, B](
