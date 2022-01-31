@@ -112,7 +112,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         "chargeType" -> chargeType.toString,
         "chargeTypeText" -> chargeType.toString,
         "srn" -> srn,
-        "viewModel" -> errors
+        "errors" -> errors
       )
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }

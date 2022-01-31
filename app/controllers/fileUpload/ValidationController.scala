@@ -62,11 +62,6 @@ class ValidationController @Inject()(
                               startDate: LocalDate,
                               chargeType: ChargeType,
                               errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    println("\n*****************INVALID - ERRORS:-")
-    errors.foreach { e =>
-      println(s"${e.row} ${e.col} : ${e.error}")
-
-    }
     errors match {
       // TODO: Error handling for following two scenarios
       //      case Seq(FileLevelParserValidationErrorTypeHeaderInvalid) =>
@@ -77,7 +72,7 @@ class ValidationController @Inject()(
             "chargeType" -> chargeType,
             "chargeTypeText" -> chargeType.toString,
             "srn" -> srn, "startDate" -> Some(startDate),
-            "viewModel" -> errors))
+            "errors" -> errors))
           .map(Ok(_))
     }
   }
