@@ -41,10 +41,10 @@ class FileDownloadControllerSpec extends ControllerSpecBase {
 
       status(result) mustEqual OK
 
-      whenReady(result) { x =>
-        val p: Option[String] = x.header.headers.get("Content-Disposition")
+      whenReady(result) { response =>
+        val headers: Option[String] = response.header.headers.get("Content-Disposition")
 
-        p mustBe Some("""attachment; filename="aft-annual-allowance-charge-upload-template.csv"""")
+        headers mustBe Some("""attachment; filename="aft-annual-allowance-charge-upload-template.csv"""")
       }
 
       application.stop()
@@ -61,10 +61,10 @@ class FileDownloadControllerSpec extends ControllerSpecBase {
 
     status(result) mustEqual OK
 
-    whenReady(result) { x =>
-      val p: Option[String] = x.header.headers.get("Content-Disposition")
+    whenReady(result) { response =>
+      val headers: Option[String] = response.header.headers.get("Content-Disposition")
 
-      p mustBe Some("""attachment; filename="aft-annual-allowance-charge-upload-format-instructions.ods"""")
+      headers mustBe Some("""attachment; filename="aft-annual-allowance-charge-upload-format-instructions.ods"""")
     }
 
     application.stop()

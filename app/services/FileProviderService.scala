@@ -19,7 +19,6 @@ package services
 import models.ChargeType
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import play.api.Environment
-import uk.gov.hmrc.http.NotFoundException
 import java.io.File
 import javax.inject.Inject
 
@@ -49,20 +48,11 @@ class FileProviderService @Inject()(environment: Environment){
 
   def getInstructionsFile(chargeType: ChargeType): File  = {
     val path: String = instructionsFilePath(chargeType)
-    val file = environment.getFile(path)
-    file match {
-      case fileToDownload => fileToDownload
-      case _              => throw new NotFoundException("Instructions file not found: " + path)
-    }
+    environment.getFile(path)
   }
 
   def getTemplateFile(chargeType: ChargeType): File = {
     val path: String = templateFilePath(chargeType)
-    val file = environment.getFile(path)
-    file match {
-      case fileToDownload => fileToDownload
-      case _              => throw new NotFoundException("Template file not found: " + path)
-    }
-
+    environment.getFile(path)
   }
 }
