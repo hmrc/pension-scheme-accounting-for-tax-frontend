@@ -23,8 +23,8 @@
              <p class="govuk-body">{{ messages("fileupload.whatYouWillNeed.p1") }}</p>
             {% include "partials/fileUpload/" + chargeType + ".njk" %}
 
-            <p class="govuk-body"><a href="{{instructionsLink}}" class="govuk-link"> {{ messages("fileupload.download.instructions.link") }}</a></p>
-            <p class="govuk-body"><a href="{{templateLink}}" class="govuk-link"> {{ messages("fileupload.download.template.link") }}</a>
+            <p class="govuk-body"><a href="{{fileDownloadInstructionsLink}}" class="govuk-link"> {{ messages("fileupload.download.instructions.link") }}</a></p>
+            <p class="govuk-body"><a href="{{fileDownloadTemplateLink}}" class="govuk-link"> {{ messages("fileupload.download.template.link") }}</a>
                 {{ messages("fileupload.whatYouWillNeed.p2") }}
             </p>
 

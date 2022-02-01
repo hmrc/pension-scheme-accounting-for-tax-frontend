@@ -16,9 +16,8 @@
 
 package controllers
 
-import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, DataRetrievalAction, IdentifierAction}
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.ChargeType
-import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.FileProviderService
@@ -29,13 +28,11 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class FileDownloadController @Inject()(override val messagesApi: MessagesApi,
-                                       navigator: CompoundNavigator,
                                        identify: IdentifierAction,
-                                       getData: DataRetrievalAction,
                                        allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                        fileProviderService: FileProviderService,
                                        val controllerComponents: MessagesControllerComponents,
-                                       )(implicit ec: ExecutionContext)
+                                      )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
@@ -48,20 +45,16 @@ class FileDownloadController @Inject()(override val messagesApi: MessagesApi,
           inline = false
         ))
     }
-
-
   }
 
-//  (identify andThen allowAccess()).async { implicit request =>
-//    Future.successful(
-//      Ok.sendFile(
-//        content = fileProviderService.templateFile(chargeType),
-//        inline = false
-//      ))
-//  }
-
-  def instructionFile(chargeType: ChargeType) = {
-
+  def instructionsFile(chargeType: ChargeType): Action[AnyContent] = {
+    (identify andThen allowAccess()).async { implicit request =>
+      Future.successful(
+        Ok.sendFile(
+          content = fileProviderService.getInstructionsFile(chargeType),
+          inline = false
+        ))
+    }
   }
 
 }

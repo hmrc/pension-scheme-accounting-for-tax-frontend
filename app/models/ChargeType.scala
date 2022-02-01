@@ -28,6 +28,7 @@ object ChargeType extends Enumerable.Implicits {
     override def to(value: ChargeType): String = value match {
       case ChargeTypeAnnualAllowance => "ChargeTypeAnnualAllowance"
       case ChargeTypeLifetimeAllowance => "ChargeTypeLifetimeAllowance"
+      case ChargeTypeOverseasTransfer => "ChargeTypeOverseasTransfer"
     }
   }
 

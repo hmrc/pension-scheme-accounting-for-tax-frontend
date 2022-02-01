@@ -59,8 +59,8 @@ class WhatYouWillNeedController @Inject()(
           "chargeType" -> chargeType.toString,
           "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
           "srn" -> srn, "startDate" -> Some(startDate),
-          "instructionsLink" -> "",
-          "templateLink" -> "",
+          "fileDownloadTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType).url,
+          "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType).url,
           "viewModel" -> viewModel))
         .map(Ok(_))
     }
