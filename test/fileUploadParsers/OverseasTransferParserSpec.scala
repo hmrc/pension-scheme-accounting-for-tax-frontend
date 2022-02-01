@@ -96,23 +96,25 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
       ))
     }
 
-    "return validation errors for member details AND charge details when both present" in {
-      val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsCsvFile)
+    "return validation errors for member details AND charge details AND charge amounts when all present" in {
+      val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsAndChargeAmountsCsvFile)
       result mustBe Left(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required"),
         ParserValidationError(1, 3, "dob.error.incomplete"),
         ParserValidationError(1, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two"),
+        ParserValidationError(1,6, "The amount transferred into the QROPS for last must be an amount of money, like 123 or 123.45"),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required"),
         ParserValidationError(2, 3, "dob.error.incomplete"),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid"),
-        ParserValidationError(2, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two")
+        ParserValidationError(2, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two"),
+        ParserValidationError(2,7, "amountTaxDue.error.invalid")
       ))
     }
 
     "return validation errors for charge amounts when present" in {
       val result = parser.parse(startDate, invalidChargeAmountsCsvFile)
       result mustBe Left(Seq(
-        ParserValidationError(1, 6, "Enter the amount transferred into the QROPS for "),
+        ParserValidationError(1, 6, "Enter the amount transferred into the QROPS for first last"),
         ParserValidationError(2, 7, "amountTaxDue.error.invalid")
       ))
     }
@@ -142,10 +144,10 @@ object OverseasTransferParserSpec {
     "Joe,Bloggs,AB123456C,01/04,123123,01,1.00,2.00"
   )
 
-  private val invalidMemberDetailsAndChargeDetailsCsvFile = Seq(
+  private val invalidMemberDetailsAndChargeDetailsAndChargeAmountsCsvFile = Seq(
     header,
-    ",last,AB123456C,01,123123,01/04,1.00,2.00",
-    "Joe,,123456C,01/04,123123,01,1.00,2.00"
+    ",last,AB123456C,01,123123,01/04,A,2.00",
+    "Joe,,123456C,01/04,123123,01,1.00,B"
   )
 
   private val invalidChargeAmountsCsvFile = Seq(

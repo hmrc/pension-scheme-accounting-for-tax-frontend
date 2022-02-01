@@ -25,8 +25,8 @@ import play.api.libs.json.{Format, JsPath, JsValue, Json}
 import java.time.LocalDate
 
 object Parser {
-  val FileLevelParserValidationErrorTypeHeaderInvalid:ParserValidationError = ParserValidationError(0, 0, "Header invalid")
-  val FileLevelParserValidationErrorTypeFileEmpty:ParserValidationError = ParserValidationError(0, 0, "File is empty")
+  val FileLevelParserValidationErrorTypeHeaderInvalid: ParserValidationError = ParserValidationError(0, 0, "Header invalid")
+  val FileLevelParserValidationErrorTypeFileEmpty: ParserValidationError = ParserValidationError(0, 0, "File is empty")
 }
 
 trait Parser {
@@ -94,13 +94,12 @@ trait Parser {
       }
   }
 
-
   protected final def addToValidationResults[A](
-                                                      resultA: Either[Seq[ParserValidationError], A],
-                                                      resultB: Either[Seq[ParserValidationError], Seq[CommitItem]],
-                                                      resultAJsPath: => JsPath,
-                                                      resultAJsValue: A => JsValue
-                                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+                                                 resultA: Either[Seq[ParserValidationError], A],
+                                                 resultB: Either[Seq[ParserValidationError], Seq[CommitItem]],
+                                                 resultAJsPath: => JsPath,
+                                                 resultAJsValue: A => JsValue
+                                               ): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     resultA match {
       case Left(resultAErrors) =>
         resultB match {
@@ -125,28 +124,18 @@ trait Parser {
                                                       resultAJsValue: A => JsValue,
                                                       resultBJsPath: => JsPath,
                                                       resultBJsValue: => B => JsValue
-                                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    resultA match {
-      case Left(resultAErrors) =>
-        resultB match {
-          case Left(resultBErrors) =>
-            Left(resultAErrors ++ resultBErrors)
-          case _ => Left(resultAErrors)
-        }
-
-      case Right(resultAObject) =>
-        resultB match {
-          case Left(resultBErrors) => Left(resultBErrors)
-          case Right(resultBObject) =>
-            Right(
-              Seq(
-                CommitItem(resultAJsPath, resultAJsValue(resultAObject)),
-                CommitItem(resultBJsPath, resultBJsValue(resultBObject))
-              )
-            )
-        }
-    }
-  }
+                                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] =
+    addToValidationResults(
+      resultB,
+      addToValidationResults(
+        resultA,
+        Right(Nil),
+        resultAJsPath,
+        resultAJsValue
+      ),
+      resultBJsPath,
+      resultBJsValue
+    )
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 

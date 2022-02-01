@@ -127,22 +127,33 @@ class OverseasTransferParser @Inject()(
     )
   }
 
+  private def getMemberName(chargeFields: Array[String])(implicit messages: Messages) =
+    (chargeFields(FieldNoFirstName) + " " + chargeFields(FieldNoLastName)).trim match {
+      case fullName if fullName.isEmpty => messages("fileUpload.theMember")
+      case fullName => fullName
+    }
+
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+    val memberName = getMemberName(chargeFields)
+    val validatedMemberDetails = addToValidationResults[MemberDetails](
+      chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
+      Right(Nil),
+      MemberDetailsPage(index - 1).path,
+      Json.toJson(_)
+    )
+
+    val validatedMemberDetailsPlusChargeDetails = addToValidationResults[ChargeDetails](
+      chargeDetailsValidation(startDate, index, chargeFields),
+      validatedMemberDetails,
+      ChargeDetailsPage(index - 1).path,
+      Json.toJson(_)
+    )
+
     addToValidationResults[ChargeAmounts](
-      chargeAmountsValidation("", index, chargeFields),
-      addToValidationResults[ChargeDetails](
-        chargeDetailsValidation(startDate, index, chargeFields),
-        addToValidationResults[MemberDetails](
-          chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
-          Right(Nil),
-          MemberDetailsPage(index - 1).path,
-          Json.toJson(_)
-        ),
-        ChargeDetailsPage(index - 1).path,
-        Json.toJson(_)
-      ),
+      chargeAmountsValidation(memberName, index, chargeFields),
+      validatedMemberDetailsPlusChargeDetails,
       ChargeAmountsPage(index - 1).path,
       Json.toJson(_)
     )
