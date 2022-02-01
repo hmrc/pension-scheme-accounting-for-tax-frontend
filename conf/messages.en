@@ -1319,6 +1319,17 @@ fileupload.upload.details.lifeTimeAllowance.item4 = the date of the benefit crys
 fileupload.upload.details.lifeTimeAllowance.item5 = the amount of tax due at 25%
 fileupload.upload.details.lifeTimeAllowance.item6 = the amount of tax due at 55%
 
+fileupload.upload.result.title = Check your {0} file
+fileupload.upload.result.heading = Check your {0} file
+fileupload.upload.result.h1 = Is this file correct?:
+fileupload.upload.result.radio.yes = Yes, upload this file and add this charge to the AFT return
+fileupload.upload.result.radio.no = No, I want to select a different file
+fileupload.upload.result.error.required = Select yes if the file you have chosen is correct
+
+fileupload.upload.success.title = Your file upload was successful
+fileupload.upload.success.heading = Your file upload was successful
+fileupload.upload.success.p = {0} was uploaded successfully and the charge was added to the AFT return. Select continue to view the changes.
+
 inputSelection.error.required = Select how you want to add the charge to the AFT return
 InvalidArgument = Choose the file to upload
 EntityTooLarge = The file must be smaller than {0}MB

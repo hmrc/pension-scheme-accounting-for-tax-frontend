@@ -18,19 +18,22 @@ package controllers.fileUpload
 
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
-import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, Parser, ParserValidationErrors, ValidationResult}
+import fileUploadParsers._
+import helpers.ChargeTypeHelper
+import helpers.ErrorHelper.recoverFrom5XX
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
+import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, NormalMode, UploadId, UploadedSuccessfully, UserAnswers}
 import navigators.CompoundNavigator
-import pages.fileUpload.ValidationPage
+import pages.fileUpload.UploadedFileName
+import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
-import services.fileUpload.UploadProgressTracker
+import services.AFTService
+import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.ValidationHelper
@@ -50,10 +53,11 @@ class ValidationController @Inject()(
                                       navigator: CompoundNavigator,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
                                       annualAllowanceParser: AnnualAllowanceParser,
                                       lifeTimeAllowanceParser: LifetimeAllowanceParser,
-                                      validationHelper: ValidationHelper
+                                      validationHelper: ValidationHelper,
+                                      aftService:AFTService,
+                                      fileUploadAftReturnService: FileUploadAftReturnService
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -72,11 +76,16 @@ class ValidationController @Inject()(
       case false => ValidationResult(request.userAnswers, List(ParserValidationErrors (0, Seq("Header invalid"))))
     }
     result match {
-          case ValidationResult(ua, Nil) =>
-            userAnswersCacheConnector.save(request.internalId, ua.data)
-              .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
+          case ValidationResult(ua, Nil) =>{
+            processSuccessResult(srn, startDate, accessType, version, chargeType, ua).flatMap(viewModel=>
+                renderer.render(template = "fileUpload/fileUploadSuccess.njk",
+                  Json.obj(
+                    "fileName" -> ua.get(UploadedFileName(chargeType).path),
+                    "chargeTypeText" -> chargeType.toString,
+                    "viewModel" -> viewModel)).map(Ok(_)))
+          } recoverWith recoverFrom5XX(srn, startDate.toString)
           case ValidationResult(_, errors) =>
-            renderer.render(template = "fileUpload/invalid.njk",
+              renderer.render(template = "fileUpload/invalid.njk",
               Json.obj(
                 "chargeType" -> chargeType,
                 "chargeTypeText" -> chargeType.toString,
@@ -85,6 +94,22 @@ class ValidationController @Inject()(
               .map(Ok(_))
         }
     }
+
+  private def processSuccessResult(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, ua: UserAnswers)
+                                  (implicit request: DataRequest[AnyContent])= {
+
+    for {
+        updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
+        _ <- aftService.fileCompileReturn(ua.get(PSTRQuery).getOrElse("pstr"), updatedAnswers)
+      } yield {
+        GenericViewModel(
+          submitUrl = navigator.nextPage(ChargeTypeHelper.getCheckYourAnswersPage(chargeType), NormalMode, updatedAnswers, srn,
+            startDate, accessType, version).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url,
+          schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
+        )
+      }
+  }
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
