@@ -158,12 +158,12 @@ trait Parser {
     val nino = "nino"
   }
 
-  protected final def splitDayMonthYear(date: String): (String, String, String) = {
+  protected final def splitDayMonthYear(date: String): ParsedDate = {
     date.split("/").toSeq match {
-      case Seq(d, m, y) => Tuple3(d, m, y)
-      case Seq(d, m) => Tuple3(d, m, "")
-      case Seq(d) => Tuple3(d, "", "")
-      case _ => Tuple3("", "", "")
+      case Seq(d, m, y) => ParsedDate(d, m, y)
+      case Seq(d, m) => ParsedDate(d, m, "")
+      case Seq(d) => ParsedDate(d, "", "")
+      case _ => ParsedDate("", "", "")
     }
   }
 
@@ -185,6 +185,8 @@ object ParserValidationError {
 case class CommitItem(jsPath: JsPath, value: JsValue)
 
 case class Field(formValidationFieldName: String, fieldValue: String, columnName: String, columnNo: Int)
+
+case class ParsedDate(day: String, month: String, year: String)
 
 object Field {
   def seqToMap(s: Seq[Field]): Map[String, String] = {

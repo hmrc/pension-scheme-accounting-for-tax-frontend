@@ -36,7 +36,6 @@ class AnnualAllowanceParser @Inject()(
                                        chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                        config: FrontendAppConfig
                                      ) extends Parser with Constraints {
-  //scalastyle:off magic.number
   override protected val totalFields: Int = 7
 
   override protected def validHeader: String = config.validAnnualAllowanceHeader
@@ -57,36 +56,47 @@ class AnnualAllowanceParser @Inject()(
     val maxKey = "annualAllowanceYear.fileUpload.error.future"
   }
 
-  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], ChargeEDetails] = {
-    val taxYearsErrors = validateTaxYear(startDate, index, chargeFields(3))
-    splitDayMonthYear(chargeFields(5)) match {
-      case Tuple3(day, month, year) =>
-        val fields = Seq(
-          Field(ChargeDetailsFieldNames.chargeAmount, chargeFields(4), ChargeDetailsFieldNames.chargeAmount, 4),
-          Field(ChargeDetailsFieldNames.dateNoticeReceivedDay, day, ChargeDetailsFieldNames.dateNoticeReceived, 5),
-          Field(ChargeDetailsFieldNames.dateNoticeReceivedMonth, month, ChargeDetailsFieldNames.dateNoticeReceived, 5),
-          Field(ChargeDetailsFieldNames.dateNoticeReceivedYear, year, ChargeDetailsFieldNames.dateNoticeReceived, 5),
-          Field(ChargeDetailsFieldNames.isPaymentMandatory, stringToBoolean(chargeFields(6)),
-            ChargeDetailsFieldNames.isPaymentMandatory, 6)
+  private final val FieldNoChargeAmount = 4
+  private final val FieldNoDateNoticeReceived = 5
+  private final val FieldNoIsPaymentMandatory = 6
 
-        )
-        val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
-          minimumChargeValueAllowed = minChargeValueAllowed,
-          minimumDate = config.earliestDateOfNotice
-        )
-        chargeDetailsForm.bind(
-          Field.seqToMap(fields)
-        ).fold(
-          formWithErrors => Left(errorsFromForm(formWithErrors, fields, index) ++ taxYearsErrors),
-          value =>
-            if (taxYearsErrors.nonEmpty) {
-              Left(taxYearsErrors)
-            } else {
-              Right(value)
-            }
-        )
-    }
+  private def processChargeDetailsValidation(index: Int,
+                                             chargeFields: Array[String],
+                                             parsedDate: ParsedDate,
+                                             taxYearsErrors: Seq[ParserValidationError]): Either[Seq[ParserValidationError], ChargeEDetails] = {
+    val fields = Seq(
+      Field(ChargeDetailsFieldNames.chargeAmount, chargeFields(FieldNoChargeAmount), ChargeDetailsFieldNames.chargeAmount, FieldNoChargeAmount),
+      Field(ChargeDetailsFieldNames.dateNoticeReceivedDay, parsedDate.day, ChargeDetailsFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
+      Field(ChargeDetailsFieldNames.dateNoticeReceivedMonth, parsedDate.month, ChargeDetailsFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
+      Field(ChargeDetailsFieldNames.dateNoticeReceivedYear, parsedDate.year, ChargeDetailsFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
+      Field(ChargeDetailsFieldNames.isPaymentMandatory, stringToBoolean(chargeFields(FieldNoIsPaymentMandatory)),
+        ChargeDetailsFieldNames.isPaymentMandatory, FieldNoIsPaymentMandatory)
+
+    )
+    val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
+      minimumChargeValueAllowed = minChargeValueAllowed,
+      minimumDate = config.earliestDateOfNotice
+    )
+    chargeDetailsForm.bind(
+      Field.seqToMap(fields)
+    ).fold(
+      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index) ++ taxYearsErrors),
+      value =>
+        if (taxYearsErrors.nonEmpty) {
+          Left(taxYearsErrors)
+        } else {
+          Right(value)
+        }
+    )
   }
+
+  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], ChargeEDetails] =
+    processChargeDetailsValidation(
+      index,
+      chargeFields,
+      splitDayMonthYear(chargeFields(FieldNoDateNoticeReceived)),
+      validateTaxYear(startDate, index, chargeFields(3))
+    )
 
   private def validateTaxYear(startDate: LocalDate, index: Int, fieldValue: String): Seq[ParserValidationError] = {
     year(
