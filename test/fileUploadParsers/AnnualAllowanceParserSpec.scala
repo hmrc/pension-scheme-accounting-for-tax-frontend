@@ -26,7 +26,7 @@ import models.chargeE.ChargeEDetails
 import org.mockito.{Mockito, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
-import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
+import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 
 import java.time.LocalDate
@@ -49,8 +49,10 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       result mustBe Right(Seq(
         CommitItem(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2)),
         CommitItem(ChargeDetailsPage(0).path, Json.toJson(chargeDetails)),
+        CommitItem(AnnualAllowanceYearPage(0).path, Json.toJson("2020")),
         CommitItem(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3)),
         CommitItem(ChargeDetailsPage(1).path, Json.toJson(chargeDetails)),
+        CommitItem(AnnualAllowanceYearPage(1).path, Json.toJson("2020"))
       ))
     }
 

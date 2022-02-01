@@ -23,7 +23,7 @@ import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
 import models.MemberDetails
 import models.chargeE.ChargeEDetails
-import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
+import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.data.validation.{Invalid, Valid}
 import play.api.i18n.Messages
@@ -49,6 +49,7 @@ class AnnualAllowanceParser @Inject()(
     val isPaymentMandatory = "isPaymentMandatory"
   }
 
+  private final val FieldNoTaxYear = 3
   private final val FieldNoChargeAmount = 4
   private final val FieldNoDateNoticeReceived = 5
   private final val FieldNoIsPaymentMandatory = 6
@@ -115,7 +116,7 @@ class AnnualAllowanceParser @Inject()(
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    combineValidationResults[MemberDetails, ChargeEDetails](
+    val validationResults = combineValidationResults[MemberDetails, ChargeEDetails](
       memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
       chargeDetailsValidation(startDate, index, chargeFields),
       MemberDetailsPage(index - 1).path,
@@ -123,5 +124,7 @@ class AnnualAllowanceParser @Inject()(
       ChargeDetailsPage(index - 1).path,
       Json.toJson(_)
     )
+
+    addToValidationResults[String](Right(chargeFields(FieldNoTaxYear)), validationResults, AnnualAllowanceYearPage(index - 1).path, Json.toJson(_))
   }
 }
