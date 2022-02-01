@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
+import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeFileEmpty, FileLevelParserValidationErrorTypeHeaderInvalid}
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.requests.DataRequest
@@ -35,7 +36,6 @@ import uk.gov.hmrc.http.HttpReads.is5xx
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.ValidationHelper
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -54,39 +54,50 @@ class ValidationController @Inject()(
                                       uploadProgressTracker: UploadProgressTracker,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                       annualAllowanceParser: AnnualAllowanceParser,
-                                      lifeTimeAllowanceParser: LifetimeAllowanceParser,
-                                      validationHelper: ValidationHelper
+                                      lifeTimeAllowanceParser: LifetimeAllowanceParser
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
 
+  private def processInvalid(
+                              srn: String,
+                              startDate: LocalDate,
+                              chargeType: ChargeType,
+                              errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    errors match {
+      // TODO: Error handling for following two scenarios
+      //      case Seq(FileLevelParserValidationErrorTypeHeaderInvalid) =>
+      //      case Seq(FileLevelParserValidationErrorTypeFileEmpty) =>
+      case _ =>
+        renderer.render(template = "fileUpload/invalid.njk",
+          Json.obj(
+            "chargeType" -> chargeType,
+            "chargeTypeText" -> chargeType.toString,
+            "srn" -> srn, "startDate" -> Some(startDate),
+            "errors" -> errors))
+          .map(Ok(_))
+    }
+  }
+
   private def parseAndRenderResult(
-                   srn: String,
-                   startDate: LocalDate,
-                   accessType: AccessType,
-                   version: Int,
-                   chargeType: ChargeType,
-                   linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]):Future[Result] = {
+                                    srn: String,
+                                    startDate: LocalDate,
+                                    accessType: AccessType,
+                                    version: Int,
+                                    chargeType: ChargeType,
+                                    linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
+
     //removes non-printable characters like ^M$
-    val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}",""))
-    val result = validationHelper.isHeaderValid(filteredLinesFromCSV.head, chargeType: ChargeType) match {
-      case true => parser.parse(request.userAnswers, filteredLinesFromCSV.tail)
-      case false => ValidationResult(request.userAnswers, List(ParserValidationErrors (0, Seq("Header invalid"))))
-    }
-    result match {
-          case ValidationResult(ua, Nil) =>
-            userAnswersCacheConnector.save(request.internalId, ua.data)
-              .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, ua, srn, startDate, accessType, version)))
-          case ValidationResult(_, errors) =>
-            renderer.render(template = "fileUpload/invalid.njk",
-              Json.obj(
-                "chargeType" -> chargeType,
-                "chargeTypeText" -> chargeType.toString,
-                "srn" -> srn, "startDate" -> Some(startDate),
-                "viewModel" -> errors))
-              .map(Ok(_))
-        }
-    }
+    val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
+
+    parser.parse(startDate, filteredLinesFromCSV).fold[Future[Result]](processInvalid(srn, startDate, chargeType, _),
+      commitItems => {
+        val updatedUA = commitItems.foldLeft(request.userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
+        userAnswersCacheConnector.save(request.internalId, updatedUA.data)
+          .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, updatedUA, srn, startDate, accessType, version)))
+      }
+    )
+  }
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {

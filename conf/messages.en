@@ -364,6 +364,12 @@ chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel = the amount o
 
 yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
+
+annualAllowanceYear.fileUpload.error.required = Enter the tax year to which the annual allowance charge relates
+annualAllowanceYear.fileUpload.error.invalid = Enter a real tax year to which the annual allowance charge relates
+annualAllowanceYear.fileUpload.error.future = The tax year to which the annual allowance charge relates must not be in the future
+annualAllowanceYear.fileUpload.error.past = The tax year to which the annual allowance charge related must not be before 2011
+
 annualAllowanceYear.title = Select the tax year to which the annual allowance charge relates
 annualAllowanceYear.heading = Select the tax year to which the annual allowance charge relates
 total = Total

@@ -29,6 +29,28 @@ trait Constraints {
   val addressLineRegex = """^[A-Za-z0-9 \-,.&'\/]{1,35}$"""
   val psaIdRegex = "^A[0-9]{7}$"
 
+
+  protected def year(minYear: Int,
+                     maxYear: Int,
+                     requiredKey: String,
+                     invalidKey: String,
+                     minKey: String,
+                     maxKey: String
+                    ): Constraint[String] =
+    Constraint {
+      case year if year.isEmpty => Invalid(requiredKey)
+      case year if year.length != 4 => Invalid(invalidKey)
+      case year =>
+        val y = year.toInt
+        if (y > maxYear) {
+          Invalid(maxKey)
+        } else if (y < minYear) {
+          Invalid(minKey)
+        } else {
+          Valid
+        }
+    }
+
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
     Constraint {
       input =>
@@ -38,7 +60,7 @@ trait Constraints {
           .getOrElse(Valid)
     }
 
-  protected def isEqual(expectedValue:Option[String], errorKey: String): Constraint[String] =
+  protected def isEqual(expectedValue: Option[String], errorKey: String): Constraint[String] =
     Constraint {
       case _ if expectedValue.isEmpty => Valid
       case s if expectedValue.contains(s) => Valid
@@ -198,6 +220,7 @@ trait Constraints {
     }
 
   protected def validAddressLine(invalidKey: String): Constraint[String] = regexp(addressLineRegex, invalidKey)
+
   protected def optionalValidAddressLine(invalidKey: String): Constraint[Option[String]] = Constraint {
     case Some(str) if str.matches(addressLineRegex) =>
       Valid

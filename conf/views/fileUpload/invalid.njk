@@ -22,7 +22,9 @@
 
             <p class="govuk-body">{{ result }}</p>
 
-            {{ viewModel.errors }}
+            {% for e in errors %}
+                <p class="govuk-body"> Row {{ e.row }}, col {{ e.col }} : {{ e.error }} </p>
+            {% endfor %}
 
       <p class="govuk-body"><a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
       </p>
