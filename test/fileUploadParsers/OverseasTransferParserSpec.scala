@@ -109,16 +109,11 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
       ))
     }
 
-    /*
-    ParserValidationError(1,6,Enter the amount transferred into the QROPS for ),
-    ParserValidationError(2,0,Not enough fields)))
-     */
-
     "return validation errors for charge amounts when present" in {
       val result = parser.parse(startDate, invalidChargeAmountsCsvFile)
       result mustBe Left(Seq(
         ParserValidationError(1, 6, "Enter the amount transferred into the QROPS for "),
-        ParserValidationError(2, 6, "Enter the amount transferred into the QROPS for ")
+        ParserValidationError(2, 7, "amountTaxDue.error.invalid")
       ))
     }
 
@@ -156,7 +151,7 @@ object OverseasTransferParserSpec {
   private val invalidChargeAmountsCsvFile = Seq(
     header,
     "first,last,AB123456C,01/04/2000,123123,01/04/2020,,2.00",
-    "Joe,Bloggs,AB123456C,01/04/2000,123123,01/04/2020,1.00,"
+    "Joe,Bloggs,AB123456C,01/04/2000,123123,01/04/2020,1.00,A"
   )
 
   private val memberDetailsFormProvider = new MemberDetailsFormProvider

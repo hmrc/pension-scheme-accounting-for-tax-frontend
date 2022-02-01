@@ -99,14 +99,15 @@ class OverseasTransferParser @Inject()(
     }
   }
 
-  private def chargeAmountsValidation(index: Int,
+  private def chargeAmountsValidation(memberName: String,
+                                      index: Int,
                                       chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeAmounts] = {
     val fields = Seq(
       Field(ChargeGetailsFieldNames.amountTransferred, chargeFields(6), ChargeGetailsFieldNames.amountTransferred, 6),
       Field(ChargeGetailsFieldNames.amountTaxDue, chargeFields(7), ChargeGetailsFieldNames.amountTaxDue, 7)
     )
     val chargeDetailsForm: Form[ChargeAmounts] = chargeAmountsFormProvider(
-      memberName = "",
+      memberName = memberName,
       minimumChargeValueAllowed = minChargeValueAllowed
     )
     chargeDetailsForm.bind(
@@ -120,17 +121,19 @@ class OverseasTransferParser @Inject()(
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    val combinedResults = combineValidationResults[MemberDetails, ChargeDetails](
-      chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
-      chargeDetailsValidation(startDate, index, chargeFields),
-      MemberDetailsPage(index - 1).path,
-      Json.toJson(_),
-      ChargeDetailsPage(index - 1).path,
-      Json.toJson(_)
-    )
     addToValidationResults[ChargeAmounts](
-      chargeAmountsValidation(index, chargeFields),
-      combinedResults,
+      chargeAmountsValidation("", index, chargeFields),
+      addToValidationResults[ChargeDetails](
+        chargeDetailsValidation(startDate, index, chargeFields),
+        addToValidationResults[MemberDetails](
+          chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
+          Right(Nil),
+          MemberDetailsPage(index - 1).path,
+          Json.toJson(_)
+        ),
+        ChargeDetailsPage(index - 1).path,
+        Json.toJson(_)
+      ),
       ChargeAmountsPage(index - 1).path,
       Json.toJson(_)
     )
