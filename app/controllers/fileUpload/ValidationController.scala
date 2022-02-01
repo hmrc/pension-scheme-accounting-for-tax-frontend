@@ -36,7 +36,6 @@ import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.ValidationHelper
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -55,45 +54,55 @@ class ValidationController @Inject()(
                                       uploadProgressTracker: UploadProgressTracker,
                                       annualAllowanceParser: AnnualAllowanceParser,
                                       lifeTimeAllowanceParser: LifetimeAllowanceParser,
-                                      validationHelper: ValidationHelper,
                                       aftService:AFTService,
                                       fileUploadAftReturnService: FileUploadAftReturnService
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
 
+  private def processInvalid(
+                              srn: String,
+                              startDate: LocalDate,
+                              chargeType: ChargeType,
+                              errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    errors match {
+      // TODO: Error handling for following two scenarios
+      //      case Seq(FileLevelParserValidationErrorTypeHeaderInvalid) =>
+      //      case Seq(FileLevelParserValidationErrorTypeFileEmpty) =>
+      case _ =>
+        renderer.render(template = "fileUpload/invalid.njk",
+          Json.obj(
+            "chargeType" -> chargeType,
+            "chargeTypeText" -> chargeType.toString,
+            "srn" -> srn, "startDate" -> Some(startDate),
+            "errors" -> errors))
+          .map(Ok(_))
+    }
+  }
+
   private def parseAndRenderResult(
-                   srn: String,
-                   startDate: LocalDate,
-                   accessType: AccessType,
-                   version: Int,
-                   chargeType: ChargeType,
-                   linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]):Future[Result] = {
+                                    srn: String,
+                                    startDate: LocalDate,
+                                    accessType: AccessType,
+                                    version: Int,
+                                    chargeType: ChargeType,
+                                    linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
+
     //removes non-printable characters like ^M$
-    val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}",""))
-    val result = validationHelper.isHeaderValid(filteredLinesFromCSV.head, chargeType: ChargeType) match {
-      case true => parser.parse(request.userAnswers, filteredLinesFromCSV.tail)
-      case false => ValidationResult(request.userAnswers, List(ParserValidationErrors (0, Seq("Header invalid"))))
-    }
-    result match {
-          case ValidationResult(ua, Nil) =>{
-            processSuccessResult(srn, startDate, accessType, version, chargeType, ua).flatMap(viewModel=>
-                renderer.render(template = "fileUpload/fileUploadSuccess.njk",
-                  Json.obj(
-                    "fileName" -> ua.get(UploadedFileName(chargeType).path),
-                    "chargeTypeText" -> chargeType.toString,
-                    "viewModel" -> viewModel)).map(Ok(_)))
-          } recoverWith recoverFrom5XX(srn, startDate.toString)
-          case ValidationResult(_, errors) =>
-              renderer.render(template = "fileUpload/invalid.njk",
-              Json.obj(
-                "chargeType" -> chargeType,
-                "chargeTypeText" -> chargeType.toString,
-                "srn" -> srn, "startDate" -> Some(startDate),
-                "viewModel" -> errors))
-              .map(Ok(_))
-        }
-    }
+    val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
+
+    parser.parse(startDate, filteredLinesFromCSV).fold[Future[Result]](processInvalid(srn, startDate, chargeType, _),
+      commitItems => {
+        val updatedUA = commitItems.foldLeft(request.userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
+        processSuccessResult(srn, startDate, accessType, version, chargeType, updatedUA).flatMap(viewModel=>
+          renderer.render(template = "fileUpload/fileUploadSuccess.njk",
+            Json.obj(
+              "fileName" -> updatedUA.get(UploadedFileName(chargeType).path),
+              "chargeTypeText" -> chargeType.toString,
+              "viewModel" -> viewModel)).map(Ok(_)))
+      } recoverWith recoverFrom5XX(srn, startDate.toString)
+    )
+  }
 
   private def processSuccessResult(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, ua: UserAnswers)
                                   (implicit request: DataRequest[AnyContent])= {
@@ -115,15 +124,16 @@ class ValidationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         val parser = findParser(chargeType)
-        uploadProgressTracker.getUploadResult(uploadId).flatMap { uploadStatus =>
-          (parser, uploadStatus) match {
-            case (Some(_), None | Some(Failed) | Some(InProgress)) => sessionExpired
-            case (None, _) => sessionExpired
-            case (Some(parser), Some(ud: UploadedSuccessfully)) =>
-              upscanInitiateConnector.download(ud.downloadUrl)
-                .map(_.body.split("\n").toList)
-                .flatMap(linesFromCSV => parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser))
-          }
+        uploadProgressTracker.getUploadResult(uploadId).flatMap {
+          uploadStatus =>
+            (parser, uploadStatus) match {
+              case (Some(_), None | Some(Failed) | Some(InProgress)) => sessionExpired
+              case (None, _) => sessionExpired
+              case (Some(parser), Some(ud: UploadedSuccessfully)) =>
+                upscanInitiateConnector.download(ud.downloadUrl)
+                  .map(_.body.split("\n").toList)
+                  .flatMap(parseAndRenderResult(srn, startDate, accessType, version, chargeType, _, parser))
+            }
         }
     }
 
