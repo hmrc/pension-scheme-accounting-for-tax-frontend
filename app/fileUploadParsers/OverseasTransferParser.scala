@@ -38,7 +38,7 @@ class OverseasTransferParser @Inject()(
 
   override protected val totalFields: Int = 8
 
-  private final object ChargeGetailsFieldNames {
+  private final object FieldNames {
     val dateOfBirthDay: String = "dob.day"
     val dateOfBirthMonth: String = "dob.month"
     val dateOfBirthYear: String = "dob.year"
@@ -52,23 +52,22 @@ class OverseasTransferParser @Inject()(
     val amountTaxDue: String = "amountTaxDue"
   }
 
-  private final val FieldNoDOB = 3
-
-  private final val FieldNoDateOfTransfer = 5
+  private final val FieldNoDateOfBirth = 3
   private final val FieldNoQropsRefNo = 4
+  private final val FieldNoDateOfTransfer = 5
   private final val FieldNoAmountTransferred = 6
   private final val FieldNoAmountTaxDue = 7
 
   def chargeMemberDetailsValidation(index: Int, chargeFields: Array[String],
                                     memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
-    val parsedDOB = splitDayMonthYear(chargeFields(FieldNoDOB))
+    val parsedDOB = splitDayMonthYear(chargeFields(FieldNoDateOfBirth))
     val fields = Seq(
       Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, FieldNoFirstName),
       Field(MemberDetailsFieldNames.lastName, chargeFields(FieldNoLastName), MemberDetailsFieldNames.lastName, FieldNoLastName),
       Field(MemberDetailsFieldNames.nino, chargeFields(FieldNoNino), MemberDetailsFieldNames.nino, FieldNoNino),
-      Field(ChargeGetailsFieldNames.dateOfBirthDay, parsedDOB.day, ChargeGetailsFieldNames.dateOfBirth, FieldNoDOB),
-      Field(ChargeGetailsFieldNames.dateOfBirthMonth, parsedDOB.month, ChargeGetailsFieldNames.dateOfBirth, FieldNoDOB),
-      Field(ChargeGetailsFieldNames.dateOfBirthYear, parsedDOB.year, ChargeGetailsFieldNames.dateOfBirth, FieldNoDOB)
+      Field(FieldNames.dateOfBirthDay, parsedDOB.day, FieldNames.dateOfBirth, FieldNoDateOfBirth),
+      Field(FieldNames.dateOfBirthMonth, parsedDOB.month, FieldNames.dateOfBirth, FieldNoDateOfBirth),
+      Field(FieldNames.dateOfBirthYear, parsedDOB.year, FieldNames.dateOfBirth, FieldNoDateOfBirth)
     )
     memberDetailsForm
       .bind(Field.seqToMap(fields))
@@ -78,21 +77,16 @@ class OverseasTransferParser @Inject()(
       )
   }
 
-  //First name,Last name,National Insurance number,Date of birth,Reference number,Transfer date,Amount,Tax due
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
                                       chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDetails] = {
 
     val parsedDateOfTransfer = splitDayMonthYear(chargeFields(FieldNoDateOfTransfer))
     val fields = Seq(
-      Field(ChargeGetailsFieldNames.dateOfTransferDay,
-        parsedDateOfTransfer.day, ChargeGetailsFieldNames.dateOfTransfer, FieldNoDateOfTransfer),
-      Field(ChargeGetailsFieldNames.dateOfTransferMonth,
-        parsedDateOfTransfer.month, ChargeGetailsFieldNames.dateOfTransfer, FieldNoDateOfTransfer),
-      Field(ChargeGetailsFieldNames.dateOfTransferYear,
-        parsedDateOfTransfer.year, ChargeGetailsFieldNames.dateOfTransfer, FieldNoDateOfTransfer),
-      Field(ChargeGetailsFieldNames.qropsReferenceNumber,
-        chargeFields(FieldNoQropsRefNo), ChargeGetailsFieldNames.qropsReferenceNumber, FieldNoQropsRefNo)
+      Field(FieldNames.dateOfTransferDay, parsedDateOfTransfer.day, FieldNames.dateOfTransfer, FieldNoDateOfTransfer),
+      Field(FieldNames.dateOfTransferMonth, parsedDateOfTransfer.month, FieldNames.dateOfTransfer, FieldNoDateOfTransfer),
+      Field(FieldNames.dateOfTransferYear, parsedDateOfTransfer.year, FieldNames.dateOfTransfer, FieldNoDateOfTransfer),
+      Field(FieldNames.qropsReferenceNumber, chargeFields(FieldNoQropsRefNo), FieldNames.qropsReferenceNumber, FieldNoQropsRefNo)
     )
     val chargeDetailsForm: Form[ChargeDetails] = chargeDetailsFormProvider(
       min = startDate,
@@ -110,10 +104,8 @@ class OverseasTransferParser @Inject()(
                                       index: Int,
                                       chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeAmounts] = {
     val fields = Seq(
-      Field(ChargeGetailsFieldNames.amountTransferred,
-        chargeFields(FieldNoAmountTransferred), ChargeGetailsFieldNames.amountTransferred, FieldNoAmountTransferred),
-      Field(ChargeGetailsFieldNames.amountTaxDue,
-        chargeFields(FieldNoAmountTaxDue), ChargeGetailsFieldNames.amountTaxDue, FieldNoAmountTaxDue)
+      Field(FieldNames.amountTransferred, chargeFields(FieldNoAmountTransferred), FieldNames.amountTransferred, FieldNoAmountTransferred),
+      Field(FieldNames.amountTaxDue, chargeFields(FieldNoAmountTaxDue), FieldNames.amountTaxDue, FieldNoAmountTaxDue)
     )
     val chargeDetailsForm: Form[ChargeAmounts] = chargeAmountsFormProvider(
       memberName = memberName,
@@ -137,6 +129,7 @@ class OverseasTransferParser @Inject()(
                                         index: Int,
                                         chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     val memberName = getMemberName(chargeFields)
+
     val validatedMemberDetails = addToValidationResults[MemberDetails](
       chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
       Right(Nil),

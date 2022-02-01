@@ -40,7 +40,7 @@ class AnnualAllowanceParser @Inject()(
 
   override protected def validHeader: String = config.validAnnualAllowanceHeader
 
-  private final object ChargeDetailsFieldNames {
+  private final object FieldNames {
     val chargeAmount: String = "chargeAmount"
     val dateNoticeReceivedDay: String = "dateNoticeReceived.day"
     val dateNoticeReceivedMonth: String = "dateNoticeReceived.month"
@@ -65,12 +65,12 @@ class AnnualAllowanceParser @Inject()(
                                              parsedDate: ParsedDate,
                                              taxYearsErrors: Seq[ParserValidationError]): Either[Seq[ParserValidationError], ChargeEDetails] = {
     val fields = Seq(
-      Field(ChargeDetailsFieldNames.chargeAmount, chargeFields(FieldNoChargeAmount), ChargeDetailsFieldNames.chargeAmount, FieldNoChargeAmount),
-      Field(ChargeDetailsFieldNames.dateNoticeReceivedDay, parsedDate.day, ChargeDetailsFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
-      Field(ChargeDetailsFieldNames.dateNoticeReceivedMonth, parsedDate.month, ChargeDetailsFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
-      Field(ChargeDetailsFieldNames.dateNoticeReceivedYear, parsedDate.year, ChargeDetailsFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
-      Field(ChargeDetailsFieldNames.isPaymentMandatory, stringToBoolean(chargeFields(FieldNoIsPaymentMandatory)),
-        ChargeDetailsFieldNames.isPaymentMandatory, FieldNoIsPaymentMandatory)
+      Field(FieldNames.chargeAmount, chargeFields(FieldNoChargeAmount), FieldNames.chargeAmount, FieldNoChargeAmount),
+      Field(FieldNames.dateNoticeReceivedDay, parsedDate.day, FieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
+      Field(FieldNames.dateNoticeReceivedMonth, parsedDate.month, FieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
+      Field(FieldNames.dateNoticeReceivedYear, parsedDate.year, FieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
+      Field(FieldNames.isPaymentMandatory, stringToBoolean(chargeFields(FieldNoIsPaymentMandatory)),
+        FieldNames.isPaymentMandatory, FieldNoIsPaymentMandatory)
 
     )
     val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
