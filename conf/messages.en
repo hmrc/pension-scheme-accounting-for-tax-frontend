@@ -1272,6 +1272,21 @@ fileupload.whatYouWillNeed.heading = Adding your {0} upload
 fileupload.fileupload.title = Upload the {0}
 fileupload.fileupload.heading = Upload the {0}
 
+fileupload.error.quarantine.title = Your file might have a virus
+fileupload.error.quarantine.p1 = We scanned your file for viruses and the check shows that your file might have a virus.
+fileupload.error.quarantine.p2 = Check whether there are viruses on your device and upload a new file when it is safe to do so.
+fileupload.returnlink = Add another charge
+
+fileupload.error.rejected.title = Your file contains unnecessary content
+fileupload.error.rejected.p1 = Your file contains content that the service does not need or cannot access. This may include:
+fileupload.error.rejected.list.b1 = images
+fileupload.error.rejected.list.b2 = videos
+fileupload.error.rejected.list.b3 = music or other audio files
+fileupload.error.rejected.list.b4 = any other information that is not text
+fileupload.error.rejected.p2 = Remove any unnecessary information from your file and upload it again, or upload a different file.
+
+fileupload.error.unknown.title = Sorry, there is a problem with the service
+
 inputSelection.error.required = Select how you would like to add your data
 InvalidArgument = Please choose a file
 EntityTooLarge = The CSV must be smaller than {0}M

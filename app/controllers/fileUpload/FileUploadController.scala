@@ -21,19 +21,18 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, NormalMode, UploadId, UploadStatus, UploadedSuccessfully}
+import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
-import pages.fileUpload.FileUploadPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class FileUploadController @Inject()(
                                       override val messagesApi: MessagesApi,
@@ -85,43 +84,50 @@ class FileUploadController @Inject()(
     }
 
   def showResult(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-
-      val ua = request.userAnswers
-      val viewModel = GenericViewModel(
-        submitUrl = s"${navigator.nextPage(FileUploadPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url}${uploadId.value}",
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-        schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      )
-
-      uploadProgressTracker
-        .getUploadResult(uploadId)
-        .map(uplResult)
-        .flatMap { uploadResult =>
-          renderer.render(
-            template = "fileUpload/fileUploadResult.njk",
-            Json.obj(
-              "result" -> uploadResult,
-              "viewModel" -> viewModel)
-          )
-            .map(Ok(_))
-        }
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
+      implicit request =>
+        uploadProgressTracker
+          .getUploadResult(uploadId)
+          .flatMap {
+            uploadStatus =>
+              uploadStatus match {
+                case Some(status) => {
+                  status match {
+                    //case UploadedSuccessfully(_, _, _, _) => Future.successful(
+                    //Redirect(routes.FileUploadController.showResult(srn, startDate, accessType, version, chargeType, uploadId)))
+                    //TODO need to discussed with team for approach
+                    case InProgress => Future.successful(
+                      Redirect(routes.FileUploadController.showResult(srn, startDate, accessType, version, chargeType, uploadId)))
+                    case Failed(failureReason, _) => handleFailureResponse(failureReason, srn, startDate, accessType, version)
+                  }
+                  //case _ => Future.successful(Redirect(routes.FileUploadController.showResult(srn, startDate, accessType, version, chargeType, uploadId)))
+                }
+              }
+          }
     }
-
-  private def uplResult(uploadStatus: Option[UploadStatus]): String = {
-    uploadStatus match {
-      case Some(UploadedSuccessfully(_, _, _, _)) => "Success"
-      case Some(InProgress) => "Inprogress"
-      case Some(Failed) => "Failed"
-      case None => "Notfound"
-    }
-  }
 
   private def getErrorCode(request: DataRequest[AnyContent]):Option[String] = {
     if (request.queryString.contains("errorCode") && request.queryString("errorCode").nonEmpty) {
       Some(request.queryString("errorCode").head)
     } else {
       None
+    }
+  }
+
+  private def handleFailureResponse(failureResponse: String,srn: String, startDate: String, accessType: AccessType,
+                                    version: Int)(implicit request: DataRequest[_]): Future[Result]  = {
+    val json = Json.obj(
+      "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
+    failureResponse match {
+      case "QUARANTINE" => renderer.render(
+        template = "fileUpload/error/quarantine.njk", json
+      ).map(Ok(_))
+      case "REJECTED" => renderer.render(
+        template = "fileUpload/error/rejected.njk", json
+      ).map(Ok(_))
+      case "UNKNOWN" => renderer.render(
+        template = "fileUpload/error/unknown.njk", Json.obj()
+      ).map(Ok(_))
     }
   }
 }

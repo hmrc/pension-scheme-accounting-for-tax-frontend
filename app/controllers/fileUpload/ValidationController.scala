@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, Parser, ParserValidationErrors, ValidationResult}
+import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
@@ -31,6 +31,8 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.fileUpload.UploadProgressTracker
+import uk.gov.hmrc.http.HttpReads.is5xx
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.ValidationHelper
@@ -92,12 +94,21 @@ class ValidationController @Inject()(
         val parser = findParser(chargeType)
         uploadProgressTracker.getUploadResult(uploadId).flatMap { uploadStatus =>
           (parser, uploadStatus) match {
-            case (Some(_), None | Some(Failed) | Some(InProgress)) => sessionExpired
+            case (Some(_), None | Some(Failed(_, _)) | Some(InProgress)) => sessionExpired
             case (None, _) => sessionExpired
             case (Some(parser), Some(ud: UploadedSuccessfully)) =>
-              upscanInitiateConnector.download(ud.downloadUrl)
-                .map(_.body.split("\n").toList)
-                .flatMap(linesFromCSV => parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser))
+              upscanInitiateConnector.download(ud.downloadUrl).flatMap {
+                response =>
+                  response match {
+                    case e: UpstreamErrorResponse if (is5xx(e.statusCode)) =>
+                      renderer.render(
+                        template = "fileUpload/error/unknown.njk", Json.obj()
+                      ).map(Ok(_))
+                    case value =>
+                      val linesFromCSV = value.body.split("\n").toList
+                      parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                  }
+              }
           }
         }
     }

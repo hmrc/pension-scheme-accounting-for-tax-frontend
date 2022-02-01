@@ -1,0 +1,24 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"  import title %}
+
+
+{% block pageTitle %}
+  {{ title(messages("fileupload.error.unknown.title")) }}
+{% endblock %}
+
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+       <div class="govuk-grid-column-two-thirds">
+
+          <h1 class="govuk-heading-xl">
+            {{ messages("fileupload.error.unknown.title") }}
+          </h1>
+
+             <p class="govuk-body">
+               {{ messages("yourActionWasNotProcessed.guidance.p1") }}
+             </p>
+
+{% endblock %}

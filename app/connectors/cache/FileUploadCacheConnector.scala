@@ -40,6 +40,8 @@ class FileUploadCacheConnector @Inject()(
 
   protected def urlUploadResult = s"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/fileUploadResult"
 
+  private val failedFormat: OFormat[Failed] = Json.format[Failed]
+
   private val uploadedSuccessfullyFormat: OFormat[UploadedSuccessfully] = Json.format[UploadedSuccessfully]
 
   override def getUploadResult(id: UploadId)
@@ -52,7 +54,7 @@ class FileUploadCacheConnector @Inject()(
       val jsObject = json.asInstanceOf[JsObject]
       jsObject.value.get("_type") match {
         case Some(JsString("InProgress")) => JsSuccess(InProgress)
-        case Some(JsString("Failed")) => JsSuccess(Failed)
+        case Some(JsString("Failed")) => Json.fromJson[Failed](jsObject)(failedFormat)
         case Some(JsString("UploadedSuccessfully")) => Json.fromJson[UploadedSuccessfully](jsObject)(uploadedSuccessfullyFormat)
         case Some(value) => JsError(s"Unexpected value of _type: $value")
         case None => JsError("Missing _type field")
@@ -93,9 +95,9 @@ class FileUploadCacheConnector @Inject()(
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
     val status = uploadStatus match {
-      case InProgress => FileUploadStatus(InProgress.toString, None, None, None, None)
-      case Failed => FileUploadStatus(Failed.toString, None, None, None, None)
-      case s: UploadedSuccessfully => FileUploadStatus("UploadedSuccessfully", Some(s.downloadUrl), Some(s.mimeType), Some(s.name), s.size)
+      case InProgress => FileUploadStatus(InProgress.toString, None, None, None, None, None, None)
+      case f: Failed => FileUploadStatus("Failed", Some(f.failureReason), Some(f.message), None, None, None, None)
+      case s: UploadedSuccessfully => FileUploadStatus("UploadedSuccessfully", None, None, Some(s.downloadUrl), Some(s.mimeType), Some(s.name), s.size)
     }
     http.POST[JsValue, HttpResponse](urlUploadResult, Json.toJson(status))(implicitly, implicitly, hc, implicitly)
       .map { response =>

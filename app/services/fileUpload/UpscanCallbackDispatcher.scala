@@ -35,8 +35,9 @@ class UpscanCallbackDispatcher @Inject()(sessionStorage: UploadProgressTracker) 
           s.downloadUrl.getFile,
           Some(s.uploadDetails.size)
         )
-      case _: FailedCallbackBody =>
-        Failed
+      case f: FailedCallbackBody =>
+        Failed(f.failureDetails.failureReason,
+          f.failureDetails.message)
     }
 
     sessionStorage.registerUploadResult(callback.reference, uploadStatus)
