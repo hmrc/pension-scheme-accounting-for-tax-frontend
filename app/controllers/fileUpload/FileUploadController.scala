@@ -92,9 +92,7 @@ class FileUploadController @Inject()(
         uploadProgressTracker
           .getUploadResult(uploadId)
           .flatMap {
-            uploadStatus =>
-            uploadStatus match {
-              case Some(status) =>{
+              case Some(status) =>
                 status match {
                   case UploadedSuccessfully(name, _, _, _) => {
                     for {
@@ -104,11 +102,10 @@ class FileUploadController @Inject()(
                       Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
                     }
                   }
-                  case InProgress => Future.successful(Redirect(routes.FileUploadController.showResult(srn, startDate, accessType, version, chargeType, uploadId)))
+                  case InProgress => Future.successful(Redirect(routes.FileUploadController.
+                    showResult(srn, startDate, accessType, version, chargeType, uploadId)))
                   case Failed => Future.successful(Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId)))
                 }
-              }
-            }
           }
     }
 
