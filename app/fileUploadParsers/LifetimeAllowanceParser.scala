@@ -48,31 +48,34 @@ class LifetimeAllowanceParser @Inject()(
     val dateOfEvent: String = "dateOfEvent"
   }
 
+  private final val FieldNoDateOfEvent = 3
+  private final val FieldNoTaxAt25Percent = 4
+  private final val FieldNoTaxAt55Percent = 5
+
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
                                       chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDDetails] = {
 
-    splitDayMonthYear(chargeFields(3)) match {
-      case Tuple3(day, month, year) =>
-        val fields = Seq(
-          Field(ChargeDetailsFieldNames.dateOfEventDay, day, ChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(ChargeDetailsFieldNames.dateOfEventMonth, month, ChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(ChargeDetailsFieldNames.dateOfEventYear, year, ChargeDetailsFieldNames.dateOfEvent, 3),
-          Field(ChargeDetailsFieldNames.taxAt25Percent, chargeFields(4), ChargeDetailsFieldNames.taxAt25Percent, 4),
-          Field(ChargeDetailsFieldNames.taxAt55Percent, chargeFields(5), ChargeDetailsFieldNames.taxAt55Percent, 5)
-        )
-        val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
-          min = startDate,
-          max = Quarters.getQuarter(startDate).endDate,
-          minimumChargeValueAllowed = minChargeValueAllowed
-        )
-        chargeDetailsForm.bind(
-          Field.seqToMap(fields)
-        ).fold(
-          formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-          value => Right(value)
-        )
-    }
+    val parsedDate = splitDayMonthYear(chargeFields(FieldNoDateOfEvent))
+    val fields = Seq(
+      Field(ChargeDetailsFieldNames.dateOfEventDay, parsedDate.day, ChargeDetailsFieldNames.dateOfEvent, FieldNoDateOfEvent),
+      Field(ChargeDetailsFieldNames.dateOfEventMonth, parsedDate.month, ChargeDetailsFieldNames.dateOfEvent, FieldNoDateOfEvent),
+      Field(ChargeDetailsFieldNames.dateOfEventYear, parsedDate.year, ChargeDetailsFieldNames.dateOfEvent, FieldNoDateOfEvent),
+      Field(ChargeDetailsFieldNames.taxAt25Percent, chargeFields(FieldNoTaxAt25Percent), ChargeDetailsFieldNames.taxAt25Percent, FieldNoTaxAt25Percent),
+      Field(ChargeDetailsFieldNames.taxAt55Percent, chargeFields(FieldNoTaxAt55Percent), ChargeDetailsFieldNames.taxAt55Percent, FieldNoTaxAt55Percent)
+    )
+    val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
+      min = startDate,
+      max = Quarters.getQuarter(startDate).endDate,
+      minimumChargeValueAllowed = minChargeValueAllowed
+    )
+    chargeDetailsForm.bind(
+      Field.seqToMap(fields)
+    ).fold(
+      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+      value => Right(value)
+    )
+
   }
 
   override protected def validateFields(startDate: LocalDate,
