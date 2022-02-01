@@ -34,7 +34,6 @@ class LifetimeAllowanceParser @Inject()(
                                          chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                          config: FrontendAppConfig
                                        ) extends Parser {
-  //scalastyle:off magic.number
   override protected def validHeader: String = config.validLifeTimeAllowanceHeader
 
   override protected val totalFields: Int = 6

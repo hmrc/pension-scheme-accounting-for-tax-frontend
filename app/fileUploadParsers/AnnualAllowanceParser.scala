@@ -36,7 +36,6 @@ class AnnualAllowanceParser @Inject()(
                                        chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                        config: FrontendAppConfig
                                      ) extends Parser with Constraints {
-  //scalastyle:off magic.number
   override protected val totalFields: Int = 7
 
   override protected def validHeader: String = config.validAnnualAllowanceHeader
