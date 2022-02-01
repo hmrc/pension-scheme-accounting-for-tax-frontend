@@ -34,7 +34,6 @@ class OverseasTransferParser @Inject()(
                                         chargeAmountsFormProvider: ChargeAmountsFormProvider,
                                         config: FrontendAppConfig
                                       ) extends Parser {
-  //scalastyle:off magic.number
   override protected def validHeader: String = config.validOverseasTransferHeader
 
   override protected val totalFields: Int = 8
@@ -53,58 +52,68 @@ class OverseasTransferParser @Inject()(
     val amountTaxDue: String = "amountTaxDue"
   }
 
+  private final val FieldNoDOB = 3
+
+  private final val FieldNoDateOfTransfer = 5
+  private final val FieldNoQropsRefNo = 4
+  private final val FieldNoAmountTransferred = 6
+  private final val FieldNoAmountTaxDue = 7
+
   def chargeMemberDetailsValidation(index: Int, chargeFields: Array[String],
                                     memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
-    splitDayMonthYear(chargeFields(3)) match {
-      case Tuple3(dotDay, dotMonth, dotYear) =>
-        val fields = Seq(
-          Field(MemberDetailsFieldNames.firstName, firstNameField(chargeFields), MemberDetailsFieldNames.firstName, 0),
-          Field(MemberDetailsFieldNames.lastName, lastNameField(chargeFields), MemberDetailsFieldNames.lastName, 1),
-          Field(MemberDetailsFieldNames.nino, ninoField(chargeFields), MemberDetailsFieldNames.nino, 2),
-          Field(ChargeGetailsFieldNames.dateOfBirthDay, dotDay, ChargeGetailsFieldNames.dateOfBirth, 3),
-          Field(ChargeGetailsFieldNames.dateOfBirthMonth, dotMonth, ChargeGetailsFieldNames.dateOfBirth, 3),
-          Field(ChargeGetailsFieldNames.dateOfBirthYear, dotYear, ChargeGetailsFieldNames.dateOfBirth, 3)
-        )
-        memberDetailsForm
-          .bind(Field.seqToMap(fields))
-          .fold(
-            formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-            value => Right(value)
-          )
-    }
+    val parsedDOB = splitDayMonthYear(chargeFields(FieldNoDOB))
+    val fields = Seq(
+      Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, FieldNoFirstName),
+      Field(MemberDetailsFieldNames.lastName, chargeFields(FieldNoLastName), MemberDetailsFieldNames.lastName, FieldNoLastName),
+      Field(MemberDetailsFieldNames.nino, chargeFields(FieldNoNino), MemberDetailsFieldNames.nino, FieldNoNino),
+      Field(ChargeGetailsFieldNames.dateOfBirthDay, parsedDOB.day, ChargeGetailsFieldNames.dateOfBirth, FieldNoDOB),
+      Field(ChargeGetailsFieldNames.dateOfBirthMonth, parsedDOB.month, ChargeGetailsFieldNames.dateOfBirth, FieldNoDOB),
+      Field(ChargeGetailsFieldNames.dateOfBirthYear, parsedDOB.year, ChargeGetailsFieldNames.dateOfBirth, FieldNoDOB)
+    )
+    memberDetailsForm
+      .bind(Field.seqToMap(fields))
+      .fold(
+        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+        value => Right(value)
+      )
   }
 
   //First name,Last name,National Insurance number,Date of birth,Reference number,Transfer date,Amount,Tax due
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
                                       chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDetails] = {
-    splitDayMonthYear(chargeFields(5)) match {
-      case Tuple3(dotDay, dotMonth, dotYear) =>
-        val fields = Seq(
-          Field(ChargeGetailsFieldNames.dateOfTransferDay, dotDay, ChargeGetailsFieldNames.dateOfTransfer, 5),
-          Field(ChargeGetailsFieldNames.dateOfTransferMonth, dotMonth, ChargeGetailsFieldNames.dateOfTransfer, 5),
-          Field(ChargeGetailsFieldNames.dateOfTransferYear, dotYear, ChargeGetailsFieldNames.dateOfTransfer, 5),
-          Field(ChargeGetailsFieldNames.qropsReferenceNumber, chargeFields(4), ChargeGetailsFieldNames.qropsReferenceNumber, 4)
-        )
-        val chargeDetailsForm: Form[ChargeDetails] = chargeDetailsFormProvider(
-          min = startDate,
-          max = Quarters.getQuarter(startDate).endDate
-        )
-        chargeDetailsForm.bind(
-          Field.seqToMap(fields)
-        ).fold(
-          formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-          value => Right(value)
-        )
-    }
+
+    val parsedDateOfTransfer = splitDayMonthYear(chargeFields(FieldNoDateOfTransfer))
+    val fields = Seq(
+      Field(ChargeGetailsFieldNames.dateOfTransferDay,
+        parsedDateOfTransfer.day, ChargeGetailsFieldNames.dateOfTransfer, FieldNoDateOfTransfer),
+      Field(ChargeGetailsFieldNames.dateOfTransferMonth,
+        parsedDateOfTransfer.month, ChargeGetailsFieldNames.dateOfTransfer, FieldNoDateOfTransfer),
+      Field(ChargeGetailsFieldNames.dateOfTransferYear,
+        parsedDateOfTransfer.year, ChargeGetailsFieldNames.dateOfTransfer, FieldNoDateOfTransfer),
+      Field(ChargeGetailsFieldNames.qropsReferenceNumber,
+        chargeFields(FieldNoQropsRefNo), ChargeGetailsFieldNames.qropsReferenceNumber, FieldNoQropsRefNo)
+    )
+    val chargeDetailsForm: Form[ChargeDetails] = chargeDetailsFormProvider(
+      min = startDate,
+      max = Quarters.getQuarter(startDate).endDate
+    )
+    chargeDetailsForm.bind(
+      Field.seqToMap(fields)
+    ).fold(
+      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+      value => Right(value)
+    )
   }
 
   private def chargeAmountsValidation(memberName: String,
                                       index: Int,
                                       chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeAmounts] = {
     val fields = Seq(
-      Field(ChargeGetailsFieldNames.amountTransferred, chargeFields(6), ChargeGetailsFieldNames.amountTransferred, 6),
-      Field(ChargeGetailsFieldNames.amountTaxDue, chargeFields(7), ChargeGetailsFieldNames.amountTaxDue, 7)
+      Field(ChargeGetailsFieldNames.amountTransferred,
+        chargeFields(FieldNoAmountTransferred), ChargeGetailsFieldNames.amountTransferred, FieldNoAmountTransferred),
+      Field(ChargeGetailsFieldNames.amountTaxDue,
+        chargeFields(FieldNoAmountTaxDue), ChargeGetailsFieldNames.amountTaxDue, FieldNoAmountTaxDue)
     )
     val chargeDetailsForm: Form[ChargeAmounts] = chargeAmountsFormProvider(
       memberName = memberName,

@@ -49,16 +49,16 @@ class AnnualAllowanceParser @Inject()(
     val isPaymentMandatory = "isPaymentMandatory"
   }
 
+  private final val FieldNoChargeAmount = 4
+  private final val FieldNoDateNoticeReceived = 5
+  private final val FieldNoIsPaymentMandatory = 6
+
   private final object TaxYearErrorKeys {
     val requiredKey = "annualAllowanceYear.fileUpload.error.required"
     val invalidKey = "annualAllowanceYear.fileUpload.error.invalid"
     val minKey = "annualAllowanceYear.fileUpload.error.past"
     val maxKey = "annualAllowanceYear.fileUpload.error.future"
   }
-
-  private final val FieldNoChargeAmount = 4
-  private final val FieldNoDateNoticeReceived = 5
-  private final val FieldNoIsPaymentMandatory = 6
 
   private def processChargeDetailsValidation(index: Int,
                                              chargeFields: Array[String],

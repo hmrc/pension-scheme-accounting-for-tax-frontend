@@ -30,6 +30,10 @@ object Parser {
 }
 
 trait Parser {
+  protected final val FieldNoFirstName = 0
+  protected final val FieldNoLastName = 1
+  protected final val FieldNoNino = 2
+
   protected def validHeader: String
 
   protected val totalFields: Int
@@ -68,9 +72,9 @@ trait Parser {
   protected def memberDetailsValidation(index: Int, chargeFields: Array[String],
                                         memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
-      Field(MemberDetailsFieldNames.firstName, firstNameField(chargeFields), MemberDetailsFieldNames.firstName, 0),
-      Field(MemberDetailsFieldNames.lastName, lastNameField(chargeFields), MemberDetailsFieldNames.lastName, 1),
-      Field(MemberDetailsFieldNames.nino, ninoField(chargeFields), MemberDetailsFieldNames.nino, 2)
+      Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
+      Field(MemberDetailsFieldNames.lastName, chargeFields(FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
+      Field(MemberDetailsFieldNames.nino, chargeFields(FieldNoNino), MemberDetailsFieldNames.nino, 2)
     )
     memberDetailsForm
       .bind(Field.seqToMap(fields))
@@ -143,12 +147,6 @@ trait Parser {
         }
     }
   }
-
-  protected final def firstNameField(fields: Array[String]): String = fields(0)
-
-  protected final def lastNameField(fields: Array[String]): String = fields(1)
-
-  protected final def ninoField(fields: Array[String]): String = fields(2)
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 
