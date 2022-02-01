@@ -50,7 +50,7 @@ trait Parser {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) =>
-        val cells = row.split(",") // TODO: If ends with comma then get too few fields error
+        val cells = row.split(",")
         cells.length match {
           case this.totalFields =>
             (acc, validateFields(startDate, index, cells)) match {
