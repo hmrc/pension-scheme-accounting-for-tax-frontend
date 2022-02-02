@@ -20,7 +20,6 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeFileEmpty, FileLevelParserValidationErrorTypeHeaderInvalid}
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
@@ -89,12 +88,10 @@ class ValidationController @Inject()(
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
 
-    parser.parse(startDate, filteredLinesFromCSV).fold[Future[Result]](processInvalid(srn, startDate, chargeType, _),
-      commitItems => {
-        val updatedUA = commitItems.foldLeft(request.userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
+    parser.parse(startDate, filteredLinesFromCSV, request.userAnswers).fold[Future[Result]](processInvalid(srn, startDate, chargeType, _),
+      updatedUA =>
         userAnswersCacheConnector.save(request.internalId, updatedUA.data)
           .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, updatedUA, srn, startDate, accessType, version)))
-      }
     )
   }
 

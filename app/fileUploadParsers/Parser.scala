@@ -17,7 +17,7 @@
 package fileUploadParsers
 
 import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeFileEmpty, FileLevelParserValidationErrorTypeHeaderInvalid}
-import models.MemberDetails
+import models.{MemberDetails, UserAnswers}
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{Format, JsPath, JsValue, Json}
@@ -38,9 +38,12 @@ trait Parser {
 
   protected val totalFields: Int
 
-  def parse(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+  def parse(startDate: LocalDate, rows: Seq[String], userAnswers: UserAnswers)(implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
     rows.headOption match {
-      case Some(row) if row.equalsIgnoreCase(validHeader) => parseDataRows(startDate, rows)
+      case Some(row) if row.equalsIgnoreCase(validHeader) =>
+        parseDataRows(startDate, rows).map{ commitItems =>
+          commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
+        }
       case Some(_) => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalid))
       case None => Left(Seq(FileLevelParserValidationErrorTypeFileEmpty))
     }

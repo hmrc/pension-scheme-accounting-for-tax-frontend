@@ -95,7 +95,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         ParserValidationError(0, 0, "Cry")
       )
 
-      when(mockAnnualAllowanceParser.parse(any(), any())(any())).thenReturn(Left(errors))
+      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
 
       val result = route(
         application,
@@ -123,12 +123,12 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         .thenReturn(Future.successful(JsNull))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
-      val ci = Seq(
-        CommitItem( JsPath \ "testNode1", JsString("test1")),
-        CommitItem( JsPath \ "testNode2", JsString("test2"))
-      )
+      val ci = UserAnswers()
+        .setOrException( JsPath \ "testNode1", JsString("test1"))
+        .setOrException( JsPath \ "testNode2", JsString("test2"))
 
-      when(mockAnnualAllowanceParser.parse(any(), any())(any())).thenReturn(Right(ci))
+
+      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Right(ci))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       val result = route(
         application,
