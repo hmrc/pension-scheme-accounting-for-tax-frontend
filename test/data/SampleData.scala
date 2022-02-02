@@ -131,8 +131,8 @@ object SampleData {
   val memberDetails5: MemberDetails = MemberDetails("Joe", "Bleggs", "AB123458C")
   val memberDetails6: MemberDetails = MemberDetails("Joe", "Blyggs", "AB123458C")
   val memberDetails7: MemberDetails = MemberDetails("Joe", "Blyggs", "AB123458C")
-  val memberGDetails: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.now(), "AB123456C")
-  val memberGDetails2: MemberDetailsG = MemberDetailsG("Joe", "Bloggs", LocalDate.now(), "AB123456C")
+  val memberGDetails: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.of(2000,4,1), "AB123456C")
+  val memberGDetails2: MemberDetailsG = MemberDetailsG("Joe", "Bloggs", LocalDate.of(2000,4,1), "AB123456C")
 
   val chargeCEmployer: UserAnswers = userAnswersWithSchemeNameAndIndividual
     .setOrException(ChargeCDetailsPage(0), chargeCDetails)

@@ -31,6 +31,7 @@ lazy val root = (project in file("."))
       "models.ChargeType",
       "models.ChargeType.ChargeTypeAnnualAllowance",
       "models.ChargeType.ChargeTypeLifetimeAllowance",
+      "models.ChargeType.ChargeTypeOverseasTransfer",
       "controllers.routes._"
     ),
     PlayKeys.playDefaultPort := 8206,

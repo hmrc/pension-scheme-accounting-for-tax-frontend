@@ -38,7 +38,7 @@ class LifetimeAllowanceParser @Inject()(
 
   override protected val totalFields: Int = 6
 
-  private final object ChargeDetailsFieldNames {
+  private final object FieldNames {
     val dateOfEventDay: String = "dateOfEvent.day"
     val dateOfEventMonth: String = "dateOfEvent.month"
     val dateOfEventYear: String = "dateOfEvent.year"
@@ -57,11 +57,11 @@ class LifetimeAllowanceParser @Inject()(
 
     val parsedDate = splitDayMonthYear(chargeFields(FieldNoDateOfEvent))
     val fields = Seq(
-      Field(ChargeDetailsFieldNames.dateOfEventDay, parsedDate.day, ChargeDetailsFieldNames.dateOfEvent, FieldNoDateOfEvent),
-      Field(ChargeDetailsFieldNames.dateOfEventMonth, parsedDate.month, ChargeDetailsFieldNames.dateOfEvent, FieldNoDateOfEvent),
-      Field(ChargeDetailsFieldNames.dateOfEventYear, parsedDate.year, ChargeDetailsFieldNames.dateOfEvent, FieldNoDateOfEvent),
-      Field(ChargeDetailsFieldNames.taxAt25Percent, chargeFields(FieldNoTaxAt25Percent), ChargeDetailsFieldNames.taxAt25Percent, FieldNoTaxAt25Percent),
-      Field(ChargeDetailsFieldNames.taxAt55Percent, chargeFields(FieldNoTaxAt55Percent), ChargeDetailsFieldNames.taxAt55Percent, FieldNoTaxAt55Percent)
+      Field(FieldNames.dateOfEventDay, parsedDate.day, FieldNames.dateOfEvent, FieldNoDateOfEvent),
+      Field(FieldNames.dateOfEventMonth, parsedDate.month, FieldNames.dateOfEvent, FieldNoDateOfEvent),
+      Field(FieldNames.dateOfEventYear, parsedDate.year, FieldNames.dateOfEvent, FieldNoDateOfEvent),
+      Field(FieldNames.taxAt25Percent, chargeFields(FieldNoTaxAt25Percent), FieldNames.taxAt25Percent, FieldNoTaxAt25Percent),
+      Field(FieldNames.taxAt55Percent, chargeFields(FieldNoTaxAt55Percent), FieldNames.taxAt55Percent, FieldNoTaxAt55Percent)
     )
     val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
       min = startDate,
