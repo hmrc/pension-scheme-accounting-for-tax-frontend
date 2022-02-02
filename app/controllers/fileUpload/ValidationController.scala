@@ -20,22 +20,18 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
+import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeFileEmpty, FileLevelParserValidationErrorTypeHeaderInvalid}
 import fileUploadParsers._
-import helpers.ChargeTypeHelper
-import helpers.ErrorHelper.recoverFrom5XX
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, NormalMode, UploadId, UploadedSuccessfully, UserAnswers}
+import models.{AccessType, ChargeType, Failed, InProgress, NormalMode, UploadId, UploadedSuccessfully}
 import navigators.CompoundNavigator
-import pages.fileUpload.UploadedFileName
-import pages.{PSTRQuery, SchemeNameQuery}
+import pages.fileUpload.ValidationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
-import services.AFTService
-import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
+import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -54,11 +50,10 @@ class ValidationController @Inject()(
                                       navigator: CompoundNavigator,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
+                                      userAnswersCacheConnector: UserAnswersCacheConnector,
                                       annualAllowanceParser: AnnualAllowanceParser,
                                       lifeTimeAllowanceParser: LifetimeAllowanceParser,
-                                      overseasTransferParser: OverseasTransferParser,
-                                      aftService:AFTService,
-                                      fileUploadAftReturnService: FileUploadAftReturnService
+                                      overseasTransferParser: OverseasTransferParser
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -97,30 +92,10 @@ class ValidationController @Inject()(
     parser.parse(startDate, filteredLinesFromCSV).fold[Future[Result]](processInvalid(srn, startDate, chargeType, _),
       commitItems => {
         val updatedUA = commitItems.foldLeft(request.userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
-        processSuccessResult(srn, startDate, accessType, version, chargeType, updatedUA).flatMap(viewModel=>
-          renderer.render(template = "fileUpload/fileUploadSuccess.njk",
-            Json.obj(
-              "fileName" -> updatedUA.get(UploadedFileName(chargeType).path),
-              "chargeTypeText" -> chargeType.toString,
-              "viewModel" -> viewModel)).map(Ok(_)))
-      } recoverWith recoverFrom5XX(srn, startDate.toString)
-    )
-  }
-
-  private def processSuccessResult(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, ua: UserAnswers)
-                                  (implicit request: DataRequest[AnyContent]): Future[GenericViewModel] = {
-
-    for {
-        updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
-        _ <- aftService.fileCompileReturn(ua.get(PSTRQuery).getOrElse("pstr"), updatedAnswers)
-      } yield {
-        GenericViewModel(
-          submitUrl = navigator.nextPage(ChargeTypeHelper.getCheckYourAnswersPage(chargeType), NormalMode, updatedAnswers, srn,
-            startDate, accessType, version).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url,
-          schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-        )
+        userAnswersCacheConnector.save(request.internalId, updatedUA.data)
+          .map(_ => Redirect(navigator.nextPage(ValidationPage(chargeType), NormalMode, updatedUA, srn, startDate, accessType, version)))
       }
+    )
   }
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =

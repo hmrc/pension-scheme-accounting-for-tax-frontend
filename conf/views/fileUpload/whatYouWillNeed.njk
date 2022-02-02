@@ -3,7 +3,6 @@
 {% from "macros/title.njk"  import title %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
-{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 
 {% block pageTitle %}
@@ -20,17 +19,8 @@
               {{ messages("fileupload.whatYouWillNeed.heading", chargeTypeText)}}
 
             </h1>
-             <p class="govuk-body">{{ messages("fileupload.whatYouWillNeed.p1") }}</p>
+
             {% include "partials/fileUpload/" + chargeType + ".njk" %}
-
-            <p class="govuk-body"><a href="{{fileDownloadInstructionsLink}}" class="govuk-link"> {{ messages("fileupload.download.instructions.link") }}</a></p>
-            <p class="govuk-body"><a href="{{fileDownloadTemplateLink}}" class="govuk-link"> {{ messages("fileupload.download.template.link") }}</a>
-                {{ messages("fileupload.whatYouWillNeed.p2") }}
-            </p>
-
-             {{ govukInsetText({
-               text: messages("fileupload.whatYouWillNeed.inset.text")
-             }) }}
 
              {{ govukButton({
                 href: viewModel.submitUrl,

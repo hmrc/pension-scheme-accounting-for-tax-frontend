@@ -28,7 +28,7 @@ import models.requests.DataRequest
 import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeD._
-import pages.fileUpload.{FileUploadPage, InputSelectionPage, UploadCheckPage}
+import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
@@ -68,8 +68,6 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case pages.fileUpload.WhatYouWillNeedPage(ChargeTypeLifetimeAllowance) =>
       controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
     case FileUploadPage(ChargeTypeLifetimeAllowance) =>
-      controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance, UploadId(""))
-    case UploadCheckPage(ChargeTypeLifetimeAllowance) =>
       controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance, UploadId(""))
 
     case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
