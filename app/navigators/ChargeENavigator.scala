@@ -28,7 +28,7 @@ import models.requests.DataRequest
 import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeE._
-import pages.fileUpload.{FileUploadPage, InputSelectionPage}
+import pages.fileUpload.{FileUploadPage, InputSelectionPage, UploadCheckPage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate

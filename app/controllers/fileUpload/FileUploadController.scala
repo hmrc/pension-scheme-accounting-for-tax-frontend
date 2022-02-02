@@ -17,14 +17,15 @@
 package controllers.fileUpload
 
 import config.FrontendAppConfig
+import connectors.cache.UserAnswersCacheConnector
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, NormalMode, UploadId, UploadStatus, UploadedSuccessfully}
+import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
-import pages.fileUpload.FileUploadPage
+import pages.fileUpload.UploadedFileName
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -33,7 +34,7 @@ import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class FileUploadController @Inject()(
                                       override val messagesApi: MessagesApi,
@@ -45,7 +46,8 @@ class FileUploadController @Inject()(
                                       renderer: Renderer,
                                       navigator: CompoundNavigator,
                                       upscanInitiateConnector: UpscanInitiateConnector,
-                                      uploadProgressTracker: UploadProgressTracker
+                                      uploadProgressTracker: UploadProgressTracker,
+                                      userAnswersCacheConnector: UserAnswersCacheConnector,
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport {
@@ -57,11 +59,11 @@ class FileUploadController @Inject()(
       val successRedirectUrl = appConfig.urlInThisService(routes.FileUploadController
         .showResult(srn, startDate, accessType, version, chargeType, uploadId).url)
 
-      val errorRedirectUrl = appConfig.urlInThisService( routes.FileUploadController
+      val errorRedirectUrl = appConfig.urlInThisService(routes.FileUploadController
         .onPageLoad(srn, startDate, accessType, version, chargeType).url)
 
-      upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)).flatMap{ uir =>
-        uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap{ _ =>
+      upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)).flatMap { uir =>
+        uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap { _ =>
           val viewModel = GenericViewModel(
             submitUrl = uir.postTarget,
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
@@ -71,7 +73,7 @@ class FileUploadController @Inject()(
           renderer.render(template = "fileUpload/fileupload.njk",
             Json.obj(
               "chargeType" -> chargeType.toString,
-              "chargeTypeText" -> chargeType.toString,
+              "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
               "srn" -> srn,
               "startDate" -> Some(startDate),
               "formFields" -> uir.formFields.toList,
@@ -85,27 +87,26 @@ class FileUploadController @Inject()(
     }
 
   def showResult(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-
-      val ua = request.userAnswers
-      val viewModel = GenericViewModel(
-        submitUrl = s"${navigator.nextPage(FileUploadPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url}${uploadId.value}",
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-        schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      )
-
-      uploadProgressTracker
-        .getUploadResult(uploadId)
-        .map(uplResult)
-        .flatMap { uploadResult =>
-          renderer.render(
-            template = "fileUpload/fileUploadResult.njk",
-            Json.obj(
-              "result" -> uploadResult,
-              "viewModel" -> viewModel)
-          )
-            .map(Ok(_))
-        }
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
+      implicit request =>
+        uploadProgressTracker
+          .getUploadResult(uploadId)
+          .flatMap {
+              case Some(status) =>
+                status match {
+                  case UploadedSuccessfully(name, _, _, _) => {
+                    for {
+                      updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), name))
+                      _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                    } yield {
+                      Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
+                    }
+                  }
+                  case InProgress => Future.successful(Redirect(routes.FileUploadController.
+                    showResult(srn, startDate, accessType, version, chargeType, uploadId)))
+                  case Failed => Future.successful(Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId)))
+                }
+          }
     }
 
   private def uplResult(uploadStatus: Option[UploadStatus]): String = {
@@ -118,6 +119,7 @@ class FileUploadController @Inject()(
   }
 
   private def getErrorCode(request: DataRequest[AnyContent]):Option[String] = {
+
     if (request.queryString.contains("errorCode") && request.queryString("errorCode").nonEmpty) {
       Some(request.queryString("errorCode").head)
     } else {

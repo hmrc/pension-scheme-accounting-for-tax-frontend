@@ -6,7 +6,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
 {% block pageTitle %}
-  {{ title(messages("fileupload.inputSelection.title", messages("fileUpload.chargeType."+chargeType))) }}
+  {{ title(messages("fileupload.inputSelection.title", chargeType)) }}
 {% endblock %}
 
 
@@ -29,7 +29,7 @@
                 name: 'value',
                 fieldset: {
                   legend: {
-                    text: messages("fileupload.inputSelection.heading", messages("fileUpload.chargeType."+chargeType)),
+                    text: messages("fileupload.inputSelection.heading", chargeType),
                     isPageHeading: true,
                     classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8"
                   }

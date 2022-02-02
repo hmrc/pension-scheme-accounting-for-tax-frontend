@@ -21,31 +21,29 @@ import play.api.data.Form
 import viewmodels.{Hint, Radios}
 import viewmodels.Radios.MessageInterpolators
 
+sealed trait UploadCheckSelection
 
-sealed trait InputSelection
+object UploadCheckSelection extends Enumerable.Implicits {
 
-object InputSelection extends Enumerable.Implicits {
+  case object Yes extends WithName("yes") with UploadCheckSelection
+  case object No extends WithName("no") with UploadCheckSelection
 
-  case object ManualInput extends WithName("manualInput") with InputSelection
-  case object FileUploadInput extends WithName("fileUploadInput") with InputSelection
-
-  val values: Seq[InputSelection] = Seq(
-    ManualInput,
-    FileUploadInput
+  val values: Seq[UploadCheckSelection] = Seq(
+    Yes,
+    No
   )
 
   def radios(form: Form[_]): Seq[Radios.Item] = {
 
     val field = form("value")
     val items = Seq(
-      Radios.Radio(msg"inputSelection.radio.manualInput", "manualInput"),
-      Radios.Radio(msg"inputSelection.radio.fileUploadInput", "fileUploadInput",
-        Some(Hint(msg"fileupload.inputSelection.fileUploadInput.hint", "hint-id")))
+      Radios.Radio(msg"fileupload.upload.result.radio.yes", Yes.toString),
+      Radios.Radio(msg"fileupload.upload.result.radio.no", No.toString)
     )
 
     Radios(field, items)
   }
 
-  implicit val enumerable: Enumerable[InputSelection] =
+  implicit val enumerable: Enumerable[UploadCheckSelection] =
     Enumerable(values.map(v => v.toString -> v): _*)
 }

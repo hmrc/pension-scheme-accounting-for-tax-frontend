@@ -32,7 +32,8 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json._
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.fileUpload.UploadProgressTracker
+import services.AFTService
+import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -42,6 +43,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val templateToBeRendered = "fileUpload/invalid.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
+
   private def ua: UserAnswers = userAnswersWithSchemeName
 
   val expectedJson: JsObject = Json.obj()
@@ -67,16 +69,20 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   private val mockAnnualAllowanceParser = mock[AnnualAllowanceParser]
+  private val mockFileUploadAftReturnService = mock[FileUploadAftReturnService]
+  private val mockAFTService = mock[AFTService]
 
   private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[UpscanInitiateConnector].toInstance(mockUpscanInitiateConnector),
     bind[AnnualAllowanceParser].toInstance(mockAnnualAllowanceParser),
-    bind[UploadProgressTracker].toInstance(fakeUploadProgressTracker)
+    bind[UploadProgressTracker].toInstance(fakeUploadProgressTracker),
+    bind[FileUploadAftReturnService].toInstance(mockFileUploadAftReturnService),
+    bind[AFTService].toInstance(mockAFTService)
   )
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockUpscanInitiateConnector, mockAppConfig, mockRenderer, mockAnnualAllowanceParser)
+    reset(mockUpscanInitiateConnector, mockAppConfig, mockRenderer, mockAnnualAllowanceParser, mockFileUploadAftReturnService, mockAFTService)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK,
       "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory\nJoy,Smith,9717C,2020,268.28,2020-01-01,true")))
@@ -119,13 +125,15 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "redirect OK to the next page and save items to be committed into the Mongo database when there are no validation errors" in {
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(ua))
+      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockUserAnswersCacheConnector.save(any(), jsonCaptor.capture())(any(), any()))
         .thenReturn(Future.successful(JsNull))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
       val ci = Seq(
-        CommitItem( JsPath \ "testNode1", JsString("test1")),
-        CommitItem( JsPath \ "testNode2", JsString("test2"))
+        CommitItem(JsPath \ "testNode1", JsString("test1")),
+        CommitItem(JsPath \ "testNode2", JsString("test2"))
       )
 
       when(mockAnnualAllowanceParser.parse(any(), any())(any())).thenReturn(Right(ci))
@@ -136,15 +144,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
           controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
       ).value
 
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual dummyCall.url
-      jsonCaptor.getValue must containJson(
-        Json.obj(
-          "testNode1" -> "test1",
-          "testNode2" -> "test2"
-        )
-      )
-
+      status(result) mustEqual OK
     }
   }
 
