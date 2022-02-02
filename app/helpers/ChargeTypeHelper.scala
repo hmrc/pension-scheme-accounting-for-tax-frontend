@@ -26,14 +26,14 @@ import models.ChargeType.{
   ChargeTypeOverseasTransfer,
   ChargeTypeShortService
 }
-import pages.Page
 import pages.chargeA.{CheckYourAnswersPage => ShortServiceCYAPage}
 import pages.chargeB.{CheckYourAnswersPage => LumpSumDeathCYAPage}
-import pages.chargeC.{CheckYourAnswersPage => AuthSurplusCYAPage}
-import pages.chargeD.{CheckYourAnswersPage => LifetimeAllowanceCYAPage}
-import pages.chargeE.{CheckYourAnswersPage => AnnualAllowanceCYAPage}
+import pages.chargeC.{CheckYourAnswersPage => AuthSurplusCYAPage, TotalChargeAmountPage => AuthSurplusTotalChargeAmount}
+import pages.chargeD.{CheckYourAnswersPage => LifetimeAllowanceCYAPage, TotalChargeAmountPage => LifetimeAllowanceTotalChargeAmount}
+import pages.chargeE.{CheckYourAnswersPage => AnnualAllowanceCYAPage, TotalChargeAmountPage => AnnualAllowanceTotalChargeAmount}
 import pages.chargeF.{CheckYourAnswersPage => DeRegistrationCYAPage}
-import pages.chargeG.{CheckYourAnswersPage => OverseasTransferCYAPage}
+import pages.chargeG.{CheckYourAnswersPage => OverseasTransferCYAPage, TotalChargeAmountPage => OverseasTransferTotalChargeAmount}
+import pages.{Page, QuestionPage}
 
 case object ChargeTypeHelper {
 
@@ -46,6 +46,15 @@ case object ChargeTypeHelper {
       case ChargeTypeDeRegistration    => DeRegistrationCYAPage
       case ChargeTypeShortService      => ShortServiceCYAPage
       case ChargeTypeLumpSumDeath      => LumpSumDeathCYAPage
+    }
+  }
+
+  def getTotalChargeAmountPage(chargeType: ChargeType): QuestionPage[BigDecimal] = {
+    chargeType match {
+      case ChargeTypeAnnualAllowance   => AnnualAllowanceTotalChargeAmount
+      case ChargeTypeLifetimeAllowance => LifetimeAllowanceTotalChargeAmount
+      case ChargeTypeOverseasTransfer  => OverseasTransferTotalChargeAmount
+      case ChargeTypeAuthSurplus       => AuthSurplusTotalChargeAmount
     }
   }
 

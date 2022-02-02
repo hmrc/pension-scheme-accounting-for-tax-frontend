@@ -21,7 +21,6 @@ import connectors.UpscanInitiateConnector
 import controllers.actions._
 import fileUploadParsers._
 import helpers.ChargeTypeHelper
-import helpers.ErrorHelper.recoverFrom5XX
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, NormalMode, UploadId, UploadedSuccessfully, UserAnswers}
@@ -100,7 +99,7 @@ class ValidationController @Inject()(
               "fileName" -> updatedUA.get(UploadedFileName(chargeType).path),
               "chargeTypeText" -> chargeType.toString,
               "viewModel" -> viewModel)).map(Ok(_)))
-        } recoverWith recoverFrom5XX(srn, startDate.toString)
+        }
     )
   }
 

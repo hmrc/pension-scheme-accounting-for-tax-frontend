@@ -22,8 +22,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
-import navigators.CompoundNavigator
+import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId, UploadedSuccessfully}
 import pages.SchemeNameQuery
 import pages.fileUpload.UploadedFileName
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -44,7 +43,6 @@ class FileUploadController @Inject()(
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
-                                      navigator: CompoundNavigator,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -94,29 +92,25 @@ class FileUploadController @Inject()(
           .flatMap {
             case Some(status) =>
               status match {
-                case UploadedSuccessfully(name, _, _, _) => {
+                case UploadedSuccessfully(name, _, _, _) =>
                   for {
                     updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), name))
                     _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                   } yield {
                     Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
                   }
-                }
-                case InProgress => Future.successful(Redirect(routes.FileUploadController.
-                  showResult(srn, startDate, accessType, version, chargeType, uploadId)))
-                case Failed => Future.successful(Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId)))
+                case InProgress =>
+                  val sleepTime:Long = 2000
+                  Future.successful{
+                    Thread.sleep(sleepTime)
+                    Redirect(routes.FileUploadController.
+                      showResult(srn, startDate, accessType, version, chargeType, uploadId))
+                  }
+                case Failed => Future.successful(Redirect(routes.FileUploadCheckController.
+                  onPageLoad(srn, startDate, accessType, version, chargeType, uploadId)))
               }
           }
     }
-
-  private def uplResult(uploadStatus: Option[UploadStatus]): String = {
-    uploadStatus match {
-      case Some(UploadedSuccessfully(_, _, _, _)) => "Success"
-      case Some(InProgress) => "Inprogress"
-      case Some(Failed) => "Failed"
-      case None => "Notfound"
-    }
-  }
 
   private def getErrorCode(request: DataRequest[AnyContent]):Option[String] = {
     if (request.queryString.contains("errorCode") && request.queryString("errorCode").nonEmpty) {

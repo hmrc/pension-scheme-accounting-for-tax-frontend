@@ -16,11 +16,10 @@
 
 package services.fileUpload
 import connectors.cache.UserAnswersCacheConnector
-import helpers.ChargeServiceHelper
+import helpers.{ChargeServiceHelper, ChargeTypeHelper}
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
 import models.{ChargeType, UserAnswers}
-import pages.chargeE.TotalChargeAmountPage
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
@@ -47,7 +46,7 @@ class FileUploadAftReturnService @Inject()(
     chargeType match {
       case ChargeTypeAnnualAllowance |  ChargeTypeLifetimeAllowance | ChargeTypeOverseasTransfer =>
         val totalAmount = chargeServiceHelper.totalAmount(ua, getChargeTypeText(chargeType))
-        ua.set(TotalChargeAmountPage, totalAmount)
+        ua.set(ChargeTypeHelper.getTotalChargeAmountPage(chargeType), totalAmount)
       case _ => Try(ua)
     }
   }

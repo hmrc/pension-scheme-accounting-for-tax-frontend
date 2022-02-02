@@ -25,7 +25,6 @@ import models.fileUpload.UploadCheckSelection
 import models.fileUpload.UploadCheckSelection.{No, Yes}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, GenericViewModel, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
-import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.fileUpload.UploadCheckPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -48,7 +47,6 @@ class FileUploadCheckController @Inject()(
                                            requireData: DataRequiredAction,
                                            val controllerComponents: MessagesControllerComponents,
                                            renderer: Renderer,
-                                           navigator: CompoundNavigator,
                                            formProvider: UploadCheckSelectionFormProvider,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            uploadProgressTracker: UploadProgressTracker

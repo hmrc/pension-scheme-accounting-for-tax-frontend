@@ -1343,7 +1343,7 @@ fileupload.upload.details.overseasTransfer.item8 = the amount of tax due in resp
 fileupload.upload.result.title = Check your {0} file
 fileupload.upload.result.heading = Check your {0} file
 fileupload.upload.result.h1 = Is this file correct?:
-fileupload.upload.result.radio.yes = Yes, upload this file and add this charge to the AFT return
+fileupload.upload.result.radio.yes = Yes, add this charge to the AFT return
 fileupload.upload.result.radio.no = No, I want to select a different file
 fileupload.upload.result.error.required = Select yes if the file you have chosen is correct
 
