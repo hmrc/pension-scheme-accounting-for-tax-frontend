@@ -16,7 +16,7 @@
 
 package fileUploadParsers
 
-import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeFileEmpty, FileLevelParserValidationErrorTypeHeaderInvalid}
+import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty}
 import models.MemberDetails
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -25,8 +25,7 @@ import play.api.libs.json.{Format, JsPath, JsValue, Json}
 import java.time.LocalDate
 
 object Parser {
-  val FileLevelParserValidationErrorTypeHeaderInvalid:ParserValidationError = ParserValidationError(0, 0, "Header invalid")
-  val FileLevelParserValidationErrorTypeFileEmpty:ParserValidationError = ParserValidationError(0, 0, "File is empty")
+  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, "Header invalid or File is empty")
 }
 
 trait Parser {
@@ -36,9 +35,12 @@ trait Parser {
 
   def parse(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     rows.headOption match {
-      case Some(row) if row.equalsIgnoreCase(validHeader) => parseDataRows(startDate, rows)
-      case Some(_) => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalid))
-      case None => Left(Seq(FileLevelParserValidationErrorTypeFileEmpty))
+      case Some(row) if row.equalsIgnoreCase(validHeader) =>
+        rows.size match {
+          case n if n >= 2 => parseDataRows(startDate, rows)
+          case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+        }
+      case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
   }
 

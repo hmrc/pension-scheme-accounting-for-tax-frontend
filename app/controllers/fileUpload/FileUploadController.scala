@@ -21,7 +21,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId, UploadedSuccessfully}
+import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -100,7 +100,6 @@ class FileUploadController @Inject()(
                       Redirect(routes.FileUploadController.showResult(srn, startDate, accessType, version, chargeType, uploadId)))
                     case Failed(failureReason, _) => handleFailureResponse(failureReason, srn, startDate, accessType, version)
                   }
-                  //case _ => Future.successful(Redirect(routes.FileUploadController.showResult(srn, startDate, accessType, version, chargeType, uploadId)))
                 }
               }
           }
@@ -116,18 +115,14 @@ class FileUploadController @Inject()(
 
   private def handleFailureResponse(failureResponse: String,srn: String, startDate: String, accessType: AccessType,
                                     version: Int)(implicit request: DataRequest[_]): Future[Result]  = {
-    val json = Json.obj(
-      "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
+    val returnUrl = controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url
     failureResponse match {
-      case "QUARANTINE" => renderer.render(
-        template = "fileUpload/error/quarantine.njk", json
-      ).map(Ok(_))
-      case "REJECTED" => renderer.render(
-        template = "fileUpload/error/rejected.njk", json
-      ).map(Ok(_))
-      case "UNKNOWN" => renderer.render(
-        template = "fileUpload/error/unknown.njk", Json.obj()
-      ).map(Ok(_))
+      case "QUARANTINE" =>
+        Future.successful(Redirect(routes.UpscanErrorController.quarantineError(returnUrl)))
+      case "REJECTED" =>
+        Future.successful(Redirect(routes.UpscanErrorController.rejectedError(returnUrl)))
+      case "UNKNOWN" =>
+        Future.successful(Redirect(routes.UpscanErrorController.unknownError))
     }
   }
 }

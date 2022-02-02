@@ -20,7 +20,6 @@ import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeFileEmpty, FileLevelParserValidationErrorTypeHeaderInvalid}
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.requests.DataRequest
@@ -66,8 +65,7 @@ class ValidationController @Inject()(
                               errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     errors match {
       // TODO: Error handling for following two scenarios
-      //      case Seq(FileLevelParserValidationErrorTypeHeaderInvalid) =>
-      //      case Seq(FileLevelParserValidationErrorTypeFileEmpty) =>
+            //case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
       case _ =>
         renderer.render(template = "fileUpload/invalid.njk",
           Json.obj(

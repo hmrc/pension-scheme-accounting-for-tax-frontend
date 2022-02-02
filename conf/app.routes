@@ -359,3 +359,7 @@ GET         /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/file
 # upload file notification callback
 #NOCSRF
 POST        /fileupload/upscan-callback                                                                                                           controllers.fileUpload.UploadCallbackController.callback
+
+GET         /fileupload/upload-virus-check-error                                                                                                             controllers.fileUpload.UpscanErrorController.quarantineError(returnUrl: String)
+GET         /fileupload/upload-unnecessary-content-error                                                                                                     controllers.fileUpload.UpscanErrorController.rejectedError(returnUrl: String)
+GET         /fileupload/unknown                                                                                                                              controllers.fileUpload.UpscanErrorController.unknownError
