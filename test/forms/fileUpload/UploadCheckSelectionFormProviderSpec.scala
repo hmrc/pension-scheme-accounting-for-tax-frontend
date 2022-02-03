@@ -16,16 +16,25 @@
 
 package forms.fileUpload
 
-import forms.mappings.Mappings
-import models.fileUpload.UploadCheckSelection
-import play.api.data.Form
+import forms.behaviours.StringFieldBehaviours
+import forms.mappings.Constraints
+import org.scalatest.OptionValues
+import play.api.data.FormError
 
-import javax.inject.Inject
+class UploadCheckSelectionFormProviderSpec extends StringFieldBehaviours with Constraints with OptionValues {
 
-class UploadCheckSelectionFormProvider @Inject() extends Mappings {
+  val requiredKey = "fileupload.upload.result.error.required"
 
-  def apply(): Form[UploadCheckSelection] =
-    Form(
-      "value" -> enumerable[UploadCheckSelection](requiredKey = "fileupload.upload.result.error.required")
+  val form = new UploadCheckSelectionFormProvider()()
+
+  ".value" must  {
+
+    val fieldName = "value"
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
     )
+  }
 }

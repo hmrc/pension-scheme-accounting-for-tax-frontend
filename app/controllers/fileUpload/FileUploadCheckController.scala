@@ -115,7 +115,7 @@ class FileUploadCheckController @Inject()(
                 value =>
                   for {
                     updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadCheckPage(chargeType), value))
-                    _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                    _ <- userAnswersCacheConnector.savePartial(request.internalId,updatedAnswers.data,Some(chargeType))
                   } yield {
                     value match {
                       case Yes => Redirect(routes.ValidationController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
