@@ -17,13 +17,14 @@
 package controllers.fileUpload
 
 import config.FrontendAppConfig
+import connectors.cache.UserAnswersCacheConnector
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId}
-import navigators.CompoundNavigator
+import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId, UploadedSuccessfully}
 import pages.SchemeNameQuery
+import pages.fileUpload.UploadedFileName
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -42,9 +43,9 @@ class FileUploadController @Inject()(
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
-                                      navigator: CompoundNavigator,
                                       upscanInitiateConnector: UpscanInitiateConnector,
-                                      uploadProgressTracker: UploadProgressTracker
+                                      uploadProgressTracker: UploadProgressTracker,
+                                      userAnswersCacheConnector: UserAnswersCacheConnector,
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport {
@@ -70,7 +71,7 @@ class FileUploadController @Inject()(
           renderer.render(template = "fileUpload/fileupload.njk",
             Json.obj(
               "chargeType" -> chargeType.toString,
-              "chargeTypeText" -> chargeType.toString,
+              "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
               "srn" -> srn,
               "startDate" -> Some(startDate),
               "formFields" -> uir.formFields.toList,
@@ -89,18 +90,23 @@ class FileUploadController @Inject()(
         uploadProgressTracker
           .getUploadResult(uploadId)
           .flatMap {
-            uploadStatus =>
-              uploadStatus match {
-                case Some(status) => {
-                  status match {
-                    //case UploadedSuccessfully(_, _, _, _) => Future.successful(
-                    //Redirect(routes.FileUploadController.showResult(srn, startDate, accessType, version, chargeType, uploadId)))
-                    //TODO need to discussed with team for approach
-                    case InProgress => Future.successful(
-                      Redirect(routes.FileUploadController.showResult(srn, startDate, accessType, version, chargeType, uploadId)))
-                    case Failed(failureReason, _) => handleFailureResponse(failureReason, srn, startDate, accessType, version)
+            case Some(status) =>
+              status match {
+                case UploadedSuccessfully(name, _, _, _) =>
+                  for {
+                    updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), name))
+                    _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                  } yield {
+                    Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
                   }
-                }
+                case InProgress =>
+                  val sleepTime:Long = 2000
+                  Future.successful{
+                    Thread.sleep(sleepTime)
+                    Redirect(routes.FileUploadController.
+                      showResult(srn, startDate, accessType, version, chargeType, uploadId))
+                  }
+                case Failed(failureReason, _) => handleFailureResponse(failureReason, srn, startDate, accessType, version)
               }
           }
     }

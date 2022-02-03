@@ -17,7 +17,7 @@
 package fileUploadParsers
 
 import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty}
-import models.MemberDetails
+import models.{MemberDetails, UserAnswers}
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{Format, JsPath, JsValue, Json}
@@ -29,16 +29,22 @@ object Parser {
 }
 
 trait Parser {
+  protected final val FieldNoFirstName = 0
+  protected final val FieldNoLastName = 1
+  protected final val FieldNoNino = 2
+
   protected def validHeader: String
 
   protected val totalFields: Int
 
-  def parse(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+  def parse(startDate: LocalDate, rows: Seq[String], userAnswers: UserAnswers)(implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
     rows.headOption match {
       case Some(row) if row.equalsIgnoreCase(validHeader) =>
         rows.size match {
-          case n if n >= 2 => parseDataRows(startDate, rows)
-          case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+          case n if n >= 2 => parseDataRows(startDate, rows).map{ commitItems =>
+          commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
+        }
+        case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
       case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
@@ -70,9 +76,9 @@ trait Parser {
   protected def memberDetailsValidation(index: Int, chargeFields: Array[String],
                                         memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
-      Field(MemberDetailsFieldNames.firstName, firstNameField(chargeFields), MemberDetailsFieldNames.firstName, 0),
-      Field(MemberDetailsFieldNames.lastName, lastNameField(chargeFields), MemberDetailsFieldNames.lastName, 1),
-      Field(MemberDetailsFieldNames.nino, ninoField(chargeFields), MemberDetailsFieldNames.nino, 2)
+      Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
+      Field(MemberDetailsFieldNames.lastName, chargeFields(FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
+      Field(MemberDetailsFieldNames.nino, chargeFields(FieldNoNino), MemberDetailsFieldNames.nino, 2)
     )
     memberDetailsForm
       .bind(Field.seqToMap(fields))
@@ -92,6 +98,29 @@ trait Parser {
       }
   }
 
+  protected final def addToValidationResults[A](
+                                                 resultA: Either[Seq[ParserValidationError], A],
+                                                 resultB: Either[Seq[ParserValidationError], Seq[CommitItem]],
+                                                 resultAJsPath: => JsPath,
+                                                 resultAJsValue: A => JsValue
+                                               ): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+    resultA match {
+      case Left(resultAErrors) =>
+        resultB match {
+          case Left(existingErrors) => Left(existingErrors ++ resultAErrors)
+          case Right(_) => Left(resultAErrors)
+        }
+      case Right(resultAObject) =>
+        resultB match {
+          case Left(existingErrors) => Left(existingErrors)
+          case Right(existingCommits) =>
+            Right(
+              existingCommits ++ Seq(CommitItem(resultAJsPath, resultAJsValue(resultAObject)))
+            )
+        }
+    }
+  }
+
   protected final def combineValidationResults[A, B](
                                                       resultA: Either[Seq[ParserValidationError], A],
                                                       resultB: Either[Seq[ParserValidationError], B],
@@ -99,34 +128,18 @@ trait Parser {
                                                       resultAJsValue: A => JsValue,
                                                       resultBJsPath: => JsPath,
                                                       resultBJsValue: => B => JsValue
-                                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    resultA match {
-      case Left(resultAErrors) =>
-        resultB match {
-          case Left(resultBErrors) =>
-            Left(resultAErrors ++ resultBErrors)
-          case _ => Left(resultAErrors)
-        }
-
-      case Right(resultAObject) =>
-        resultB match {
-          case Left(resultBErrors) => Left(resultBErrors)
-          case Right(resultBObject) =>
-            Right(
-              Seq(
-                CommitItem(resultAJsPath, resultAJsValue(resultAObject)),
-                CommitItem(resultBJsPath, resultBJsValue(resultBObject))
-              )
-            )
-        }
-    }
-  }
-
-  protected final def firstNameField(fields: Array[String]): String = fields(0)
-
-  protected final def lastNameField(fields: Array[String]): String = fields(1)
-
-  protected final def ninoField(fields: Array[String]): String = fields(2)
+                                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] =
+    addToValidationResults(
+      resultB,
+      addToValidationResults(
+        resultA,
+        Right(Nil),
+        resultAJsPath,
+        resultAJsValue
+      ),
+      resultBJsPath,
+      resultBJsValue
+    )
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 

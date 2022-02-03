@@ -3,41 +3,55 @@
 {% from "macros/title.njk"  import title %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
-
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 
 {% block pageTitle %}
-  {{ title(messages("fileupload.success.title", chargeType)) }}
+  {{ title(messages("fileupload.upload.result.title", chargeTypeText)) }}
 {% endblock %}
 
 
 {% block mainContent %}
-    {% if result == "Inprogress" %}
+    {% if fileName == "InProgress" %}
         <meta http-equiv="refresh" content="1"/>
     {% endif %}
 
     <div class="govuk-grid-row">
           <div class="govuk-grid-column-two-thirds">
-
-            <h1 class="govuk-heading-xl">
-              {{ messages("fileupload.success.heading", chargeType) }}
-            </h1>
-
-            <p class="govuk-body">{{ result }}</p>
-
-
-            {% if result == "Success" %}
-                {{ govukButton({
-                    href: viewModel.submitUrl,
-                    attributes: {id: "submit"},
-                    text: messages("site.continue")
+             {% if form.errors.length > 0 %}
+                  {{ govukErrorSummary({
+                    "titleText": messages("error.summary.title"),
+                    "errorList": form.errors
                   }) }}
+              {% endif %}
 
-            {% else %}
+            <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
+
+               {{ csrf() | safe }}
+
+                <h1 class="govuk-heading-xl">
+                  {{ messages("fileupload.upload.result.heading", chargeTypeText) }}
+                </h1>
+
+                <p class="govuk-body">{{ fileName }}</p>
+
+                {{ govukRadios({
+                         name: 'value',
+                         fieldset: {
+                           legend: {
+                             text: messages("fileupload.upload.result.h1"),
+                             isPageHeading: true,
+                             classes: "govuk-fieldset__legend--m govuk-!-margin-bottom-6"
+                           }
+                         },
+                         items: radios,
+                         errorMessage: form.value.error
+                       }) }}
+
                 {{ govukButton({
-                    text: messages("site.continue"),
-                    disabled: true
-                  }) }}
-            {% endif %}
+                         attributes: {id: "submit"},
+                         text: messages("site.continue")
+                       }) }}
+
 
       <p class="govuk-body"><a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
       </p>

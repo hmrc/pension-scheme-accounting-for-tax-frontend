@@ -17,6 +17,7 @@
 package models
 
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.mvc.JavascriptLiteral
 import uk.gov.hmrc.viewmodels._
 
@@ -28,6 +29,7 @@ object ChargeType extends Enumerable.Implicits {
     override def to(value: ChargeType): String = value match {
       case ChargeTypeAnnualAllowance => "ChargeTypeAnnualAllowance"
       case ChargeTypeLifetimeAllowance => "ChargeTypeLifetimeAllowance"
+      case ChargeTypeOverseasTransfer => "ChargeTypeOverseasTransfer"
     }
   }
 
@@ -63,6 +65,19 @@ object ChargeType extends Enumerable.Implicits {
     )
 
     Radios(field, items)
+  }
+
+  def fileUploadText(chargeType: ChargeType)(implicit messages: Messages): String = {
+    chargeType match {
+      case ChargeTypeAnnualAllowance   => messages("fileupload.annualAllowance")
+      case ChargeTypeLifetimeAllowance => messages("fileupload.lifeTimeAllowance")
+      case ChargeTypeOverseasTransfer  => messages("fileupload.overseasTransfer")
+      case ChargeTypeAuthSurplus  => messages("fileupload.authSurplus")
+      case ChargeTypeDeRegistration  => messages("fileupload.deRegistration")
+      case ChargeTypeShortService  => messages("fileupload.shortService")
+      case ChargeTypeLumpSumDeath  => messages("fileupload.lumpSumDeath")
+      case _                           => chargeType.toString
+    }
   }
 
   implicit val enumerable: Enumerable[ChargeType] =
