@@ -19,6 +19,7 @@ package controllers.fileUpload
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
+import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
@@ -114,7 +115,7 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val jsonToPassToTemplate = Json.obj(
         "chargeType" -> chargeType.toString,
-        "chargeTypeText" -> chargeType.toString,
+        "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
         "srn" -> srn,
         "startDate" -> Some("2020-04-01"),
         "formFields" -> formFieldsMap.toList,
@@ -133,12 +134,11 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "showResult" must {
-    "return OK and the correct view for a GET" in {
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any()))
-        .thenReturn(dummyCall)
+    "redirect to Upload Check for success result" in {
+
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val uploadId = UploadId("")
@@ -149,22 +149,47 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
           controllers.fileUpload.routes.FileUploadController.showResult(srn, startDate, accessType, versionInt, chargeType, uploadId).url)
       ).value
 
-      status(result) mustEqual OK
+      status(result) mustEqual SEE_OTHER
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "fileUpload/fileUploadResult.njk"
-
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
       val jsonToPassToTemplate = Json.obj(
-        "result" -> "Success",
-        "viewModel" -> GenericViewModel(
-          submitUrl = dummyCall.url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-          schemeName = schemeName
-        )
+        "schemeName" ->schemeName,
+        "pstr" -> pstr,
+        "annualAllowance" -> Json.obj("uploadedFileName"->"name")
       )
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      redirectLocation(result) mustBe Some(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version.toInt, chargeType, uploadId).url)
+
+      jsonCaptor.getValue mustBe jsonToPassToTemplate
+    }
+
+    "redirect to showResult result InProgress" in {
+
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val uploadId = UploadId("")
+
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.FileUploadController.showResult(srn, startDate, accessType, versionInt, chargeType, uploadId).url)
+      ).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
+      val jsonToPassToTemplate = Json.obj(
+        "schemeName" ->schemeName,
+        "pstr" -> pstr,
+        "annualAllowance" -> Json.obj("uploadedFileName"->"name")
+      )
+
+      redirectLocation(result) mustBe Some(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version.toInt, chargeType, uploadId).url)
+
+      jsonCaptor.getValue mustBe jsonToPassToTemplate
     }
   }
 }
