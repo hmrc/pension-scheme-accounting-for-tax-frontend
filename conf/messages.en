@@ -1353,7 +1353,7 @@ fileupload.upload.success.p = {0} was uploaded successfully and the charge was a
 
 inputSelection.error.required = Select how you want to add the charge to the AFT return
 InvalidArgument = Choose the file to upload
-EntityTooLarge = The file must be smaller than {0}M
+EntityTooLarge = The file must be smaller than {0}MB
 
 fileUpload.theMember = the member
 
