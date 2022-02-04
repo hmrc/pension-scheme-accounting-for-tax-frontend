@@ -41,9 +41,8 @@ trait Parser {
   def parse(startDate: LocalDate, rows: Seq[String], userAnswers: UserAnswers)(implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
     rows.headOption match {
       case Some(row) if row.equalsIgnoreCase(validHeader) =>
-        parseDataRows(startDate, rows).map{ commitItems =>
-          commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
-        }
+        parseDataRows(startDate, rows)
+          .map(_.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value)))
       case Some(_) => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalid))
       case None => Left(Seq(FileLevelParserValidationErrorTypeFileEmpty))
     }
@@ -172,13 +171,13 @@ object ParserValidationError {
     Json.format[ParserValidationError]
 }
 
-case class CommitItem(jsPath: JsPath, value: JsValue)
+protected case class CommitItem(jsPath: JsPath, value: JsValue)
 
-case class Field(formValidationFieldName: String, fieldValue: String, columnName: String, columnNo: Int)
+protected case class Field(formValidationFieldName: String, fieldValue: String, columnName: String, columnNo: Int)
 
-case class ParsedDate(day: String, month: String, year: String)
+protected case class ParsedDate(day: String, month: String, year: String)
 
-object Field {
+protected object Field {
   def seqToMap(s: Seq[Field]): Map[String, String] = {
     s.map { f =>
       f.formValidationFieldName -> f.fieldValue
