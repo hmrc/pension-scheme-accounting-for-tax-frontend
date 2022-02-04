@@ -173,13 +173,13 @@ object ParserValidationError {
     Json.format[ParserValidationError]
 }
 
-case class CommitItem(jsPath: JsPath, value: JsValue)
+protected case class CommitItem(jsPath: JsPath, value: JsValue)
 
-case class Field(formValidationFieldName: String, fieldValue: String, columnName: String, columnNo: Int)
+protected case class Field(formValidationFieldName: String, fieldValue: String, columnName: String, columnNo: Int)
 
-case class ParsedDate(day: String, month: String, year: String)
+protected case class ParsedDate(day: String, month: String, year: String)
 
-object Field {
+protected object Field {
   def seqToMap(s: Seq[Field]): Map[String, String] = {
     s.map { f =>
       f.formValidationFieldName -> f.fieldValue

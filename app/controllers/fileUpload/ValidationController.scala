@@ -34,8 +34,6 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
-import uk.gov.hmrc.http.HttpReads.is5xx
-import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -133,16 +131,15 @@ class ValidationController @Inject()(
             case (Some(_), None | Some(Failed(_, _)) | Some(InProgress)) => sessionExpired
             case (None, _) => sessionExpired
             case (Some(parser), Some(ud: UploadedSuccessfully)) =>
-              upscanInitiateConnector.download(ud.downloadUrl).flatMap {
-                response =>
-                  response match {
-                    case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
-                      Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
-                    case value =>
-                      val linesFromCSV = value.body.split("\n").toList
-                      parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
-                  }
+              upscanInitiateConnector.download(ud.downloadUrl).flatMap { response =>
+                response.status match {
+                  case OK =>
+                    val linesFromCSV = response.body.split("\n").toList
+                    parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                  case _ =>
+                    Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
                 }
+              }
             }
         }
     }
