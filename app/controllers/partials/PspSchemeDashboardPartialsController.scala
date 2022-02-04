@@ -62,8 +62,8 @@ class PspSchemeDashboardPartialsController @Inject()(
             schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
             schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
             aftReturnsHtml <- pspDashboardAftReturnsPartial(idNumber, schemeDetails.pstr, psaId)
-            upcomingAftChargesHtml <- pspDashboardUpcomingAftChargesPartial(idNumber, schemeFs)
-            overdueChargesHtml <- pspDashboardOverdueAftChargesPartial(idNumber, schemeFs)
+            upcomingAftChargesHtml <- pspDashboardUpcomingAftChargesPartial(idNumber, schemeFs) //
+            overdueChargesHtml <- pspDashboardOverdueAftChargesPartial(idNumber, schemeFs)//
           } yield {
             scala.collection.immutable.Seq(aftReturnsHtml, upcomingAftChargesHtml, overdueChargesHtml)
           }

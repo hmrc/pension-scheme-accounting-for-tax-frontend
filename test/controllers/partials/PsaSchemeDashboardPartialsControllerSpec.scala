@@ -21,6 +21,8 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
+import models.FeatureToggle.{Disabled, Enabled}
+import models.FeatureToggleName.FinancialInformationAFT
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
@@ -32,7 +34,7 @@ import play.api.libs.json.JsObject
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.{PsaSchemePartialService, SchemeService}
+import services.{FeatureToggleService, PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -53,11 +55,13 @@ class PsaSchemeDashboardPartialsControllerSpec
   private val mockPsaSchemePartialService: PsaSchemePartialService = mock[PsaSchemePartialService]
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  private val mockFinancialInformationToggle: FeatureToggleService = mock[FeatureToggleService]
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[PsaSchemePartialService].toInstance(mockPsaSchemePartialService),
       bind[SchemeService].toInstance(mockSchemeService),
-      bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
+      bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
+      bind[FeatureToggleService].toInstance(mockFinancialInformationToggle)
     )
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
@@ -77,14 +81,17 @@ class PsaSchemeDashboardPartialsControllerSpec
   "PsaSchemeDashboardPartials Controller" when {
     "aftPartial" must {
 
-      "return the html with information received from overview api" in {
+      "return the html with information received from overview api when toggle is on" in {
         when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
         when(mockPsaSchemePartialService.overdueAftChargesModel(any(), any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
-
+        when(mockPsaSchemePartialService.paymentsAndCharges(any(), any())(any()))
+          .thenReturn(allTypesMultipleReturnsModel)
+        when(mockFinancialInformationToggle.get(any())(any(), any()))
+          .thenReturn(Future.successful(Enabled(FinancialInformationAFT)))
         val result = route(application, httpGETRequest(getPartial)).value
 
         status(result) mustEqual OK
@@ -93,7 +100,29 @@ class PsaSchemeDashboardPartialsControllerSpec
 
         templateCaptor.getValue mustEqual "partials/psaSchemeDashboardPartial.njk"
       }
-    }
 
+
+      "return the html with information received from overview api when toggle is off" in {
+        when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
+          .thenReturn(Future.successful(allTypesMultipleReturnsModel))
+        when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
+          .thenReturn(allTypesMultipleReturnsModel)
+        when(mockPsaSchemePartialService.overdueAftChargesModel(any(), any())(any()))
+          .thenReturn(allTypesMultipleReturnsModel)
+        when(mockPsaSchemePartialService.paymentsAndCharges(any(), any())(any()))
+          .thenReturn(allTypesMultipleReturnsModel)
+        when(mockFinancialInformationToggle.get(any())(any(), any()))
+          .thenReturn(Future.successful(Disabled(FinancialInformationAFT)))
+        val result = route(application, httpGETRequest(getPartial)).value
+
+        status(result) mustEqual OK
+
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+        templateCaptor.getValue mustEqual "partials/psaSchemeDashboardPartial.njk"
+      }
+
+
+    }
   }
 }
