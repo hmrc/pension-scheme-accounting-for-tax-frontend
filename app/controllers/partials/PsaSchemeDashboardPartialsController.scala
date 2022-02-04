@@ -18,12 +18,14 @@ package controllers.partials
 
 import connectors.FinancialStatementConnector
 import controllers.actions._
+import models.FeatureToggle._
+import models.FeatureToggleName._
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{PsaSchemePartialService, SchemeService}
+import services.{FeatureToggleService, PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewmodels.CardViewModel
@@ -38,6 +40,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
                                                       schemeService: SchemeService,
                                                       financialStatementConnector: FinancialStatementConnector,
                                                       service: PsaSchemePartialService,
+                                                      toggleService: FeatureToggleService,
                                                       renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -46,27 +49,43 @@ class PsaSchemeDashboardPartialsController @Inject()(
 
   private val logger = Logger(classOf[PsaSchemeDashboardPartialsController])
 
+
   def psaSchemeDashboardPartial(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
+      toggleService.get(FinancialInformationAFT).flatMap {
+        case Enabled(FinancialInformationAFT) =>
+          schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+            financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFS =>
+              service.aftCardModel(schemeDetails, srn).flatMap { aftModel =>
+                val paymentsAndCharges: Seq[CardViewModel] = service.paymentsAndCharges(schemeFS, srn)
 
-      schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
-        financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFS =>
-          service.aftCardModel(schemeDetails, srn).flatMap { aftModel =>
-
-            val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
-            val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
-
-            logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(aftModel)}")
-            logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(upcomingTile)}")
-            logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(overdueTile)}")
-
-            renderer.render(
-              template = "partials/psaSchemeDashboardPartial.njk",
-              ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile))
-            ).map(Ok(_))
+                logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(paymentsAndCharges)}")
+                logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(aftModel)}")
+                renderer.render(
+                  template = "partials/psaSchemeDashboardPartial.njk",
+                  ctx = Json.obj("cards" -> Json.toJson(aftModel ++ paymentsAndCharges ))
+                ).map(Ok(_))
+              }
+            }
           }
-        }
-      }
+        case Disabled(FinancialInformationAFT) =>
+          schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+            financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFS =>
+              service.aftCardModel(schemeDetails, srn).flatMap { aftModel =>
+                val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
+                val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
+                logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(upcomingTile)}")
+                logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(overdueTile)}")
+                renderer.render(
+                  template = "partials/psaSchemeDashboardPartial.njk",
+                  ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile))
+                ).map(Ok(_))
+              }
+            }
+          }
+      }}}
 
-  }
-}
+
+
+
+

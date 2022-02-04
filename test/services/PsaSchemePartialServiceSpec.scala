@@ -58,7 +58,6 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
         .thenReturn(Future.successful(allTypesMultipleReturnsPresent))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
-
       whenReady(service.aftCardModel(schemeDetails, srn)) {
         _ mustBe allTypesMultipleReturnsModel
       }
