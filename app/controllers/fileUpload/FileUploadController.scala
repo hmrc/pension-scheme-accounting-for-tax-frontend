@@ -45,7 +45,7 @@ class FileUploadController @Inject()(
                                       renderer: Renderer,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
+                                      userAnswersCacheConnector: UserAnswersCacheConnector
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport {
