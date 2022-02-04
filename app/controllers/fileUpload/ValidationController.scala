@@ -19,6 +19,7 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
+import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers._
 import helpers.ChargeTypeHelper
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
@@ -31,10 +32,10 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
-import uk.gov.hmrc.http.HttpReads.is5xx
-import uk.gov.hmrc.http.UpstreamErrorResponse
 import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
+import uk.gov.hmrc.http.HttpReads.is5xx
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -65,11 +66,13 @@ class ValidationController @Inject()(
   private def processInvalid(
                               srn: String,
                               startDate: LocalDate,
+                              accessType: AccessType,
+                              version: Int,
                               chargeType: ChargeType,
                               errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     errors match {
-      // TODO: Error handling for following two scenarios
-            //case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
+      case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
+        Future.successful(Redirect(routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType)))
       case _ =>
         renderer.render(template = "fileUpload/invalid.njk",
           Json.obj(
@@ -87,12 +90,13 @@ class ValidationController @Inject()(
                                     accessType: AccessType,
                                     version: Int,
                                     chargeType: ChargeType,
-                                    linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
+                                    linesFromCSV: List[String],
+                                    parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
 
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
 
-    parser.parse(startDate, filteredLinesFromCSV, request.userAnswers).fold[Future[Result]](processInvalid(srn, startDate, chargeType, _),
+    parser.parse(startDate, filteredLinesFromCSV, request.userAnswers).fold[Future[Result]](processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>{
         processSuccessResult(srn, startDate, accessType, version, chargeType, updatedUA).flatMap(viewModel=>
           renderer.render(template = "fileUpload/fileUploadSuccess.njk",
@@ -132,16 +136,14 @@ class ValidationController @Inject()(
               upscanInitiateConnector.download(ud.downloadUrl).flatMap {
                 response =>
                   response match {
-                    case e: UpstreamErrorResponse if (is5xx(e.statusCode)) =>
-                      renderer.render(
-                        template = "fileUpload/error/unknown.njk", Json.obj()
-                      ).map(Ok(_))
+                    case e: UpstreamErrorResponse if is5xx(e.statusCode) =>
+                      Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
                     case value =>
                       val linesFromCSV = value.body.split("\n").toList
                       parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
                   }
-              }
-          }
+                }
+            }
         }
     }
 

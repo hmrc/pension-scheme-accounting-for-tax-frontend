@@ -121,14 +121,13 @@ class FileUploadController @Inject()(
 
   private def handleFailureResponse(failureResponse: String,srn: String, startDate: String, accessType: AccessType,
                                     version: Int)(implicit request: DataRequest[_]): Future[Result]  = {
-    val returnUrl = controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url
     failureResponse match {
       case "QUARANTINE" =>
-        Future.successful(Redirect(routes.UpscanErrorController.quarantineError(returnUrl)))
+        Future.successful(Redirect(routes.UpscanErrorController.quarantineError(srn, startDate, accessType, version)))
       case "REJECTED" =>
-        Future.successful(Redirect(routes.UpscanErrorController.rejectedError(returnUrl)))
+        Future.successful(Redirect(routes.UpscanErrorController.rejectedError(srn, startDate, accessType, version)))
       case "UNKNOWN" =>
-        Future.successful(Redirect(routes.UpscanErrorController.unknownError))
+        Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate, accessType, version)))
     }
   }
 }

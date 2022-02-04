@@ -1,0 +1,60 @@
+{% extends "includes/layout.njk" %}
+{% from "macros/title.njk"  import title %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block pageTitle %}
+  {{ title(messages("fileupload.error.invalidHeaderOrBody.title", chargeTypeText)) }}
+{% endblock %}
+
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+       <div class="govuk-grid-column-two-thirds">
+
+          <h1 class="govuk-heading-xl">
+            {{ messages("fileupload.error.invalidHeaderOrBody.title", chargeTypeText) }}
+          </h1>
+
+             <p class="govuk-body">
+               {{ messages("fileupload.error.invalidHeaderOrBody.p1") }}
+             </p>
+
+               <ul class="govuk-list govuk-list--bullet">
+                  <li>{{ messages("fileupload.error.invalidHeaderOrBody.list.b1") }}</li>
+                  <li>{{ messages("fileupload.error.invalidHeaderOrBody.list.b2") }}</li>
+                  <li>{{ messages("fileupload.error.invalidHeaderOrBody.list.b3") }}</li>
+                  <li>
+                     {{ messages("fileupload.error.invalidHeaderOrBody.list.b4")}}
+                        <a href="{{fileTemplateLink}}" class="govuk-link">
+                           {{ messages("fileupload.template.link") }}
+                        </a>
+                     </li>
+               </ul>
+
+               <p class="govuk-body">
+                  {{ messages("fileupload.error.invalidHeaderOrBody.p2") }}
+                     <a href="{{fileDownloadInstructionsLink}}" class="govuk-link">
+                        {{ messages("fileupload.download.instructions.link") }}
+                     </a>
+                     {{ messages("fileupload.error.invalidHeaderOrBody.p3") }}
+               </p>
+
+                {{
+                    govukButton({
+                        href: viewModel.submitUrl,
+                        attributes: {id: "submit"},
+                        text: messages("return.to.fileupload")
+                    })
+                }}
+            </div>
+          </div>
+
+          <p class="govuk-body">
+             <a href="{{viewModel.returnUrl}}" class="govuk-link">
+               {{ messages("return.to.link", viewModel.schemeName) }}
+             </a>
+          </p>
+
+
+{% endblock %}

@@ -116,7 +116,7 @@ class UploadProgressTrackerSpec extends AsyncWordSpec with Matchers with WireMoc
 
   ".registerUploadResult" must {
     val fileUploadStatus=UploadedSuccessfully("test.csv","text/binary","www.test.com",Some("100".toLong))
-    val response=Json.toJson(FileUploadStatus("UploadedSuccessfully", Some("www.test.com"), Some("text/binary"), Some("test.csv"), Some("100".toLong)))
+    val response=Json.toJson(FileUploadStatus("UploadedSuccessfully", None, None, Some("www.test.com"), Some("text/binary"), Some("test.csv"), Some("100".toLong)))
     "save the data in the collection" in {
       server.stubFor(
         post(urlEqualTo(urlFileUploadResult))
