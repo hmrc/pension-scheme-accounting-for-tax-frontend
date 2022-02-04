@@ -1268,19 +1268,92 @@ paginationNextPage = Next
 
 fileupload.inputSelection.title = How do you want to add the {0}?
 fileupload.inputSelection.heading = How do you want to add the {0}?
+fileupload.inputSelection.fileUploadInput.hint = Uploading a file will overwrite all the data you have previously added for this charge
+
+fileupload.annualAllowance = annual allowance charge
+fileupload.lifeTimeAllowance = lifetime allowance charge
+fileupload.overseasTransfer = overseas transfer charge
+fileupload.authSurplus = authorised surplus payments charge
+fileupload.deRegistration = de-registration charge
+fileupload.shortService = short service refund lump sum charge
+fileupload.lumpSumDeath = special lump sum death benefits charge
+
 
 inputSelection.radio.manualInput = Manually enter the details
 inputSelection.radio.fileUploadInput = Upload a file
 
-fileupload.whatYouWillNeed.title = Adding your {0} upload
-fileupload.whatYouWillNeed.heading = Adding your {0} upload
+fileupload.whatYouWillNeed.title = How to upload your {0} file
+fileupload.whatYouWillNeed.heading = How to upload your {0} file
+fileupload.whatYouWillNeed.p1 = You need to upload a .csv file and include the following information for each member liable to the charge:
+fileupload.whatYouWillNeed.inset.text = All the data you have previously added for this charge will be overwritten when you upload a file.
 
-fileupload.fileupload.title = Upload the {0}
-fileupload.fileupload.heading = Upload the {0}
+fileupload.whatYouWillNeed.p2 = and use this to enter the information. Do not change or delete the header row (row 1) or change the order of the columns in the template file.
+fileupload.download.instructions.link = Download the instructions for the format of your file
+fileupload.download.template.link = Download the template file
 
-inputSelection.error.required = Select how you would like to add your data
-InvalidArgument = Please choose a file
-EntityTooLarge = The CSV must be smaller than {0}M
+fileupload.whatYouWillNeed.annualAllowance.item1 = their name
+fileupload.whatYouWillNeed.annualAllowance.item2 = their National Insurance number
+fileupload.whatYouWillNeed.annualAllowance.item3 = the date the scheme administrator received the notice from the member requiring them to pay the annual allowance charge
+fileupload.whatYouWillNeed.annualAllowance.item4 = the amount of the annual allowance charge
+fileupload.whatYouWillNeed.annualAllowance.item5 = the tax year to which the annual allowance charge relates
+fileupload.whatYouWillNeed.annualAllowance.item6 = whether the annual allowance payment type was mandatory or voluntary
+
+fileupload.whatYouWillNeed.lifeTimeAllowance.item1 = their name
+fileupload.whatYouWillNeed.lifeTimeAllowance.item2 = their National Insurance number
+fileupload.whatYouWillNeed.lifeTimeAllowance.item3 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
+fileupload.whatYouWillNeed.lifeTimeAllowance.item4 = the amount of tax due at 25%
+fileupload.whatYouWillNeed.lifeTimeAllowance.item5 = the amount of tax due at 55%
+
+fileupload.whatYouWillNeed.overseasTransfer.item1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
+fileupload.whatYouWillNeed.overseasTransfer.item2 = the date and ’transferred value’ of each transfer
+fileupload.whatYouWillNeed.overseasTransfer.item3 = the amount of tax due in respect of each transfer
+fileupload.whatYouWillNeed.overseasTransfer.item4 = the reference number given by HMRC to the QROPS to which each transfer is made
+
+
+fileupload.fileupload.title = Upload your {0} file
+fileupload.fileupload.heading = Upload your {0} file
+fileupload.upload.inset.text1 = Accepted file type: .csv
+fileupload.upload.inset.text2 = Maximum file size: 2MB
+
+fileupload.upload.details.summary = What information do I need to include in this file?
+fileupload.upload.details.annualAllowance.item1 = the member’s first name
+fileupload.upload.details.annualAllowance.item2 = the member’s last name
+fileupload.upload.details.annualAllowance.item3 = the member’s National Insurance number
+fileupload.upload.details.annualAllowance.item4 = the tax year to which the annual allowance charge relates
+fileupload.upload.details.annualAllowance.item5 = the charge amount (£)
+fileupload.upload.details.annualAllowance.item6 = the date the scheme administrator received the notice to pay the charge
+fileupload.upload.details.annualAllowance.item7 = whether the payment type is mandatory or voluntary
+
+fileupload.upload.details.lifeTimeAllowance.item1 = the member’s first name
+fileupload.upload.details.lifeTimeAllowance.item2 = the member’s last name
+fileupload.upload.details.lifeTimeAllowance.item3 = the member’s National Insurance number
+fileupload.upload.details.lifeTimeAllowance.item4 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
+fileupload.upload.details.lifeTimeAllowance.item5 = the amount of tax due at 25%
+fileupload.upload.details.lifeTimeAllowance.item6 = the amount of tax due at 55%
+
+fileupload.upload.details.overseasTransfer.item1 = the member’s first name
+fileupload.upload.details.overseasTransfer.item2 = the member’s last name
+fileupload.upload.details.overseasTransfer.item3 = the member’s National Insurance number
+fileupload.upload.details.overseasTransfer.item4 = the member’s date of birth
+fileupload.upload.details.overseasTransfer.item5 = the reference number given by HMRC to the QROPS to which the transfer is made
+fileupload.upload.details.overseasTransfer.item6 = the date of the transfer into the QROPS
+fileupload.upload.details.overseasTransfer.item7 = the amount transferred into the QROPS (£)
+fileupload.upload.details.overseasTransfer.item8 = the amount of tax due in respect of the transfer
+
+fileupload.upload.result.title = Check your {0} file
+fileupload.upload.result.heading = Check your {0} file
+fileupload.upload.result.h1 = Is this file correct?:
+fileupload.upload.result.radio.yes = Yes, add this charge to the AFT return
+fileupload.upload.result.radio.no = No, I want to select a different file
+fileupload.upload.result.error.required = Select yes if the file you have chosen is correct
+
+fileupload.upload.success.title = Your file upload was successful
+fileupload.upload.success.heading = Your file upload was successful
+fileupload.upload.success.p = {0} was uploaded successfully and the charge was added to the AFT return. Select continue to view the changes.
+
+inputSelection.error.required = Select how you want to add the charge to the AFT return
+InvalidArgument = Choose the file to upload
+EntityTooLarge = The file must be smaller than {0}MB
 
 fileUpload.theMember = the member
 

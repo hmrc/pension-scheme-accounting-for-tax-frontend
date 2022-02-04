@@ -26,6 +26,8 @@ import services.PsaSchemePartialServiceSpec.{schemeDetails, srn}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 
 class FileDownloadControllerSpec extends ControllerSpecBase {
 

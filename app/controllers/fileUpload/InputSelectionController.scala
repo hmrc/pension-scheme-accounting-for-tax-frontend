@@ -58,16 +58,18 @@ class InputSelectionController @Inject()(
       val preparedForm = request.userAnswers.get(InputSelectionPage(chargeType)).fold(form)(form.fill)
 
       DataRetrievals.retrieveSchemeName { schemeName =>
-        renderer.render(template = "fileUpload/inputSelection.njk",
-          Json.obj(
-            "chargeType" -> chargeType.toString,
-            "srn" -> srn,
-            "startDate" -> Some(startDate),
-            "radios" -> InputSelection.radios(preparedForm),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
+        renderer
+          .render(
+            template = "fileUpload/inputSelection.njk",
+            Json.obj(
+              "chargeType" -> ChargeType.fileUploadText(chargeType),
+              "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "radios" -> InputSelection.radios(preparedForm),
+              "form" -> preparedForm,
+              "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
+            )
           )
-        )
           .map(Ok(_))
       }
     }
