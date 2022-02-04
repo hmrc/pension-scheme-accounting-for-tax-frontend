@@ -19,12 +19,13 @@ package services
 import models.ChargeType
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import play.api.Environment
+
 import java.io.File
 import javax.inject.Inject
 
 class FileProviderService @Inject()(environment: Environment){
 
-  private val baseInstructionsPath: String = "/app/assets/fileDownload/instructions/"
+  private val baseInstructionsPath: String = "conf/resources/fileDownload/instructions/"
 
   private def instructionsFilePath(chargeType: ChargeType): String = {
     chargeType match {
@@ -35,7 +36,7 @@ class FileProviderService @Inject()(environment: Environment){
     }
   }
 
-  private val baseTemplatePath: String = "/app/assets/fileDownload/template/"
+  private val baseTemplatePath: String = "conf/resources/fileDownload/template/"
 
   private def templateFilePath(chargeType: ChargeType): String = {
     chargeType match {
