@@ -31,7 +31,7 @@ class FileDownloadController @Inject()(override val messagesApi: MessagesApi,
                                        identify: IdentifierAction,
                                        allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                        fileProviderService: FileProviderService,
-                                       val controllerComponents: MessagesControllerComponents,
+                                       val controllerComponents: MessagesControllerComponents
                                       )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
