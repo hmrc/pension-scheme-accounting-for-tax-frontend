@@ -95,7 +95,7 @@ class FileUploadController @Inject()(
                 case UploadedSuccessfully(name, _, _, _) =>
                   for {
                     updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), name))
-                    _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                    _ <- userAnswersCacheConnector.savePartial(request.internalId,updatedAnswers.data,Some(chargeType))
                   } yield {
                     Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
                   }

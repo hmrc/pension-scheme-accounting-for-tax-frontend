@@ -84,7 +84,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
       templateCaptor.getValue mustEqual templateToBeRendered
 
       val jsonToPassToTemplate= Json.obj(
-        "chargeType" -> chargeType.toString,
+        "chargeType" -> ChargeType.fileUploadText(chargeType),
         "srn" -> srn,
         "startDate" -> Some("2020-04-01"),
         "form" -> form ,
