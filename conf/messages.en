@@ -1285,3 +1285,15 @@ EntityTooLarge = The CSV must be smaller than {0}M
 fileUpload.theMember = the member
 
 fileUpload.chargeType.overseasTransfer = overseas transfer charge
+
+
+psaSchemeFinancial.h1 = Your financial overview
+psaSchemeFinancial.h2.overduePayments  = Total of overdue payments and charges
+psaSchemeFinancial.h2.totalInterestAccruing  = Total interest accruing to date
+psaSchemeFinancial.h2.totalDuePayment  = Total of due payments and charges
+psaSchemeFinancial.h2.creditBalance  = Credit balance
+psaSchemeFinancial.h2.repaymentInterest  = Repayment interest
+psaSchemeFinancial.allOverdue.link  = View all overdue payments and interest charges
+psaSchemeFinancial.allDue.link  = View all due payments and charges
+psaSchemeFinancial.allPaymentCharges.link  = View all payments and charges
+returnHistory.title = Accounting for tax payments and charges for {0} to {1}

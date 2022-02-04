@@ -363,6 +363,8 @@ GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/file-u
 GET         /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/file-upload/validation                                                controllers.fileUpload.ValidationController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType = ChargeType.ChargeTypeLifetimeAllowance, uploadId: models.UploadId)
 GET         /:srn/:startDate/:accessType/:version/overseas-transfer-charge/file-upload/validation                                                controllers.fileUpload.ValidationController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType = ChargeType.ChargeTypeOverseasTransfer, uploadId: models.UploadId)
 
+GET         /:srn/financial-overview                                                                                                              controllers.financialOverview.PsaSchemeFinancialOverviewController.psaSchemeFinancialOverview(srn: String)
+
 # upload file notification callback
 #NOCSRF
 POST        /fileupload/upscan-callback                                                                                                           controllers.fileUpload.UploadCallbackController.callback

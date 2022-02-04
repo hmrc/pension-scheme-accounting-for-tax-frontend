@@ -1,0 +1,86 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"  import govukBackLink %}
+{% from "macros/title.njk"                      import title %}
+{% from "govuk/components/table/macro.njk"      import govukTable %}
+
+{% set financialAmounts = [] %}
+{% set creditBalance = "£0.00" %}
+{% set repaymentInterest = "£0.00" %}
+
+ {% for card in cards %}
+          {% for subHead in card.subHeadings %}
+          {% for subHeadParams in subHead.subHeadingParams %}
+                {% if loop.index == 1 %}
+                {% set financialAmounts = (financialAmounts.push(subHeadParams.subHeadingParam), financialAmounts) %}
+                 {% endif %}
+            {% endfor %}
+            {% endfor %}
+       {% endfor %}
+
+
+{% block pageTitle %}
+    {{ title(messages("returnHistory.title", quarterStart, quarterEnd)) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+
+            {{ hmrcPageHeading({
+                text: messages("psaSchemeFinancial.h1"),
+                section: schemeName
+            }) }}
+
+       <div class="govuk-grid-column-one-half">
+            <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+               {{ messages("psaSchemeFinancial.h2.overduePayments") }}
+           </h2>
+           <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ financialAmounts[2] }}</p>
+         </div>
+       <div class="govuk-grid-column-one-half">
+                     <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+                        {{ messages("psaSchemeFinancial.h2.totalInterestAccruing") }}
+                    </h2>
+                     <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{financialAmounts[3] }}</p>
+        </div>
+                  <p class="govuk-body-m">
+                        <a id="allOverdue" class=govuk-link href="#"> {{ messages("psaSchemeFinancial.allOverdue.link") }}</a>
+                    </p>
+                          <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+            <div class="govuk-grid-column-full">
+                    <h2 class=" govuk-heading-m">
+                                   {{ messages("psaSchemeFinancial.h2.totalDuePayment") }}
+                               </h2>
+                   <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ financialAmounts[1] }}</p>
+
+                         </div>
+                     <p class="govuk-body-m">
+                            <a id="allDue" class=govuk-link href="#"> {{ messages("psaSchemeFinancial.allDue.link") }}</a>
+                    </p>
+                         <hr class="govuk-section-break govuk-section-break--l govuk-section-break--visible">
+
+                         <div class="govuk-grid-column-one-half">
+                             <h2 class=" govuk-heading-m">
+                                                    {{ messages("psaSchemeFinancial.h2.creditBalance") }}
+                                </h2>
+                            <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold"> {{creditBalance}} </p>
+                                  </div>
+                                   <div class="govuk-grid-column-one-half">
+                                              <h2 class=" govuk-heading-m">
+                                                             {{ messages("psaSchemeFinancial.h2.repaymentInterest") }}
+                                                         </h2>
+                                                          <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ repaymentInterest }} </p>
+                                           </div>
+                    <p class="govuk-body-m">
+                                               <a id="allPaymentCharges" class=govuk-link href="#"> {{ messages("psaSchemeFinancial.allPaymentCharges.link") }}</a>
+                                       </p>
+
+        </div>
+    </div>
+
+{% endblock %}
+
+
