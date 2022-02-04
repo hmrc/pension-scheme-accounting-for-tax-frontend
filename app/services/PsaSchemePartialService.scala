@@ -283,7 +283,6 @@ class PsaSchemePartialService @Inject()(
     val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(schemeFs)
     val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
     val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
-
     val subHeadingTotalOverDue: Seq[CardSubHeading] = Seq(CardSubHeading(
       subHeading = messages("pspDashboardOverdueAftChargesCard.total.span"),
       subHeadingClasses = "card-sub-heading",
@@ -302,6 +301,7 @@ class PsaSchemePartialService @Inject()(
           subHeadingParamClasses = "font-large bold inline-block"
         ),
         CardSubHeadingParam(
+
           subHeadingParam = messages("pspDashboardOverdueAftChargesCard.toDate.span"),
           subHeadingParamClasses = "font-xsmall inline-block"
         )
@@ -323,6 +323,7 @@ class PsaSchemePartialService @Inject()(
   private def viewOverdueLink(schemeFs: Seq[SchemeFS], srn: String): Seq[Link] = {
     val nonAftOverdueCharges: Seq[SchemeFS] = schemeFs.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
       val linkText = if (schemeFs.map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
+        //messages associated with each scenario of links for the overdue charges tile
         msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
           .withArgs(
             schemeFs.map(_.periodStartDate).distinct.head.format(smallDatePattern),
@@ -333,6 +334,74 @@ class PsaSchemePartialService @Inject()(
 
     Seq(Link("overdue-payments-and-charges", appConfig.overdueChargesUrl.format(srn), linkText, None))
   }
+
+  def paymentsAndCharges(schemeFs: Seq[SchemeFS], srn: String)
+                            (implicit messages: Messages): Seq[CardViewModel] = {
+    val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(schemeFs)
+    val upcomingCharges: Seq[SchemeFS] = paymentsAndChargesService.extractUpcomingCharges(schemeFs)
+    val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
+    val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
+    val totalUpcomingCharges : BigDecimal = upcomingCharges.map(_.amountDue).sum
+    val totalOutstandingPayments: BigDecimal= totalUpcomingCharges + totalOverdue + totalInterestAccruing
+    val subHeadingTotalOutstanding: Seq[CardSubHeading] = Seq(CardSubHeading(
+      subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),
+      subHeadingClasses = "card-sub-heading",
+      subHeadingParams = Seq(CardSubHeadingParam(
+        subHeadingParam = s"${FormatHelper.formatCurrencyAmountAsString(totalOutstandingPayments)}",
+        subHeadingParamClasses = "font-large bold"
+      ))
+    ))
+
+    val subHeadingPaymentsOverdue: Seq[CardSubHeading] = if (totalOverdue > 0 ){
+      Seq(CardSubHeading(
+        subHeading = "",
+        subHeadingClasses = "govuk-tag govuk-tag--red",
+        subHeadingParams = Seq(CardSubHeadingParam(
+          subHeadingParam = messages("pspDashboardOverdueAftChargesCard.overdue.span"),
+          subHeadingParamClasses = "govuk-tag govuk-tag--red"
+        ))
+
+      ))}
+      else {
+      Nil
+    }
+
+
+
+
+    if (totalOutstandingPayments > 0) {
+      Seq(CardViewModel(
+        id = "aft-overdue-charges",
+        heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
+        subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
+        links = viewFinancialOverviewLink(overdueCharges, srn) ++ viewAllPaymentsAndChargesLink(upcomingCharges, srn)
+      ))
+    } else {
+      Nil
+    }
+  }
+    private def viewFinancialOverviewLink(pastCharges: Seq[SchemeFS], srn: String): Seq[Link] =
+      if (pastCharges == Seq.empty) {
+        Nil
+      } else {
+        Seq(Link(
+          id = "view-your-financial-overview",
+          url = appConfig.paymentsAndChargesUrl.format(srn),
+          linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+          hiddenText = None
+        ))
+      }
+  private def viewAllPaymentsAndChargesLink(pastCharges: Seq[SchemeFS], srn: String): Seq[Link] =
+    if (pastCharges == Seq.empty) {
+      Nil
+    } else {
+      Seq(Link(
+        id = "past-payments-and-charges",
+        url = appConfig.paymentsAndChargesUrl.format(srn),
+        linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+        hiddenText = None
+      ))
+    }
 
   val fullDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   val smallDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")
