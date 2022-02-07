@@ -41,7 +41,7 @@ class AFTPartialService @Inject()(
                                    appConfig: FrontendAppConfig,
                                    paymentsAndChargesService: PaymentsAndChargesService,
                                    aftConnector: AFTConnector,
-                                   aftCacheConnector: UserAnswersCacheConnector,
+                                   aftCacheConnector: UserAnswersCacheConnector
                                  )(implicit ec: ExecutionContext) {
 
   def retrievePspDashboardAftReturnsModel(srn: String, pstr: String, authorisingPsaId: String)
