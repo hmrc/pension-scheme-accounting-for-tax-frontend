@@ -40,13 +40,13 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
   private val url = "/upscan/v2/initiate"
 
   ".initiateV2" must {
-    val successRedirectUrl = appConfig.urlInThisService( routes.FileUploadController
+    val successRedirectUrl = appConfig.uploadRedirectTargetBase + routes.FileUploadController
       .showResult("srn", "01-01-2020", Draft, 1, ChargeTypeAnnualAllowance, UploadId("uploadId"))
-      .url)
+      .url
 
-    val errorRedirectUrl = appConfig.urlInThisService(  routes.FileUploadController
+    val errorRedirectUrl = appConfig.uploadRedirectTargetBase +  routes.FileUploadController
       .onPageLoad("srn", "01-01-2020", Draft, 1, ChargeTypeAnnualAllowance)
-      .url)
+      .url
     val response1 = s"""{
                   |    "reference": "11370e18-6e24-453e-b45a-76d3e32ea33d",
                   |    "uploadRequest": {

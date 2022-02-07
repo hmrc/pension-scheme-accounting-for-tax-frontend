@@ -20,7 +20,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import fileUploadParsers.{AnnualAllowanceParser, CommitItem, ParserValidationError}
+import fileUploadParsers.{AnnualAllowanceParser, ParserValidationError}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
