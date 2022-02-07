@@ -54,11 +54,12 @@ class FileUploadController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       val uploadId = UploadId.generate
-      val successRedirectUrl = appConfig.urlInThisService(routes.FileUploadController
-        .showResult(srn, startDate, accessType, version, chargeType, uploadId).url)
 
-      val errorRedirectUrl = appConfig.urlInThisService( routes.FileUploadController
-        .onPageLoad(srn, startDate, accessType, version, chargeType).url)
+      val successRedirectUrl = appConfig.uploadRedirectTargetBase +
+        routes.FileUploadController.showResult(srn, startDate, accessType, version, chargeType, uploadId).url
+
+      val errorRedirectUrl = appConfig.uploadRedirectTargetBase +
+        routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, chargeType).url
 
       upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)).flatMap{ uir =>
         uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap{ _ =>
