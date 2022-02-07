@@ -102,6 +102,7 @@ class AFTPartialService @Inject()(
                 endDate(upcomingCharges).format(DateTimeFormatter.ofPattern("d MMMM"))
               )
           } else {
+
             msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
           }
         Some(Link("upcoming-payments-and-charges", appConfig.upcomingChargesUrl.format(srn), linkText, None))
@@ -137,6 +138,7 @@ class AFTPartialService @Inject()(
     val totalInterestAccruing: BigDecimal = schemeFs.map(_.accruedInterestTotal).sum
 
     val subHeadingTotal = Json.obj(
+
       "total" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
       "span" -> msg"pspDashboardOverdueAftChargesCard.total.span"
     )
