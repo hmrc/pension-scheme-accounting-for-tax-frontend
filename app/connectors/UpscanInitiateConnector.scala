@@ -68,7 +68,7 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
   def initiateV2(redirectOnSuccess: Option[String], redirectOnError: Option[String])
                 (implicit hc: HeaderCarrier): Future[UpscanInitiateResponse] = {
     val request = UpscanInitiateRequestV2(
-      callbackUrl = appConfig.uploadRedirectTargetBase + controllers.fileUpload.routes.UploadCallbackController.callback.url,
+      callbackUrl = appConfig.callbackEndpointTarget,
       successRedirect = redirectOnSuccess,
       errorRedirect = redirectOnError,
       maximumFileSize = Some(appConfig.maxUploadFileSize  * (1024 * 1024))

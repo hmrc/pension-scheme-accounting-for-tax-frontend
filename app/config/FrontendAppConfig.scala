@@ -178,6 +178,9 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val uploadRedirectTargetBase:String = loadConfig("upload-redirect-target-base")
 
+  lazy val callbackEndpointTarget:String   = loadConfig("upscan.callback-endpoint")
+
+
   lazy val maxUploadFileSize: Int = configuration.getOptional[Int]("upscan.maxUploadFileSizeMb").getOrElse(1)
 
   lazy val validAnnualAllowanceHeader: String = configuration.get[String]("validAnnualAllowanceHeader")
