@@ -1085,10 +1085,15 @@ pspDashboardUpcomingAftChargesCard.span.multipleDueDate = Total upcoming payment
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single = View payments and charges for {0} to {1}
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple = View upcoming payments and charges
 pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges = View all payments and charges
+pspDashboardUpcomingAftChargesCard.link.financialOverview = View your financial overview
 
 pspDashboardOverdueAftChargesCard.h2 = Overdue charges
+pspDashboardOverdueAndUpcomingAftChargesCard.h2 = Payments and charges
 pspDashboardOverdueAftChargesCard.total.span = Total overdue payments:
 pspDashboardOverdueAftChargesCard.interestAccruing.span = Interest accruing:
+pspDashboardOverdueAftChargesCard.outstanding.span = Total of outstanding payments
+pspDashboardOverdueAftChargesCard.overdue.span = PAYMENTS OVERDUE
+
 pspDashboardOverdueAftChargesCard.toDate.span = to date
 pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod = View overdue payments and interest charges for {0} to {1}
 pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods = View overdue payments and interest charges
@@ -1358,3 +1363,15 @@ EntityTooLarge = The file must be smaller than {0}MB
 fileUpload.theMember = the member
 
 fileUpload.chargeType.overseasTransfer = overseas transfer charge
+
+
+psaSchemeFinancial.h1 = Your financial overview
+psaSchemeFinancial.h2.overduePayments  = Total of overdue payments and charges
+psaSchemeFinancial.h2.totalInterestAccruing  = Total interest accruing to date
+psaSchemeFinancial.h2.totalDuePayment  = Total of due payments and charges
+psaSchemeFinancial.h2.creditBalance  = Credit balance
+psaSchemeFinancial.h2.repaymentInterest  = Repayment interest
+psaSchemeFinancial.allOverdue.link  = View all overdue payments and interest charges
+psaSchemeFinancial.allDue.link  = View all due payments and charges
+psaSchemeFinancial.allPaymentCharges.link  = View all payments and charges
+psaSchemeFinancial.title = Your financial overview

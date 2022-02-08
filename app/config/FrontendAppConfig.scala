@@ -19,8 +19,9 @@ package config
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
 import models.AdministratorOrPractitioner.Administrator
+import models.ChargeType.toRoute
 import models.requests.{DataRequest, IdentifierRequest}
-import models.{AdministratorOrPractitioner, JourneyType}
+import models.{AccessType, AdministratorOrPractitioner, ChargeType, JourneyType, UploadId}
 import play.api.Configuration
 import play.api.i18n.Lang
 import play.api.mvc.Call
@@ -42,8 +43,6 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
     val port = configuration.get[String](s"microservice.services.$serviceName.port")
     s"$protocol://$host:$port"
   }
-
-  def urlInThisService(uri:String):String = servicesConfig.baseUrl("aft-frontend") + uri
 
   private def getConfigString(key: String) = servicesConfig.getConfString(key, throw new Exception(s"Could not find config '$key'"))
 
@@ -155,6 +154,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val upcomingChargesUrl: String = s"${configuration.get[String](path = "urls.partials.upcomingChargesLogicLink")}"
   lazy val overdueChargesUrl: String = s"${configuration.get[String](path = "urls.partials.overdueChargesLogicLink")}"
 
+  lazy val financialOverviewUrl: String = s"${configuration.get[String](path = "urls.partials.schemeFinancialOverviewLink")}"
+
   lazy val listOfSchemesUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.listOfSchemes")}"
   lazy val earliestDateOfNotice: LocalDate = LocalDate
     .parse(
@@ -177,6 +178,20 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val upscanUrl:String                = servicesConfig.baseUrl("upscan-initiate")
   lazy val initiateUrl:String              = servicesConfig.baseUrl("upscan-initiate") + "/upscan/initiate"
   lazy val initiateV2Url:String            = servicesConfig.baseUrl("upscan-initiate") + "/upscan/v2/initiate"
+
+  lazy val callbackEndpointTarget:String   = loadConfig("upscan.callback-endpoint")
+
+  def successEndpointTarget(srn: String, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId):String   = {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    loadConfig("upscan.success-endpoint")
+      .format(srn, formatter.format(startDate), accessType.toString, version.toString, toRoute(chargeType), uploadId.value)
+  }
+
+  def failureEndpointTarget(srn: String, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType):String   = {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    loadConfig("upscan.failure-endpoint")
+      .format(srn, formatter.format(startDate), accessType.toString, version.toString, toRoute(chargeType))
+  }
 
   lazy val maxUploadFileSize: Int = configuration.getOptional[Int]("upscan.maxUploadFileSizeMb").getOrElse(1)
 

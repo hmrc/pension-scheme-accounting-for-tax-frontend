@@ -33,6 +33,12 @@ object ChargeType extends Enumerable.Implicits {
     }
   }
 
+  def toRoute(value: ChargeType): String = value match {
+    case ChargeTypeAnnualAllowance => "annual-allowance-charge"
+    case ChargeTypeLifetimeAllowance => "lifetime-allowance-charge"
+    case ChargeTypeOverseasTransfer => "overseas-transfer-charge"
+  }
+
   case object ChargeTypeAnnualAllowance extends WithName("annualAllowance") with ChargeType
   case object ChargeTypeAuthSurplus extends WithName("authSurplus") with ChargeType
   case object ChargeTypeDeRegistration extends WithName("deRegistration") with ChargeType

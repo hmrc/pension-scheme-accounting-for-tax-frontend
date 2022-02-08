@@ -377,6 +377,8 @@ GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/upload
 GET         /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/upload-successful                                                    controllers.fileUpload.FileUploadSuccessController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType = ChargeType.ChargeTypeLifetimeAllowance)
 GET         /:srn/:startDate/:accessType/:version/overseas-transfer-charge/upload-successful                                                     controllers.fileUpload.FileUploadSuccessController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType = ChargeType.ChargeTypeOverseasTransfer)
 
+GET         /:srn/financial-overview                                                                                                              controllers.financialOverview.PsaSchemeFinancialOverviewController.psaSchemeFinancialOverview(srn: String)
+
 # upload file notification callback
 #NOCSRF
 POST        /fileupload/upscan-callback                                                                                                           controllers.fileUpload.UploadCallbackController.callback
