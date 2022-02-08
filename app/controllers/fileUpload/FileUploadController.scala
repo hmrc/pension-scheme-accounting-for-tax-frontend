@@ -19,6 +19,7 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, NormalMode, UploadId, UploadStatus, UploadedSuccessfully}
@@ -55,11 +56,9 @@ class FileUploadController @Inject()(
 
       val uploadId = UploadId.generate
 
-      val successRedirectUrl = appConfig.uploadRedirectTargetBase +
-        routes.FileUploadController.showResult(srn, startDate, accessType, version, chargeType, uploadId).url
+      val successRedirectUrl = appConfig.successEndpointTarget(srn, startDate, accessType, version, chargeType, uploadId)
 
-      val errorRedirectUrl = appConfig.uploadRedirectTargetBase +
-        routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, chargeType).url
+      val errorRedirectUrl = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
 
       upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)).flatMap{ uir =>
         uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap{ _ =>
