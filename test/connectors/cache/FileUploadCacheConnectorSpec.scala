@@ -18,7 +18,7 @@ package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import connectors.Reference
-import models.{Failed, UploadId}
+import models.{Failed, InProgress, UploadId}
 import org.scalatest._
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
@@ -55,13 +55,13 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
       server.stubFor(
         get(urlEqualTo(url))
           .willReturn(
-            ok(Json.obj(fields = "_type" -> Failed.toString).toString())
+            ok(Json.obj(fields = "_type" -> InProgress.toString).toString())
           )
       )
 
       connector.getUploadResult(UploadId("test")) map {
         result =>
-          result.value mustEqual Failed
+          result.value mustEqual InProgress
       }
     }
 
@@ -117,7 +117,9 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
 
   ".registerUploadResult" must {
     val json = Json.obj(
-      fields = "_type" -> Failed.toString
+      fields =
+        "_type" -> "InProgress"
+
     )
     "save the data in the collection" in {
       server.stubFor(
@@ -128,7 +130,7 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
           )
       )
 
-      connector.registerUploadResult(Reference(""),Failed("", "")) map {
+      connector.registerUploadResult(Reference(""),InProgress) map {
         _ mustEqual ()
       }
     }
@@ -143,7 +145,7 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
           )
       )
       recoverToSucceededIf[HttpException] {
-        connector.registerUploadResult(Reference(""),Failed("", ""))
+        connector.registerUploadResult(Reference(""),InProgress)
       }
     }
   }
