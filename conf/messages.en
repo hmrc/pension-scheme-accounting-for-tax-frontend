@@ -1273,7 +1273,7 @@ paginationNextPage = Next
 
 fileupload.inputSelection.title = How do you want to add the {0}?
 fileupload.inputSelection.heading = How do you want to add the {0}?
-fileupload.inputSelection.fileUploadInput.hint = Uploading a file will overwrite all the data you have previously added for this charge
+fileupload.inputSelection.fileUploadInput.hint = Uploading a file will overwrite all the data you have previously added for this charge in this quarter
 
 fileupload.annualAllowance = annual allowance charge
 fileupload.lifeTimeAllowance = lifetime allowance charge
@@ -1290,7 +1290,7 @@ inputSelection.radio.fileUploadInput = Upload a file
 fileupload.whatYouWillNeed.title = How to upload your {0} file
 fileupload.whatYouWillNeed.heading = How to upload your {0} file
 fileupload.whatYouWillNeed.p1 = You need to upload a .csv file and include the following information for each member liable to the charge:
-fileupload.whatYouWillNeed.inset.text = All the data you have previously added for this charge will be overwritten when you upload a file.
+fileupload.whatYouWillNeed.inset.text = All the data you have previously added for this charge in this quarter will be overwritten when you upload a file.
 
 fileupload.whatYouWillNeed.p2 = and use this to enter the information. Do not change or delete the header row (row 1) or change the order of the columns in the template file.
 fileupload.download.instructions.link = Download the instructions for the format of your file
