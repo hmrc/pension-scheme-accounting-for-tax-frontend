@@ -19,14 +19,13 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
+import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers._
-import helpers.ChargeTypeHelper
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, NormalMode, UploadId, UploadedSuccessfully, UserAnswers}
+import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
 import navigators.CompoundNavigator
-import pages.fileUpload.UploadedFileName
-import pages.{PSTRQuery, SchemeNameQuery}
+import pages.PSTRQuery
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -63,12 +62,13 @@ class ValidationController @Inject()(
   private def processInvalid(
                               srn: String,
                               startDate: LocalDate,
+                              accessType: AccessType,
+                              version: Int,
                               chargeType: ChargeType,
                               errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     errors match {
-      // TODO: Error handling for following two scenarios
-      //      case Seq(FileLevelParserValidationErrorTypeHeaderInvalid) =>
-      //      case Seq(FileLevelParserValidationErrorTypeFileEmpty) =>
+      case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
+        Future.successful(Redirect(routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType)))
       case _ =>
         renderer.render(template = "fileUpload/invalid.njk",
           Json.obj(
@@ -86,36 +86,28 @@ class ValidationController @Inject()(
                                     accessType: AccessType,
                                     version: Int,
                                     chargeType: ChargeType,
-                                    linesFromCSV: List[String], parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
+                                    linesFromCSV: List[String],
+                                    parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
 
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
 
-    parser.parse(startDate, filteredLinesFromCSV, request.userAnswers).fold[Future[Result]](processInvalid(srn, startDate, chargeType, _),
+    parser.parse(startDate, filteredLinesFromCSV, request.userAnswers).fold[Future[Result]](processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>{
-        processSuccessResult(srn, startDate, accessType, version, chargeType, updatedUA).flatMap(viewModel=>
-          renderer.render(template = "fileUpload/fileUploadSuccess.njk",
-            Json.obj(
-              "fileName" -> updatedUA.get(UploadedFileName(chargeType).path),
-              "chargeTypeText" -> chargeType.toString,
-              "viewModel" -> viewModel)).map(Ok(_)))
+        processSuccessResult(chargeType, updatedUA).map(_=>
+         Redirect(routes.FileUploadSuccessController.onPageLoad(srn,startDate.toString,accessType,version,chargeType)))
         }
     )
   }
 
-  private def processSuccessResult(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, ua: UserAnswers)
+  private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
                                   (implicit request: DataRequest[AnyContent])= {
 
     for {
       updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
       _ <- aftService.fileCompileReturn(ua.get(PSTRQuery).getOrElse("pstr"), updatedAnswers)
     } yield {
-      GenericViewModel(
-        submitUrl = navigator.nextPage(ChargeTypeHelper.getCheckYourAnswersPage(chargeType), NormalMode, updatedAnswers, srn,
-          startDate, accessType, version).url,
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url,
-        schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      )
+      updatedAnswers
     }
   }
 
@@ -123,15 +115,20 @@ class ValidationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         val parser = findParser(chargeType)
-        uploadProgressTracker.getUploadResult(uploadId).flatMap {
-          uploadStatus =>
-            (parser, uploadStatus) match {
-              case (Some(_), None | Some(Failed) | Some(InProgress)) => sessionExpired
-              case (None, _) => sessionExpired
-              case (Some(parser), Some(ud: UploadedSuccessfully)) =>
-                upscanInitiateConnector.download(ud.downloadUrl)
-                  .map(_.body.split("\n").toList)
-                  .flatMap(parseAndRenderResult(srn, startDate, accessType, version, chargeType, _, parser))
+        uploadProgressTracker.getUploadResult(uploadId).flatMap { uploadStatus =>
+          (parser, uploadStatus) match {
+            case (Some(_), None | Some(Failed(_, _)) | Some(InProgress)) => sessionExpired
+            case (None, _) => sessionExpired
+            case (Some(parser), Some(ud: UploadedSuccessfully)) =>
+              upscanInitiateConnector.download(ud.downloadUrl).flatMap { response =>
+                response.status match {
+                  case OK =>
+                    val linesFromCSV = response.body.split("\n").toList
+                    parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                  case _ =>
+                    Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
+                }
+              }
             }
         }
     }

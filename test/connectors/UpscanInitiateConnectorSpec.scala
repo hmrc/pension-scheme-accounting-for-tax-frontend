@@ -18,7 +18,6 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.FrontendAppConfig
-import controllers.fileUpload.routes
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.{Draft, UploadId}
 import org.mockito.MockitoSugar.mock
@@ -28,6 +27,8 @@ import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status.OK
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
+
+import java.time.LocalDate
 
 class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with OptionValues with RecoverMethods {
 
@@ -39,14 +40,16 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
   implicit val appConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val url = "/upscan/v2/initiate"
 
-  ".initiateV2" must {
-    val successRedirectUrl = appConfig.urlInThisService( routes.FileUploadController
-      .showResult("srn", "01-01-2020", Draft, 1, ChargeTypeAnnualAllowance, UploadId("uploadId"))
-      .url)
+  //scalastyle.off: magic.number
+  private val startDate = LocalDate.of(2020,1,1)
+  private val uploadId = UploadId.generate
 
-    val errorRedirectUrl = appConfig.urlInThisService(  routes.FileUploadController
-      .onPageLoad("srn", "01-01-2020", Draft, 1, ChargeTypeAnnualAllowance)
-      .url)
+  ".initiateV2" must {
+    val successRedirectUrl = appConfig.successEndpointTarget("srn", startDate, Draft, 1, ChargeTypeAnnualAllowance, uploadId)
+
+    val errorRedirectUrl = appConfig
+      .failureEndpointTarget("srn", startDate, Draft, 1, ChargeTypeAnnualAllowance )
+
     val response1 = s"""{
                   |    "reference": "11370e18-6e24-453e-b45a-76d3e32ea33d",
                   |    "uploadRequest": {

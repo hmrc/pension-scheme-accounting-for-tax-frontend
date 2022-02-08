@@ -58,14 +58,14 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
     "return validation error for incorrect header" in {
       val result = parser.parse(startDate, Seq("test"),UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(0, 0, "Header invalid")
+        ParserValidationError(0, 0, "Header invalid or File is empty")
       ))
     }
 
     "return validation error for empty file" in {
       val result = parser.parse(startDate, Nil,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(0, 0, "File is empty")
+        ParserValidationError(0, 0, "Header invalid or File is empty")
       ))
     }
 

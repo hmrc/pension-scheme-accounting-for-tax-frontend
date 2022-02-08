@@ -20,7 +20,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import fileUploadParsers.{AnnualAllowanceParser, CommitItem, ParserValidationError}
+import fileUploadParsers.{AnnualAllowanceParser, ParserValidationError}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
@@ -123,6 +123,40 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
 
+    "redirect to error page when there is a Validation error : Header invalid or File is empty" in {
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      val errors: Seq[ParserValidationError] =
+        Seq(ParserValidationError(0, 0, "Header invalid or File is empty"))
+
+      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
+
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate, accessType, versionInt, chargeType).url)
+    }
+
+    "redirect to error page when there is a Download file error : Unknown" in {
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(INTERNAL_SERVER_ERROR,
+        "Internal Server Error")))
+
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.UpscanErrorController.unknownError(srn, startDate, accessType, versionInt).url)
+    }
+
     "redirect OK to the next page and save items to be committed into the Mongo database when there are no validation errors" in {
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -145,11 +179,9 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
           controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
       ).value
 
-      status(result) mustEqual OK
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual template
-
+      status(result) mustEqual SEE_OTHER
+      
+      redirectLocation(result) mustBe Some(routes.FileUploadSuccessController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
 
     }
   }
