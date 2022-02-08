@@ -27,6 +27,7 @@ import models.requests.DataRequest
 import models.{AccessType, ChargeType, GenericViewModel, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
 import pages.SchemeNameQuery
 import pages.fileUpload.UploadCheckPage
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -56,7 +57,7 @@ class FileUploadCheckController @Inject()(
     with NunjucksSupport {
 
   private val form = formProvider()
-
+  private val logger = Logger(classOf[FileUploadCheckController])
   def onPageLoad(srn: String,
                  startDate: String,
                  accessType: AccessType,
@@ -127,6 +128,7 @@ class FileUploadCheckController @Inject()(
     }
 
   private def getFileName(uploadStatus: Option[UploadStatus])(implicit request: DataRequest[AnyContent]): String = {
+    logger.info("FileUploadCheckController.getFileName")
     uploadStatus match {
       case Some(UploadedSuccessfully(name, _, _, _)) => name
       case Some(InProgress)                          => "InProgress"

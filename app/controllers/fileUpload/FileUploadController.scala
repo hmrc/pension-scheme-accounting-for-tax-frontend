@@ -25,6 +25,7 @@ import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId, UploadedSuccessfully}
 import pages.SchemeNameQuery
 import pages.fileUpload.UploadedFileName
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -49,6 +50,7 @@ class FileUploadController @Inject()(
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport {
+  private val logger = Logger(classOf[FileUploadController])
 
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
@@ -58,7 +60,7 @@ class FileUploadController @Inject()(
       val successRedirectUrl = appConfig.successEndpointTarget(srn, startDate, accessType, version, chargeType, uploadId)
 
       val errorRedirectUrl = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
-
+      logger.info("FileUploadController.onPageLoad BF upscanInitiate")
       upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)).flatMap{ uir =>
         uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap{ _ =>
           val viewModel = GenericViewModel(
@@ -66,7 +68,7 @@ class FileUploadController @Inject()(
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme")
           )
-
+          logger.info("FileUploadController.onPageLoad AF upscanInitiate")
           renderer.render(template = "fileUpload/fileupload.njk",
             Json.obj(
               "chargeType" -> chargeType.toString,
@@ -92,6 +94,7 @@ class FileUploadController @Inject()(
             case Some(status) =>
               status match {
                 case UploadedSuccessfully(name, _, _, _) =>
+                  logger.info("FileUploadController.showResult UploadedSuccessfully")
                   for {
                     updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), name))
                     _ <- userAnswersCacheConnector.savePartial(request.internalId,updatedAnswers.data,Some(chargeType))
@@ -99,12 +102,14 @@ class FileUploadController @Inject()(
                     Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
                   }
                 case InProgress =>
-                  val sleepTime:Long = 2000
-                  Future.successful{
-                    Thread.sleep(sleepTime)
-                    Redirect(routes.FileUploadController.
-                      showResult(srn, startDate, accessType, version, chargeType, uploadId))
-                  }
+                  logger.info("FileUploadController.showResult InProgress")
+                  Future.successful(Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId)))
+//                  val sleepTime:Long = 2000
+//                  Future.successful{
+//                    Thread.sleep(sleepTime)
+//                    Redirect(routes.FileUploadController.
+//                      showResult(srn, startDate, accessType, version, chargeType, uploadId))
+//                  }
                 case Failed(failureReason, _) => handleFailureResponse(failureReason, srn, startDate, accessType, version)
               }
           }
