@@ -128,7 +128,7 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
           )
       )
 
-      connector.registerUploadResult(Reference(""),Failed) map {
+      connector.registerUploadResult(Reference(""),Failed("", "")) map {
         _ mustEqual ()
       }
     }
@@ -143,7 +143,7 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
           )
       )
       recoverToSucceededIf[HttpException] {
-        connector.registerUploadResult(Reference(""),Failed)
+        connector.registerUploadResult(Reference(""),Failed("", ""))
       }
     }
   }

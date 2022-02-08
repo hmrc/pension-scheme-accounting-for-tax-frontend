@@ -30,14 +30,17 @@ case class UpscanInitiateResponse(
 
 sealed trait UploadStatus
 case object InProgress extends UploadStatus
-case object Failed extends UploadStatus
+case class Failed (failureReason: String, message: String) extends UploadStatus
+object Failed {
+  implicit val failedFormat: OFormat[Failed] = Json.format[Failed]
+}
 case class UploadedSuccessfully(name: String, mimeType: String, downloadUrl: String, size: Option[Long]) extends UploadStatus
 object UploadedSuccessfully {
   implicit val uploadedSuccessfullyFormat: OFormat[UploadedSuccessfully] = Json.format[UploadedSuccessfully]
 }
 
-
-case class FileUploadStatus(_type: String, downloadUrl: Option[String]=None , mimeType: Option[String]=None, name: Option[String]=None, size: Option[Long]=None)
+case class FileUploadStatus(_type: String, failureReason: Option[String]=None, message: Option[String]=None, downloadUrl: Option[String]=None , mimeType: Option[String]=None,
+                            name: Option[String]=None, size: Option[Long]=None)
 
 object FileUploadStatus {
   implicit val reads: OFormat[FileUploadStatus] = Json.format[FileUploadStatus]

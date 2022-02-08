@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{ChargeType, GenericViewModel, InProgress, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
+import models.{ChargeType, GenericViewModel, InProgress, Failed, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import play.api.Application
@@ -159,4 +159,47 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     }
   }
+
+  "redirect to quarantineError for result Failed(QUARANTINE)" in {
+    fakeUploadProgressTracker.setDataToReturn(Failed("QUARANTINE", "file may contain virus"))
+    mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+    val uploadId = UploadId("")
+    val result = route(
+      application,
+      httpGETRequest(
+        routes.FileUploadController.showResult(srn, startDate, accessType, versionInt, chargeType, uploadId).url)
+    ).value
+
+    status(result) mustEqual SEE_OTHER
+    redirectLocation(result) mustBe Some(routes.UpscanErrorController.quarantineError(srn, startDate, accessType, versionInt).url)
+  }
+
+  "redirect to rejectedError for result Failed(REJECTED)" in {
+    fakeUploadProgressTracker.setDataToReturn(Failed("REJECTED", "file type may be incorrect"))
+    mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+    val uploadId = UploadId("")
+    val result = route(
+      application,
+      httpGETRequest(
+        routes.FileUploadController.showResult(srn, startDate, accessType, versionInt, chargeType, uploadId).url)
+    ).value
+
+    status(result) mustEqual SEE_OTHER
+    redirectLocation(result) mustBe Some(routes.UpscanErrorController.rejectedError(srn, startDate, accessType, versionInt).url)
+  }
+
+  "redirect to unknownError for result Failed(UNKNOWN)" in {
+    fakeUploadProgressTracker.setDataToReturn(Failed("UNKNOWN", "Please try again later"))
+    mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+    val uploadId = UploadId("")
+    val result = route(
+      application,
+      httpGETRequest(
+        routes.FileUploadController.showResult(srn, startDate, accessType, versionInt, chargeType, uploadId).url)
+    ).value
+
+    status(result) mustEqual SEE_OTHER
+    redirectLocation(result) mustBe Some(routes.UpscanErrorController.unknownError(srn, startDate, accessType, versionInt).url)
+  }
+
 }

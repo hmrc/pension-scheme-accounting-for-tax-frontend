@@ -1363,6 +1363,34 @@ EntityTooLarge = The file must be smaller than {0}MB
 fileUpload.theMember = the member
 
 fileUpload.chargeType.overseasTransfer = overseas transfer charge
+fileupload.error.quarantine.title = Your file might have a virus
+fileupload.error.quarantine.p1 = We scanned your file for viruses and the check shows that your file might have a virus.
+fileupload.error.quarantine.p2 = Check whether there are viruses on your device and upload a new file when it is safe to do so.
+fileupload.returnlink = Add another charge
+
+fileupload.error.rejected.title = Your file is in the wrong format
+fileupload.error.rejected.p1 = Your file is in a format other than .csv or contains information that the service cannot access. This may include:
+fileupload.error.rejected.list.b1 = images
+fileupload.error.rejected.list.b2 = videos
+fileupload.error.rejected.list.b3 = music or other audio files
+fileupload.error.rejected.list.b4 = any other information that is not text
+fileupload.error.rejected.p2 = Make sure your file is in the .csv format and remove any unnecessary information. Then upload it again, or upload a different file.
+
+fileupload.error.unknown.title = Sorry, there was a problem with the service
+fileupload.error.unknown.p1 = We could not process your file upload.
+fileupload.error.unknown.returnLink = Try uploading your file again.
+
+fileupload.error.invalidHeaderOrBody.title = Your {0} file is missing information or in the wrong format
+fileupload.error.invalidHeaderOrBody.p1 = Your file might be empty, or has a header row (row 1) that is:
+fileupload.error.invalidHeaderOrBody.list.b1 = missing
+fileupload.error.invalidHeaderOrBody.list.b2 = missing a field name
+fileupload.error.invalidHeaderOrBody.list.b3 = in the wrong order
+fileupload.error.invalidHeaderOrBody.list.b4 = contains information that is different to
+fileupload.error.invalidHeaderOrBody.p2 = Correct the errors and upload it again, or upload a different file.
+fileupload.error.invalidHeaderOrBody.p3 = for more information.
+
+fileupload.template.link = the template file
+return.to.fileupload = Return to file upload
 
 
 psaSchemeFinancial.h1 = Your financial overview
