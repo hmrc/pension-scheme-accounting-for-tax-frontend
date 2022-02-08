@@ -17,11 +17,12 @@
 package controllers.fileUpload
 
 import controllers.actions._
+import helpers.ChargeTypeHelper
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
-import pages.fileUpload.WhatYouWillNeedPage
+import pages.fileUpload.UploadedFileName
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -31,7 +32,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class WhatYouWillNeedController @Inject()(
+class FileUploadSuccessController @Inject()(
     override val messagesApi: MessagesApi,
     identify: IdentifierAction,
     getData: DataRetrievalAction,
@@ -49,18 +50,15 @@ class WhatYouWillNeedController @Inject()(
       val ua = request.userAnswers
 
       val viewModel = GenericViewModel(
-        submitUrl = navigator.nextPage(WhatYouWillNeedPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url,
+        submitUrl = navigator.nextPage(ChargeTypeHelper.getCheckYourAnswersPage(chargeType), NormalMode, ua, srn,
+          startDate, accessType, version).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       )
 
-      renderer.render(template = "fileUpload/whatYouWillNeed.njk",
-        Json.obj(
-          "chargeType" -> chargeType.toString,
-          "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-          "srn" -> srn, "startDate" -> Some(startDate),
-          "fileDownloadTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType).url,
-          "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType).url,
+      renderer.render(template = "fileUpload/fileUploadSuccess.njk",
+        Json.obj( "fileName" -> ua.get(UploadedFileName(chargeType).path),
+          "chargeTypeText" -> chargeType.toString,
           "viewModel" -> viewModel))
         .map(Ok(_))
     }
