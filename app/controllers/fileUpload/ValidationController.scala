@@ -21,13 +21,11 @@ import connectors.UpscanInitiateConnector
 import controllers.actions._
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers._
-import helpers.ChargeTypeHelper
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, NormalMode, UploadId, UploadedSuccessfully, UserAnswers}
+import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
 import navigators.CompoundNavigator
-import pages.fileUpload.UploadedFileName
-import pages.{PSTRQuery, SchemeNameQuery}
+import pages.PSTRQuery
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -96,29 +94,20 @@ class ValidationController @Inject()(
 
     parser.parse(startDate, filteredLinesFromCSV, request.userAnswers).fold[Future[Result]](processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>{
-        processSuccessResult(srn, startDate, accessType, version, chargeType, updatedUA).flatMap(viewModel=>
-          renderer.render(template = "fileUpload/fileUploadSuccess.njk",
-            Json.obj(
-              "fileName" -> updatedUA.get(UploadedFileName(chargeType).path),
-              "chargeTypeText" -> chargeType.toString,
-              "viewModel" -> viewModel)).map(Ok(_)))
+        processSuccessResult(chargeType, updatedUA).map(_=>
+         Redirect(routes.FileUploadSuccessController.onPageLoad(srn,startDate.toString,accessType,version,chargeType)))
         }
     )
   }
 
-  private def processSuccessResult(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, ua: UserAnswers)
+  private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
                                   (implicit request: DataRequest[AnyContent])= {
 
     for {
       updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
       _ <- aftService.fileCompileReturn(ua.get(PSTRQuery).getOrElse("pstr"), updatedAnswers)
     } yield {
-      GenericViewModel(
-        submitUrl = navigator.nextPage(ChargeTypeHelper.getCheckYourAnswersPage(chargeType), NormalMode, updatedAnswers, srn,
-          startDate, accessType, version).url,
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url,
-        schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      )
+      updatedAnswers
     }
   }
 

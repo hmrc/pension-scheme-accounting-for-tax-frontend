@@ -45,7 +45,7 @@ class FileUploadController @Inject()(
                                       renderer: Renderer,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
+                                      userAnswersCacheConnector: UserAnswersCacheConnector
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport {
@@ -54,11 +54,10 @@ class FileUploadController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       val uploadId = UploadId.generate
-      val successRedirectUrl = appConfig.urlInThisService(routes.FileUploadController
-        .showResult(srn, startDate, accessType, version, chargeType, uploadId).url)
 
-      val errorRedirectUrl = appConfig.urlInThisService( routes.FileUploadController
-        .onPageLoad(srn, startDate, accessType, version, chargeType).url)
+      val successRedirectUrl = appConfig.successEndpointTarget(srn, startDate, accessType, version, chargeType, uploadId)
+
+      val errorRedirectUrl = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
 
       upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)).flatMap{ uir =>
         uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap{ _ =>

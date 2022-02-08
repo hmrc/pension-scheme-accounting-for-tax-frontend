@@ -386,7 +386,7 @@ class PsaSchemePartialService @Inject()(
       } else {
         Seq(Link(
           id = "view-your-financial-overview",
-          url = appConfig.paymentsAndChargesUrl.format(srn),
+          url = appConfig.financialOverviewUrl.format(srn),
           linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
           hiddenText = None
         ))

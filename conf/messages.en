@@ -1391,3 +1391,15 @@ fileupload.error.invalidHeaderOrBody.p3 = for more information.
 
 fileupload.template.link = the template file
 return.to.fileupload = Return to file upload
+
+
+psaSchemeFinancial.h1 = Your financial overview
+psaSchemeFinancial.h2.overduePayments  = Total of overdue payments and charges
+psaSchemeFinancial.h2.totalInterestAccruing  = Total interest accruing to date
+psaSchemeFinancial.h2.totalDuePayment  = Total of due payments and charges
+psaSchemeFinancial.h2.creditBalance  = Credit balance
+psaSchemeFinancial.h2.repaymentInterest  = Repayment interest
+psaSchemeFinancial.allOverdue.link  = View all overdue payments and interest charges
+psaSchemeFinancial.allDue.link  = View all due payments and charges
+psaSchemeFinancial.allPaymentCharges.link  = View all payments and charges
+psaSchemeFinancial.title = Your financial overview

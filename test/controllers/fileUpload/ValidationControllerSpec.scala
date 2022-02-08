@@ -179,11 +179,9 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
           controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
       ).value
 
-      status(result) mustEqual OK
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual template
-
+      status(result) mustEqual SEE_OTHER
+      
+      redirectLocation(result) mustBe Some(routes.FileUploadSuccessController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
 
     }
   }
