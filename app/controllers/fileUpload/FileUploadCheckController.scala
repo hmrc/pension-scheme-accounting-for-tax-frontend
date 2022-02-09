@@ -26,7 +26,7 @@ import models.fileUpload.UploadCheckSelection.{No, Yes}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, GenericViewModel, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
 import pages.SchemeNameQuery
-import pages.fileUpload.UploadCheckPage
+import pages.fileUpload.{UploadCheckPage, UploadedFileName}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -116,7 +116,8 @@ class FileUploadCheckController @Inject()(
                 value =>
                   for {
                     updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadCheckPage(chargeType), value))
-                    _ <- userAnswersCacheConnector.savePartial(request.internalId,updatedAnswers.data,Some(chargeType))
+                    updatedUa <- Future.fromTry(updatedAnswers.set(UploadedFileName(chargeType), fileName))
+                    _ <- userAnswersCacheConnector.savePartial(request.internalId,updatedUa.data,Some(chargeType))
                   } yield {
                     value match {
                       case Yes => Redirect(routes.ValidationController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
