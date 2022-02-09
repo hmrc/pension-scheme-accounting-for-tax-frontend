@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import models.{UpscanFileReference, UpscanInitiateResponse}
 import play.api.libs.json.{Json, OFormat, Reads, Writes}
 import play.mvc.Http.HeaderNames
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -86,7 +86,7 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
       formFields    = response.uploadRequest.fields
     } yield UpscanInitiateResponse(fileReference, postTarget, formFields)
 
-  def download(downloadUrl: String)(implicit hc: HeaderCarrier) = {
-    httpClient.GET(s"${appConfig.upscanUrl}$downloadUrl")
+  def download(downloadUrl: String)(implicit hc: HeaderCarrier):Future[HttpResponse] = {
+    httpClient.GET(downloadUrl)
   }
 }
