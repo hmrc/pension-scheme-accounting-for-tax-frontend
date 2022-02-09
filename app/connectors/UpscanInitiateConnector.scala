@@ -87,6 +87,6 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
     } yield UpscanInitiateResponse(fileReference, postTarget, formFields)
 
   def download(downloadUrl: String)(implicit hc: HeaderCarrier) = {
-    httpClient.GET(s"${appConfig.upscanUrl}$downloadUrl")
+    httpClient.GET(downloadUrl)
   }
 }
