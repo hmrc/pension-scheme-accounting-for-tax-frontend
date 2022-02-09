@@ -16,9 +16,9 @@
 
 package services.fileUpload
 
-import controllers.fileUpload.{CallbackBody, FailedCallbackBody, ReadyCallbackBody}
 import models._
 import uk.gov.hmrc.http.HeaderCarrier
+import upscan.callback.{CallbackBody, FailedCallbackBody, ReadyCallbackBody}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
