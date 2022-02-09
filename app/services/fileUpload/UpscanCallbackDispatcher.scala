@@ -32,7 +32,7 @@ class UpscanCallbackDispatcher @Inject()(sessionStorage: UploadProgressTracker) 
         UploadedSuccessfully(
           s.uploadDetails.fileName,
           s.uploadDetails.fileMimeType,
-          s.downloadUrl.getFile,
+          s.downloadUrl.toString,
           Some(s.uploadDetails.size)
         )
       case f: FailedCallbackBody =>
