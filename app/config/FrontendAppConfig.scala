@@ -179,6 +179,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val initiateUrl:String              = servicesConfig.baseUrl("upscan-initiate") + "/upscan/initiate"
   lazy val initiateV2Url:String            = servicesConfig.baseUrl("upscan-initiate") + "/upscan/v2/initiate"
 
+  lazy val upScanCallBack:String   = s"${servicesConfig.baseUrl("aft-frontend")}${configuration.underlying
+    .getString("urls.upscan-callback-endpoint")}"
   lazy val callbackEndpointTarget:String   = loadConfig("upscan.callback-endpoint")
 
   def successEndpointTarget(srn: String, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId):String   = {
