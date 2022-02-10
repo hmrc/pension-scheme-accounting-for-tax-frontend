@@ -105,12 +105,6 @@ class FileUploadController @Inject()(
                 case InProgress =>
                   logger.info("FileUploadController.showResult InProgress")
                   Future.successful(Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId)))
-//                  val sleepTime:Long = 2000
-//                  Future.successful{
-//                    Thread.sleep(sleepTime)
-//                    Redirect(routes.FileUploadController.
-//                      showResult(srn, startDate, accessType, version, chargeType, uploadId))
-//                  }
                 case Failed(failureReason, _) =>
                   upscanErrorHandlingService.handleFailureResponse(failureReason, srn, startDate, accessType, version)
               }
