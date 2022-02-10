@@ -24,15 +24,15 @@ import models.LocalDateBinder._
 import models.fileUpload.UploadCheckSelection
 import models.fileUpload.UploadCheckSelection.{No, Yes}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, GenericViewModel, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
+import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
 import pages.SchemeNameQuery
 import pages.fileUpload.{UploadCheckPage, UploadedFileName}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
-import services.fileUpload.UploadProgressTracker
+import services.fileUpload.{UpscanErrorHandlingService, UploadProgressTracker}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -50,7 +50,8 @@ class FileUploadCheckController @Inject()(
                                            renderer: Renderer,
                                            formProvider: UploadCheckSelectionFormProvider,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
-                                           uploadProgressTracker: UploadProgressTracker
+                                           uploadProgressTracker: UploadProgressTracker,
+                                           upscanErrorHandlingService: UpscanErrorHandlingService
                                          )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport
@@ -66,29 +67,40 @@ class FileUploadCheckController @Inject()(
                  uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
-        val ua = request.userAnswers
-        val preparedForm = ua.get(UploadCheckPage(chargeType)).fold(form)(form.fill)
-        val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
 
         uploadProgressTracker
           .getUploadResult(uploadId)
-          .map(getFileName)
-          .flatMap { fileName =>
-            renderer
-              .render(
-                template = "fileUpload/fileUploadResult.njk",
-                Json.obj(
-                  "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-                  "fileName" -> fileName,
-                  "radios" -> UploadCheckSelection.radios(preparedForm),
-                  "form" -> preparedForm,
-                  "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version, chargeType, uploadId)
-                )
-              )
-              .map(Ok(_))
-          }
-
+          .flatMap { case Some(status) =>
+            status match {
+              case UploadedSuccessfully(name, _, _, _) =>
+                renderPage(name, srn, startDate, accessType, version, chargeType, uploadId)
+              case InProgress =>
+                renderPage("InProgress", srn, startDate, accessType, version, chargeType, uploadId)
+              case Failed(failureReason, _) =>
+                upscanErrorHandlingService.handleFailureResponse(failureReason, srn, startDate, accessType, version)
+            }
+        }
     }
+
+  private def renderPage(name: String, srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType,
+                         uploadId: UploadId)
+                        (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    val ua = request.userAnswers
+    val preparedForm = ua.get(UploadCheckPage(chargeType)).fold(form)(form.fill)
+    val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
+    renderer
+      .render(
+        template = "fileUpload/fileUploadResult.njk",
+        Json.obj(
+          "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
+          "fileName" -> name,
+          "radios" -> UploadCheckSelection.radios(preparedForm),
+          "form" -> preparedForm,
+          "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version, chargeType, uploadId)
+        )
+      )
+      .map(Ok(_))
+  }
 
   def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
