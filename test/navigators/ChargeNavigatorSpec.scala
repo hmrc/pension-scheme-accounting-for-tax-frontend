@@ -81,6 +81,8 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
   private def confirmAmendAFTReturn(confirmAmend: Boolean): Option[UserAnswers] =
     Option(UserAnswers().setOrException(ConfirmSubmitAFTAmendmentPage, confirmAmend))
 
+  //TODO: PODS-6443 Add nav with toggle switched on
+
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] = {
       import controllers._
