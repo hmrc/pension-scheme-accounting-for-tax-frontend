@@ -147,7 +147,6 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "redirect to next page, remove existing data for charge type but leave other " +
       "charge types intact then save items to be committed into Mongo" in {
       val chargeType = ChargeType.ChargeTypeLifetimeAllowance
-      val uaCaptorPassedIntoAFTService: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
       val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
         .thenReturn(Future.successful(JsNull))
@@ -159,7 +158,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       when(mockLifetimeAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
       when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
-      when(mockAFTService.fileCompileReturn(any(), uaCaptorPassedIntoAFTService.capture())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       val result = route(
         application,
@@ -172,14 +171,11 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       redirectLocation(result) mustBe Some(routes.FileUploadSuccessController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
 
       retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 0, 2, 1, 2)
-
-      retrieveChargeCount(uaCaptorPassedIntoAFTService.getValue) mustBe Seq(1, 1, 1, 2, 2, 1, 2)
     }
 
     "for charge type E when there are no validation errors " + "" +
       "redirect to next page, remove existing data for charge type but leave other " +
       "charge types intact then save items to be committed into Mongo" in {
-      val uaCaptorPassedIntoAFTService: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
       val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
         .thenReturn(Future.successful(JsNull))
@@ -191,7 +187,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       when(mockAnnualAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
       when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
-      when(mockAFTService.fileCompileReturn(any(), uaCaptorPassedIntoAFTService.capture())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       val result = route(
         application,
@@ -204,14 +200,12 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       redirectLocation(result) mustBe Some(routes.FileUploadSuccessController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
 
       retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 2, 0, 1, 2)
-      retrieveChargeCount(uaCaptorPassedIntoAFTService.getValue) mustBe Seq(1, 1, 1, 2, 2, 1, 2)
     }
 
     "for charge type G when there are no validation errors " + "" +
       "redirect to next page, remove existing data for charge type but leave other " +
       "charge types intact then save items to be committed into Mongo" in {
       val chargeType = ChargeType.ChargeTypeOverseasTransfer
-      val uaCaptorPassedIntoAFTService: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
       val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
         .thenReturn(Future.successful(JsNull))
@@ -224,7 +218,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       when(mockOverseasTransferParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
       when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
-      when(mockAFTService.fileCompileReturn(any(), uaCaptorPassedIntoAFTService.capture())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileCompileReturn(any(),any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       val result = route(
         application,
@@ -237,8 +231,6 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       redirectLocation(result) mustBe Some(routes.FileUploadSuccessController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
 
       retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 2, 2, 1, 0)
-
-      retrieveChargeCount(uaCaptorPassedIntoAFTService.getValue) mustBe Seq(1, 1, 1, 2, 2, 1, 2)
     }
   }
 }
