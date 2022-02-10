@@ -62,7 +62,7 @@ class AnnualAllowanceParser @Inject()(
   }
 
   private def processChargeDetailsValidation(index: Int,
-                                             chargeFields: Array[String],
+                                             chargeFields: Seq[String],
                                              parsedDate: ParsedDate,
                                              taxYearsErrors: Seq[ParserValidationError]): Either[Seq[ParserValidationError], ChargeEDetails] = {
     val fields = Seq(
@@ -91,7 +91,7 @@ class AnnualAllowanceParser @Inject()(
     )
   }
 
-  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Array[String]): Either[Seq[ParserValidationError], ChargeEDetails] =
+  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Either[Seq[ParserValidationError], ChargeEDetails] =
     processChargeDetailsValidation(
       index,
       chargeFields,
@@ -115,7 +115,7 @@ class AnnualAllowanceParser @Inject()(
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
-                                        chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+                                        chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     val validationResults = combineValidationResults[MemberDetails, ChargeEDetails](
       memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
       chargeDetailsValidation(startDate, index, chargeFields),

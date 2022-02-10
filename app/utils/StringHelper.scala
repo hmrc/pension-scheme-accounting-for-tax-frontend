@@ -19,52 +19,44 @@ package utils
 object StringHelper {
 
   //scalastyle:off cyclomatic.complexity
-  private def ook(s: String, delimiter: Char): Seq[String] = {
-    var isInQuotes: Boolean = false
-    var current: String = ""
+  private def splitForQuotedElements(s: String, delimiter: Char): Seq[String] = {
+    case class SplitState(acc: Seq[String], isInQuotes: Boolean, current: String)
     val lastCharIndex = s.length - 1
-    s.zipWithIndex.foldLeft[Seq[String]](Nil) { case (acc, Tuple2(c, i)) =>
+    val result = s.zipWithIndex.foldLeft[SplitState](SplitState(acc = Nil, isInQuotes = false, current = "")) { case (acc, Tuple2(c, index)) =>
       def isDoubleQuotes = c == '"'
-
       def isDelimiter = c == delimiter
-
-      def isLastChar = i == lastCharIndex
+      def isLastChar = index == lastCharIndex
 
       if (isLastChar) {
-        if (!isDelimiter) {
-          current += c
+        val curr = if (isDelimiter) {
+          acc.current
+        } else {
+          acc.current + c
         }
-        acc ++ Seq(current)
+        SplitState(acc.acc ++ Seq(curr), acc.isInQuotes, acc.current)
       } else {
-        if (isInQuotes) {
-          if (isDoubleQuotes) {
-            isInQuotes = false
-          }
-          current += c
-          acc
+        if (acc.isInQuotes) {
+          SplitState(acc.acc, isInQuotes = if (isDoubleQuotes) false else acc.isInQuotes, acc.current + c)
         } else {
           if (isDoubleQuotes) {
-            isInQuotes = true
-            current += c
-            acc
+            SplitState(acc.acc, isInQuotes = true, acc.current + c)
           } else {
             if (c == delimiter) {
-              val updatedAcc = acc ++ Seq(current)
-              current = ""
-              updatedAcc
+              SplitState(acc.acc ++ Seq(acc.current), isInQuotes = false, "")
             } else {
-              current += c
-              acc
+              SplitState(acc.acc, isInQuotes = false, acc.current + c)
             }
           }
         }
       }
     }
+    result.acc
   }
+
 
   def split(s: String, delimiter: Char): Seq[String] = {
     if (s.contains('"')) {
-      ook(s, delimiter)
+      splitForQuotedElements(s, delimiter)
     } else {
       s.split(delimiter)
     }

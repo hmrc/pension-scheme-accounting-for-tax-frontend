@@ -16,11 +16,12 @@
 
 package fileUploadParsers
 
-import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty}
+import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import models.{MemberDetails, UserAnswers}
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{Format, JsPath, JsValue, Json}
+import utils.StringHelper
 
 import java.time.LocalDate
 
@@ -54,7 +55,7 @@ trait Parser {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) =>
-        val cells = row.split(",")
+        val cells = StringHelper.split(row, ',')
         cells.length match {
           case this.totalFields =>
             (acc, validateFields(startDate, index, cells)) match {
@@ -71,9 +72,9 @@ trait Parser {
 
   protected def validateFields(startDate: LocalDate,
                                index: Int,
-                               chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
+                               chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
 
-  protected def memberDetailsValidation(index: Int, chargeFields: Array[String],
+  protected def memberDetailsValidation(index: Int, chargeFields: Seq[String],
                                         memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
       Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
