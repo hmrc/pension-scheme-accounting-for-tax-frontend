@@ -25,7 +25,7 @@ import play.api.libs.json.{Format, JsPath, JsValue, Json}
 import java.time.LocalDate
 
 object Parser {
-  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, "Header invalid or File is empty")
+  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, "Header invalid or File is empty", "")
 }
 
 trait Parser {
@@ -42,9 +42,9 @@ trait Parser {
       case Some(row) if row.equalsIgnoreCase(validHeader) =>
         rows.size match {
           case n if n >= 2 => parseDataRows(startDate, rows).map{ commitItems =>
-          commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
-        }
-        case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+            commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
+          }
+          case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
       case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
@@ -64,7 +64,7 @@ trait Parser {
               case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
             }
           case _ =>
-            Left(acc.left.getOrElse(Nil) ++ Seq(ParserValidationError(index, 0, "Not enough fields")))
+            Left(acc.left.getOrElse(Nil) ++ Seq(ParserValidationError(index, 0, "Not enough fields", "")))
         }
     }
   }
@@ -89,13 +89,11 @@ trait Parser {
   }
 
   protected final def errorsFromForm[A](formWithErrors: Form[A], fields: Seq[Field], index: Int): Seq[ParserValidationError] = {
-    formWithErrors
-      .errors
-      .flatMap { formError =>
-        fields.find(_.columnName == formError.key)
-          .map(f => ParserValidationError(index, f.columnNo, formError.message))
-          .toSeq
-      }
+    for{
+      formError <- formWithErrors.errors
+      field <- fields.find(_.columnName == formError.key)
+    }
+    yield ParserValidationError(index, field.columnNo, formError.message, field.columnName)
   }
 
   protected final def addToValidationResults[A](
@@ -166,7 +164,7 @@ trait Parser {
     }
 }
 
-case class ParserValidationError(row: Int, col: Int, error: String)
+case class ParserValidationError(row: Int, col: Int, error: String, columnName: String = "")
 
 object ParserValidationError {
   implicit lazy val formats: Format[ParserValidationError] =
