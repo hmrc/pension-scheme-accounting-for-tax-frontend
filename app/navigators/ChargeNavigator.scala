@@ -112,7 +112,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         }
       case Some(ChargeType.ChargeTypeOverseasTransfer) =>
         if (isAftUploadToggleEnabled(hc,implicitly)) {
-          controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
+          controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeOverseasTransfer)
         } else {
           controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
             nextIndexChargeG(ua))
