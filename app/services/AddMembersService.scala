@@ -49,7 +49,8 @@ object AddMembersService {
         Cell(Literal(data.name), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(data.nino), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
-        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter"))
+        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name, chargeName), classes =
+          Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric"))
       ) ++ (if (canChange) {
         Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter")))
       } else {
