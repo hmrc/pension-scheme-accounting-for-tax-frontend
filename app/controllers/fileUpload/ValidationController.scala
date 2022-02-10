@@ -27,7 +27,7 @@ import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuc
 import navigators.CompoundNavigator
 import pages.PSTRQuery
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.AFTService
@@ -53,7 +53,7 @@ class ValidationController @Inject()(
                                       annualAllowanceParser: AnnualAllowanceParser,
                                       lifeTimeAllowanceParser: LifetimeAllowanceParser,
                                       overseasTransferParser: OverseasTransferParser,
-                                      aftService:AFTService,
+                                      aftService: AFTService,
                                       fileUploadAftReturnService: FileUploadAftReturnService
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
@@ -80,6 +80,14 @@ class ValidationController @Inject()(
     }
   }
 
+  private def removeMemberBasedCharge(ua:UserAnswers, chargeType:ChargeType):UserAnswers =
+    chargeType match {
+      case ChargeTypeAnnualAllowance => ua.removeWithPath(JsPath \ "chargeEDetails")
+      case ChargeTypeLifetimeAllowance => ua.removeWithPath(JsPath \ "chargeDDetails")
+      case ChargeTypeOverseasTransfer => ua.removeWithPath(JsPath \ "chargeGDetails")
+      case _ => ua
+    }
+
   private def parseAndRenderResult(
                                     srn: String,
                                     startDate: LocalDate,
@@ -92,16 +100,18 @@ class ValidationController @Inject()(
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
 
-    parser.parse(startDate, filteredLinesFromCSV, request.userAnswers).fold[Future[Result]](processInvalid(srn, startDate, accessType, version, chargeType, _),
-      updatedUA =>{
-        processSuccessResult(chargeType, updatedUA).map(_=>
-         Redirect(routes.FileUploadSuccessController.onPageLoad(srn,startDate.toString,accessType,version,chargeType)))
-        }
+    val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
+
+    parser.parse(startDate, filteredLinesFromCSV, updatedUA).fold[Future[Result]](
+      processInvalid(srn, startDate, accessType, version, chargeType, _),
+      updatedUA =>
+        processSuccessResult(chargeType, updatedUA).map(_ =>
+          Redirect(routes.FileUploadSuccessController.onPageLoad(srn, startDate.toString, accessType, version, chargeType)))
     )
   }
 
   private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
-                                  (implicit request: DataRequest[AnyContent])= {
+                                  (implicit request: DataRequest[AnyContent]) = {
 
     for {
       updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
@@ -129,7 +139,7 @@ class ValidationController @Inject()(
                     Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
                 }
               }
-            }
+          }
         }
     }
 
