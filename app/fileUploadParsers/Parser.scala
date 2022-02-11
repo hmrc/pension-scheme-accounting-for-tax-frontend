@@ -65,7 +65,7 @@ trait Parser {
               case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
             }
           case _ =>
-            Left(acc.left.getOrElse(Nil) ++ Seq(ParserValidationError(index, 0, "Not enough fields", "")))
+            Left(acc.left.getOrElse(Nil) :+ ParserValidationError(index, 0, "Not enough fields", ""))
         }
     }
   }
