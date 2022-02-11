@@ -16,9 +16,11 @@
 
 package navigators
 
+import controllers.chargeE
+import controllers.chargeD
 import controllers.fileUpload.routes.InputSelectionController
 import data.SampleData
-import data.SampleData.{accessType, versionInt}
+import data.SampleData.{accessType, chargeAChargeDetails, chargeAmount1, chargeAmount3, chargeDDetails, chargeEDetails, memberDetails, userAnswersWithSchemeNamePstrQuarter, versionInt}
 import models.ChargeType._
 import models.FeatureToggle.{Disabled, Enabled}
 import models.FeatureToggleName.AftBulkUpload
@@ -190,7 +192,58 @@ class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar w
   private val srn = "test-srn"
   private val startDate = QUARTER_START_DATE
 
+
   private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
+
+  /*We have a Annual Allowance Charge members,Lifetime Allowance members & Short service refund Charge.
+   * 1.Annual Allowance Charge -> navigate to member detail
+   * 2.LifetimeAllowance -> navigate to member detail
+   * 3.OverseasTransfer  -> navigate to File Upload
+   */
+  private def fileUploadMemberScenario1(chargeType: ChargeType): Option[UserAnswers] = userAnswersWithSchemeNamePstrQuarter
+    .set(pages.chargeE.MemberDetailsPage(0), memberDetails).toOption.get
+    .set(pages.chargeE.ChargeDetailsPage(0), chargeEDetails).toOption.get
+    .set(pages.chargeE.TotalChargeAmountPage, chargeAmount1).toOption.get
+    .set(pages.chargeE.MemberStatusPage(0),"New").toOption.get
+    .set(pages.chargeE.MemberAFTVersionPage(0),1).toOption.get
+    .set(pages.chargeD.MemberDetailsPage(0), memberDetails).toOption.get
+    .set(pages.chargeD.ChargeDetailsPage(0), chargeDDetails).toOption.get
+    .set(pages.chargeD.TotalChargeAmountPage, chargeAmount3).toOption.get
+    .set(pages.chargeD.MemberStatusPage(0),"Changed").toOption.get
+    .set(pages.chargeD.MemberAFTVersionPage(0),1).toOption.get
+    .set(pages.chargeA.ChargeDetailsPage,chargeAChargeDetails).toOption.get
+    .set(pages.ChargeTypePage,chargeType).toOption.get
+    .set(AFTStatusQuery,"Submitted").toOption
+
+  private def fileUploadMemberScenario2(chargeType: ChargeType): Option[UserAnswers] = userAnswersWithSchemeNamePstrQuarter
+    .set(pages.chargeE.MemberDetailsPage(0), memberDetails).toOption.get
+    .set(pages.chargeE.ChargeDetailsPage(0), chargeEDetails).toOption.get
+    .set(pages.chargeE.TotalChargeAmountPage, chargeAmount1).toOption.get
+    .set(pages.chargeE.MemberStatusPage(0),"Deleted").toOption.get
+    .set(pages.chargeE.MemberAFTVersionPage(0),1).toOption.get
+    .set(pages.chargeD.MemberDetailsPage(0), memberDetails).toOption.get
+    .set(pages.chargeD.ChargeDetailsPage(0), chargeDDetails).toOption.get
+    .set(pages.chargeD.TotalChargeAmountPage, chargeAmount3).toOption.get
+    .set(pages.chargeD.MemberStatusPage(0),"Deleted").toOption.get
+    .set(pages.chargeD.MemberAFTVersionPage(0),1).toOption.get
+    .set(pages.chargeA.ChargeDetailsPage,chargeAChargeDetails).toOption.get
+    .set(pages.ChargeTypePage,chargeType).toOption.get
+    .set(AFTStatusQuery,"Submitted").toOption
+
+  private def fileUploadMemberScenario3(chargeType: ChargeType): Option[UserAnswers] = userAnswersWithSchemeNamePstrQuarter
+    .set(pages.chargeE.MemberDetailsPage(0), memberDetails).toOption.get
+    .set(pages.chargeE.ChargeDetailsPage(0), chargeEDetails).toOption.get
+    .set(pages.chargeE.TotalChargeAmountPage, chargeAmount1).toOption.get
+    .set(pages.chargeD.MemberDetailsPage(0), memberDetails).toOption.get
+    .set(pages.chargeD.ChargeDetailsPage(0), chargeDDetails).toOption.get
+    .set(pages.chargeD.TotalChargeAmountPage, chargeAmount3).toOption.get
+    .set(pages.chargeA.ChargeDetailsPage,chargeAChargeDetails).toOption.get
+    .set(pages.ChargeTypePage,chargeType).toOption.get
+    .set(AFTStatusQuery,"Compiled").toOption
+
+  private def fileUploadMemberScenario4(chargeType: ChargeType): Option[UserAnswers] = userAnswersWithSchemeNamePstrQuarter
+    .set(pages.ChargeTypePage,chargeType).get
+    .set(AFTStatusQuery,"Submitted").toOption
 
   private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
 
@@ -204,7 +257,19 @@ class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar w
         ("Id", "UserAnswers", "Next Page"),
         row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance), chargeEMemberExists),
         row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance), chargeDMemberExists),
-        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeOverseasTransfer), chargeGMemberExists)
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeOverseasTransfer), chargeGMemberExists),
+        row(ChargeTypePage)(chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 1), fileUploadMemberScenario1(ChargeTypeAnnualAllowance)),
+        row(ChargeTypePage)(chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 1), fileUploadMemberScenario1(ChargeTypeLifetimeAllowance)),
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeOverseasTransfer), fileUploadMemberScenario1(ChargeTypeOverseasTransfer)),
+        row(ChargeTypePage)(chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 1), fileUploadMemberScenario2(ChargeTypeAnnualAllowance)),
+        row(ChargeTypePage)(chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 1), fileUploadMemberScenario2(ChargeTypeLifetimeAllowance)),
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance), fileUploadMemberScenario3(ChargeTypeAnnualAllowance)),
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance), fileUploadMemberScenario3(ChargeTypeLifetimeAllowance)),
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeOverseasTransfer), fileUploadMemberScenario3(ChargeTypeOverseasTransfer)),
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance), fileUploadMemberScenario4(ChargeTypeAnnualAllowance)),
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance), fileUploadMemberScenario4(ChargeTypeLifetimeAllowance)),
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeOverseasTransfer), fileUploadMemberScenario4(ChargeTypeOverseasTransfer))
+
       )
     }
 

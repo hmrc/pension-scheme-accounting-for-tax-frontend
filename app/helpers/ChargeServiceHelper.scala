@@ -17,6 +17,7 @@
 package helpers
 
 import models.UserAnswers
+import pages.AFTStatusQuery
 import pages.chargeC.SponsoringEmployersQuery
 import pages.chargeD.LifetimeAllowanceMembersQuery
 import pages.chargeE.AnnualAllowanceMembersQuery
@@ -57,6 +58,26 @@ class ChargeServiceHelper {
     nonDeletedMemberOrEmployer.nonEmpty
   }
 
+  def isShowFileUploadOption(ua: UserAnswers,  chargeType: String): Boolean = {
+    val nodes : NodeInfo = nodeInfo(chargeType).get
+    val memberOrEmployerWithStatus =
+      (ua.data \ chargeType \ nodes.memberOrEmployerNode)
+        .validate[JsArray]
+        .asOpt
+        .getOrElse(JsArray()).value
+        .find{ memberOrEmployer =>
+          (memberOrEmployer \ "memberStatus").validate[String].asOpt.size > 0}
+    val memberOrEmployerWithAftVersion =
+      (ua.data \ chargeType \ nodes.memberOrEmployerNode)
+        .validate[JsArray]
+        .asOpt
+        .getOrElse(JsArray()).value
+        .find{ memberOrEmployer =>
+          (memberOrEmployer \ "memberAFTVersion").validate[Int].getOrElse(0) >= 1}
+    val isAftStatusSubmitted =ua.get(AFTStatusQuery).getOrElse("") == "Submitted"
+
+    !isAftStatusSubmitted || (isAftStatusSubmitted && memberOrEmployerWithStatus.isEmpty && memberOrEmployerWithAftVersion.isEmpty)
+  }
   private def nodeInfo(chargeType:String):Option[NodeInfo] = {
     val bigDecimal_zero = BigDecimal(0.0)
     chargeType match {
