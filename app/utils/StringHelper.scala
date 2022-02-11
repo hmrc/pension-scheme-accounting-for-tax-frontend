@@ -16,49 +16,60 @@
 
 package utils
 
+import org.apache.commons.lang3.StringUtils.EMPTY
+
 object StringHelper {
+  private val doubleQuotes = '"'
 
-  //scalastyle:off cyclomatic.complexity
+  private def stripLeadingAndTrailingDoubleQuotes(s:String): String = {
+    val trimmed = s.trim
+    val length = trimmed.length
+
+    if (length > 1) {
+      if (trimmed.head == doubleQuotes && trimmed.last == doubleQuotes) {
+        trimmed.substring(1, length - 1)
+      } else {
+        trimmed
+      }
+    } else {
+      trimmed
+    }
+  }
+
   private def splitForQuotedElements(s: String, delimiter: Char): Seq[String] = {
-    case class SplitState(acc: Seq[String], isInQuotes: Boolean, current: String)
-    val lastCharIndex = s.length - 1
-    val result = s.zipWithIndex.foldLeft[SplitState](SplitState(acc = Nil, isInQuotes = false, current = "")) { case (acc, Tuple2(c, index)) =>
-      def isDoubleQuotes = c == '"'
-      def isDelimiter = c == delimiter
-      def isLastChar = index == lastCharIndex
+    case class AccumulatedState(result: Seq[String], isInQuotes: Boolean, currentElement: String)
 
+    val lastCharIndex = s.length - 1
+    s.zipWithIndex.foldLeft(AccumulatedState(result = Nil, isInQuotes = false, currentElement = EMPTY)) { case (acc, Tuple2(currentChar, index)) =>
+      def isLastChar = index == lastCharIndex
+      def isDelimiter = currentChar == delimiter
+      def isDoubleQuotes = currentChar == doubleQuotes
       if (isLastChar) {
-        val curr = if (isDelimiter) {
-          acc.current
-        } else {
-          acc.current + c
-        }
-        SplitState(acc.acc ++ Seq(curr), acc.isInQuotes, acc.current)
+        AccumulatedState(acc.result :+
+          stripLeadingAndTrailingDoubleQuotes(if (isDelimiter) acc.currentElement else acc.currentElement + currentChar), acc.isInQuotes, EMPTY)
       } else {
         if (acc.isInQuotes) {
-          SplitState(acc.acc, isInQuotes = if (isDoubleQuotes) false else acc.isInQuotes, acc.current + c)
+          AccumulatedState(acc.result, isInQuotes = if (isDoubleQuotes) false else acc.isInQuotes, acc.currentElement + currentChar)
         } else {
           if (isDoubleQuotes) {
-            SplitState(acc.acc, isInQuotes = true, acc.current + c)
+            AccumulatedState(acc.result, isInQuotes = true, acc.currentElement + currentChar)
           } else {
-            if (c == delimiter) {
-              SplitState(acc.acc ++ Seq(acc.current), isInQuotes = false, "")
+            if (isDelimiter) {
+              AccumulatedState(acc.result :+ stripLeadingAndTrailingDoubleQuotes(acc.currentElement), isInQuotes = false, EMPTY)
             } else {
-              SplitState(acc.acc, isInQuotes = false, acc.current + c)
+              AccumulatedState(acc.result, isInQuotes = false, acc.currentElement + currentChar)
             }
           }
         }
       }
-    }
-    result.acc
+    }.result
   }
-
 
   def split(s: String, delimiter: Char): Seq[String] = {
     if (s.contains('"')) {
       splitForQuotedElements(s, delimiter)
     } else {
-      s.split(delimiter)
+      s.split(delimiter).map(_.trim)
     }
   }
 }

@@ -31,7 +31,7 @@ class StringHelperSpec extends SpecBase {
     }
     "work for double quotes containing comma at start of list" in {
       StringHelper.split(""""a,b",c,d""", ',') mustBe Seq(
-        """"a,b"""",
+        """a,b""",
         "c",
         "d"
       )
@@ -39,7 +39,7 @@ class StringHelperSpec extends SpecBase {
     "work for double quotes containing comma in middle of list" in {
       StringHelper.split("""a,"b,c",d""", ',') mustBe Seq(
         "a",
-        """"b,c"""",
+        """b,c""",
         "d"
       )
     }
@@ -47,15 +47,31 @@ class StringHelperSpec extends SpecBase {
       StringHelper.split("""a,b,"c,d"""", ',') mustBe Seq(
         "a",
         "b",
-        """"c,d""""
+        """c,d"""
       )
     }
 
     "work for double quotes containing no comma in middle of list" in {
       StringHelper.split("""a,"b and c",d""", ',') mustBe Seq(
         "a",
-        """"b and c"""",
+        """b and c""",
         "d"
+      )
+    }
+
+    "leave double quotes containing no comma in middle of list when not first and last characters" in {
+      StringHelper.split("""a,b"c"d,e""", ',') mustBe Seq(
+        "a",
+        """b"c"d""",
+        "e"
+      )
+    }
+
+    "leave double quotes containing a comma in middle of list when not first and last characters" in {
+      StringHelper.split("""a,b"c,x"d,e""", ',') mustBe Seq(
+        "a",
+        """b"c,x"d""",
+        "e"
       )
     }
 
@@ -71,9 +87,10 @@ class StringHelperSpec extends SpecBase {
       StringHelper.split("""a,b,"c,d",""", ',') mustBe Seq(
         "a",
         "b",
-        """"c,d""""
+        """c,d"""
       )
     }
+
   }
 
 }
