@@ -18,8 +18,6 @@ package utils
 
 import base.SpecBase
 
-import java.time.{ZoneId, ZonedDateTime}
-
 class StringHelperSpec extends SpecBase {
 
   "split" must {
@@ -88,6 +86,14 @@ class StringHelperSpec extends SpecBase {
         "a",
         "b",
         """c,d"""
+      )
+    }
+
+    "strip trailing and leading spaces" in {
+      StringHelper.split(""" a , "b and c"  ,   d   """, ',') mustBe Seq(
+        "a",
+        """b and c""",
+        "d"
       )
     }
 
