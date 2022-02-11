@@ -66,7 +66,7 @@ object StringHelper {
   }
 
   def split(s: String, delimiter: Char): Seq[String] = {
-    if (s.contains('"')) {
+    if (s.contains(doubleQuotes)) {
       splitForQuotedElements(s, delimiter)
     } else {
       s.split(delimiter).map(_.trim)
