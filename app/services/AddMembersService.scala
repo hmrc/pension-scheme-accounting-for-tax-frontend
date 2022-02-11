@@ -63,7 +63,7 @@ object AddMembersService {
     val totalRow = Seq(
       Seq(
         Cell(msg""),
-        Cell(msg"addMembers.total", classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
+        Cell(msg"addMembers.total", classes = Seq("govuk-!-font-weight-bold govuk-!-width-one-half")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount.getOrElse(members.map(_.amount).sum))}"),
           classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
         Cell(msg"")
