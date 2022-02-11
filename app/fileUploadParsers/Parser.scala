@@ -18,6 +18,7 @@ package fileUploadParsers
 
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import models.{MemberDetails, UserAnswers}
+import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{Format, JsPath, JsValue, Json}
@@ -26,7 +27,7 @@ import utils.StringHelper
 import java.time.LocalDate
 
 object Parser {
-  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, "Header invalid or File is empty", "")
+  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, "Header invalid or File is empty", EMPTY)
 }
 
 trait Parser {
@@ -65,7 +66,7 @@ trait Parser {
               case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
             }
           case _ =>
-            Left(acc.left.getOrElse(Nil) :+ ParserValidationError(index, 0, "Not enough fields", ""))
+            Left(acc.left.getOrElse(Nil) :+ ParserValidationError(index, 0, "Not enough fields", EMPTY))
         }
     }
   }
@@ -151,9 +152,9 @@ trait Parser {
   protected final def splitDayMonthYear(date: String): ParsedDate = {
     date.split("/").toSeq match {
       case Seq(d, m, y) => ParsedDate(d, m, y)
-      case Seq(d, m) => ParsedDate(d, m, "")
-      case Seq(d) => ParsedDate(d, "", "")
-      case _ => ParsedDate("", "", "")
+      case Seq(d, m) => ParsedDate(d, m, EMPTY)
+      case Seq(d) => ParsedDate(d, EMPTY, EMPTY)
+      case _ => ParsedDate(EMPTY, EMPTY, EMPTY)
     }
   }
 
@@ -165,7 +166,7 @@ trait Parser {
     }
 }
 
-case class ParserValidationError(row: Int, col: Int, error: String, columnName: String = "")
+case class ParserValidationError(row: Int, col: Int, error: String, columnName: String = EMPTY)
 
 object ParserValidationError {
   implicit lazy val formats: Format[ParserValidationError] =
