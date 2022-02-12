@@ -24,6 +24,9 @@ class StringHelperSpec extends SpecBase {
     "work where the string is empty" in {
       StringHelper.split("", ',') mustBe Seq("")
     }
+    "work for a simple string of elements without quotes" in {
+      StringHelper.split("a,bc,def,g", ',') mustBe Seq("a", "bc", "def", "g")
+    }
     "work where there are no double quotes in string" in {
       StringHelper.split("a,b,c", ',') mustBe Seq("a", "b", "c")
     }
@@ -85,7 +88,8 @@ class StringHelperSpec extends SpecBase {
       StringHelper.split("""a,b,"c,d",""", ',') mustBe Seq(
         "a",
         "b",
-        """c,d"""
+        """c,d""",
+        ""
       )
     }
 

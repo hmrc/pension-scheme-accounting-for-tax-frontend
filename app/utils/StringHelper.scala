@@ -36,7 +36,7 @@ object StringHelper {
     }
   }
 
-  private def splitForQuotedElements(s: String, delimiter: Char): Seq[String] = {
+  def split(s: String, delimiter: Char): Seq[String] = {
     case class AccumulatedState(result: Seq[String], isInQuotes: Boolean, currentElement: String)
     val res = s.foldLeft(AccumulatedState(result = Nil, isInQuotes = false, currentElement = EMPTY)) { case (acc, currentChar) =>
       def isDelimiter = currentChar == delimiter
@@ -55,14 +55,6 @@ object StringHelper {
         }
       }
     }
-    res.result ++ (if(res.currentElement.nonEmpty) Seq(stripLeadingAndTrailingDoubleQuotes(res.currentElement)) else Nil)
-  }
-
-  def split(s: String, delimiter: Char): Seq[String] = {
-    if (s.contains(doubleQuotes)) {
-      splitForQuotedElements(s, delimiter)
-    } else {
-      s.split(delimiter).map(_.trim)
-    }
+    res.result :+ stripLeadingAndTrailingDoubleQuotes(res.currentElement)
   }
 }
