@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils.EMPTY
 object StringHelper {
   private val doubleQuotes = '"'
 
-  private def stripLeadingAndTrailingDoubleQuotes(s:String): String = {
+  private def stripLeadingAndTrailingDoubleQuotes(s: String): String = {
     val trimmed = s.trim
     val length = trimmed.length
 
@@ -38,31 +38,24 @@ object StringHelper {
 
   private def splitForQuotedElements(s: String, delimiter: Char): Seq[String] = {
     case class AccumulatedState(result: Seq[String], isInQuotes: Boolean, currentElement: String)
-
-    val lastCharIndex = s.length - 1
-    s.zipWithIndex.foldLeft(AccumulatedState(result = Nil, isInQuotes = false, currentElement = EMPTY)) { case (acc, Tuple2(currentChar, index)) =>
-      def isLastChar = index == lastCharIndex
+    val res = s.foldLeft(AccumulatedState(result = Nil, isInQuotes = false, currentElement = EMPTY)) { case (acc, currentChar) =>
       def isDelimiter = currentChar == delimiter
       def isDoubleQuotes = currentChar == doubleQuotes
-      if (isLastChar) {
-        AccumulatedState(acc.result :+
-          stripLeadingAndTrailingDoubleQuotes(if (isDelimiter) acc.currentElement else acc.currentElement + currentChar), acc.isInQuotes, EMPTY)
+      if (acc.isInQuotes) {
+        AccumulatedState(acc.result, isInQuotes = if (isDoubleQuotes) false else acc.isInQuotes, acc.currentElement + currentChar)
       } else {
-        if (acc.isInQuotes) {
-          AccumulatedState(acc.result, isInQuotes = if (isDoubleQuotes) false else acc.isInQuotes, acc.currentElement + currentChar)
+        if (isDoubleQuotes) {
+          AccumulatedState(acc.result, isInQuotes = true, acc.currentElement + currentChar)
         } else {
-          if (isDoubleQuotes) {
-            AccumulatedState(acc.result, isInQuotes = true, acc.currentElement + currentChar)
+          if (isDelimiter) {
+            AccumulatedState(acc.result :+ stripLeadingAndTrailingDoubleQuotes(acc.currentElement), isInQuotes = false, EMPTY)
           } else {
-            if (isDelimiter) {
-              AccumulatedState(acc.result :+ stripLeadingAndTrailingDoubleQuotes(acc.currentElement), isInQuotes = false, EMPTY)
-            } else {
-              AccumulatedState(acc.result, isInQuotes = false, acc.currentElement + currentChar)
-            }
+            AccumulatedState(acc.result, isInQuotes = false, acc.currentElement + currentChar)
           }
         }
       }
-    }.result
+    }
+    res.result ++ (if(res.currentElement.nonEmpty) Seq(stripLeadingAndTrailingDoubleQuotes(res.currentElement)) else Nil)
   }
 
   def split(s: String, delimiter: Char): Seq[String] = {
