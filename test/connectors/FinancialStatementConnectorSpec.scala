@@ -20,6 +20,7 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.financialStatement.PsaFS
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
+import models.financialStatement.SchemeFSChargeType.{EXCESS_RELIEF_INTEREST, PAYMENT_ON_ACCOUNT}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status
@@ -56,7 +57,6 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
               .withBody(Json.toJson(psaFSResponse).toString)
           )
       )
-
       val connector = injector.instanceOf[FinancialStatementConnector]
 
       connector.getPsaFS(psaId).map(fs => fs mustBe psaFSResponse)
@@ -123,7 +123,46 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
 
     }
   }
+  "getSchemeFSPaymentOnAccount" must {
 
+    "return the Scheme financial statement for a valid request/response with pstr" in {
+
+      server.stubFor(
+        get(urlEqualTo(schemeFSUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .willReturn(
+            aResponse()
+              .withStatus(Status.OK)
+              .withHeader("Content-Type", "application/json")
+              .withBody(Json.toJson(SampleData.schemeFSResponseAftAndOTC).toString)
+          )
+      )
+
+      val connector = injector.instanceOf[FinancialStatementConnector]
+
+      connector.getSchemeFSPaymentOnAccount(pstr).map(fs => fs mustBe SampleData.schemeFSResponseAftAndOTC)
+
+    }
+
+    "throw BadRequestException for a 400 INVALID_PSTR response" in {
+
+      server.stubFor(
+        get(urlEqualTo(schemeFSUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .willReturn(
+            badRequest
+              .withHeader("Content-Type", "application/json")
+              .withBody(errorResponse("INVALID_PSTR"))
+          )
+      )
+      val connector = injector.instanceOf[FinancialStatementConnector]
+      println("\n\n\n\n\n\n\n"+ PAYMENT_ON_ACCOUNT)
+      recoverToSucceededIf[BadRequestException] {
+        connector.getSchemeFSPaymentOnAccount(pstr)
+      }
+
+    }
+  }
   def errorResponse(code: String): String = {
     Json.stringify(
       Json.obj(

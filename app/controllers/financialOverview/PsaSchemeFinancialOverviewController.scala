@@ -53,20 +53,19 @@ class PsaSchemeFinancialOverviewController @Inject()(
         val schemeName = schemeDetails.schemeName
         financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFS =>
           service.aftCardModel(schemeDetails, srn).flatMap { aftModel =>
-
             val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
             val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
-
+            financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr).flatMap { creditSchemeFS =>
+              val creditBalanceFormatted: String = service.creditBalanceAmountFormatted(creditSchemeFS)
             logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(aftModel)}")
             logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(upcomingTile)}")
             logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(overdueTile)}")
-
             renderer.render(
               template = "financialOverview/psaSchemeFinancialOverview.njk",
-              ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),"schemeName" ->schemeName)
+              ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),"schemeName" ->schemeName, "creditBalance" ->  creditBalanceFormatted)
             ).map(Ok(_))
           }
-        }
+        }}
       }
 
   }

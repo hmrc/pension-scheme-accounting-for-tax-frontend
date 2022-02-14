@@ -22,18 +22,21 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{any, anyInt, anyString}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.JsObject
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
+import services.PsaSchemePartialServiceSpec.{multipleInProgressLink, multipleInProgressSubHead, pastReturnsLink, startLink}
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
 
 import scala.concurrent.Future
 
@@ -63,7 +66,6 @@ class PsaSchemeFinancialOverviewControllerSpec
 
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPsaSchemePartialService, mockRenderer)
@@ -72,6 +74,7 @@ class PsaSchemeFinancialOverviewControllerSpec
       .thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
+
   }
 
   "PsaSchemeFinancial Controller" when {
@@ -84,6 +87,10 @@ class PsaSchemeFinancialOverviewControllerSpec
           .thenReturn(allTypesMultipleReturnsModel)
         when(mockPsaSchemePartialService.overdueAftChargesModel(any(), any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
+        when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
+          .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
+        when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
+          .thenReturn(retrieveCreditBalance(1000.00))
 
         val result = route(application, httpGETRequest(getPartial)).value
 
@@ -96,4 +103,39 @@ class PsaSchemeFinancialOverviewControllerSpec
     }
 
   }
+  private def aftModel(subHeadings: Seq[CardSubHeading], links: Seq[Link])
+                      (implicit messages: Messages): CardViewModel = CardViewModel(
+    id = "aft-overview",
+    heading = messages("aftPartial.head"),
+    subHeadings = subHeadings,
+    links = links
+  )
+  private def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[CardViewModel] =
+    Seq(aftModel(Seq(multipleInProgressSubHead()), Seq(multipleInProgressLink, startLink, pastReturnsLink)))
+
+  private def multipleInProgressSubHead(count: Int = 2)(implicit messages: Messages): CardSubHeading =
+    CardSubHeading(
+      subHeading = messages("aftPartial.multipleInProgress.text"),
+      subHeadingClasses = "card-sub-heading",
+      subHeadingParams = Seq(CardSubHeadingParam(
+        subHeadingParam = messages("aftPartial.multipleInProgress.count", count),
+        subHeadingParamClasses = "font-small bold"
+      )))
+
+  private def multipleInProgressLink = Link(
+    id = "aftContinueInProgressLink",
+    url = continueUrl,
+    linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
+    hiddenText = Some(msg"aftPartial.view.hidden")
+  )
+  private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
+  private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
+  private  def retrieveCreditBalance (creditBalance: BigDecimal): String= {
+    if  (creditBalance >= 0) BigDecimal(0.00).toString()
+    else creditBalance.abs.toString()
+  }
+  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
+  private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
+  private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
+  private val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
 }

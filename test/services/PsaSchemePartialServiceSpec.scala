@@ -153,6 +153,17 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
       service.overdueAftChargesModel(upcomingChargesSingle, srn) mustBe overdueChargesSingleModel
     }
   }
+  "CreditBalanceAmount" must {
+    "return a positive number when sum of amount due is negative" in {
+      when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(upcomingChargesMultipleNegative)
+      service.creditBalanceAmountFormatted(upcomingChargesMultiple) mustBe positiveNumberFormatted
+    }
+    "return zero when sum of amount due is positive" in{
+      when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(upcomingChargesMultiple)
+      service.creditBalanceAmountFormatted(any()) mustBe zeroFormatted
+    }
+
+  }
 
 }
 
@@ -162,7 +173,7 @@ object PsaSchemePartialServiceSpec {
   private val dueDate = "2021-02-15"
   private val startDt: String = LocalDate.parse(startDate).format(dateFormatterStartDate)
   private val endDt: String = LocalDate.parse(endDate).format(dateFormatterDMY)
-  val smallDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")
+  private val smallDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")
   private val srn = "srn"
   private val pstr = "pstr"
   private val psaId = "A0000000"
@@ -170,22 +181,25 @@ object PsaSchemePartialServiceSpec {
   private val name = "test-name"
   val minimalPsaName: Option[String] = Some("John Doe Doe")
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
-  val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
-  val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
-  val returnHistoryUrl: String = s"$aftUrl/srn/previous-return/2020-10-01/amend-previous"
-  val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
-  val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
-  val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
-  val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
-  val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
-
+  private val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
+  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
+  private val returnHistoryUrl: String = s"$aftUrl/srn/previous-return/2020-10-01/amend-previous"
+  private val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
+  private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
+  private val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
+  private val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
+  private val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
+  private val positiveNumberFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(900)}"
+  private val zeroFormatted : String = s"${FormatHelper.formatCurrencyAmountAsString(0)}"
   private val charge1: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
     BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), LocalDate.parse(startDate), LocalDate.parse(endDate), None, None, Nil)
   private val charge2: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
     BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), LocalDate.parse("2021-01-01"), LocalDate.parse("2021-03-31"), None, None, Nil)
+  private val charge3: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PAYMENT_ON_ACCOUNT, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
+    BigDecimal(-1200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), LocalDate.parse("2021-01-01"), LocalDate.parse("2021-03-31"), None, None, Nil)
   private val upcomingChargesMultiple: Seq[SchemeFS] = Seq(charge1, charge2)
   private val upcomingChargesSingle: Seq[SchemeFS] = Seq(charge1)
-
+  private val upcomingChargesMultipleNegative: Seq[SchemeFS] = Seq(charge1, charge2, charge3)
   private val upcomingPastChargesLink: Seq[Link] = Seq(Link(
     id = "past-payments-and-charges",
     url = viewPastChargesUrl,
@@ -193,7 +207,7 @@ object PsaSchemePartialServiceSpec {
     hiddenText = None
   ))
 
-  def upcomingChargesSingleModel(implicit messages: Messages): Seq[CardViewModel] = upcomingChargesMultipleModel(
+  private def upcomingChargesSingleModel(implicit messages: Messages): Seq[CardViewModel] = upcomingChargesMultipleModel(
     messages("pspDashboardUpcomingAftChargesCard.span.singleDueDate", LocalDate.parse(dueDate).format(dateFormatterDMY)),
     msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
       LocalDate.parse(startDate).format(smallDatePattern),
@@ -203,7 +217,7 @@ object PsaSchemePartialServiceSpec {
     viewUpcomingChargesUrl
   )
 
-  def upcomingChargesMultipleModel(upcomingChargesSubHeading: String = "pspDashboardUpcomingAftChargesCard.span.multipleDueDate",
+  private def upcomingChargesMultipleModel(upcomingChargesSubHeading: String = "pspDashboardUpcomingAftChargesCard.span.multipleDueDate",
                                    upcomingLinkText: Text = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
                                    pastLink: Seq[Link] = upcomingPastChargesLink,
                                    amount: String = "£300.00",
@@ -227,7 +241,7 @@ object PsaSchemePartialServiceSpec {
     )) ++ pastLink)
   )
 
-  def overdueChargesSingleModel(implicit messages: Messages): Seq[CardViewModel] = overdueChargesModel(
+  private def overdueChargesSingleModel(implicit messages: Messages): Seq[CardViewModel] = overdueChargesModel(
     BigDecimal(100.00), BigDecimal(100.00),
     msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
       .withArgs(LocalDate.parse(startDate).format(smallDatePattern),
@@ -236,7 +250,7 @@ object PsaSchemePartialServiceSpec {
     viewOverdueChargesUrl)
 
 
-  def overdueChargesModel(totalOverdue: BigDecimal = BigDecimal(300.00), totalInterestAccruing: BigDecimal = BigDecimal(300.00),
+  private def overdueChargesModel(totalOverdue: BigDecimal = BigDecimal(300.00), totalInterestAccruing: BigDecimal = BigDecimal(300.00),
                           overdueLinkText: Text = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
                           link: String = viewOverdueChargesUrl)
                          (implicit messages: Messages): Seq[CardViewModel] = Seq(CardViewModel(
@@ -274,7 +288,7 @@ object PsaSchemePartialServiceSpec {
   ))
 
 
-  val overviewApril20: AFTOverview = AFTOverview(
+  private val overviewApril20: AFTOverview = AFTOverview(
     LocalDate.of(2020, 4, 1),
     LocalDate.of(2020, 6, 30),
     tpssReportPresent = false,
@@ -284,7 +298,7 @@ object PsaSchemePartialServiceSpec {
       compiledVersionAvailable = false
     )))
 
-  val overviewJuly20: AFTOverview = AFTOverview(
+  private val overviewJuly20: AFTOverview = AFTOverview(
     LocalDate.of(2020, 7, 1),
     LocalDate.of(2020, 9, 30),
     tpssReportPresent = false,
@@ -294,7 +308,7 @@ object PsaSchemePartialServiceSpec {
       compiledVersionAvailable = false
     )))
 
-  val overviewOctober20: AFTOverview = AFTOverview(
+  private val overviewOctober20: AFTOverview = AFTOverview(
     LocalDate.of(2020, 10, 1),
     LocalDate.of(2020, 12, 31),
     tpssReportPresent = false,
@@ -304,7 +318,7 @@ object PsaSchemePartialServiceSpec {
       compiledVersionAvailable = true
     )))
 
-  val overviewJan21: AFTOverview = AFTOverview(
+  private val overviewJan21: AFTOverview = AFTOverview(
     LocalDate.of(2021, 1, 1),
     LocalDate.of(2021, 3, 31),
     tpssReportPresent = false,
@@ -314,9 +328,9 @@ object PsaSchemePartialServiceSpec {
       compiledVersionAvailable = true
     )))
 
-  val allTypesMultipleReturnsPresent = Seq(overviewApril20, overviewJuly20, overviewOctober20, overviewJan21)
-  val noInProgress = Seq(overviewApril20, overviewJuly20)
-  val oneInProgress = Seq(overviewApril20, overviewOctober20)
+  private val allTypesMultipleReturnsPresent = Seq(overviewApril20, overviewJuly20, overviewOctober20, overviewJan21)
+  private val noInProgress = Seq(overviewApril20, overviewJuly20)
+  private val oneInProgress = Seq(overviewApril20, overviewOctober20)
 
   private def aftModel(subHeadings: Seq[CardSubHeading], links: Seq[Link])
                       (implicit messages: Messages): CardViewModel = CardViewModel(
@@ -326,21 +340,21 @@ object PsaSchemePartialServiceSpec {
     links = links
   )
 
-  def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[CardViewModel] =
+  private def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(multipleInProgressSubHead()), Seq(multipleInProgressLink, startLink, pastReturnsLink)))
 
-  def noInProgressModel(implicit messages: Messages): Seq[CardViewModel] =
+  private def noInProgressModel(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Nil, Seq(startLink, pastReturnsLink)))
 
-  def oneInProgressModelLocked(implicit messages: Messages): Seq[CardViewModel] =
+  private def oneInProgressModelLocked(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(oneInProgressSubHead(messages("aftPartial.status.lockDetail", name))),
       Seq(oneInProgressLink(msg"pspDashboardAftReturnsCard.inProgressReturns.link.single.locked"), startLink, pastReturnsLink)))
 
-  def oneInProgressModelNotLocked(implicit messages: Messages): Seq[CardViewModel] =
+  private def oneInProgressModelNotLocked(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(oneInProgressSubHead(messages("aftPartial.status.inProgress"))),
       Seq(oneInProgressLink(msg"pspDashboardAftReturnsCard.inProgressReturns.link.single"), startLink, pastReturnsLink)))
 
-  def oneCompileZeroedOutModel(implicit messages: Messages): Seq[CardViewModel] =
+  private def oneCompileZeroedOutModel(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(multipleInProgressSubHead()), Seq(multipleInProgressLink, startLink)))
 
 
@@ -382,12 +396,13 @@ object PsaSchemePartialServiceSpec {
     hiddenText = Some(msg"aftPartial.view.hidden")
   )
 
-  def oneCompileZeroedOut: Seq[AFTOverview] =
+  private def oneCompileZeroedOut: Seq[AFTOverview] =
     Seq(
       overviewApril20.copy(versionDetails = Some(overviewApril20.versionDetails.get.copy(numberOfVersions = 1, compiledVersionAvailable = true))),
       overviewJuly20.copy(versionDetails = Some(overviewJuly20.versionDetails.get.copy(numberOfVersions = 1, compiledVersionAvailable = true))),
       overviewOctober20.copy(versionDetails = Some(overviewOctober20.versionDetails.get.copy(numberOfVersions = 2, compiledVersionAvailable = true)))
     )
+
 
 
 }
