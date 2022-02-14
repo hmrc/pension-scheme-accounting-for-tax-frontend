@@ -37,6 +37,7 @@ object SchemeFSChargeType extends Enumerable.Implicits {
   case object REPAYMENT_INTEREST extends WithName("Repayment interest") with SchemeFSChargeType
   case object EXCESS_RELIEF_PAID extends WithName("Excess relief paid") with SchemeFSChargeType
   case object EXCESS_RELIEF_INTEREST extends WithName("Interest on excess relief") with SchemeFSChargeType
+  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with SchemeFSChargeType
 
   val values: Seq[SchemeFSChargeType] = Seq(
     PSS_AFT_RETURN,
@@ -53,7 +54,8 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     CONTRACT_SETTLEMENT_INTEREST,
     REPAYMENT_INTEREST,
     EXCESS_RELIEF_PAID,
-    EXCESS_RELIEF_INTEREST
+    EXCESS_RELIEF_INTEREST,
+    PAYMENT_ON_ACCOUNT
   )
 
   implicit val enumerable: Enumerable[SchemeFSChargeType] =
