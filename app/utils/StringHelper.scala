@@ -20,6 +20,9 @@ import org.apache.commons.lang3.StringUtils.EMPTY
 
 object StringHelper {
   private val doubleQuotes = '"'
+  private val delimiter = ','
+
+  private case class AccumulatedState(result: Seq[String], isInQuotes: Boolean, currentElement: String)
 
   private def stripLeadingAndTrailingDoubleQuotes(s: String): String = {
     val trimmed = s.trim
@@ -36,25 +39,21 @@ object StringHelper {
     }
   }
 
-  def split(s: String, delimiter: Char): Seq[String] = {
-    case class AccumulatedState(result: Seq[String], isInQuotes: Boolean, currentElement: String)
-    val res = s.foldLeft(AccumulatedState(result = Nil, isInQuotes = false, currentElement = EMPTY)) { case (acc, currentChar) =>
-      def isDelimiter = currentChar == delimiter
-      def isDoubleQuotes = currentChar == doubleQuotes
-      if (acc.isInQuotes) {
-        AccumulatedState(acc.result, isInQuotes = if (isDoubleQuotes) false else acc.isInQuotes, acc.currentElement + currentChar)
-      } else {
-        if (isDoubleQuotes) {
-          AccumulatedState(acc.result, isInQuotes = true, acc.currentElement + currentChar)
-        } else {
-          if (isDelimiter) {
-            AccumulatedState(acc.result :+ stripLeadingAndTrailingDoubleQuotes(acc.currentElement), isInQuotes = false, EMPTY)
-          } else {
-            AccumulatedState(acc.result, isInQuotes = false, acc.currentElement + currentChar)
-          }
-        }
-      }
+  private val processCharacter: (AccumulatedState, Char) => AccumulatedState = (acc,c) =>
+    acc.isInQuotes match {
+      case true if c == doubleQuotes => AccumulatedState(acc.result, isInQuotes = false, acc.currentElement + c)
+      case true => AccumulatedState(acc.result, isInQuotes = acc.isInQuotes, acc.currentElement + c)
+      case false if c == doubleQuotes => AccumulatedState(acc.result, isInQuotes = true, acc.currentElement + c)
+      case false if c == delimiter => AccumulatedState(acc.result :+ stripLeadingAndTrailingDoubleQuotes(acc.currentElement), isInQuotes = false, EMPTY)
+      case _ => AccumulatedState(acc.result, isInQuotes = false, acc.currentElement + c)
     }
-    res.result :+ stripLeadingAndTrailingDoubleQuotes(res.currentElement)
+
+  def split(s: String): Seq[String] = {
+    if (s.contains(doubleQuotes)) {
+      val accumulatedState = s.foldLeft(AccumulatedState(result = Nil, isInQuotes = false, currentElement = EMPTY))(processCharacter)
+      accumulatedState.result :+ stripLeadingAndTrailingDoubleQuotes(accumulatedState.currentElement)
+    } else {
+      s.split(delimiter)
+    }
   }
 }
