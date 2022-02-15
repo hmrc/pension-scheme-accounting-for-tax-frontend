@@ -62,36 +62,27 @@ class ChargeServiceHelper {
   }
 
   def isShowFileUploadOption(ua: UserAnswers,  chargeType: String)(implicit request: DataRequest[AnyContent]): Boolean = {
-    val nodes : NodeInfo = nodeInfo(chargeType).get
-    val memberOrEmployerWithStatus =
-      (ua.data \ chargeType \ nodes.memberOrEmployerNode)
-        .validate[JsArray]
-        .asOpt
-        .getOrElse(JsArray()).value
-        .find{ memberOrEmployer =>
-          (memberOrEmployer \ "memberStatus").validate[String].asOpt.size > 0}
-    val memberOrEmployerWithAftVersion =
-      (ua.data \ chargeType \ nodes.memberOrEmployerNode)
-        .validate[JsArray]
-        .asOpt
-        .getOrElse(JsArray()).value
-        .find{ memberOrEmployer =>
-          (memberOrEmployer \ "memberAFTVersion").validate[Int].getOrElse(0) <= 1}
+    nodeInfo(chargeType) match {
+      case Some(nodes) =>
+        val memberOrEmployerSeq =
+          (ua.data \ chargeType \ nodes.memberOrEmployerNode)
+            .validate[JsArray].asOpt
+            .getOrElse(JsArray()).value
 
-    val memberOrEmployerSeq =
-      (ua.data \ chargeType \ nodes.memberOrEmployerNode)
-        .validate[JsArray].asOpt
-        .getOrElse(JsArray()).value.toSeq
-    val aftStatus =ua.get(AFTStatusQuery).getOrElse("")
-
-
-    (request.sessionData.sessionAccessData.accessMode,request.sessionData.sessionAccessData.version) match{
-      case (PageAccessModePreCompile,v) =>  v == 1 ||  memberOrEmployerSeq.isEmpty
-      case (PageAccessModeCompile,v) => v > 1 && (!memberOrEmployerSeq.exists(memberOrEmployer =>
-        (memberOrEmployer \ "memberAFTVersion").validate[Int].getOrElse(0) < v ))
-      case (PageAccessModeCompile,v) =>  v > 1 &&  memberOrEmployerSeq.isEmpty
+        (request.sessionData.sessionAccessData.accessMode,request.sessionData.sessionAccessData.version) match{
+          case (PageAccessModePreCompile, 1) => memberOrEmployerSeq.isEmpty
+          case (PageAccessModeCompile, v) if v > 1 => memberOrEmployerSeq.isEmpty
+          case (PageAccessModeCompile, v) if v > 1 =>
+            !memberOrEmployerSeq.exists(member =>
+              (member \ "memberAFTVersion").validate[Int].getOrElse(0) < v
+            )
+          case _ => false
+        }
+      case _ =>
+        false
     }
   }
+  
   private def nodeInfo(chargeType:String):Option[NodeInfo] = {
     val bigDecimal_zero = BigDecimal(0.0)
     chargeType match {
