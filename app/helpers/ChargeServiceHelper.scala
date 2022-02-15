@@ -16,13 +16,16 @@
 
 package helpers
 
+import models.AccessMode.{PageAccessModeCompile, PageAccessModePreCompile}
 import models.UserAnswers
+import models.requests.DataRequest
 import pages.AFTStatusQuery
 import pages.chargeC.SponsoringEmployersQuery
 import pages.chargeD.LifetimeAllowanceMembersQuery
 import pages.chargeE.AnnualAllowanceMembersQuery
 import pages.chargeG.{ChargeAmountsPage, OverseasTransferMembersQuery}
 import play.api.libs.json.{JsArray, JsValue}
+import play.api.mvc.AnyContent
 
 class ChargeServiceHelper {
 
@@ -58,7 +61,7 @@ class ChargeServiceHelper {
     nonDeletedMemberOrEmployer.nonEmpty
   }
 
-  def isShowFileUploadOption(ua: UserAnswers,  chargeType: String): Boolean = {
+  def isShowFileUploadOption(ua: UserAnswers,  chargeType: String)(implicit request: DataRequest[AnyContent]): Boolean = {
     val nodes : NodeInfo = nodeInfo(chargeType).get
     val memberOrEmployerWithStatus =
       (ua.data \ chargeType \ nodes.memberOrEmployerNode)
@@ -73,10 +76,21 @@ class ChargeServiceHelper {
         .asOpt
         .getOrElse(JsArray()).value
         .find{ memberOrEmployer =>
-          (memberOrEmployer \ "memberAFTVersion").validate[Int].getOrElse(0) >= 1}
-    val isAftStatusSubmitted =ua.get(AFTStatusQuery).getOrElse("") == "Submitted"
+          (memberOrEmployer \ "memberAFTVersion").validate[Int].getOrElse(0) <= 1}
 
-    !isAftStatusSubmitted || (isAftStatusSubmitted && memberOrEmployerWithStatus.isEmpty && memberOrEmployerWithAftVersion.isEmpty)
+    val memberOrEmployerSeq =
+      (ua.data \ chargeType \ nodes.memberOrEmployerNode)
+        .validate[JsArray].asOpt
+        .getOrElse(JsArray()).value.toSeq
+    val aftStatus =ua.get(AFTStatusQuery).getOrElse("")
+
+
+    (request.sessionData.sessionAccessData.accessMode,request.sessionData.sessionAccessData.version) match{
+      case (PageAccessModePreCompile,v) =>  v == 1 ||  memberOrEmployerSeq.isEmpty
+      case (PageAccessModeCompile,v) => v > 1 && (!memberOrEmployerSeq.exists(memberOrEmployer =>
+        (memberOrEmployer \ "memberAFTVersion").validate[Int].getOrElse(0) < v ))
+      case (PageAccessModeCompile,v) =>  v > 1 &&  memberOrEmployerSeq.isEmpty
+    }
   }
   private def nodeInfo(chargeType:String):Option[NodeInfo] = {
     val bigDecimal_zero = BigDecimal(0.0)
