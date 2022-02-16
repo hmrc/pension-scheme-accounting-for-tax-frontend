@@ -67,6 +67,7 @@ object SampleData {
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString, None)
   val version = "1"
   val versionInt = 1
+  val version2Int = 2
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)
