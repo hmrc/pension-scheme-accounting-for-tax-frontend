@@ -3,7 +3,6 @@
 {% from "macros/title.njk"  import title %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
-{% from "govuk/components/table/macro.njk" import govukTable %}
 
 
 {% block pageTitle %}
@@ -20,48 +19,31 @@
             <h1 class="govuk-heading-xl">
               {{ messages("fileupload.invalid.annualAllowance.title", chargeType) }}
              </h1>
-
                <p class="govuk-body">{{ messages("fileupload.invalid.annualAllowance.p1") }}
             <a href="{{fileDownloadInstructionsLink}}" class="govuk-link"> {{ messages("fileupload.invalid.annualAllowance.download.instructions.link") }}</a>
                  {{ messages("fileupload.invalid.annualAllowance.subheading.p2") }}</p>
-
               <h2 class="govuk-heading-m">
-                {{ messages("fileupload.invalid.annualAllowance.title2", chargeType) }}</h2>
-
-            {% set rows = [] %}
-             {% for e in errors %}
-             {% set rowItems = [] %}
-                       {% set rowItems = (rowItems.push({text: messages(e.cell), classes: 'govuk-!-font-weight-regular'}), rowItems) %}
-                       {% set rowItems = (rowItems.push({text: messages(e.error)}), rowItems) %}
-                       {% set rows = (rows.push(rowItems), rows) %}
-
-             {% endfor %}
-
-                {{ govukTable({
-                  firstCellIsHeader: true,
-                  head: [
-                    {
-                      text: messages("fileupload.invalid.annualAllowance.item1", chargeType)
-                    },
-                    {
-                      text: messages("fileupload.invalid.annualAllowance.item2", chargeType)
-                    }
-                  ],
-                  rows: rows
-                }) }}
-
+                {{ messages("fileupload.invalid.annualAllowance.title2", chargeType) }}
+              </h2>
+                <p class="govuk-body">
+                {{ messages("fileUpload.amountTaxDue.generic.total.error.part1")}} {{totalError}} {{ messages("fileUpload.amountTaxDue.generic.total.error.part2")}}
+                </p>
+                 <ul class="govuk-list govuk-list--bullet">
+                {% for e in errors %}
+                     <li>{{ messages(e) }} </li>
+                {% endfor %}
+                </ul>
 
             {{ govukButton({
                             href: returnToFileUploadURL,
                             attributes: {id: "submit"},
                             text: messages("return.to.fileupload")
                           }) }}
+
             </div>
 
             </div>
-            <p class="govuk-body"><a href="{{returnToSchemeDetails}}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
-            </p>
+                  <p class="govuk-body"><a href="{{returnToSchemeDetails}}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+                  </p>
       </p>
 {% endblock %}
-
-

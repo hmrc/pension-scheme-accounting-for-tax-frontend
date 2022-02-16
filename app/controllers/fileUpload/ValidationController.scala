@@ -25,7 +25,7 @@ import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
 import navigators.CompoundNavigator
-import pages.PSTRQuery
+import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -38,7 +38,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-
+import FileUploadGenericErrorReporter.generateGenericErrorReport
 class ValidationController @Inject()(
                                       override val messagesApi: MessagesApi,
                                       identify: IdentifierAction,
@@ -54,10 +54,13 @@ class ValidationController @Inject()(
                                       lifeTimeAllowanceParser: LifetimeAllowanceParser,
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService:AFTService,
-                                      fileUploadAftReturnService: FileUploadAftReturnService
+                                      fileUploadAftReturnService: FileUploadAftReturnService,
+                                      config: FrontendAppConfig,
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
+
+  val maximumNumberOfError = 10
 
   private def processInvalid(
                               srn: String,
@@ -66,17 +69,53 @@ class ValidationController @Inject()(
                               version: Int,
                               chargeType: ChargeType,
                               errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    val schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme")
+    val fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
+    val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
+    val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
+
     errors match {
       case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
         Future.successful(Redirect(routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType)))
       case _ =>
-        renderer.render(template = "fileUpload/invalid.njk",
-          Json.obj(
-            "chargeType" -> chargeType,
-            "chargeTypeText" -> chargeType.toString,
-            "srn" -> srn, "startDate" -> Some(startDate),
-            "errors" -> errors))
-          .map(Ok(_))
+        if(errors.size <= maximumNumberOfError) {
+          val cellErrors = errors.map{e =>
+            val cell  = String.valueOf(('A' + e.col).toChar) + (e.row+1)
+            Json.obj(
+              "cell" -> cell,
+              "error" -> e.error
+            )
+          }
+          renderer.render(template = "fileUpload/invalid.njk",
+            Json.obj(
+              "chargeType" -> chargeType,
+              "chargeTypeText" -> chargeType.toString,
+              "srn" -> srn, "startDate" -> Some(startDate),
+              "errors" -> cellErrors,
+              "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
+              "returnToFileUploadURL" -> returnToFileUpload,
+              "returnToSchemeDetails" -> returnToSchemeDetails,
+              "schemeName"-> schemeName
+            )
+          ).map(Ok(_))
+        }
+        else {
+          val genericErrors = generateGenericErrorReport(errors, chargeType)
+          renderer.render(template = "fileUpload/genericErrors.njk",
+            Json.obj(
+              "chargeType" -> chargeType,
+              "chargeTypeText" -> chargeType.toString,
+              "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "totalError" -> errors.size,
+              "errors" -> genericErrors,
+              "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
+              "returnToFileUploadURL" -> returnToFileUpload,
+              "returnToSchemeDetails" -> returnToSchemeDetails,
+              "schemeName"-> schemeName
+            )
+          ).map(Ok(_))
+        }
     }
   }
 

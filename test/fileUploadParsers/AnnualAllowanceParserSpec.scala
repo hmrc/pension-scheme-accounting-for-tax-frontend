@@ -18,6 +18,7 @@ package fileUploadParsers
 
 import base.SpecBase
 import config.FrontendAppConfig
+import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import data.SampleData
 import data.SampleData.startDate
 import forms.MemberDetailsFormProvider
@@ -93,11 +94,11 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
         ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount"),
         ParserValidationError(1, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived"),
         ParserValidationError(1, 6, "error.boolean", "isPaymentMandatory"),
-        ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required", ""),
+        ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required", AnnualAllowanceFieldNames.taxYear),
         ParserValidationError(2, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived"),
-        ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid", ""),
-        ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future", ""),
-        ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past", "")
+        ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear),
+        ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future", AnnualAllowanceFieldNames.taxYear),
+        ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past", AnnualAllowanceFieldNames.taxYear)
       )
       )
     }
@@ -105,10 +106,10 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     "return validation errors for tax year only, including missing, invalid, future and past tax years" in {
       val result = parser.parse(startDate, invalidTaxYearCsvFile,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required"),
-        ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid"),
-        ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future"),
-        ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past")
+        ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required", AnnualAllowanceFieldNames.taxYear),
+        ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear),
+        ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future", AnnualAllowanceFieldNames.taxYear),
+        ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past", AnnualAllowanceFieldNames.taxYear)
       ))
     }
 

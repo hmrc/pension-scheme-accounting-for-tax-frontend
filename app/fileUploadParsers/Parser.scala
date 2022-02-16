@@ -23,6 +23,7 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{Format, JsPath, JsValue, Json}
 import utils.StringHelper
+import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 
 import java.time.LocalDate
 
@@ -143,11 +144,7 @@ trait Parser {
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 
-  protected final object MemberDetailsFieldNames {
-    val firstName = "firstName"
-    val lastName = "lastName"
-    val nino = "nino"
-  }
+
 
   protected final def splitDayMonthYear(date: String): ParsedDate = {
     date.split("/").toSeq match {
