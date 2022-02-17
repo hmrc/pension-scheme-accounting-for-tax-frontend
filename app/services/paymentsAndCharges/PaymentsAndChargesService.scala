@@ -154,7 +154,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val paymentOrChargeType = details.chargeType
     val onlyAFTAndOTCChargeTypes: Boolean =
       paymentOrChargeType == PSS_AFT_RETURN || paymentOrChargeType == PSS_OTC_AFT_RETURN
-
+    val ifAFTAndOTCChargeTypes: Boolean =
+      onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
     block(paymentOrChargeType) match {
       case None => Nil
       case Some(version) =>
@@ -165,11 +166,18 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             details.periodEndDate.getYear.toString
           }
 
+        val chargeTypeDesc: String => String = {
+          chargeType =>
+          ifAFTAndOTCChargeTypes match {
+            case true => chargeType + s" submission ${version}"
+            case false => chargeType
+          }
+        }
+
         val chargeDetailsItemWithStatus: PaymentAndChargeStatus => FinancialPaymentAndChargesDetails =
           status =>
             FinancialPaymentAndChargesDetails(
-              chargeType = s"${details.chargeType.toString}",
-              // + s" submission ${version}",
+              chargeType = chargeTypeDesc(details.chargeType.toString),
               chargeReference = details.chargeReference,
               originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
               paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
@@ -188,7 +196,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             Seq(
               chargeDetailsItemWithStatus(PaymentOverdue),
               FinancialPaymentAndChargesDetails(
-                chargeType = interestChargeType.toString + s" submission ${version}",
+                chargeType = chargeTypeDesc(interestChargeType.toString),
                 chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
                 originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
                 paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
