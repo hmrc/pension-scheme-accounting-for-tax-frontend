@@ -1162,6 +1162,7 @@ paymentsAndCharges.interest.visuallyHiddenText = for charge reference to come
 paymentsAndCharges.chargeReference.toBeAssigned = To be assigned
 paymentsAndCharges.chargeType.table = Charge type
 paymentsAndCharges.totalDue.table = Amount due
+paymentsAndCharges.paymentDue.table = Payment due
 paymentsAndCharges.chargeReference.table = Charge reference
 paymentsAndCharges.chargeDetails.originalChargeAmount = Original charge amount
 paymentsAndCharges.chargeDetails.payments = Payments and account credits
@@ -1403,3 +1404,6 @@ psaSchemeFinancial.allOverdue.link  = View all overdue payments and interest cha
 psaSchemeFinancial.allDue.link  = View all due payments and charges
 psaSchemeFinancial.allPaymentCharges.link  = View all payments and charges
 psaSchemeFinancial.title = Your financial overview
+
+financialPaymentsAndCharges.title = Overdue payments and interest charges
+financialPaymentsAndCharges.reflect.charge.text = The information may not reflect payments made in the last 3 days.

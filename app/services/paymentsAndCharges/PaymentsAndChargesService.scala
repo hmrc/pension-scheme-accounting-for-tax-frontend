@@ -16,16 +16,18 @@
 
 package services.paymentsAndCharges
 
-import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
+import connectors.{AFTConnector, FinancialStatementConnector}
 import controllers.chargeB.{routes => _}
 import controllers.financialStatement.paymentsAndCharges.routes.{PaymentsAndChargeDetailsController, PaymentsAndChargesInterestController}
 import helpers.FormatHelper._
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
+import models.Quarters.{getQuarter, getQuarterLabel}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{PaymentOrChargeType, SchemeFS}
+import models.financialStatement.{PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
+import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
 import models.viewModels.paymentsAndCharges.{PaymentAndChargeStatus, PaymentsAndChargesDetails}
 import play.api.i18n.Messages
@@ -44,6 +46,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
+                                          aftConnector: AFTConnector,
                                           fsConnector: FinancialStatementConnector,
                                           financialInfoCacheConnector: FinancialInfoCacheConnector
                                          ) {
@@ -59,6 +62,18 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
         mapToTable(seqPayments)
     }
+
+  def getPaymentsAndChargesNew(srn: String, schemeFS: Seq[SchemeFS], aftVersionTuple: Seq[(Int, SchemeFSChargeType)], chargeDetailsFilter: ChargeDetailsFilter)
+                           (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
+
+    val chargeRefs: Seq[String] = schemeFS.map(_.chargeReference)
+    println("\n\n\n\n\n\n\n\naftVersionTuple"+aftVersionTuple)
+    val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
+   paymentsAndChargesDetailsNew(paymentOrCharge, srn, chargeRefs, aftVersionTuple, chargeDetailsFilter)
+    }
+
+    mapToNewTable(seqPayments)
+  }
 
   val extractUpcomingCharges: Seq[SchemeFS] => Seq[SchemeFS] = schemeFS =>
     schemeFS.filter(charge => charge.dueDate.nonEmpty && !charge.dueDate.get.isBefore(DateHelper.today))
@@ -121,6 +136,76 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
+  private def paymentsAndChargesDetailsNew(
+                                         details: SchemeFS,
+                                         srn: String,
+                                         chargeRefs: Seq[String],
+                                         aftVersionTuple: Seq[(Int, SchemeFSChargeType)],
+                                         chargeDetailsFilter: ChargeDetailsFilter
+                                       )(implicit messages: Messages, hc: HeaderCarrier,
+                                         ec: ExecutionContext): Seq[FinancialPaymentAndChargesDetails] = {
+
+    val paymentOrChargeType = details.chargeType
+    val onlyAFTAndOTCChargeTypes: Boolean =
+      paymentOrChargeType == PSS_AFT_RETURN || paymentOrChargeType == PSS_OTC_AFT_RETURN
+    val version = aftVersionTuple.map { y =>
+      y match {
+        case _ => if( y._2 == paymentOrChargeType) {
+          println("\n\n\n\n\nversion"+y._1)
+          y._1
+        }
+      }
+    }.head
+    val period: String =
+      if(paymentOrChargeType.toString == "AccountingForTaxCharges") {
+        details.periodStartDate.toString
+      } else {
+        details.periodEndDate.getYear.toString
+      }
+
+    val chargeDetailsItemWithStatus: PaymentAndChargeStatus => FinancialPaymentAndChargesDetails =
+      status =>
+    FinancialPaymentAndChargesDetails(
+        chargeType = s"${details.chargeType.toString}",
+     // + s" submission ${version}",
+        chargeReference = details.chargeReference,
+        originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
+        paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
+        status = status,
+        quarterDesc = getQuarterLabel(getQuarter(details.periodStartDate)),
+        redirectUrl = PaymentsAndChargeDetailsController.onPageLoad(
+          srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType.toString, chargeDetailsFilter).url,
+        visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
+      )
+
+    (onlyAFTAndOTCChargeTypes, details.amountDue > 0) match {
+
+      case (true, true) if details.accruedInterestTotal > 0 =>
+        val interestChargeType =
+          if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
+            Seq(
+              chargeDetailsItemWithStatus(PaymentOverdue),
+              FinancialPaymentAndChargesDetails(
+                chargeType = interestChargeType.toString + s" submission ${version}",
+                chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
+                originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
+                paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
+                status = InterestIsAccruing,
+                quarterDesc = getQuarterLabel(getQuarter(details.periodStartDate)),
+                redirectUrl = PaymentsAndChargesInterestController.onPageLoad(
+                  srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType.toString, chargeDetailsFilter).url,
+                visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
+              )
+            )
+      case (true, _) if details.totalAmount < 0 =>
+        Seq.empty
+      case _ =>
+        Seq(
+          chargeDetailsItemWithStatus(NoStatus)
+        )
+    }
+  }
+
   private def htmlStatus(data: PaymentsAndChargesDetails)
                         (implicit messages: Messages): Html = {
     val (classes, content) = (data.status, data.amountDue) match {
@@ -135,6 +220,22 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
     Html(s"<span class='$classes'>$content</span>")
   }
+
+  private def htmlStatusNew(data: FinancialPaymentAndChargesDetails)
+                        (implicit messages: Messages): Html = {
+    val (classes, content) = (data.status, data.paymentDue) match {
+      case (InterestIsAccruing, _) =>
+        ("govuk-tag govuk-tag--blue", data.status.toString)
+      case (PaymentOverdue, _) =>
+        ("govuk-tag govuk-tag--red", data.status.toString)
+      case (_, "£0.00") =>
+        ("govuk-visually-hidden", messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue"))
+      case _ =>
+        ("govuk-visually-hidden", messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue"))
+    }
+    Html(s"<span class='$classes'>$content</span>")
+  }
+
 
   private def mapToTable(allPayments: Seq[PaymentsAndChargesDetails])
                         (implicit messages: Messages): Table = {
@@ -175,6 +276,53 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         head = head,
         rows = rows,
         attributes = Map("role" -> "table")
+    )
+  }
+
+  private def mapToNewTable(allPayments: Seq[FinancialPaymentAndChargesDetails])
+                        (implicit messages: Messages): Table = {
+
+    val head = Seq(
+      Cell(msg"paymentsAndCharges.chargeType.table"),
+      Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-font-weight-bold")),
+      Cell(msg"paymentsAndCharges.chargeDetails.originalChargeAmount", classes = Seq("govuk-!-font-weight-bold")),
+      Cell(msg"paymentsAndCharges.paymentDue.table", classes = Seq("govuk-!-font-weight-bold")),
+      Cell(Html(
+        s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
+      ))
+    )
+
+    val rows = allPayments.map { data =>
+      val linkId =
+        data.chargeReference match {
+          case "To be assigned" => "to-be-assigned"
+          case "None" => "none"
+          case _ => data.chargeReference
+        }
+
+      val htmlChargeType = Html(
+        s"<a id=$linkId class=govuk-link href=" +
+          s"${data.redirectUrl}>" +
+          s"${data.chargeType} " +
+          s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
+          s"<p class=govuk-hint>" +
+          s"Quarter: "+
+          s"${data.quarterDesc}</p>")
+
+      Seq(
+        Cell(htmlChargeType, classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(htmlStatusNew(data), classes = Nil)
+      )
+    }
+
+
+    Table(
+      head = head,
+      rows = rows,
+      attributes = Map("role" -> "table")
     )
   }
 
