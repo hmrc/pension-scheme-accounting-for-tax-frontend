@@ -74,8 +74,6 @@ class PaymentsAndChargesController @Inject()(
             }
           }.flatMap { chargeTypesAndVersions =>
             val block: SchemeFSChargeType => Option[Int] = ct => chargeTypesAndVersions.find(_._2 == ct).map(_._1)
-
-
             val table = paymentsAndChargesService.getPaymentsAndChargesNew(srn, paymentsCache.schemeFS, block, journeyType)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
