@@ -22,7 +22,7 @@ import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter.Upcoming
 import models.financialStatement.PaymentOrChargeType.{ExcessReliefPaidCharges, InterestOnExcessRelief}
-import models.financialStatement.{PaymentOrChargeType, SchemeFS}
+import models.financialStatement.{PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
 import models.{ChargeDetailsFilter, UserAnswers}
 import pages.AFTVersionQuery
 import play.api.Logger
@@ -55,45 +55,46 @@ class PaymentsAndChargesController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesController])
 
+  // scalastyle:off method.length
   def onPageLoad(srn: String, pstr: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
         val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFS)
         val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
         val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
-              if (paymentsCache.schemeFS.nonEmpty)
-              {
-                val x = paymentsCache.schemeFS.map { scheme =>
-                  aftConnector
-                    .getAFTDetailsWithFbNumber(pstr, scheme.formBundleNumber.getOrElse(""))
-                    .map { aftDetails =>
-                      val ua = UserAnswers(aftDetails.as[JsObject])
-                      Tuple2(ua.get(AFTVersionQuery).getOrElse(0), scheme.chargeType)
-                    }
+        if (paymentsCache.schemeFS.nonEmpty) {
+          Future.sequence {
+            paymentsCache.schemeFS.map { scheme =>
+              aftConnector
+                .getAFTDetailsWithFbNumber(pstr, scheme.formBundleNumber.getOrElse(""))
+                .map { aftDetails =>
+                  val ua = UserAnswers(aftDetails.as[JsObject])
+                  Tuple2(ua.get(AFTVersionQuery).getOrElse(0), scheme.chargeType)
                 }
-                val y = Future.sequence(x)
-                  y.map { aftVersionTuple =>
-                    val table = paymentsAndChargesService.getPaymentsAndChargesNew(srn, paymentsCache.schemeFS, aftVersionTuple, journeyType)
-                    if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
-                }.flatMap { tableOfPaymentsAndCharges =>
-                  val json = Json.obj(
-                    fields =
-                      "titleMessage" -> Message("financialPaymentsAndCharges.title"),
-                    "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
-                    "schemeName" -> paymentsCache.schemeDetails.schemeName,
-                    "totalOverdue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
-                    "totalInterestAccruing" -> s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
-                    "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-                  )
-                  renderer.render(template = "financialOverview/paymentsAndCharges.njk", json).map(Ok(_))
+            }
+          }.flatMap { chargeTypesAndVersions =>
+            val block: SchemeFSChargeType => Option[Int] = ct => chargeTypesAndVersions.find(_._2 == ct).map(_._1)
 
-                }
-              } else {
-                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-              }
+
+            val table = paymentsAndChargesService.getPaymentsAndChargesNew(srn, paymentsCache.schemeFS, block, journeyType)
+            val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
+            val json = Json.obj(
+              fields =
+                "titleMessage" -> Message("financialPaymentsAndCharges.title"),
+              "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
+              "schemeName" -> paymentsCache.schemeDetails.schemeName,
+              "totalOverdue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
+              "totalInterestAccruing" -> s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
+              "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+            )
+            renderer.render(template = "financialOverview/paymentsAndCharges.njk", json).map(Ok(_))
+          }
+        } else {
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+        }
 
       }
-  }
+    }
 
   val isTaxYearFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
 
