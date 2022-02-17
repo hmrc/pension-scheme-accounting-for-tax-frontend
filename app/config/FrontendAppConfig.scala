@@ -182,7 +182,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
     .getString("urls.upscan-callback-endpoint")}"
   lazy val callbackEndpointTarget:String   = loadConfig("upscan.callback-endpoint")
 
-  lazy val creditBalanceRefundLink: String = servicesConfig.baseUrl("gForms") + "/submissions/new-form/request-pension-scheme-tax-refund"
+  lazy val creditBalanceRefundLink: String = loadConfig("urls.creditBalanceRefundLink")
 
   def successEndpointTarget(srn: String, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId):String   = {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
