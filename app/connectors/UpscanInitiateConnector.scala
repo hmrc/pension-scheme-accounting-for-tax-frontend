@@ -17,6 +17,7 @@
 package connectors
 
 import config.FrontendAppConfig
+import fileUploadLogTime.TimeLogger
 import models.{UpscanFileReference, UpscanInitiateResponse}
 import play.api.libs.json.{Json, OFormat, Reads, Writes}
 import play.mvc.Http.HeaderNames
@@ -73,7 +74,7 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
       errorRedirect = redirectOnError,
       maximumFileSize = Some(appConfig.maxUploadFileSize  * (1024 * 1024))
     )
-    initiate(appConfig.initiateV2Url, request)
+    TimeLogger.logOperationTime(initiate(appConfig.initiateV2Url, request), "initiateV2")
   }
 
   private def initiate[T](url: String, request: T)(

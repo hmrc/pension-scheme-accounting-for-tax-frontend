@@ -39,6 +39,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import FileUploadGenericErrorReporter.generateGenericErrorReport
+import fileUploadLogTime.TimeLogger
 class ValidationController @Inject()(
                                       override val messagesApi: MessagesApi,
                                       identify: IdentifierAction,
@@ -100,7 +101,7 @@ class ValidationController @Inject()(
           ).map(Ok(_))
         }
         else {
-          val genericErrors = generateGenericErrorReport(errors, chargeType)
+          val genericErrors = TimeLogger.logOperationTime(generateGenericErrorReport(errors, chargeType), "generateGenericErrorReport")
           renderer.render(template = "fileUpload/genericErrors.njk",
             Json.obj(
               "chargeType" -> chargeType,
@@ -128,15 +129,16 @@ class ValidationController @Inject()(
                                     linesFromCSV: List[String],
                                     parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
 
-    //removes non-printable characters like ^M$
-    val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
+    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, linesFromCSV.map(lines => lines.replaceAll("\\p{C}", "")),
+      request.userAnswers), "parse")
 
-    parser.parse(startDate, filteredLinesFromCSV, request.userAnswers).fold[Future[Result]](processInvalid(srn, startDate, accessType, version, chargeType, _),
+    TimeLogger.logOperationTime(
+    parserResult.fold[Future[Result]](processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>{
         processSuccessResult(chargeType, updatedUA).map(_=>
          Redirect(routes.FileUploadSuccessController.onPageLoad(srn,startDate.toString,accessType,version,chargeType)))
         }
-    )
+    ), "processSuccessResult")
   }
 
   private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
@@ -159,10 +161,11 @@ class ValidationController @Inject()(
             case (Some(_), None | Some(Failed(_, _)) | Some(InProgress)) => sessionExpired
             case (None, _) => sessionExpired
             case (Some(parser), Some(ud: UploadedSuccessfully)) =>
-              upscanInitiateConnector.download(ud.downloadUrl).flatMap { response =>
+              val downloadResult = TimeLogger.logOperationTime(upscanInitiateConnector.download(ud.downloadUrl), "download")
+              downloadResult.flatMap { response =>
                 response.status match {
                   case OK =>
-                    val linesFromCSV = response.body.split("\n").toList
+                    val linesFromCSV = TimeLogger.logOperationTime(response.body.split("\n").toList, "split")
                     parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
                   case _ =>
                     Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
