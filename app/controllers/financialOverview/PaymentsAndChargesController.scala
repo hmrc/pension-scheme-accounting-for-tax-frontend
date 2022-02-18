@@ -32,6 +32,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
@@ -56,65 +57,34 @@ class PaymentsAndChargesController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesController])
 
-  private val ifAFTAndOTCChargeTypes: SchemeFSChargeType => Boolean = paymentOrChargeType =>
-    paymentOrChargeType == PSS_AFT_RETURN || paymentOrChargeType == PSS_OTC_AFT_RETURN ||
-    paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
+  private def getMapChargeTypeToVersion(seqSchemeFS: Seq[SchemeFS], pstr: String)(implicit ec: ExecutionContext,
+                                                            headerCarrier: HeaderCarrier): Future[Map[SchemeFSChargeType, Option[Int]]] = {
+    val tuple = Future.sequence {
+      seqSchemeFS.map { scheme =>
+        scheme.formBundleNumber match {
+          case Some(fb) => aftConnector
+            .getAFTDetailsWithFbNumber(pstr, fb)
+            .map { aftDetails =>
+              val ua = UserAnswers(aftDetails.as[JsObject])
+              Seq(Tuple2(scheme.chargeType, ua.get(AFTVersionQuery)))
+            }
+          case None => Future.successful(Nil)
+        }
+      }
+    }.map(_.flatten)
+    tuple.map(_.toMap)
+  }
 
-  // scalastyle:off method.length
+    // scalastyle:off method.length
   def onPageLoad(srn: String, pstr: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
         val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFS)
         val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
         val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
-
-//
-//
-//        if (paymentsCache.schemeFS.nonEmpty) {
-//          val f = paymentsCache.schemeFS.map { scheme =>
-//            val futureOptionJsValue = scheme.formBundleNumber match {
-//              case None => Future.successful(None)
-//              case Some(fb) =>
-//                aftConnector.getAFTDetailsWithFbNumber(pstr, fb).map(Option(_))
-//            }
-//            futureOptionJsValue.map{ rr =>
-//              val h = rr.flatMap{ vvv =>UserAnswers(vvv.as[JsObject]).get(AFTVersionQuery)}
-//              val optionVersion: SchemeFSChargeType => Option[Int] =
-//                if (ifAFTAndOTCChargeTypes(scheme.chargeType)) {
-//                  ct => paymentsCache.schemeFS.find(_.chargeType == ct) match {
-//                    case Some(ff) => ff.
-//                  }
-//                } else {
-//                  _ => None
-//                }
-//
-//
-//
-//            }
-//          }
-//          f
-//        } else {
-//          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-//        }
-
-
-
         if (paymentsCache.schemeFS.nonEmpty) {
-          Future.sequence {
-            paymentsCache.schemeFS.map { scheme =>
-              aftConnector
-                .getAFTDetailsWithFbNumber(pstr, scheme.formBundleNumber.getOrElse(""))
-                .map { aftDetails =>
-                  val ua = UserAnswers(aftDetails.as[JsObject])
-                  Tuple2(ua.get(AFTVersionQuery).getOrElse(0), scheme.chargeType)
-                }
-            }
-          }.flatMap { chargeTypesAndVersions =>
-            val getVersion: SchemeFSChargeType => Option[Int] = ct => chargeTypesAndVersions.find(_._2 == ct).map(_._1)
-
-
-
-            val table = paymentsAndChargesService.getPaymentsAndChargesNew(srn, paymentsCache.schemeFS, getVersion, journeyType)
+          getMapChargeTypeToVersion(paymentsCache.schemeFS, pstr).flatMap { mapChargeTypesAndVersions =>
+            val table = paymentsAndChargesService.getPaymentsAndChargesNew(srn, paymentsCache.schemeFS, mapChargeTypesAndVersions, journeyType)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
               fields =
