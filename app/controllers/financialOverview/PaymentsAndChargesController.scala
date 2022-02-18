@@ -22,6 +22,7 @@ import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter.Upcoming
 import models.financialStatement.PaymentOrChargeType.{ExcessReliefPaidCharges, InterestOnExcessRelief}
+import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
 import models.{ChargeDetailsFilter, UserAnswers}
 import pages.AFTVersionQuery
@@ -55,6 +56,10 @@ class PaymentsAndChargesController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesController])
 
+  private val ifAFTAndOTCChargeTypes: SchemeFSChargeType => Boolean = paymentOrChargeType =>
+    paymentOrChargeType == PSS_AFT_RETURN || paymentOrChargeType == PSS_OTC_AFT_RETURN ||
+    paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
+
   // scalastyle:off method.length
   def onPageLoad(srn: String, pstr: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
@@ -62,6 +67,38 @@ class PaymentsAndChargesController @Inject()(
         val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFS)
         val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
         val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
+
+//
+//
+//        if (paymentsCache.schemeFS.nonEmpty) {
+//          val f = paymentsCache.schemeFS.map { scheme =>
+//            val futureOptionJsValue = scheme.formBundleNumber match {
+//              case None => Future.successful(None)
+//              case Some(fb) =>
+//                aftConnector.getAFTDetailsWithFbNumber(pstr, fb).map(Option(_))
+//            }
+//            futureOptionJsValue.map{ rr =>
+//              val h = rr.flatMap{ vvv =>UserAnswers(vvv.as[JsObject]).get(AFTVersionQuery)}
+//              val optionVersion: SchemeFSChargeType => Option[Int] =
+//                if (ifAFTAndOTCChargeTypes(scheme.chargeType)) {
+//                  ct => paymentsCache.schemeFS.find(_.chargeType == ct) match {
+//                    case Some(ff) => ff.
+//                  }
+//                } else {
+//                  _ => None
+//                }
+//
+//
+//
+//            }
+//          }
+//          f
+//        } else {
+//          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+//        }
+
+
+
         if (paymentsCache.schemeFS.nonEmpty) {
           Future.sequence {
             paymentsCache.schemeFS.map { scheme =>
@@ -74,6 +111,9 @@ class PaymentsAndChargesController @Inject()(
             }
           }.flatMap { chargeTypesAndVersions =>
             val getVersion: SchemeFSChargeType => Option[Int] = ct => chargeTypesAndVersions.find(_._2 == ct).map(_._1)
+
+
+
             val table = paymentsAndChargesService.getPaymentsAndChargesNew(srn, paymentsCache.schemeFS, getVersion, journeyType)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(

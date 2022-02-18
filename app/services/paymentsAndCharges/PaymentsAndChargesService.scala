@@ -156,7 +156,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val ifAFTAndOTCChargeTypes: Boolean =
       onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
     val suffix = (ifAFTAndOTCChargeTypes, getVersion(paymentOrChargeType)) match {
-      case (true, Some(version)) => s" submission ${version}"
+      case (true, Some(version)) => s" submission $version"
       case _ => ""
     }
 
