@@ -136,12 +136,6 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
     Literal(s"${messages(s"quarters.${q.toString}.label")} $year $lockedString")
   }
 
-  def getQuarterLabel(aftQuarter: AFTQuarter)(implicit messages: Messages): String = {
-    val q =  getQuartersFromDate(aftQuarter.startDate)
-    s"${messages(s"quarters.${q.toString}.label")}"+
-      s" ${aftQuarter.startDate.getYear}"
-  }
-
   private def getHint(displayQuarter: DisplayQuarter, hintClass: Seq[String]): Option[Hint] =
     displayQuarter.hintText match {
     case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))

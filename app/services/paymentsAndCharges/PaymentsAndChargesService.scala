@@ -65,14 +65,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   def getPaymentsAndChargesNew(srn: String,
                                schemeFS: Seq[SchemeFS],
-                               getVersion: SchemeFSChargeType => Option[Int],
+                               mapChargeTypeVersion: Map[SchemeFSChargeType, Option[Int]],
                                chargeDetailsFilter: ChargeDetailsFilter
                               )
                               (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
 
     val chargeRefs: Seq[String] = schemeFS.map(_.chargeReference)
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
-      paymentsAndChargesDetailsNew(paymentOrCharge, srn, chargeRefs, getVersion, chargeDetailsFilter)
+      paymentsAndChargesDetailsNew(paymentOrCharge, srn, chargeRefs, mapChargeTypeVersion, chargeDetailsFilter)
     }
 
     mapToNewTable(seqPayments)
@@ -145,7 +145,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                             details: SchemeFS,
                                             srn: String,
                                             chargeRefs: Seq[String],
-                                            getVersion: SchemeFSChargeType => Option[Int],
+                                            mapChargeTypeVersion: Map[SchemeFSChargeType, Option[Int]],
                                             chargeDetailsFilter: ChargeDetailsFilter
                                           )(implicit messages: Messages, hc: HeaderCarrier,
                                             ec: ExecutionContext): Seq[FinancialPaymentAndChargesDetails] = {
@@ -155,7 +155,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       paymentOrChargeType == PSS_AFT_RETURN || paymentOrChargeType == PSS_OTC_AFT_RETURN
     val ifAFTAndOTCChargeTypes: Boolean =
       onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
-    val suffix = (ifAFTAndOTCChargeTypes, getVersion(paymentOrChargeType)) match {
+
+    val suffix = (ifAFTAndOTCChargeTypes, mapChargeTypeVersion.find(_._1 == paymentOrChargeType).flatMap(_._2)) match {
       case (true, Some(version)) => s" submission $version"
       case _ => ""
     }
@@ -269,7 +270,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val rows = allPayments.map { data =>
       val linkId =
         data.chargeReference match {
-          case "To be assigned" => "to-be-assigned" + {data}
+          case "To be assigned" => "to-be-assigned"
           case "None" => "none"
           case _ => data.chargeReference
         }

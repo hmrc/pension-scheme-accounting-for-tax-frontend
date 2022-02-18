@@ -56,7 +56,7 @@ class PsaSchemeFinancialOverviewController @Inject()(
 
             val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
             val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
-2
+
             logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(aftModel)}")
             logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(upcomingTile)}")
             logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(overdueTile)}")
