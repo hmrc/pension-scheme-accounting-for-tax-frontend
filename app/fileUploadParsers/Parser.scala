@@ -16,14 +16,14 @@
 
 package fileUploadParsers
 
+import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import models.{MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{Format, JsPath, JsValue, Json}
+import play.api.libs.json.{JsPath, JsValue}
 import utils.StringHelper
-import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 
 import java.time.LocalDate
 
@@ -96,7 +96,9 @@ trait Parser {
       formError <- formWithErrors.errors
       field <- fields.find(_.columnName == formError.key)
     }
-    yield ParserValidationError(index, field.columnNo, formError.message, field.columnName)
+    yield {
+      ParserValidationError(index, field.columnNo, formError.message, field.columnName,formError.args)
+    }
   }
 
   protected final def addToValidationResults[A](
@@ -163,12 +165,8 @@ trait Parser {
     }
 }
 
-case class ParserValidationError(row: Int, col: Int, error: String, columnName: String = EMPTY)
+case class ParserValidationError(row: Int, col: Int, error: String, columnName: String = EMPTY,args:Seq[Any]=Nil)
 
-object ParserValidationError {
-  implicit lazy val formats: Format[ParserValidationError] =
-    Json.format[ParserValidationError]
-}
 
 protected case class CommitItem(jsPath: JsPath, value: JsValue)
 

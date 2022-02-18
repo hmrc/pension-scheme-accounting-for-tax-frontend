@@ -19,6 +19,7 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
+import controllers.fileUpload.FileUploadGenericErrorReporter.generateGenericErrorReport
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
@@ -26,8 +27,8 @@ import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{PSTRQuery, SchemeNameQuery}
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.AFTService
@@ -38,7 +39,6 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import FileUploadGenericErrorReporter.generateGenericErrorReport
 class ValidationController @Inject()(
                                       override val messagesApi: MessagesApi,
                                       identify: IdentifierAction,
@@ -68,7 +68,7 @@ class ValidationController @Inject()(
                               accessType: AccessType,
                               version: Int,
                               chargeType: ChargeType,
-                              errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+                              errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent],messages: Messages): Future[Result] = {
     val schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme")
     val fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
     val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
@@ -79,17 +79,11 @@ class ValidationController @Inject()(
         Future.successful(Redirect(routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType)))
       case _ =>
         if(errors.size <= maximumNumberOfError) {
-          val cellErrors = errors.map{e =>
-            val cell  = String.valueOf(('A' + e.col).toChar) + (e.row+1)
-            Json.obj(
-              "cell" -> cell,
-              "error" -> e.error
-            )
-          }
+          val cellErrors: Seq[JsObject] = errorJson(errors, messages)
           renderer.render(template = "fileUpload/invalid.njk",
             Json.obj(
               "chargeType" -> chargeType,
-              "chargeTypeText" -> chargeType.toString,
+              "chargeTypeText" -> ChargeType.fileUploadText(chargeType)(messages),
               "srn" -> srn, "startDate" -> Some(startDate),
               "errors" -> cellErrors,
               "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
@@ -104,7 +98,7 @@ class ValidationController @Inject()(
           renderer.render(template = "fileUpload/genericErrors.njk",
             Json.obj(
               "chargeType" -> chargeType,
-              "chargeTypeText" -> chargeType.toString,
+              "chargeTypeText" -> ChargeType.fileUploadText(chargeType)(messages),
               "srn" -> srn,
               "startDate" -> Some(startDate),
               "totalError" -> errors.size,
@@ -117,6 +111,17 @@ class ValidationController @Inject()(
           ).map(Ok(_))
         }
     }
+  }
+
+  private def errorJson(errors: Seq[ParserValidationError], messages: Messages):Seq[JsObject] = {
+    val cellErrors = errors.map { e =>
+      val cell = String.valueOf(('A' + e.col).toChar) + (e.row + 1)
+      Json.obj(
+        "cell" -> cell,
+        "error" -> messages(e.error, e.args: _*)
+      )
+    }
+    cellErrors
   }
 
   private def parseAndRenderResult(

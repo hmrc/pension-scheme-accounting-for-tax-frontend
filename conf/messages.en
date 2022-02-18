@@ -32,7 +32,7 @@ site.continue_to_scheme_overview = Continue to scheme overview
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
-
+error.boolean = Please give an answer
 footer.links.support_links = Help contacts
 footer.links.help = Help using GOV.UK
 footer.links.cookies = Cookies
@@ -1426,13 +1426,13 @@ fileUpload.amountTaxDue.generic.total.error.part1 = Your file has
 fileUpload.amountTaxDue.generic.total.error.part2 = members with an error in at least one field. At least one:
 
 
-fileupload.invalid.annualAllowance.title = There is a problem with your annual allowance charge file
-fileupload.invalid.annualAllowance.p1 = Correct the following errors and upload it again, or upload a different file.
-fileupload.invalid.annualAllowance.download.instructions.link = Download the instructions for the format of your files
-fileupload.invalid.annualAllowance.subheading.p2 = for more information.
-fileupload.invalid.annualAllowance.title2 = Problems with your file
-fileupload.invalid.annualAllowance.item1= Cell
-fileupload.invalid.annualAllowance.item2 = Error
+fileupload.invalid.title = There is a problem with your {0} file
+fileupload.invalid.p1 = Correct the following errors and upload it again, or upload a different file.
+fileupload.invalid.download.instructions.link = Download the instructions for the format of your files
+fileupload.invalid.subheading.p2 = for more information.
+fileupload.invalid.h1 = Problems with your file
+fileupload.invalid.item1= Cell
+fileupload.invalid.item2 = Error
 
 
 

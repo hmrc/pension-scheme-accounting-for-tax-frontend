@@ -7,7 +7,7 @@
 
 
 {% block pageTitle %}
-  {{ title(messages("aaa", chargeType)) }}
+  {{ title(messages("fileupload.invalid.title", chargeTypeText)) }}
 {% endblock %}
 
 
@@ -18,15 +18,15 @@
           <div class="govuk-grid-column-two-thirds">
 
             <h1 class="govuk-heading-xl">
-              {{ messages("fileupload.invalid.annualAllowance.title", chargeType) }}
+              {{ messages("fileupload.invalid.title", chargeTypeText) }}
              </h1>
 
-               <p class="govuk-body">{{ messages("fileupload.invalid.annualAllowance.p1") }}
-            <a href="{{fileDownloadInstructionsLink}}" class="govuk-link"> {{ messages("fileupload.invalid.annualAllowance.download.instructions.link") }}</a>
-                 {{ messages("fileupload.invalid.annualAllowance.subheading.p2") }}</p>
+               <p class="govuk-body">{{ messages("fileupload.invalid.p1") }}
+            <a href="{{fileDownloadInstructionsLink}}" class="govuk-link"> {{ messages("fileupload.invalid.download.instructions.link") }}</a>
+                 {{ messages("fileupload.invalid.subheading.p2") }}</p>
 
               <h2 class="govuk-heading-m">
-                {{ messages("fileupload.invalid.annualAllowance.title2", chargeType) }}</h2>
+                {{ messages("fileupload.invalid.h1") }}</h2>
 
             {% set rows = [] %}
              {% for e in errors %}
@@ -41,10 +41,10 @@
                   firstCellIsHeader: true,
                   head: [
                     {
-                      text: messages("fileupload.invalid.annualAllowance.item1", chargeType)
+                      text: messages("fileupload.invalid.item1")
                     },
                     {
-                      text: messages("fileupload.invalid.annualAllowance.item2", chargeType)
+                      text: messages("fileupload.invalid.item2")
                     }
                   ],
                   rows: rows

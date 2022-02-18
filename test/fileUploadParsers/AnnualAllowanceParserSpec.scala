@@ -92,10 +92,10 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       val result = parser.parse(startDate, invalidChargeDetailsCsvFile,UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount"),
-        ParserValidationError(1, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived"),
+        ParserValidationError(1, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived",Seq("year")),
         ParserValidationError(1, 6, "error.boolean", "isPaymentMandatory"),
         ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required", AnnualAllowanceFieldNames.taxYear),
-        ParserValidationError(2, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived"),
+        ParserValidationError(2, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived",Seq("month","year")),
         ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear),
         ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future", AnnualAllowanceFieldNames.taxYear),
         ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past", AnnualAllowanceFieldNames.taxYear)

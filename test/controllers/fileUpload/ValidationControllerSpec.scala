@@ -117,7 +117,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       templateCaptor.getValue mustEqual templateToBeRendered
       val jsonToPassToTemplate = Json.obj(
         "chargeType" -> chargeType.toString,
-        "chargeTypeText" -> chargeType.toString,
+        "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
         "srn" -> srn,
         "fileDownloadInstructionsLink" -> "/manage-pension-scheme-accounting-for-tax/annual-allowance-charge/aft-annual-allowance-charge-upload-format-instructions",
         "returnToFileUploadURL" -> "",
@@ -167,7 +167,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       templateCaptor.getValue mustEqual genericTemplateToBeRendered
       val jsonToPassToTemplate = Json.obj(
         "chargeType" -> chargeType.toString,
-        "chargeTypeText" -> chargeType.toString,
+        "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
         "srn" -> srn,
         "totalError" -> errors.size,
         "errors" -> expectedErrors,
