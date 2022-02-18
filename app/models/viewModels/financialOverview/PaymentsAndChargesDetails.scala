@@ -24,5 +24,5 @@ case class PaymentsAndChargesDetails(chargeType: String,
                                      paymentDue: String,
                                      status: PaymentAndChargeStatus,
                                      redirectUrl: String,
-                                     quarterDesc: String,
+                                     period: String,
                                      visuallyHiddenText: String)

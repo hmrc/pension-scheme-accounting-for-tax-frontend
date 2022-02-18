@@ -379,6 +379,7 @@ GET         /:srn/:startDate/:accessType/:version/overseas-transfer-charge/uploa
 
 GET         /:srn/financial-overview                                                                                                              controllers.financialOverview.PsaSchemeFinancialOverviewController.psaSchemeFinancialOverview(srn: String)
 GET         /:srn/financial-overview/overdue-payments-and-charges                                                                                 controllers.financialOverview.PaymentsAndChargesController.onPageLoad(srn: String, pstr:String, journeyType: String = "overdue")
+GET         /:srn/financial-overview/due-payments-and-charges                                                                                     controllers.financialOverview.PaymentsAndChargesController.onPageLoad(srn: String, pstr:String, journeyType: String = "all")
 
 # file download
 GET         /annual-allowance-charge/aft-annual-allowance-charge-upload-template                                                                  controllers.FileDownloadController.templateFile(chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance)

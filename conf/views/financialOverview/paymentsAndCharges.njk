@@ -20,6 +20,7 @@
 
         <p class="govuk-body">{{ messages("financialPaymentsAndCharges.reflect.charge.text") }}</p>
 
+    <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
             <div class="govuk-grid-column-one-half">
                 <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
                     {{ messages("psaSchemeFinancial.h2.overduePayments") }}
@@ -32,9 +33,26 @@
                </h2>
                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalInterestAccruing }}</p>
             </div>
-            </div>
+          </div>
+        </div>
+        </div>
+        <div class="govuk-grid-row">
+           <div class="govuk-grid-column-full">
+            {% if paymentAndChargesTable.rows.length > 0 %}
+                 <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">{{ messages(titleMessage) }}</span>
+                 <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
+                    {{ govukTable(paymentAndChargesTable) }}
                 </div>
-            <div class="govuk-grid-row">
+            {% endif %}
+
+            </div>
+        </div>
+
+    <p class="govuk-body"><a id="return" href="{{ returnUrl }}" class="govuk-link">{{ messages("return.to.link", schemeName) }}</a></p>
+
+{% endblock %}
+
+<div class="govuk-grid-row">
                   <div class="govuk-grid-column-two-thirds">
             {% if paymentAndChargesTable.rows.length > 0 %}
                  <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">{{ messages(titleMessage) }}</span>
@@ -45,7 +63,3 @@
 
       </div>
     </div>
-
-    <p class="govuk-body"><a id="return" href="{{ returnUrl }}" class="govuk-link">{{ messages("return.to.link", schemeName) }}</a></p>
-
-{% endblock %}

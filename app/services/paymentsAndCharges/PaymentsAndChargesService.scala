@@ -23,7 +23,6 @@ import controllers.financialStatement.paymentsAndCharges.routes.{PaymentsAndChar
 import helpers.FormatHelper._
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
-import models.Quarters.{getQuarter, getQuarterLabel}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
@@ -38,10 +37,11 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Content, Html, SummaryList, _}
 import utils.DateHelper
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -65,14 +65,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   def getPaymentsAndChargesNew(srn: String,
                                schemeFS: Seq[SchemeFS],
-                               block: SchemeFSChargeType => Option[Int],
+                               getVersion: SchemeFSChargeType => Option[Int],
                                chargeDetailsFilter: ChargeDetailsFilter
                               )
                               (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
 
     val chargeRefs: Seq[String] = schemeFS.map(_.chargeReference)
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
-      paymentsAndChargesDetailsNew(paymentOrCharge, srn, chargeRefs, block, chargeDetailsFilter)
+      paymentsAndChargesDetailsNew(paymentOrCharge, srn, chargeRefs, getVersion, chargeDetailsFilter)
     }
 
     mapToNewTable(seqPayments)
@@ -145,7 +145,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                             details: SchemeFS,
                                             srn: String,
                                             chargeRefs: Seq[String],
-                                            block: SchemeFSChargeType => Option[Int],
+                                            getVersion: SchemeFSChargeType => Option[Int],
                                             chargeDetailsFilter: ChargeDetailsFilter
                                           )(implicit messages: Messages, hc: HeaderCarrier,
                                             ec: ExecutionContext): Seq[FinancialPaymentAndChargesDetails] = {
@@ -155,7 +155,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       paymentOrChargeType == PSS_AFT_RETURN || paymentOrChargeType == PSS_OTC_AFT_RETURN
     val ifAFTAndOTCChargeTypes: Boolean =
       onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
-    val suffix = (ifAFTAndOTCChargeTypes, block(paymentOrChargeType)) match {
+    val suffix = (ifAFTAndOTCChargeTypes, getVersion(paymentOrChargeType)) match {
       case (true, Some(version)) => s" submission ${version}"
       case _ => ""
     }
@@ -174,7 +174,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
           paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
           status = status,
-          quarterDesc = getQuarterLabel(getQuarter(details.periodStartDate)),
+          period = setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate),
           redirectUrl = PaymentsAndChargeDetailsController.onPageLoad(
             srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType.toString, chargeDetailsFilter).url,
           visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
@@ -189,10 +189,10 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           FinancialPaymentAndChargesDetails(
             chargeType = interestChargeType.toString + suffix,
             chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
-            originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
+            originalChargeAmount = "",
             paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
             status = InterestIsAccruing,
-            quarterDesc = getQuarterLabel(getQuarter(details.periodStartDate)),
+            period = setPeriod(interestChargeType, details.periodStartDate, details.periodEndDate),
             redirectUrl = PaymentsAndChargesInterestController.onPageLoad(
               srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType.toString, chargeDetailsFilter).url,
             visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
@@ -206,6 +206,22 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         )
     }
   }
+
+  private def setPeriod(chargeType: SchemeFSChargeType, periodStartDate: LocalDate, periodEndDate: LocalDate): String = {
+    chargeType match {
+      case PSS_AFT_RETURN | PSS_OTC_AFT_RETURN | PSS_AFT_RETURN_INTEREST | PSS_OTC_AFT_RETURN_INTEREST
+           | AFT_MANUAL_ASST | AFT_MANUAL_ASST_INTEREST | OTC_MANUAL_ASST | OTC_MANUAL_ASST_INTEREST =>
+        "Quarter: " + formatStartDate(periodStartDate) + " to " + formatDateDMY(periodEndDate)
+      case PSS_CHARGE | PSS_CHARGE_INTEREST | CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST =>
+        "Period: " + formatStartDate(periodStartDate) + " to " + formatDateDMY(periodEndDate)
+      case EXCESS_RELIEF_PAID =>
+        "Tax Year: " + formatDateDMY(periodStartDate) + " to " + formatDateDMY(periodEndDate)
+      case EXCESS_RELIEF_INTEREST =>
+        "Tax Period: " + formatDateDMY(periodStartDate) + " to " + formatDateDMY(periodEndDate)
+      case _ => ""
+    }
+  }
+
 
   private def htmlStatus(data: PaymentsAndChargesDetails)
                         (implicit messages: Messages): Html = {
@@ -253,7 +269,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val rows = allPayments.map { data =>
       val linkId =
         data.chargeReference match {
-          case "To be assigned" => "to-be-assigned"
+          case "To be assigned" => "to-be-assigned" + {data}
           case "None" => "none"
           case _ => data.chargeReference
         }
@@ -284,7 +300,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                            (implicit messages: Messages): Table = {
 
     val head = Seq(
-      Cell(msg"paymentsAndCharges.chargeType.table"),
+      Cell(msg"paymentsAndCharges.chargeType.table", classes = Seq("govuk-!-width-one-half")),
       Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-font-weight-bold")),
       Cell(msg"paymentsAndCharges.chargeDetails.originalChargeAmount", classes = Seq("govuk-!-font-weight-bold")),
       Cell(msg"paymentsAndCharges.paymentDue.table", classes = Seq("govuk-!-font-weight-bold")),
@@ -307,14 +323,13 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           s"${data.chargeType} " +
           s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
           s"<p class=govuk-hint>" +
-          s"Quarter: " +
-          s"${data.quarterDesc}</p>")
+          s"${data.period}</p>")
 
       Seq(
-        Cell(htmlChargeType, classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half")),
+        Cell(Literal(s"${data.chargeReference}")),
+        Cell(Literal(data.originalChargeAmount)),
+        Cell(Literal(data.paymentDue)),
         Cell(htmlStatusNew(data), classes = Nil)
       )
     }
