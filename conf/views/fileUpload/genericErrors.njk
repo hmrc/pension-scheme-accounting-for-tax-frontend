@@ -26,7 +26,7 @@
                 {{ messages("fileupload.invalid.h1") }}
               </h2>
                 <p class="govuk-body">
-                {{ messages("fileUpload.amountTaxDue.generic.total.error.part1")}} {{totalError}} {{ messages("fileUpload.amountTaxDue.generic.total.error.part2")}}
+                {{ messages("fileUpload.amountTaxDue.generic.total.error.part1",totalError)}}
                 </p>
                  <ul class="govuk-list govuk-list--bullet">
                 {% for e in errors %}

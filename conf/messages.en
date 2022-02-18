@@ -1422,8 +1422,7 @@ fileUpload.dateOfTransfer.generic.error = date of the transfer into the QROPS is
 fileUpload.qropsReferenceNumber.generic.error = QROPS reference number is missing or in the wrong format
 fileUpload.amountTransferred.generic.error = amount transferred into the QROPS is missing or in the wrong format
 fileUpload.amountTaxDue.generic.error = amount of tax due for this transfer into the QROPS is missing or in the wrong format
-fileUpload.amountTaxDue.generic.total.error.part1 = Your file has
-fileUpload.amountTaxDue.generic.total.error.part2 = members with an error in at least one field. At least one:
+fileUpload.amountTaxDue.generic.total.error.part1 = Your file has {0} errors. At least one:
 
 
 fileupload.invalid.title = There is a problem with your {0} file
