@@ -18,9 +18,10 @@
           section: schemeName
         }) }}
 
-        <p class="govuk-body">{{ messages("financialPaymentsAndCharges.reflect.charge.text") }}</p>
+        <p class="govuk-body">{{ reflectChargeText }}</p>
 
     <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
+        {% if journeyType == "overdue" %}
             <div class="govuk-grid-column-one-half">
                 <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
                     {{ messages("psaSchemeFinancial.h2.overduePayments") }}
@@ -33,7 +34,15 @@
                </h2>
                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalInterestAccruing }}</p>
             </div>
-          </div>
+        {% else %}
+            <div class="govuk-grid-column-one-half">
+                <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+                   {{ messages("psaSchemeFinancial.h2.totalDuePayment") }}
+                </h2>
+                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalUpcoming }}</p>
+            </div>
+       {% endif %}
+        </div>
         </div>
         </div>
         <div class="govuk-grid-row">

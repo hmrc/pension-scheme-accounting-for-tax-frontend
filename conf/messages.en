@@ -1405,5 +1405,7 @@ psaSchemeFinancial.allDue.link  = View all due payments and charges
 psaSchemeFinancial.allPaymentCharges.link  = View all payments and charges
 psaSchemeFinancial.title = Your financial overview
 
-financialPaymentsAndCharges.title = Overdue payments and interest charges
-financialPaymentsAndCharges.reflect.charge.text = The information may not reflect payments made in the last 3 days.
+financialPaymentsAndCharges.overdue.title = Overdue payments and interest charges
+financialPaymentsAndCharges.overdue.reflect.charge.text = The information may not reflect payments made in the last 3 days.
+financialPaymentsAndCharges.upcoming.title = Due payments and charges
+financialPaymentsAndCharges.upcoming.reflect.charge.text = This page lists charges with an upcoming payment deadline. The information may not reflect payments made in the last 3 days.

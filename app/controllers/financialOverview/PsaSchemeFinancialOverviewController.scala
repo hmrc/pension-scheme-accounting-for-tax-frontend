@@ -66,7 +66,7 @@ class PsaSchemeFinancialOverviewController @Inject()(
               ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),
                 "schemeName" -> schemeName,
                 "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "overdue").url,
-                "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "all").url
+                "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "upcoming").url
                 )
             ).map(Ok(_))
           }
