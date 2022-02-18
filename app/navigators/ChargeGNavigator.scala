@@ -82,7 +82,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
     ua.get(InputSelectionPage(ChargeTypeOverseasTransfer)) match {
       case Some(ManualInput) =>
-        controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+        controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
       case Some(FileUploadInput) =>
         controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, ChargeTypeOverseasTransfer)
       case _ => sessionExpiredPage
