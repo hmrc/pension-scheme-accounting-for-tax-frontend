@@ -69,7 +69,7 @@
                              <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
                                                     {{ messages("psaSchemeFinancial.h2.creditBalance") }}
                                 </h2>
-                            <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold"> £{{creditBalance}} </p>
+                            <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold"> {{creditBalance}} </p>
                             {% if creditBalance > 0 %}
                                 <p class="govuk-body-m">
                                     <a id="refund" class=govuk-link href="{{ requestRefundUrl }}"> {{ messages("psaSchemeFinancial.refund") }} </a>
