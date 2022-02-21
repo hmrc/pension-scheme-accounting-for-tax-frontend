@@ -26,6 +26,7 @@ import models.chargeG.{ChargeAmounts, ChargeDetails}
 import org.mockito.MockitoSugar.mock
 import org.mockito.{Mockito, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
+import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.matchers.must.Matchers
 import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json

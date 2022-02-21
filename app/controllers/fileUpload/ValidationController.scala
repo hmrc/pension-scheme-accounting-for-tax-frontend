@@ -63,6 +63,7 @@ class ValidationController @Inject()(
 
   val maximumNumberOfError = 10
 
+  // scalastyle:off method.length
   private def processInvalid(
                               srn: String,
                               startDate: LocalDate,
@@ -81,7 +82,7 @@ class ValidationController @Inject()(
       case _ =>
         if(errors.size <= maximumNumberOfError) {
           val cellErrors = errors.map{e =>
-            val cell  = String.valueOf(('A' + e.col).toChar) + (e.row+1)
+            val cell  = String.valueOf(('A' + e.col).toChar) + (e.row + 1)
             Json.obj(
               "cell" -> cell,
               "error" -> e.error

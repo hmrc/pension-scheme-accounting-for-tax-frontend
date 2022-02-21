@@ -102,7 +102,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         ParserValidationError(0, 0, "Cry", "firstName")
       )
 
-      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
+      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any(), any())).thenReturn(Left(errors))
 
       val result = route(
         application,
@@ -149,7 +149,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         ParserValidationError(11, 2, "memberDetails.error.nino.invalid", "nino"),
       )
 
-      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
+      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any(), any())).thenReturn(Left(errors))
 
       val result = route(
         application,
@@ -185,7 +185,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val errors: Seq[ParserValidationError] =
         Seq(ParserValidationError(0, 0, "Header invalid or File is empty"))
 
-      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
+      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any(), any())).thenReturn(Left(errors))
 
       val result = route(
         application,
@@ -225,7 +225,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         .setOrException( JsPath \ "testNode2", JsString("test2"))
 
 
-      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Right(ci))
+      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any(), any())).thenReturn(Right(ci))
       when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(ci))
       when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)

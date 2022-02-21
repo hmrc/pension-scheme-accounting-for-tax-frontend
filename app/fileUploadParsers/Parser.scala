@@ -26,9 +26,11 @@ import utils.StringHelper
 import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 
 import java.time.LocalDate
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 object Parser {
-  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, "Header invalid or File is empty", EMPTY)
+  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty: ParserValidationError = ParserValidationError(0, 0, "Header invalid or File is empty", EMPTY)
 }
 
 trait Parser {
@@ -40,16 +42,46 @@ trait Parser {
 
   protected val totalFields: Int
 
-  def parse(startDate: LocalDate, rows: Seq[String], userAnswers: UserAnswers)(implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
+
+  def parse(startDate: LocalDate, rows: Seq[String], userAnswers: UserAnswers)(implicit messages: Messages,
+                                                                               ec: ExecutionContext): Either[Seq[ParserValidationError], UserAnswers] = {
     rows.headOption match {
       case Some(row) if row.equalsIgnoreCase(validHeader) =>
         rows.size match {
-          case n if n >= 2 => parseDataRows(startDate, rows).map{ commitItems =>
-            commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
-          }
+          case n if n >= 2 =>
+            parseDataRowsA(startDate, rows).map { commitItems =>
+              commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
+            }
           case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
       case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+    }
+  }
+
+  private def parseDataRowsA(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages,
+                                                                      ec: ExecutionContext): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+    val len = rows.length
+    if (len < 5000) {
+      parseDataRows(startDate, rows)
+    } else {
+      val midPoint = len / 2
+      val splitRows = rows.splitAt(midPoint)
+      val a1 = Future {
+        parseDataRows(startDate, splitRows._1)
+      }
+      val a2 = Future {
+        parseDataRows(startDate, splitRows._2)
+      }
+      val mergedFutures = Future.sequence(Seq(a1, a2))
+      val v = mergedFutures.map { t =>
+        (t.head, t(1)) match {
+          case (Left(e1), Left(e2)) => Left(e1 ++ e2)
+          case (Left(e1), Right(_)) => Left(e1)
+          case (Right(_), Left(e2)) => Left(e2)
+          case (Right(r1), Right(r2)) => Right(r1 ++ r2)
+        }
+      }
+      Await.result(v, Duration.Inf)
     }
   }
 
@@ -92,7 +124,7 @@ trait Parser {
   }
 
   protected final def errorsFromForm[A](formWithErrors: Form[A], fields: Seq[Field], index: Int): Seq[ParserValidationError] = {
-    for{
+    for {
       formError <- formWithErrors.errors
       field <- fields.find(_.columnName == formError.key)
     }
@@ -143,7 +175,6 @@ trait Parser {
     )
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
-
 
 
   protected final def splitDayMonthYear(date: String): ParsedDate = {

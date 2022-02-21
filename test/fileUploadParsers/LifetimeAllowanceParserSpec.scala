@@ -25,6 +25,7 @@ import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import models.UserAnswers
 import models.chargeD.ChargeDDetails
+import scala.concurrent.ExecutionContext.Implicits.global
 import org.mockito.{Mockito, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers

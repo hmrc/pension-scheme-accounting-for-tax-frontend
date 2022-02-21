@@ -27,6 +27,7 @@ import models.UserAnswers
 import models.chargeE.ChargeEDetails
 import org.mockito.{Mockito, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
+import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.matchers.must.Matchers
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
