@@ -25,7 +25,6 @@ import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
-import navigators.CompoundNavigator
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -47,15 +46,13 @@ class ValidationController @Inject()(
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
-                                      navigator: CompoundNavigator,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
                                       annualAllowanceParser: AnnualAllowanceParser,
                                       lifeTimeAllowanceParser: LifetimeAllowanceParser,
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService:AFTService,
-                                      fileUploadAftReturnService: FileUploadAftReturnService,
-                                      config: FrontendAppConfig,
+                                      fileUploadAftReturnService: FileUploadAftReturnService
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
