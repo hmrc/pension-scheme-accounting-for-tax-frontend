@@ -1403,6 +1403,7 @@ psaSchemeFinancial.allOverdue.link  = View all overdue payments and interest cha
 psaSchemeFinancial.allDue.link  = View all due payments and charges
 psaSchemeFinancial.allPaymentCharges.link  = View all payments and charges
 psaSchemeFinancial.title = Your financial overview
+psaSchemeFinancial.refund = Request a refund
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format
