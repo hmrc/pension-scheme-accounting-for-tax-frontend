@@ -27,7 +27,7 @@ object TimeLogger {
     val start = System.currentTimeMillis
     val call = f
     val totalTime = System.currentTimeMillis - start
-    logger.warn(s"%%%%%%%%%%%%%%%%%% total time taken to $description is $totalTime ms")
+    logger.warn(s"%%%%%%%%%%%%%%%%%% PAR total time taken to $description is $totalTime ms")
     call
   }
 
