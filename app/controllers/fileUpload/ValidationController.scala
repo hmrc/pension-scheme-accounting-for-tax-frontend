@@ -56,7 +56,7 @@ class ValidationController @Inject()(
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService:AFTService,
                                       fileUploadAftReturnService: FileUploadAftReturnService,
-                                      config: FrontendAppConfig,
+                                      config: FrontendAppConfig
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
