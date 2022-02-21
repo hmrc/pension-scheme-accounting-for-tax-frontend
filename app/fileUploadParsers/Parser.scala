@@ -58,6 +58,9 @@ trait Parser {
     }
   }
 
+  /*
+    This to test parallel running. Will lose one row and should not await future result but will do for testing speed
+   */
   private def parseDataRowsA(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages,
                                                                       ec: ExecutionContext): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     val len = rows.length
