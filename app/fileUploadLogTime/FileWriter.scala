@@ -37,12 +37,12 @@ Tera,Sammons,KM887326D,2020,553.17,01/01/2020,YES
     val bw = new BufferedWriter(new FileWriter(file))
     bw.write("First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory")
     bw.write("\n")
-    for(index <- 0 to 13000){
-      bw.write("Flo,Narton,XXXXX,2020,268.28,01/01/2020,YES")
+    for(index <- 0 to 22000){
+      bw.write("Flo,Narton,JC149717C,2020,268.28,01/01/2020,YES")
       bw.write("\n")
     }
     bw.close()
   }
-  writeFile("/home/mazin/Downloads/performance_test2_error.csv")
+  writeFile("/home/mazin/Downloads/performance_test2_valid_22Th.csv")
 
 }
