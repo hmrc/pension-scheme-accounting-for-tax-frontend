@@ -39,6 +39,11 @@ trait NavigatorBehaviour extends SpecBase with Matchers with ScalaCheckPropertyC
     Tuple5(page, ua.getOrElse(UserAnswers()), call, currentDate, version)
   }
 
+  protected def rowWithAccessModeAndVersion(page: Page)(call: Call, ua: Option[UserAnswers] = None,
+                                                        accessMode: AccessMode, version: Int): (Page, UserAnswers, Call, AccessMode, Int) = {
+    Tuple5(page, ua.getOrElse(UserAnswers()), call, accessMode, version)
+  }
+
   protected def navigatorWithRoutesForMode(mode: Mode)(navigator: CompoundNavigator,
                                                        routes: TableFor3[Page, UserAnswers, Call],
                                                        srn: String,
@@ -68,6 +73,20 @@ trait NavigatorBehaviour extends SpecBase with Matchers with ScalaCheckPropertyC
           val result = navigator.nextPage(page, mode, userAnswers, srn, startDate, accessType, version)(
             request(sessionAccessData=SessionAccessData(version = version,
               accessMode = AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+          result mustBe call
+        }
+    }
+  }
+  protected def navigatorWithRoutesForModeAccessModeAndVersion(mode: Mode)(navigator: CompoundNavigator,
+                                                                     routes: TableFor5[Page, UserAnswers, Call, AccessMode, Int],
+                                                                     srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Unit = {
+    forAll(routes) {
+      (page: Page, userAnswers: UserAnswers, call: Call, accessMode: AccessMode, version: Int) =>
+        s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString} and AccessMode: $accessMode and version: $version" in {
+          DateHelper.setDate(Option(LocalDate.now))
+          val result = navigator.nextPage(page, mode, userAnswers, srn, startDate, accessType, version)(
+            request(sessionAccessData=SessionAccessData(version = version,
+              accessMode = accessMode, areSubmittedVersionsAvailable = false)))
           result mustBe call
         }
     }

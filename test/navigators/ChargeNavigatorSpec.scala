@@ -17,13 +17,14 @@
 package navigators
 
 import controllers.fileUpload.routes.InputSelectionController
+import controllers.{chargeD, chargeE, chargeG}
 import data.SampleData
-import data.SampleData.{accessType, versionInt}
+import data.SampleData._
 import models.ChargeType._
 import models.FeatureToggle.{Disabled, Enabled}
 import models.FeatureToggleName.AftBulkUpload
 import models.LocalDateBinder._
-import models.{AFTQuarter, ChargeType, NormalMode, UserAnswers}
+import models.{AFTQuarter, AccessMode, ChargeType, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
@@ -190,31 +191,70 @@ class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar w
   private val srn = "test-srn"
   private val startDate = QUARTER_START_DATE
 
-  private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
 
-  private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
+  private def chargeEMemberExists(chargeType: ChargeType=ChargeTypeAnnualAllowance,version:Int=1,memberStatus:String="New"): Option[UserAnswers] =
+    SampleData.chargeEMember.set(ChargeTypePage,chargeType ).toOption.get
+      .set(pages.chargeE.MemberStatusPage(0),memberStatus).toOption.get
+      .set(pages.chargeE.MemberAFTVersionPage(0),version).toOption
 
-  private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
+  private def chargeDMemberExists(chargeType: ChargeType=ChargeTypeLifetimeAllowance,version:Int=1,memberStatus:String="New"): Option[UserAnswers] =
+    SampleData.chargeDMember.set(ChargeTypePage, chargeType).toOption.get
+      .set(pages.chargeD.MemberStatusPage(0),memberStatus).toOption.get
+      .set(pages.chargeD.MemberAFTVersionPage(0),version).toOption
 
-  private def optUA(ct: ChargeType): Option[UserAnswers] = SampleData.userAnswersWithSchemeNamePstrQuarter.set(ChargeTypePage, ct).toOption
+  private def chargeGMemberExists(chargeType: ChargeType=ChargeTypeOverseasTransfer,version:Int=1,memberStatus:String="New"): Option[UserAnswers] =
+    SampleData.chargeGMember.set(ChargeTypePage, chargeType).toOption.get
+      .set(pages.chargeG.MemberStatusPage(0),memberStatus).toOption.get
+      .set(pages.chargeG.MemberAFTVersionPage(0),version).toOption
+
 
   "NormalMode when bulk upload toggle is switched on" must {
-    def normalModeRoutes: TableFor3[Page, UserAnswers, Call] = {
+    def normalModeRoutes: TableFor5[Page, UserAnswers, Call,AccessMode, Int] = {
       Table(
-        ("Id", "UserAnswers", "Next Page"),
-        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance), chargeEMemberExists),
-        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance), chargeDMemberExists),
-        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeOverseasTransfer), chargeGMemberExists)
+        ("Id", "UserAnswers", "Next Page","AccessMode","version"),
+        rowWithAccessModeAndVersion(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance),
+          chargeEMemberExists(),AccessMode.PageAccessModeCompile,1),
+        rowWithAccessModeAndVersion(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance),
+          chargeDMemberExists(),AccessMode.PageAccessModeCompile,1),
+        rowWithAccessModeAndVersion(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeOverseasTransfer),
+          chargeGMemberExists(),AccessMode.PageAccessModeCompile,1),
+        //No member
+        rowWithAccessModeAndVersion(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, version2Int, ChargeTypeAnnualAllowance),
+          chargeDMemberExists(ChargeTypeAnnualAllowance),AccessMode.PageAccessModePreCompile,2),
+        rowWithAccessModeAndVersion(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, version2Int, ChargeTypeLifetimeAllowance),
+          chargeEMemberExists(ChargeTypeLifetimeAllowance),AccessMode.PageAccessModePreCompile,2),
+        rowWithAccessModeAndVersion(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, version2Int, ChargeTypeOverseasTransfer),
+          chargeDMemberExists(ChargeTypeOverseasTransfer),AccessMode.PageAccessModePreCompile,2),
+        //With member
+        rowWithAccessModeAndVersion(ChargeTypePage)(chargeE.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, version2Int,1),
+          chargeEMemberExists(),AccessMode.PageAccessModePreCompile,2),
+        rowWithAccessModeAndVersion(ChargeTypePage)(chargeD.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, version2Int,1),
+          chargeDMemberExists(),AccessMode.PageAccessModePreCompile,2),
+        rowWithAccessModeAndVersion(ChargeTypePage)(chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, version2Int, 1),
+          chargeGMemberExists(),AccessMode.PageAccessModePreCompile,2),
+
+        rowWithAccessModeAndVersion(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, version2Int, ChargeTypeAnnualAllowance),
+          chargeEMemberExists(version=2),AccessMode.PageAccessModeCompile,2),
+        rowWithAccessModeAndVersion(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, version2Int, ChargeTypeLifetimeAllowance),
+          chargeDMemberExists(version=2),AccessMode.PageAccessModeCompile,2),
+        rowWithAccessModeAndVersion(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, version2Int, ChargeTypeOverseasTransfer),
+          chargeGMemberExists(version=2),AccessMode.PageAccessModeCompile,2),
+
+        rowWithAccessModeAndVersion(ChargeTypePage)(chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, 3, 1),
+          chargeEMemberExists(version=2,memberStatus="Changed"),AccessMode.PageAccessModeCompile,3),
+        rowWithAccessModeAndVersion(ChargeTypePage)(chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, 3, 1),
+          chargeDMemberExists(version=2,memberStatus="Changed"),AccessMode.PageAccessModeCompile,3),
+        rowWithAccessModeAndVersion(ChargeTypePage)(chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, 3, 1),
+          chargeGMemberExists(version=2,memberStatus="Changed"),AccessMode.PageAccessModeCompile,3),
+
       )
     }
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator,
+    behave like navigatorWithRoutesForModeAccessModeAndVersion(NormalMode)(navigator,
       normalModeRoutes,
       srn,
       startDate,
       accessType,
-      versionInt,
-      request(pspId = None, psaId = Some(SampleData.psaId))
-    )
+      versionInt)
   }
 }
