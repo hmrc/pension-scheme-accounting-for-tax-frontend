@@ -16,10 +16,11 @@
 
 package navigators
 
+import controllers.fileUpload.routes.InputSelectionController
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import models.ChargeType._
-import models.FeatureToggle.Disabled
+import models.FeatureToggle.{Disabled, Enabled}
 import models.FeatureToggleName.AftBulkUpload
 import models.LocalDateBinder._
 import models.{AFTQuarter, ChargeType, NormalMode, UserAnswers}
@@ -115,8 +116,6 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
           confirmSubmitAFTReturn(confirmSubmit = false)),
         row(ConfirmSubmitAFTAmendmentPage)(EnterPsaIdController.onPageLoad(srn, startDate, accessType, versionInt), confirmAmendAFTReturn(confirmAmend = true)),
         row(EnterPsaIdPage)(DeclarationController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.userAnswersWithSchemeNamePstrQuarter))
-
-
       )
     }
 
@@ -167,7 +166,55 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
       )
 
     behave like navigatorWithRoutesForModeDateAndVersion(NormalMode)(navigator, normalModeRoutes, srn, startDate, accessType, versionInt)
+  }
+}
 
 
+class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar with BeforeAndAfterEach {
+  private val mockFeatureToggleService = mock[FeatureToggleService]
+
+  override lazy val app: Application = new GuiceApplicationBuilder()
+    .overrides(
+      Seq[GuiceableModule](
+        bind[FeatureToggleService].toInstance(mockFeatureToggleService)
+      ): _*
+    ).build()
+
+  private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockFeatureToggleService.get(any())(any(), any())).thenReturn(Future.successful(Enabled(AftBulkUpload)))
+  }
+
+  private val srn = "test-srn"
+  private val startDate = QUARTER_START_DATE
+
+  private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
+
+  private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
+
+  private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
+
+  private def optUA(ct: ChargeType): Option[UserAnswers] = SampleData.userAnswersWithSchemeNamePstrQuarter.set(ChargeTypePage, ct).toOption
+
+  "NormalMode when bulk upload toggle is switched on" must {
+    def normalModeRoutes: TableFor3[Page, UserAnswers, Call] = {
+      Table(
+        ("Id", "UserAnswers", "Next Page"),
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance), chargeEMemberExists),
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance), chargeDMemberExists),
+        row(ChargeTypePage)(InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeOverseasTransfer), chargeGMemberExists)
+      )
+    }
+
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator,
+      normalModeRoutes,
+      srn,
+      startDate,
+      accessType,
+      versionInt,
+      request(pspId = None, psaId = Some(SampleData.psaId))
+    )
   }
 }
