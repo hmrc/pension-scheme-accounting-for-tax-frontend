@@ -76,15 +76,16 @@ class PsaSchemeFinancialOverviewController @Inject()(
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(upcomingTile)}")
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(overdueTile)}")
 
-    val creditBalance = 1.00
-    val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
     val pstr = schemeDetails.pstr
+    val creditBalance = service.getCreditBalanceAmount(creditSchemeFS)
+    val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
     val requestRefundUrl = s"$creditBalanceBaseUrl?requestType=1&psaName=$psaName&pstr=$pstr&availAmt=$creditBalance"
 
     renderer.render(
       template = "financialOverview/psaSchemeFinancialOverview.njk",
       ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),
-        "schemeName" -> schemeName, "requestRefundUrl" -> requestRefundUrl, "creditBalance" ->  creditBalanceFormatted)
+        "schemeName" -> schemeName, "requestRefundUrl" -> requestRefundUrl,
+        "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }
 }
