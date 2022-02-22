@@ -16,12 +16,15 @@
 
 package controllers.financialOverview
 
-import connectors.FinancialStatementConnector
+import config.FrontendAppConfig
+import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
+import models.SchemeDetails
+import models.financialStatement.SchemeFS
 import play.api.Logger
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc._
 import renderer.Renderer
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -29,16 +32,18 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewmodels.CardViewModel
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PsaSchemeFinancialOverviewController @Inject()(
+                                                      appConfig: FrontendAppConfig,
                                                       identify: IdentifierAction,
                                                       override val messagesApi: MessagesApi,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       schemeService: SchemeService,
                                                       financialStatementConnector: FinancialStatementConnector,
                                                       service: PsaSchemePartialService,
-                                                      renderer: Renderer
+                                                      renderer: Renderer,
+                                                      minimalConnector: MinimalConnector
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -48,26 +53,36 @@ class PsaSchemeFinancialOverviewController @Inject()(
 
   def psaSchemeFinancialOverview(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
-
-      schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
-        val schemeName = schemeDetails.schemeName
-        financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFS =>
-          service.aftCardModel(schemeDetails, srn).flatMap { aftModel =>
-
-            val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
-            val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
-
-            logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(aftModel)}")
-            logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(upcomingTile)}")
-            logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(overdueTile)}")
-
-            renderer.render(
-              template = "financialOverview/psaSchemeFinancialOverview.njk",
-              ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),"schemeName" ->schemeName)
-            ).map(Ok(_))
-          }
-        }
+      val response = for {
+        schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
+        psaName <- minimalConnector.getPsaNameFromPsaID(request.psaIdOrException.id)
+        schemeFS <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
+        aftModel <- service.aftCardModel(schemeDetails, srn)
+      } yield {
+        renderFinancialOverview(srn, psaName, schemeDetails, schemeFS, aftModel, request)
       }
+      response.flatten
+  }
 
+  private def renderFinancialOverview(srn: String, psaName: String, schemeDetails: SchemeDetails, schemeFS: Seq[SchemeFS],
+                                      aftModel: Seq[CardViewModel], request: RequestHeader) (implicit messages: Messages) : Future[Result] = {
+    val schemeName = schemeDetails.schemeName
+    val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
+    val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
+
+    logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(aftModel)}")
+    logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(upcomingTile)}")
+    logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(overdueTile)}")
+
+    val creditBalance = 1.00
+    val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
+    val pstr = schemeDetails.pstr
+    val requestRefundUrl = s"$creditBalanceBaseUrl?requestType=1&psaName=$psaName&pstr=$pstr&availAmt=$creditBalance"
+
+    renderer.render(
+      template = "financialOverview/psaSchemeFinancialOverview.njk",
+      ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),
+        "schemeName" -> schemeName, "requestRefundUrl" -> requestRefundUrl)
+    )(request).map(Ok(_))
   }
 }

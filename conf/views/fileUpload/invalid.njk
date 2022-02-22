@@ -3,10 +3,11 @@
 {% from "macros/title.njk"  import title %}
 {% from "govuk/components/radios/macro.njk" import govukRadios %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
 
 
 {% block pageTitle %}
-  {{ title(messages("aaa", chargeType)) }}
+  {{ title(messages("fileupload.invalid.title", chargeTypeText)) }}
 {% endblock %}
 
 
@@ -17,15 +18,50 @@
           <div class="govuk-grid-column-two-thirds">
 
             <h1 class="govuk-heading-xl">
-              {{ messages("Someheading", chargeType) }}
-            </h1>
+              {{ messages("fileupload.invalid.title", chargeTypeText) }}
+             </h1>
 
-            <p class="govuk-body">{{ result }}</p>
+               <p class="govuk-body">{{ messages("fileupload.invalid.p1") }}
+            <a href="{{fileDownloadInstructionsLink}}" class="govuk-link"> {{ messages("fileupload.invalid.download.instructions.link") }}</a>
+                 {{ messages("fileupload.invalid.subheading.p2") }}</p>
 
-            {% for e in errors %}
-                <p class="govuk-body"> Row {{ e.row }}, col {{ e.col }} : {{ messages(e.error) }} </p>
-            {% endfor %}
+              <h2 class="govuk-heading-m">
+                {{ messages("fileupload.invalid.h1") }}</h2>
 
-      <p class="govuk-body"><a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
+            {% set rows = [] %}
+             {% for e in errors %}
+             {% set rowItems = [] %}
+                       {% set rowItems = (rowItems.push({text: messages(e.cell), classes: 'govuk-!-font-weight-regular'}), rowItems) %}
+                       {% set rowItems = (rowItems.push({text: messages(e.error)}), rowItems) %}
+                       {% set rows = (rows.push(rowItems), rows) %}
+
+             {% endfor %}
+
+                {{ govukTable({
+                  firstCellIsHeader: true,
+                  head: [
+                    {
+                      text: messages("fileupload.invalid.item1")
+                    },
+                    {
+                      text: messages("fileupload.invalid.item2")
+                    }
+                  ],
+                  rows: rows
+                }) }}
+
+
+            {{ govukButton({
+                            href: returnToFileUploadURL,
+                            attributes: {id: "submit"},
+                            text: messages("return.to.fileupload")
+                          }) }}
+            </div>
+
+            </div>
+            <p class="govuk-body"><a href="{{returnToSchemeDetails}}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+            </p>
       </p>
 {% endblock %}
+
+
