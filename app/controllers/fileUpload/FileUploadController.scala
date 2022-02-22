@@ -25,11 +25,12 @@ import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId, UploadedSuccessfully}
 import pages.SchemeNameQuery
 import pages.fileUpload.UploadedFileName
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.fileUpload.UploadProgressTracker
+import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.Inject
@@ -45,10 +46,12 @@ class FileUploadController @Inject()(
                                       renderer: Renderer,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector
+                                      userAnswersCacheConnector: UserAnswersCacheConnector,
+                                      upscanErrorHandlingService: UpscanErrorHandlingService
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport {
+  private val logger = Logger(classOf[FileUploadController])
 
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
@@ -58,7 +61,7 @@ class FileUploadController @Inject()(
       val successRedirectUrl = appConfig.successEndpointTarget(srn, startDate, accessType, version, chargeType, uploadId)
 
       val errorRedirectUrl = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
-
+      logger.info("FileUploadController.onPageLoad BF upscanInitiate")
       upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)).flatMap{ uir =>
         uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap{ _ =>
           val viewModel = GenericViewModel(
@@ -66,7 +69,7 @@ class FileUploadController @Inject()(
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme")
           )
-
+          logger.info("FileUploadController.onPageLoad AF upscanInitiate")
           renderer.render(template = "fileUpload/fileupload.njk",
             Json.obj(
               "chargeType" -> chargeType.toString,
@@ -92,6 +95,7 @@ class FileUploadController @Inject()(
             case Some(status) =>
               status match {
                 case UploadedSuccessfully(name, _, _, _) =>
+                  logger.info("FileUploadController.showResult UploadedSuccessfully")
                   for {
                     updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), name))
                     _ <- userAnswersCacheConnector.savePartial(request.internalId,updatedAnswers.data,Some(chargeType))
@@ -99,13 +103,10 @@ class FileUploadController @Inject()(
                     Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
                   }
                 case InProgress =>
-                  val sleepTime:Long = 2000
-                  Future.successful{
-                    Thread.sleep(sleepTime)
-                    Redirect(routes.FileUploadController.
-                      showResult(srn, startDate, accessType, version, chargeType, uploadId))
-                  }
-                case Failed(failureReason, _) => handleFailureResponse(failureReason, srn, startDate, accessType, version)
+                  logger.info("FileUploadController.showResult InProgress")
+                  Future.successful(Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId)))
+                case Failed(failureReason, _) =>
+                  upscanErrorHandlingService.handleFailureResponse(failureReason, srn, startDate, accessType, version)
               }
           }
     }
@@ -115,18 +116,6 @@ class FileUploadController @Inject()(
       Some(request.queryString("errorCode").head)
     } else {
       None
-    }
-  }
-
-  private def handleFailureResponse(failureResponse: String,srn: String, startDate: String, accessType: AccessType,
-                                    version: Int)(implicit request: DataRequest[_]): Future[Result]  = {
-    failureResponse match {
-      case "QUARANTINE" =>
-        Future.successful(Redirect(routes.UpscanErrorController.quarantineError(srn, startDate, accessType, version)))
-      case "REJECTED" =>
-        Future.successful(Redirect(routes.UpscanErrorController.rejectedError(srn, startDate, accessType, version)))
-      case "UNKNOWN" =>
-        Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate, accessType, version)))
     }
   }
 }

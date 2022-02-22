@@ -379,10 +379,6 @@ GET         /:srn/:startDate/:accessType/:version/overseas-transfer-charge/uploa
 
 GET         /:srn/financial-overview                                                                                                              controllers.financialOverview.PsaSchemeFinancialOverviewController.psaSchemeFinancialOverview(srn: String)
 
-# upload file notification callback
-#NOCSRF
-POST        /fileupload/upscan-callback                                                                                                           controllers.fileUpload.UploadCallbackController.callback
-
 # file download
 GET         /annual-allowance-charge/aft-annual-allowance-charge-upload-template                                                                  controllers.FileDownloadController.templateFile(chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance)
 GET         /lifetime-allowance-charge/aft-lifetime-allowance-charge-upload-template                                                              controllers.FileDownloadController.templateFile(chargeType: ChargeType = ChargeType.ChargeTypeLifetimeAllowance)

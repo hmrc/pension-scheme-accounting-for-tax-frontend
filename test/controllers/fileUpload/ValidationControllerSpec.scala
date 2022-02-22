@@ -53,6 +53,14 @@ import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val templateToBeRendered = "fileUpload/invalid.njk"
+  private val genericTemplateToBeRendered = "fileUpload/genericErrors.njk"
+  private val chargeType = ChargeType.ChargeTypeAnnualAllowance
+
+  private def ua: UserAnswers = userAnswersWithSchemeName
+
+  val expectedJson: JsObject = Json.obj()
 
   import ValidationControllerSpec._
 
@@ -84,7 +92,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val errors: Seq[ParserValidationError] = Seq(
-        ParserValidationError(0, 0, "Cry")
+        ParserValidationError(0, 0, "Cry", "firstName")
       )
 
       when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
@@ -102,9 +110,65 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       templateCaptor.getValue mustEqual templateToBeRendered
       val jsonToPassToTemplate = Json.obj(
         "chargeType" -> chargeType.toString,
-        "chargeTypeText" -> chargeType.toString,
+        "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
         "srn" -> srn,
-        "errors" -> errors
+        "fileDownloadInstructionsLink" ->
+          "/manage-pension-scheme-accounting-for-tax/annual-allowance-charge/aft-annual-allowance-charge-upload-format-instructions",
+        "returnToFileUploadURL" -> "",
+        "returnToSchemeDetails" -> "/manage-pension-scheme-accounting-for-tax/aa/2020-04-01/draft/1/return-to-scheme-details",
+        "schemeName" -> "Big Scheme"
+      )
+      println(jsonCaptor.getValue)
+      println(jsonToPassToTemplate)
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+    }
+
+    "return OK and the correct view for a GET where there are validation errors more than 10 errors" in {
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val errors: Seq[ParserValidationError] = Seq(
+        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
+        ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
+        ParserValidationError(3, 2, "memberDetails.error.nino.invalid", "nino"),
+        ParserValidationError(4, 1, "memberDetails.error.lastName.required", "lastName"),
+        ParserValidationError(5, 2, "memberDetails.error.nino.invalid", "nino"),
+        ParserValidationError(6, 1, "memberDetails.error.lastName.required", "lastName"),
+        ParserValidationError(7, 2, "memberDetails.error.nino.invalid", "nino"),
+        ParserValidationError(8, 1, "memberDetails.error.lastName.required", "lastName"),
+        ParserValidationError(9, 2, "memberDetails.error.nino.invalid", "nino"),
+        ParserValidationError(10, 1, "memberDetails.error.lastName.required", "lastName"),
+        ParserValidationError(11, 2, "memberDetails.error.nino.invalid", "nino"),
+      )
+
+      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
+
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedErrors = Seq("fileUpload.memberDetails.generic.error.firstName",
+        "fileUpload.memberDetails.generic.error.lastName",
+        "fileUpload.memberDetails.generic.error.nino")
+      templateCaptor.getValue mustEqual genericTemplateToBeRendered
+      val jsonToPassToTemplate = Json.obj(
+        "chargeType" -> chargeType.toString,
+        "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
+        "srn" -> srn,
+        "totalError" -> errors.size,
+        "errors" -> expectedErrors,
+        "fileDownloadInstructionsLink" -> "/manage-pension-scheme-accounting-for-tax/annual-allowance-charge/aft-annual-allowance-charge-upload-format-instructions",
+        "returnToFileUploadURL" -> "",
+        "returnToSchemeDetails" -> "/manage-pension-scheme-accounting-for-tax/aa/2020-04-01/draft/1/return-to-scheme-details",
+        "schemeName" -> "Big Scheme"
       )
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
@@ -218,7 +282,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       when(mockOverseasTransferParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
       when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
-      when(mockAFTService.fileCompileReturn(any(),any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       val result = route(
         application,
@@ -297,18 +361,18 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
     .setOrException(ChargeGDetailsPage(1), SampleData.chargeGDetails)
 
 
-  def retrieveChargeCount(ua:UserAnswers):Seq[Int] = {
-    val chargeACount = ua.get(ChargeADetailsPage).map(_=>1).getOrElse(0)
-    val chargeBCount = ua.get(ChargeBDetailsPage).map(_=>1).getOrElse(0)
+  def retrieveChargeCount(ua: UserAnswers): Seq[Int] = {
+    val chargeACount = ua.get(ChargeADetailsPage).map(_ => 1).getOrElse(0)
+    val chargeBCount = ua.get(ChargeBDetailsPage).map(_ => 1).getOrElse(0)
     val chargeCCount =
-      ua.get(ChargeCDetailsPage(0)).map(_=>1).getOrElse(0) + ua.get(ChargeCDetailsPage(1)).map(_=>1).getOrElse(0)
+      ua.get(ChargeCDetailsPage(0)).map(_ => 1).getOrElse(0) + ua.get(ChargeCDetailsPage(1)).map(_ => 1).getOrElse(0)
     val chargeDCount =
-      ua.get(ChargeDDetailsPage(0)).map(_=>1).getOrElse(0) + ua.get(ChargeDDetailsPage(1)).map(_=>1).getOrElse(0)
+      ua.get(ChargeDDetailsPage(0)).map(_ => 1).getOrElse(0) + ua.get(ChargeDDetailsPage(1)).map(_ => 1).getOrElse(0)
     val chargeECount =
-      ua.get(ChargeEDetailsPage(0)).map(_=>1).getOrElse(0) + ua.get(ChargeEDetailsPage(1)).map(_=>1).getOrElse(0)
-    val chargeFCount = ua.get(ChargeFDetailsPage).map(_=>1).getOrElse(0)
+      ua.get(ChargeEDetailsPage(0)).map(_ => 1).getOrElse(0) + ua.get(ChargeEDetailsPage(1)).map(_ => 1).getOrElse(0)
+    val chargeFCount = ua.get(ChargeFDetailsPage).map(_ => 1).getOrElse(0)
     val chargeGCount =
-      ua.get(ChargeAmountsPage(0)).map(_=>1).getOrElse(0) + ua.get(ChargeAmountsPage(1)).map(_=>1).getOrElse(0)
+      ua.get(ChargeAmountsPage(0)).map(_ => 1).getOrElse(0) + ua.get(ChargeAmountsPage(1)).map(_ => 1).getOrElse(0)
 
     Seq(chargeACount, chargeBCount, chargeCCount, chargeDCount, chargeECount, chargeFCount, chargeGCount)
   }
