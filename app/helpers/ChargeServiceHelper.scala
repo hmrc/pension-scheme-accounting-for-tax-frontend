@@ -17,15 +17,12 @@
 package helpers
 
 import models.AccessMode.{PageAccessModeCompile, PageAccessModePreCompile}
-import models.UserAnswers
-import models.requests.DataRequest
-import pages.AFTStatusQuery
+import models.{AccessMode, UserAnswers}
 import pages.chargeC.SponsoringEmployersQuery
 import pages.chargeD.LifetimeAllowanceMembersQuery
 import pages.chargeE.AnnualAllowanceMembersQuery
 import pages.chargeG.{ChargeAmountsPage, OverseasTransferMembersQuery}
 import play.api.libs.json.{JsArray, JsValue}
-import play.api.mvc.AnyContent
 
 class ChargeServiceHelper {
 
@@ -61,28 +58,34 @@ class ChargeServiceHelper {
     nonDeletedMemberOrEmployer.nonEmpty
   }
 
-  def isShowFileUploadOption(ua: UserAnswers,  chargeType: String)(implicit request: DataRequest[AnyContent]): Boolean = {
+  def isShowFileUploadOption(ua: UserAnswers,  chargeType: String,version: Int, accessMode: AccessMode): Boolean = {
+
     nodeInfo(chargeType) match {
       case Some(nodes) =>
-        val memberOrEmployerSeq =
-          (ua.data \ chargeType \ nodes.memberOrEmployerNode)
-            .validate[JsArray].asOpt
-            .getOrElse(JsArray()).value
+          val memberSeq =
+            (ua.data \ chargeType \ nodes.memberOrEmployerNode)
+              .validate[JsArray].asOpt
+              .getOrElse(JsArray()).value
 
-        (request.sessionData.sessionAccessData.accessMode,request.sessionData.sessionAccessData.version) match{
-          case (PageAccessModePreCompile, 1) => memberOrEmployerSeq.isEmpty
-          case (PageAccessModeCompile, v) if v > 1 => memberOrEmployerSeq.isEmpty
-          case (PageAccessModeCompile, v) if v > 1 =>
-            !memberOrEmployerSeq.exists(member =>
-              (member \ "memberAFTVersion").validate[Int].getOrElse(0) < v
-            )
+        (accessMode,version) match{
+          case (PageAccessModePreCompile,v) if v > 1 => memberSeq.isEmpty
+          case (PageAccessModeCompile, v) if v > 1 => validateCompile(memberSeq, v)
+          case (_, 1) => true
           case _ => false
         }
       case _ =>
         false
     }
   }
-  
+
+  private def validateCompile(memberSeq: IndexedSeq[JsValue], v: Int) = {
+
+    memberSeq.isEmpty || (!memberSeq.exists(member =>
+      (member \ "memberAFTVersion").validate[Int].getOrElse(0) < v)
+      || !memberSeq.exists(member =>(member \ "memberStatus").validate[String].asOpt.forall(_ != "New") )
+      )
+  }
+
   private def nodeInfo(chargeType:String):Option[NodeInfo] = {
     val bigDecimal_zero = BigDecimal(0.0)
     chargeType match {
