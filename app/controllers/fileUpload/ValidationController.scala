@@ -19,15 +19,15 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
+import controllers.fileUpload.FileUploadGenericErrorReporter.generateGenericErrorReport
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
-import navigators.CompoundNavigator
-import pages.PSTRQuery
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import pages.{PSTRQuery, SchemeNameQuery}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.{JsObject, JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.AFTService
@@ -47,17 +47,18 @@ class ValidationController @Inject()(
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
-                                      navigator: CompoundNavigator,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
                                       annualAllowanceParser: AnnualAllowanceParser,
                                       lifeTimeAllowanceParser: LifetimeAllowanceParser,
                                       overseasTransferParser: OverseasTransferParser,
-                                      aftService:AFTService,
+                                      aftService: AFTService,
                                       fileUploadAftReturnService: FileUploadAftReturnService
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
+
+  val maximumNumberOfError = 10
 
   private def processInvalid(
                               srn: String,
@@ -65,20 +66,69 @@ class ValidationController @Inject()(
                               accessType: AccessType,
                               version: Int,
                               chargeType: ChargeType,
-                              errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+                              errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent], messages: Messages): Future[Result] = {
+    val schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme")
+    val fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
+    val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
+    val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
+
     errors match {
       case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
         Future.successful(Redirect(routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType)))
       case _ =>
-        renderer.render(template = "fileUpload/invalid.njk",
-          Json.obj(
-            "chargeType" -> chargeType,
-            "chargeTypeText" -> chargeType.toString,
-            "srn" -> srn, "startDate" -> Some(startDate),
-            "errors" -> errors))
-          .map(Ok(_))
+        if (errors.size <= maximumNumberOfError) {
+          val cellErrors: Seq[JsObject] = errorJson(errors, messages)
+          renderer.render(template = "fileUpload/invalid.njk",
+            Json.obj(
+              "chargeType" -> chargeType,
+              "chargeTypeText" -> ChargeType.fileUploadText(chargeType)(messages),
+              "srn" -> srn, "startDate" -> Some(startDate),
+              "errors" -> cellErrors,
+              "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
+              "returnToFileUploadURL" -> returnToFileUpload,
+              "returnToSchemeDetails" -> returnToSchemeDetails,
+              "schemeName" -> schemeName
+            )
+          ).map(Ok(_))
+        }
+        else {
+          val genericErrors = generateGenericErrorReport(errors, chargeType)
+          renderer.render(template = "fileUpload/genericErrors.njk",
+            Json.obj(
+              "chargeType" -> chargeType,
+              "chargeTypeText" -> ChargeType.fileUploadText(chargeType)(messages),
+              "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "totalError" -> errors.size,
+              "errors" -> genericErrors,
+              "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
+              "returnToFileUploadURL" -> returnToFileUpload,
+              "returnToSchemeDetails" -> returnToSchemeDetails,
+              "schemeName" -> schemeName
+            )
+          ).map(Ok(_))
+        }
     }
   }
+
+  private def errorJson(errors: Seq[ParserValidationError], messages: Messages): Seq[JsObject] = {
+    val cellErrors = errors.map { e =>
+      val cell = String.valueOf(('A' + e.col).toChar) + (e.row + 1)
+      Json.obj(
+        "cell" -> cell,
+        "error" -> messages(e.error, e.args: _*)
+      )
+    }
+    cellErrors
+  }
+
+  private def removeMemberBasedCharge(ua: UserAnswers, chargeType: ChargeType): UserAnswers =
+    chargeType match {
+      case ChargeTypeAnnualAllowance => ua.removeWithPath(JsPath \ "chargeEDetails")
+      case ChargeTypeLifetimeAllowance => ua.removeWithPath(JsPath \ "chargeDDetails")
+      case ChargeTypeOverseasTransfer => ua.removeWithPath(JsPath \ "chargeGDetails")
+      case _ => ua
+    }
 
   private def parseAndRenderResult(
                                     srn: String,
@@ -92,16 +142,18 @@ class ValidationController @Inject()(
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
 
-    parser.parse(startDate, filteredLinesFromCSV, request.userAnswers).fold[Future[Result]](processInvalid(srn, startDate, accessType, version, chargeType, _),
-      updatedUA =>{
-        processSuccessResult(chargeType, updatedUA).map(_=>
-         Redirect(routes.FileUploadSuccessController.onPageLoad(srn,startDate.toString,accessType,version,chargeType)))
-        }
+    val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
+
+    parser.parse(startDate, filteredLinesFromCSV, updatedUA).fold[Future[Result]](
+      processInvalid(srn, startDate, accessType, version, chargeType, _),
+      updatedUA =>
+        processSuccessResult(chargeType, updatedUA).map(_ =>
+          Redirect(routes.FileUploadSuccessController.onPageLoad(srn, startDate.toString, accessType, version, chargeType)))
     )
   }
 
   private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
-                                  (implicit request: DataRequest[AnyContent])= {
+                                  (implicit request: DataRequest[AnyContent]) = {
 
     for {
       updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
@@ -129,7 +181,7 @@ class ValidationController @Inject()(
                     Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
                 }
               }
-            }
+          }
         }
     }
 

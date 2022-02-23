@@ -32,7 +32,7 @@ site.continue_to_scheme_overview = Continue to scheme overview
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
-
+error.boolean = Please give an answer
 footer.links.support_links = Help contacts
 footer.links.help = Help using GOV.UK
 footer.links.cookies = Cookies
@@ -1162,8 +1162,8 @@ paymentsAndCharges.interest.visuallyHiddenText = for charge reference to come
 paymentsAndCharges.chargeReference.toBeAssigned = To be assigned
 paymentsAndCharges.chargeType.table = Charge type
 paymentsAndCharges.totalDue.table = Amount due
-paymentsAndCharges.paymentDue.table = Payment due
 paymentsAndCharges.chargeReference.table = Charge reference
+paymentsAndCharges.paymentDue.table = Payment due
 paymentsAndCharges.chargeDetails.originalChargeAmount = Original charge amount
 paymentsAndCharges.chargeDetails.payments = Payments and account credits
 paymentsAndCharges.chargeDetails.stoodOverAmount = Amount under review (includes appeals)
@@ -1409,3 +1409,36 @@ financialPaymentsAndCharges.overdue.title = Overdue payments and interest charge
 financialPaymentsAndCharges.overdue.reflect.charge.text = The information may not reflect payments made in the last 3 days.
 financialPaymentsAndCharges.upcoming.title = Due payments and charges
 financialPaymentsAndCharges.upcoming.reflect.charge.text = This page lists charges with an upcoming payment deadline. The information may not reflect payments made in the last 3 days.
+psaSchemeFinancial.refund = Request a refund
+
+fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
+fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format
+fileUpload.memberDetails.generic.error.nino = member’s National Insurance number is missing or in the wrong format
+
+fileUpload.chargeAmount.generic.error = charge amount is missing or in the wrong format
+fileUpload.isPayment.generic.error = payment type is missing or in the wrong format
+fileUpload.taxYear.generic.error = tax year to which the annual allowance charge relates is missing or in the wrong format
+fileUpload.dateNoticeReceived.generic.error = date you received notice to pay the charge is missing or in the wrong format
+
+fileUpload.taxAt25Percent.generic.error = amount of tax due at 25% is missing or in the wrong format
+fileUpload.taxAt55Percent.generic.error = amount of tax due at 55% is missing or in the wrong format
+fileUpload.dateOfEvent.generic.error = date of the benefit crystallisation event is missing or in the wrong format
+
+fileUpload.dateOfBirth.generic.error = member’s date of birth is missing or in the wrong format
+fileUpload.dateOfTransfer.generic.error = date of the transfer into the QROPS is missing or in the wrong format
+fileUpload.qropsReferenceNumber.generic.error = QROPS reference number is missing or in the wrong format
+fileUpload.amountTransferred.generic.error = amount transferred into the QROPS is missing or in the wrong format
+fileUpload.amountTaxDue.generic.error = amount of tax due for this transfer into the QROPS is missing or in the wrong format
+fileUpload.amountTaxDue.generic.total.error.part1 = Your file has {0} errors. At least one:
+
+
+fileupload.invalid.title = There is a problem with your {0} file
+fileupload.invalid.p1 = Correct the following errors and upload it again, or upload a different file.
+fileupload.invalid.download.instructions.link = Download the instructions for the format of your files
+fileupload.invalid.subheading.p2 = for more information.
+fileupload.invalid.h1 = Problems with your file
+fileupload.invalid.item1= Cell
+fileupload.invalid.item2 = Error
+
+
+

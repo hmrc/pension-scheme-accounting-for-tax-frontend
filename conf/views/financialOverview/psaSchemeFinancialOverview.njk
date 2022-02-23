@@ -5,7 +5,7 @@
 {% from "govuk/components/table/macro.njk"      import govukTable %}
 
 {% set financialAmounts = [] %}
-{% set creditBalance = "£0.00" %}
+{% set creditBalance = 1.0 %}
 {% set repaymentInterest = "£0.00" %}
 
  {% for card in cards %}
@@ -70,8 +70,14 @@
                              <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
                                                     {{ messages("psaSchemeFinancial.h2.creditBalance") }}
                                 </h2>
-                            <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold"> {{creditBalance}} </p>
-                                  </div>
+                            <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold"> £{{creditBalance}} </p>
+                            {% if creditBalance > 0 %}
+                                <p class="govuk-body-m">
+                                    <a id="refund" class=govuk-link href="{{ requestRefundUrl }}"> {{ messages("psaSchemeFinancial.refund") }} </a>
+                                </p>
+                            {% endif %}
+
+                         </div>
 </div>
                     <p class="govuk-body-m">
                                                <a id="allPaymentCharges" class=govuk-link href="#"> {{ messages("psaSchemeFinancial.allPaymentCharges.link") }}</a>

@@ -88,8 +88,8 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
     "return validation errors for charge details when present, including missing year and missing month" in {
       val result = parser.parse(startDate, invalidChargeDetailsCsvFile,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent"),
-        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent")
+        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent",Seq("year")),
+        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent",Seq("month","year"))
       ))
     }
 
@@ -97,10 +97,10 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsCsvFile,UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent"),
+        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent",Seq("year")),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),
-        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent")
+        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent",Seq("month","year"))
       ))
     }
 
@@ -108,7 +108,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsFirstRowCsvFile,UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent"),
+        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent",Seq("year")),
       ))
     }
 

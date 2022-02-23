@@ -18,7 +18,7 @@ package helpers
 
 import base.SpecBase
 import data.SampleData
-import models.{AmendedChargeStatus, UserAnswers}
+import models.{AccessMode, AmendedChargeStatus, UserAnswers}
 import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import pages.chargeC._
@@ -125,6 +125,32 @@ class ChargeServiceHelperSpec extends SpecBase with MockitoSugar with BeforeAndA
       chargeServiceHelper.isEmployerOrMemberPresent(deletedEmployersChargeG, "chargeGDetails") mustBe false
     }
   }
+
+  "isShowFileUploadOption" must {
+    "return false when charge not exists" in {
+      chargeServiceHelper.isShowFileUploadOption(UserAnswers(), "chargeADetails",1,AccessMode.PageAccessModePreCompile) mustBe false
+    }
+
+    "return false when charge member exists with Access mode PreCompile and version more than 1" in {
+      chargeServiceHelper.isShowFileUploadOption(allEmployersChargeE, "chargeEDetails",2,AccessMode.PageAccessModePreCompile) mustBe false
+    }
+    "return true when charge member exists with Access mode PreCompile and version 1" in {
+      chargeServiceHelper.isShowFileUploadOption(allEmployersChargeE, "chargeEDetails",1,AccessMode.PageAccessModePreCompile) mustBe true
+    }
+
+    "return false when Access mode Compile with memberAftVersion less than aft version" in {
+      chargeServiceHelper.isShowFileUploadOption(allEmployersChargeEWithVersionAndStatus(1,"Deleted"),
+        "chargeEDetails",2,AccessMode.PageAccessModeCompile) mustBe false
+    }
+    "return true when  Access mode Compile with member added in same version " in {
+      chargeServiceHelper.isShowFileUploadOption(allEmployersChargeEWithVersionAndStatus(2,"New"),
+        "chargeEDetails",2,AccessMode.PageAccessModeCompile) mustBe true
+    }
+    "return true when charge member exists with Access mode Compile and member status New" in {
+      chargeServiceHelper.isShowFileUploadOption(allEmployersChargeEWithVersionAndStatus(3,"New"), "chargeEDetails",2,AccessMode.PageAccessModeCompile) mustBe true
+    }
+  }
+
 }
 
 object ChargeServiceHelperSpec {
@@ -212,4 +238,13 @@ object ChargeServiceHelperSpec {
     .set(chargeG.MemberStatusPage(1), AmendedChargeStatus.Deleted.toString).toOption.get
     .set(chargeG.MemberDetailsPage(1), SampleData.memberGDetails2).toOption.get
     .set(chargeG.ChargeAmountsPage(1), SampleData.chargeAmounts2).toOption.get
+
+  val chargeWithoutMember: UserAnswers = UserAnswers()
+    .set(chargeE.AddMembersPage, true).toOption.get
+
+  def allEmployersChargeEWithVersionAndStatus(version:Int,memberStatus:String): UserAnswers =
+    allEmployersChargeE.set(chargeE.MemberAFTVersionPage(0),version).toOption.get
+      .set(chargeE.MemberAFTVersionPage(1),1).toOption.get
+      .set(chargeE.MemberStatusPage(0), memberStatus).toOption.get
+      .set(chargeE.MemberStatusPage(1), memberStatus).toOption.get
 }

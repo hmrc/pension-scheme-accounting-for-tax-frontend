@@ -16,14 +16,15 @@
 
 package services.paymentsAndCharges
 
+import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{AFTConnector, FinancialStatementConnector}
 import controllers.chargeB.{routes => _}
+import controllers.financialOverview.{routes => financialOverview}
 import controllers.financialStatement.paymentsAndCharges.routes.{PaymentsAndChargeDetailsController, PaymentsAndChargesInterestController}
 import helpers.FormatHelper._
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
-import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
@@ -46,7 +47,6 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
-                                          aftConnector: AFTConnector,
                                           fsConnector: FinancialStatementConnector,
                                           financialInfoCacheConnector: FinancialInfoCacheConnector
                                          ) {
@@ -63,16 +63,18 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     mapToTable(seqPayments)
   }
 
+  case class IndexRef (chargeType: String, chargeReference: String)
+
   def getPaymentsAndChargesNew(srn: String,
                                schemeFS: Seq[SchemeFS],
                                mapChargeTypeVersion: Map[SchemeFSChargeType, Option[Int]],
                                chargeDetailsFilter: ChargeDetailsFilter
                               )
                               (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
-
+    val indexRefs : Seq[IndexRef] = schemeFS.map{ x => IndexRef(x.chargeType.toString,x.chargeReference)}
     val chargeRefs: Seq[String] = schemeFS.map(_.chargeReference)
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
-      paymentsAndChargesDetailsNew(paymentOrCharge, srn, chargeRefs, mapChargeTypeVersion, chargeDetailsFilter)
+      paymentsAndChargesDetailsNew(paymentOrCharge, srn, indexRefs, chargeRefs, mapChargeTypeVersion, chargeDetailsFilter)
     }
 
     mapToNewTable(seqPayments)
@@ -144,24 +146,32 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   private def paymentsAndChargesDetailsNew(
                                             details: SchemeFS,
                                             srn: String,
+                                            indexRefs: Seq[IndexRef],
                                             chargeRefs: Seq[String],
                                             mapChargeTypeVersion: Map[SchemeFSChargeType, Option[Int]],
                                             chargeDetailsFilter: ChargeDetailsFilter
                                           )(implicit messages: Messages, hc: HeaderCarrier,
                                             ec: ExecutionContext): Seq[FinancialPaymentAndChargesDetails] = {
 
+    val ref : Map[String, Seq[IndexRef]] = indexRefs.groupBy(_.chargeType)
+    println("\n\n\n\n\n\n\nref "+ref)
+ val index  = ref.find(_._1 == details.chargeType).map {
+   x => x._2.find(_.chargeReference == details.chargeReference)
+ }
+    println("\n\n\n\n\n\n\nindex "+index)
+    val chargeType = getPaymentOrChargeType(details.chargeType)
     val paymentOrChargeType = details.chargeType
     val onlyAFTAndOTCChargeTypes: Boolean =
       paymentOrChargeType == PSS_AFT_RETURN || paymentOrChargeType == PSS_OTC_AFT_RETURN
     val ifAFTAndOTCChargeTypes: Boolean =
       onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
 
-    val suffix = (ifAFTAndOTCChargeTypes, mapChargeTypeVersion.find(_._1 == paymentOrChargeType).flatMap(_._2)) match {
-      case (true, Some(version)) => s" submission $version"
-      case _ => ""
+    val suffix: (Option[String], Option[Int]) = (ifAFTAndOTCChargeTypes, mapChargeTypeVersion.find(_._1 == paymentOrChargeType).flatMap(_._2)) match {
+      case (true, Some(version)) => (Some(s" submission $version"), Some(version))
+      case _ => (None, None)
     }
 
-    val period: String = if (paymentOrChargeType.toString == "AccountingForTaxCharges") {
+    val periodValue: String = if (chargeType.toString == "AccountingForTaxCharges") {
       details.periodStartDate.toString
     } else {
       details.periodEndDate.getYear.toString
@@ -170,14 +180,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val chargeDetailsItemWithStatus: PaymentAndChargeStatus => FinancialPaymentAndChargesDetails =
       status =>
         FinancialPaymentAndChargesDetails(
-          chargeType = details.chargeType.toString + suffix,
+          chargeType = details.chargeType.toString + suffix._1.getOrElse(""),
           chargeReference = details.chargeReference,
           originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
           paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
           status = status,
           period = setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate),
-          redirectUrl = PaymentsAndChargeDetailsController.onPageLoad(
-            srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType.toString, chargeDetailsFilter).url,
+          redirectUrl = financialOverview.PaymentsAndChargeDetailsController.onPageLoad(
+            srn, periodValue, chargeRefs.indexOf(details.chargeReference).toString, chargeType, suffix._2, chargeDetailsFilter).url,
           visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
         )
 
@@ -188,14 +198,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         Seq(
           chargeDetailsItemWithStatus(PaymentOverdue),
           FinancialPaymentAndChargesDetails(
-            chargeType = interestChargeType.toString + suffix,
+            chargeType = interestChargeType.toString + suffix._1.getOrElse(""),
             chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
             originalChargeAmount = "",
             paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
             status = InterestIsAccruing,
             period = setPeriod(interestChargeType, details.periodStartDate, details.periodEndDate),
-            redirectUrl = PaymentsAndChargesInterestController.onPageLoad(
-              srn, period, chargeRefs.indexOf(details.chargeReference).toString, paymentOrChargeType.toString, chargeDetailsFilter).url,
+            redirectUrl = financialOverview.PaymentsAndChargesInterestController.onPageLoad(
+              srn, periodValue, chargeRefs.indexOf(details.chargeReference).toString, chargeType, suffix._2, chargeDetailsFilter).url,
             visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
           )
         )

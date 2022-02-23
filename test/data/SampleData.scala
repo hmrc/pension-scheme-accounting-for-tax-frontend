@@ -60,12 +60,14 @@ object SampleData {
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, Some(chargeAmount1), Some(BigDecimal(34.34)), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
+  val chargeEDetails2 = ChargeEDetails(chargeAmount2, LocalDate.of(2019, 5, 1), isPaymentMandatory = false)
   val chargeCDetails = ChargeCDetails(paymentDate = QUARTER_START_DATE, amountTaxDue = chargeAmount1)
   val chargeDDetails = ChargeDDetails(QUARTER_START_DATE, Option(chargeAmount1), Option(chargeAmount2))
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "123456", qropsTransferDate = QUARTER_START_DATE)
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString, None)
   val version = "1"
   val versionInt = 1
+  val version2Int = 2
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)
