@@ -57,6 +57,10 @@ class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
     minDetails(hcWithId)
   }
 
+  def getPsaNameFromPsaID(psaId: String)
+                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] =
+    getMinimalPsaDetails(psaId).map(_.name)
+
   private def minDetails(hcWithId: HeaderCarrier)
                         (implicit ec: ExecutionContext): Future[MinimalDetails] = {
 

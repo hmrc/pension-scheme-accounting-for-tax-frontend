@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.fileUpload
+package upscan.callback
 
 import connectors.Reference
 import play.api.libs.json._
