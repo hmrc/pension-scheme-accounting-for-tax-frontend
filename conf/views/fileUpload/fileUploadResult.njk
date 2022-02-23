@@ -12,7 +12,7 @@
 
 {% block mainContent %}
     {% if fileName == "InProgress" %}
-        <meta http-equiv="refresh" content="1"/>
+        <meta http-equiv="refresh" content="2"/>
     {% endif %}
 
     <div class="govuk-grid-row">
@@ -47,10 +47,18 @@
                          errorMessage: form.value.error
                        }) }}
 
-                {{ govukButton({
-                         attributes: {id: "submit"},
-                         text: messages("site.continue")
-                       }) }}
+                {% if fileName == "InProgress" %}
+                                    {{ govukButton({
+                                             attributes: {id: "submit"},
+                                             text: messages("site.continue"),
+                                             disabled: true
+                                           }) }}
+                                 {% else %}
+                                    {{ govukButton({
+                                         attributes: {id: "submit"},
+                                         text: messages("site.continue")
+                                       }) }}
+                                  {% endif %}
 
 
       <p class="govuk-body"><a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>

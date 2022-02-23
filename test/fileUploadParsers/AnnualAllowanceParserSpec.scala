@@ -81,23 +81,23 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     "return validation errors for member details" in {
       val result = parser.parse(startDate, invalidMemberDetailsCsvFile,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 0, "memberDetails.error.firstName.required"),
-        ParserValidationError(2, 1, "memberDetails.error.lastName.required"),
-        ParserValidationError(2, 2, "memberDetails.error.nino.invalid")
+        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
+        ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
+        ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino")
       ))
     }
 
     "return validation errors for charge details, including missing, invalid, future and past tax years" in {
       val result = parser.parse(startDate, invalidChargeDetailsCsvFile,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 4, "chargeAmount.error.required"),
-        ParserValidationError(1, 5, "dateNoticeReceived.error.incomplete"),
-        ParserValidationError(1, 6, "error.boolean"),
-        ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required"),
-        ParserValidationError(2, 5, "dateNoticeReceived.error.incomplete"),
-        ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid"),
-        ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future"),
-        ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past")
+        ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount"),
+        ParserValidationError(1, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived"),
+        ParserValidationError(1, 6, "error.boolean", "isPaymentMandatory"),
+        ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required", ""),
+        ParserValidationError(2, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived"),
+        ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid", ""),
+        ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future", ""),
+        ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past", "")
       )
       )
     }
@@ -115,19 +115,19 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     "return validation errors for member details AND charge details when both present" in {
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsCsvFile,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 0, "memberDetails.error.firstName.required"),
-        ParserValidationError(1, 4, "chargeAmount.error.required"),
-        ParserValidationError(2, 1, "memberDetails.error.lastName.required"),
-        ParserValidationError(2, 2, "memberDetails.error.nino.invalid"),
-        ParserValidationError(2, 5, "dateNoticeReceived.error.invalid")
+        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
+        ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount"),
+        ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
+        ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),
+        ParserValidationError(2, 5, "dateNoticeReceived.error.invalid", "dateNoticeReceived")
       ))
     }
 
     "return validation errors for member details AND charge details when errors present in first row but not in second" in {
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsFirstRowCsvFile,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 0, "memberDetails.error.firstName.required"),
-        ParserValidationError(1, 4, "chargeAmount.error.required")
+        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
+        ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount")
       ))
     }
 
