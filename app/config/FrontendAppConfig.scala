@@ -155,6 +155,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val overdueChargesUrl: String = s"${configuration.get[String](path = "urls.partials.overdueChargesLogicLink")}"
 
   lazy val financialOverviewUrl: String = s"${configuration.get[String](path = "urls.partials.schemeFinancialOverviewLink")}"
+
   lazy val listOfSchemesUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.listOfSchemes")}"
   lazy val earliestDateOfNotice: LocalDate = LocalDate
     .parse(
@@ -178,11 +179,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val initiateUrl:String              = servicesConfig.baseUrl("upscan-initiate") + "/upscan/initiate"
   lazy val initiateV2Url:String            = servicesConfig.baseUrl("upscan-initiate") + "/upscan/v2/initiate"
 
-  lazy val upScanCallBack:String   = s"${servicesConfig.baseUrl("aft-frontend")}${configuration.underlying
-    .getString("urls.upscan-callback-endpoint")}"
   lazy val callbackEndpointTarget:String   = loadConfig("upscan.callback-endpoint")
-
-  lazy val creditBalanceRefundLink: String = loadConfig("urls.creditBalanceRefundLink")
 
   def successEndpointTarget(srn: String, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId):String   = {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")

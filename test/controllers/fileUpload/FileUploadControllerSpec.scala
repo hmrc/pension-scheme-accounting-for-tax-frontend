@@ -155,7 +155,7 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
       ).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result) mustBe Some(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version.toInt, chargeType, uploadId).url)
+      redirectLocation(result) mustBe Some(routes.FileUploadController.showResult(srn, startDate, accessType, version.toInt, chargeType, uploadId).url)
 
     }
   }

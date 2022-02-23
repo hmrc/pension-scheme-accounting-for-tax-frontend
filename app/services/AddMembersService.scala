@@ -49,8 +49,7 @@ object AddMembersService {
         Cell(Literal(data.name), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(data.nino), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
-        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name, chargeName), classes =
-          Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric"))
+        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter"))
       ) ++ (if (canChange) {
         Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter")))
       } else {
@@ -63,7 +62,7 @@ object AddMembersService {
     val totalRow = Seq(
       Seq(
         Cell(msg""),
-        Cell(msg"addMembers.total", classes = Seq("govuk-!-font-weight-bold govuk-!-width-one-half")),
+        Cell(msg"addMembers.total", classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount.getOrElse(members.map(_.amount).sum))}"),
           classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
         Cell(msg"")

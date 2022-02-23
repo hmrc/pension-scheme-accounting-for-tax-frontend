@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package upscan.callback
+package controllers.fileUpload
 
 import connectors.Reference
 import org.scalatest.matchers.should.Matchers

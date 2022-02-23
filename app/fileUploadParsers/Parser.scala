@@ -16,18 +16,16 @@
 
 package fileUploadParsers
 
-import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
+import fileUploadParsers.Parser.{FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty}
 import models.{MemberDetails, UserAnswers}
-import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{Format, JsPath, JsValue, Json}
-import utils.StringHelper
 
 import java.time.LocalDate
 
 object Parser {
-  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, "Header invalid or File is empty", EMPTY)
+  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, "Header invalid or File is empty")
 }
 
 trait Parser {
@@ -44,9 +42,9 @@ trait Parser {
       case Some(row) if row.equalsIgnoreCase(validHeader) =>
         rows.size match {
           case n if n >= 2 => parseDataRows(startDate, rows).map{ commitItems =>
-            commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
-          }
-          case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+          commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
+        }
+        case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
       case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
@@ -56,7 +54,7 @@ trait Parser {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) =>
-        val cells = StringHelper.split(row)
+        val cells = row.split(",")
         cells.length match {
           case this.totalFields =>
             (acc, validateFields(startDate, index, cells)) match {
@@ -66,16 +64,16 @@ trait Parser {
               case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
             }
           case _ =>
-            Left(acc.left.getOrElse(Nil) :+ ParserValidationError(index, 0, "Not enough fields", EMPTY))
+            Left(acc.left.getOrElse(Nil) ++ Seq(ParserValidationError(index, 0, "Not enough fields")))
         }
     }
   }
 
   protected def validateFields(startDate: LocalDate,
                                index: Int,
-                               chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
+                               chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
 
-  protected def memberDetailsValidation(index: Int, chargeFields: Seq[String],
+  protected def memberDetailsValidation(index: Int, chargeFields: Array[String],
                                         memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
       Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
@@ -91,11 +89,13 @@ trait Parser {
   }
 
   protected final def errorsFromForm[A](formWithErrors: Form[A], fields: Seq[Field], index: Int): Seq[ParserValidationError] = {
-    for{
-      formError <- formWithErrors.errors
-      field <- fields.find(_.columnName == formError.key)
-    }
-    yield ParserValidationError(index, field.columnNo, formError.message, field.columnName)
+    formWithErrors
+      .errors
+      .flatMap { formError =>
+        fields.find(_.columnName == formError.key)
+          .map(f => ParserValidationError(index, f.columnNo, formError.message))
+          .toSeq
+      }
   }
 
   protected final def addToValidationResults[A](
@@ -152,9 +152,9 @@ trait Parser {
   protected final def splitDayMonthYear(date: String): ParsedDate = {
     date.split("/").toSeq match {
       case Seq(d, m, y) => ParsedDate(d, m, y)
-      case Seq(d, m) => ParsedDate(d, m, EMPTY)
-      case Seq(d) => ParsedDate(d, EMPTY, EMPTY)
-      case _ => ParsedDate(EMPTY, EMPTY, EMPTY)
+      case Seq(d, m) => ParsedDate(d, m, "")
+      case Seq(d) => ParsedDate(d, "", "")
+      case _ => ParsedDate("", "", "")
     }
   }
 
@@ -166,7 +166,7 @@ trait Parser {
     }
 }
 
-case class ParserValidationError(row: Int, col: Int, error: String, columnName: String = EMPTY)
+case class ParserValidationError(row: Int, col: Int, error: String)
 
 object ParserValidationError {
   implicit lazy val formats: Format[ParserValidationError] =

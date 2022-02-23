@@ -16,18 +16,13 @@
 
 package controllers.financialOverview
 
-import connectors.{FinancialStatementConnector, MinimalConnector}
+import connectors.FinancialStatementConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-<<<<<<< HEAD
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{any, anyInt, anyString}
-=======
-import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
->>>>>>> e2c575ec7894c1782962674d0ebfd53a5c124719
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -61,13 +56,11 @@ class PsaSchemeFinancialOverviewControllerSpec
   private val mockPsaSchemePartialService: PsaSchemePartialService = mock[PsaSchemePartialService]
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
-  private val mockMinimalPsaConnector: MinimalConnector = mock[MinimalConnector]
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[PsaSchemePartialService].toInstance(mockPsaSchemePartialService),
       bind[SchemeService].toInstance(mockSchemeService),
-      bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
-      bind[MinimalConnector].toInstance(mockMinimalPsaConnector)
+      bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
     )
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
@@ -94,11 +87,6 @@ class PsaSchemeFinancialOverviewControllerSpec
           .thenReturn(allTypesMultipleReturnsModel)
         when(mockPsaSchemePartialService.overdueAftChargesModel(any(), any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
-<<<<<<< HEAD
-=======
-        when(mockMinimalPsaConnector.getPsaNameFromPsaID(any())(any(), any()))
-          .thenReturn(Future.successful("John Doe"))
->>>>>>> e2c575ec7894c1782962674d0ebfd53a5c124719
         when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
           .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
         when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
@@ -107,7 +95,9 @@ class PsaSchemeFinancialOverviewControllerSpec
         val result = route(application, httpGETRequest(getPartial)).value
 
         status(result) mustEqual OK
+
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
         templateCaptor.getValue mustEqual "financialOverview/psaSchemeFinancialOverview.njk"
       }
     }

@@ -81,42 +81,42 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
     "return validation errors for member details when present" in {
       val result = parser.parse(startDate, invalidMemberDetailsCsvFile,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
-        ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino")
+        ParserValidationError(1, 0, "memberDetails.error.firstName.required"),
+        ParserValidationError(2, 1, "memberDetails.error.lastName.required"),
+        ParserValidationError(2, 2, "memberDetails.error.nino.invalid")
       ))
     }
 
     "return validation errors for charge details when present, including missing year and missing month" in {
       val result = parser.parse(startDate, invalidChargeDetailsCsvFile,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 3, "dob.error.incomplete", "dob"),
-        ParserValidationError(1, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two", "qropsTransferDate"),
-        ParserValidationError(2, 3, "dob.error.incomplete", "dob"),
-        ParserValidationError(2, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two", "qropsTransferDate")
+        ParserValidationError(1, 3, "dob.error.incomplete"),
+        ParserValidationError(1, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two"),
+        ParserValidationError(2, 3, "dob.error.incomplete"),
+        ParserValidationError(2, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two")
       ))
     }
 
     "return validation errors for member details AND charge details AND charge amounts when all present" in {
       val result = parser.parse(startDate, invalidMemberDetailsAndChargeDetailsAndChargeAmountsCsvFile,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(1, 3, "dob.error.incomplete", "dob"),
-        ParserValidationError(1, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two", "qropsTransferDate"),
-        ParserValidationError(1,6, "The amount transferred into the QROPS for last must be an amount of money, like 123 or 123.45", "amountTransferred"),
-        ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
-        ParserValidationError(2, 3, "dob.error.incomplete", "dob"),
-        ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),
-        ParserValidationError(2, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two", "qropsTransferDate"),
-        ParserValidationError(2,7, "amountTaxDue.error.invalid", "amountTaxDue")
+        ParserValidationError(1, 0, "memberDetails.error.firstName.required"),
+        ParserValidationError(1, 3, "dob.error.incomplete"),
+        ParserValidationError(1, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two"),
+        ParserValidationError(1,6, "The amount transferred into the QROPS for last must be an amount of money, like 123 or 123.45"),
+        ParserValidationError(2, 1, "memberDetails.error.lastName.required"),
+        ParserValidationError(2, 3, "dob.error.incomplete"),
+        ParserValidationError(2, 2, "memberDetails.error.nino.invalid"),
+        ParserValidationError(2, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two"),
+        ParserValidationError(2,7, "amountTaxDue.error.invalid")
       ))
     }
 
     "return validation errors for charge amounts when present" in {
       val result = parser.parse(startDate, invalidChargeAmountsCsvFile,UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 6, "Enter the amount transferred into the QROPS for first last", "amountTransferred"),
-        ParserValidationError(2, 7, "amountTaxDue.error.invalid", "amountTaxDue")
+        ParserValidationError(1, 6, "Enter the amount transferred into the QROPS for first last"),
+        ParserValidationError(2, 7, "amountTaxDue.error.invalid")
       ))
     }
 

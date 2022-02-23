@@ -58,7 +58,7 @@ class OverseasTransferParser @Inject()(
   private final val FieldNoAmountTransferred = 6
   private final val FieldNoAmountTaxDue = 7
 
-  def chargeMemberDetailsValidation(index: Int, chargeFields: Seq[String],
+  def chargeMemberDetailsValidation(index: Int, chargeFields: Array[String],
                                     memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val parsedDOB = splitDayMonthYear(chargeFields(FieldNoDateOfBirth))
     val fields = Seq(
@@ -79,7 +79,7 @@ class OverseasTransferParser @Inject()(
 
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDetails] = {
+                                      chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDetails] = {
 
     val parsedDateOfTransfer = splitDayMonthYear(chargeFields(FieldNoDateOfTransfer))
     val fields = Seq(
@@ -102,7 +102,7 @@ class OverseasTransferParser @Inject()(
 
   private def chargeAmountsValidation(memberName: String,
                                       index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeAmounts] = {
+                                      chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeAmounts] = {
     val fields = Seq(
       Field(FieldNames.amountTransferred, chargeFields(FieldNoAmountTransferred), FieldNames.amountTransferred, FieldNoAmountTransferred),
       Field(FieldNames.amountTaxDue, chargeFields(FieldNoAmountTaxDue), FieldNames.amountTaxDue, FieldNoAmountTaxDue)
@@ -119,7 +119,7 @@ class OverseasTransferParser @Inject()(
     )
   }
 
-  private def getMemberName(chargeFields: Seq[String])(implicit messages: Messages) =
+  private def getMemberName(chargeFields: Array[String])(implicit messages: Messages) =
     (chargeFields(FieldNoFirstName) + " " + chargeFields(FieldNoLastName)).trim match {
       case fullName if fullName.isEmpty => messages("fileUpload.theMember")
       case fullName => fullName
@@ -127,7 +127,7 @@ class OverseasTransferParser @Inject()(
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
-                                        chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+                                        chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     val memberName = getMemberName(chargeFields)
 
     val validatedMemberDetails = addToValidationResults[MemberDetails](

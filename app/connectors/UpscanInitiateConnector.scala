@@ -68,7 +68,7 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
   def initiateV2(redirectOnSuccess: Option[String], redirectOnError: Option[String])
                 (implicit hc: HeaderCarrier): Future[UpscanInitiateResponse] = {
     val request = UpscanInitiateRequestV2(
-      callbackUrl = appConfig.upScanCallBack,
+      callbackUrl = appConfig.callbackEndpointTarget,
       successRedirect = redirectOnSuccess,
       errorRedirect = redirectOnError,
       maximumFileSize = Some(appConfig.maxUploadFileSize  * (1024 * 1024))
@@ -87,6 +87,6 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
     } yield UpscanInitiateResponse(fileReference, postTarget, formFields)
 
   def download(downloadUrl: String)(implicit hc: HeaderCarrier) = {
-    httpClient.GET(downloadUrl)
+    httpClient.GET(s"${appConfig.upscanUrl}$downloadUrl")
   }
 }

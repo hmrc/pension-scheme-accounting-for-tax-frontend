@@ -53,7 +53,7 @@ class LifetimeAllowanceParser @Inject()(
 
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDDetails] = {
+                                      chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDDetails] = {
 
     val parsedDate = splitDayMonthYear(chargeFields(FieldNoDateOfEvent))
     val fields = Seq(
@@ -79,7 +79,7 @@ class LifetimeAllowanceParser @Inject()(
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
-                                        chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+                                        chargeFields: Array[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     combineValidationResults[MemberDetails, ChargeDDetails](
       memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
       chargeDetailsValidation(startDate, index, chargeFields),

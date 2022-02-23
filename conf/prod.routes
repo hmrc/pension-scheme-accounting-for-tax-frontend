@@ -3,6 +3,3 @@
 ->         /                                                health.Routes
 
 GET        /admin/metrics                                   @com.kenshoo.play.metrics.MetricsController.metrics
-# upload file notification callback
-#NOCSRF
-POST       /fileupload/upscan-callback                      upscan.callback.UploadCallbackController.callback
