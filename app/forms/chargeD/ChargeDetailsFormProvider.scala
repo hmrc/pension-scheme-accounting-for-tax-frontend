@@ -32,11 +32,11 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
   private def otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField: String): Condition =
     map =>
       (
-        (map(otherField).isEmpty | map(otherField) == "0.00")
-          |
-        ((map("taxAt25Percent").nonEmpty && map("taxAt25Percent") != "0.00")
+        (map(otherField).isEmpty || BigDecimal(map(otherField)) == BigDecimal(0.00))
+          ||
+        ((map("taxAt25Percent").nonEmpty && BigDecimal(map("taxAt25Percent")) != BigDecimal(0.00))
           &&
-        (map("taxAt55Percent").nonEmpty && map("taxAt55Percent") != "0.00"))
+        (map("taxAt55Percent").nonEmpty && BigDecimal(map("taxAt55Percent")) != BigDecimal(0.00)))
       )
 
   implicit private val ignoredParam: Option[BigDecimal] = None
