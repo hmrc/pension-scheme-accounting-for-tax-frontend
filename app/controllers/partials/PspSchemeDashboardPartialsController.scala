@@ -19,6 +19,7 @@ package controllers.partials
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
+import models.FeatureToggleName.FinancialInformationAFT
 import models.financialStatement.SchemeFS
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -27,7 +28,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.{Html, HtmlFormat}
 import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
-import services.{AFTPartialService, SchemeService}
+import services.{AFTPartialService, FeatureToggleService, PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -43,8 +44,8 @@ class PspSchemeDashboardPartialsController @Inject()(
                                    financialStatementConnector: FinancialStatementConnector,
                                    paymentsAndChargesService: PaymentsAndChargesService,
                                    aftPartialService: AFTPartialService,
+                                   toggleService: FeatureToggleService,
                                    renderer: Renderer,
-                                   config: FrontendAppConfig
                                  )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -112,5 +113,24 @@ class PspSchemeDashboardPartialsController @Inject()(
               ctx = Json.obj("overdueCharges" -> Json.toJson(viewModel))
             )
       }
+  }
+  private def pspDashboardPaymentsAndCharges(idNumber: String, schemeFs: Seq[SchemeFS])
+                                                  (implicit request: IdentifierRequest[AnyContent]):Future[Html] = {
+    val overdueCharges = paymentsAndChargesService.getOverdueCharges(schemeFs)
+    val upcomingCharges: Seq[SchemeFS] = paymentsAndChargesService.extractUpcomingCharges(schemeFs)
+    val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
+    val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
+    val totalUpcomingCharges : BigDecimal = upcomingCharges.map(_.amountDue).sum
+    val totalOutstandingPayments: BigDecimal= totalUpcomingCharges + totalOverdue + totalInterestAccruing
+    if (totalOutstandingPayments < 0 ) {
+      Future.successful(Html(""))
+    } else {
+      val viewModel =
+        aftPartialService.retrievePspDashboardOverdueAftChargesModel(overdueCharges, idNumber)
+      renderer.render(
+        template = "partials/pspDashboardOverdueAftChargesCard.njk",
+        ctx = Json.obj("overdueCharges" -> Json.toJson(viewModel))
+      )
+    }
   }
 }

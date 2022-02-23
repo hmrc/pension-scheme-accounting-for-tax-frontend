@@ -156,7 +156,6 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
           )
       )
       val connector = injector.instanceOf[FinancialStatementConnector]
-      println("\n\n\n\n\n\n\n"+ PAYMENT_ON_ACCOUNT)
       recoverToSucceededIf[BadRequestException] {
         connector.getSchemeFSPaymentOnAccount(pstr)
       }
