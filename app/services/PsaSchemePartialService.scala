@@ -404,14 +404,19 @@ class PsaSchemePartialService @Inject()(
       ))
     }
 
-  def creditBalanceAmountFormatted(schemeFs: Seq[SchemeFS]): String = {
-    val sumAmountOverdue = paymentsAndChargesService.getOverdueCharges(schemeFs).map(_.amountDue).sum
+  def getCreditBalanceAmount(schemeFs: Seq[SchemeFS]): BigDecimal = {
+    val sumAmountOverdue = paymentsAndChargesService.getDueCharges(schemeFs).map(_.amountDue).sum
 
-    val creditToDisplay = if (sumAmountOverdue >= 0) {
+    val creditBalanceAmt = if (sumAmountOverdue >= 0) {
       BigDecimal(0.00)
     } else {
       sumAmountOverdue.abs
     }
+    creditBalanceAmt
+  }
+
+  def creditBalanceAmountFormatted(schemeFs: Seq[SchemeFS]): String = {
+    val creditToDisplay = getCreditBalanceAmount(schemeFs)
     s"${FormatHelper.formatCurrencyAmountAsString(creditToDisplay)}"
   }
 

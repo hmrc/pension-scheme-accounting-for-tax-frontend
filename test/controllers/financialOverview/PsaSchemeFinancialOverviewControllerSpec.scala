@@ -84,8 +84,7 @@ class PsaSchemeFinancialOverviewControllerSpec
   "PsaSchemeFinancial Controller" when {
     "schemeFinancialOverview" must {
 
-      /*
-            "return the html with information received from overview api" in {
+      "return the html with information received from overview api" in {
         when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
@@ -96,24 +95,6 @@ class PsaSchemeFinancialOverviewControllerSpec
           .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
         when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
           .thenReturn(retrieveCreditBalance(1000.00))
-
-        val result = route(application, httpGETRequest(getPartial)).value
-
-        status(result) mustEqual OK
-
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual "financialOverview/psaSchemeFinancialOverview.njk"
-      }
-       */
-
-      "return the html with information received from overview api" in {
-        when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
-          .thenReturn(Future.successful(allTypesMultipleReturnsModel))
-        when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
-          .thenReturn(allTypesMultipleReturnsModel)
-        when(mockPsaSchemePartialService.overdueAftChargesModel(any(), any())(any()))
-          .thenReturn(allTypesMultipleReturnsModel)
         when(mockMinimalPsaConnector.getPsaNameFromPsaID(any())(any(), any()))
           .thenReturn(Future.successful("John Doe"))
 
