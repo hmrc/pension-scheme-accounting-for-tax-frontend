@@ -63,7 +63,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     mapToTable(seqPayments)
   }
 
-  case class IndexRef (chargeType: String, chargeReference: String)
+  case class IndexRef(chargeType: String, chargeReference: String)
 
   def getPaymentsAndChargesNew(srn: String,
                                schemeFS: Seq[SchemeFS],
@@ -71,7 +71,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                chargeDetailsFilter: ChargeDetailsFilter
                               )
                               (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
-    val indexRefs : Seq[IndexRef] = schemeFS.map{ x => IndexRef(x.chargeType.toString,x.chargeReference)}
+    val indexRefs: Seq[IndexRef] = schemeFS.map { x => IndexRef(x.chargeType.toString, x.chargeReference) }
     val chargeRefs: Seq[String] = schemeFS.map(_.chargeReference)
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
       paymentsAndChargesDetailsNew(paymentOrCharge, srn, indexRefs, chargeRefs, mapChargeTypeVersion, chargeDetailsFilter)
@@ -141,6 +141,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
+  //scalastyle:off parameter.number
   // scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
   private def paymentsAndChargesDetailsNew(
@@ -153,12 +154,43 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                           )(implicit messages: Messages, hc: HeaderCarrier,
                                             ec: ExecutionContext): Seq[FinancialPaymentAndChargesDetails] = {
 
-    val ref : Map[String, Seq[IndexRef]] = indexRefs.groupBy(_.chargeType)
-    println("\n\n\n\n\n\n\nref "+ref)
- val index  = ref.find(_._1 == details.chargeType).map {
-   x => x._2.find(_.chargeReference == details.chargeReference)
- }
-    println("\n\n\n\n\n\n\nindex "+index)
+    val ref: Map[String, Seq[IndexRef]] = indexRefs.groupBy(_.chargeType)
+
+    val chargeRefsForChargeTypes = ref.map{
+      item =>
+        val chargeRefs = item._2.map{
+           yy =>
+            yy.chargeReference
+        }
+        Tuple2(item._1, chargeRefs)
+    }
+
+    chargeRefsForChargeTypes
+
+//
+//    ref Map(Excess relief paid -> Vector(IndexRef(Excess relief paid, XA002610150203)), Interest on excess relief -> Vector (IndexRef(Interest on excess relief, XA002610150204)), Accounting
+//    for Tax
+//    return -> Vector (IndexRef(Accounting
+//    for Tax
+//    return
+//    , XA10000000001
+//    ), IndexRef(Accounting
+//    for Tax
+//    return
+//    , XA10000000003
+//    ), IndexRef(Accounting
+//    for Tax
+//    return
+//    , XA10000000006
+//    ) ), Overseas transfer charge -> Vector(IndexRef(Overseas transfer charge, XA10000000002))
+//    )
+//
+
+    println("\n\n\n\n\n\n\nref " + ref)
+    val index = ref.find(_._1 == details.chargeType.toString).map {
+      x => x._2.find(_.chargeReference == details.chargeReference)
+    }
+    println("\n\n\n\n\n\n\nindex " + index)
     val chargeType = getPaymentOrChargeType(details.chargeType)
     val paymentOrChargeType = details.chargeType
     val onlyAFTAndOTCChargeTypes: Boolean =
@@ -176,6 +208,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     } else {
       details.periodEndDate.getYear.toString
     }
+
+    val seqChargeRefs = chargeRefsForChargeTypes.find(_._1 == details.chargeType.toString)  match {
+      case Some(found) => found._2
+      case _ => Nil
+    }
+
+
+    seqChargeRefs.indexOf(details.chargeReference)
 
     val chargeDetailsItemWithStatus: PaymentAndChargeStatus => FinancialPaymentAndChargesDetails =
       status =>
