@@ -155,11 +155,11 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
   }
   "CreditBalanceAmount" must {
     "return a positive number when sum of amount due is negative" in {
-      when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(upcomingChargesMultipleNegative)
+      when(paymentsAndChargesService.getDueCharges(any())).thenReturn(upcomingChargesMultipleNegative)
       service.creditBalanceAmountFormatted(upcomingChargesMultiple) mustBe positiveNumberFormatted
     }
     "return zero when sum of amount due is positive" in{
-      when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(upcomingChargesMultiple)
+      when(paymentsAndChargesService.getDueCharges(any())).thenReturn(upcomingChargesMultiple)
       service.creditBalanceAmountFormatted(any()) mustBe zeroFormatted
     }
 
