@@ -27,21 +27,36 @@ import utils.DateHelper.formatDateDMY
 
 import java.time.LocalDate
 import javax.inject.Inject
+import scala.util.{Failure, Success, Try}
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with Formatters {
+
+  private final val BigDecimalZero = BigDecimal(0.00)
+
+  private def checkIfNumeric(s: String, nonNumericValue:Boolean)(numericCheck: BigDecimal => Boolean): Boolean = {
+    Try(BigDecimal(s)) match {
+      case Success(v) => numericCheck(v)
+      case Failure(_) => nonNumericValue
+    }
+  }
+
   private def otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField: String): Condition =
     map =>
       (
-        (map(otherField).isEmpty || BigDecimal(map(otherField)) == BigDecimal(0.00))
+        map(otherField).isEmpty || checkIfNumeric(map(otherField), nonNumericValue = false)(_ == BigDecimalZero)
           ||
-        ((map("taxAt25Percent").nonEmpty && BigDecimal(map("taxAt25Percent")) != BigDecimal(0.00))
-          &&
-        (map("taxAt55Percent").nonEmpty && BigDecimal(map("taxAt55Percent")) != BigDecimal(0.00)))
+          (
+            map("taxAt25Percent").nonEmpty &&
+            checkIfNumeric(map("taxAt25Percent"), nonNumericValue = true)(_ != BigDecimalZero) &&
+            map("taxAt55Percent").nonEmpty &&
+            checkIfNumeric(map("taxAt55Percent"), nonNumericValue = true)(_ != BigDecimalZero)
+          )
       )
+
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 
-  def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed:BigDecimal)(implicit messages: Messages): Form[ChargeDDetails] =
+  def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed: BigDecimal)(implicit messages: Messages): Form[ChargeDDetails] =
     Form(mapping(
       "dateOfEvent" -> localDate(
         invalidKey = "dateOfEvent.error.invalid",
