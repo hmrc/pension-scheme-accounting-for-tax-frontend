@@ -91,11 +91,9 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     }
 
     "not bind decimals that are greater than 2 dp" in {
-      forAll(decimals -> "decimal") {
-        decimal: String =>
-          val result = form.bind(chargeDetails(tax25 = decimal))
-          result.errors mustEqual Seq(FormError(tax25PercentKey, messages("chargeD.amountTaxDue.error.decimal", "25")))
-      }
+      val decimal: String = "33.98765"
+      val result = form.bind(chargeDetails(tax25 = decimal))
+      result.errors mustEqual Seq(FormError(tax25PercentKey, messages("chargeD.amountTaxDue.error.decimal", "25")))
     }
 
     "not bind decimals below 0.00" in {
@@ -133,11 +131,9 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     }
 
     "not bind decimals that are greater than 2 dp" in {
-      forAll(decimals -> "decimal") {
-        decimal: String =>
-          val result = form.bind(chargeDetails(tax55 = decimal))
-          result.errors mustEqual Seq(FormError(tax55PercentKey, messages("chargeD.amountTaxDue.error.decimal", "55")))
-      }
+      val decimal: String = "12.29983"
+      val result = form.bind(chargeDetails(tax55 = decimal))
+      result.errors mustEqual Seq(FormError(tax55PercentKey, messages("chargeD.amountTaxDue.error.decimal", "55")))
     }
 
     "not bind decimals below 0.00" in {
