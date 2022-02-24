@@ -68,6 +68,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       .filter(_.dueDate.nonEmpty)
       .filter(_.dueDate.get.isBefore(DateHelper.today))
 
+  def getDueCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
+    schemeFS.filter(_.dueDate.nonEmpty)
+
   val isPaymentOverdue: SchemeFS => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
 
   private def paymentsAndChargesDetails(

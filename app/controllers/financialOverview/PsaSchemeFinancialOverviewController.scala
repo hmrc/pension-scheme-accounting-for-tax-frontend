@@ -58,31 +58,34 @@ class PsaSchemeFinancialOverviewController @Inject()(
         psaName <- minimalConnector.getPsaNameFromPsaID(request.psaIdOrException.id)
         schemeFS <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
         aftModel <- service.aftCardModel(schemeDetails, srn)
+        creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
-        renderFinancialOverview(srn, psaName, schemeDetails, schemeFS, aftModel, request)
+        renderFinancialOverview(srn, psaName, schemeDetails, schemeFS, aftModel, request, creditSchemeFS)
       }
       response.flatten
   }
 
   private def renderFinancialOverview(srn: String, psaName: String, schemeDetails: SchemeDetails, schemeFS: Seq[SchemeFS],
-                                      aftModel: Seq[CardViewModel], request: RequestHeader) (implicit messages: Messages) : Future[Result] = {
+                                      aftModel: Seq[CardViewModel], request: RequestHeader, creditSchemeFS: Seq[SchemeFS]) (implicit messages: Messages) : Future[Result] = {
     val schemeName = schemeDetails.schemeName
     val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
     val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
+    val creditBalanceFormatted: String = service.creditBalanceAmountFormatted(creditSchemeFS)
 
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(aftModel)}")
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(upcomingTile)}")
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(overdueTile)}")
 
-    val creditBalance = 1.00
-    val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
     val pstr = schemeDetails.pstr
+    val creditBalance = service.getCreditBalanceAmount(creditSchemeFS)
+    val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
     val requestRefundUrl = s"$creditBalanceBaseUrl?requestType=1&psaName=$psaName&pstr=$pstr&availAmt=$creditBalance"
 
     renderer.render(
       template = "financialOverview/psaSchemeFinancialOverview.njk",
       ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),
-        "schemeName" -> schemeName, "requestRefundUrl" -> requestRefundUrl)
+        "schemeName" -> schemeName, "requestRefundUrl" -> requestRefundUrl,
+        "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }
 }
