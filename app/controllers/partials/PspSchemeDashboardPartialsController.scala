@@ -45,7 +45,7 @@ class PspSchemeDashboardPartialsController @Inject()(
                                    paymentsAndChargesService: PaymentsAndChargesService,
                                    aftPartialService: AFTPartialService,
                                    toggleService: FeatureToggleService,
-                                   renderer: Renderer,
+                                   renderer: Renderer
                                  )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
