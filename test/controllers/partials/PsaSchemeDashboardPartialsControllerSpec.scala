@@ -28,6 +28,7 @@ import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.JsObject
@@ -36,6 +37,7 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{FeatureToggleService, PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
 
 import scala.concurrent.Future
 
@@ -125,4 +127,35 @@ class PsaSchemeDashboardPartialsControllerSpec
 
     }
   }
+  private def aftModel(subHeadings: Seq[CardSubHeading], links: Seq[Link])
+                      (implicit messages: Messages): CardViewModel = CardViewModel(
+    id = "aft-overview",
+    heading = messages("aftPartial.head"),
+    subHeadings = subHeadings,
+    links = links
+  )
+  private def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[CardViewModel] =
+    Seq(aftModel(Seq(multipleInProgressSubHead()), Seq(multipleInProgressLink, startLink, pastReturnsLink)))
+
+  private def multipleInProgressSubHead(count: Int = 2)(implicit messages: Messages): CardSubHeading =
+    CardSubHeading(
+      subHeading = messages("aftPartial.multipleInProgress.text"),
+      subHeadingClasses = "card-sub-heading",
+      subHeadingParams = Seq(CardSubHeadingParam(
+        subHeadingParam = messages("aftPartial.multipleInProgress.count", count),
+        subHeadingParamClasses = "font-small bold"
+      )))
+
+  private def multipleInProgressLink = Link(
+    id = "aftContinueInProgressLink",
+    url = continueUrl,
+    linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
+    hiddenText = Some(msg"aftPartial.view.hidden")
+  )
+  private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
+  private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
+  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
+  private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
+  private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
+  private val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
 }
