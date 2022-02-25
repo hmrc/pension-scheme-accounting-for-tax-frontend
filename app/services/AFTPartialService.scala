@@ -30,7 +30,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.{AFTViewModel, DashboardAftViewModel, Link}
+import viewmodels.{AFTViewModel, CardSubHeading, CardSubHeadingParam, CardViewModel, DashboardAftViewModel, Link}
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -172,6 +172,75 @@ class AFTPartialService @Inject()(
       links = Seq(viewOverdueLink).flatten
     )
   }
+  def retrievePspDashboardPaymentsAndChargesModel(schemeFs: Seq[SchemeFS], srn: String)
+                                                (implicit messages: Messages): Seq[CardViewModel] ={
+    val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(schemeFs)
+    val upcomingCharges: Seq[SchemeFS] = paymentsAndChargesService.extractUpcomingCharges(schemeFs)
+    val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
+    val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
+    val totalUpcomingCharges: BigDecimal = upcomingCharges.map(_.amountDue).sum
+    val totalOutstandingPayments: BigDecimal = totalUpcomingCharges + totalOverdue + totalInterestAccruing
+    val subHeadingTotalOutstanding: Seq[CardSubHeading] = Seq(CardSubHeading(
+    subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),
+    subHeadingClasses = "card-sub-heading",
+    subHeadingParams = Seq(CardSubHeadingParam(
+      subHeadingParam = s"${FormatHelper.formatCurrencyAmountAsString(totalOutstandingPayments)}",
+      subHeadingParamClasses = "font-large bold"
+    ))
+    ))
+
+    val subHeadingPaymentsOverdue: Seq[CardSubHeading] = if (totalOverdue > 0) {
+      Seq(CardSubHeading(
+        subHeading = "",
+        subHeadingClasses = "govuk-tag govuk-tag--red",
+        subHeadingParams = Seq(CardSubHeadingParam(
+          subHeadingParam = messages("pspDashboardOverdueAftChargesCard.overdue.span"),
+          subHeadingParamClasses = "govuk-tag govuk-tag--red"
+        ))
+
+      ))
+    }
+    else {
+      Nil
+    }
+
+
+    if (totalOutstandingPayments > 0) {
+      Seq(CardViewModel(
+        id = "aft-overdue-charges",
+        heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
+        subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
+        links = viewFinancialOverviewLink(overdueCharges, srn) ++ viewAllPaymentsAndChargesLink(upcomingCharges, srn)
+      ))
+    } else {
+      Nil
+    }
+  }
+
+  private def viewFinancialOverviewLink(pastCharges: Seq[SchemeFS], srn: String): Seq[Link] =
+    if (pastCharges == Seq.empty) {
+      Nil
+    } else {
+      Seq(Link(
+        id = "view-your-financial-overview",
+        url = appConfig.financialOverviewUrl.format(srn),
+        linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+        hiddenText = None
+      ))
+    }
+
+  private def viewAllPaymentsAndChargesLink(pastCharges: Seq[SchemeFS], srn: String): Seq[Link] =
+    if (pastCharges == Seq.empty) {
+      Nil
+    } else {
+      Seq(Link(
+        id = "past-payments-and-charges",
+        url = appConfig.paymentsAndChargesUrl.format(srn),
+        linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+        hiddenText = None
+      ))
+    }
+
 
   val startDate: Seq[SchemeFS] => LocalDate = schemeFs => schemeFs.map(_.periodStartDate).distinct.head
   val endDate: Seq[SchemeFS] => LocalDate = schemeFs => schemeFs.map(_.periodEndDate).distinct.head
