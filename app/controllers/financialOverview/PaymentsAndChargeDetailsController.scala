@@ -19,21 +19,21 @@ package controllers.financialOverview
 import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
-import models.ChargeDetailsFilter
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.requests.IdentifierRequest
+import models.{ChargeDetailsFilter, Submission}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
-import services.paymentsAndCharges.PaymentsAndChargesService
+import services.financialOverview.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.dateFormatterDMY
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -54,14 +54,14 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
 
-  def onPageLoad(srn: String, period: String, index: String,
+  def onPageLoad(srn: String, pstr: String, period: String, index: String,
                  paymentOrChargeType: PaymentOrChargeType, version: Option[Int], journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
         val schemeFS: Seq[SchemeFS] = getFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
-        buildPage(schemeFS, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType, journeyType, version)
+        buildPage(schemeFS, period, index, paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, journeyType, version)
 
       }
   }
@@ -72,6 +72,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                          index: String,
                          schemeName: String,
                          srn: String,
+                         pstr: String,
                          paymentOrChargeType: PaymentOrChargeType,
                          journeyType: ChargeDetailsFilter,
                          version: Option[Int] = None
@@ -80,16 +81,16 @@ class PaymentsAndChargeDetailsController @Inject()(
                        ): Future[Result] = {
 
     val chargeRefs: Seq[String] = filteredCharges.map(_.chargeReference)
-    val interestUrl = controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-        .onPageLoad(srn, period, index, paymentOrChargeType, journeyType).url
+    val interestUrl = controllers.financialOverview.routes.PaymentsAndChargesInterestController
+        .onPageLoad(srn, pstr, period, index, paymentOrChargeType, version, journeyType).url
     if (chargeRefs.size > index.toInt) {
       filteredCharges.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
-          val returnUrl = config.schemeDashboardUrl(request.psaId, request.pspId).format(srn)
+          val returnUrl = routes.PaymentsAndChargesController.onPageLoad(srn, pstr, journeyType).url
           renderer.render(
-            template = "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk",
+            template = "financialOverview/paymentsAndChargeDetails.njk",
             ctx =
-              summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, interestUrl, version)
+              summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, interestUrl, version, journeyType)
           ).map(Ok(_))
         case _ =>
           logger.warn(
@@ -108,39 +109,41 @@ class PaymentsAndChargeDetailsController @Inject()(
   }
 
   private def summaryListData(srn: String, period: String, schemeFS: SchemeFS, schemeName: String,
-                              returnUrl: String, paymentOrChargeType: PaymentOrChargeType, interestUrl: String, version: Option[Int] = None)
+                              returnUrl: String, paymentOrChargeType: PaymentOrChargeType, interestUrl: String, version: Option[Int] = None,
+                              journeyType: ChargeDetailsFilter)
                              (implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
-      case (Some(_), true, true) =>
+      case (Some(date), true, true) =>
         Html(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
-            s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate")}" +
-            s" <span><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
+            s" <span class=govuk-!-font-weight-bold>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2", schemeFS.accruedInterestTotal)}</span>"+
+            s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", date.format(dateFormatterDMY))}<span>" +
+            s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl></p>" +
             s"${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
-        )
-      case (Some(date), true, false) =>
-        Html(
-          s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccrued")}</h2>" +
-            s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.paid.after.dueDate", date.format(dateFormatterDMY))}</p>"
         )
       case _ =>
         Html("")
     }
-
     Json.obj(
-      "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS),
+      "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS, journeyType),
       "tableHeader" -> tableHeader(schemeFS),
       "schemeName" -> schemeName,
       "chargeType" ->  (version match {
         case Some(value) => schemeFS.chargeType.toString + s" submission $value"
         case _ => schemeFS.chargeType.toString
       }),
+      "versionValue" -> (version match {
+        case Some(value) => s" submission $value"
+        case _ => Nil
+      }),
       "chargeReferenceTextMessage" -> chargeReferenceTextMessage(schemeFS),
       "isPaymentOverdue" -> isPaymentOverdue(schemeFS),
       "insetText" -> htmlInsetText,
       "interest" -> schemeFS.accruedInterestTotal,
+      "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
       "returnUrl" -> returnUrl
-    ) ++ returnHistoryUrl(srn, period, paymentOrChargeType) ++ optHintText(schemeFS)
+    ) ++ returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)) ++ optHintText(schemeFS)
 
   }
 
@@ -159,9 +162,9 @@ class PaymentsAndChargeDetailsController @Inject()(
       Json.obj()
     }
 
-  private def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType): JsObject =
+  private def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType, version:Int): JsObject =
     if(paymentOrChargeType == AccountingForTaxCharges) {
-      Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, LocalDate.parse(period)).url)
+      Json.obj("returnHistoryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, LocalDate.parse(period), Submission, version).url)
     } else {
       Json.obj()
     }
@@ -171,10 +174,10 @@ class PaymentsAndChargeDetailsController @Inject()(
       && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN))
 
   private def tableHeader(schemeFS: SchemeFS)(implicit messages: Messages): String =
-    messages(
-      "paymentsAndCharges.caption",
-      schemeFS.periodStartDate.format(dateFormatterStartDate),
-      schemeFS.periodEndDate.format(dateFormatterDMY)
+    paymentsAndChargesService.setPeriod(
+      schemeFS.chargeType,
+      schemeFS.periodStartDate,
+      schemeFS.periodEndDate
     )
 
   private def getFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType): Seq[SchemeFS] =

@@ -30,7 +30,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
-import services.paymentsAndCharges.PaymentsAndChargesService
+import services.financialOverview.PaymentsAndChargesService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -86,7 +86,7 @@ class PaymentsAndChargesController @Inject()(
 
         if (paymentsCache.schemeFS.nonEmpty) {
           getMapChargeTypeToVersion(paymentsCache.schemeFS, pstr).flatMap { mapChargeTypesAndVersions =>
-            val table = paymentsAndChargesService.getPaymentsAndChargesNew(srn, paymentsCache.schemeFS, mapChargeTypesAndVersions, journeyType)
+            val table = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, paymentsCache.schemeFS, mapChargeTypesAndVersions, journeyType)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
               fields =

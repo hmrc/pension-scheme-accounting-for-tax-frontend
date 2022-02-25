@@ -22,7 +22,7 @@ import java.time.LocalDate
 
 
 
-case class DocumentLineItemDetail(clearedAmountItem: BigDecimal, clearingDate: Option[LocalDate], clearingReason:Option[String])
+case class DocumentLineItemDetail(clearedAmountItem: BigDecimal, clearingDate: Option[LocalDate], clearingReason:Option[SchemeFSClearingReason])
 
 object DocumentLineItemDetail {
   implicit val formats: Format[DocumentLineItemDetail] = Json.format[DocumentLineItemDetail]
