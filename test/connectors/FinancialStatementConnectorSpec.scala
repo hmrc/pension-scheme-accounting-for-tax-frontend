@@ -19,8 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.financialStatement.PsaFS
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
-import models.financialStatement.SchemeFSChargeType.{EXCESS_RELIEF_INTEREST, PAYMENT_ON_ACCOUNT}
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status
@@ -59,7 +58,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
       )
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getPsaFS(psaId).map(fs => fs mustBe psaFSResponse)
+      connector.getPsaFS(psaId).map(fs => fs mustBe psaFSResponseToValidate)
 
     }
 
@@ -78,6 +77,48 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
 
       recoverToSucceededIf[BadRequestException] {
         connector.getPsaFS(psaId)
+      }
+
+    }
+  }
+
+  "getPsaFSWithPaymentOnAccount" must {
+
+    "return the PSA financial statement with PAYMENT ON ACCOUNT and without PAYMENT ON ACCOUNT for a valid request/response with psa id" in {
+
+      server.stubFor(
+        get(urlEqualTo(psaFSUrl))
+          .withHeader("psaId", equalTo(psaId))
+          .willReturn(
+            aResponse()
+              .withStatus(Status.OK)
+              .withHeader("Content-Type", "application/json")
+              .withBody(Json.toJson(psaFSResponse).toString)
+          )
+      )
+      val connector = injector.instanceOf[FinancialStatementConnector]
+
+      connector.getPsaFSWithPaymentOnAccount(psaId).map(
+        fs => (fs._1,fs._2) mustBe (psaFSResponseToValidate,psaFSResponse)
+      )
+
+    }
+
+    "throw BadRequestException for a 400 INVALID_PSAID response" in {
+
+      server.stubFor(
+        get(urlEqualTo(psaFSUrl))
+          .withHeader("psaId", equalTo(psaId))
+          .willReturn(
+            badRequest
+              .withHeader("Content-Type", "application/json")
+              .withBody(errorResponse("INVALID_PSAID"))
+          )
+      )
+      val connector = injector.instanceOf[FinancialStatementConnector]
+
+      recoverToSucceededIf[BadRequestException] {
+        connector.getPsaFSWithPaymentOnAccount(psaId)
       }
 
     }
@@ -201,6 +242,49 @@ object FinancialStatementConnectorSpec {
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
+    ),
+    PsaFS(
+      chargeReference = "XY002610150186",
+      chargeType = PAYMENT_ON_ACCOUNT,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      accruedInterestTotal = 0.00,
+      amountDue = 1029.05,
+      periodStartDate = LocalDate.parse("2020-07-01"),
+      periodEndDate = LocalDate.parse("2020-09-30"),
+      pstr = "24000041IN"
     )
   )
+
+  val psaFSResponseToValidate: Seq[PsaFS] = Seq(
+    PsaFS(
+      chargeReference = "XY002610150184",
+      chargeType = AFT_INITIAL_LFP,
+      dueDate = Some(LocalDate.parse("2020-07-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      accruedInterestTotal = 0.00,
+      amountDue = 1029.05,
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30"),
+      pstr = "24000040IN"
+    ),
+    PsaFS(
+      chargeReference = "XY002610150185",
+      chargeType = OTC_6_MONTH_LPP,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      accruedInterestTotal = 0.00,
+      amountDue = 1029.05,
+      periodStartDate = LocalDate.parse("2020-07-01"),
+      periodEndDate = LocalDate.parse("2020-09-30"),
+      pstr = "24000041IN"
+    )
+  )
+
 }

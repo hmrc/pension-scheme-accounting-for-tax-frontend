@@ -26,7 +26,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.{AFTPartialService, SchemeService}
+import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -38,7 +38,6 @@ class PsaFinancialOverviewController @Inject()(
                                                 identify: IdentifierAction,
                                                 override val messagesApi: MessagesApi,
                                                 val controllerComponents: MessagesControllerComponents,
-                                                schemeService: SchemeService,
                                                 financialStatementConnector: FinancialStatementConnector,
                                                 service: AFTPartialService,
                                                 renderer: Renderer,
@@ -63,7 +62,7 @@ class PsaFinancialOverviewController @Inject()(
 
   private def renderFinancialOverview(psaName: String, psaFS: Seq[PsaFS],
                                        request: RequestHeader, creditPsaFS: Seq[PsaFS]) (implicit messages: Messages) : Future[Result] = {
-    val psaCharges:(String,String,String) = service.retrievePsaCharge(psaFS)
+    val psaCharges:(String,String,String) = service.retrievePsaChargesAmount(psaFS)
     val creditBalance = service.getCreditBalanceAmount(creditPsaFS)
     val creditBalanceFormatted: String =  s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
 

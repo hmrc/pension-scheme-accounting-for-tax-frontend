@@ -48,7 +48,8 @@ object PsaFSChargeType extends Enumerable.Implicits {
     PSS_PENALTY,
     PSS_INFO_NOTICE,
     CONTRACT_SETTLEMENT,
-    CONTRACT_SETTLEMENT_INTEREST
+    CONTRACT_SETTLEMENT_INTEREST,
+    PAYMENT_ON_ACCOUNT
   )
 
   implicit val enumerable: Enumerable[PsaFSChargeType] =

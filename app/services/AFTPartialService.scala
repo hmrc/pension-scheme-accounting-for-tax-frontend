@@ -394,7 +394,7 @@ class AFTPartialService @Inject()(
       links = outstandingLink :+ Link("past-penalties-id", appConfig.viewPenaltiesUrl, msg"psaPenaltiesCard.viewPastPenalties", None))
   }
 
-  def retrievePsaCharge(psaFs: Seq[PsaFS])
+  def retrievePsaChargesAmount(psaFs: Seq[PsaFS])
                                    (implicit messages: Messages): (String,String,String) = {
 
     val upcomingCharges: Seq[PsaFS] =
