@@ -18,7 +18,6 @@ package controllers.financialOverview
 
 import config.FrontendAppConfig
 import controllers.actions._
-import helpers.FormatHelper
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
@@ -55,13 +54,14 @@ class PaymentsAndChargeDetailsController @Inject()(
   private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
 
   def onPageLoad(srn: String, pstr: String, period: String, index: String,
-                 paymentOrChargeType: PaymentOrChargeType, version: Option[Int], journeyType: ChargeDetailsFilter): Action[AnyContent] =
+                 paymentOrChargeType: PaymentOrChargeType, version: Option[Int],
+                 submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
         val schemeFS: Seq[SchemeFS] = getFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
-        buildPage(schemeFS, period, index, paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, journeyType, version)
+        buildPage(schemeFS, period, index, paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, journeyType, submittedDate, version)
 
       }
   }
@@ -75,14 +75,15 @@ class PaymentsAndChargeDetailsController @Inject()(
                          pstr: String,
                          paymentOrChargeType: PaymentOrChargeType,
                          journeyType: ChargeDetailsFilter,
-                         version: Option[Int] = None
+                         submittedDate: Option[String],
+                         version: Option[Int]
                        )(
                          implicit request: IdentifierRequest[AnyContent]
                        ): Future[Result] = {
 
     val chargeRefs: Seq[String] = filteredCharges.map(_.chargeReference)
     val interestUrl = controllers.financialOverview.routes.PaymentsAndChargesInterestController
-        .onPageLoad(srn, pstr, period, index, paymentOrChargeType, version, journeyType).url
+        .onPageLoad(srn, pstr, period, index, paymentOrChargeType, version, submittedDate, journeyType).url
     if (chargeRefs.size > index.toInt) {
       filteredCharges.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
@@ -90,7 +91,7 @@ class PaymentsAndChargeDetailsController @Inject()(
           renderer.render(
             template = "financialOverview/paymentsAndChargeDetails.njk",
             ctx =
-              summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, interestUrl, version, journeyType)
+              summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, interestUrl, version, submittedDate, journeyType)
           ).map(Ok(_))
         case _ =>
           logger.warn(
@@ -110,7 +111,7 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   private def summaryListData(srn: String, period: String, schemeFS: SchemeFS, schemeName: String,
                               returnUrl: String, paymentOrChargeType: PaymentOrChargeType, interestUrl: String, version: Option[Int] = None,
-                              journeyType: ChargeDetailsFilter)
+                              submittedDate: Option[String], journeyType: ChargeDetailsFilter)
                              (implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
       case (Some(date), true, true) =>
@@ -126,18 +127,17 @@ class PaymentsAndChargeDetailsController @Inject()(
         Html("")
     }
     Json.obj(
-      "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS, journeyType),
+      "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS, journeyType, submittedDate),
       "tableHeader" -> tableHeader(schemeFS),
       "schemeName" -> schemeName,
       "chargeType" ->  (version match {
         case Some(value) => schemeFS.chargeType.toString + s" submission $value"
         case _ => schemeFS.chargeType.toString
       }),
-      "versionValue" -> (version match {
+        "versionValue" -> (version match {
         case Some(value) => s" submission $value"
         case _ => Nil
       }),
-      "chargeReferenceTextMessage" -> chargeReferenceTextMessage(schemeFS),
       "isPaymentOverdue" -> isPaymentOverdue(schemeFS),
       "insetText" -> htmlInsetText,
       "interest" -> schemeFS.accruedInterestTotal,
@@ -146,14 +146,6 @@ class PaymentsAndChargeDetailsController @Inject()(
     ) ++ returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)) ++ optHintText(schemeFS)
 
   }
-
-  private def chargeReferenceTextMessage(schemeFS: SchemeFS)(implicit messages: Messages): String =
-    if (schemeFS.totalAmount < 0) {
-      messages("paymentsAndCharges.credit.information",
-        s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}")
-    } else {
-      messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
-    }
 
   private def optHintText(schemeFS: SchemeFS)(implicit messages: Messages): JsObject =
     if (schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00)) {

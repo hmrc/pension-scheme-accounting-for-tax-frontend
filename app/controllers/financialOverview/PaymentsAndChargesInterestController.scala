@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType, values}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.requests.IdentifierRequest
@@ -30,11 +30,10 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
 import services.financialOverview.PaymentsAndChargesService
-import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, SummaryList}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
@@ -57,13 +56,13 @@ class PaymentsAndChargesInterestController @Inject()(
   private val logger = Logger(classOf[PaymentsAndChargesInterestController])
 
   def onPageLoad(srn: String, pstr: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType,
-                 version: Option[Int], journeyType: ChargeDetailsFilter): Action[AnyContent] =
+                 version: Option[Int], submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
         val schemeFS: Seq[SchemeFS] = getFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
 
-        buildPage(schemeFS, period, index,paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, version, journeyType)
+        buildPage(schemeFS, period, index,paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, version, submittedDate, journeyType)
       }
   }
 
@@ -84,6 +83,7 @@ class PaymentsAndChargesInterestController @Inject()(
                          pstr: String,
                          paymentOrChargeType: PaymentOrChargeType,
                          version: Option[Int],
+                         submittedDate: Option[String],
                          journeyType: ChargeDetailsFilter
                        )(
                          implicit request: IdentifierRequest[AnyContent]
@@ -91,13 +91,13 @@ class PaymentsAndChargesInterestController @Inject()(
 
     val chargeRefs: Seq[String] = filteredSchemeFS.map(_.chargeReference)
     val originalAmountUrl = controllers.financialOverview.routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, pstr, period, index, paymentOrChargeType, version, journeyType).url
+      .onPageLoad(srn, pstr, period, index, paymentOrChargeType, version, submittedDate, journeyType).url
     if (chargeRefs.size > index.toInt) {
       filteredSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
           renderer.render(
             template = "financialOverview/paymentsAndChargeInterest.njk",
-            ctx = summaryListData(srn, pstr, schemeFs, schemeName, request.psaId, request.pspId, originalAmountUrl, version, journeyType)
+            ctx = summaryListData(srn, pstr, schemeFs, schemeName, originalAmountUrl, version, journeyType)
           ).map(Ok(_))
         case _ =>
           logger.warn(s"No Payments and Charge details " +
@@ -116,40 +116,64 @@ class PaymentsAndChargesInterestController @Inject()(
   }
 
   def summaryListData(srn: String, pstr: String, schemeFS: SchemeFS, schemeName: String,
-                      psaId: Option[PsaId], pspId: Option[PspId], originalAmountUrl: String, version: Option[Int],
+                      originalAmountUrl: String, version: Option[Int],
                       journeyType: ChargeDetailsFilter)
-                     (implicit messages: Messages): JsObject =
-        Json.obj(
-          fields = "chargeDetailsList" -> getSummaryListRows(schemeFS),
-          "tableHeader" -> messages("paymentsAndCharges.caption",
-            schemeFS.periodStartDate.format(dateFormatterStartDate),
-            schemeFS.periodEndDate.format(dateFormatterDMY)),
-          "schemeName" -> schemeName,
-          "accruedInterest" -> schemeFS.accruedInterestTotal,
-          "chargeType" -> (
-            (version, schemeFS.chargeType) match {
-              case (Some(value), PSS_AFT_RETURN) =>
-                PSS_AFT_RETURN_INTEREST.toString + s" submission $value"
-              case (Some(value), _) =>
-                PSS_OTC_AFT_RETURN_INTEREST.toString + s" submission $value"
-              case (None, PSS_AFT_RETURN) =>
-                PSS_AFT_RETURN_INTEREST.toString
-              case (None, _) =>
-                PSS_OTC_AFT_RETURN_INTEREST.toString
-            }
-            ),
-          "originalAmountUrl" -> originalAmountUrl,
-          "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
-          "returnUrl" ->  routes.PaymentsAndChargesController.onPageLoad(srn, pstr, journeyType).url
-        )
+                     (implicit messages: Messages): JsObject = {
 
-  private def getSummaryListRows(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
+    val htmlInsetText =
+      Html(
+        s"<p class=govuk-body>${messages("paymentsAndCharges.interest.chargeReference.text1")}" +
+          s" <span><a id='breakdown' class=govuk-link href=$originalAmountUrl>" +
+          s" ${messages("paymentsAndCharges.interest.chargeReference.linkText")}</a></span>" +
+          s" ${messages("paymentsAndCharges.interest.chargeReference.text2")}</p>"
+      )
+
+    Json.obj(
+      fields = "chargeDetailsList" -> getSummaryListRows(schemeFS),
+      "tableHeader" -> tableHeader(schemeFS),
+      "schemeName" -> schemeName,
+      "accruedInterest" -> schemeFS.accruedInterestTotal,
+      "chargeType" -> (
+        (version, schemeFS.chargeType) match {
+          case (Some(value), PSS_AFT_RETURN) =>
+            PSS_AFT_RETURN_INTEREST.toString + s" submission $value"
+          case (Some(value), _) =>
+            PSS_OTC_AFT_RETURN_INTEREST.toString + s" submission $value"
+          case (None, PSS_AFT_RETURN) =>
+            PSS_AFT_RETURN_INTEREST.toString
+          case (None, _) =>
+            PSS_OTC_AFT_RETURN_INTEREST.toString
+        }
+        ),
+      "insetText" -> htmlInsetText,
+      "originalAmountUrl" -> originalAmountUrl,
+      "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
+      "returnUrl" -> routes.PaymentsAndChargesController.onPageLoad(srn, pstr, journeyType).url
+    )
+  }
+
+  private def tableHeader(schemeFS: SchemeFS)(implicit messages: Messages): String =
+    paymentsAndChargesService.setPeriod(
+      schemeFS.chargeType,
+      schemeFS.periodStartDate,
+      schemeFS.periodEndDate
+    )
+
+  private def getSummaryListRows(schemeFS: SchemeFS)(implicit messages: Messages): Seq[SummaryList.Row] = {
+    val chargeReference : String = schemeFS.chargeReference.isEmpty match {
+      case false => schemeFS.chargeReference
+      case true => messages("paymentsAndCharges.chargeReference.toBeAssigned")
+    }
     Seq(
       Row(
-        key = Key(msg"paymentsAndCharges.interest", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
+        key = Key(
+          content = msg"financialPaymentsAndCharges.chargeReference",
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+        ),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.accruedInterestTotal)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+          content = Literal(chargeReference),
+          classes =
+            Seq("govuk-!-width-one-quarter")
         ),
         actions = Nil
       ),
@@ -160,10 +184,9 @@ class PaymentsAndChargesInterestController @Inject()(
         ),
         value = Value(
           Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.accruedInterestTotal)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")
+          classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")
         ),
         actions = Nil
-      )
-    )
+      ))
   }
 }

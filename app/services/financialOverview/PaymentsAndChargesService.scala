@@ -38,7 +38,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Content, Html, SummaryList, _}
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterYMD, formatDateDMY, formatStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
@@ -57,16 +57,16 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   def getPaymentsAndCharges(   srn: String,
                                pstr: String,
                                schemeFS: Seq[SchemeFS],
-                               mapChargeTypeVersion: Map[SchemeFSChargeType, Option[Int]],
+                               mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
                                chargeDetailsFilter: ChargeDetailsFilter
                               )
                               (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
     val indexRefs: Seq[IndexRef] = schemeFS.map { scheme =>
       val chargeType = getPaymentOrChargeType(scheme.chargeType).toString
       val period: String = if (chargeType == AccountingForTaxCharges.toString) {
-        scheme.periodStartDate.toString
-      } else {
-        scheme.periodEndDate.getYear.toString
+          scheme.periodStartDate.toString
+          } else {
+            scheme.periodEndDate.getYear.toString
       }
       IndexRef(chargeType, scheme.chargeReference, period) }
     val ref: Map[(String, String), Seq[IndexRef]] = indexRefs.groupBy{
@@ -80,8 +80,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         }
         Tuple2(item._1, chargeRef)
     }
+    println("\n\n\n\n\n\nmapChargeTypesVersionAndDate "+mapChargeTypesVersionAndDate)
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
-      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefs, mapChargeTypeVersion, chargeDetailsFilter)
+      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefs, mapChargeTypesVersionAndDate, chargeDetailsFilter)
     }
 
     mapToTable(seqPayments)
@@ -106,7 +107,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                             srn: String,
                                             pstr: String,
                                             chargeRefs: Map[(String,String), Seq[String]],
-                                            mapChargeTypeVersion: Map[SchemeFSChargeType, Option[Int]],
+                                            mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
                                             chargeDetailsFilter: ChargeDetailsFilter
                                           )(implicit messages: Messages, hc: HeaderCarrier,
                                             ec: ExecutionContext): Seq[FinancialPaymentAndChargesDetails] = {
@@ -120,9 +121,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val ifAFTAndOTCChargeTypes: Boolean =
       onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
 
-    val suffix: (Option[String], Option[Int]) = (ifAFTAndOTCChargeTypes, mapChargeTypeVersion.find(_._1 == paymentOrChargeType).flatMap(_._2)) match {
-      case (true, Some(version)) => (Some(s" submission $version"), Some(version))
-      case _ => (None, None)
+    val (suffix, version, submittedDate) = (ifAFTAndOTCChargeTypes, mapChargeTypesVersionAndDate.get(paymentOrChargeType)) match {
+      case (true, Some(Tuple2(Some(version), Some(date)))) => (Some(s" submission $version"), Some(version), Some(formatDateDMY(date)))
+      case _ => (None, None, None)
     }
 
     val periodValue: String = if (chargeType.toString == AccountingForTaxCharges.toString) {
@@ -139,14 +140,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val chargeDetailsItemWithStatus: PaymentAndChargeStatus => FinancialPaymentAndChargesDetails =
       status =>
         FinancialPaymentAndChargesDetails(
-          chargeType = details.chargeType.toString + suffix._1.getOrElse(""),
+          chargeType = details.chargeType.toString + suffix.getOrElse(""),
           chargeReference = details.chargeReference,
           originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
           paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
           status = status,
           period = setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate),
           redirectUrl = financialOverview.PaymentsAndChargeDetailsController.onPageLoad(
-            srn, pstr, periodValue, seqChargeRefs.indexOf(details.chargeReference).toString, chargeType, suffix._2, chargeDetailsFilter).url,
+            srn, pstr, periodValue, seqChargeRefs.indexOf(details.chargeReference).toString, chargeType, version, submittedDate, chargeDetailsFilter).url,
           visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
         )
 
@@ -157,14 +158,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         Seq(
           chargeDetailsItemWithStatus(PaymentOverdue),
           FinancialPaymentAndChargesDetails(
-            chargeType = interestChargeType.toString + suffix._1.getOrElse(""),
+            chargeType = interestChargeType.toString + suffix.getOrElse(""),
             chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
             originalChargeAmount = "",
             paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
             status = InterestIsAccruing,
             period = setPeriod(interestChargeType, details.periodStartDate, details.periodEndDate),
             redirectUrl = financialOverview.PaymentsAndChargesInterestController.onPageLoad(
-              srn, pstr, periodValue, seqChargeRefs.indexOf(details.chargeReference).toString, chargeType, suffix._2, chargeDetailsFilter).url,
+              srn, pstr, periodValue, seqChargeRefs.indexOf(details.chargeReference).toString, chargeType, version, submittedDate, chargeDetailsFilter).url,
             visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
           )
         )
@@ -256,11 +257,34 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     )
   }
 
-  def getChargeDetailsForSelectedCharge(schemeFS: SchemeFS, journeyType: ChargeDetailsFilter)
+  def getChargeDetailsForSelectedCharge(schemeFS: SchemeFS, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
                                        (implicit messages: Messages): Seq[SummaryList.Row] = {
-    chargeReferenceRow(schemeFS) ++ originalAmountChargeDetailsRow(schemeFS) ++
+    datesubmittedRow(submittedDate) ++ chargeReferenceRow(schemeFS) ++ originalAmountChargeDetailsRow(schemeFS) ++
       clearingChargeDetailsRow(schemeFS.documentLineItemDetails) ++
       stoodOverAmountChargeDetailsRow(schemeFS) ++ totalAmountDueChargeDetailsRow(schemeFS, journeyType)
+  }
+
+  private def datesubmittedRow(submittedDate: Option[String])
+                                (implicit messages: Messages): Seq[SummaryList.Row] = {
+    submittedDate match {
+      case Some(date) =>
+        Seq(
+          Row(
+            key = Key(
+              content = msg"financialPaymentsAndCharges.dateSubmitted",
+              classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+            ),
+            value = Value(
+              content = Literal(date),
+              classes =
+                Seq("govuk-!-width-one-quarter")
+            ),
+            actions = Nil
+          ))
+      case _ =>
+        Nil
+    }
+
   }
 
   private def chargeReferenceRow(schemeFS: SchemeFS)

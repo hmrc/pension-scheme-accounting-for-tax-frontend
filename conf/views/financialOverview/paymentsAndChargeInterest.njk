@@ -25,17 +25,15 @@
 
         {% if chargeDetailsList.length > 0 %}
             <h2 id ="paymentAndChargeDetails" class="govuk-heading-m">{{tableHeader}}</h2>
-            <p class="govuk-body">{{messages("paymentsAndCharges.interest.chargeReference")}}</p>
               {{ govukSummaryList({
                  rows: chargeDetailsList
               }) }}
         {% endif %}
 
-        <p class="govuk-body">
-            {{ messages("paymentsAndCharges.interest.chargeReference.text1") }}
-            <a href="{{ originalAmountUrl }}" class="govuk-link">{{ messages("paymentsAndCharges.interest.chargeReference.linkText") }}</a>
-            {{ messages("paymentsAndCharges.interest.chargeReference.text2") }}
-        </p>
+
+        {{ govukInsetText({
+          html: insetText
+        }) }}
 
       </div>
     </div>
