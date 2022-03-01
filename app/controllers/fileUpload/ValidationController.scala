@@ -144,7 +144,8 @@ class ValidationController @Inject()(
 
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
 
-    parser.parse(startDate, filteredLinesFromCSV, updatedUA).fold[Future[Result]](
+    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing")
+    parserResult.fold[Future[Result]](
       processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>
         processSuccessResult(chargeType, updatedUA).map(_ =>
