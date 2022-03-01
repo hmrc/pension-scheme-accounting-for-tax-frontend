@@ -60,26 +60,31 @@ class PspSchemeDashboardPartialsController @Inject()(
       (idNumber, schemeIdType, authorisingPsaId) match {
         case (Some(idNumber), Some(_), Some(psaId)) =>
           toggleService.get(FinancialInformationAFT).flatMap {
-            case Disabled(FinancialInformationAFT) => val toggleOn = for {
-            schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
-            schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
-            aftReturnsHtml <- pspDashboardAftReturnsPartial(idNumber, schemeDetails.pstr, psaId)
-            upcomingAftChargesHtml <- pspDashboardUpcomingAftChargesPartial(idNumber, schemeFs)
-            overdueChargesHtml <- pspDashboardOverdueAftChargesPartial(idNumber, schemeFs)
-          } yield {
-            scala.collection.immutable.Seq(aftReturnsHtml, upcomingAftChargesHtml, overdueChargesHtml)
-          }
-          toggleOn.map(HtmlFormat.fill).map(Ok(_))
-            case Enabled(FinancialInformationAFT) => val toggleOff= for {
-              schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
-              schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
-              aftReturnsHtml <- pspDashboardAftReturnsPartial(idNumber, schemeDetails.pstr, psaId)
-              paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(idNumber, schemeFs)
-            }
-            yield {
-              scala.collection.immutable.Seq(aftReturnsHtml,paymentsAndChargesHtml)
-            }
-              toggleOff.map(HtmlFormat.fill).map(Ok(_))
+            case Disabled(FinancialInformationAFT) =>
+              val futureSeqHtml = for {
+                schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
+                schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
+                aftReturnsHtml <- pspDashboardAftReturnsPartial(idNumber, schemeDetails.pstr, psaId)
+                upcomingAftChargesHtml <- pspDashboardUpcomingAftChargesPartial(idNumber, schemeFs)
+                overdueChargesHtml <- pspDashboardOverdueAftChargesPartial(idNumber, schemeFs)
+              } yield {
+                scala.collection.immutable.Seq(aftReturnsHtml, upcomingAftChargesHtml, overdueChargesHtml)
+              }
+
+              futureSeqHtml.map(HtmlFormat.fill).map(Ok(_))
+
+            case Enabled(FinancialInformationAFT) =>
+
+              val futureSeqHtml = for {
+                schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
+                schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
+                aftReturnsHtml <- pspDashboardAftReturnsPartial(idNumber, schemeDetails.pstr, psaId)
+                paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(idNumber, schemeFs)
+              }
+              yield {
+                scala.collection.immutable.Seq(aftReturnsHtml, paymentsAndChargesHtml)
+              }
+              futureSeqHtml.map(HtmlFormat.fill).map(Ok(_))
           }
         case _ =>
           Future.failed(
@@ -112,6 +117,7 @@ class PspSchemeDashboardPartialsController @Inject()(
       )
     }
   }
+
   private def pspDashboardPaymentsAndChargesPartial(idNumber: String, schemeFs: Seq[SchemeFS])
                                                    (implicit request: IdentifierRequest[AnyContent]): Future[Html] = {
     if (schemeFs.isEmpty) {
@@ -125,6 +131,7 @@ class PspSchemeDashboardPartialsController @Inject()(
       )
     }
   }
+
   private def pspDashboardOverdueAftChargesPartial(idNumber: String, schemeFs: Seq[SchemeFS])
                                                   (implicit request: IdentifierRequest[AnyContent]): Future[Html] = {
     val overdueCharges = paymentsAndChargesService.getOverdueCharges(schemeFs)

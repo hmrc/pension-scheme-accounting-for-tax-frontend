@@ -38,7 +38,7 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{AFTPartialService, FeatureToggleService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, DashboardAftViewModel, Link}
+import viewmodels._
 
 import scala.concurrent.Future
 
@@ -74,6 +74,13 @@ class PspSchemeDashboardPartialsControllerSpec
   private val pspDashboardOverdueChargesPartialJson: JsObject =
     Json.obj("overdueCharges" -> Json.toJson(pspDashboardOverdueAftChargesViewModel))
 
+  private val pspDashboardSchemePaymentsAndChargesPartialJson: JsObject =
+    Json.obj("cards" -> Json.toJson(pspDashboardSchemePaymentsAndChargesViewModel))
+
+  /*
+  Json.obj("cards" -> Json.toJson(viewModel))
+   */
+
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
   private def pspDashboardAftReturnsViewModel: DashboardAftViewModel =
@@ -102,6 +109,27 @@ class PspSchemeDashboardPartialsControllerSpec
       links = Nil
     )
 
+  private def pspDashboardSchemePaymentsAndChargesViewModel: Seq[CardViewModel] =
+    allTypesMultipleReturnsModel
+  //    DashboardAftViewModel(
+  //      subHeadings = Seq(Json.obj(
+  //        "span" -> "test span for overdue charged",
+  //        "total" -> 100
+  //      )),
+  //      links = Nil
+  //    )
+
+  /*
+  Seq(CardSubHeading(
+        subHeading = "",
+        subHeadingClasses = "govuk-tag govuk-tag--red",
+        subHeadingParams = Seq(CardSubHeadingParam(
+          subHeadingParam = messages("pspDashboardOverdueAftChargesCard.overdue.span"),
+          subHeadingParamClasses = "govuk-tag govuk-tag--red"
+        ))
+
+      ))
+   */
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -116,47 +144,47 @@ class PspSchemeDashboardPartialsControllerSpec
 
   "Psp Scheme Dashboard Partials Controller" must {
 
-      "return the html with the information for AFT returns and upcoming charges when the toggle is off" in {
+    "return the html with the information for AFT returns and upcoming charges when the toggle is off" in {
 
-        when(mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
-          .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
+      when(mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
 
-        when(mockAftPartialService.retrievePspDashboardUpcomingAftChargesModel(any(), any())(any()))
-          .thenReturn(pspDashboardUpcomingAftChargesViewModel)
+      when(mockAftPartialService.retrievePspDashboardUpcomingAftChargesModel(any(), any())(any()))
+        .thenReturn(pspDashboardUpcomingAftChargesViewModel)
 
-        when(mockAftPartialService.retrievePspDashboardOverdueAftChargesModel(any(), any())(any()))
+      when(mockAftPartialService.retrievePspDashboardOverdueAftChargesModel(any(), any())(any()))
         .thenReturn(pspDashboardOverdueAftChargesViewModel)
 
-        when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any())(any()))
-          .thenReturn(allTypesMultipleReturnsModel)
-        when(mockFinancialInformationToggle.get(any())(any(), any()))
-          .thenReturn(Future.successful(Disabled(FinancialInformationAFT)))
+      when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any())(any()))
+        .thenReturn(allTypesMultipleReturnsModel)
+      when(mockFinancialInformationToggle.get(any())(any(), any()))
+        .thenReturn(Future.successful(Disabled(FinancialInformationAFT)))
 
-        val result = route(
-          app = application,
-          req = httpGETRequest(pspDashboardAftReturnsPartial)
-            .withHeaders(
-              "idNumber" -> SampleData.srn,
-              "schemeIdType" -> "srn",
-              "psaId" -> SampleData.pspId,
-              "authorisingPsaId" -> SampleData.psaId
-            )
-        ).value
+      val result = route(
+        app = application,
+        req = httpGETRequest(pspDashboardAftReturnsPartial)
+          .withHeaders(
+            "idNumber" -> SampleData.srn,
+            "schemeIdType" -> "srn",
+            "psaId" -> SampleData.pspId,
+            "authorisingPsaId" -> SampleData.psaId
+          )
+      ).value
 
-        status(result) mustEqual OK
+      status(result) mustEqual OK
 
-        verify(mockRenderer, times(1))
-          .render(ArgumentMatchers.eq("partials/pspDashboardAftReturnsCard.njk"), jsonCaptor.capture())(any())
-        jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
+      verify(mockRenderer, times(1))
+        .render(ArgumentMatchers.eq("partials/pspDashboardAftReturnsCard.njk"), jsonCaptor.capture())(any())
+      jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
 
-        verify(mockRenderer, times(1))
-          .render(ArgumentMatchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
-        jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
+      verify(mockRenderer, times(1))
+        .render(ArgumentMatchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
+      jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
 
-        verify(mockRenderer, times(1))
-          .render(ArgumentMatchers.eq("partials/pspDashboardOverdueAftChargesCard.njk"), jsonCaptor.capture())(any())
-        jsonCaptor.getValue must containJson(pspDashboardOverdueChargesPartialJson)
-      }
+      verify(mockRenderer, times(1))
+        .render(ArgumentMatchers.eq("partials/pspDashboardOverdueAftChargesCard.njk"), jsonCaptor.capture())(any())
+      jsonCaptor.getValue must containJson(pspDashboardOverdueChargesPartialJson)
+    }
     "return the html with the information for AFT returns and upcoming charges when the toggle is on" in {
       when(mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
@@ -189,10 +217,14 @@ class PspSchemeDashboardPartialsControllerSpec
         .render(ArgumentMatchers.eq("partials/pspDashboardAftReturnsCard.njk"), jsonCaptor.capture())(any())
       jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-              templateCaptor.getValue mustEqual "partials/pspSchemePaymentsAndChargesPartial.njk"
+      verify(mockRenderer, times(1))
+        .render(ArgumentMatchers.eq("partials/pspSchemePaymentsAndChargesPartial.njk"), jsonCaptor.capture())(any())
+
+      jsonCaptor.getValue must containJson(pspDashboardSchemePaymentsAndChargesPartialJson)
     }
   }
+
+
   private def aftModel(subHeadings: Seq[CardSubHeading], links: Seq[Link])
                       (implicit messages: Messages): CardViewModel = CardViewModel(
     id = "aft-overview",
@@ -200,6 +232,7 @@ class PspSchemeDashboardPartialsControllerSpec
     subHeadings = subHeadings,
     links = links
   )
+
   private def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(multipleInProgressSubHead()), Seq(multipleInProgressLink, startLink, pastReturnsLink)))
 
@@ -218,10 +251,16 @@ class PspSchemeDashboardPartialsControllerSpec
     linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
     hiddenText = Some(msg"aftPartial.view.hidden")
   )
+
   private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
+
   private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
-  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
-  private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
-  private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
-  private val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
+
+  private def aftUrl = """http://localhost:8206/manage-pension-scheme-accounting-for-tax"""
+
+  private def amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
+
+  private def continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
+
+  private def aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
 }
