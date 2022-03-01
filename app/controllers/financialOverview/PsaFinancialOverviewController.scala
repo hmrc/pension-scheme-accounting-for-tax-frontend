@@ -53,7 +53,7 @@ class PsaFinancialOverviewController @Inject()(
     implicit request =>
       val response = for {
         psaName <- minimalConnector.getPsaNameFromPsaID(request.psaIdOrException.id)
-        (psaFS,creditPsaFS) <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
+        (psaFS,creditPsaFS) <- financialStatementConnector.getPsaFSWithoutAndWithPaymentOnAccount(request.psaIdOrException.id)
       } yield {
         renderFinancialOverview(psaName, psaFS, request, creditPsaFS)
       }

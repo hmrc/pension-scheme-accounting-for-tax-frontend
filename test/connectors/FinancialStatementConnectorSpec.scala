@@ -98,7 +98,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
       )
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getPsaFSWithPaymentOnAccount(psaId).map(
+      connector.getPsaFSWithoutAndWithPaymentOnAccount(psaId).map(
         fs => (fs._1,fs._2) mustBe (psaFSResponseToValidate,psaFSResponse)
       )
 
@@ -118,7 +118,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
       val connector = injector.instanceOf[FinancialStatementConnector]
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getPsaFSWithPaymentOnAccount(psaId)
+        connector.getPsaFSWithoutAndWithPaymentOnAccount(psaId)
       }
 
     }
