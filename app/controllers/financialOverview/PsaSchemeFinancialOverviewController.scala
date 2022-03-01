@@ -55,7 +55,7 @@ class PsaSchemeFinancialOverviewController @Inject()(
     implicit request =>
       val response = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
-        psaName <- minimalConnector.getPsaNameFromPsaID(request.psaIdOrException.id)
+        psaName <- minimalConnector.getPsaOrPspName
         schemeFS <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
         aftModel <- service.aftCardModel(schemeDetails, srn)
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)

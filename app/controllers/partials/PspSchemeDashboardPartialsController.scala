@@ -56,6 +56,7 @@ class PspSchemeDashboardPartialsController @Inject()(
       val idNumber = request.headers.get("idNumber")
       val schemeIdType = request.headers.get("schemeIdType")
       val authorisingPsaId = request.headers.get("authorisingPsaId")
+
       (idNumber, schemeIdType, authorisingPsaId) match {
         case (Some(idNumber), Some(_), Some(psaId)) =>
           toggleService.get(FinancialInformationAFT).flatMap {
