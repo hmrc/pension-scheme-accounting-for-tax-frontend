@@ -23,7 +23,7 @@ import controllers.base.ControllerSpecBase
 import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.Enumerable
-import models.FeatureToggle.Enabled
+import models.FeatureToggle.{Enabled, Disabled}
 import models.FeatureToggleName.FinancialInformationAFT
 import models.PenaltiesFilter.All
 import org.mockito.ArgumentCaptor
@@ -123,7 +123,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
 
       "return the html with the link when data is received from PSA financial statement api when toggle is off" in {
         when(mockFinancialInformationToggle.get(any())(any(), any()))
-          .thenReturn(Future.successful(Enabled(FinancialInformationAFT)))
+          .thenReturn(Future.successful(Disabled(FinancialInformationAFT)))
         when(mockAFTPartialService.retrievePsaPenaltiesCardModel(any())(any()))
           .thenReturn(dashboardViewModel)
 
@@ -135,7 +135,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-        templateCaptor.getValue mustEqual "partials/psaSchemeDashboardPartial.njk"
+        templateCaptor.getValue mustEqual "partials/penalties.njk"
       }
     }
   }
