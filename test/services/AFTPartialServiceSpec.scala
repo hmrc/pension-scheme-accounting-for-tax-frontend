@@ -374,6 +374,84 @@ class AFTPartialServiceSpec
       }
     }
   }
+
+  "retrievePsaChargesAmount" must {
+    "return the correct value for charge" when {
+      "Upcoming charge is Zero" in {
+        val penalties = Seq(
+          multiplePenalties(0).copy( dueDate = Some(LocalDate.parse("2020-11-15"))),
+          multiplePenalties(1).copy( dueDate = Some(LocalDate.parse("2020-11-15")))
+        )
+
+        service.retrievePsaChargesAmount(penalties) mustBe
+          ( "£0.00", "£200.00","£0.00")
+      }
+
+      "Upcoming charge is Exists and OverDue charge Exists" in {
+        val penalties = Seq(
+          multiplePenalties(0).copy( dueDate = Some(LocalDate.now())),
+          multiplePenalties(1).copy( dueDate = Some(LocalDate.parse("2020-11-15")))
+        )
+
+        service.retrievePsaChargesAmount(penalties) mustBe
+          ( "£100.00", "£100.00","£0.00")
+      }
+
+      "Upcoming charge is Exists and OverDue charge is Zero" in {
+        val penalties = Seq(
+          multiplePenalties(0).copy( dueDate = Some(LocalDate.now())),
+          multiplePenalties(1).copy( dueDate = Some(LocalDate.now()))
+        )
+
+        service.retrievePsaChargesAmount(penalties) mustBe
+          ( "£200.00", "£0.00","£0.00")
+      }
+
+      "Interest on charge exists" in {
+        val penalties = Seq(
+          multiplePenalties(0).copy( dueDate = Some(LocalDate.parse("2020-11-15")),accruedInterestTotal = BigDecimal("100")),
+          multiplePenalties(1).copy( dueDate = Some(LocalDate.now()))
+        )
+
+        service.retrievePsaChargesAmount(penalties) mustBe
+          ( "£100.00", "£100.00","£100.00")
+      }
+
+    }
+  }
+
+  "getCreditBalanceAmount" must {
+    "return the correct value for Credit" when {
+      "Zero creditBalance if due date not exists" in {
+        val penalties = Seq(
+          multiplePenalties(0).copy( dueDate = None),
+          multiplePenalties(1).copy( dueDate = None)
+        )
+
+        service.getCreditBalanceAmount(penalties) mustBe BigDecimal("0.00")
+      }
+
+      "creditBalance amount zero if positive due amount " in {
+        val penalties = Seq(
+          multiplePenalties(0).copy( dueDate = Some(LocalDate.parse("2020-11-15"))),
+          multiplePenalties(1).copy( dueDate = Some(LocalDate.parse("2020-11-15")))
+        )
+
+        service.getCreditBalanceAmount(penalties) mustBe BigDecimal("0.00")
+      }
+
+      "creditBalance amount if negative due amount" in {
+        val penalties = Seq(
+          multiplePenalties(0).copy( dueDate = Some(LocalDate.parse("2020-11-15")),amountDue = BigDecimal("-200")),
+          multiplePenalties(1).copy( dueDate = Some(LocalDate.parse("2020-11-15")))
+        )
+
+        service.getCreditBalanceAmount(penalties) mustBe BigDecimal("100.00")
+      }
+
+    }
+  }
+
 }
 
 object AFTPartialServiceSpec {

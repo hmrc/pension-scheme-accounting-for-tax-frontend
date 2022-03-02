@@ -1405,6 +1405,16 @@ psaSchemeFinancial.allPaymentCharges.link  = View all payments and charges
 psaSchemeFinancial.title = Your financial overview
 psaSchemeFinancial.refund = Request a refund
 
+psa.financial.overview.title = Your financial overview
+psa.financial.overview.h2.overdue  = Total of overdue penalties and charges
+psa.financial.overview.h2.totalInterestAccruing  = Total interest accruing to date
+psa.financial.overview.h2.totalDuePenalties  = Total of due penalties and charges
+psa.financial.overview.h2.creditBalance  = Credit balance
+psa.financial.overview.h2.repaymentInterest  = Repayment interest
+psa.financial.overview.allOverdue.link  = View all overdue penalites and interest charges
+psa.financial.overview.allDue.link  = View all due penalites and charges
+psa.financial.overview.pastPenalties.link  = View past penalties and charges
+
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.nino = member’s National Insurance number is missing or in the wrong format
