@@ -16,7 +16,6 @@
 
 package controllers.financialOverview
 
-import config.FrontendAppConfig
 import controllers.actions._
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
@@ -43,7 +42,6 @@ class PaymentsAndChargeDetailsController @Inject()(
                                                     identify: IdentifierAction,
                                                     allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                     val controllerComponents: MessagesControllerComponents,
-                                                    config: FrontendAppConfig,
                                                     paymentsAndChargesService: PaymentsAndChargesService,
                                                     renderer: Renderer
                                                   )(implicit ec: ExecutionContext)
@@ -59,10 +57,8 @@ class PaymentsAndChargeDetailsController @Inject()(
     (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
-
         val schemeFS: Seq[SchemeFS] = getFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
         buildPage(schemeFS, period, index, paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, journeyType, submittedDate, version)
-
       }
   }
 
@@ -120,8 +116,8 @@ class PaymentsAndChargeDetailsController @Inject()(
             s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
             s" <span class=govuk-!-font-weight-bold>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2", schemeFS.accruedInterestTotal)}</span>"+
             s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", date.format(dateFormatterDMY))}<span>" +
-            s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl></p>" +
-            s"${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
+            s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
         )
       case _ =>
         Html("")

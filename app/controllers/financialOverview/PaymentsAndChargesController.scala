@@ -21,11 +21,9 @@ import connectors.AFTConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter.Upcoming
-import models.financialStatement.PaymentOrChargeType.{ExcessReliefPaidCharges, InterestOnExcessRelief}
-import models.financialStatement.{PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{SchemeFS, SchemeFSChargeType}
 import models.{ChargeDetailsFilter, UserAnswers}
 import pages.{AFTReceiptDateQuery, AFTVersionQuery}
-import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
@@ -54,8 +52,6 @@ class PaymentsAndChargesController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
-
-  private val logger = Logger(classOf[PaymentsAndChargesController])
 
   private def getMapChargeTypeToVersionAndDate(seqSchemeFS: Seq[SchemeFS], pstr: String)(implicit ec: ExecutionContext,
                                                             headerCarrier: HeaderCarrier): Future[Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])]] = {
@@ -106,12 +102,8 @@ class PaymentsAndChargesController @Inject()(
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
-
       }
     }
-
-  val isTaxYearFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
-
 
   private val removePaymentStatusColumn: Table => Table = table =>
     Table(table.caption, table.captionClasses, table.firstCellIsHeader,

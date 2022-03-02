@@ -26,17 +26,17 @@ object SchemeFSChargeType extends Enumerable.Implicits {
   case object PSS_AFT_RETURN_INTEREST extends WithName("Interest on Accounting for Tax return") with SchemeFSChargeType
   case object PSS_OTC_AFT_RETURN extends WithName("Overseas transfer charge") with SchemeFSChargeType
   case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("Interest on overseas transfer charge") with SchemeFSChargeType
-  case object AFT_MANUAL_ASST extends WithName( "AFT manual assessment") with SchemeFSChargeType
-  case object AFT_MANUAL_ASST_INTEREST extends WithName("Interest on AFT manual assessment") with SchemeFSChargeType
-  case object OTC_MANUAL_ASST extends WithName("OTC manual assessment") with SchemeFSChargeType
-  case object OTC_MANUAL_ASST_INTEREST extends WithName("Interest on OTC manual assessment") with SchemeFSChargeType
+  case object AFT_MANUAL_ASST extends WithName( "Accounting for Tax return manual assessment") with SchemeFSChargeType
+  case object AFT_MANUAL_ASST_INTEREST extends WithName("Interest on Accounting for Tax return manual assessment") with SchemeFSChargeType
+  case object OTC_MANUAL_ASST extends WithName("Overseas transfer charge manual assessment") with SchemeFSChargeType
+  case object OTC_MANUAL_ASST_INTEREST extends WithName("Interest on overseas transfer charge manual assessment") with SchemeFSChargeType
   case object PSS_CHARGE extends WithName("PSS charge") with SchemeFSChargeType
   case object PSS_CHARGE_INTEREST extends WithName("PSS charge interest") with SchemeFSChargeType
-  case object CONTRACT_SETTLEMENT extends WithName("Contract settlement") with SchemeFSChargeType
-  case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract settlement interest") with SchemeFSChargeType
+  case object CONTRACT_SETTLEMENT extends WithName("Contract settlement charge") with SchemeFSChargeType
+  case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract settlement interest charge") with SchemeFSChargeType
   case object REPAYMENT_INTEREST extends WithName("Repayment interest") with SchemeFSChargeType
-  case object EXCESS_RELIEF_PAID extends WithName("Excess relief paid") with SchemeFSChargeType
-  case object EXCESS_RELIEF_INTEREST extends WithName("Interest on excess relief") with SchemeFSChargeType
+  case object EXCESS_RELIEF_PAID extends WithName("Excess relief paid charge") with SchemeFSChargeType
+  case object EXCESS_RELIEF_INTEREST extends WithName("Interest on excess relief charge") with SchemeFSChargeType
   case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with SchemeFSChargeType
 
   val values: Seq[SchemeFSChargeType] = Seq(

@@ -38,7 +38,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Content, Html, SummaryList, _}
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, dateFormatterYMD, formatDateDMY, formatStartDate}
+import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
@@ -80,7 +80,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         }
         Tuple2(item._1, chargeRef)
     }
-    println("\n\n\n\n\n\nmapChargeTypesVersionAndDate "+mapChargeTypesVersionAndDate)
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
       paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefs, mapChargeTypesVersionAndDate, chargeDetailsFilter)
     }
@@ -89,8 +88,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   }
 
   val extractUpcomingCharges: Seq[SchemeFS] => Seq[SchemeFS] = schemeFS =>
-    schemeFS.filter(charge => charge.dueDate.nonEmpty && !charge.dueDate.get.isBefore(DateHelper.today))
-      .filter(_.amountDue > BigDecimal(0.00))
+    schemeFS.filter(charge => charge.dueDate.nonEmpty
+      && charge.dueDate.get.isAfter(DateHelper.today)
+      && charge.amountDue > BigDecimal(0.00))
 
   def getOverdueCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
     schemeFS
@@ -242,9 +242,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half")),
-        Cell(Literal(s"${data.chargeReference}")),
-        Cell(Literal(data.originalChargeAmount)),
-        Cell(Literal(data.paymentDue)),
+        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-half")),
+        Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-half")),
+        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-half")),
         Cell(htmlStatus(data), classes = Nil)
       )
     }
@@ -259,12 +259,12 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   def getChargeDetailsForSelectedCharge(schemeFS: SchemeFS, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
                                        (implicit messages: Messages): Seq[SummaryList.Row] = {
-    datesubmittedRow(submittedDate) ++ chargeReferenceRow(schemeFS) ++ originalAmountChargeDetailsRow(schemeFS) ++
+    dateSubmittedRow(submittedDate) ++ chargeReferenceRow(schemeFS) ++ originalAmountChargeDetailsRow(schemeFS) ++
       clearingChargeDetailsRow(schemeFS.documentLineItemDetails) ++
       stoodOverAmountChargeDetailsRow(schemeFS) ++ totalAmountDueChargeDetailsRow(schemeFS, journeyType)
   }
 
-  private def datesubmittedRow(submittedDate: Option[String])
+  private def dateSubmittedRow(submittedDate: Option[String])
                                 (implicit messages: Messages): Seq[SummaryList.Row] = {
     submittedDate match {
       case Some(date) =>
@@ -425,14 +425,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       }
     }
 
-  def getTypeParam(paymentType: PaymentOrChargeType)(implicit messages: Messages): String =
-    if (paymentType == AccountingForTaxCharges) {
-      messages(s"paymentOrChargeType.${paymentType.toString}")
-    } else {
-      messages(s"paymentOrChargeType.${paymentType.toString}").toLowerCase()
-    }
-
-  def getClearingDetailLabel(documentLineItemDetail: DocumentLineItemDetail)(implicit messages: Messages): Option[Text.Message] = {
+  private def getClearingDetailLabel(documentLineItemDetail: DocumentLineItemDetail)(implicit messages: Messages): Option[Text.Message] = {
     (documentLineItemDetail.clearingReason, documentLineItemDetail.clearingDate) match {
       case (Some(clearingReason), Some(clearingDate)) =>
         clearingReason match {

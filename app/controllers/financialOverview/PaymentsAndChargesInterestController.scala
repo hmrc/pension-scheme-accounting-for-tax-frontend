@@ -16,11 +16,10 @@
 
 package controllers.financialOverview
 
-import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType, values}
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.requests.IdentifierRequest
@@ -34,7 +33,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, SummaryList}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.dateFormatterDMY
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -45,7 +44,6 @@ class PaymentsAndChargesInterestController @Inject()(
                                                       identify: IdentifierAction,
                                                       allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                       val controllerComponents: MessagesControllerComponents,
-                                                      config: FrontendAppConfig,
                                                       paymentsAndChargesService: PaymentsAndChargesService,
                                                       renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
@@ -115,10 +113,10 @@ class PaymentsAndChargesInterestController @Inject()(
 
   }
 
-  def summaryListData(srn: String, pstr: String, schemeFS: SchemeFS, schemeName: String,
-                      originalAmountUrl: String, version: Option[Int],
-                      journeyType: ChargeDetailsFilter)
-                     (implicit messages: Messages): JsObject = {
+  private def summaryListData(srn: String, pstr: String, schemeFS: SchemeFS, schemeName: String,
+                              originalAmountUrl: String, version: Option[Int],
+                              journeyType: ChargeDetailsFilter)
+                              (implicit messages: Messages): JsObject = {
 
     val htmlInsetText =
       Html(
