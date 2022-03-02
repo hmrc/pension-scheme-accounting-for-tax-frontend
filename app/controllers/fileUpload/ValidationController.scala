@@ -26,6 +26,7 @@ import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
 import pages.{PSTRQuery, SchemeNameQuery}
+import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -122,6 +123,8 @@ class ValidationController @Inject()(
     cellErrors
   }
 
+  private val logger = Logger("ValidationController")
+
   private def removeMemberBasedCharge(ua: UserAnswers, chargeType: ChargeType): UserAnswers =
     chargeType match {
       case ChargeTypeAnnualAllowance => ua.removeWithPath(JsPath \ "chargeEDetails")
@@ -144,13 +147,18 @@ class ValidationController @Inject()(
 
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
 
-    parser.parseParallel(startDate, filteredLinesFromCSV, updatedUA).flatMap { p =>
+    logger.warn(s"FileUpload logging parseParallel start is ${System.currentTimeMillis} ms")
 
+    parser.parseParallel(startDate, filteredLinesFromCSV, updatedUA).flatMap{ p =>
+      logger.warn(s"FileUpload logging parseParallel end is ${System.currentTimeMillis} ms")
       p.fold[Future[Result]](
         processInvalid(srn, startDate, accessType, version, chargeType, _),
         updatedUA =>
-          processSuccessResult(chargeType, updatedUA).map(_ =>
-            Redirect(routes.FileUploadSuccessController.onPageLoad(srn, startDate.toString, accessType, version, chargeType)))
+          TimeLogger.logOperationTime(
+            processSuccessResult(chargeType, updatedUA).map(_ =>
+              Redirect(routes.FileUploadSuccessController.onPageLoad(srn, startDate.toString, accessType, version, chargeType))),
+            "processSuccessResult"
+          )
       )
     }
   }
