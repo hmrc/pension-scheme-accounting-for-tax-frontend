@@ -38,7 +38,7 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{AFTPartialService, FeatureToggleService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, DashboardAftViewModel, Link}
+import viewmodels._
 
 import scala.concurrent.Future
 
@@ -74,7 +74,10 @@ class PspSchemeDashboardPartialsControllerSpec
   private val pspDashboardOverdueChargesPartialJson: JsObject =
     Json.obj("overdueCharges" -> Json.toJson(pspDashboardOverdueAftChargesViewModel))
   private val pspDashboardPaymentsAndChargesPartialJson: JsObject =
-    Json.obj("cards" -> Json.toJson(pspDashboardPaymentsAndChargesViewModel))
+    Json.obj("cards" -> Json.toJson(pspDashboardSchemePaymentsAndChargesViewModel))
+  
+
+
 
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -103,8 +106,10 @@ class PspSchemeDashboardPartialsControllerSpec
       )),
       links = Nil
     )
-  private def pspDashboardPaymentsAndChargesViewModel: Seq[CardViewModel] =
+
+  private def pspDashboardSchemePaymentsAndChargesViewModel: Seq[CardViewModel] =
     allTypesMultipleReturnsModel
+
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -119,47 +124,47 @@ class PspSchemeDashboardPartialsControllerSpec
 
   "Psp Scheme Dashboard Partials Controller" must {
 
-      "return the html with the information for AFT returns and upcoming charges when the toggle is off" in {
+    "return the html with the information for AFT returns and upcoming charges when the toggle is off" in {
 
-        when(mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
-          .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
+      when(mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
 
-        when(mockAftPartialService.retrievePspDashboardUpcomingAftChargesModel(any(), any())(any()))
-          .thenReturn(pspDashboardUpcomingAftChargesViewModel)
+      when(mockAftPartialService.retrievePspDashboardUpcomingAftChargesModel(any(), any())(any()))
+        .thenReturn(pspDashboardUpcomingAftChargesViewModel)
 
-        when(mockAftPartialService.retrievePspDashboardOverdueAftChargesModel(any(), any())(any()))
+      when(mockAftPartialService.retrievePspDashboardOverdueAftChargesModel(any(), any())(any()))
         .thenReturn(pspDashboardOverdueAftChargesViewModel)
 
-        when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any())(any()))
-          .thenReturn(allTypesMultipleReturnsModel)
-        when(mockFinancialInformationToggle.get(any())(any(), any()))
-          .thenReturn(Future.successful(Disabled(FinancialInformationAFT)))
+      when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any())(any()))
+        .thenReturn(allTypesMultipleReturnsModel)
+      when(mockFinancialInformationToggle.get(any())(any(), any()))
+        .thenReturn(Future.successful(Disabled(FinancialInformationAFT)))
 
-        val result = route(
-          app = application,
-          req = httpGETRequest(pspDashboardAftReturnsPartial)
-            .withHeaders(
-              "idNumber" -> SampleData.srn,
-              "schemeIdType" -> "srn",
-              "psaId" -> SampleData.pspId,
-              "authorisingPsaId" -> SampleData.psaId
-            )
-        ).value
+      val result = route(
+        app = application,
+        req = httpGETRequest(pspDashboardAftReturnsPartial)
+          .withHeaders(
+            "idNumber" -> SampleData.srn,
+            "schemeIdType" -> "srn",
+            "psaId" -> SampleData.pspId,
+            "authorisingPsaId" -> SampleData.psaId
+          )
+      ).value
 
-        status(result) mustEqual OK
+      status(result) mustEqual OK
 
-        verify(mockRenderer, times(1))
-          .render(ArgumentMatchers.eq("partials/pspDashboardAftReturnsCard.njk"), jsonCaptor.capture())(any())
-        jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
+      verify(mockRenderer, times(1))
+        .render(ArgumentMatchers.eq("partials/pspDashboardAftReturnsCard.njk"), jsonCaptor.capture())(any())
+      jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
 
-        verify(mockRenderer, times(1))
-          .render(ArgumentMatchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
-        jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
+      verify(mockRenderer, times(1))
+        .render(ArgumentMatchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
+      jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
 
-        verify(mockRenderer, times(1))
-          .render(ArgumentMatchers.eq("partials/pspDashboardOverdueAftChargesCard.njk"), jsonCaptor.capture())(any())
-        jsonCaptor.getValue must containJson(pspDashboardOverdueChargesPartialJson)
-      }
+      verify(mockRenderer, times(1))
+        .render(ArgumentMatchers.eq("partials/pspDashboardOverdueAftChargesCard.njk"), jsonCaptor.capture())(any())
+      jsonCaptor.getValue must containJson(pspDashboardOverdueChargesPartialJson)
+    }
     "return the html with the information for AFT returns and upcoming charges when the toggle is on" in {
       when(mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
@@ -171,7 +176,7 @@ class PspSchemeDashboardPartialsControllerSpec
         .thenReturn(pspDashboardOverdueAftChargesViewModel)
 
       when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any())(any()))
-        .thenReturn(pspDashboardPaymentsAndChargesViewModel)
+        .thenReturn(pspDashboardSchemePaymentsAndChargesViewModel)
       when(mockFinancialInformationToggle.get(any())(any(), any()))
         .thenReturn(Future.successful(Enabled(FinancialInformationAFT)))
 
@@ -197,6 +202,8 @@ class PspSchemeDashboardPartialsControllerSpec
       jsonCaptor.getValue must containJson(pspDashboardPaymentsAndChargesPartialJson)
     }
   }
+
+
   private def aftModel(subHeadings: Seq[CardSubHeading], links: Seq[Link])
                       (implicit messages: Messages): CardViewModel = CardViewModel(
     id = "aft-overview",
@@ -204,6 +211,7 @@ class PspSchemeDashboardPartialsControllerSpec
     subHeadings = subHeadings,
     links = links
   )
+
   private def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(multipleInProgressSubHead()), Seq(multipleInProgressLink, startLink, pastReturnsLink)))
 
@@ -222,10 +230,16 @@ class PspSchemeDashboardPartialsControllerSpec
     linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
     hiddenText = Some(msg"aftPartial.view.hidden")
   )
+
   private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
+
   private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
+
+  private def aftUrl = """http://localhost:8206/manage-pension-scheme-accounting-for-tax"""
+
   private def amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
-  private def aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
+
   private def continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
+
   private def aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
 }
