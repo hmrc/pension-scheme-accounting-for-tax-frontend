@@ -73,6 +73,8 @@ class PspSchemeDashboardPartialsControllerSpec
     Json.obj("upcomingCharges" -> Json.toJson(pspDashboardUpcomingAftChargesViewModel))
   private val pspDashboardOverdueChargesPartialJson: JsObject =
     Json.obj("overdueCharges" -> Json.toJson(pspDashboardOverdueAftChargesViewModel))
+  private val pspDashboardPaymentsAndChargesPartialJson: JsObject =
+    Json.obj("cards" -> Json.toJson(pspDashboardPaymentsAndChargesViewModel))
 
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -101,7 +103,8 @@ class PspSchemeDashboardPartialsControllerSpec
       )),
       links = Nil
     )
-
+  private def pspDashboardPaymentsAndChargesViewModel: Seq[CardViewModel] =
+    allTypesMultipleReturnsModel
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -168,7 +171,7 @@ class PspSchemeDashboardPartialsControllerSpec
         .thenReturn(pspDashboardOverdueAftChargesViewModel)
 
       when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any())(any()))
-        .thenReturn(allTypesMultipleReturnsModel)
+        .thenReturn(pspDashboardPaymentsAndChargesViewModel)
       when(mockFinancialInformationToggle.get(any())(any(), any()))
         .thenReturn(Future.successful(Enabled(FinancialInformationAFT)))
 
@@ -189,8 +192,9 @@ class PspSchemeDashboardPartialsControllerSpec
         .render(ArgumentMatchers.eq("partials/pspDashboardAftReturnsCard.njk"), jsonCaptor.capture())(any())
       jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-              templateCaptor.getValue mustEqual "partials/pspSchemePaymentsAndChargesPartial.njk"
+      verify(mockRenderer, times(1))
+        .render(ArgumentMatchers.eq("partials/pspSchemePaymentsAndChargesPartial.njk"), jsonCaptor.capture())(any())
+      jsonCaptor.getValue must containJson(pspDashboardPaymentsAndChargesPartialJson)
     }
   }
   private def aftModel(subHeadings: Seq[CardSubHeading], links: Seq[Link])
@@ -220,8 +224,8 @@ class PspSchemeDashboardPartialsControllerSpec
   )
   private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
   private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
-  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
-  private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
-  private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
-  private val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
+  private def amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
+  private def aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
+  private def continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
+  private def aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
 }

@@ -27,6 +27,7 @@ import org.mockito.{ArgumentMatchers, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.i18n.Messages
+import services.PsaSchemePartialServiceSpec.upcomingPastChargesLink
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
@@ -164,6 +165,22 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
     }
 
   }
+  "paymentsAndCharges" must {
+    "return the correct model when there is an outstanding amount to be displayed but there are no overdue charges" in {
+      DateHelper.setDate(Some(LocalDate.of(2022, 3, 2)))
+      when(paymentsAndChargesService.getDueCharges(any())).thenReturn(upcomingChargesMultiple)
+
+      service.paymentsAndCharges(upcomingChargesMultiple, srn) mustBe paymentsAndChargesModel()
+
+    }
+
+    //
+//    "return the correct model when there is a single upcoming charge and no past charges" in {
+//      when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(upcomingChargesSingle)
+//
+//      service.overdueAftChargesModel(upcomingChargesSingle, srn) mustBe overdueChargesSingleModel
+//    }
+  }
 
 }
 
@@ -189,14 +206,19 @@ object PsaSchemePartialServiceSpec {
   private val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
   private val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
   private val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
+  private val financialOverviewUrl: String = s"$aftUrl/srn/financial-overview"
   private val positiveNumberFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(900)}"
   private val zeroFormatted : String = s"${FormatHelper.formatCurrencyAmountAsString(0)}"
   private val charge1: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
     BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), LocalDate.parse(startDate), LocalDate.parse(endDate), None, None, Nil)
-  private val charge2: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
+
+  private val charge2: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2022-04-15")), BigDecimal(200.00),
     BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), LocalDate.parse("2021-01-01"), LocalDate.parse("2021-03-31"), None, None, Nil)
-  private val charge3: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PAYMENT_ON_ACCOUNT, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
+
+  private val charge3: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PAYMENT_ON_ACCOUNT, Some(LocalDate.parse("2022-04-15")), BigDecimal(200.00),
     BigDecimal(-1200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), LocalDate.parse("2021-01-01"), LocalDate.parse("2021-03-31"), None, None, Nil)
+
+
   private val upcomingChargesMultiple: Seq[SchemeFS] = Seq(charge1, charge2)
   private val upcomingChargesSingle: Seq[SchemeFS] = Seq(charge1)
   private val upcomingChargesMultipleNegative: Seq[SchemeFS] = Seq(charge1, charge2, charge3)
@@ -240,6 +262,42 @@ object PsaSchemePartialServiceSpec {
       hiddenText = None
     )) ++ pastLink)
   )
+  private def paymentsAndChargesModel(outstandingSubHeading: String = "pspDashboardOverdueAftChargesCard.overdue.span",
+                                      financialOverviewLinkText: Text= msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+                                      outstandingAmount: String = "£300.00",
+                                      totalOverDue: String = "£0.00",
+                                      pastLink: Seq[Link] = upcomingPastChargesLink
+                                     )
+                        (implicit messages: Messages): Seq[CardViewModel] = Seq(CardViewModel(
+    id = "payments-and-charges",
+    heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
+    Seq(CardSubHeading(
+      subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),
+      subHeadingClasses = "card-sub-heading",
+      subHeadingParams = Seq(CardSubHeadingParam(
+        subHeadingParam = outstandingAmount,
+        subHeadingParamClasses = "font-large bold"
+      ))
+    ),
+     CardSubHeading(
+        subHeading = "",
+        subHeadingClasses = "govuk-tag govuk-tag--red",
+        subHeadingParams = Seq(CardSubHeadingParam(
+          subHeadingParam = messages(outstandingSubHeading),
+          subHeadingParamClasses = "govuk-tag govuk-tag--red"
+        ))
+      )),
+    Seq(Link(
+      id= "financial-overview",
+      url= financialOverviewUrl,
+      linkText = financialOverviewLinkText,
+       hiddenText = None
+    )) ++ pastLink))
+
+
+
+
+
 
   private def overdueChargesSingleModel(implicit messages: Messages): Seq[CardViewModel] = overdueChargesModel(
     BigDecimal(100.00), BigDecimal(100.00),
