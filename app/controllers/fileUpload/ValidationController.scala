@@ -144,12 +144,12 @@ class ValidationController @Inject()(
 
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
 
-    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing")
+    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing and Validation")
     parserResult.fold[Future[Result]](
       processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>
-        processSuccessResult(chargeType, updatedUA).map(_ =>
-          Redirect(routes.FileUploadSuccessController.onPageLoad(srn, startDate.toString, accessType, version, chargeType)))
+        TimeLogger.logOperationTime( processSuccessResult(chargeType, updatedUA).map(_ =>
+          Redirect(routes.FileUploadSuccessController.onPageLoad(srn, startDate.toString, accessType, version, chargeType))), "processSuccessResult")
     )
   }
 
