@@ -77,8 +77,8 @@ class PsaFinancialOverviewControllerSpec
     reset(mockAFTPartialService, mockRenderer,mockAppConfig)
     when(mockAppConfig.creditBalanceRefundLink).thenReturn("test.com")
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockFinancialStatementConnector.getPsaFSWithoutAndWithPaymentOnAccount(any())(any(), any()))
-      .thenReturn(Future.successful(psaFsSeq,psaFsSeq))
+    when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
+      .thenReturn(Future.successful(psaFsSeq))
 
   }
 
@@ -89,8 +89,8 @@ class PsaFinancialOverviewControllerSpec
         when(mockAFTPartialService.retrievePsaChargesAmount(any())(any()))
           .thenReturn(("10", "10", "10"))
 
-        when(mockFinancialStatementConnector.getPsaFSWithoutAndWithPaymentOnAccount(any())(any(), any()))
-          .thenReturn(Future.successful(psaFsSeq, psaFsSeq))
+        when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
+          .thenReturn(Future.successful(psaFsSeq))
         when(mockAFTPartialService.getCreditBalanceAmount(any()))
           .thenReturn(BigDecimal("1000"))
         when(mockMinimalPsaConnector.getPsaNameFromPsaID(any())(any(), any()))
