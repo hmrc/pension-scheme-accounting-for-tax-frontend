@@ -377,6 +377,7 @@ GET         /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/uplo
 GET         /:srn/:startDate/:accessType/:version/overseas-transfer-charge/upload-successful                                                     controllers.fileUpload.FileUploadSuccessController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType = ChargeType.ChargeTypeOverseasTransfer)
 
 GET         /:srn/financial-overview                                                                                                              controllers.financialOverview.PsaSchemeFinancialOverviewController.psaSchemeFinancialOverview(srn: String)
+GET         /financial-overview                                                                                                                   controllers.financialOverview.PsaFinancialOverviewController.psaFinancialOverview
 GET         /:srn/financial-overview/:pstr/overdue-payments-and-charges                                                                           controllers.financialOverview.PaymentsAndChargesController.onPageLoad(srn: String, pstr:String, journeyType: String = "overdue")
 GET         /:srn/financial-overview/:pstr/due-payments-and-charges                                                                               controllers.financialOverview.PaymentsAndChargesController.onPageLoad(srn: String, pstr:String, journeyType: String = "upcoming")
 

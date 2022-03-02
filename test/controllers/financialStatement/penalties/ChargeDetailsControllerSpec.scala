@@ -142,7 +142,7 @@ class ChargeDetailsControllerSpec
       "catch IndexOutOfBoundsException" in {
         when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
-        val result = route(application, httpGETRequest(httpPathGETAssociated("2"))).value
+        val result = route(application, httpGETRequest(httpPathGETAssociated("3"))).value
 
         status(result) mustBe SEE_OTHER
         redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url

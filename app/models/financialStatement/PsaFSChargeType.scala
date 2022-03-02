@@ -34,6 +34,7 @@ object PsaFSChargeType extends Enumerable.Implicits {
   case object PSS_INFO_NOTICE extends WithName("Information Notice Penalty") with PsaFSChargeType
   case object CONTRACT_SETTLEMENT extends WithName("Contract settlement charge") with PsaFSChargeType
   case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract settlement interest") with PsaFSChargeType
+  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with PsaFSChargeType
 
   val values: Seq[PsaFSChargeType] = Seq(
     AFT_INITIAL_LFP,
@@ -47,7 +48,8 @@ object PsaFSChargeType extends Enumerable.Implicits {
     PSS_PENALTY,
     PSS_INFO_NOTICE,
     CONTRACT_SETTLEMENT,
-    CONTRACT_SETTLEMENT_INTEREST
+    CONTRACT_SETTLEMENT_INTEREST,
+    PAYMENT_ON_ACCOUNT
   )
 
   implicit val enumerable: Enumerable[PsaFSChargeType] =
