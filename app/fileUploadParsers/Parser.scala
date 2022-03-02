@@ -81,9 +81,9 @@ trait Parser {
     rows match {
       case r if r.size > 20000 =>
         logger.warn(s"Splitting CSV file containing ${r.size} items into 3 batches")
-        val r1 = rows.splitAt(10000)._1
-        val r2 = rows.splitAt(10000)._2.splitAt(10000)._1
-        val r3 = rows.splitAt(10000)._2.splitAt(10000)._2
+        val r1 = rows.splitAt(8000)._1
+        val r2 = rows.splitAt(8000)._2.splitAt(8000)._1
+        val r3 = rows.splitAt(8000)._2.splitAt(8000)._2
         val allResults = Future.sequence(
           Seq(
             Future {
