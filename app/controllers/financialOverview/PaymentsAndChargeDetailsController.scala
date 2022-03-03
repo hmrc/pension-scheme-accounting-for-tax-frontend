@@ -140,7 +140,6 @@ class PaymentsAndChargeDetailsController @Inject()(
       "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
       "returnUrl" -> returnUrl
     ) ++ returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)) ++ optHintText(schemeFS)
-
   }
 
   private def optHintText(schemeFS: SchemeFS)(implicit messages: Messages): JsObject =
@@ -161,7 +160,7 @@ class PaymentsAndChargeDetailsController @Inject()(
     (schemeFS.amountDue > 0 && schemeFS.accruedInterestTotal > 0
       && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN))
 
-  private def tableHeader(schemeFS: SchemeFS)(implicit messages: Messages): String =
+  private def tableHeader(schemeFS: SchemeFS): String =
     paymentsAndChargesService.setPeriod(
       schemeFS.chargeType,
       schemeFS.periodStartDate,
