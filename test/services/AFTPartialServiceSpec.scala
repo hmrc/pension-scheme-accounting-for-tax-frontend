@@ -20,8 +20,9 @@ import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData.multiplePenalties
+import helpers.FormatHelper
 import models._
-import models.financialStatement.SchemeFS
+import models.financialStatement.{SchemeFS, SchemeFSChargeType}
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentMatchers, MockitoSugar}
@@ -29,10 +30,11 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.i18n.Messages
 import play.api.libs.json.Json
+import services.PsaSchemePartialServiceSpec.{aftUrl, outstandingAmountOverdue, overviewurl, viewPastChargesUrl}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import viewmodels.{AFTViewModel, DashboardAftViewModel, Link}
+import viewmodels.{AFTViewModel, CardSubHeading, CardSubHeadingParam, CardViewModel, DashboardAftViewModel, Link}
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -374,7 +376,70 @@ class AFTPartialServiceSpec
       }
     }
   }
+  "payments and charges dashboard" must {
+    "return the correct model when there is an outstanding amount to be displayed but there are no overdue charges" in {
+      DateHelper.setDate(Some(LocalDate.of(2022, 3, 2)))
+      when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesMultiple)
+      when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(outstandingAmountOverdue)
+      service.retrievePspDashboardPaymentsAndChargesModel(upcomingChargesMultiple, srn) mustBe paymentsAndChargesModel
+
+    }
+  }
+
+
+  private val charge1: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(100.00),
+    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), LocalDate.parse(startDate), LocalDate.parse(endDate), None, None, Nil)
+
+  private val charge2: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
+    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), LocalDate.parse("2021-01-01"), LocalDate.parse("2021-03-31"), None, None, Nil)
+  private val upcomingChargesMultiple: Seq[SchemeFS] = Seq(charge1, charge2)
+  private val outstandingAmountOverdue: Seq[SchemeFS]= Seq(charge1)
+  private def paymentsAndChargesModel(implicit messages: Messages): Seq[CardViewModel] = {
+    Seq(CardViewModel(
+      id = "aft-overdue-charges",
+      heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
+      subHeadings = Seq(subHeadingTotalOutstanding, subHeadingPaymentsOverdue),
+      links = Seq(viewFinancialOverviewLink(), viewAllPaymentsAndChargesLink())
+    ))
+  }
+
+  private def subHeadingTotalOutstanding(implicit messages: Messages): CardSubHeading = CardSubHeading(
+    subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),
+    subHeadingClasses = "card-sub-heading",
+    subHeadingParams = Seq(CardSubHeadingParam(
+      subHeadingParam = s"${FormatHelper.formatCurrencyAmountAsString(500.00)}",
+      subHeadingParamClasses = "font-large bold"
+    ))
+  )
+
+  private def subHeadingPaymentsOverdue(implicit messages: Messages): CardSubHeading =
+    CardSubHeading(
+      subHeading = "",
+      subHeadingClasses = "govuk-tag govuk-tag--red",
+      subHeadingParams = Seq(CardSubHeadingParam(
+        subHeadingParam = messages("pspDashboardOverdueAftChargesCard.overdue.span"),
+        subHeadingParamClasses = "govuk-tag govuk-tag--red"
+      ))
+    )
+
+  private def viewFinancialOverviewLink(): Link =
+    Link(
+      id = "view-your-financial-overview",
+      url = overviewurl,
+      linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+      hiddenText = None
+    )
+  private val overviewurl: String = s"$aftUrl/srn/financial-overview"
+  private def viewAllPaymentsAndChargesLink(): Link =
+    Link(
+      id = "past-payments-and-charges",
+      url = viewPastChargesUrl,
+      linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+      hiddenText = None
+    )
+
 }
+
 
 object AFTPartialServiceSpec {
   private val startDate = "2020-04-01"
