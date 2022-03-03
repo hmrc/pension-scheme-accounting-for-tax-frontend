@@ -29,6 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
+
   def getPsaFS(psaId: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PsaFS]] = {
 
@@ -46,7 +47,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
   }
 
   def getPsaFSWithPaymentOnAccount(psaId: String)
-              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[(Seq[PsaFS],Seq[PsaFS])] = {
+              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PsaFS]] = {
 
     val url = config.psaFinancialStatementUrl
     val schemeHc = hc.withExtraHeaders("psaId" -> psaId)
@@ -54,8 +55,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
-          val psaFS = response.json.as[Seq[PsaFS]]
-          (psaFS.filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT),psaFS)
+         response.json.as[Seq[PsaFS]]
         case _ =>
           handleErrorResponse("GET", url)(response)
       }

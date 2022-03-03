@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
 import helpers.FormatHelper
-import models.financialStatement.PsaFS
+import models.financialStatement.{PsaFS, PsaFSChargeType}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -53,9 +53,10 @@ class PsaFinancialOverviewController @Inject()(
     implicit request =>
       val response = for {
         psaName <- minimalConnector.getPsaNameFromPsaID(request.psaIdOrException.id)
-        (psaFS,creditPsaFS) <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
+        psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
       } yield {
-        renderFinancialOverview(psaName, psaFS, request, creditPsaFS)
+        val psaFSWithoutPaymentOnAccount: Seq[PsaFS] = psaFSWithPaymentOnAccount.filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
+        renderFinancialOverview(psaName, psaFSWithoutPaymentOnAccount, request, psaFSWithPaymentOnAccount)
       }
       response.flatten
   }
