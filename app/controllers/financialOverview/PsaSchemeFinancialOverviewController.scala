@@ -87,6 +87,7 @@ class PsaSchemeFinancialOverviewController @Inject()(
         "requestRefundUrl" -> requestRefundUrl,
          "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "overdue").url,
          "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "upcoming").url,
+         "allPaymentLink" -> controllers.PaymentOrChargeTypeController.onPageLoad(srn, "all").url,
         "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }
