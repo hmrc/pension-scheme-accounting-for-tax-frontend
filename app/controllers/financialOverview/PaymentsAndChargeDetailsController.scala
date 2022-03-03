@@ -106,7 +106,7 @@ class PaymentsAndChargeDetailsController @Inject()(
   }
 
   private def summaryListData(srn: String, period: String, schemeFS: SchemeFS, schemeName: String,
-                              returnUrl: String, paymentOrChargeType: PaymentOrChargeType, interestUrl: String, version: Option[Int] = None,
+                              returnUrl: String, paymentOrChargeType: PaymentOrChargeType, interestUrl: String, version: Option[Int],
                               submittedDate: Option[String], journeyType: ChargeDetailsFilter)
                              (implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
