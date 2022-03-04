@@ -80,11 +80,13 @@ class PsaSchemeFinancialOverviewController @Inject()(
     val creditBalance = service.getCreditBalanceAmount(creditSchemeFS)
     val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
     val requestRefundUrl = s"$creditBalanceBaseUrl?requestType=1&psaName=$psaName&pstr=$pstr&availAmt=$creditBalance"
-
     renderer.render(
-      template = "financialOverview/psaSchemeFinancialOverview.njk",
-      ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),
-        "schemeName" -> schemeName, "requestRefundUrl" -> requestRefundUrl,
+       template = "financialOverview/psaSchemeFinancialOverview.njk",
+        ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),
+        "schemeName" -> schemeName,
+        "requestRefundUrl" -> requestRefundUrl,
+         "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "overdue").url,
+         "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "upcoming").url,
         "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }

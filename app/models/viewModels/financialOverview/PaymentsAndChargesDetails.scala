@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package fileUploadParsers
+package models.viewModels.financialOverview
 
-import play.api.Logger
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 
-
-object TimeLogger {
-
-  private val logger = Logger("FileUploadLogger")
-
-  def logOperationTime[T](f: => T, description: String): T = {
-    val start = System.currentTimeMillis
-    val call = f
-    val totalTime = System.currentTimeMillis() - start
-    logger.warn(s"FileUpload logging $description is $totalTime ms")
-    call
-  }
-
-}
+case class PaymentsAndChargesDetails(chargeType: String,
+                                     chargeReference: String,
+                                     originalChargeAmount: String,
+                                     paymentDue: String,
+                                     status: PaymentAndChargeStatus,
+                                     redirectUrl: String,
+                                     period: String,
+                                     visuallyHiddenText: String)

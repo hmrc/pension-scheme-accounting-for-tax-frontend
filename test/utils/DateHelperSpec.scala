@@ -18,7 +18,7 @@ package utils
 
 import base.SpecBase
 
-import java.time.{ZoneId, ZonedDateTime}
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 
 class DateHelperSpec extends SpecBase {
 
@@ -38,6 +38,20 @@ class DateHelperSpec extends SpecBase {
       result mustBe "12 April 2020 at 5:02pm"
     }
 
+  }
+
+  "formatDateDMY" must {
+    "display correct morning am date" in {
+      val result = DateHelper.formatDateDMY(LocalDate.of(2020, 4, 12))
+      result mustBe "12 April 2020"
+    }
+  }
+
+  "formatStartDate" must {
+    "display correct morning am date" in {
+      val result = DateHelper.formatStartDate(LocalDate.of(2020, 4, 12))
+      result mustBe "12 April"
+    }
   }
 
 }

@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package fileUploadParsers
+package pages
 
-import play.api.Logger
+import play.api.libs.json.JsPath
 
+case object AFTVersionQuery extends QuestionPage[Int] {
 
-object TimeLogger {
+  override def path: JsPath = JsPath \ toString
 
-  private val logger = Logger("FileUploadLogger")
-
-  def logOperationTime[T](f: => T, description: String): T = {
-    val start = System.currentTimeMillis
-    val call = f
-    val totalTime = System.currentTimeMillis() - start
-    logger.warn(s"FileUpload logging $description is $totalTime ms")
-    call
-  }
-
+  override def toString: String = "aftVersion"
 }

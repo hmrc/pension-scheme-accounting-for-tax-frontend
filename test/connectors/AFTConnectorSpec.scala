@@ -228,6 +228,75 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
     }
   }
 
+  "getAFTDetailsWithFbNumber" must {
+    val data = Json.obj(fields = "Id" -> "value")
+    val fbNumber = "123456789192"
+
+    "return addRequiredDetailsToUserAnswers when the backend has returned OK with UserAnswers Json" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("fbNumber", equalTo(fbNumber))
+          .willReturn(
+            ok(Json.stringify(UserAnswers(data).data))
+          )
+      )
+
+      connector.getAFTDetailsWithFbNumber(pstr, fbNumber) map { response =>
+        response mustBe data
+      }
+    }
+
+    "return BAD REQUEST when the backend has returned BadRequestException" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("fbNumber", equalTo(fbNumber))
+          .willReturn(
+            badRequest()
+          )
+      )
+
+      recoverToExceptionIf[BadRequestException] {
+        connector.getAFTDetailsWithFbNumber(pstr, fbNumber)
+      } map {
+        _.responseCode mustEqual Status.BAD_REQUEST
+      }
+    }
+
+    "return NOT FOUND when the backend has returned NotFoundException" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("fbNumber", equalTo(fbNumber))
+          .willReturn(
+            notFound()
+          )
+      )
+
+      recoverToExceptionIf[NotFoundException] {
+        connector.getAFTDetailsWithFbNumber(pstr, fbNumber)
+      } map { response =>
+        response.responseCode mustEqual Status.NOT_FOUND
+      }
+    }
+
+    "return UpstreamErrorResponse when the backend has returned Internal Server Error" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("fbNumber", equalTo(fbNumber))
+          .willReturn(
+            serverError()
+          )
+      )
+
+      recoverToExceptionIf[UpstreamErrorResponse](connector.getAFTDetailsWithFbNumber(pstr, fbNumber)) map { response =>
+        response.statusCode mustBe Status.INTERNAL_SERVER_ERROR
+      }
+    }
+  }
+
   "getIsAftNonZero" must {
     val startDate = "2020-01-01"
     val aftVersion = "1"

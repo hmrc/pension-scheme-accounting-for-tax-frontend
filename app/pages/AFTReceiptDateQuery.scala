@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package fileUploadParsers
+package pages
 
-import play.api.Logger
+import play.api.libs.json.JsPath
 
+import java.time.LocalDate
 
-object TimeLogger {
+case object AFTReceiptDateQuery extends QuestionPage[LocalDate] {
 
-  private val logger = Logger("FileUploadLogger")
+  override def path: JsPath = JsPath \ "submitterDetails" \ toString
 
-  def logOperationTime[T](f: => T, description: String): T = {
-    val start = System.currentTimeMillis
-    val call = f
-    val totalTime = System.currentTimeMillis() - start
-    logger.warn(s"FileUpload logging $description is $totalTime ms")
-    call
-  }
-
+  override def toString: String = "receiptDate"
 }
