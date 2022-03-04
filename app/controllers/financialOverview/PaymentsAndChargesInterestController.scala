@@ -72,6 +72,7 @@ class PaymentsAndChargesInterestController @Inject()(
       payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt)
     }
 
+  //scalastyle:off parameter.number
   private def buildPage(
                          filteredSchemeFS: Seq[SchemeFS],
                          period: String,

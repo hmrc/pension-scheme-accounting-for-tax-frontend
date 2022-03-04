@@ -62,6 +62,7 @@ class PaymentsAndChargeDetailsController @Inject()(
       }
   }
 
+  //scalastyle:off parameter.number
   private def buildPage(
                          filteredCharges: Seq[SchemeFS],
                          period: String,
