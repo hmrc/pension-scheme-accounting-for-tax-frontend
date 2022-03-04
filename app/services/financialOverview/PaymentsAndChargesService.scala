@@ -26,7 +26,7 @@ import models.ChargeDetailsFilter.{Overdue, Upcoming}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.SchemeFSClearingReason._
-import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{DocumentLineItemDetail, SchemeFS, SchemeFSChargeType}
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
@@ -61,32 +61,36 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                chargeDetailsFilter: ChargeDetailsFilter
                               )
                               (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
-    val indexRefs: Seq[IndexRef] = schemeFS.map { scheme =>
-      val chargeType = getPaymentOrChargeType(scheme.chargeType).toString
-      val period: String = if (chargeType == AccountingForTaxCharges.toString) {
-          scheme.periodStartDate.toString
-          } else {
-            scheme.periodEndDate.getYear.toString
-      }
-      IndexRef(chargeType, scheme.chargeReference, period) }
-    val ref: Map[(String, String), Seq[IndexRef]] = indexRefs.groupBy{
-      x => (x.chargeType, x.period)
-    }
-    val chargeRefs = ref.map{
-      item =>
-        val chargeRef = item._2.map{
-          value =>
-            value.chargeReference
-        }
-        Tuple2(item._1, chargeRef)
-    }
+
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
-      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefs, mapChargeTypesVersionAndDate, chargeDetailsFilter)
+      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefs(schemeFS), mapChargeTypesVersionAndDate, chargeDetailsFilter)
     }
 
     mapToTable(seqPayments)
   }
 
+  def chargeRefs (schemeFS: Seq[SchemeFS]) : Map[(String,String), Seq[String]] = {
+    val indexRefs: Seq[IndexRef] = schemeFS.map { scheme =>
+      val chargeType = getPaymentOrChargeType(scheme.chargeType).toString
+      val period: String = if (chargeType == AccountingForTaxCharges.toString) {
+        scheme.periodStartDate.toString
+      } else {
+        scheme.periodEndDate.getYear.toString
+      }
+      IndexRef(chargeType, scheme.chargeReference, period)
+    }
+    val ref: Map[(String, String), Seq[IndexRef]] = indexRefs.groupBy {
+      x => (x.chargeType, x.period)
+    }
+    ref.map {
+      item =>
+        val chargeRef = item._2.map {
+          value =>
+            value.chargeReference
+        }
+        Tuple2(item._1, chargeRef)
+    }
+  }
   val extractUpcomingCharges: Seq[SchemeFS] => Seq[SchemeFS] = schemeFS =>
     schemeFS.filter(charge => charge.dueDate.nonEmpty
       && charge.dueDate.get.isAfter(DateHelper.today)
