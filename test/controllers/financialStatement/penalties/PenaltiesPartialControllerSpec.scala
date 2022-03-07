@@ -106,7 +106,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
       "return the html with the link when data is received from PSA financial statement api when toggle is on" in {
         when(mockFinancialInformationToggle.get(any())(any(), any()))
           .thenReturn(Future.successful(Enabled(FinancialInformationAFT)))
-        when(mockAFTPartialService.paymentsAndCharges(any())(any()))
+        when(mockAFTPartialService.penaltiesAndCharges(any())(any()))
           .thenReturn(allTypesMultipleReturnsModel)
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
