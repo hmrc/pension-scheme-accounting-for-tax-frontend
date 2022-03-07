@@ -26,7 +26,7 @@ import models.ChargeDetailsFilter.{Overdue, Upcoming}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.SchemeFSClearingReason._
-import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{DocumentLineItemDetail, SchemeFS, SchemeFSChargeType}
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
@@ -242,9 +242,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half")),
-        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-half")),
-        Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-half")),
-        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-half")),
+        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-quarter")),
         Cell(htmlStatus(data), classes = Nil)
       )
     }

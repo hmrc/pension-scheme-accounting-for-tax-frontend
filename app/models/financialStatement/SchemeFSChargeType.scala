@@ -30,8 +30,8 @@ object SchemeFSChargeType extends Enumerable.Implicits {
   case object AFT_MANUAL_ASST_INTEREST extends WithName("Interest on Accounting for Tax return manual assessment") with SchemeFSChargeType
   case object OTC_MANUAL_ASST extends WithName("Overseas transfer charge manual assessment") with SchemeFSChargeType
   case object OTC_MANUAL_ASST_INTEREST extends WithName("Interest on overseas transfer charge manual assessment") with SchemeFSChargeType
-  case object PSS_CHARGE extends WithName("PSS charge") with SchemeFSChargeType
-  case object PSS_CHARGE_INTEREST extends WithName("PSS charge interest") with SchemeFSChargeType
+  case object PSS_CHARGE extends WithName("Pensions charge") with SchemeFSChargeType
+  case object PSS_CHARGE_INTEREST extends WithName("Interest on pensions charge") with SchemeFSChargeType
   case object CONTRACT_SETTLEMENT extends WithName("Contract settlement charge") with SchemeFSChargeType
   case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract settlement interest charge") with SchemeFSChargeType
   case object REPAYMENT_INTEREST extends WithName("Repayment interest") with SchemeFSChargeType
