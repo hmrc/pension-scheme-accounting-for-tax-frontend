@@ -45,9 +45,11 @@
                      <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{financialAmounts[3] }}</p>
         </div>
         </div>
+        {% if financialAmounts[2] != "£0.00" %}
                   <p class="govuk-body-m">
                         <a id="allOverdue" class=govuk-link href="{{ overduePaymentLink }}"> {{ messages("psaSchemeFinancial.allOverdue.link") }}</a>
                     </p>
+        {% endif %}
 
                           <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
 <div class="govuk-grid-row">
@@ -59,10 +61,12 @@
 
                          </div>
                           </div>
+
+                 {% if financialAmounts[1] != "£0.00" %}
                      <p class="govuk-body-m">
                             <a id="allDue" class=govuk-link href="{{ duePaymentLink }}"> {{ messages("psaSchemeFinancial.allDue.link") }}</a>
                     </p>
-
+                 {% endif %}
                          <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
 <div class="govuk-grid-row">
                          <div class="govuk-grid-column-full">

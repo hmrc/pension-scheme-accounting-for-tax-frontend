@@ -1429,7 +1429,8 @@ financialPaymentsAndCharges.clearingReason.noClearingDate.c6 = Cleared
 financialPaymentsAndCharges.viewReturnHistory = View the AFT return for {0}
 financialPaymentsAndCharges.returnLink.upcoming = your due payments and charges
 financialPaymentsAndCharges.returnLink.overdue = your overdue payments and charges
-financialPaymentsAndCharges.interest.chargeReference.text1 = This interest charge was the result of late payment of an {0}.
+financialPaymentsAndCharges.interest.chargeReference.text1_vowel = This interest charge was the result of late payment of an {0}.
+financialPaymentsAndCharges.interest.chargeReference.text1_consonant = This interest charge was the result of late payment of a {0}.
 financialPaymentsAndCharges.interest.chargeReference.linkText = View the original charge which this interest relates to
 financialPaymentsAndCharges.interest.chargeReference.text2 = This interest charge was the result of late payment of an {0} in this quarter.
 

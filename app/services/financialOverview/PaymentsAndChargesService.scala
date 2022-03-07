@@ -262,15 +262,15 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   }
 
   def getChargeDetailsForSelectedCharge(schemeFS: SchemeFS, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
-                                       (implicit messages: Messages): Seq[SummaryList.Row] = {
-    dateSubmittedRow(submittedDate) ++ chargeReferenceRow(schemeFS) ++ originalAmountChargeDetailsRow(schemeFS) ++
+                                       : Seq[SummaryList.Row] = {
+    dateSubmittedRow(schemeFS.chargeType, submittedDate) ++ chargeReferenceRow(schemeFS) ++ originalAmountChargeDetailsRow(schemeFS) ++
       clearingChargeDetailsRow(schemeFS.documentLineItemDetails) ++
       stoodOverAmountChargeDetailsRow(schemeFS) ++ totalAmountDueChargeDetailsRow(schemeFS, journeyType)
   }
 
-  private def dateSubmittedRow(submittedDate: Option[String]): Seq[SummaryList.Row] = {
-    submittedDate match {
-      case Some(date) =>
+  private def dateSubmittedRow(chargeType: SchemeFSChargeType, submittedDate: Option[String]): Seq[SummaryList.Row] = {
+    (chargeType, submittedDate) match {
+      case (PSS_AFT_RETURN | PSS_OTC_AFT_RETURN , Some(date)) =>
         Seq(
           Row(
             key = Key(

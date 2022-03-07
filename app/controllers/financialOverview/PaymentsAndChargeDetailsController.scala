@@ -75,9 +75,14 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
-  val isQuarterApplicable: SchemeFS => Boolean = schemeFS => schemeFS.chargeType  match {
+  private val isQuarterApplicable: SchemeFS => Boolean = schemeFS => schemeFS.chargeType  match {
     case PSS_AFT_RETURN_INTEREST | PSS_OTC_AFT_RETURN_INTEREST | AFT_MANUAL_ASST_INTEREST | OTC_MANUAL_ASST_INTEREST
       => true
+    case _ => false
+  }
+
+  private val isChargeTypeVowel: SchemeFS => Boolean = schemeFS => schemeFS.chargeType.toString.toLowerCase().charAt(0)  match {
+    case 'a' | 'e' | 'i' | 'o' | 'u' => true
     case _ => false
   }
 
@@ -160,8 +165,8 @@ class PaymentsAndChargeDetailsController @Inject()(
 
 
   private def setInsetText(isChargeAssigned: Boolean, schemeFS: SchemeFS, interestUrl: String) (implicit messages: Messages): Html = {
-    (isChargeAssigned, schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0, isQuarterApplicable(schemeFS))  match {
-      case (false, Some(date), true, true, _) =>
+    (isChargeAssigned, schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0, isQuarterApplicable(schemeFS), isChargeTypeVowel(schemeFS))  match {
+      case (false, Some(date), true, true, _, _) =>
             Html(
               s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
                 s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
@@ -171,15 +176,21 @@ class PaymentsAndChargeDetailsController @Inject()(
                 s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
                 s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
             )
-      case (true, _, _, _, true) =>
+      case (true, _, _, _, true, _) =>
         Html(
           s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2", schemeFS.chargeType.toString.toLowerCase())}</p>" +
             s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
         )
-      case (true, _, _, _, false) =>
+      case (true, _, _, _, false, true) =>
         Html(
-          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1", schemeFS.chargeType.toString.toLowerCase())}</p>" +
+          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1_vowel", schemeFS.chargeType.toString.toLowerCase())}</p>" +
+            s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
+        )
+      case (true, _, _, _, false, false) =>
+        Html(
+          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1_consonant", schemeFS.chargeType.toString.toLowerCase())}</p>" +
             s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
         )
