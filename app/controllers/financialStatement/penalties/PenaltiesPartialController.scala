@@ -39,9 +39,8 @@ class PenaltiesPartialController @Inject()(
                                                 val controllerComponents: MessagesControllerComponents,
                                                 fsConnector: FinancialStatementConnector,
                                                 renderer: Renderer,
-                                                config: FrontendAppConfig,
                                                 aftPartialService: AFTPartialService,
-                                                toggleService: FeatureToggleService,
+                                                toggleService: FeatureToggleService
                                  )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
