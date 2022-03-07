@@ -350,7 +350,7 @@ class AFTPartialService @Inject()(
     }
   }
 
-  def paymentsAndCharges(psaFS: Seq[PsaFS])
+  def penaltiesAndCharges(psaFS: Seq[PsaFS])
                         (implicit messages: Messages): Seq[CardViewModel] = {
     val overdueCharges: Seq[PsaFS] = psaFS.filter(charge =>  charge.dueDate.exists(_.isBefore(DateHelper.today)))
     val upcomingCharges: Seq[PsaFS] = psaFS.filter(_.dueDate.exists(!_.isBefore(DateHelper.today)))
@@ -366,7 +366,7 @@ class AFTPartialService @Inject()(
         subHeadingParamClasses = "font-large bold"
       ))
     ))
-    val subHeadingPaymentsOverdue: Seq[CardSubHeading] = if (totalOverdue > 0 ){
+    val subHeadingPenaltiesOverdue: Seq[CardSubHeading] = if (totalOverdue > 0 ){
       Seq(CardSubHeading(
         subHeading = "",
         subHeadingClasses = "govuk-tag govuk-tag--red",
@@ -383,8 +383,8 @@ class AFTPartialService @Inject()(
       Seq(CardViewModel(
         id = "aft-overdue-charges",
         heading = messages("psaPenaltiesCard.h2"),
-        subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
-        links = viewFinancialOverviewLink() ++ viewAllPaymentsAndChargesLink()
+        subHeadings = subHeadingTotalOutstanding ++ subHeadingPenaltiesOverdue,
+        links = viewFinancialOverviewLink() ++ viewAllPenaltiesAndChargesLink()
       ))
     } else {
       Nil
@@ -393,15 +393,15 @@ class AFTPartialService @Inject()(
 
   private def viewFinancialOverviewLink(): Seq[Link] =
     Seq(Link(
-      id = "view-your-financial-overview",
+      id = "outstanding-penalties-id",
       url = appConfig.psafinancialOverviewUrl,
       linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
       hiddenText = None
     ))
 
-  private def viewAllPaymentsAndChargesLink(): Seq[Link] =
+  private def viewAllPenaltiesAndChargesLink(): Seq[Link] =
     Seq(Link(
-      id = "past-payments-and-charges",
+      id = "past-penalties-id",
       url = appConfig.viewPenaltiesUrl,
       linkText = msg"psaPenaltiesCard.viewPastPenalties",
       hiddenText = None
