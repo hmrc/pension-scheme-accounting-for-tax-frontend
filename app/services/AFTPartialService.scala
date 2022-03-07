@@ -393,7 +393,7 @@ class AFTPartialService @Inject()(
 
   private def viewFinancialOverviewLink(): Seq[Link] =
     Seq(Link(
-      id = "outstanding-penalties-id",
+      id = "view-your-financial-overview",
       url = appConfig.psafinancialOverviewUrl,
       linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
       hiddenText = None
