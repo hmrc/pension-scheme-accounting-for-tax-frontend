@@ -30,7 +30,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.{AFTViewModel, DashboardAftViewModel, Link}
+import viewmodels.{AFTViewModel, CardSubHeading, CardSubHeadingParam, CardViewModel, DashboardAftViewModel, Link}
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -349,6 +349,63 @@ class AFTPartialService @Inject()(
       }
     }
   }
+
+  def penaltiesAndCharges(psaFS: Seq[PsaFS])
+                        (implicit messages: Messages): Seq[CardViewModel] = {
+    val overdueCharges: Seq[PsaFS] = psaFS.filter(charge =>  charge.dueDate.exists(_.isBefore(DateHelper.today)))
+    val upcomingCharges: Seq[PsaFS] = psaFS.filter(_.dueDate.exists(!_.isBefore(DateHelper.today)))
+    val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
+    val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
+    val totalUpcomingCharges : BigDecimal = upcomingCharges.map(_.amountDue).sum
+    val totalOutstandingPayments: BigDecimal= totalUpcomingCharges + totalOverdue + totalInterestAccruing
+    val subHeadingTotalOutstanding: Seq[CardSubHeading] = Seq(CardSubHeading(
+      subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),
+      subHeadingClasses = "card-sub-heading",
+      subHeadingParams = Seq(CardSubHeadingParam(
+        subHeadingParam = s"${FormatHelper.formatCurrencyAmountAsString(totalOutstandingPayments)}",
+        subHeadingParamClasses = "font-large bold"
+      ))
+    ))
+    val subHeadingPenaltiesOverdue: Seq[CardSubHeading] = if (totalOverdue > 0 ){
+      Seq(CardSubHeading(
+        subHeading = "",
+        subHeadingClasses = "govuk-tag govuk-tag--red",
+        subHeadingParams = Seq(CardSubHeadingParam(
+          subHeadingParam = messages("pspDashboardOverdueAftChargesCard.overdue.span"),
+          subHeadingParamClasses = "govuk-tag govuk-tag--red"
+        ))
+
+      ))}
+    else {
+      Nil
+    }
+    if (totalOutstandingPayments > 0) {
+      Seq(CardViewModel(
+        id = "aft-overdue-charges",
+        heading = messages("psaPenaltiesCard.h2"),
+        subHeadings = subHeadingTotalOutstanding ++ subHeadingPenaltiesOverdue,
+        links = viewFinancialOverviewLink() ++ viewAllPenaltiesAndChargesLink()
+      ))
+    } else {
+      Nil
+    }
+  }
+
+  private def viewFinancialOverviewLink(): Seq[Link] =
+    Seq(Link(
+      id = "view-your-financial-overview",
+      url = appConfig.psafinancialOverviewUrl,
+      linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+      hiddenText = None
+    ))
+
+  private def viewAllPenaltiesAndChargesLink(): Seq[Link] =
+    Seq(Link(
+      id = "past-penalties-id",
+      url = appConfig.viewPenaltiesUrl,
+      linkText = msg"psaPenaltiesCard.viewPastPenalties",
+      hiddenText = None
+    ))
 
   def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFS])
     (implicit messages: Messages): DashboardAftViewModel = {
