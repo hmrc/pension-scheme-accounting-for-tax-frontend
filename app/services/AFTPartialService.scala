@@ -403,7 +403,7 @@ class AFTPartialService @Inject()(
     Seq(Link(
       id = "past-payments-and-charges",
       url = appConfig.viewPenaltiesUrl,
-      linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+      linkText = msg"psaPenaltiesCard.viewPastPenalties",
       hiddenText = None
     ))
 
