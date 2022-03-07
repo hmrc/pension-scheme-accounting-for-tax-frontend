@@ -50,7 +50,8 @@ class PsaSchemeFinancialOverviewController @Inject()(
     with NunjucksSupport {
 
   private val logger = Logger(classOf[PsaSchemeFinancialOverviewController])
-
+  private val psaIdRegex = "^A[0-9]{7}$".r
+  private def isPsaId(s:String) = psaIdRegex.findFirstIn(s).isDefined
   def psaSchemeFinancialOverview(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
       val response = for {
@@ -60,7 +61,8 @@ class PsaSchemeFinancialOverviewController @Inject()(
         aftModel <- service.aftCardModel(schemeDetails, srn)
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
-        val isPsa = request.psaId.nonEmpty
+        val isPsa = isPsaId(request.idOrException)
+
         renderFinancialOverview(srn, psaOrPspName, schemeDetails, schemeFS, aftModel, request, creditSchemeFS, isPsa)
       }
       response.flatten
