@@ -379,16 +379,13 @@ class AFTPartialService @Inject()(
     else {
       Nil
     }
-    if (totalOutstandingPayments > 0) {
+
       Seq(CardViewModel(
         id = "aft-overdue-charges",
         heading = messages("psaPenaltiesCard.h2"),
         subHeadings = subHeadingTotalOutstanding ++ subHeadingPenaltiesOverdue,
         links = viewFinancialOverviewLink() ++ viewAllPenaltiesAndChargesLink()
       ))
-    } else {
-      Nil
-    }
   }
 
   private def viewFinancialOverviewLink(): Seq[Link] =
