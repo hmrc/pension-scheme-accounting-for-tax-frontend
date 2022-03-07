@@ -382,7 +382,7 @@ class AFTPartialService @Inject()(
     if (totalOutstandingPayments > 0) {
       Seq(CardViewModel(
         id = "aft-overdue-charges",
-        heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
+        heading = messages("psaPenaltiesCard.h2"),
         subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
         links = viewFinancialOverviewLink() ++ viewAllPaymentsAndChargesLink()
       ))
