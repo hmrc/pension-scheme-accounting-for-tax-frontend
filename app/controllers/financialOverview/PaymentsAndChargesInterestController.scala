@@ -151,7 +151,7 @@ class PaymentsAndChargesInterestController @Inject()(
     )
   }
 
-  private def tableHeader(schemeFS: SchemeFS)(implicit messages: Messages): String =
+  private def tableHeader(schemeFS: SchemeFS): String =
     paymentsAndChargesService.setPeriod(
       schemeFS.chargeType,
       schemeFS.periodStartDate,
@@ -178,7 +178,8 @@ class PaymentsAndChargesInterestController @Inject()(
       ),
       Row(
         key = Key(
-          msg"paymentsAndCharges.interestFrom".withArgs(schemeFS.periodEndDate.plusDays(46).format(dateFormatterDMY)),
+          msg"paymentsAndCharges.interestFrom".withArgs(
+            schemeFS.periodEndDate.plusDays(46).format(dateFormatterDMY)),
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
         ),
         value = Value(

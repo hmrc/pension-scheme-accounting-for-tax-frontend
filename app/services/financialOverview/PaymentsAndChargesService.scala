@@ -60,7 +60,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
                                chargeDetailsFilter: ChargeDetailsFilter
                               )
-                              (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
+                              (implicit messages: Messages): Table = {
 
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
       paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefs(schemeFS), mapChargeTypesVersionAndDate, chargeDetailsFilter)
@@ -91,6 +91,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         Tuple2(item._1, chargeRef)
     }
   }
+
   val extractUpcomingCharges: Seq[SchemeFS] => Seq[SchemeFS] = schemeFS =>
     schemeFS.filter(charge => charge.dueDate.nonEmpty
       && charge.dueDate.get.isAfter(DateHelper.today)
@@ -113,8 +114,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                             chargeRefs: Map[(String,String), Seq[String]],
                                             mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
                                             chargeDetailsFilter: ChargeDetailsFilter
-                                          )(implicit messages: Messages, hc: HeaderCarrier,
-                                            ec: ExecutionContext): Seq[FinancialPaymentAndChargesDetails] = {
+                                          )(implicit messages: Messages): Seq[FinancialPaymentAndChargesDetails] = {
 
 
 
@@ -268,8 +268,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       stoodOverAmountChargeDetailsRow(schemeFS) ++ totalAmountDueChargeDetailsRow(schemeFS, journeyType)
   }
 
-  private def dateSubmittedRow(submittedDate: Option[String])
-                                (implicit messages: Messages): Seq[SummaryList.Row] = {
+  private def dateSubmittedRow(submittedDate: Option[String]): Seq[SummaryList.Row] = {
     submittedDate match {
       case Some(date) =>
         Seq(
@@ -291,8 +290,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   }
 
-  private def chargeReferenceRow(schemeFS: SchemeFS)
-                                (implicit messages: Messages): Seq[SummaryList.Row] = {
+  private def chargeReferenceRow(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(
@@ -308,8 +306,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       ))
   }
 
-  private def originalAmountChargeDetailsRow(schemeFS: SchemeFS)
-                                            (implicit messages: Messages): Seq[SummaryList.Row] = {
+  private def originalAmountChargeDetailsRow(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(
@@ -369,12 +366,11 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   }
 
 
-  private def clearingChargeDetailsRow(documentLineItemDetails: Seq[DocumentLineItemDetail])
-                                            (implicit messages: Messages): Seq[SummaryList.Row] = {
+  private def clearingChargeDetailsRow(documentLineItemDetails: Seq[DocumentLineItemDetail]): Seq[SummaryList.Row] = {
 
     documentLineItemDetails.flatMap {
       documentLineItemDetail => {
-        if (documentLineItemDetail.clearedAmountItem > 0) {
+        if(documentLineItemDetail.clearedAmountItem > 0) {
           getClearingDetailLabel(documentLineItemDetail) match {
             case Some(clearingDetailsValue) =>
               Seq(
@@ -429,7 +425,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       }
     }
 
-  private def getClearingDetailLabel(documentLineItemDetail: DocumentLineItemDetail)(implicit messages: Messages): Option[Text.Message] = {
+  private def getClearingDetailLabel(documentLineItemDetail: DocumentLineItemDetail): Option[Text.Message] = {
     (documentLineItemDetail.clearingReason, documentLineItemDetail.clearingDate) match {
       case (Some(clearingReason), Some(clearingDate)) =>
         clearingReason match {

@@ -80,7 +80,10 @@ class PaymentsAndChargeDetailsController @Inject()(
       => true
     case _ => false
   }
+
   //scalastyle:off parameter.number
+  // scalastyle:off method.length
+  //scalastyle:off cyclomatic.complexity
   private def buildPage(
                          filteredCharges: Seq[SchemeFS],
                          period: String,
@@ -129,12 +132,18 @@ class PaymentsAndChargeDetailsController @Inject()(
                renderer.render(
                  template = "financialOverview/paymentsAndChargeDetails.njk",
                  ctx =
-                   summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, originalAmountUrl, version, submittedDate, journeyType, true)
+                   summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, originalAmountUrl,
+                     version, submittedDate, journeyType, true)
                ).map(Ok(_))
+             case _ => logger.warn(
+               s"No Payments and Charge details found for the " +
+                 s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
+             )
+               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
            }
         case _ =>
           logger.warn(
-            s"No Payments and Charge details found for the " +
+            s"No sourceChargeRefForInterest found for the " +
               s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
           )
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -156,7 +165,8 @@ class PaymentsAndChargeDetailsController @Inject()(
             Html(
               s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
                 s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
-                s" <span class=govuk-!-font-weight-bold>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2", schemeFS.accruedInterestTotal)}</span>" +
+                s" <span class=govuk-!-font-weight-bold>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
+                  schemeFS.accruedInterestTotal)}</span>" +
                 s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", date.format(dateFormatterDMY))}<span>" +
                 s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
                 s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"

@@ -115,6 +115,24 @@ class PaymentsAndChargeDetailsControllerSpec
     )
   }
 
+  private def insetTextForInterestWithQuarter(schemeFS: SchemeFS): uk.gov.hmrc.viewmodels.Html = {
+    uk.gov.hmrc.viewmodels.Html(
+      s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2", schemeFS.chargeType.toString.toLowerCase())}</p>" +
+        s"<p class=govuk-body><a id='breakdown' class=govuk-link href=${controllers.financialOverview.routes.PaymentsAndChargeDetailsController
+          .onPageLoad(srn, pstr, schemeFS.periodStartDate, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url}>" +
+        s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
+    )
+  }
+
+  private def insetTextForInterestWithNoQuarter(schemeFS: SchemeFS): uk.gov.hmrc.viewmodels.Html = {
+    uk.gov.hmrc.viewmodels.Html(
+      s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1", schemeFS.chargeType.toString.toLowerCase())}</p>" +
+        s"<p class=govuk-body><a id='breakdown' class=govuk-link href=${controllers.financialOverview.routes.PaymentsAndChargeDetailsController
+          .onPageLoad(srn, pstr, schemeFS.periodStartDate, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url}>" +
+        s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
+    )
+  }
+
   private def expectedJson(
                             schemeFS: SchemeFS,
                             insetText: uk.gov.hmrc.viewmodels.Html,
@@ -190,6 +208,30 @@ class PaymentsAndChargeDetailsControllerSpec
       templateCaptor.getValue mustEqual "financialOverview/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(
         expectedJson(schemeFS, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
+      )
+    }
+
+    "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(Seq(
+          createChargeWithAmountDueAndInterest("XY002610150183", amountDue = 1234.00),
+          createChargeWithAmountDueAndInterest("XY002610150184", amountDue = 1234.00)
+        ))
+        ))
+
+      val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "financialOverview/paymentsAndChargeDetails.njk"
+
+      jsonCaptor.getValue must containJson(
+        expectedJson(schemeFS, insetTextWithAmountDueAndInterest(schemeFS), isPaymentOverdue = true)
       )
     }
 
