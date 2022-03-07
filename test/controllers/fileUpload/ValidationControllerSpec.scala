@@ -118,8 +118,6 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         "returnToSchemeDetails" -> "/manage-pension-scheme-accounting-for-tax/aa/2020-04-01/draft/1/return-to-scheme-details",
         "schemeName" -> "Big Scheme"
       )
-      println(jsonCaptor.getValue)
-      println(jsonToPassToTemplate)
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
 

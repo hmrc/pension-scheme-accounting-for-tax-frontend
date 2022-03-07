@@ -310,7 +310,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
 
   def getTypeParam(paymentType: PaymentOrChargeType)(implicit messages: Messages): String =
-    if(paymentType == AccountingForTaxCharges) {
+    if (paymentType == AccountingForTaxCharges) {
       messages(s"paymentOrChargeType.${paymentType.toString}")
     } else {
       messages(s"paymentOrChargeType.${paymentType.toString}").toLowerCase()
