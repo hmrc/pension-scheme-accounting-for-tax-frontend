@@ -109,7 +109,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(
-          content = Literal(schemeFS.chargeReference),
+          content = msg"paymentsAndCharges.chargeReference.toBeAssigned",
           classes =
             Seq("govuk-!-width-one-quarter")
         ),

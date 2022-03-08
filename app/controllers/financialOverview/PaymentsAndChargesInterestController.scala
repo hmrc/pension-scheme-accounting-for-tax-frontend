@@ -159,10 +159,6 @@ class PaymentsAndChargesInterestController @Inject()(
     )
 
   private def getSummaryListRows(schemeFS: SchemeFS)(implicit messages: Messages): Seq[SummaryList.Row] = {
-    val chargeReference : String = schemeFS.chargeReference.isEmpty match {
-      case false => schemeFS.chargeReference
-      case true => messages("paymentsAndCharges.chargeReference.toBeAssigned")
-    }
     Seq(
       Row(
         key = Key(
@@ -170,7 +166,7 @@ class PaymentsAndChargesInterestController @Inject()(
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(
-          content = Literal(chargeReference),
+          content = msg"paymentsAndCharges.chargeReference.toBeAssigned",
           classes =
             Seq("govuk-!-width-one-quarter")
         ),
