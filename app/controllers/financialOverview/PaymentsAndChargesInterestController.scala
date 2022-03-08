@@ -72,6 +72,7 @@ class PaymentsAndChargesInterestController @Inject()(
       payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt)
     }
 
+  //scalastyle:off parameter.number
   private def buildPage(
                          filteredSchemeFS: Seq[SchemeFS],
                          period: String,
@@ -150,7 +151,7 @@ class PaymentsAndChargesInterestController @Inject()(
     )
   }
 
-  private def tableHeader(schemeFS: SchemeFS)(implicit messages: Messages): String =
+  private def tableHeader(schemeFS: SchemeFS): String =
     paymentsAndChargesService.setPeriod(
       schemeFS.chargeType,
       schemeFS.periodStartDate,
@@ -158,10 +159,6 @@ class PaymentsAndChargesInterestController @Inject()(
     )
 
   private def getSummaryListRows(schemeFS: SchemeFS)(implicit messages: Messages): Seq[SummaryList.Row] = {
-    val chargeReference : String = schemeFS.chargeReference.isEmpty match {
-      case false => schemeFS.chargeReference
-      case true => messages("paymentsAndCharges.chargeReference.toBeAssigned")
-    }
     Seq(
       Row(
         key = Key(
@@ -169,7 +166,7 @@ class PaymentsAndChargesInterestController @Inject()(
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(
-          content = Literal(chargeReference),
+          content = msg"paymentsAndCharges.chargeReference.toBeAssigned",
           classes =
             Seq("govuk-!-width-one-quarter")
         ),
@@ -177,7 +174,8 @@ class PaymentsAndChargesInterestController @Inject()(
       ),
       Row(
         key = Key(
-          msg"paymentsAndCharges.interestFrom".withArgs(schemeFS.periodEndDate.plusDays(46).format(dateFormatterDMY)),
+          msg"paymentsAndCharges.interestFrom".withArgs(
+            schemeFS.periodEndDate.plusDays(46).format(dateFormatterDMY)),
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
         ),
         value = Value(

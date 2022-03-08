@@ -30,7 +30,7 @@
               }) }}
         {% endif %}
 
-        {% if interest > 0 %}
+        {% if insetText.length > 0 %}
             {{ govukInsetText({
               html: insetText
             }) }}
@@ -43,7 +43,7 @@
       </div>
     </div>
 
-    {% if returnHistoryURL %}
+    {% if returnHistoryURL and versionValue.length > 0 %}
         <p class="govuk-body"><a id="return-history" href="{{ returnHistoryURL }}" class="govuk-link">{{ messages("financialPaymentsAndCharges.viewReturnHistory", versionValue) }}</a></p>
     {% endif %}
 
