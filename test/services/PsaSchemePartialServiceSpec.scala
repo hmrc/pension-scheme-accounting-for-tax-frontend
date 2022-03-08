@@ -17,7 +17,6 @@
 package services
 
 import base.SpecBase
-import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
@@ -28,10 +27,7 @@ import org.mockito.{ArgumentMatchers, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json}
-import services.PsaSchemePartialServiceSpec.upcomingPastChargesLink
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.nunjucks.NunjucksHelper.messages
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}

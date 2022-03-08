@@ -419,6 +419,60 @@ class AFTPartialService @Inject()(
     }
   }
 
+  def penaltiesAndCharges(psaFS: Seq[PsaFS])
+                        (implicit messages: Messages): Seq[CardViewModel] = {
+    val overdueCharges: Seq[PsaFS] = psaFS.filter(charge =>  charge.dueDate.exists(_.isBefore(DateHelper.today)))
+    val upcomingCharges: Seq[PsaFS] = psaFS.filter(_.dueDate.exists(!_.isBefore(DateHelper.today)))
+    val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
+    val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
+    val totalUpcomingCharges : BigDecimal = upcomingCharges.map(_.amountDue).sum
+    val totalOutstandingPayments: BigDecimal= totalUpcomingCharges + totalOverdue + totalInterestAccruing
+    val subHeadingTotalOutstanding: Seq[CardSubHeading] = Seq(CardSubHeading(
+      subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),
+      subHeadingClasses = "card-sub-heading",
+      subHeadingParams = Seq(CardSubHeadingParam(
+        subHeadingParam = s"${FormatHelper.formatCurrencyAmountAsString(totalOutstandingPayments)}",
+        subHeadingParamClasses = "font-large bold"
+      ))
+    ))
+    val subHeadingPenaltiesOverdue: Seq[CardSubHeading] = if (totalOverdue > 0 ){
+      Seq(CardSubHeading(
+        subHeading = "",
+        subHeadingClasses = "govuk-tag govuk-tag--red",
+        subHeadingParams = Seq(CardSubHeadingParam(
+          subHeadingParam = messages("pspDashboardOverdueAftChargesCard.overdue.span"),
+          subHeadingParamClasses = "govuk-tag govuk-tag--red"
+        ))
+
+      ))}
+    else {
+      Nil
+    }
+
+      Seq(CardViewModel(
+        id = "aft-overdue-charges",
+        heading = messages("psaPenaltiesCard.h2"),
+        subHeadings = subHeadingTotalOutstanding ++ subHeadingPenaltiesOverdue,
+        links = viewFinancialOverviewLink() ++ viewAllPenaltiesAndChargesLink()
+      ))
+  }
+
+  private def viewFinancialOverviewLink(): Seq[Link] =
+    Seq(Link(
+      id = "view-your-financial-overview",
+      url = appConfig.psafinancialOverviewUrl,
+      linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+      hiddenText = None
+    ))
+
+  private def viewAllPenaltiesAndChargesLink(): Seq[Link] =
+    Seq(Link(
+      id = "past-penalties-id",
+      url = appConfig.viewPenaltiesUrl,
+      linkText = msg"psaPenaltiesCard.viewPastPenalties",
+      hiddenText = None
+    ))
+
   def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFS])
     (implicit messages: Messages): DashboardAftViewModel = {
 
@@ -462,4 +516,36 @@ class AFTPartialService @Inject()(
       subHeadings = Seq(subHeadingPaymentDue, subHeadingTotalOverduePayments),
       links = outstandingLink :+ Link("past-penalties-id", appConfig.viewPenaltiesUrl, msg"psaPenaltiesCard.viewPastPenalties", None))
   }
+
+  def retrievePsaChargesAmount(psaFs: Seq[PsaFS])
+                                   (implicit messages: Messages): (String,String,String) = {
+
+    val upcomingCharges: Seq[PsaFS] =
+      psaFs.filter(_.dueDate.exists(!_.isBefore(DateHelper.today)))
+
+    val overdueCharges: Seq[PsaFS] =
+      psaFs.filter(charge =>  charge.dueDate.exists(_.isBefore(DateHelper.today)))
+
+    val totalUpcomingCharge = upcomingCharges.map(_.amountDue).sum
+    val totalOverdueCharge: BigDecimal = overdueCharges.map(_.amountDue).sum
+    val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
+
+    val totalUpcomingChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalUpcomingCharge)}"
+    val totalOverdueChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalOverdueCharge)}"
+    val totalInterestAccruingFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}"
+
+
+    (totalUpcomingChargeFormatted,totalOverdueChargeFormatted,totalInterestAccruingFormatted)
+  }
+
+  def getCreditBalanceAmount(psaFs: Seq[PsaFS]): BigDecimal = {
+    val sumAmountOverdue = psaFs.filter(_.dueDate.nonEmpty).map(_.amountDue).sum
+    val creditBalanceAmt = if (sumAmountOverdue >= 0) {
+      BigDecimal(0.00)
+    } else {
+      sumAmountOverdue.abs
+    }
+    creditBalanceAmt
+  }
+
 }

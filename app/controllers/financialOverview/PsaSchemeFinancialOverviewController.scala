@@ -62,7 +62,6 @@ class PsaSchemeFinancialOverviewController @Inject()(
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
         val isPsa = isPsaId(request.idOrException)
-
         renderFinancialOverview(srn, psaOrPspName, schemeDetails, schemeFS, aftModel, request, creditSchemeFS, isPsa)
       }
       response.flatten
@@ -90,9 +89,12 @@ class PsaSchemeFinancialOverviewController @Inject()(
 
 
     renderer.render(
-      template = "financialOverview/psaSchemeFinancialOverview.njk",
-      ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),
-        "schemeName" -> schemeName, "requestRefundUrl" -> requestRefundUrl,
+       template = "financialOverview/psaSchemeFinancialOverview.njk",
+        ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),
+        "schemeName" -> schemeName,
+        "requestRefundUrl" -> requestRefundUrl,
+         "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "overdue").url,
+         "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "upcoming").url,
         "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }
