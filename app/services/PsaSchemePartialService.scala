@@ -367,17 +367,12 @@ class PsaSchemePartialService @Inject()(
       Nil
     }
 
-
-    if (totalOutstandingPayments > 0) {
       Seq(CardViewModel(
         id = "aft-overdue-charges",
         heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
         subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
         links = viewFinancialOverviewLink(overdueCharges, srn) ++ viewAllPaymentsAndChargesLink(upcomingCharges, srn)
       ))
-    } else {
-      Nil
-    }
   }
 
   private def viewFinancialOverviewLink(pastCharges: Seq[SchemeFS], srn: String): Seq[Link] =
