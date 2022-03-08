@@ -43,7 +43,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.financialOverview.{PaymentsAndChargesService, PaymentsNavigationService}
+import services.financialOverview.{AllPaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -57,37 +57,37 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                                      val controllerComponents: MessagesControllerComponents,
                                      renderer: Renderer,
                                      config: FrontendAppConfig,
-                                     service: PaymentsAndChargesService,
+                                     service: AllPaymentsAndChargesService,
                                      navService: PaymentsNavigationService)
                                     (implicit ec: ExecutionContext) extends FrontendBaseController
   with I18nSupport
   with NunjucksSupport {
 
-  private def form(journeyType: ChargeDetailsFilter, paymentOrChargeType: PaymentOrChargeType, typeParam: String, config: FrontendAppConfig)
+  private def form(paymentOrChargeType: PaymentOrChargeType, typeParam: String)
                   (implicit messages: Messages, ev: Enumerable[Year]): Form[Year] = {
     val errorMessage = if(isTaxYearFormat(paymentOrChargeType)) {
-      messages(s"selectChargesTaxYear.$journeyType.error", typeParam)
+      messages(s"selectChargesTaxYear.all.error", typeParam)
     } else {
-      messages(s"selectChargesYear.$journeyType.error", typeParam)
+      messages(s"selectChargesYear.all.error", typeParam)
     }
     formProvider(errorMessage)(implicitly)
   }
 
-  def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+  def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
 
-    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
+    service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
 
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
       val years = getYears(paymentsCache.schemeFS, paymentOrChargeType)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
       val json = Json.obj(
-        "titleMessage" -> getTitle(typeParam, paymentOrChargeType, journeyType),
+        "titleMessage" -> getTitle(typeParam, paymentOrChargeType),
         "typeParam" -> typeParam,
         "schemeName" -> paymentsCache.schemeDetails.schemeName,
-        "form" -> form(journeyType, paymentOrChargeType, typeParam, config),
-        "radios" -> FSYears.radios(form(journeyType, paymentOrChargeType, typeParam, config), years, isTaxYearFormat(paymentOrChargeType)),
+        "form" -> form(paymentOrChargeType, typeParam),
+        "radios" -> FSYears.radios(form(paymentOrChargeType, typeParam), years, isTaxYearFormat(paymentOrChargeType)),
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
       )
 
@@ -95,18 +95,18 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     }
   }
 
-  def onSubmit(srn: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+  def onSubmit(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
     identify.async { implicit request =>
-    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
+    service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
       val years = getYears(paymentsCache.schemeFS, paymentOrChargeType)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
-      form(journeyType, paymentOrChargeType, typeParam, config).bindFromRequest().fold(
+      form(paymentOrChargeType, typeParam).bindFromRequest().fold(
         formWithErrors => {
 
           val json = Json.obj(
-            "titleMessage" -> getTitle(typeParam, paymentOrChargeType, journeyType),
+            "titleMessage" -> getTitle(typeParam, paymentOrChargeType),
             "typeParam" -> typeParam,
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "form" -> formWithErrors,
@@ -116,20 +116,20 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
         },
         value => if(paymentOrChargeType == AccountingForTaxCharges) {
-          navService.navFromAFTYearsPage(paymentsCache.schemeFS, value.year, srn, journeyType)
+          navService.navFromAFTYearsPage(paymentsCache.schemeFS, value.year, srn)
         } else {
-          Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType, journeyType)))
+          Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
         }
       )
     }
   }
 
-  def getTitle(typeParam: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter)
+  def getTitle(typeParam: String, paymentOrChargeType: PaymentOrChargeType)
               (implicit messages: Messages): String =
     if(isTaxYearFormat(paymentOrChargeType)) {
-      messages(s"selectChargesTaxYear.$journeyType.title", typeParam)
+      messages(s"selectChargesTaxYear.all.title", typeParam)
     } else {
-      messages(s"selectChargesYear.$journeyType.title", typeParam)
+      messages(s"selectChargesYear.all.title", typeParam)
     }
 
   def getYears(payments: Seq[SchemeFS], paymentOrChargeType: PaymentOrChargeType): Seq[DisplayYear] =

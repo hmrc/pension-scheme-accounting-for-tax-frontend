@@ -26,7 +26,7 @@ import models.ChargeDetailsFilter.{Overdue, Upcoming}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.SchemeFSClearingReason._
-import models.financialStatement.{DocumentLineItemDetail, SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
@@ -182,6 +182,12 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
+  def getTypeParam(paymentType: PaymentOrChargeType)(implicit messages: Messages): String =
+    if (paymentType == AccountingForTaxCharges) {
+      messages(s"paymentOrChargeType.${paymentType.toString}")
+    } else {
+      messages(s"paymentOrChargeType.${paymentType.toString}").toLowerCase()
+    }
 
   def setPeriod(chargeType: SchemeFSChargeType, periodStartDate: LocalDate, periodEndDate: LocalDate): String = {
     chargeType match {

@@ -36,7 +36,7 @@ import controllers.actions._
 import models.ChargeDetailsFilter
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import services.financialOverview.{PaymentsAndChargesService, PaymentsNavigationService}
+import services.financialOverview.{AllPaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -44,7 +44,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
-                                        service: PaymentsAndChargesService,
+                                        service: AllPaymentsAndChargesService,
                                         navService: PaymentsNavigationService,
                                         identify: IdentifierAction,
                                         val controllerComponents: MessagesControllerComponents
@@ -53,9 +53,9 @@ class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
                                           with I18nSupport
                                           with NunjucksSupport {
 
-  def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
-    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
-      navService.navFromSchemeDashboard(paymentsCache.schemeFS, srn, journeyType)
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+    service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
+      navService.navFromSchemeDashboard(paymentsCache.schemeFS, srn)
     }
   }
 
