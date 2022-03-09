@@ -35,7 +35,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import play.twirl.api.Html
-import services.financialOverview.{AllPaymentsAndChargesService, PaymentsAndChargesService, PaymentsCache}
+import services.financialOverview.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -49,14 +49,14 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
   private def httpPathGET(startDate: String = startDate): String =
     AllPaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges).url
 
-  private val mockPaymentsAndChargesService: AllPaymentsAndChargesService = mock[AllPaymentsAndChargesService]
+  private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
     .overrides(
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
-        bind[AllPaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
+        bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
       ): _*
     )

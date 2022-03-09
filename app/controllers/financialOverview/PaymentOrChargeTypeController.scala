@@ -27,7 +27,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.financialOverview.{AllPaymentsAndChargesService, PaymentsNavigationService}
+import services.financialOverview.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -41,7 +41,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
                                               val controllerComponents: MessagesControllerComponents,
                                               renderer: Renderer,
                                               config: FrontendAppConfig,
-                                              service: AllPaymentsAndChargesService,
+                                              service: PaymentsAndChargesService,
                                               navService: PaymentsNavigationService)
                                              (implicit ec: ExecutionContext) extends FrontendBaseController
   with I18nSupport
@@ -49,7 +49,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   private def form(): Form[PaymentOrChargeType] = formProvider()
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+  def onPageLoad(srn: String,  pstr: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
       val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFS)
       val json = Json.obj(
@@ -64,7 +64,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
     }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String,  pstr: String): Action[AnyContent] = identify.async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
       form().bindFromRequest().fold(
         formWithErrors => {
@@ -77,7 +77,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/paymentOrChargeType.njk", json).map(BadRequest(_))
         },
-        value => navService.navFromPaymentsTypePage(cache.schemeFS, srn, value)
+        value => navService.navFromPaymentsTypePage(cache.schemeFS, srn, pstr, value)
       )
     }
   }

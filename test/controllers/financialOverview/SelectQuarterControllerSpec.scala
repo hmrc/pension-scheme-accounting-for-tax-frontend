@@ -38,7 +38,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.financialOverview.{AllPaymentsAndChargesService, PaymentsAndChargesService, PaymentsCache}
+import services.financialOverview.{PaymentsAndChargesService, PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -47,9 +47,9 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
-  val mockPaymentsAndChargesService: AllPaymentsAndChargesService = mock[AllPaymentsAndChargesService]
+  val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[AllPaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
+    bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
   )
 
   private val year = "2020"
@@ -111,7 +111,7 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.AllPaymentsAndChargesController.onPageLoad(srn, q22020.startDate.toString, AccountingForTaxCharges).url)
+      redirectLocation(result) mustBe Some(routes.AllPaymentsAndChargesController.onPageLoad(srn, pstr, q22020.startDate.toString, AccountingForTaxCharges).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

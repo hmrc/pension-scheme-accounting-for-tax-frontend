@@ -16,13 +16,14 @@
 
 package services.financialOverview
 
+import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
-import controllers.financialOverview.{routes => financialOverview}
+import controllers.financialOverview.routes
 import helpers.FormatHelper._
 import models.ChargeDetailsFilter
-import models.ChargeDetailsFilter.{Overdue, Upcoming}
+import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.SchemeFSClearingReason._
@@ -33,6 +34,7 @@ import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAc
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
 import services.SchemeService
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -62,12 +64,15 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                               )
                               (implicit messages: Messages): Table = {
 
+    val chargeRefForAll: Seq[String] = schemeFS.map(_.chargeReference)
+
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
-      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefs(schemeFS), mapChargeTypesVersionAndDate, chargeDetailsFilter)
+      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefForAll, chargeRefs(schemeFS), mapChargeTypesVersionAndDate, chargeDetailsFilter)
     }
 
-    mapToTable(seqPayments)
+    mapToTable(seqPayments, chargeDetailsFilter)
   }
+
 
   def chargeRefs (schemeFS: Seq[SchemeFS]) : Map[(String,String), Seq[String]] = {
     val indexRefs: Seq[IndexRef] = schemeFS.map { scheme =>
@@ -92,6 +97,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
+  val isPaymentOverdue: SchemeFS => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
+
   val extractUpcomingCharges: Seq[SchemeFS] => Seq[SchemeFS] = schemeFS =>
     schemeFS.filter(charge => charge.dueDate.nonEmpty
       && charge.dueDate.get.isAfter(DateHelper.today)
@@ -102,7 +109,39 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       .filter(_.dueDate.nonEmpty)
       .filter(_.dueDate.get.isBefore(DateHelper.today))
       .filter(_.amountDue > BigDecimal(0.00))
-  
+
+  def getDueCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
+    schemeFS
+      .filter(_.amountDue >= BigDecimal(0.00))
+
+  def getInterestCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
+    schemeFS
+      .filter(_.accruedInterestTotal >= BigDecimal(0.00))
+
+  private def setSubmittedDate(submittedDate: Option[String], chargeType: SchemeFSChargeType)
+                              (implicit messages: Messages): Option[String] = {
+    (chargeType, submittedDate) match {
+      case (PSS_AFT_RETURN  | PSS_OTC_AFT_RETURN, Some(value)) =>
+        Some(messages("returnHistory.submittedOn", value))
+      case _ => None
+    }
+  }
+
+  def getReturnLinkBasedOnJourney(journeyType: ChargeDetailsFilter, schemeName: String)
+                                 (implicit messages: Messages): String = {
+    journeyType match {
+      case All => schemeName
+      case _ => messages("financialPaymentsAndCharges.returnLink." +
+        s"${journeyType.toString}")
+    }
+  }
+  def getReturnUrl(srn: String, pstr: String, psaId: Option[PsaId], pspId: Option[PspId], config: FrontendAppConfig,
+                   journeyType: ChargeDetailsFilter): String = {
+    journeyType match {
+      case All => config.schemeDashboardUrl(psaId, pspId).format(srn)
+      case _ => routes.PaymentsAndChargesController.onPageLoad(srn, pstr, journeyType).url
+    }
+  }
 
   //scalastyle:off parameter.number
   // scalastyle:off method.length
@@ -111,6 +150,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                             details: SchemeFS,
                                             srn: String,
                                             pstr: String,
+                                            chargeRefForAll: Seq[String],
                                             chargeRefs: Map[(String,String), Seq[String]],
                                             mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
                                             chargeDetailsFilter: ChargeDetailsFilter
@@ -141,6 +181,13 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       case _ => Nil
     }
 
+    val index : String = {
+      chargeDetailsFilter match {
+        case All => chargeRefForAll.indexOf(details.chargeReference).toString
+        case _ => seqChargeRefs.indexOf(details.chargeReference).toString
+      }
+    }
+
     val chargeDetailsItemWithStatus: PaymentAndChargeStatus => FinancialPaymentAndChargesDetails =
       status =>
         FinancialPaymentAndChargesDetails(
@@ -150,8 +197,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
           status = status,
           period = setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate),
-          redirectUrl = financialOverview.PaymentsAndChargeDetailsController.onPageLoad(
-            srn, pstr, periodValue, seqChargeRefs.indexOf(details.chargeReference).toString, chargeType, version, submittedDate, chargeDetailsFilter).url,
+          submittedDate = setSubmittedDate(submittedDate, details.chargeType),
+          redirectUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(
+            srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
           visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
         )
 
@@ -168,8 +216,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
             status = InterestIsAccruing,
             period = setPeriod(interestChargeType, details.periodStartDate, details.periodEndDate),
-            redirectUrl = financialOverview.PaymentsAndChargesInterestController.onPageLoad(
-              srn, pstr, periodValue, seqChargeRefs.indexOf(details.chargeReference).toString, chargeType, version, submittedDate, chargeDetailsFilter).url,
+            redirectUrl = routes.PaymentsAndChargesInterestController.onPageLoad(
+              srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
             visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
           )
         )
@@ -221,7 +269,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   }
 
 
-  private def mapToTable(allPayments: Seq[FinancialPaymentAndChargesDetails])
+  private def mapToTable(allPayments: Seq[FinancialPaymentAndChargesDetails], chargeDetailsFilter: ChargeDetailsFilter)
                            (implicit messages: Messages): Table = {
 
     val head = Seq(
@@ -242,13 +290,30 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           case _ => data.chargeReference
         }
 
-      val htmlChargeType = Html(
-        s"<a id=$linkId class=govuk-link href=" +
-          s"${data.redirectUrl}>" +
-          s"${data.chargeType} " +
-          s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
-          s"<p class=govuk-hint>" +
-          s"${data.period}</p>")
+      val htmlChargeType = (chargeDetailsFilter, data.submittedDate) match {
+        case (All, Some(dateValue)) => Html(
+          s"<a id=$linkId class=govuk-link href=" +
+            s"${data.redirectUrl}>" +
+            s"${data.chargeType} " +
+            s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
+            s"<p class=govuk-hint>" +
+            s"$dateValue</p>")
+        case (All, None) => Html(
+          s"<a id=$linkId class=govuk-link href=" +
+            s"${data.redirectUrl}>" +
+            s"${data.chargeType} " +
+            s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
+        case _ =>
+          Html(
+            s"<a id=$linkId class=govuk-link href=" +
+              s"${data.redirectUrl}>" +
+              s"${data.chargeType} " +
+              s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
+              s"<p class=govuk-hint>" +
+              s"${data.period}</p>")
+      }
+
+
 
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half")),

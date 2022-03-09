@@ -39,7 +39,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.financialOverview.{AllPaymentsAndChargesService, PaymentsAndChargesService, PaymentsCache}
+import services.financialOverview.{PaymentsAndChargesService, PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
 
@@ -50,9 +50,9 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
-  val mockPaymentsAndChargesService: AllPaymentsAndChargesService = mock[AllPaymentsAndChargesService]
+  val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[AllPaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
+    bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
   )
 
   private val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
@@ -112,7 +112,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.AllPaymentsAndChargesController.onPageLoad(srn, QUARTER_START_DATE.toString, AccountingForTaxCharges).url)
+      redirectLocation(result) mustBe Some(routes.AllPaymentsAndChargesController.onPageLoad(srn, pstr, QUARTER_START_DATE.toString, AccountingForTaxCharges).url)
     }
 
     "redirect to next page when valid data is submitted and multiple quarters are found for the selected year" in {

@@ -43,7 +43,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.financialOverview.{AllPaymentsAndChargesService, PaymentsNavigationService}
+import services.financialOverview.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -57,7 +57,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                                      val controllerComponents: MessagesControllerComponents,
                                      renderer: Renderer,
                                      config: FrontendAppConfig,
-                                     service: AllPaymentsAndChargesService,
+                                     service: PaymentsAndChargesService,
                                      navService: PaymentsNavigationService)
                                     (implicit ec: ExecutionContext) extends FrontendBaseController
   with I18nSupport
@@ -73,7 +73,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     formProvider(errorMessage)(implicitly)
   }
 
-  def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
+  def onPageLoad(srn: String,  pstr: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
 
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
@@ -95,7 +95,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     }
   }
 
-  def onSubmit(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
+  def onSubmit(srn: String,  pstr: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
     identify.async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
@@ -116,9 +116,9 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
         },
         value => if(paymentOrChargeType == AccountingForTaxCharges) {
-          navService.navFromAFTYearsPage(paymentsCache.schemeFS, value.year, srn)
+          navService.navFromAFTYearsPage(paymentsCache.schemeFS, value.year, srn, pstr)
         } else {
-          Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
+          Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, pstr, value.year.toString, paymentOrChargeType)))
         }
       )
     }

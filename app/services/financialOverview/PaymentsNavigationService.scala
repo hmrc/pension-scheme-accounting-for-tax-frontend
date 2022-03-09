@@ -26,34 +26,34 @@ import scala.concurrent.Future
 
 class PaymentsNavigationService {
 
-  def navFromSchemeDashboard(payments: Seq[SchemeFS], srn: String): Future[Result] = {
+  def navFromSchemeDashboard(payments: Seq[SchemeFS], srn: String,  pstr: String): Future[Result] = {
 
     val paymentTypes: Seq[PaymentOrChargeType] = payments.map(p => getPaymentOrChargeType(p.chargeType)).distinct
 
     if (paymentTypes.size > 1) {
-      Future.successful(Redirect(PaymentOrChargeTypeController.onPageLoad(srn)))
+      Future.successful(Redirect(PaymentOrChargeTypeController.onPageLoad(srn, pstr)))
     } else if (paymentTypes.size == 1) {
-      navFromPaymentsTypePage(payments, srn, paymentTypes.head)
+      navFromPaymentsTypePage(payments, srn, pstr, paymentTypes.head)
     } else {
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
-  def navFromPaymentsTypePage(payments: Seq[SchemeFS], srn: String, paymentType: PaymentOrChargeType): Future[Result] = {
+  def navFromPaymentsTypePage(payments: Seq[SchemeFS], srn: String,  pstr: String, paymentType: PaymentOrChargeType): Future[Result] = {
 
       val yearsSeq: Seq[Int] = payments
         .filter(p => getPaymentOrChargeType(p.chargeType) == paymentType)
         .map(_.periodEndDate.getYear).distinct.sorted.reverse
 
     (paymentType, yearsSeq.size) match {
-      case (AccountingForTaxCharges, 1) => navFromAFTYearsPage(payments, yearsSeq.head, srn)
-      case (_, 1) => Future.successful(Redirect(AllPaymentsAndChargesController.onPageLoad(srn, yearsSeq.head.toString, paymentType)))
-      case (_, size) if size > 1 => Future.successful(Redirect(SelectYearController.onPageLoad(srn, paymentType)))
+      case (AccountingForTaxCharges, 1) => navFromAFTYearsPage(payments, yearsSeq.head, srn, pstr)
+      case (_, 1) => Future.successful(Redirect(AllPaymentsAndChargesController.onPageLoad(srn, pstr, yearsSeq.head.toString, paymentType)))
+      case (_, size) if size > 1 => Future.successful(Redirect(SelectYearController.onPageLoad(srn, pstr, paymentType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
     }
 
-  def navFromAFTYearsPage(payments: Seq[SchemeFS], year: Int, srn: String): Future[Result] = {
+  def navFromAFTYearsPage(payments: Seq[SchemeFS], year: Int, srn: String,  pstr: String): Future[Result] = {
 
     val quartersSeq = payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
@@ -61,9 +61,9 @@ class PaymentsNavigationService {
       .map(_.periodStartDate).distinct
 
     if (quartersSeq.size > 1) {
-      Future.successful(Redirect(SelectQuarterController.onPageLoad(srn, year.toString)))
+      Future.successful(Redirect(SelectQuarterController.onPageLoad(srn, pstr, year.toString)))
     } else if (quartersSeq.size == 1) {
-      Future.successful(Redirect(AllPaymentsAndChargesController.onPageLoad(srn, quartersSeq.head.toString, AccountingForTaxCharges)))
+      Future.successful(Redirect(AllPaymentsAndChargesController.onPageLoad(srn, pstr, quartersSeq.head.toString, AccountingForTaxCharges)))
     } else {
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }

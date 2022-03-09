@@ -17,20 +17,24 @@
 package controllers.financialOverview
 
 import config.FrontendAppConfig
+import connectors.AFTConnector
 import controllers.actions._
+import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
-import models.financialStatement.{PaymentOrChargeType, SchemeFS}
-import models.{ChargeDetailsFilter, Quarters}
+import models.financialStatement.{PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
+import models.{ChargeDetailsFilter, Quarters, UserAnswers}
+import pages.{AFTReceiptDateQuery, AFTVersionQuery}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
-import services.financialOverview.AllPaymentsAndChargesService
+import services.financialOverview.PaymentsAndChargesService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.Table
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -42,37 +46,65 @@ class AllPaymentsAndChargesController @Inject()(
                                               allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                               val controllerComponents: MessagesControllerComponents,
                                               config: FrontendAppConfig,
-                                              paymentsAndChargesService: AllPaymentsAndChargesService,
+                                              paymentsAndChargesService: PaymentsAndChargesService,
+                                              aftConnector: AFTConnector,
                                               renderer: Renderer
                                             )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private val logger = Logger(classOf[PaymentsAndChargesController])
+  private val logger = Logger(classOf[AllPaymentsAndChargesController])
 
-  def onPageLoad(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
+  private def getMapChargeTypeToVersionAndDate(seqSchemeFS: Seq[SchemeFS], pstr: String)(implicit ec: ExecutionContext,
+                                                                                         headerCarrier: HeaderCarrier): Future[Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])]] = {
+    val tuple = Future.sequence {
+      seqSchemeFS.map { scheme =>
+        scheme.formBundleNumber match {
+          case Some(fb) => aftConnector
+            .getAFTDetailsWithFbNumber(pstr, fb)
+            .map { aftDetails =>
+              val ua = UserAnswers(aftDetails.as[JsObject])
+              Seq(Tuple2(scheme.chargeType, (ua.get(AFTVersionQuery), ua.get(AFTReceiptDateQuery))))
+            }
+          case None => Future.successful(Nil)
+        }
+      }
+    }.map(_.flatten)
+    tuple.map(_.toMap)
+  }
+
+  def onPageLoad(srn: String, pstr: String, period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
-      paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
+      paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
               val (title, filteredPayments): (String, Seq[SchemeFS]) =
                 getTitleAndFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
 
-              if (filteredPayments.nonEmpty) {
+        val dueCharges: Seq[SchemeFS] = paymentsAndChargesService.getDueCharges(filteredPayments)
+        val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
+        val interestCharges: Seq[SchemeFS] = paymentsAndChargesService.getInterestCharges(filteredPayments)
+        val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
+        val totalCharges: BigDecimal = totalDueCharges+ totalInterestCharges
 
-                val tableOfPaymentsAndCharges: Table =
-                  paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, ChargeDetailsFilter.All, paymentOrChargeType)
+          if (filteredPayments.nonEmpty) {
 
+                getMapChargeTypeToVersionAndDate(filteredPayments, pstr).flatMap { mapChargeTypesVersionsAndDate =>
+                  val tableOfPaymentsAndCharges = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, filteredPayments,
+                    mapChargeTypesVersionsAndDate, journeyType)
 
-                val json = Json.obj(
-                  fields =
-                    "titleMessage" -> title,
-                    "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
-                    "schemeName" -> paymentsCache.schemeDetails.schemeName,
-                    "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-                )
-                renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
-
+                  val json = Json.obj(
+                    fields =
+                      "titleMessage" -> title,
+                      "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
+                      "journeyType" -> journeyType.toString,
+                      "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
+                      "schemeName" -> paymentsCache.schemeDetails.schemeName,
+                      "totalDue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+                      "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+                  )
+                  renderer.render(template = "financialOverview/paymentsAndCharges.njk", json).map(Ok(_))
+                }
               } else {
                 logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))

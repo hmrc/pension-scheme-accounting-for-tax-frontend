@@ -28,7 +28,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.financialOverview.AllPaymentsAndChargesService
+import services.financialOverview.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -43,7 +43,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                                                   formProvider: QuartersFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   renderer: Renderer,
-                                                  service: AllPaymentsAndChargesService)
+                                                  service: PaymentsAndChargesService)
                                                   (implicit ec: ExecutionContext)
                                                   extends FrontendBaseController
                                                   with I18nSupport
@@ -53,7 +53,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                   (implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages(s"selectChargesQuarter.all.error", year), quarters)
 
-  def onPageLoad(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+  def onPageLoad(srn: String,  pstr: String, year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
 
       val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFS)
@@ -78,7 +78,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
     }
   }
 
-  def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String,  pstr: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
 
       val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFS)
@@ -100,7 +100,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
               },
               value => {
-                Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, value.startDate, AccountingForTaxCharges)))
+                Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, pstr, value.startDate, AccountingForTaxCharges)))
               }
             )
         } else {

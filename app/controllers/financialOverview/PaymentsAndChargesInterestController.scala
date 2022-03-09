@@ -16,6 +16,7 @@
 
 package controllers.financialOverview
 
+import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter
@@ -25,10 +26,12 @@ import models.financialStatement.{PaymentOrChargeType, SchemeFS}
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.Json._
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
 import services.financialOverview.PaymentsAndChargesService
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -45,6 +48,7 @@ class PaymentsAndChargesInterestController @Inject()(
                                                       allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       paymentsAndChargesService: PaymentsAndChargesService,
+                                                      config: FrontendAppConfig,
                                                       renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -96,7 +100,7 @@ class PaymentsAndChargesInterestController @Inject()(
         case Some(schemeFs) =>
           renderer.render(
             template = "financialOverview/paymentsAndChargeInterest.njk",
-            ctx = summaryListData(srn, pstr, schemeFs, schemeName, originalAmountUrl, version, journeyType)
+            ctx = summaryListData(srn, pstr, request.psaId, request.pspId, schemeFs, schemeName, originalAmountUrl, version, journeyType)
           ).map(Ok(_))
         case _ =>
           logger.warn(s"No Payments and Charge details " +
@@ -114,9 +118,8 @@ class PaymentsAndChargesInterestController @Inject()(
 
   }
 
-  private def summaryListData(srn: String, pstr: String, schemeFS: SchemeFS, schemeName: String,
-                              originalAmountUrl: String, version: Option[Int],
-                              journeyType: ChargeDetailsFilter)
+  private def summaryListData(srn: String, pstr: String, psaId: Option[PsaId], pspId: Option[PspId], schemeFS: SchemeFS, schemeName: String,
+                              originalAmountUrl: String, version: Option[Int], journeyType: ChargeDetailsFilter)
                               (implicit messages: Messages): JsObject = {
 
     val htmlInsetText =
@@ -146,8 +149,8 @@ class PaymentsAndChargesInterestController @Inject()(
         ),
       "insetText" -> htmlInsetText,
       "originalAmountUrl" -> originalAmountUrl,
-      "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
-      "returnUrl" -> routes.PaymentsAndChargesController.onPageLoad(srn, pstr, journeyType).url
+      "returnLinkBasedOnJourney" -> paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
+      "returnUrl" -> paymentsAndChargesService.getReturnUrl(srn, pstr, psaId, pspId, config, journeyType)
     )
   }
 
@@ -158,7 +161,7 @@ class PaymentsAndChargesInterestController @Inject()(
       schemeFS.periodEndDate
     )
 
-  private def getSummaryListRows(schemeFS: SchemeFS)(implicit messages: Messages): Seq[SummaryList.Row] = {
+  private def getSummaryListRows(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(
