@@ -44,6 +44,43 @@ case class SchemeFS(
                      documentLineItemDetails: Seq[DocumentLineItemDetail]
                    )
 
+case class SchemeFSOptDate(
+                     chargeReference: String,
+                     chargeType: SchemeFSChargeType,
+                     dueDate: Option[LocalDate],
+                     totalAmount: BigDecimal,
+                     amountDue: BigDecimal,
+                     outstandingAmount: BigDecimal,
+                     accruedInterestTotal: BigDecimal,
+                     stoodOverAmount: BigDecimal,
+                     periodStartDate: Option[LocalDate],
+                     periodEndDate: Option[LocalDate],
+                     formBundleNumber: Option[String],
+                     sourceChargeRefForInterest: Option[String],
+                     documentLineItemDetails: Seq[DocumentLineItemDetail]
+                   ) {
+  def toSchemeFS: SchemeFS = SchemeFS(
+    chargeReference,
+    chargeType,
+    dueDate,
+    totalAmount,
+    amountDue,
+    outstandingAmount,
+    accruedInterestTotal,
+    stoodOverAmount,
+    periodStartDate.getOrElse(LocalDate.of(1900,1,1)),
+    periodEndDate.getOrElse(LocalDate.of(2900,12,31)),
+    formBundleNumber,
+    sourceChargeRefForInterest,
+    documentLineItemDetails
+  )
+                   }
+
+object SchemeFSOptDate {
+  implicit val formats: Format[SchemeFSOptDate] = Json.format[SchemeFSOptDate]
+
+}
+
 object SchemeFS {
   implicit val formats: Format[SchemeFS] = Json.format[SchemeFS]
 }
