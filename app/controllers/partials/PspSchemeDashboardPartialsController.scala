@@ -79,7 +79,7 @@ class PspSchemeDashboardPartialsController @Inject()(
                 schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
                 schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
                 aftReturnsHtml <- pspDashboardAftReturnsPartial(idNumber, schemeDetails.pstr, psaId)
-                paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(idNumber, schemeFs)
+                paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(idNumber, schemeFs, schemeDetails.pstr)
               }
               yield {
                 scala.collection.immutable.Seq(aftReturnsHtml, paymentsAndChargesHtml)
@@ -118,13 +118,13 @@ class PspSchemeDashboardPartialsController @Inject()(
     }
   }
 
-  private def pspDashboardPaymentsAndChargesPartial(idNumber: String, schemeFs: Seq[SchemeFS])
+  private def pspDashboardPaymentsAndChargesPartial(idNumber: String, schemeFs: Seq[SchemeFS], pstr: String)
                                                    (implicit request: IdentifierRequest[AnyContent]): Future[Html] = {
     if (schemeFs.isEmpty) {
       Future.successful(Html(""))
     } else {
       val viewModel =
-        aftPartialService.retrievePspDashboardPaymentsAndChargesModel(schemeFs, idNumber)
+        aftPartialService.retrievePspDashboardPaymentsAndChargesModel(schemeFs, idNumber, pstr)
       renderer.render(
         template = "partials/pspSchemePaymentsAndChargesPartial.njk",
         ctx = Json.obj("cards" -> Json.toJson(viewModel))

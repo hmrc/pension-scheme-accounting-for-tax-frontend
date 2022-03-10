@@ -168,7 +168,7 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
       DateHelper.setDate(Some(LocalDate.of(2022, 3, 2)))
       when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(outstandingAmountOverdue)
       when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesMultiple)
-      service.paymentsAndCharges(outstandingAmountOverdue, srn) mustBe paymentsAndChargesModel
+      service.paymentsAndCharges(outstandingAmountOverdue, srn, pstr) mustBe paymentsAndChargesModel
 
     }
   }
@@ -195,6 +195,7 @@ object PsaSchemePartialServiceSpec {
   private val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
   private val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
   private val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
+  private val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/pstr/past-payments-logic"
   private val positiveNumberFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(900)}"
   private val zeroFormatted : String = s"${FormatHelper.formatCurrencyAmountAsString(0)}"
 
@@ -292,12 +293,13 @@ object PsaSchemePartialServiceSpec {
     )
 
   private def viewAllPaymentsAndChargesLink(): Link =
-    Link(
+       Link(
       id = "past-payments-and-charges",
-      url = viewPastChargesUrl,
+      url = viewFinancialInfoPastChargesUrl,
       linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
       hiddenText = None
     )
+
   private val overviewurl: String = s"$aftUrl/srn/financial-overview"
 
 

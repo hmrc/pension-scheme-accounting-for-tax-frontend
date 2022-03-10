@@ -65,7 +65,6 @@ class PspSchemeDashboardPartialsControllerSpec
       bind[FeatureToggleService].toInstance(mockFinancialInformationToggle)
     )
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
-  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
   private val pspDashboardAftReturnsPartialJson: JsObject =
     Json.obj("aft" -> Json.toJson(pspDashboardAftReturnsViewModel))
@@ -135,7 +134,7 @@ class PspSchemeDashboardPartialsControllerSpec
       when(mockAftPartialService.retrievePspDashboardOverdueAftChargesModel(any(), any())(any()))
         .thenReturn(pspDashboardOverdueAftChargesViewModel)
 
-      when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any())(any()))
+      when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any(), any())(any()))
         .thenReturn(allTypesMultipleReturnsModel)
       when(mockFinancialInformationToggle.get(any())(any(), any()))
         .thenReturn(Future.successful(Disabled(FinancialInformationAFT)))
@@ -175,7 +174,7 @@ class PspSchemeDashboardPartialsControllerSpec
       when(mockAftPartialService.retrievePspDashboardOverdueAftChargesModel(any(), any())(any()))
         .thenReturn(pspDashboardOverdueAftChargesViewModel)
 
-      when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any())(any()))
+      when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any(), any())(any()))
         .thenReturn(pspDashboardSchemePaymentsAndChargesViewModel)
       when(mockFinancialInformationToggle.get(any())(any(), any()))
         .thenReturn(Future.successful(Enabled(FinancialInformationAFT)))

@@ -371,7 +371,7 @@ class PsaSchemePartialService @Inject()(
         id = "aft-overdue-charges",
         heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
         subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
-        links = viewFinancialOverviewLink(overdueCharges, srn) ++ viewAllFinancialPaymentsAndChargesLink(upcomingCharges, srn, pstr)
+        links = viewFinancialOverviewLink(overdueCharges, srn) ++ viewAllPaymentsAndChargesLink(upcomingCharges, srn, pstr)
       ))
   }
 
@@ -387,24 +387,12 @@ class PsaSchemePartialService @Inject()(
       ))
     }
 
-  private def viewAllPaymentsAndChargesLink(pastCharges: Seq[SchemeFS], srn: String): Seq[Link] =
+  private def viewAllPaymentsAndChargesLink(pastCharges: Seq[SchemeFS], srn: String, pstr: String): Seq[Link] =
     if (pastCharges == Seq.empty) {
       Nil
     } else {
       Seq(Link(
         id = "past-payments-and-charges",
-        url = appConfig.paymentsAndChargesUrl.format(srn),
-        linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
-        hiddenText = None
-      ))
-    }
-
-  private def viewAllFinancialPaymentsAndChargesLink(pastCharges: Seq[SchemeFS], srn: String, pstr: String): Seq[Link] =
-    if (pastCharges == Seq.empty) {
-      Nil
-    } else {
-      Seq(Link(
-        id = "financial-past-payments-and-charges",
         url = appConfig.financialPaymentsAndChargesUrl.format(srn,pstr),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
         hiddenText = None

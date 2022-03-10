@@ -458,7 +458,7 @@ class AFTPartialServiceSpec
       DateHelper.setDate(Some(LocalDate.of(2022, 3, 2)))
       when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesMultiple)
       when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(outstandingAmountOverdue)
-      service.retrievePspDashboardPaymentsAndChargesModel(upcomingChargesMultiple, srn) mustBe paymentsAndChargesModel
+      service.retrievePspDashboardPaymentsAndChargesModel(upcomingChargesMultiple, srn, pstr) mustBe paymentsAndChargesModel
 
     }
   }
@@ -510,7 +510,7 @@ class AFTPartialServiceSpec
   private def viewAllPaymentsAndChargesLink(): Link =
     Link(
       id = "past-payments-and-charges",
-      url = viewPastChargesUrl,
+      url = viewFinancialInfoPastChargesUrl,
       linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
       hiddenText = None
     )
@@ -652,6 +652,7 @@ object AFTPartialServiceSpec {
   val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
   val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
   val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
+  val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/pstr/past-payments-logic"
 
   def startModel: AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,

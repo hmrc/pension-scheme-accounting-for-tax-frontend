@@ -172,7 +172,7 @@ class AFTPartialService @Inject()(
       links = Seq(viewOverdueLink).flatten
     )
   }
-  def retrievePspDashboardPaymentsAndChargesModel(schemeFs: Seq[SchemeFS], srn: String)
+  def retrievePspDashboardPaymentsAndChargesModel(schemeFs: Seq[SchemeFS], srn: String, pstr: String)
                                                 (implicit messages: Messages): Seq[CardViewModel] ={
     val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(schemeFs)
     val upcomingCharges: Seq[SchemeFS] = paymentsAndChargesService.extractUpcomingCharges(schemeFs)
@@ -210,7 +210,7 @@ class AFTPartialService @Inject()(
         id = "aft-overdue-charges",
         heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
         subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
-        links = viewFinancialOverviewLink(overdueCharges, srn) ++ viewAllPaymentsAndChargesLink(upcomingCharges, srn)
+        links = viewFinancialOverviewLink(overdueCharges, srn) ++ viewAllPaymentsAndChargesLink(upcomingCharges, srn, pstr)
       ))
     } else {
       Nil
@@ -229,13 +229,13 @@ class AFTPartialService @Inject()(
       ))
     }
 
-  private def viewAllPaymentsAndChargesLink(pastCharges: Seq[SchemeFS], srn: String): Seq[Link] =
+  private def viewAllPaymentsAndChargesLink(pastCharges: Seq[SchemeFS], srn: String, pstr: String): Seq[Link] =
     if (pastCharges == Seq.empty) {
       Nil
     } else {
       Seq(Link(
         id = "past-payments-and-charges",
-        url = appConfig.paymentsAndChargesUrl.format(srn),
+        url = appConfig.financialPaymentsAndChargesUrl.format(srn,pstr),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
         hiddenText = None
       ))
