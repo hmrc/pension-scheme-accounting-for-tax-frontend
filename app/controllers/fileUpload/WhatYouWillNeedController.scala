@@ -29,7 +29,7 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
@@ -53,11 +53,6 @@ class WhatYouWillNeedController @Inject()(
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       )
-
-      Future{
-        Thread.sleep(6000)
-        NotImplemented("wibble")
-      }
 
       renderer.render(template = "fileUpload/whatYouWillNeed.njk",
         Json.obj(
