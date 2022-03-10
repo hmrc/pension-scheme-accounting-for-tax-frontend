@@ -93,7 +93,7 @@ class PsaFinancialOverviewControllerSpec
           .thenReturn(Future.successful(psaFsSeq))
         when(mockAFTPartialService.getCreditBalanceAmount(any()))
           .thenReturn(BigDecimal("1000"))
-        when(mockMinimalPsaConnector.getPsaNameFromPsaID(any())(any(), any()))
+        when(mockMinimalPsaConnector.getPsaOrPspName(any(),any(), any()))
           .thenReturn(Future.successful(psaName))
 
         val result = route(application, httpGETRequest(getPartial)).value

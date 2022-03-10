@@ -16,10 +16,9 @@
 
 package controllers.financialStatement.penalties
 
-import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
-import models.FeatureToggle.{Disabled, Enabled}
+import models.FeatureToggle.Enabled
 import models.FeatureToggleName.FinancialInformationAFT
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -62,7 +61,7 @@ class PenaltiesPartialController @Inject()(
           result.map(Ok(_))
         }
 
-      case Disabled(FinancialInformationAFT) =>
+      case _ =>
         fsConnector.getPsaFS(request.psaIdOrException.id).flatMap { psaFS =>
           val result = if (psaFS.isEmpty) {
             Future.successful(Html(""))

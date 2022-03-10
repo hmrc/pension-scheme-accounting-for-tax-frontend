@@ -35,11 +35,10 @@ package controllers.financialOverview
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.PaymentsAndChargeDetailsControllerSpec.srn
 import data.SampleData._
 import helpers.FormatHelper
 import matchers.JsonMatchers
-import models.ChargeDetailsFilter.{All, Overdue}
+import models.ChargeDetailsFilter.Overdue
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
@@ -58,7 +57,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.AFTConstants._
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.dateFormatterDMY
 
 import java.time.LocalDate
 import scala.concurrent.Future

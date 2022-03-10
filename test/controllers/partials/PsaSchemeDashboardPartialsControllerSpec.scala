@@ -50,7 +50,6 @@ class PsaSchemeDashboardPartialsControllerSpec
     with Results
     with ScalaFutures {
 
-  import services.PsaSchemePartialServiceSpec._
 
   private def getPartial: String = routes.PsaSchemeDashboardPartialsController.psaSchemeDashboardPartial(srn).url
 

@@ -52,11 +52,11 @@ class PsaFinancialOverviewController @Inject()(
   def psaFinancialOverview: Action[AnyContent] = identify.async {
     implicit request =>
       val response = for {
-        psaName <- minimalConnector.getPsaNameFromPsaID(request.psaIdOrException.id)
+        psaOrPspName <- minimalConnector.getPsaOrPspName
         psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
       } yield {
         val psaFSWithoutPaymentOnAccount: Seq[PsaFS] = psaFSWithPaymentOnAccount.filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
-        renderFinancialOverview(psaName, psaFSWithoutPaymentOnAccount, request, psaFSWithPaymentOnAccount)
+        renderFinancialOverview(psaOrPspName, psaFSWithoutPaymentOnAccount, request, psaFSWithPaymentOnAccount)
       }
       response.flatten
   }
