@@ -38,7 +38,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.financialOverview.{PaymentsAndChargesService, PaymentsAndChargesService, PaymentsCache}
+import services.financialOverview.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -61,12 +61,12 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialStatement/paymentsAndCharges/selectQuarter.njk"
+  val templateToBeRendered = "financialOverview/selectQuarter.njk"
   val formProvider = new QuartersFormProvider()
   val form: Form[AFTQuarter] = formProvider("selectChargesQuarter.error", quarters)
 
-  lazy val httpPathGET: String = routes.SelectQuarterController.onPageLoad(srn, year).url
-  lazy val httpPathPOST: String = routes.SelectQuarterController.onSubmit(srn, year).url
+  lazy val httpPathGET: String = routes.SelectQuarterController.onPageLoad(srn, pstr, year).url
+  lazy val httpPathPOST: String = routes.SelectQuarterController.onSubmit(srn, pstr, year).url
   private val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
 
   private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(

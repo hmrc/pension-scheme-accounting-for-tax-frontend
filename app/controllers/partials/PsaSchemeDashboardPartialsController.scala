@@ -57,7 +57,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
           schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
             financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFS =>
               service.aftCardModel(schemeDetails, srn).flatMap { aftModel =>
-                val paymentsAndCharges: Seq[CardViewModel] = service.paymentsAndCharges(schemeFS, srn)
+                val paymentsAndCharges: Seq[CardViewModel] = service.paymentsAndCharges(schemeFS, srn, schemeDetails.pstr)
 
                 logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(paymentsAndCharges)}")
                 logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(aftModel)}")

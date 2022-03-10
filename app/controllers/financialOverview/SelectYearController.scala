@@ -91,7 +91,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
       )
 
-      renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(Ok(_))
+      renderer.render(template = "financialOverview/selectYear.njk", json).map(Ok(_))
     }
   }
 
@@ -113,7 +113,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
             "radios" -> FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType)),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
-          renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
+          renderer.render(template = "financialOverview/selectYear.njk", json).map(BadRequest(_))
         },
         value => if(paymentOrChargeType == AccountingForTaxCharges) {
           navService.navFromAFTYearsPage(paymentsCache.schemeFS, value.year, srn, pstr)

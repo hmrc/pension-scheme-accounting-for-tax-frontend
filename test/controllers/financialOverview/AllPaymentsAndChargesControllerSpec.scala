@@ -47,7 +47,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
   import AllPaymentsAndChargesControllerSpec._
 
   private def httpPathGET(startDate: String = startDate): String =
-    AllPaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges).url
+    AllPaymentsAndChargesController.onPageLoad(srn, pstr, startDate, AccountingForTaxCharges).url
 
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
@@ -68,7 +68,11 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockPaymentsAndChargesService.getDueCharges(any()))
+      .thenReturn(schemeFSResponse)
+    when(mockPaymentsAndChargesService.getInterestCharges(any()))
+      .thenReturn(schemeFSResponse)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
@@ -88,7 +92,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndCharges.njk"
+      templateCaptor.getValue mustEqual "financialOverview/paymentsAndCharges.njk"
       jsonCaptor.getValue must containJson(expectedJson)
     }
 

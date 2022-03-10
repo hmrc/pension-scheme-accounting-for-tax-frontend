@@ -22,9 +22,7 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{any, anyInt, anyString}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -35,7 +33,6 @@ import play.api.libs.json.JsObject
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.PsaSchemePartialServiceSpec.{multipleInProgressLink, multipleInProgressSubHead, pastReturnsLink, startLink}
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
@@ -50,8 +47,6 @@ class PsaSchemeFinancialOverviewControllerSpec
     with Enumerable.Implicits
     with Results
     with ScalaFutures {
-
-  import services.PsaSchemePartialServiceSpec._
 
   private def getPartial: String = routes.PsaSchemeFinancialOverviewController.psaSchemeFinancialOverview(srn).url
 

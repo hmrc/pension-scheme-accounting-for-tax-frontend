@@ -20,9 +20,9 @@ import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.routes._
-import models.ChargeDetailsFilter.Overdue
 import data.SampleData._
 import matchers.JsonMatchers
+import models.ChargeDetailsFilter.Overdue
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest

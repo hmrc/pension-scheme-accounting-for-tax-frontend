@@ -139,8 +139,8 @@ class PaymentsAndChargeDetailsControllerSpec
       "isPaymentOverdue" -> isPaymentOverdue,
       "insetText" -> insetText,
       "interest" -> schemeFS.accruedInterestTotal,
-      "returnLinkBasedOnJourney" -> "your overdue payments and charges",
-      "returnUrl" -> "/manage-pension-scheme-accounting-for-tax/test-srn/financial-overview/pstr/overdue-payments-and-charges",
+      "returnLinkBasedOnJourney" -> "",
+      "returnUrl" -> "",
       "returnHistoryURL" -> "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary"
     )
     optHint match {

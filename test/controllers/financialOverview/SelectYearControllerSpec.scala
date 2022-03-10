@@ -39,7 +39,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.financialOverview.{PaymentsAndChargesService, PaymentsAndChargesService, PaymentsCache}
+import services.financialOverview.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
 
@@ -61,12 +61,12 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialStatement/paymentsAndCharges/selectYear.njk"
+  val templateToBeRendered = "financialOverview/selectYear.njk"
   val formProvider = new YearsFormProvider()
   val form: Form[Year] = formProvider()
 
-  lazy val httpPathGET: String = routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges).url
-  lazy val httpPathPOST: String = routes.SelectYearController.onSubmit(srn, AccountingForTaxCharges).url
+  lazy val httpPathGET: String = routes.SelectYearController.onPageLoad(srn, pstr, AccountingForTaxCharges).url
+  lazy val httpPathPOST: String = routes.SelectYearController.onSubmit(srn, pstr, AccountingForTaxCharges).url
 
   private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
     "form" -> form,
@@ -124,7 +124,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.SelectQuarterController.onPageLoad(srn, year).url)
+      redirectLocation(result) mustBe Some(routes.SelectQuarterController.onPageLoad(srn, pstr, year).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

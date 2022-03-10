@@ -40,7 +40,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Content, Html, SummaryList, _}
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
+import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatDateDMYString, formatDateYMD, formatStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
@@ -122,7 +122,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                               (implicit messages: Messages): Option[String] = {
     (chargeType, submittedDate) match {
       case (PSS_AFT_RETURN  | PSS_OTC_AFT_RETURN, Some(value)) =>
-        Some(messages("returnHistory.submittedOn", value))
+        Some(messages("returnHistory.submittedOn", formatDateDMYString(value)))
       case _ => None
     }
   }
@@ -166,7 +166,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
 
     val (suffix, version, submittedDate) = (ifAFTAndOTCChargeTypes, mapChargeTypesVersionAndDate.get(paymentOrChargeType)) match {
-      case (true, Some(Tuple2(Some(version), Some(date)))) => (Some(s" submission $version"), Some(version), Some(formatDateDMY(date)))
+      case (true, Some(Tuple2(Some(version), Some(date)))) => (Some(s" submission $version"), Some(version), Some(formatDateYMD(date)))
       case _ => (None, None, None)
     }
 
@@ -349,7 +349,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
               classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
             ),
             value = Value(
-              content = Literal(date),
+              content = Literal(formatDateDMYString(date)),
               classes =
                 Seq("govuk-!-width-one-quarter")
             ),
