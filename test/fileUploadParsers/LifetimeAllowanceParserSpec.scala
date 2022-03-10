@@ -1,4 +1,5 @@
 /*
+/*
  * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -157,4 +158,4 @@ object LifetimeAllowanceParserSpec {
   private val chargeDetailsFormProvider = new ChargeDetailsFormProvider
 
   private val parser = new LifetimeAllowanceParser(memberDetailsFormProvider, chargeDetailsFormProvider, mockFrontendAppConfig)
-}
+}*/

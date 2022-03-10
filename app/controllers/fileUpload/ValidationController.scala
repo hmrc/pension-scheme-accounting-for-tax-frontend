@@ -136,15 +136,15 @@ class ValidationController @Inject()(
                                     accessType: AccessType,
                                     version: Int,
                                     chargeType: ChargeType,
-                                    linesFromCSV: List[String],
+                                    linesFromCSV: Seq[Array[String]],
                                     parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
 
     //removes non-printable characters like ^M$
-    val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
+  //  val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
 
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
 
-    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing and Validation")
+    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, linesFromCSV, updatedUA), "Parsing and Validation")
     parserResult.fold[Future[Result]](
       processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>
@@ -176,7 +176,8 @@ class ValidationController @Inject()(
               upscanInitiateConnector.download(ud.downloadUrl).flatMap { response =>
                 response.status match {
                   case OK =>
-                    val linesFromCSV = response.body.split("\n").toList
+
+                    val linesFromCSV = CsvParser.split(response.body) //response.body.split("\n").toList
                     parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
                   case _ =>
                     Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))

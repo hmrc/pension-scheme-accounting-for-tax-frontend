@@ -1,4 +1,5 @@
 /*
+/*
  * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -375,3 +376,4 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
     Seq(chargeACount, chargeBCount, chargeCCount, chargeDCount, chargeECount, chargeFCount, chargeGCount)
   }
 }
+*/

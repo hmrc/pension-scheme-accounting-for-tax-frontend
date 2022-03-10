@@ -40,9 +40,9 @@ trait Parser {
 
   protected val totalFields: Int
 
-  def parse(startDate: LocalDate, rows: Seq[String], userAnswers: UserAnswers)(implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
+  def parse(startDate: LocalDate, rows: Seq[Array[String]], userAnswers: UserAnswers)(implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
     rows.headOption match {
-      case Some(row) if row.equalsIgnoreCase(validHeader) =>
+      case Some(row) if row.mkString(",").equalsIgnoreCase(validHeader) =>
         rows.size match {
           case n if n >= 2 => parseDataRows(startDate, rows).map{ commitItems =>
             commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
@@ -53,14 +53,14 @@ trait Parser {
     }
   }
 
-  private def parseDataRows(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+  private def parseDataRows(startDate: LocalDate, rows: Seq[Array[String]])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) =>
-        val cells = StringHelper.split(row)
-        cells.length match {
+      // val cells = StringHelper.split(row)
+        row.length match {
           case this.totalFields =>
-            (acc, validateFields(startDate, index, cells)) match {
+            (acc, validateFields(startDate, index, row)) match {
               case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ newErrors)
               case (Right(_), newErrors@Left(_)) => newErrors
               case (currentErrors@Left(_), Right(_)) => currentErrors
@@ -83,9 +83,10 @@ trait Parser {
       Field(MemberDetailsFieldNames.lastName, chargeFields(FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
       Field(MemberDetailsFieldNames.nino, chargeFields(FieldNoNino), MemberDetailsFieldNames.nino, 2)
     )
-    memberDetailsForm
-      .bind(Field.seqToMap(fields))
-      .fold(
+   val toMap = Field.seqToMap(fields)
+
+   val bind =  memberDetailsForm.bind(toMap)
+    bind.fold(
         formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
         value => Right(value)
       )
