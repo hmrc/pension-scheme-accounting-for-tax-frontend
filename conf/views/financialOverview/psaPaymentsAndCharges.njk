@@ -1,0 +1,74 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% block pageTitle %}
+  {{ title(messages(titleMessage)) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        {{ hmrcPageHeading({
+          text: messages(titleMessage),
+          section: psaName
+        }) }}
+
+        <p class="govuk-body">{{ reflectChargeText }}</p>
+
+    <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
+        {% if journeyType == "overdue" %}
+            <div class="govuk-grid-column-one-half">
+                <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+                    {{ messages("psa.financial.overview.h2.overdue") }}
+                </h2>
+                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalOverdueCharge }}</p>
+            </div>
+            <div class="govuk-grid-column-one-half">
+               <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+                  {{ messages("psa.financial.overview.h2.totalInterestAccruing") }}
+               </h2>
+               <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalInterestAccruing }}</p>
+            </div>
+        {% else %}
+            <div class="govuk-grid-column-one-half">
+                <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+                   {{ messages("psa.financial.overview.h2.overdue") }}
+                </h2>
+                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalUpcomingCharge }}</p>
+            </div>
+       {% endif %}
+        </div>
+        </div>
+        </div>
+        <div class="govuk-grid-row">
+           <div class="govuk-grid-column-full">
+            {% if penaltiesTable.rows.length > 0 %}
+                 <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">{{ messages(titleMessage) }}</span>
+                 <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
+                    {{ govukTable(penaltiesTable) }}
+                </div>
+            {% endif %}
+
+            </div>
+        </div>
+
+    <p class="govuk-body"><a id="return" href="{{ returnUrl }}" class="govuk-link">{{ messages("return.to.link", schemeName) }}</a></p>
+
+{% endblock %}
+
+<div class="govuk-grid-row">
+                  <div class="govuk-grid-column-two-thirds">
+            {% if paymentAndChargesTable.rows.length > 0 %}
+                 <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">{{ messages(titleMessage) }}</span>
+                 <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
+                    {{ govukTable(paymentAndChargesTable) }}
+                </div>
+            {% endif %}
+
+      </div>
+    </div>

@@ -1448,6 +1448,16 @@ psa.financial.overview.h2.repaymentInterest  = Repayment interest
 psa.financial.overview.allOverdue.link  = View all overdue penalites and interest charges
 psa.financial.overview.allDue.link  = View all due penalites and charges
 psa.financial.overview.pastPenalties.link  = View past penalties and charges
+psa.financial.overview.overdue.title = Overdue penalties and interest charges
+psa.financial.overview.reflect.text = The information may not reflect payments made in the last 3 days.
+psa.financial.overview.payment.due = Payment due
+psa.financial.overview.payment.amount = Penalty amount
+psa.financial.overview.charge.reference = Charge reference
+psa.financial.overview.penalty = Penalty
+psa.financial.overview.paymentStatus = Payment status
+psa.financial.overview.penaltyAmount = Original penalty amount
+psa.financial.overview.credit.received = Credit received
+psa.financial.overview.paymentDue = Payment was due by
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format

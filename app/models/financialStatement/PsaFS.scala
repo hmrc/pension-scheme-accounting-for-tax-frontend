@@ -30,7 +30,9 @@ case class PsaFS(chargeReference: String,
                  accruedInterestTotal: BigDecimal,
                  periodStartDate: LocalDate,
                  periodEndDate: LocalDate,
-                 pstr: String)
+                 pstr: String,
+                 documentLineItemDetails: Seq[DocumentLineItemDetail]
+                )
 
 object PsaFS {
   implicit val formats: Format[PsaFS] = Json.format[PsaFS]
