@@ -74,14 +74,14 @@ trait Parser {
 
   protected def validateFields(startDate: LocalDate,
                                index: Int,
-                               chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
+                               columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
 
-  protected def memberDetailsValidation(index: Int, chargeFields: Seq[String],
+  protected def memberDetailsValidation(index: Int, columns: Seq[String],
                                         memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
-      Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
-      Field(MemberDetailsFieldNames.lastName, chargeFields(FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
-      Field(MemberDetailsFieldNames.nino, chargeFields(FieldNoNino), MemberDetailsFieldNames.nino, 2)
+      Field(MemberDetailsFieldNames.firstName, columns(FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
+      Field(MemberDetailsFieldNames.lastName, columns(FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
+      Field(MemberDetailsFieldNames.nino, columns(FieldNoNino), MemberDetailsFieldNames.nino, 2)
     )
    val toMap = Field.seqToMap(fields)
 

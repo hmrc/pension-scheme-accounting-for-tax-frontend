@@ -16,64 +16,38 @@
 
 package fileUploadParsers
 
-import com.univocity.parsers.csv.{UnescapedQuoteHandling, CsvParser => UnivocityParser, CsvParserSettings => UnivocityParserSettings}
+
+import com.univocity.parsers.common.record.Record
+import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
 
 import java.io._
 import java.nio.charset.StandardCharsets
 import java.util.zip.GZIPInputStream
 import scala.collection.JavaConverters._
 
-/**
- * Raw-Java style fast line splitter for CSV files. This uses the Univocity API for high performance.
- */
-class CsvLineSplitter(reader: Reader) extends java.util.Iterator[Array[String]] {
 
-  def this(is: InputStream) = this(new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)))
-
-  def this(string: String) = this(new StringReader(string))
-
-  private val settings = new UnivocityParserSettings()
-  settings.getFormat().setQuoteEscape('\\')
-  // limits the consequence of any insane lines that crop up
- // settings.getFormat().setCharToEscapeQuoteEscaping('\\')
- // settings.setUnescapedQuoteHandling(UnescapedQuoteHandling.STOP_AT_CLOSING_QUOTE)
-
-  private val parser = new UnivocityParser(settings)
-  parser.beginParsing(reader)
-
-  private var row: Array[String] = parser.parseNext()
-
-  override def hasNext: Boolean = row != null
-
-  override def next(): Array[String] = {
-    val r = row
-    if (row != null)
-      row = parser.parseNext()
-    r
-  }
-
-  def stopParsing() {
-    if (row != null) {
-      parser.stopParsing()
-      row = null
-    }
-  }
-}
 
 
 object CsvParser {
 
   def split(multilineCsvString: String): Seq[Array[String]] = {
-    split(new StringReader(multilineCsvString))
+    val settings = new CsvParserSettings()
+    settings.setNullValue("")
+    val parser = new CsvParser(settings)
+    parser.parseAll(new StringReader(multilineCsvString)).asScala
   }
 
-  def split(reader: Reader): Seq[Array[String]] = {
-    new CsvLineSplitter(reader).asScala.toSeq
+  def splitToRecord(multilineCsvString: String): Seq[Record] = {
+    val settings = new CsvParserSettings()
+    settings.setEscapeUnquotedValues(true)
+    settings.setKeepEscapeSequences(true)
+    //  settings.setKeepQuotes(true)
+    settings.setDelimiterDetectionEnabled(true)
+    settings.setQuoteDetectionEnabled(true)
+    val parser = new CsvParser(settings)
+    parser.parseAllRecords(new StringReader(multilineCsvString)).asScala
   }
 
-  def split(is: InputStream): Iterator[Array[String]] = {
-    new CsvLineSplitter(is).asScala
-  }
 
 }
 
