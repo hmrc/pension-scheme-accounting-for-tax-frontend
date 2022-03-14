@@ -21,6 +21,7 @@ import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import data.SampleData
 import data.SampleData.startDate
+import fileUploadParsers.AnnualAllowanceParserSpec.invalidMemberDetailsCsvFile
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import models.UserAnswers
@@ -89,14 +90,19 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
       ))
     }
 
-  /*  "return validation errors for member details" in {
-      val result = parser.parse(startDate, invalidMemberDetailsCsvFile,UserAnswers())
+   "return validation errors for member details" in {
+     val invalidMemberDetailsCsv= CsvParser.split(
+       s"""$header
+    ,Bloggs,AB123456C,2020,268.28,01/01/2020,yes
+    "Ann,,3456C,2020,268.28,01/01/2020,yes"""
+     )
+      val result = parser.parse(startDate, invalidMemberDetailsCsv,UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino")
       ))
-    }*/
+    }
 
 /*    "return validation errors for charge details, including missing, invalid, future and past tax years" in {
       val result = parser.parse(startDate, invalidChargeDetailsCsvFile,UserAnswers())
