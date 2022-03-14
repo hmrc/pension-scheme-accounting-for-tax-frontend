@@ -25,4 +25,5 @@ case class PaymentsAndChargesDetails(chargeType: String,
                                      status: PaymentAndChargeStatus,
                                      redirectUrl: String,
                                      period: String,
+                                     submittedDate: Option[String] = None,
                                      visuallyHiddenText: String)

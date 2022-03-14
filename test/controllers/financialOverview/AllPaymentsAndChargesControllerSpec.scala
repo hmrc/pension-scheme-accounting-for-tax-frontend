@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import controllers.financialOverview.routes._
 import data.SampleData._
 import matchers.JsonMatchers
-import models.ChargeDetailsFilter.Overdue
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
@@ -42,14 +42,12 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
 
-  import PaymentsAndChargesControllerSpec._
+  import AllPaymentsAndChargesControllerSpec._
 
-  private def httpPathGET: String =
-    PaymentsAndChargesController.onPageLoad(srn, pstr, Overdue).url
-
-  private val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
+  private def httpPathGET(startDate: String = startDate): String =
+    AllPaymentsAndChargesController.onPageLoad(srn, pstr, startDate, AccountingForTaxCharges).url
 
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
@@ -68,11 +66,14 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     super.beforeEach
     reset(mockRenderer, mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(schemeFSResponseOverdue)))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), ArgumentMatchers.eq(pstr), any(), any(), any())(any())).thenReturn(emptyChargesTable)
-    when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseOverdue)
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+      .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
+    when(mockPaymentsAndChargesService.getDueCharges(any()))
+      .thenReturn(schemeFSResponse)
+    when(mockPaymentsAndChargesService.getInterestCharges(any()))
+      .thenReturn(schemeFSResponse)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseUpcoming)
   }
 
   private def expectedJson: JsObject = Json.obj(
@@ -81,12 +82,12 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     "returnUrl" -> dummyCall.url
   )
 
-  "PaymentsAndChargesController" must {
+  "AllPaymentsAndChargesController" must {
 
     "return OK and the correct view with filtered payments and charges information for a GET" in {
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val result = route(application, httpGETRequest(httpPathGET())).value
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
@@ -95,18 +96,17 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "redirect to Session Expired page when there is no data for a GET" in {
-      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(Nil)))
-      val result = route(application, httpGETRequest(httpPathGET)).value
+    "redirect to Session Expired page when there is no data for the selected year for a GET" in {
+      val result = route(application, httpGETRequest(httpPathGET(startDate = "2022-01-01"))).value
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
     }
   }
 }
 
-object PaymentsAndChargesControllerSpec {
+object AllPaymentsAndChargesControllerSpec {
+  private val startDate = "2020-04-01"
   private val srn = "test-srn"
-  private val pstr = "test-pstr"
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFS = {
     SchemeFS(
       chargeReference = chargeReference,
@@ -124,14 +124,13 @@ object PaymentsAndChargesControllerSpec {
       documentLineItemDetails = Nil
     )
   }
-  private val schemeFSResponseOverdue: Seq[SchemeFS] = Seq(
+  private val schemeFSResponse: Seq[SchemeFS] = Seq(
     createCharge(startDate = "2020-04-01", endDate = "2020-06-30", chargeReference = "XY002610150184"),
     createCharge(startDate = "2020-01-01", endDate = "2020-03-31", chargeReference = "AYU3494534632"),
     createCharge(startDate = "2021-04-01", endDate = "2021-06-30", chargeReference = "XY002610150185")
   )
 
-  private val schemeFSResponseUpcoming: Seq[SchemeFS] = Seq(
-    createCharge(startDate = "2022-04-01", endDate = "2022-06-30", chargeReference = "XY002610150184"),
-    createCharge(startDate = "2023-01-01", endDate = "2023-03-31", chargeReference = "AYU3494534632")
-  )
+  private val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
 }
+
+

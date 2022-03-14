@@ -132,11 +132,11 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
           val chargeLink: ChargeDetailsFilter => String = chargeDetailsFilter =>
             PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, QUARTER_START_DATE.toString, "0", AccountingForTaxCharges,
-              Some(versionInt), Some("17 December 2016"), chargeDetailsFilter).url
+              Some(versionInt), Some("2016-12-17"), chargeDetailsFilter).url
 
           val interestLink: ChargeDetailsFilter => String = chargeDetailsFilter =>
             PaymentsAndChargesInterestController.onPageLoad(srn, pstr, QUARTER_START_DATE.toString, "0", AccountingForTaxCharges,
-              Some(versionInt), Some("17 December 2016"), chargeDetailsFilter).url
+              Some(versionInt), Some("2016-12-17"), chargeDetailsFilter).url
 
           def expectedTable(chargeLink: String, interestLink: String): Table =
             paymentTable(Seq(
@@ -212,6 +212,28 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
   }
 
+  "isPaymentOverdue" must {
+    "return true if the amount due is positive and due date is before today" in {
+      val schemeFS: SchemeFS = schemeFSResponseAftAndOTC.head
+      paymentsAndChargesService.isPaymentOverdue(schemeFS) mustBe true
+    }
+
+    "return false if the amount due is negative and due date is before today" in {
+      val schemeFS: SchemeFS = schemeFSResponseAftAndOTC.head.copy(amountDue = BigDecimal(0.00))
+      paymentsAndChargesService.isPaymentOverdue(schemeFS) mustBe false
+    }
+
+    "return true if the amount due is positive and due date is today" in {
+      val schemeFS: SchemeFS = schemeFSResponseAftAndOTC.head.copy(dueDate = Some(LocalDate.now()))
+      paymentsAndChargesService.isPaymentOverdue(schemeFS) mustBe false
+    }
+
+    "return true if the amount due is positive and due date is none" in {
+      val schemeFS: SchemeFS = schemeFSResponseAftAndOTC.head.copy(dueDate = None)
+      paymentsAndChargesService.isPaymentOverdue(schemeFS) mustBe false
+    }
+  }
+
   "getUpcomingChargesScheme" must {
     "only return charges with a dueDate in the future" in {
       DateHelper.setDate(Some(LocalDate.of(2020, 6, 1)))
@@ -238,6 +260,50 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
       paymentsAndChargesService.getOverdueCharges(charges).size mustBe 1
       paymentsAndChargesService.getOverdueCharges(charges).head.chargeType mustBe PSS_AFT_RETURN
+    }
+  }
+
+  "getDueCharges" must {
+    "only return charges with amountDue > = £0" in {
+      DateHelper.setDate(Some(LocalDate.of(2020, 6, 1)))
+
+      val charges = Seq(
+        createCharge(PSS_AFT_RETURN, 123.00, 456.00),
+        createCharge(PSS_AFT_RETURN, 123.00, -456.00),
+        createCharge(PSS_OTC_AFT_RETURN, 123.00, 0.00)
+      )
+
+      paymentsAndChargesService.getDueCharges(charges).size mustBe 2
+      paymentsAndChargesService.getDueCharges(charges).head.chargeType mustBe PSS_AFT_RETURN
+    }
+  }
+
+  "getInterestCharges" must {
+    "only return charges with accruedInterest >= 0" in {
+      DateHelper.setDate(Some(LocalDate.of(2020, 6, 1)))
+
+      val charges = Seq(
+        createCharge(PSS_AFT_RETURN, 123.00, 456.00),
+        createCharge(PSS_AFT_RETURN_INTEREST, 123.00, 456.00, accruedInterestTotal = Some(0.00)),
+        createCharge(PSS_OTC_AFT_RETURN, 123.00, 0.00, accruedInterestTotal = Some(-12.00))
+      )
+
+      paymentsAndChargesService.getInterestCharges(charges).size mustBe 2
+      paymentsAndChargesService.getInterestCharges(charges).head.chargeType mustBe PSS_AFT_RETURN
+    }
+  }
+
+  "getReturnLinkBasedOnJourney" must {
+    "return schemeName if journey is All" in {
+      paymentsAndChargesService.getReturnLinkBasedOnJourney(All, schemeName) mustBe schemeName
+    }
+
+    "return schemeName if journey is Overdue" in {
+      paymentsAndChargesService.getReturnLinkBasedOnJourney(Overdue, schemeName) mustBe "your overdue payments and charges"
+    }
+
+    "return schemeName if journey is Upcoming" in {
+      paymentsAndChargesService.getReturnLinkBasedOnJourney(Upcoming, schemeName) mustBe "your due payments and charges"
     }
   }
 
@@ -306,7 +372,8 @@ object PaymentsAndChargesServiceSpec {
                             chargeType: SchemeFSChargeType,
                             totalAmount: BigDecimal,
                             amountDue: BigDecimal,
-                            dueDate: Option[LocalDate] = Some(LocalDate.parse("2020-05-15"))
+                            dueDate: Option[LocalDate] = Some(LocalDate.parse("2020-05-15")),
+                            accruedInterestTotal: Option[BigDecimal] = Some(153.00)
                           ): SchemeFS = {
     SchemeFS(
       chargeReference = "AYU3494534632",
@@ -316,7 +383,7 @@ object PaymentsAndChargesServiceSpec {
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = amountDue,
-      accruedInterestTotal = 153.00,
+      accruedInterestTotal = accruedInterestTotal.get,
       periodStartDate = QUARTER_START_DATE,
       periodEndDate = QUARTER_END_DATE,
       formBundleNumber = None,
@@ -357,7 +424,7 @@ object PaymentsAndChargesServiceSpec {
       Row(
         key = Key(msg"financialPaymentsAndCharges.dateSubmitted", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")),
         value = Value(
-          Literal(s"$submittedDate"),
+          Literal(s"${DateHelper.formatDateDMYString(submittedDate)}"),
           classes = Seq("govuk-!-width-one-quarter")
         ),
         actions = Nil

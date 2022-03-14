@@ -16,7 +16,7 @@
 
 package controllers.financialOverview
 
-import connectors.AFTConnector
+import config.FrontendAppConfig
 import controllers.actions._
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
@@ -44,7 +44,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                                                     allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                     val controllerComponents: MessagesControllerComponents,
                                                     paymentsAndChargesService: PaymentsAndChargesService,
-                                                    aftConnector: AFTConnector,
+                                                    config: FrontendAppConfig,
                                                     renderer: Renderer
                                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -110,11 +110,10 @@ class PaymentsAndChargeDetailsController @Inject()(
       val interestRef =  filteredCharges.find(_.sourceChargeRefForInterest.contains(interestChargeRefs(filteredCharges)(index.toInt)))
         (chargeRef, interestRef) match {
          case (Some(schemeFs), None) =>
-           val returnUrl = routes.PaymentsAndChargesController.onPageLoad(srn, pstr, journeyType).url
            renderer.render(
              template = "financialOverview/paymentsAndChargeDetails.njk",
              ctx =
-               summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, interestUrl, version, submittedDate, journeyType, false)
+               summaryListData(srn, pstr, period, schemeFs, schemeName, paymentOrChargeType, interestUrl, version, submittedDate, journeyType, false)
            ).map(Ok(_))
          case (_, Some(schemeFs)) =>
            schemeFs.sourceChargeRefForInterest match {
@@ -133,11 +132,10 @@ class PaymentsAndChargeDetailsController @Inject()(
                }
                val originalAmountUrl = routes.PaymentsAndChargeDetailsController
                  .onPageLoad(srn, pstr, period, index, paymentOrChargeType, version, submittedDate, journeyType).url
-               val returnUrl = routes.PaymentsAndChargesController.onPageLoad(srn, pstr, journeyType).url
                renderer.render(
                  template = "financialOverview/paymentsAndChargeDetails.njk",
                  ctx =
-                   summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, originalAmountUrl,
+                   summaryListData(srn, pstr, period, schemeFs, schemeName, paymentOrChargeType, originalAmountUrl,
                      version, submittedDate, journeyType, true)
                ).map(Ok(_))
              case _ => logger.warn(
@@ -199,10 +197,10 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
-  private def summaryListData(srn: String, period: String, schemeFS: SchemeFS, schemeName: String,
-                              returnUrl: String, paymentOrChargeType: PaymentOrChargeType, interestUrl: String, version: Option[Int],
+  private def summaryListData(srn: String, pstr:String, period: String, schemeFS: SchemeFS, schemeName: String,
+                              paymentOrChargeType: PaymentOrChargeType, interestUrl: String, version: Option[Int],
                               submittedDate: Option[String], journeyType: ChargeDetailsFilter, isChargeAssigned: Boolean)
-                             (implicit messages: Messages): JsObject = {
+                             (implicit request: IdentifierRequest[AnyContent]): JsObject = {
     Json.obj(
       "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS, journeyType, submittedDate),
       "tableHeader" -> tableHeader(schemeFS),
@@ -218,8 +216,8 @@ class PaymentsAndChargeDetailsController @Inject()(
       "isPaymentOverdue" -> isPaymentOverdue(schemeFS),
       "insetText" -> setInsetText(isChargeAssigned, schemeFS, interestUrl),
       "interest" -> schemeFS.accruedInterestTotal,
-      "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
-      "returnUrl" -> returnUrl
+      "returnLinkBasedOnJourney" -> paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
+      "returnUrl" -> paymentsAndChargesService.getReturnUrl(srn, pstr, request.psaId, request.pspId, config, journeyType)
     ) ++ returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)) ++ optHintText(schemeFS)
   }
 

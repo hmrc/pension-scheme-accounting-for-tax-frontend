@@ -133,8 +133,8 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     "insetText" -> insetText,
     "originalAmountUrl" -> controllers.financialOverview.routes.PaymentsAndChargeDetailsController
       .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url,
-    "returnLinkBasedOnJourney" -> "your overdue payments and charges",
-    "returnUrl" -> routes.PaymentsAndChargesController.onPageLoad(srn, pstr, Overdue).url
+    "returnLinkBasedOnJourney" -> "",
+    "returnUrl" -> ""
   )
 
   "PaymentsAndChargesInterestController" must {
