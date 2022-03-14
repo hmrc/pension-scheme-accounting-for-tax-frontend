@@ -68,6 +68,9 @@ class PsaPaymentsAndChargesController @Inject()(
         response.flatten
     }
 
+  //scalastyle:off parameter.number
+  // scalastyle:off method.length
+  //scalastyle:off cyclomatic.complexity
   private def renderFinancialOverdueAndInterestCharges(psaName: String,
                                                        psaId: String,
                                                        psaFS: Seq[PsaFS],
@@ -85,11 +88,7 @@ class PsaPaymentsAndChargesController @Inject()(
 
     val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
 
-    val table = psaPenaltiesAndChargesService.getAllPaymentsAndCharges(psaId, "", chargeRefsIndex, psaFS,
-      null, journeyType)
-
-    println("table-------->" + table)
-    println("\n\n\n\n\n\n\n")
+    val table = psaPenaltiesAndChargesService.getAllPaymentsAndCharges(psaId, "", chargeRefsIndex, psaFS, journeyType)
 
     renderer.render(
       template = "financialOverview/psaPaymentsAndCharges.njk",
