@@ -24,7 +24,6 @@ case class PsaPaymentsAndChargesDetails(chargeType: String,
                                         paymentDue: String,
                                         status: PaymentAndChargeStatus,
                                         redirectUrl: String,
-                                        period: String,
                                         pstr: String,
                                         schemeName: String,
                                         visuallyHiddenText: String)

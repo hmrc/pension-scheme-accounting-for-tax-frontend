@@ -95,11 +95,11 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                           chargeReferenceIndex: String
                         )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
     val psaFSDetails = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head
-    val period = setPeriod(fs.chargeType, fs.periodStartDate, fs.periodEndDate)
+    val period = psaPenaltiesAndChargesService.setPeriod(fs.chargeType, fs.periodStartDate, fs.periodEndDate)
     Json.obj(
       "heading" ->   psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString,
       "isOverdue" ->        psaPenaltiesAndChargesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
-      "period" ->           period,//Messages("penalties.period", fs.periodStartDate.format(dateFormatterStartDate), fs.periodEndDate.format(dateFormatterDMY)),
+      "period" ->           period,
       "chargeReference" ->  fs.chargeReference,
       "penaltyAmount" ->    psaFSDetails.totalAmount,
       "list" ->             psaPenaltiesAndChargesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head)

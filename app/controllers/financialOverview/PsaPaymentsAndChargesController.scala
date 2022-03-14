@@ -69,7 +69,7 @@ class PsaPaymentsAndChargesController @Inject()(
     }
 
   //scalastyle:off parameter.number
-  // scalastyle:off method.length
+  //scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
   private def renderFinancialOverdueAndInterestCharges(psaName: String,
                                                        psaId: String,
@@ -88,19 +88,19 @@ class PsaPaymentsAndChargesController @Inject()(
 
     val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
 
-    val table = psaPenaltiesAndChargesService.getAllPaymentsAndCharges(psaId, "", chargeRefsIndex, psaFS, journeyType)
-
-    renderer.render(
-      template = "financialOverview/psaPaymentsAndCharges.njk",
-      ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1 ,
-        "totalOverdueCharge" -> psaCharges._2 ,
-        "totalInterestAccruing" -> psaCharges._3,
-        "titleMessage" -> Message(s"psa.financial.overview.$journeyType.title"),
-        "reflectChargeText" -> Message(s"psa.financial.overview.reflect.text"),
-        "journeyType" -> journeyType.toString,
-        "penaltiesTable" -> table,
-      "psaName" -> psaName)
-    )(request).map(Ok(_))
+    psaPenaltiesAndChargesService.getAllPaymentsAndCharges(psaId, "", chargeRefsIndex, psaFS, journeyType) flatMap { table =>
+      renderer.render(
+        template = "financialOverview/psaPaymentsAndCharges.njk",
+        ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1 ,
+          "totalOverdueCharge" -> psaCharges._2 ,
+          "totalInterestAccruing" -> psaCharges._3,
+          "titleMessage" -> Message(s"psa.financial.overview.$journeyType.title"),
+          "reflectChargeText" -> Message(s"psa.financial.overview.$journeyType.text"),
+          "journeyType" -> journeyType.toString,
+          "penaltiesTable" -> table,
+          "psaName" -> psaName)
+      )(request).map(Ok(_))
+    }
   }
 
 }

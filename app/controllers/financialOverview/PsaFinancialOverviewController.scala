@@ -25,7 +25,6 @@ import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
-import play.api.routing.Router.empty.routes
 import renderer.Renderer
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -82,6 +81,7 @@ class PsaFinancialOverviewController @Inject()(
         "totalInterestAccruing" -> psaCharges._3 ,
         "psaName" -> psaName, "requestRefundUrl" -> requestRefundUrl,
         "allOverduePenaltiesAndInterestLink" -> routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
+        "duePaymentLink" -> routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
         "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }

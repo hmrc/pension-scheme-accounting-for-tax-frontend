@@ -57,11 +57,7 @@
             </div>
         </div>
 
-    <p class="govuk-body"><a id="return" href="{{ returnUrl }}" class="govuk-link">{{ messages("return.to.link", schemeName) }}</a></p>
-
-{% endblock %}
-
-<div class="govuk-grid-row">
+    <div class="govuk-grid-row">
                   <div class="govuk-grid-column-two-thirds">
             {% if paymentAndChargesTable.rows.length > 0 %}
                  <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">{{ messages(titleMessage) }}</span>
@@ -72,3 +68,9 @@
 
       </div>
     </div>
+
+    <p class="govuk-body"><a id="return_to_psa" href="{{ config.managePensionsSchemeOverviewUrl }}" class="govuk-link">{{ messages("return.to.link", psaName) }}</a></p>
+
+{% endblock %}
+
+
