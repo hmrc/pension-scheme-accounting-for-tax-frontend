@@ -168,21 +168,24 @@ class ValidationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         val parser = findParser(chargeType)
-        uploadProgressTracker.getUploadResult(uploadId).flatMap { uploadStatus =>
-          (parser, uploadStatus) match {
-            case (Some(_), None | Some(Failed(_, _)) | Some(InProgress)) => sessionExpired
-            case (None, _) => sessionExpired
-            case (Some(parser), Some(ud: UploadedSuccessfully)) =>
-              upscanInitiateConnector.download(ud.downloadUrl).flatMap { response =>
-                response.status match {
-                  case OK =>
-                    val linesFromCSV = response.body.split("\n").toList
-                    parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
-                  case _ =>
-                    Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
+        uploadProgressTracker.getUploadResult(uploadId).flatMap {
+          case Some(uploadStatus) =>
+            (parser, uploadStatus.status._type) match {
+              case (Some(_), "" | "Failed" | "InProgress") => sessionExpired
+              case (None, _) => sessionExpired
+              case (Some(parser), "UploadedSuccessfully") =>
+                upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap {
+                  response =>
+                    response.status match {
+                      case OK =>
+                        val linesFromCSV = response.body.split("\n").toList
+                        parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                      case _ =>
+                        Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
+                    }
                 }
-              }
-          }
+            }
+          case _ => sessionExpired
         }
     }
 

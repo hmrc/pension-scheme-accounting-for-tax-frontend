@@ -22,7 +22,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, GenericViewModel, InProgress, UploadId, UploadedSuccessfully}
+import models.{AccessType, ChargeType, GenericViewModel, UploadId}
 import pages.SchemeNameQuery
 import pages.fileUpload.UploadedFileName
 import play.api.Logger
@@ -92,21 +92,22 @@ class FileUploadController @Inject()(
         uploadProgressTracker
           .getUploadResult(uploadId)
           .flatMap {
-            case Some(status) =>
-              status match {
-                case UploadedSuccessfully(name, _, _, _) =>
+            case Some(fileUploadDataCache) =>
+              val fileUploadStatus = fileUploadDataCache.status
+              fileUploadStatus._type match {
+                case "UploadedSuccessfully" =>
                   logger.info("FileUploadController.showResult UploadedSuccessfully")
                   for {
-                    updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), name))
-                    _ <- userAnswersCacheConnector.savePartial(request.internalId,updatedAnswers.data,Some(chargeType))
+                    updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), fileUploadStatus.name.getOrElse("")))
+                    _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, Some(chargeType))
                   } yield {
                     Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
                   }
-                case InProgress =>
+                case "InProgress" =>
                   logger.info("FileUploadController.showResult InProgress")
                   Future.successful(Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId)))
-                case Failed(failureReason, _) =>
-                  upscanErrorHandlingService.handleFailureResponse(failureReason, srn, startDate, accessType, version)
+                case "Failed" =>
+                  upscanErrorHandlingService.handleFailureResponse(fileUploadStatus.failureReason.getOrElse(""), srn, startDate, accessType, version)
               }
           }
     }

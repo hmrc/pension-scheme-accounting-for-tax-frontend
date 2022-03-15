@@ -16,9 +16,12 @@
 
 package models
 
-import play.api.libs.json.{Json, OFormat}
+
+import org.joda.time.{DateTime, DateTimeZone}
+import play.api.libs.json._
 import play.api.mvc.QueryStringBindable
 
+import java.time.LocalDateTime
 import java.util.UUID
 
 case class UpscanFileReference(reference: String)
@@ -46,7 +49,7 @@ object FileUploadStatus {
   implicit val reads: OFormat[FileUploadStatus] = Json.format[FileUploadStatus]
 }
 
-case class FileUploadDataCache(uploadId: String, reference: String, status: FileUploadStatus)
+case class FileUploadDataCache(uploadId: String, reference: String, status: FileUploadStatus, lastUpdated: LocalDateTime, expireAt: LocalDateTime)
 
 object FileUploadDataCache {
   implicit val reads: OFormat[FileUploadDataCache] = Json.format[FileUploadDataCache]
