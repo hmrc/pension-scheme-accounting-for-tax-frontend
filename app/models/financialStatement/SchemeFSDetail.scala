@@ -21,6 +21,15 @@ import play.api.libs.json._
 
 import java.time.LocalDate
 
+case class SchemeFS(
+                     inhibitRefundSignal: Boolean,
+                     seqSchemeFSDetail: Seq[SchemeFSDetail]
+                   )
+
+object SchemeFS {
+  implicit val formats: Format[SchemeFS] = Json.format[SchemeFS]
+}
+
 case class DocumentLineItemDetail(clearedAmountItem: BigDecimal, clearingDate: Option[LocalDate], clearingReason: Option[SchemeFSClearingReason])
 
 object DocumentLineItemDetail {

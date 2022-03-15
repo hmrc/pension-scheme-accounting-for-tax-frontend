@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.financialStatement.{PsaFS, PsaFSChargeType, SchemeFSDetail, SchemeFSChargeType}
+import models.financialStatement._
 import play.api.http.Status._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
@@ -47,7 +47,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
   }
 
   def getPsaFSWithPaymentOnAccount(psaId: String)
-              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PsaFS]] = {
+                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PsaFS]] = {
 
     val url = config.psaFinancialStatementUrl
     val schemeHc = hc.withExtraHeaders("psaId" -> psaId)
@@ -55,7 +55,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
-         response.json.as[Seq[PsaFS]]
+          response.json.as[Seq[PsaFS]]
         case _ =>
           handleErrorResponse("GET", url)(response)
       }
@@ -63,21 +63,26 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
   }
 
   def getSchemeFS(pstr: String)
-                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFSDetail]] = {
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeFS] = {
 
     val url = config.schemeFinancialStatementUrl
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
-          response.json.as[Seq[SchemeFSDetail]].filterNot(_.chargeType == SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
+          val schemeFS = response.json.as[SchemeFS]
+          SchemeFS(
+            inhibitRefundSignal = schemeFS.inhibitRefundSignal,
+            seqSchemeFSDetail = schemeFS.seqSchemeFSDetail.filterNot(_.chargeType == SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
+          )
         case _ =>
           handleErrorResponse("GET", url)(response)
       }
     }
   }
+
   def getSchemeFSPaymentOnAccount(pstr: String)
-                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFSDetail]] = {
+                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFSDetail]] = {
 
     val url = config.schemeFinancialStatementUrl
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
