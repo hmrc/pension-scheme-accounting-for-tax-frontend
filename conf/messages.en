@@ -33,6 +33,7 @@ site.continue_to_scheme_overview = Continue to scheme overview
 error.title.prefix = Error:
 error.summary.title = There is a problem
 error.boolean = Please give an answer
+error.paymentType = Enter yes or no
 footer.links.support_links = Help contacts
 footer.links.help = Help using GOV.UK
 footer.links.cookies = Cookies
