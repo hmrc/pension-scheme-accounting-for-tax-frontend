@@ -28,7 +28,7 @@ import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{DocumentLineItemDetail, SchemeFS, SchemeFSChargeType, SchemeFSClearingReason}
+import models.financialStatement.{DocumentLineItemDetail, SchemeFSDetail, SchemeFSChargeType, SchemeFSClearingReason}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
@@ -168,7 +168,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           val result1 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             pstr = pstr,
-            schemeFS = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
+            schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
             mapChargeTypesVersionAndDate = mapChargeTypesVersionAndDate,
             chargeDetailsFilter = Overdue
           )
@@ -176,7 +176,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           val result2 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             pstr = pstr,
-            schemeFS = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
+            schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
             mapChargeTypesVersionAndDate = mapChargeTypesVersionAndDate,
             chargeDetailsFilter = Upcoming
           )
@@ -214,23 +214,23 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
   "isPaymentOverdue" must {
     "return true if the amount due is positive and due date is before today" in {
-      val schemeFS: SchemeFS = schemeFSResponseAftAndOTC.head
-      paymentsAndChargesService.isPaymentOverdue(schemeFS) mustBe true
+      val schemeFSDetail: SchemeFSDetail = schemeFSResponseAftAndOTC.head
+      paymentsAndChargesService.isPaymentOverdue(schemeFSDetail) mustBe true
     }
 
     "return false if the amount due is negative and due date is before today" in {
-      val schemeFS: SchemeFS = schemeFSResponseAftAndOTC.head.copy(amountDue = BigDecimal(0.00))
-      paymentsAndChargesService.isPaymentOverdue(schemeFS) mustBe false
+      val schemeFSDetail: SchemeFSDetail = schemeFSResponseAftAndOTC.head.copy(amountDue = BigDecimal(0.00))
+      paymentsAndChargesService.isPaymentOverdue(schemeFSDetail) mustBe false
     }
 
     "return true if the amount due is positive and due date is today" in {
-      val schemeFS: SchemeFS = schemeFSResponseAftAndOTC.head.copy(dueDate = Some(LocalDate.now()))
-      paymentsAndChargesService.isPaymentOverdue(schemeFS) mustBe false
+      val schemeFSDetail: SchemeFSDetail = schemeFSResponseAftAndOTC.head.copy(dueDate = Some(LocalDate.now()))
+      paymentsAndChargesService.isPaymentOverdue(schemeFSDetail) mustBe false
     }
 
     "return true if the amount due is positive and due date is none" in {
-      val schemeFS: SchemeFS = schemeFSResponseAftAndOTC.head.copy(dueDate = None)
-      paymentsAndChargesService.isPaymentOverdue(schemeFS) mustBe false
+      val schemeFSDetail: SchemeFSDetail = schemeFSResponseAftAndOTC.head.copy(dueDate = None)
+      paymentsAndChargesService.isPaymentOverdue(schemeFSDetail) mustBe false
     }
   }
 
@@ -319,7 +319,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(Seq(chargeWithCredit)))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache.copy(schemeFS = Seq(chargeWithCredit)) }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit)) }
     }
 
     "call FS API and save to cache if logged in id does not match the retrieved payload from cache" in {
@@ -327,7 +327,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(Seq(chargeWithCredit)))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache.copy(schemeFS = Seq(chargeWithCredit)) }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit)) }
     }
 
     "call FS API and save to cache if retrieved payload from cache is not in Payments format" in {
@@ -374,8 +374,8 @@ object PaymentsAndChargesServiceSpec {
                             amountDue: BigDecimal,
                             dueDate: Option[LocalDate] = Some(LocalDate.parse("2020-05-15")),
                             accruedInterestTotal: Option[BigDecimal] = Some(153.00)
-                          ): SchemeFS = {
-    SchemeFS(
+                          ): SchemeFSDetail = {
+    SchemeFSDetail(
       chargeReference = "AYU3494534632",
       chargeType = chargeType,
       dueDate = dueDate,
@@ -392,7 +392,7 @@ object PaymentsAndChargesServiceSpec {
     )
   }
 
-  private def chargeWithCredit = SchemeFS(
+  private def chargeWithCredit = SchemeFSDetail(
     chargeReference = "AYU3494534632",
     chargeType = PSS_AFT_RETURN,
     dueDate = Some(LocalDate.parse("2020-05-15")),
@@ -410,7 +410,7 @@ object PaymentsAndChargesServiceSpec {
 
   private def paymentsAndChargesForAGivenPeriod(chargeType: SchemeFSChargeType,
                                                 totalAmount: BigDecimal = 56432.00,
-                                                amountDue: BigDecimal = 1029.05): Seq[(LocalDate, Seq[SchemeFS])] = Seq(
+                                                amountDue: BigDecimal = 1029.05): Seq[(LocalDate, Seq[SchemeFSDetail])] = Seq(
     (
       LocalDate.parse(QUARTER_START_DATE.toString),
       Seq(

@@ -26,7 +26,7 @@ import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSDetail
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
 import models.{AccessMode, GenericViewModel, SessionAccessData, SessionData, UserAnswers}
@@ -84,8 +84,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       .onPageLoad(srn, QUARTER_START_DATE, AccountingForTaxCharges, All).url
   )
 
-  private val schemeFSResponseWithDataForDifferentYear: Seq[SchemeFS] = Seq(
-    SchemeFS(
+  private val schemeFSResponseWithDataForDifferentYear: Seq[SchemeFSDetail] = Seq(
+    SchemeFSDetail(
       chargeReference = "XY002610150184",
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2021-02-15")),

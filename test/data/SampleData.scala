@@ -24,7 +24,7 @@ import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.financialStatement.{PsaFS, SchemeFS}
+import models.financialStatement.{PsaFS, SchemeFSDetail}
 import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint,
   MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC._
@@ -219,11 +219,11 @@ object SampleData {
       tpssReportPresent = false,
       Some(AFTOverviewVersion(numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)))
 
-  val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
+  val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
   val emptyChargesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
 
-  val schemeFSResponseAftAndOTC: Seq[SchemeFS] = Seq(
-    SchemeFS(
+  val schemeFSResponseAftAndOTC: Seq[SchemeFSDetail] = Seq(
+    SchemeFSDetail(
       chargeReference = "XY002610150184",
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -238,7 +238,7 @@ object SampleData {
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
     ),
-    SchemeFS(
+    SchemeFSDetail(
       chargeReference = "XY002610150184",
       chargeType = PSS_OTC_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),

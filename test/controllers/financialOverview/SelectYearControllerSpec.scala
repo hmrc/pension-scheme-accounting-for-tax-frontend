@@ -24,7 +24,7 @@ import forms.YearsFormProvider
 import matchers.JsonMatchers
 import models.StartYears.enumerable
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import org.mockito.ArgumentCaptor
@@ -55,7 +55,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
     bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
   )
 
-  private val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
+  private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
   private val years: Seq[DisplayYear] = Seq(DisplayYear(2020, Some(PaymentOverdue)))
 
@@ -116,9 +116,9 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "redirect to next page when valid data is submitted and multiple quarters are found for the selected year" in {
-      val schemeFS = schemeFSResponseAftAndOTC.head.copy(periodStartDate = LocalDate.parse("2020-07-01"))
+      val schemeFSDetail = schemeFSResponseAftAndOTC.head.copy(periodStartDate = LocalDate.parse("2020-07-01"))
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC :+ schemeFS)))
+        .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC :+ schemeFSDetail)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

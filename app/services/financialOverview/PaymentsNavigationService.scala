@@ -18,7 +18,7 @@ package services.financialOverview
 
 import controllers.financialOverview.routes._
 import models.financialStatement.PaymentOrChargeType._
-import models.financialStatement.{PaymentOrChargeType, SchemeFS}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 
@@ -26,7 +26,7 @@ import scala.concurrent.Future
 
 class PaymentsNavigationService {
 
-  def navFromSchemeDashboard(payments: Seq[SchemeFS], srn: String,  pstr: String): Future[Result] = {
+  def navFromSchemeDashboard(payments: Seq[SchemeFSDetail], srn: String, pstr: String): Future[Result] = {
 
     val paymentTypes: Seq[PaymentOrChargeType] = payments.map(p => getPaymentOrChargeType(p.chargeType)).distinct
 
@@ -39,7 +39,7 @@ class PaymentsNavigationService {
     }
   }
 
-  def navFromPaymentsTypePage(payments: Seq[SchemeFS], srn: String,  pstr: String, paymentType: PaymentOrChargeType): Future[Result] = {
+  def navFromPaymentsTypePage(payments: Seq[SchemeFSDetail], srn: String, pstr: String, paymentType: PaymentOrChargeType): Future[Result] = {
 
       val yearsSeq: Seq[Int] = payments
         .filter(p => getPaymentOrChargeType(p.chargeType) == paymentType)
@@ -53,7 +53,7 @@ class PaymentsNavigationService {
     }
     }
 
-  def navFromAFTYearsPage(payments: Seq[SchemeFS], year: Int, srn: String,  pstr: String): Future[Result] = {
+  def navFromAFTYearsPage(payments: Seq[SchemeFSDetail], year: Int, srn: String, pstr: String): Future[Result] = {
 
     val quartersSeq = payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)

@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.financialStatement.{PsaFS, PsaFSChargeType, SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{PsaFS, PsaFSChargeType, SchemeFSDetail, SchemeFSChargeType}
 import play.api.http.Status._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
@@ -63,28 +63,28 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
   }
 
   def getSchemeFS(pstr: String)
-                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFS]] = {
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFSDetail]] = {
 
     val url = config.schemeFinancialStatementUrl
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
-          response.json.as[Seq[SchemeFS]].filterNot(_.chargeType == SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
+          response.json.as[Seq[SchemeFSDetail]].filterNot(_.chargeType == SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
         case _ =>
           handleErrorResponse("GET", url)(response)
       }
     }
   }
   def getSchemeFSPaymentOnAccount(pstr: String)
-                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFS]] = {
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFSDetail]] = {
 
     val url = config.schemeFinancialStatementUrl
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
-          response.json.as[Seq[SchemeFS]]
+          response.json.as[Seq[SchemeFSDetail]]
         case _ =>
           handleErrorResponse("GET", url)(response)
       }

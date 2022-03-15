@@ -27,7 +27,7 @@ object DocumentLineItemDetail {
   implicit val formats: Format[DocumentLineItemDetail] = Json.format[DocumentLineItemDetail]
 }
 
-case class SchemeFS(
+case class SchemeFSDetail(
                      chargeReference: String,
                      chargeType: SchemeFSChargeType,
                      dueDate: Option[LocalDate],
@@ -43,9 +43,9 @@ case class SchemeFS(
                      documentLineItemDetails: Seq[DocumentLineItemDetail]
                    )
 
-object SchemeFS {
+object SchemeFSDetail {
 
-  implicit val writesSchemeFS: Writes[SchemeFS] = (
+  implicit val writesSchemeFS: Writes[SchemeFSDetail] = (
     (JsPath \ "chargeReference").write[String] and
       (JsPath \ "chargeType").write[SchemeFSChargeType] and
       (JsPath \ "dueDate").writeNullable[LocalDate] and
@@ -75,7 +75,7 @@ object SchemeFS {
     x.documentLineItemDetails
   ))
 
-  implicit val rdsSchemeFSDetail: Reads[SchemeFS] = (
+  implicit val rdsSchemeFSDetail: Reads[SchemeFSDetail] = (
     (JsPath \ "chargeReference").read[String] and
       (JsPath \ "chargeType").read[SchemeFSChargeType] and
       (JsPath \ "dueDate").readNullable[LocalDate] and
@@ -93,7 +93,7 @@ object SchemeFS {
     (chargeReference, chargeType, dueDateOpt, totalAmount, amountDue, outstandingAmount,
      accruedInterestTotal, stoodOverAmount, periodStartDateOpt, periodEndDateOpt,
      formBundleNumberOpt, sourceChargeRefForInterestOpt, documentLineItemDetails) =>
-      SchemeFS(
+      SchemeFSDetail(
         chargeReference,
         chargeType,
         dueDateOpt,

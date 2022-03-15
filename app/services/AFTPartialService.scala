@@ -21,7 +21,7 @@ import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
-import models.financialStatement.{PsaFS, SchemeFS}
+import models.financialStatement.{PsaFS, SchemeFSDetail}
 import models.{AFTOverviewOnPODS, Draft, LockDetail, Quarters}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
@@ -66,13 +66,13 @@ class AFTPartialService @Inject()(
 
 
   // scalastyle:off method.length
-  def retrievePspDashboardUpcomingAftChargesModel(schemeFs: Seq[SchemeFS], srn: String)
+  def retrievePspDashboardUpcomingAftChargesModel(schemeFs: Seq[SchemeFSDetail], srn: String)
                                                  (implicit messages: Messages): DashboardAftViewModel = {
 
-    val upcomingCharges: Seq[SchemeFS] =
+    val upcomingCharges: Seq[SchemeFSDetail] =
       paymentsAndChargesService.extractUpcomingCharges(schemeFs)
 
-    val pastCharges: Seq[SchemeFS] = schemeFs.filter(_.periodEndDate.isBefore(DateHelper.today))
+    val pastCharges: Seq[SchemeFSDetail] = schemeFs.filter(_.periodEndDate.isBefore(DateHelper.today))
 
     val total = upcomingCharges.map(_.amountDue).sum
 
@@ -94,7 +94,7 @@ class AFTPartialService @Inject()(
       if (upcomingCharges == Seq.empty) {
         None
       } else {
-        val nonAftUpcomingCharges: Seq[SchemeFS] = upcomingCharges.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
+        val nonAftUpcomingCharges: Seq[SchemeFSDetail] = upcomingCharges.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
         val linkText: Text = if (upcomingCharges.map(_.dueDate).distinct.size == 1 && nonAftUpcomingCharges.isEmpty) {
            msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
               .withArgs(
@@ -131,7 +131,7 @@ class AFTPartialService @Inject()(
   }
 
   // scalastyle:off method.length
-  def retrievePspDashboardOverdueAftChargesModel(schemeFs: Seq[SchemeFS], srn: String)
+  def retrievePspDashboardOverdueAftChargesModel(schemeFs: Seq[SchemeFSDetail], srn: String)
                                                 (implicit messages: Messages): DashboardAftViewModel = {
 
     val totalOverdue: BigDecimal = schemeFs.map(_.amountDue).sum
@@ -153,7 +153,7 @@ class AFTPartialService @Inject()(
       if (schemeFs == Seq.empty) {
         None
       } else {
-        val nonAftOverdueCharges: Seq[SchemeFS] = schemeFs.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
+        val nonAftOverdueCharges: Seq[SchemeFSDetail] = schemeFs.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
         val linkText: Text = if (schemeFs.map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
             msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
               .withArgs(
@@ -172,10 +172,10 @@ class AFTPartialService @Inject()(
       links = Seq(viewOverdueLink).flatten
     )
   }
-  def retrievePspDashboardPaymentsAndChargesModel(schemeFs: Seq[SchemeFS], srn: String, pstr: String)
+  def retrievePspDashboardPaymentsAndChargesModel(schemeFs: Seq[SchemeFSDetail], srn: String, pstr: String)
                                                 (implicit messages: Messages): Seq[CardViewModel] ={
-    val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(schemeFs)
-    val upcomingCharges: Seq[SchemeFS] = paymentsAndChargesService.extractUpcomingCharges(schemeFs)
+    val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFs)
+    val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFs)
     val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
     val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
     val totalUpcomingCharges: BigDecimal = upcomingCharges.map(_.amountDue).sum
@@ -217,7 +217,7 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def viewFinancialOverviewLink(pastCharges: Seq[SchemeFS], srn: String): Seq[Link] =
+  private def viewFinancialOverviewLink(pastCharges: Seq[SchemeFSDetail], srn: String): Seq[Link] =
     if (pastCharges == Seq.empty) {
       Nil
     } else {
@@ -229,7 +229,7 @@ class AFTPartialService @Inject()(
       ))
     }
 
-  private def viewAllPaymentsAndChargesLink(pastCharges: Seq[SchemeFS], srn: String, pstr: String): Seq[Link] =
+  private def viewAllPaymentsAndChargesLink(pastCharges: Seq[SchemeFSDetail], srn: String, pstr: String): Seq[Link] =
     if (pastCharges == Seq.empty) {
       Nil
     } else {
@@ -242,8 +242,8 @@ class AFTPartialService @Inject()(
     }
 
 
-  val startDate: Seq[SchemeFS] => LocalDate = schemeFs => schemeFs.map(_.periodStartDate).distinct.head
-  val endDate: Seq[SchemeFS] => LocalDate = schemeFs => schemeFs.map(_.periodEndDate).distinct.head
+  val startDate: Seq[SchemeFSDetail] => LocalDate = schemeFs => schemeFs.map(_.periodStartDate).distinct.head
+  val endDate: Seq[SchemeFSDetail] => LocalDate = schemeFs => schemeFs.map(_.periodEndDate).distinct.head
 
   private def optionSubHeading(
                                 inProgressReturns: Seq[AFTOverviewOnPODS],

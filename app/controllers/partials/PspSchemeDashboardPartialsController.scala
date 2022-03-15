@@ -20,7 +20,7 @@ import connectors.FinancialStatementConnector
 import controllers.actions._
 import models.FeatureToggle.{Disabled, Enabled}
 import models.FeatureToggleName.FinancialInformationAFT
-import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -104,7 +104,7 @@ class PspSchemeDashboardPartialsController @Inject()(
     }
   }
 
-  private def pspDashboardUpcomingAftChargesPartial(idNumber: String, schemeFs: Seq[SchemeFS])
+  private def pspDashboardUpcomingAftChargesPartial(idNumber: String, schemeFs: Seq[SchemeFSDetail])
                                                    (implicit request: IdentifierRequest[AnyContent]): Future[Html] = {
     if (schemeFs.isEmpty) {
       Future.successful(Html(""))
@@ -118,7 +118,7 @@ class PspSchemeDashboardPartialsController @Inject()(
     }
   }
 
-  private def pspDashboardPaymentsAndChargesPartial(idNumber: String, schemeFs: Seq[SchemeFS], pstr: String)
+  private def pspDashboardPaymentsAndChargesPartial(idNumber: String, schemeFs: Seq[SchemeFSDetail], pstr: String)
                                                    (implicit request: IdentifierRequest[AnyContent]): Future[Html] = {
     if (schemeFs.isEmpty) {
       Future.successful(Html(""))
@@ -132,7 +132,7 @@ class PspSchemeDashboardPartialsController @Inject()(
     }
   }
 
-  private def pspDashboardOverdueAftChargesPartial(idNumber: String, schemeFs: Seq[SchemeFS])
+  private def pspDashboardOverdueAftChargesPartial(idNumber: String, schemeFs: Seq[SchemeFSDetail])
                                                   (implicit request: IdentifierRequest[AnyContent]): Future[Html] = {
     val overdueCharges = paymentsAndChargesService.getOverdueCharges(schemeFs)
     if (overdueCharges.isEmpty) {

@@ -24,7 +24,7 @@ import forms.financialStatement.PaymentOrChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.Enumerable
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFS}
+import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -65,7 +65,7 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
   lazy val httpPathGET: String = routes.PaymentOrChargeTypeController.onPageLoad(srn, pstr).url
   lazy val httpPathPOST: String = routes.PaymentOrChargeTypeController.onSubmit(srn, pstr).url
 
-  private val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
+  private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
   private val jsonToPassToTemplate: Form[PaymentOrChargeType] => JsObject = form => Json.obj(
     "form" -> form,

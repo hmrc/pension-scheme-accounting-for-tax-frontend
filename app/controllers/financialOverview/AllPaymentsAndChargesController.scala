@@ -21,7 +21,7 @@ import connectors.AFTConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
-import models.financialStatement.{PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail, SchemeFSChargeType}
 import models.{ChargeDetailsFilter, Quarters, UserAnswers}
 import pages.{AFTReceiptDateQuery, AFTVersionQuery}
 import play.api.Logger
@@ -56,8 +56,8 @@ class AllPaymentsAndChargesController @Inject()(
 
   private val logger = Logger(classOf[AllPaymentsAndChargesController])
 
-  private def getMapChargeTypeToVersionAndDate(seqSchemeFS: Seq[SchemeFS], pstr: String)(implicit ec: ExecutionContext,
-                                                                                         headerCarrier: HeaderCarrier): Future[Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])]] = {
+  private def getMapChargeTypeToVersionAndDate(seqSchemeFS: Seq[SchemeFSDetail], pstr: String)(implicit ec: ExecutionContext,
+                                                                                               headerCarrier: HeaderCarrier): Future[Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])]] = {
     val tuple = Future.sequence {
       seqSchemeFS.map { scheme =>
         scheme.formBundleNumber match {
@@ -78,12 +78,12 @@ class AllPaymentsAndChargesController @Inject()(
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
-              val (title, filteredPayments): (String, Seq[SchemeFS]) =
-                getTitleAndFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
+              val (title, filteredPayments): (String, Seq[SchemeFSDetail]) =
+                getTitleAndFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
 
-        val dueCharges: Seq[SchemeFS] = paymentsAndChargesService.getDueCharges(filteredPayments)
+        val dueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getDueCharges(filteredPayments)
         val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
-        val interestCharges: Seq[SchemeFS] = paymentsAndChargesService.getInterestCharges(filteredPayments)
+        val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
         val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
         val totalCharges: BigDecimal = totalDueCharges+ totalInterestCharges
 
@@ -115,8 +115,8 @@ class AllPaymentsAndChargesController @Inject()(
 
   val isTaxYearFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
 
-  private def getTitleAndFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType)
-                                         (implicit messages: Messages): (String, Seq[SchemeFS]) =
+  private def getTitleAndFilteredPayments(payments: Seq[SchemeFSDetail], period: String, paymentOrChargeType: PaymentOrChargeType)
+                                         (implicit messages: Messages): (String, Seq[SchemeFSDetail]) =
     if(paymentOrChargeType == AccountingForTaxCharges) {
 
       val startDate: LocalDate = LocalDate.parse(period)

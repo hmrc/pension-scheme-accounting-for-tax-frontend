@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
 import models.SchemeDetails
-import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSDetail
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -57,21 +57,21 @@ class PsaSchemeFinancialOverviewController @Inject()(
       val response = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
         psaOrPspName <- minimalConnector.getPsaOrPspName
-        schemeFS <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
+        schemeFSDetail <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
         aftModel <- service.aftCardModel(schemeDetails, srn)
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
         val isPsa = isPsaId(request.idOrException)
-        renderFinancialOverview(srn, psaOrPspName, schemeDetails, schemeFS, aftModel, request, creditSchemeFS, isPsa)
+        renderFinancialOverview(srn, psaOrPspName, schemeDetails, schemeFSDetail, aftModel, request, creditSchemeFS, isPsa)
       }
       response.flatten
   }
 
-  private def renderFinancialOverview(srn: String, psaOrPspName: String, schemeDetails: SchemeDetails, schemeFS: Seq[SchemeFS],
-                                      aftModel: Seq[CardViewModel], request: RequestHeader, creditSchemeFS: Seq[SchemeFS], isPsa: Boolean) (implicit messages: Messages) : Future[Result] = {
+  private def renderFinancialOverview(srn: String, psaOrPspName: String, schemeDetails: SchemeDetails, schemeFSDetail: Seq[SchemeFSDetail],
+                                      aftModel: Seq[CardViewModel], request: RequestHeader, creditSchemeFS: Seq[SchemeFSDetail], isPsa: Boolean)(implicit messages: Messages) : Future[Result] = {
     val schemeName = schemeDetails.schemeName
-    val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
-    val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
+    val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFSDetail, srn)
+    val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFSDetail, srn)
     val creditBalanceFormatted: String = service.creditBalanceAmountFormatted(creditSchemeFS)
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(aftModel)}")
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(upcomingTile)}")
