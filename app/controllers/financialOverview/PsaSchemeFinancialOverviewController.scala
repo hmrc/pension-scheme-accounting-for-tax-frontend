@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
 import models.SchemeDetails
-import models.financialStatement.SchemeFSDetail
+import models.financialStatement.{SchemeFS, SchemeFSDetail}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -62,13 +62,16 @@ class PsaSchemeFinancialOverviewController @Inject()(
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
         val isPsa = isPsaId(request.idOrException)
-        renderFinancialOverview(srn, psaOrPspName, schemeDetails, schemeFSDetail.seqSchemeFSDetail, aftModel, request, creditSchemeFS.seqSchemeFSDetail, isPsa)
+        renderFinancialOverview(srn, psaOrPspName, schemeDetails, schemeFSDetail, aftModel, request, creditSchemeFS.seqSchemeFSDetail, isPsa)
       }
       response.flatten
   }
 
-  private def renderFinancialOverview(srn: String, psaOrPspName: String, schemeDetails: SchemeDetails, schemeFSDetail: Seq[SchemeFSDetail],
-                                      aftModel: Seq[CardViewModel], request: RequestHeader, creditSchemeFS: Seq[SchemeFSDetail], isPsa: Boolean)(implicit messages: Messages) : Future[Result] = {
+  //scalastyle:off parameter.number
+  private def renderFinancialOverview(srn: String, psaOrPspName: String, schemeDetails: SchemeDetails, schemeFS: SchemeFS,
+                                      aftModel: Seq[CardViewModel], request: RequestHeader, creditSchemeFS: Seq[SchemeFSDetail],
+                                      isPsa: Boolean)(implicit messages: Messages) : Future[Result] = {
+    val schemeFSDetail = schemeFS.seqSchemeFSDetail
     val schemeName = schemeDetails.schemeName
     val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFSDetail, srn)
     val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFSDetail, srn)
@@ -80,13 +83,13 @@ class PsaSchemeFinancialOverviewController @Inject()(
     val pstr = schemeDetails.pstr
     val creditBalance = service.getCreditBalanceAmount(creditSchemeFS)
     val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
-    val requestRefundUrl = if (isPsa){
-      s"$creditBalanceBaseUrl?requestType=1&psaName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
+    val requestRefundUrl = (schemeFS.inhibitRefundSignal, isPsa) match {
+      case (true, _) => routes.RefundUnavailableController.onPageLoad.url
+      case (false, true) =>
+        s"$creditBalanceBaseUrl?requestType=1&psaName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
+      case (false, false) =>
+        s"$creditBalanceBaseUrl?requestType=2&pspName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
     }
-    else {
-      s"$creditBalanceBaseUrl?requestType=2&pspName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
-    }
-
 
     renderer.render(
        template = "financialOverview/psaSchemeFinancialOverview.njk",
