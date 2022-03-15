@@ -242,7 +242,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "call FS API and save to cache if retrieved payload from cache is not in Payments format" in {
-      when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache(schemeFSResponseAftAndOTC)))))
+      when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))))
       when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       whenReady(penaltiesService.getPenaltiesForJourney(psaId, All)){ _ mustBe PenaltiesCache(psaId, "psa-name", psaFsSeq) }

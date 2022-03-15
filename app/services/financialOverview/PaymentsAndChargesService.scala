@@ -471,7 +471,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(loggedInId, srn, "srn")
       schemeFSDetail <- fsConnector.getSchemeFS(schemeDetails.pstr)
-      paymentsCache = PaymentsCache(loggedInId, srn, schemeDetails, schemeFSDetail)
+      paymentsCache = PaymentsCache(loggedInId, srn, schemeDetails, schemeFSDetail.seqSchemeFSDetail)
       _ <- financialInfoCacheConnector.save(Json.toJson(paymentsCache))
     } yield paymentsCache
 

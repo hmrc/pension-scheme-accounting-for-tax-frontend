@@ -62,7 +62,7 @@ class PsaSchemeFinancialOverviewController @Inject()(
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
         val isPsa = isPsaId(request.idOrException)
-        renderFinancialOverview(srn, psaOrPspName, schemeDetails, schemeFSDetail, aftModel, request, creditSchemeFS, isPsa)
+        renderFinancialOverview(srn, psaOrPspName, schemeDetails, schemeFSDetail.seqSchemeFSDetail, aftModel, request, creditSchemeFS.seqSchemeFSDetail, isPsa)
       }
       response.flatten
   }

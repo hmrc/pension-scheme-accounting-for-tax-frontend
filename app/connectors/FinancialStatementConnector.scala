@@ -82,14 +82,14 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
   }
 
   def getSchemeFSPaymentOnAccount(pstr: String)
-                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFSDetail]] = {
+                                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeFS] = {
 
     val url = config.schemeFinancialStatementUrl
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
-          response.json.as[Seq[SchemeFSDetail]]
+          response.json.as[SchemeFS]
         case _ =>
           handleErrorResponse("GET", url)(response)
       }

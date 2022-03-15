@@ -141,8 +141,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
 
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getSchemeFS(pstr).map(fs => fs mustBe SampleData.schemeFSResponseAftAndOTC)
-
+      connector.getSchemeFS(pstr).map(_.seqSchemeFSDetail mustBe SampleData.schemeFSResponseAftAndOTC.seqSchemeFSDetail)
     }
 
     "throw BadRequestException for a 400 INVALID_PSTR response" in {

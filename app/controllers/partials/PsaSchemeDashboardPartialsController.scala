@@ -57,7 +57,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
           schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
             financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFSDetail =>
               service.aftCardModel(schemeDetails, srn).flatMap { aftModel =>
-                val paymentsAndCharges: Seq[CardViewModel] = service.paymentsAndCharges(schemeFSDetail, srn, schemeDetails.pstr)
+                val paymentsAndCharges: Seq[CardViewModel] = service.paymentsAndCharges(schemeFSDetail.seqSchemeFSDetail, srn, schemeDetails.pstr)
 
                 logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(paymentsAndCharges)}")
                 logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(aftModel)}")
@@ -72,8 +72,8 @@ class PsaSchemeDashboardPartialsController @Inject()(
           schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
             financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFSDetail =>
               service.aftCardModel(schemeDetails, srn).flatMap { aftModel =>
-                val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFSDetail, srn)
-                val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFSDetail, srn)
+                val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFSDetail.seqSchemeFSDetail, srn)
+                val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFSDetail.seqSchemeFSDetail, srn)
                 logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(upcomingTile)}")
                 logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(overdueTile)}")
                 renderer.render(

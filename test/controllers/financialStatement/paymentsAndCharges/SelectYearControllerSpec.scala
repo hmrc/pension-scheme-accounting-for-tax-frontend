@@ -84,7 +84,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
-      .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC)))
+      .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))
   }
 
   "SelectYear Controller" must {
@@ -114,9 +114,9 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "redirect to next page when valid data is submitted and multiple quarters are found for the selected year" in {
-      val schemeFSDetail = schemeFSResponseAftAndOTC.head.copy(periodStartDate = LocalDate.parse("2020-07-01"))
+      val schemeFSDetail = schemeFSResponseAftAndOTC.seqSchemeFSDetail.head.copy(periodStartDate = LocalDate.parse("2020-07-01"))
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC :+ schemeFSDetail)))
+        .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail :+ schemeFSDetail)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

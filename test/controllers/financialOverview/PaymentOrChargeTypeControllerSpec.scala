@@ -82,7 +82,8 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC)))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(),
+      any())(any(), any())).thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))
   }
 
   "PaymentOrChargeType Controller" must {

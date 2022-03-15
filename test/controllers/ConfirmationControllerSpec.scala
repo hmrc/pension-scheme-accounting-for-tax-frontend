@@ -26,8 +26,8 @@ import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.SchemeFSDetail
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.financialStatement.{SchemeFS, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import models.{AccessMode, GenericViewModel, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
@@ -70,8 +70,10 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
   private def json(isAmendment: Boolean): JsObject = Json.obj(
     fields = "srn" -> SampleData.srn,
-    "panelHtml" -> Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
-      .toString()}").toString(),
+    "panelHtml" -> Html(s"${
+      Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
+        .toString()
+    }").toString(),
     "email" -> email,
     "list" -> rows(isAmendment),
     "isAmendment" -> isAmendment,
@@ -84,23 +86,26 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       .onPageLoad(srn, QUARTER_START_DATE, AccountingForTaxCharges, All).url
   )
 
-  private val schemeFSResponseWithDataForDifferentYear: Seq[SchemeFSDetail] = Seq(
-    SchemeFSDetail(
-      chargeReference = "XY002610150184",
-      chargeType = PSS_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2021-02-15")),
-      totalAmount = 12345.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      accruedInterestTotal = 23000.55,
-      periodStartDate = LocalDate.parse("2021-04-01"),
-      periodEndDate = LocalDate.parse("2021-06-30"),
-      formBundleNumber = None,
-      sourceChargeRefForInterest = None,
-      documentLineItemDetails = Nil
+  private val schemeFSResponseWithDataForDifferentYear: SchemeFS =
+    SchemeFS(
+      seqSchemeFSDetail = Seq(
+        SchemeFSDetail(
+          chargeReference = "XY002610150184",
+          chargeType = PSS_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2021-02-15")),
+          totalAmount = 12345.00,
+          outstandingAmount = 56049.08,
+          stoodOverAmount = 25089.08,
+          amountDue = 1029.05,
+          accruedInterestTotal = 23000.55,
+          periodStartDate = LocalDate.parse("2021-04-01"),
+          periodEndDate = LocalDate.parse("2021-06-30"),
+          formBundleNumber = None,
+          sourceChargeRefForInterest = None,
+          documentLineItemDetails = Nil
+        )
+      )
     )
-  )
 
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -112,7 +117,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.yourPensionSchemesUrl).thenReturn(testManagePensionsUrl.url)
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
-    when(mockSchemeService.retrieveSchemeDetails(any(),any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
   }
 
@@ -264,7 +269,7 @@ object ConfirmationControllerSpec {
       value = Value(Literal(formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London")))), classes = Nil),
       actions = Nil
     )
-  ) ++ (if(hasVersion) {
+  ) ++ (if (hasVersion) {
     Seq(Row(
       key = Key(msg"confirmation.table.submission.number.label", classes = Seq("govuk-!-font-weight-regular")),
       value = Value(Literal(s"$versionNumber"), classes = Nil),

@@ -65,8 +65,8 @@ class PspSchemeDashboardPartialsController @Inject()(
                 schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
                 schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
                 aftReturnsHtml <- pspDashboardAftReturnsPartial(idNumber, schemeDetails.pstr, psaId)
-                upcomingAftChargesHtml <- pspDashboardUpcomingAftChargesPartial(idNumber, schemeFs)
-                overdueChargesHtml <- pspDashboardOverdueAftChargesPartial(idNumber, schemeFs)
+                upcomingAftChargesHtml <- pspDashboardUpcomingAftChargesPartial(idNumber, schemeFs.seqSchemeFSDetail)
+                overdueChargesHtml <- pspDashboardOverdueAftChargesPartial(idNumber, schemeFs.seqSchemeFSDetail)
               } yield {
                 scala.collection.immutable.Seq(aftReturnsHtml, upcomingAftChargesHtml, overdueChargesHtml)
               }
@@ -79,7 +79,7 @@ class PspSchemeDashboardPartialsController @Inject()(
                 schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
                 schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
                 aftReturnsHtml <- pspDashboardAftReturnsPartial(idNumber, schemeDetails.pstr, psaId)
-                paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(idNumber, schemeFs, schemeDetails.pstr)
+                paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(idNumber, schemeFs.seqSchemeFSDetail, schemeDetails.pstr)
               }
               yield {
                 scala.collection.immutable.Seq(aftReturnsHtml, paymentsAndChargesHtml)

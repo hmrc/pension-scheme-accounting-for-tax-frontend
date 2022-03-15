@@ -22,7 +22,7 @@ import play.api.libs.json._
 import java.time.LocalDate
 
 case class SchemeFS(
-                     inhibitRefundSignal: Boolean,
+                     inhibitRefundSignal: Boolean = false,
                      seqSchemeFSDetail: Seq[SchemeFSDetail]
                    )
 
