@@ -67,8 +67,15 @@ class PsaSchemeFinancialOverviewController @Inject()(
       response.flatten
   }
 
-  private def renderFinancialOverview(srn: String, psaOrPspName: String, schemeDetails: SchemeDetails, schemeFS: Seq[SchemeFS],
-                                      aftModel: Seq[CardViewModel], request: RequestHeader, creditSchemeFS: Seq[SchemeFS], isPsa: Boolean) (implicit messages: Messages) : Future[Result] = {
+  // scalastyle:off parameter.number
+  private def renderFinancialOverview(srn: String,
+                                      psaOrPspName: String,
+                                      schemeDetails: SchemeDetails,
+                                      schemeFS: Seq[SchemeFS],
+                                      aftModel: Seq[CardViewModel],
+                                      request: RequestHeader,
+                                      creditSchemeFS: Seq[SchemeFS],
+                                      isPsa: Boolean) (implicit messages: Messages) : Future[Result] = {
     val schemeName = schemeDetails.schemeName
     val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
     val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
@@ -79,6 +86,7 @@ class PsaSchemeFinancialOverviewController @Inject()(
 
     val pstr = schemeDetails.pstr
     val creditBalance = service.getCreditBalanceAmount(creditSchemeFS)
+
     val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
     val requestRefundUrl = if (isPsa){
       s"$creditBalanceBaseUrl?requestType=1&psaName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
