@@ -28,7 +28,7 @@ import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
-import models.financialStatement.{PsaFS, SchemeFSDetail}
+import models.financialStatement.{PsaFSDetail, SchemeFSDetail}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest._
@@ -318,8 +318,8 @@ class PaymentsAndChargeDetailsControllerSpec
 object PaymentsAndChargeDetailsControllerSpec {
   private val srn = "test-srn"
 
-  def psaFS(chargeReference: String): PsaFS =
-    PsaFS(
+  def psaFS(chargeReference: String): PsaFSDetail =
+    PsaFSDetail(
       chargeReference = chargeReference,
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),

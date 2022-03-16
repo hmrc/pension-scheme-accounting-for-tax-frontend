@@ -24,7 +24,7 @@ import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.financialStatement.{PsaFS, SchemeFS, SchemeFSDetail}
+import models.financialStatement.{PsaFS, PsaFSDetail, SchemeFS, SchemeFSDetail}
 import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
@@ -257,8 +257,8 @@ object SampleData {
       )
     )
 
-  val psaFsSeq: Seq[PsaFS] = Seq(
-    PsaFS(
+  val psaFsSeq: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -271,7 +271,7 @@ object SampleData {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
     ),
-    PsaFS(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -285,9 +285,9 @@ object SampleData {
       pstr = "24000041IN"
     )
   )
-
-  val multiplePenalties: Seq[PsaFS] = Seq(
-    PsaFS(
+  val psaFs: PsaFS = PsaFS (false, psaFsSeq)
+  val multiplePenalties: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -300,7 +300,7 @@ object SampleData {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
     ),
-    PsaFS(
+    PsaFSDetail(
       chargeReference = "XY002610150185",
       chargeType = CONTRACT_SETTLEMENT_INTEREST,
       dueDate = Some(LocalDate.parse("2020-02-15")),

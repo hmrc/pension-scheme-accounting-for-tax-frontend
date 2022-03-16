@@ -18,12 +18,12 @@ package controllers.financialStatement.penalties
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
-import connectors.FinancialStatementConnectorSpec.psaFSResponse
+import connectors.FinancialStatementConnectorSpec.psaFs
 import controllers.base.ControllerSpecBase
 import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.Enumerable
-import models.FeatureToggle.{Enabled, Disabled}
+import models.FeatureToggle.{Disabled, Enabled}
 import models.FeatureToggleName.FinancialInformationAFT
 import models.PenaltiesFilter.All
 import org.mockito.ArgumentCaptor
@@ -31,6 +31,7 @@ import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
@@ -40,9 +41,8 @@ import play.twirl.api.Html
 import services.{AFTPartialService, FeatureToggleService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
-import viewmodels.{DashboardAftViewModel, Link}
-import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel}
-import play.api.i18n.Messages
+import viewmodels._
+
 import scala.concurrent.Future
 
 class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
@@ -63,8 +63,6 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
     )
 
   def application: Application = applicationBuilder(extraModules = extraModules).build()
-
-  private val jsonToPassToTemplate: JsObject = Json.obj("cards" -> Json.toJson(psaPaymentsAndChargesViewModel))
 
   def dashboardViewModel: DashboardAftViewModel = {
     val subheadings =
@@ -95,7 +93,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
     super.beforeEach
     reset(mockFSConnector, mockRenderer)
     when(mockFSConnector.getPsaFS(any())(any(), any()))
-      .thenReturn(Future.successful(psaFSResponse))
+      .thenReturn(Future.successful(psaFs))
     when(mockAppConfig.viewPenaltiesUrl).thenReturn(frontendAppConfig.viewPenaltiesUrl)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
