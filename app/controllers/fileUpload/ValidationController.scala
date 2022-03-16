@@ -136,15 +136,12 @@ class ValidationController @Inject()(
                                     accessType: AccessType,
                                     version: Int,
                                     chargeType: ChargeType,
-                                    linesFromCSV: Seq[Array[String]],
+                                    csvContent: Seq[Array[String]],
                                     parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
-
-    //removes non-printable characters like ^M$
-  //  val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
 
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
 
-    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, linesFromCSV, updatedUA), "Parsing and Validation")
+    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, csvContent, updatedUA), "Parsing and Validation")
     parserResult.fold[Future[Result]](
       processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>
@@ -152,6 +149,8 @@ class ValidationController @Inject()(
           Redirect(routes.FileUploadSuccessController.onPageLoad(srn, startDate.toString, accessType, version, chargeType))), "processSuccessResult")
     )
   }
+
+
 
   private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
                                   (implicit request: DataRequest[AnyContent]) = {

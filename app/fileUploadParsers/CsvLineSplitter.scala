@@ -33,15 +33,26 @@ object CsvParser {
   def split(multilineCsvString: String): Seq[Array[String]] = {
     val settings = new CsvParserSettings()
     settings.setNullValue("")
+    settings.setEmptyValue("")
     val parser = new CsvParser(settings)
-    parser.parseAll(new StringReader(multilineCsvString)).asScala
+    val content = parser.parseAll(new StringReader(multilineCsvString)).asScala
+    val cleanup = removeNonPrintableChars(content)
+    cleanup
+  }
+
+  //removes non-printable characters like ^M$
+  private def removeNonPrintableChars(csvContent: Seq[Array[String]]): Seq[Array[String]] = {
+    for {
+      lines <- csvContent
+    } yield {
+      lines.map(lines => lines.replaceAll("\\p{C}", ""))
+    }
   }
 
   def splitToRecord(multilineCsvString: String): Seq[Record] = {
     val settings = new CsvParserSettings()
     settings.setEscapeUnquotedValues(true)
     settings.setKeepEscapeSequences(true)
-    //  settings.setKeepQuotes(true)
     settings.setDelimiterDetectionEnabled(true)
     settings.setQuoteDetectionEnabled(true)
     val parser = new CsvParser(settings)
