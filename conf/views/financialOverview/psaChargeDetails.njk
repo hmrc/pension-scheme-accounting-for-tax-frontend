@@ -8,6 +8,7 @@
 {% from "govuk/components/fieldset/macro.njk"      import govukFieldset %}
 
 {% from 'macros/inputSearch.njk'               import hmrcInputSearch with context %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 
 {% block pageTitle %}
@@ -43,9 +44,15 @@
                 }) }}
             </p>
 
+            {% if isInterestAccruing %}
+                {{ govukInsetText({
+                    html: htmlInsetText
+                }) }}
+            {% endif %}
+
         </div>
     </div>
 
-<p class="govuk-body"><a id="return_to_psa" href="{{ config.managePensionsSchemeOverviewUrl }}" class="govuk-link">{{ messages("return.to.link", psaName) }}</a></p>
+<p class="govuk-body"><a id="return" href="{{ returnUrl }}" class="govuk-link">{{ messages("return.to.link", returnLinkBasedOnJourney) }}</a></p>
 
 {% endblock %}

@@ -25,8 +25,7 @@ import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement.{PsaFS, SchemeFS}
-import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint,
-  MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -267,7 +266,8 @@ object SampleData {
       amountDue = 100.00,
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      documentLineItemDetails = Nil
     ),
     PsaFS(
       chargeReference = "XY002610150184",
@@ -280,7 +280,8 @@ object SampleData {
       amountDue = 100.00,
       periodStartDate = LocalDate.parse("2020-10-01"),
       periodEndDate = LocalDate.parse("2020-12-31"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      documentLineItemDetails = Nil
     )
   )
 
@@ -296,7 +297,8 @@ object SampleData {
       amountDue = 100.00,
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      documentLineItemDetails = Nil
     ),
     PsaFS(
       chargeReference = "XY002610150185",
@@ -309,8 +311,10 @@ object SampleData {
       amountDue = 100.00,
       periodStartDate = LocalDate.parse("2020-10-01"),
       periodEndDate = LocalDate.parse("2020-12-31"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      documentLineItemDetails = Nil
     )
   )
+
 
 }

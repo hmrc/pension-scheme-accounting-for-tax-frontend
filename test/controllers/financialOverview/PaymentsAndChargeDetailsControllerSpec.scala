@@ -40,9 +40,8 @@ import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
-import models.financialStatement.{PsaFS, SchemeFS}
+import models.financialStatement.{DocumentLineItemDetail, SchemeFS, SchemeFSClearingReason}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest._
@@ -230,21 +229,6 @@ class PaymentsAndChargeDetailsControllerSpec
 object PaymentsAndChargeDetailsControllerSpec {
   private val srn = "test-srn"
 
-  def psaFS(chargeReference: String): PsaFS =
-    PsaFS(
-      chargeReference = chargeReference,
-      chargeType = AFT_INITIAL_LFP,
-      dueDate = Some(LocalDate.parse("2020-07-15")),
-      totalAmount = 80000.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      accruedInterestTotal = 0.00,
-      amountDue = 1029.05,
-      periodStartDate = LocalDate.parse("2020-04-01"),
-      periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
-    )
-
   private def createChargeWithAmountDueAndInterest(
                                                     chargeReference: String,
                                                     amountDue: BigDecimal = 0.00,
@@ -307,7 +291,10 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate = LocalDate.parse(QUARTER_END_DATE),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
-      documentLineItemDetails = Nil
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     )
   }
 

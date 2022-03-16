@@ -18,7 +18,7 @@ package controllers.financialOverview
 
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.ChargeDetailsFilter
-import models.financialStatement.PsaFSChargeType.{AFT_12_MONTH_LPP, AFT_30_DAY_LPP, AFT_6_MONTH_LPP, AFT_DAILY_LFP, AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, OTC_12_MONTH_LPP, OTC_30_DAY_LPP, OTC_6_MONTH_LPP, PSS_INFO_NOTICE, PSS_PENALTY}
+import models.financialStatement.PsaFSChargeType.INTEREST_ON_CONTRACT_SETTLEMENT
 import models.financialStatement.{PsaFS, PsaFSChargeType}
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -28,10 +28,8 @@ import renderer.Renderer
 import services.SchemeService
 import services.financialOverview.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper.{formatDateDMY, formatStartDate}
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 
-import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -58,17 +56,13 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
           def penaltyOpt: Option[PsaFS] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
 
           if(chargeRefs.length > chargeReferenceIndex.toInt && penaltyOpt.nonEmpty) {
-            val psaFs = penaltyOpt.head
-            schemeService.retrieveSchemeDetails(request.idOrException, psaFs.pstr, "pstr") flatMap {
+            schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
               schemeDetails =>
                 val json = Json.obj(
                   "psaName" -> penaltiesCache.psaName,
                   "schemeAssociated" -> true,
-                  "schemeName" -> schemeDetails.schemeName,
-                  "penaltyAmount" -> psaFs.totalAmount,
-                  "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
-                  "returnUrl" -> routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url
-                ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex)
+                  "schemeName" -> schemeDetails.schemeName
+                ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex, journeyType)
 
                 renderer.render(template = "financialOverview/psaInterestDetails.njk", json).map(Ok(_))
             }
@@ -78,37 +72,39 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
         }
     }
 
-  def setPeriod(chargeType: PsaFSChargeType, periodStartDate: LocalDate, periodEndDate: LocalDate): String = {
-    "Tax period: " + formatDateDMY(periodStartDate) + " to " + formatDateDMY(periodEndDate)
-    chargeType match {
-      case AFT_INITIAL_LFP | AFT_DAILY_LFP | AFT_30_DAY_LPP | AFT_6_MONTH_LPP
-           | AFT_12_MONTH_LPP | OTC_30_DAY_LPP | OTC_6_MONTH_LPP | OTC_12_MONTH_LPP =>
-        "Quarter: " + formatStartDate(periodStartDate) + " to " + formatDateDMY(periodEndDate)
-      case PSS_PENALTY | PSS_INFO_NOTICE | CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST =>
-        "Period: " + formatStartDate(periodStartDate) + " to " + formatDateDMY(periodEndDate)
-      case _ => ""
-    }
-  }
-
   private def commonJson(
                           fs: PsaFS,
                           psaFS: Seq[PsaFS],
                           chargeRefs: Seq[String],
-                          chargeReferenceIndex: String
+                          chargeReferenceIndex: String,
+                          journeyType: ChargeDetailsFilter
                         )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
     val psaFSDetails = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head
-    val period = setPeriod(fs.chargeType, fs.periodStartDate, fs.periodEndDate)
+    val period = psaPenaltiesAndChargesService.setPeriod(fs.chargeType, fs.periodStartDate, fs.periodEndDate)
     val originalChargeRefsIndex: String => String = cr => psaFS.map(_.chargeReference).indexOf(cr).toString
+    val originalAmountURL = controllers.financialOverview.routes.PsaPenaltiesAndChargeDetailsController.
+      onPageLoad(fs.pstr, originalChargeRefsIndex(fs.chargeReference), journeyType).url
+    val detailsChargeType = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType
+    val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
+
+    val htmlInsetText =
+      Html(
+        s"<p class=govuk-body>${Messages("psa.financial.overview.hint1")}" +
+          s" <span><a id='breakdown' class=govuk-link href=$originalAmountURL>" +
+          s" ${Messages("psa.financial.overview.hintLink")}</a></span>" +
+          s" ${Messages("psa.financial.overview.hint2")}</p>"
+      )
 
     Json.obj(
-      "heading" ->   psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString,
-      "isOverdue" ->        psaPenaltiesAndChargesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
-      "period" ->           period,
-      "chargeReference" ->  Messages("penalties.column.chargeReference.toBeAssigned"),
-      "penaltyAmount" ->    psaFSDetails.totalAmount,
-      "list" ->             psaPenaltiesAndChargesService.interestRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
-      "originalAmountURL" -> controllers.financialOverview.routes.PsaPenaltiesAndChargeDetailsController
-        .onPageLoad(fs.pstr, originalChargeRefsIndex(fs.chargeReference).toString).url
+      "heading" -> detailsChargeTypeHeading.toString,
+      "isOverdue" -> psaPenaltiesAndChargesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
+      "period" -> period,
+      "chargeReference" -> Messages("penalties.column.chargeReference.toBeAssigned"),
+      "penaltyAmount" -> psaFSDetails.totalAmount,
+      "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
+      "returnUrl" -> routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url,
+      "list" -> psaPenaltiesAndChargesService.interestRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
+      "htmlInsetText" -> htmlInsetText
     )
   }
 

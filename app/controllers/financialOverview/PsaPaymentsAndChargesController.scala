@@ -16,22 +16,23 @@
 
 package controllers.financialOverview
 
-import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.ChargeDetailsFilter
+import models.ChargeDetailsFilter.Upcoming
+import models.financialStatement.PsaFSChargeType.REPAYMENT_INTEREST
 import models.financialStatement.{PsaFS, PsaFSChargeType}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.financialOverview.PsaPenaltiesAndChargesService
-import services.{PenaltiesCache, SchemeService}
+import services.financialOverview.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
+import viewmodels.Table
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,9 +42,7 @@ class PsaPaymentsAndChargesController @Inject()(
                                                  identify: IdentifierAction,
                                                  allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                  val controllerComponents: MessagesControllerComponents,
-                                                 config: FrontendAppConfig,
                                                  psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                                 schemeService: SchemeService,
                                                  financialStatementConnector: FinancialStatementConnector,
                                                  minimalConnector: MinimalConnector,
                                                  renderer: Renderer
@@ -61,7 +60,8 @@ class PsaPaymentsAndChargesController @Inject()(
           psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
           penaltiesCache <- psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType)
         } yield {
-          val psaFSWithoutPaymentOnAccount: Seq[PsaFS] = psaFSWithPaymentOnAccount.filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
+          val psaFSWithoutPaymentOnAccount: Seq[PsaFS] = psaFSWithPaymentOnAccount.filterNot(c => c.chargeType ==
+            PsaFSChargeType.PAYMENT_ON_ACCOUNT || c.chargeType == REPAYMENT_INTEREST)
           renderFinancialOverdueAndInterestCharges(psaName, request.psaIdOrException.id, psaFSWithoutPaymentOnAccount,
             request, psaFSWithPaymentOnAccount, journeyType, penaltiesCache)
         }
@@ -78,30 +78,43 @@ class PsaPaymentsAndChargesController @Inject()(
                                                        creditPsaFS: Seq[PsaFS],
                                                        journeyType: ChargeDetailsFilter,
                                                        penaltiesCache: PenaltiesCache)
-                                                      (implicit messages: Messages, headerCarrier: HeaderCarrier) : Future[Result] = {
+                                                      (implicit messages: Messages, headerCarrier: HeaderCarrier): Future[Result] = {
 
-    val psaCharges:(String,String,String) = psaPenaltiesAndChargesService.retrievePsaChargesAmount(psaFS)
+    val psaCharges: (String, String, String) = psaPenaltiesAndChargesService.retrievePsaChargesAmount(creditPsaFS)
+
 
     logger.debug(s"AFT service returned UpcomingCharge - ${psaCharges._1}")
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
     logger.debug(s"AFT service returned InterestAccruing - ${psaCharges._3}")
-
     val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
 
-    psaPenaltiesAndChargesService.getAllPaymentsAndCharges(psaId, "", chargeRefsIndex, psaFS, journeyType) flatMap { table =>
+    psaPenaltiesAndChargesService.getAllPaymentsAndCharges(psaId, chargeRefsIndex,
+      penaltiesCache.penalties, journeyType) flatMap { table =>
+
+      val penaltiesTable = if (journeyType == Upcoming) {
+        removePaymentStatusColumn(table)
+      } else {
+        table
+      }
+
       renderer.render(
         template = "financialOverview/psaPaymentsAndCharges.njk",
-        ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1 ,
-          "totalOverdueCharge" -> psaCharges._2 ,
+        ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1,
+          "totalOverdueCharge" -> psaCharges._2,
           "totalInterestAccruing" -> psaCharges._3,
           "titleMessage" -> Message(s"psa.financial.overview.$journeyType.title"),
           "reflectChargeText" -> Message(s"psa.financial.overview.$journeyType.text"),
           "journeyType" -> journeyType.toString,
-          "penaltiesTable" -> table,
+          "penaltiesTable" -> penaltiesTable,
           "psaName" -> psaName)
       )(request).map(Ok(_))
     }
   }
 
+  private val removePaymentStatusColumn: Table => Table = table =>
+    Table(table.caption, table.captionClasses, table.firstCellIsHeader,
+      table.head.take(table.head.size - 1),
+      table.rows.map(p => p.take(p.size - 1)), table.classes, table.attributes
+    )
 }
 

@@ -330,7 +330,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
+      pstr = "24000040IN",
+      documentLineItemDetails = Nil
     )
 
   private def createChargeWithAmountDueAndInterest(

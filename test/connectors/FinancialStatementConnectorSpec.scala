@@ -18,8 +18,8 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
-import models.financialStatement.PsaFS
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, INTEREST_ON_CONTRACT_SETTLEMENT, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
+import models.financialStatement.{DocumentLineItemDetail, PsaFS, SchemeFSClearingReason}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status
@@ -228,7 +228,11 @@ object FinancialStatementConnectorSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
+      pstr = "24000040IN",
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFS(
       chargeReference = "XY002610150185",
@@ -241,7 +245,11 @@ object FinancialStatementConnectorSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFS(
       chargeReference = "XY002610150186",
@@ -254,7 +262,31 @@ object FinancialStatementConnectorSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
+    )
+  )
+
+  val interestPsaFsResponse: Seq[PsaFS] = Seq(
+    PsaFS(
+      chargeReference = "XY002610150184",
+      chargeType = INTEREST_ON_CONTRACT_SETTLEMENT,
+      dueDate = Some(LocalDate.parse("2020-07-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      accruedInterestTotal = 100.00,
+      amountDue = 1029.05,
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30"),
+      pstr = "24000040IN",
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     )
   )
 
@@ -270,7 +302,11 @@ object FinancialStatementConnectorSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
+      pstr = "24000040IN",
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFS(
       chargeReference = "XY002610150185",
@@ -283,7 +319,11 @@ object FinancialStatementConnectorSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     )
   )
 

@@ -431,7 +431,8 @@ object PenaltiesServiceSpec {
         amountDue = amountDue,
         periodStartDate = LocalDate.parse("2020-04-01"),
         periodEndDate = LocalDate.parse("2020-06-30"),
-        pstr = "24000040IN"
+        pstr = "24000040IN",
+        documentLineItemDetails = Nil
       )
   }
 
@@ -447,7 +448,8 @@ object PenaltiesServiceSpec {
       amountDue = amountDue,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
+      pstr = "24000040IN",
+      documentLineItemDetails = Nil
     ),
     PsaFS(
       chargeReference = "XY002610150185",
@@ -460,7 +462,8 @@ object PenaltiesServiceSpec {
       amountDue = amountDue,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      documentLineItemDetails = Nil
     ),
     PsaFS(
       chargeReference = "XY002610150186",
@@ -473,7 +476,8 @@ object PenaltiesServiceSpec {
       amountDue = amountDue,
       periodStartDate = LocalDate.parse("2020-10-01"),
       periodEndDate = LocalDate.parse("2020-12-31"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      documentLineItemDetails = Nil
     )
   )
 
@@ -485,7 +489,7 @@ object PenaltiesServiceSpec {
              stoodOverAmount: BigDecimal = BigDecimal(25089.08)
            ): PsaFS =
     PsaFS("XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
-      accruedInterestTotal = 0.00, dateNow, dateNow, pstr)
+      accruedInterestTotal = 0.00, dateNow, dateNow, pstr, Nil)
 
   val pstr: String = "24000040IN"
   val zeroAmount: BigDecimal = BigDecimal(0.00)
@@ -578,7 +582,7 @@ object PenaltiesServiceSpec {
 
   def customPsaFS(chargeType: PsaFSChargeType, startDate: String = "2021-01-01", endDate: String = "2021-03-31", pstr: String = pstr): PsaFS =
     PsaFS("XY002610150184", chargeType, Some(LocalDate.parse("2021-05-15")), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),
-      BigDecimal(0.00), BigDecimal(0.00), LocalDate.parse(startDate), LocalDate.parse(endDate), pstr)
+      BigDecimal(0.00), BigDecimal(0.00), LocalDate.parse(startDate), LocalDate.parse(endDate), pstr, Nil)
 
 
 }

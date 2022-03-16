@@ -23,19 +23,18 @@ import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
-import models.financialStatement.PsaFSChargeType.{AFT_12_MONTH_LPP, AFT_30_DAY_LPP, AFT_6_MONTH_LPP, AFT_DAILY_LFP, AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, OTC_12_MONTH_LPP, OTC_30_DAY_LPP, OTC_6_MONTH_LPP, PSS_INFO_NOTICE, PSS_PENALTY}
+import models.financialStatement.PsaFSChargeType.{AFT_12_MONTH_LPP, AFT_30_DAY_LPP, AFT_6_MONTH_LPP, AFT_DAILY_LFP, AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, INTEREST_ON_CONTRACT_SETTLEMENT, OTC_12_MONTH_LPP, OTC_30_DAY_LPP, OTC_6_MONTH_LPP, PSS_INFO_NOTICE, PSS_PENALTY}
 import models.financialStatement.SchemeFSClearingReason.{CLEARED_WITH_DELTA_CREDIT, CLEARED_WITH_PAYMENT, OTHER_REASONS, REPAYMENT_TO_THE_CUSTOMER, TRANSFERRED_TO_ANOTHER_ACCOUNT, WRITTEN_OFF}
 import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFS, PsaFSChargeType}
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
-import play.api.Logger
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, JsSuccess, Json}
-import services.{PenaltiesCache, PenaltiesService, SchemeService}
+import play.api.libs.json.{JsSuccess, Json, OFormat}
+import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Content, Html, SummaryList, Text}
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
@@ -52,15 +51,9 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
                                               fsConnector: FinancialStatementConnector,
                                               financialInfoCacheConnector: FinancialInfoCacheConnector,
                                               schemeService: SchemeService,
-                                              paymentsAndChargesSerice: PaymentsAndChargesService,
                                               minimalConnector: MinimalConnector) {
 
   val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
-  val extractUpcomingCharges: Seq[PsaFS] => Seq[PsaFS] = psaFS =>
-    psaFS
-      .filter(charge => charge.dueDate.nonEmpty && !charge.dueDate.get.isBefore(DateHelper.today))
-      .filter(_.amountDue > BigDecimal(0.00))
-  private val logger = Logger(classOf[PsaPenaltiesAndChargesService])
 
   def retrievePsaChargesAmount(psaFs: Seq[PsaFS])(implicit messages: Messages): (String, String, String) = {
 
@@ -86,7 +79,6 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
   //scalastyle:off cyclomatic.complexity
   def getAllPaymentsAndCharges(
       psaId: String,
-      srn: String,
       chargeRefsIndex: String => String,
       penalties: Seq[PsaFS],
       chargeDetailsFilter: ChargeDetailsFilter)(implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
@@ -95,19 +87,23 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
       Nil) { (acc, details) =>
       val penaltyType = getPenaltyType(details.chargeType)
 
+/*
       val periodValue: String = if (penaltyType.toString == AccountingForTaxPenalties.toString) {
         details.periodStartDate.toString
       } else {
         details.periodEndDate.getYear.toString
       }
+*/
 
-      val b = getSchemeDetails(psaId, details.pstr).map { schemeName =>
-        val originalChargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
+      val tableRecords = getSchemeDetails(psaId, details.pstr).map { schemeName =>
 
+        //val originalChargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
+
+        val tableChargeType = if (details.chargeType == CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else details.chargeType
         val penaltyDetailsItemWithStatus: PaymentAndChargeStatus => PsaPaymentsAndChargesDetails =
           status =>
             PsaPaymentsAndChargesDetails(
-              chargeType = details.chargeType.toString,
+              chargeType = tableChargeType.toString,
               chargeReference = details.chargeReference,
               originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
               paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
@@ -115,23 +111,16 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
               pstr = details.pstr,
               schemeName = schemeName,
               redirectUrl = controllers.financialOverview.routes.PsaPenaltiesAndChargeDetailsController
-                .onPageLoad(details.pstr, originalChargeRefsIndex(details.chargeReference).toString)
+                .onPageLoad(details.pstr, chargeRefsIndex(details.chargeReference), chargeDetailsFilter)
                 .url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
             )
 
-        val seqAFTCharges: Seq[PsaPaymentsAndChargesDetails] =
-          if (isChargeType(details.chargeType)) {
-            Seq(penaltyDetailsItemWithStatus(PaymentOverdue))
-          } else {
-            Nil
-          }
-
         val seqInterestCharge: Seq[PsaPaymentsAndChargesDetails] =
-          if (details.chargeType == CONTRACT_SETTLEMENT_INTEREST && details.accruedInterestTotal > 0) {
+          if (details.chargeType == CONTRACT_SETTLEMENT && details.accruedInterestTotal > 0) {
             Seq(
               PsaPaymentsAndChargesDetails(
-                chargeType = CONTRACT_SETTLEMENT_INTEREST.toString, //.toString + suffix.getOrElse(""),
+                chargeType = INTEREST_ON_CONTRACT_SETTLEMENT.toString,
                 chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
                 originalChargeAmount = "",
                 paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
@@ -139,7 +128,7 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
                 pstr = details.pstr,
                 schemeName = schemeName,
                 redirectUrl = controllers.financialOverview.routes.PsaPaymentsAndChargesInterestController
-                  .onPageLoad(details.pstr, originalChargeRefsIndex(details.chargeReference).toString).url,
+                  .onPageLoad(details.pstr, chargeRefsIndex(details.chargeReference), chargeDetailsFilter).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
               ))
           } else {
@@ -150,12 +139,12 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
         mapToTable(seqForTable, includeHeadings = false)
 
       }
-      acc :+ b
+      acc :+ tableRecords
     }
     Future.sequence(seqPayments).map {
-      x => x.foldLeft(Table(head = getHeading(), rows = Nil)) { (ac, a) =>
-        ac.copy(
-        rows = ac.rows ++ a.rows
+      x => x.foldLeft(Table(head = getHeading(), rows = Nil)) { (acc, a) =>
+        acc.copy(
+        rows = acc.rows ++ a.rows
         )
       }
     }
@@ -204,7 +193,6 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
         ))
     )
   }
-
 
   private def mapToTable(allPayments: Seq[PsaPaymentsAndChargesDetails], includeHeadings: Boolean = true)(implicit messages: Messages): Table = {
 
@@ -261,76 +249,8 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
     Html(s"<span class='$classes'>$content</span>")
   }
 
-  def getPsaFsJson(penalties: Seq[PsaFS],
-                   identifier: String,
-                   chargeRefsIndex: String => String,
-                   penaltyType: PenaltyType,
-                   journeyType: ChargeDetailsFilter)(implicit messages: Messages): JsObject = {
-
-    val head: Seq[Cell] = Seq(
-      //Cell(msg"penalties.column.${if(penaltyType == ContractSettlementCharges) "chargeType" else "penaltyType"}"),
-      Cell(msg"psa.financial.overview.penalty"),
-      Cell(msg"psa.financial.overview.charge.reference"),
-      Cell(msg"psa.financial.overview.payment.amount"),
-      Cell(msg"psa.financial.overview.payment.due"),
-      Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
-    )
-
-    val rows = penalties.flatMap { data =>
-      val content = chargeTypeLink(identifier, data, chargeRefsIndex(data.chargeReference), journeyType)
-      val charge = Seq(
-        Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
-        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
-        statusCell(data)
-      )
-
-      val interest = if (data.chargeType == CONTRACT_SETTLEMENT && data.accruedInterestTotal > 0) {
-        val content = accruedInterestLink(identifier, data, chargeRefsIndex(data.chargeReference))
-        Seq(
-          Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
-          Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"), classes = Seq("govuk-!-width-one-quarter")),
-          Cell(Message("penalties.column.chargeReference.toBeAssigned"), classes = Seq("govuk-!-width-one-quarter")),
-          Cell(Html(s"<span class='govuk-body govuk-tag govuk-tag--blue'>${messages("penalties.status.interestAccruing").toUpperCase}</span>"))
-        )
-      } else {
-        Nil
-      }
-
-      (Seq(charge) ++ Seq(interest)).filterNot(_.isEmpty)
-    }
-    Json.obj(
-      "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
-    )
-  }
-
-  private def chargeTypeLink(identifier: String, data: PsaFS, chargeRefsIndex: String, journeyType: ChargeDetailsFilter)(
-      implicit messages: Messages): Html =
-    Html(
-      s"<a id=${data.chargeReference} " +
-        s"class=govuk-link href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(identifier, chargeRefsIndex, journeyType)}>" +
-        s"${messages(data.chargeType.toString)}" +
-        s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
-
-  private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
-    val (classes, content) = (isPaymentOverdue(data), data.amountDue) match {
-      case (true, _) => ("govuk-tag govuk-tag--red", messages("penalties.status.paymentOverdue"))
-      case (_, amount) if amount == BigDecimal(0.00) =>
-        ("govuk-visually-hidden", messages("penalties.status.visuallyHiddenText.noPaymentDue"))
-      case _ => ("govuk-visually-hidden", messages("penalties.status.visuallyHiddenText.paymentIsDue"))
-    }
-    Cell(Html(s"""<span class='$classes'>$content</span>"""))
-  }
-
-  private def accruedInterestLink(identifier: String, data: PsaFS, chargeRefsIndex: String)(implicit messages: Messages): Html =
-    Html(
-      s"<a id=${data.chargeReference}-interest " +
-        s"class=govuk-link href=${controllers.financialStatement.penalties.routes.InterestController.onPageLoad(identifier, chargeRefsIndex)}>" +
-        s"${messages("penalties.column.chargeType.interestOn", messages(data.chargeType.toString.toLowerCase))}" +
-        s"<span class=govuk-visually-hidden>${messages(s"penalties.column.chargeType.interestToCome")}</span> </a>")
-
-  def getPenaltiesForJourney(psaId: String, journeyType: ChargeDetailsFilter)(implicit ec: ExecutionContext,
-                                                                              hc: HeaderCarrier): Future[PenaltiesCache] =
+  def getPenaltiesForJourney(psaId: String, journeyType: ChargeDetailsFilter)
+                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PenaltiesCache] =
     getPenaltiesFromCache(psaId).map { cache =>
       journeyType match {
         case Overdue  => cache.copy(penalties = getOverdueCharges(cache.penalties))
@@ -360,6 +280,11 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
     psaFS
       .filter(_.dueDate.nonEmpty)
       .filter(_.dueDate.get.isBefore(DateHelper.today))
+      .filter(_.amountDue > BigDecimal(0.00))
+
+  def extractUpcomingCharges(psaFS: Seq[PsaFS]): Seq[PsaFS] =
+    psaFS
+      .filter(charge => charge.dueDate.nonEmpty && !charge.dueDate.get.isBefore(DateHelper.today))
       .filter(_.amountDue > BigDecimal(0.00))
 
   def chargeDetailsRows(data: PsaFS): Seq[SummaryList.Row] = {
@@ -502,12 +427,26 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
   private def totalInterestDueRow(data: PsaFS): Seq[SummaryList.Row] = {
     val dateAsOf: String = LocalDate.now.format(dateFormatterDMY)
     Seq(Row(
-      key = Key(msg"penalties.interest.totalDueAsOf".withArgs(dateAsOf), classes = Seq("govuk-!-width-two-quarters")),
+      key = Key(msg"psa.financial.overview.totalDueAsOf".withArgs(dateAsOf), classes = Seq("govuk-!-width-two-quarters")),
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
         classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
     ))
   }
 
+  private def chargeReferenceInterestRow(data: PsaFS): Seq[SummaryList.Row] = {
+
+    Seq(
+      Row(
+        key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-width-two-quarters")),
+        value = Value(msg"paymentsAndCharges.chargeReference.toBeAssigned", classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      ))
+  }
+
   def interestRows(data: PsaFS): Seq[SummaryList.Row] =
-    chargeReferenceRow(data) ++ totalInterestDueRow(data)
+    chargeReferenceInterestRow(data) ++ totalInterestDueRow(data)
+}
+
+case class PenaltiesCache(psaId: String, psaName: String, penalties: Seq[PsaFS])
+object PenaltiesCache {
+  implicit val format: OFormat[PenaltiesCache] = Json.format[PenaltiesCache]
 }

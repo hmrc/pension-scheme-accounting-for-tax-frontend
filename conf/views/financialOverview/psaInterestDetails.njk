@@ -8,6 +8,7 @@
 {% from "govuk/components/fieldset/macro.njk"      import govukFieldset %}
 
 {% from 'macros/inputSearch.njk'               import hmrcInputSearch with context %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 
 {% block pageTitle %}
@@ -41,11 +42,9 @@
                 }) }}
             </p>
 
-            <p class="govuk-body">
-                {{ messages("penalties.hint1") }}
-                <a id="original-amount-due" href="{{ originalAmountURL }}" class="govuk-link">{{ messages("penalties.hintLink") }}</a>
-                {{ messages("penalties.hint2") }}
-            </p>
+            {{ govukInsetText({
+              html: htmlInsetText
+            }) }}
 
         </div>
     </div>
