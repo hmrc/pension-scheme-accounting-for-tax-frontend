@@ -43,7 +43,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
                                         psaSchemePartialService: PsaSchemePartialService,
                                         schemeService: SchemeService,
                                         minimalConnector: MinimalConnector,
-                                        financialInfoCreditAccessConnector:FinancialInfoCreditAccessConnector
+                                        financialInfoCreditAccessConnector: FinancialInfoCreditAccessConnector
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -57,23 +57,12 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
     }
   }
 
-  private def out[A](x:A, s:String) = {
-    println("\n>>>>>>>" + s)
-    x
-  }
-
-  private def requestRefundURL(srn: String)(implicit request: IdentifierRequest[AnyContent]):Future[String] = {
-println("\nUUUUUUU")
+  private def requestRefundURL(srn: String)(implicit request: IdentifierRequest[AnyContent]): Future[String] = {
     for {
-      _ <- Future.successful{
-        println("ooooooooooooo")
-        ""
-      }
-      psaOrPspName <- out(minimalConnector.getPsaOrPspName, "KKKK")
-      schemeDetails <- out(schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn"), "WWW1")
+      psaOrPspName <- minimalConnector.getPsaOrPspName
+      schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
       creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
     } yield {
-      println("\nA")
       val pstr = schemeDetails.pstr
       val creditBalance = psaSchemePartialService.getCreditBalanceAmount(creditSchemeFS)
       val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
@@ -85,13 +74,10 @@ println("\nUUUUUUU")
   }
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    println("\n>>>WAAA")
-    requestRefundURL(srn).flatMap{ url =>
-      creditAccess(srn).flatMap{
+    requestRefundURL(srn).flatMap { url =>
+      creditAccess(srn).flatMap {
         case None => Future.successful(Redirect(Call("GET", url)))
         case Some(cat) =>
-        println("\n>>>" + cat)
-        println("\n>>d>" + url)
           renderPage(cat, url)
       }
     }
