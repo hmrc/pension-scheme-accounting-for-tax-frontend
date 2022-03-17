@@ -46,7 +46,6 @@ class PsaSchemeFinancialOverviewController @Inject()( identify: IdentifierAction
     with NunjucksSupport {
 
   private val logger = Logger(classOf[PsaSchemeFinancialOverviewController])
-  private val psaIdRegex = "^A[0-9]{7}$".r
   def psaSchemeFinancialOverview(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
       val response = for {
