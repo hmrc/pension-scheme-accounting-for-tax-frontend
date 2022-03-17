@@ -19,7 +19,7 @@ package controllers.financialOverview
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import models.SchemeDetails
-import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSDetail
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -54,7 +54,7 @@ class PsaSchemeFinancialOverviewController @Inject()( identify: IdentifierAction
         aftModel <- service.aftCardModel(schemeDetails, srn)
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
-        renderFinancialOverview(srn, schemeDetails, schemeFS, aftModel, request, creditSchemeFS)
+        renderFinancialOverview(srn, schemeDetails, schemeFS.seqSchemeFSDetail, aftModel, request, creditSchemeFS.seqSchemeFSDetail)
       }
       response.flatten
   }
@@ -62,19 +62,19 @@ class PsaSchemeFinancialOverviewController @Inject()( identify: IdentifierAction
   // scalastyle:off parameter.number
   private def renderFinancialOverview(srn: String,
                                       schemeDetails: SchemeDetails,
-                                      schemeFS: Seq[SchemeFS],
+                                      schemeFSDetail: Seq[SchemeFSDetail],
                                       aftModel: Seq[CardViewModel],
                                       request: RequestHeader,
-                                      creditSchemeFS: Seq[SchemeFS]) (implicit messages: Messages) : Future[Result] = {
+                                      creditSchemeFSDetail: Seq[SchemeFSDetail]) (implicit messages: Messages) : Future[Result] = {
     val schemeName = schemeDetails.schemeName
-    val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
-    val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
-    val creditBalanceFormatted: String = service.creditBalanceAmountFormatted(creditSchemeFS)
+    val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFSDetail, srn)
+    val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFSDetail, srn)
+    val creditBalanceFormatted: String = service.creditBalanceAmountFormatted(creditSchemeFSDetail)
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(aftModel)}")
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(upcomingTile)}")
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(overdueTile)}")
 
-    val creditBalance = service.getCreditBalanceAmount(creditSchemeFS)
+    val creditBalance = service.getCreditBalanceAmount(creditSchemeFSDetail)
 
     renderer.render(
        template = "financialOverview/psaSchemeFinancialOverview.njk",

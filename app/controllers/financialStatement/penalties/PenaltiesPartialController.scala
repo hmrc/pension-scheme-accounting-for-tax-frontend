@@ -49,10 +49,10 @@ class PenaltiesPartialController @Inject()(
     toggleService.get(FinancialInformationAFT).flatMap {
       case Enabled(FinancialInformationAFT) =>
         fsConnector.getPsaFS(request.psaIdOrException.id).flatMap { psaFS =>
-          val result = if (psaFS.isEmpty) {
+          val result = if (psaFS.seqPsaFSDetail.isEmpty) {
             Future.successful(Html(""))
           } else {
-            val viewModel = aftPartialService.penaltiesAndCharges(psaFS)
+            val viewModel = aftPartialService.penaltiesAndCharges(psaFS.seqPsaFSDetail)
             renderer.render(
               template = "partials/psaSchemeDashboardPartial.njk",
               ctx = Json.obj("cards" -> Json.toJson(viewModel))
@@ -63,10 +63,10 @@ class PenaltiesPartialController @Inject()(
 
       case _ =>
         fsConnector.getPsaFS(request.psaIdOrException.id).flatMap { psaFS =>
-          val result = if (psaFS.isEmpty) {
+          val result = if (psaFS.seqPsaFSDetail.isEmpty) {
             Future.successful(Html(""))
           } else {
-            val viewModel = aftPartialService.retrievePsaPenaltiesCardModel(psaFS)
+            val viewModel = aftPartialService.retrievePsaPenaltiesCardModel(psaFS.seqPsaFSDetail)
             renderer.render(
               template = "partials/penalties.njk",
               ctx = Json.obj("viewModel" -> Json.toJson(viewModel))

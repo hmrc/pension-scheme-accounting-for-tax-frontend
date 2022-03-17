@@ -74,7 +74,7 @@ class ReturnHistoryController @Inject()(
       table <- tableOfVersions(srn, versions.sortBy(_.versionDetails.reportVersion).reverse, startDate, seqAFTOverview)
     } yield {
 
-      val paymentJson = if (schemeFs.isEmpty) {
+      val paymentJson = if (schemeFs.seqSchemeFSDetail.isEmpty) {
         Json.obj()
       }
       else {

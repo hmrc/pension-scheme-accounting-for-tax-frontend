@@ -23,7 +23,7 @@ import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
 import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -40,8 +40,8 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
   private def payments(charge2Start: LocalDate = Q3_2020_START,
                        charge2End: LocalDate = Q3_2020_END,
                        charge1Type: SchemeFSChargeType = PSS_AFT_RETURN,
-                       charge2Type: SchemeFSChargeType = PSS_OTC_AFT_RETURN): Seq[SchemeFS] = Seq(
-    SchemeFS(
+                       charge2Type: SchemeFSChargeType = PSS_OTC_AFT_RETURN): Seq[SchemeFSDetail] = Seq(
+    SchemeFSDetail(
       chargeReference = "1",
       chargeType = charge1Type,
       dueDate = Some(LocalDate.parse("2020-05-15")),
@@ -56,7 +56,7 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
     ),
-    SchemeFS(
+    SchemeFSDetail(
       chargeReference = "2",
       chargeType = charge2Type,
       dueDate = Some(LocalDate.parse("2020-05-15")),

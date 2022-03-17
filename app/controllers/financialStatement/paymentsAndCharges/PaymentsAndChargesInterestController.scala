@@ -22,7 +22,7 @@ import helpers.FormatHelper
 import models.ChargeDetailsFilter
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
-import models.financialStatement.{PaymentOrChargeType, SchemeFS}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -60,13 +60,13 @@ class PaymentsAndChargesInterestController @Inject()(
     (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
-        val schemeFS: Seq[SchemeFS] = getFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
+        val schemeFSDetail: Seq[SchemeFSDetail] = getFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
 
-        buildPage(schemeFS, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType, journeyType)
+        buildPage(schemeFSDetail, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType, journeyType)
       }
   }
 
-  private def getFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType): Seq[SchemeFS] =
+  private def getFilteredPayments(payments: Seq[SchemeFSDetail], period: String, paymentOrChargeType: PaymentOrChargeType): Seq[SchemeFSDetail] =
     if(paymentOrChargeType == AccountingForTaxCharges) {
       val startDate: LocalDate = LocalDate.parse(period)
       payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate)
@@ -75,7 +75,7 @@ class PaymentsAndChargesInterestController @Inject()(
     }
 
   private def buildPage(
-                         filteredSchemeFS: Seq[SchemeFS],
+                         filteredSchemeFS: Seq[SchemeFSDetail],
                          period: String,
                          index: String,
                          schemeName: String,
@@ -112,18 +112,18 @@ class PaymentsAndChargesInterestController @Inject()(
 
   }
 
-  def summaryListData(srn: String, schemeFS: SchemeFS, schemeName: String,
+  def summaryListData(srn: String, schemeFSDetail: SchemeFSDetail, schemeName: String,
                       psaId: Option[PsaId], pspId: Option[PspId], originalAmountUrl: String)
                      (implicit messages: Messages): JsObject =
         Json.obj(
-          fields = "chargeDetailsList" -> getSummaryListRows(schemeFS),
+          fields = "chargeDetailsList" -> getSummaryListRows(schemeFSDetail),
           "tableHeader" -> messages("paymentsAndCharges.caption",
-            schemeFS.periodStartDate.format(dateFormatterStartDate),
-            schemeFS.periodEndDate.format(dateFormatterDMY)),
+            schemeFSDetail.periodStartDate.format(dateFormatterStartDate),
+            schemeFSDetail.periodEndDate.format(dateFormatterDMY)),
           "schemeName" -> schemeName,
-          "accruedInterest" -> schemeFS.accruedInterestTotal,
+          "accruedInterest" -> schemeFSDetail.accruedInterestTotal,
           "chargeType" -> (
-            if (schemeFS.chargeType == PSS_AFT_RETURN) {
+            if (schemeFSDetail.chargeType == PSS_AFT_RETURN) {
               PSS_AFT_RETURN_INTEREST.toString
             } else {
               PSS_OTC_AFT_RETURN_INTEREST.toString
@@ -133,23 +133,23 @@ class PaymentsAndChargesInterestController @Inject()(
           "returnUrl" -> config.schemeDashboardUrl(psaId, pspId).format(srn)
         )
 
-  private def getSummaryListRows(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
+  private def getSummaryListRows(schemeFSDetail: SchemeFSDetail): Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(msg"paymentsAndCharges.interest", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.accruedInterestTotal)}"),
+          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
         ),
         actions = Nil
       ),
       Row(
         key = Key(
-          msg"paymentsAndCharges.interestFrom".withArgs(schemeFS.periodEndDate.plusDays(46).format(dateFormatterDMY)),
+          msg"paymentsAndCharges.interestFrom".withArgs(schemeFSDetail.periodEndDate.plusDays(46).format(dateFormatterDMY)),
           classes = Seq("govuk-table__cell--numeric", "govuk-!-padding-right-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
         ),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.accruedInterestTotal)}"),
+          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")
         ),
         actions = Nil

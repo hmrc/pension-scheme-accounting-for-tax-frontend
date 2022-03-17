@@ -20,7 +20,7 @@ import config.Constants._
 import controllers.actions._
 import models.LocalDateBinder._
 import models.financialStatement.PenaltyType._
-import models.financialStatement.{PenaltyType, PsaFS}
+import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
 import models.{PenaltiesFilter, Quarters}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -62,7 +62,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
         val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
           schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
 
-            val filteredPsaFS: Seq[PsaFS] = penaltiesCache.penalties
+            val filteredPsaFS: Seq[PsaFSDetail] = penaltiesCache.penalties
               .filter(_.pstr == schemeDetails.pstr)
               .filter(_.periodStartDate == startDate)
               .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
@@ -76,7 +76,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
 
             val pstrs: Seq[String] = penalties.map(_.pstr)
 
-            val filteredPsaFS: Seq[PsaFS] = penalties
+            val filteredPsaFS: Seq[PsaFSDetail] = penalties
               .filter(_.periodStartDate == startDate)
               .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
 
@@ -117,7 +117,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
       val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
         schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
 
-          val filteredPsaFS: Seq[PsaFS] = penaltiesCache.penalties
+          val filteredPsaFS: Seq[PsaFSDetail] = penaltiesCache.penalties
             .filter(_.pstr == schemeDetails.pstr)
             .filter(_.periodEndDate.getYear == year)
             .filter(p => getPenaltyType(p.chargeType) == penaltyType)
@@ -131,7 +131,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
 
           val pstrs: Seq[String] = penaltiesCache.penalties.map(_.pstr)
 
-          val filteredPsaFS: Seq[PsaFS] = penalties
+          val filteredPsaFS: Seq[PsaFSDetail] = penalties
             .filter(_.periodEndDate.getYear == year)
             .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
