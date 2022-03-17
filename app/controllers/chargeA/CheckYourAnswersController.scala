@@ -20,17 +20,17 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{IdentifierAction, AllowAccessActionProvider, DataRetrievalAction, DataRequiredAction}
+import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeAHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
 import models.requests.DataRequest
-import models.{ChargeType, NormalMode, AccessType, GenericViewModel}
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
-import pages.{ViewOnlyAccessiblePage, PSTRQuery}
-import play.api.i18n.{MessagesApi, I18nSupport}
+import pages.{PSTRQuery, ViewOnlyAccessiblePage}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -63,7 +63,6 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       implicit request =>
         DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate, accessType, version) { (chargeDetails, schemeName) =>
           val helper = new CYAChargeAHelper(srn, startDate, accessType, version)
-request.schemeAdministratorType
           val seqRows = Seq(
             helper.chargeAMembers(chargeDetails),
             helper.chargeAAmountLowerRate(chargeDetails),
