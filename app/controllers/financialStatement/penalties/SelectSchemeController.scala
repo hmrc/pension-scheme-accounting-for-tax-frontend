@@ -20,7 +20,7 @@ import controllers.actions._
 import controllers.financialStatement.penalties.routes._
 import forms.SelectSchemeFormProvider
 import models.financialStatement.PenaltyType._
-import models.financialStatement.{PenaltyType, PsaFS}
+import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
 import models.{PenaltiesFilter, PenaltySchemes}
 import play.api.data.Form
@@ -115,7 +115,7 @@ class SelectSchemeController @Inject()(
   }
 
   def getSchemesAndUrl(penaltyType: PenaltyType, period: String, psaId: String, journeyType: PenaltiesFilter)
-                      (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFS] => Future[Seq[PenaltySchemes]], String => Call) =
+                      (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail] => Future[Seq[PenaltySchemes]], String => Call) =
     penaltyType match {
       case AccountingForTaxPenalties =>
         (penalties => penaltiesService.penaltySchemes(LocalDate.parse(period), psaId, penalties),

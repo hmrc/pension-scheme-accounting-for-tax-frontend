@@ -18,8 +18,8 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
-import models.financialStatement.PsaFS
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
+import models.financialStatement.{PsaFS, PsaFSDetail}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status
@@ -53,12 +53,12 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
             aResponse()
               .withStatus(Status.OK)
               .withHeader("Content-Type", "application/json")
-              .withBody(Json.toJson(psaFSResponse).toString)
+              .withBody(Json.toJson(psaFsToValidate).toString)
           )
       )
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getPsaFS(psaId).map(fs => fs mustBe psaFSResponseToValidate)
+      connector.getPsaFS(psaId).map(fs => fs mustBe psaFsToValidate)
 
     }
 
@@ -93,13 +93,13 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
             aResponse()
               .withStatus(Status.OK)
               .withHeader("Content-Type", "application/json")
-              .withBody(Json.toJson(psaFSResponse).toString)
+              .withBody(Json.toJson(psaFs).toString)
           )
       )
       val connector = injector.instanceOf[FinancialStatementConnector]
 
       connector.getPsaFSWithPaymentOnAccount(psaId).map(
-        fs => fs mustBe psaFSResponse
+        fs => fs mustBe psaFs
       )
 
     }
@@ -141,8 +141,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
 
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getSchemeFS(pstr).map(fs => fs mustBe SampleData.schemeFSResponseAftAndOTC)
-
+      connector.getSchemeFS(pstr).map(_.seqSchemeFSDetail mustBe SampleData.schemeFSResponseAftAndOTC.seqSchemeFSDetail)
     }
 
     "throw BadRequestException for a 400 INVALID_PSTR response" in {
@@ -216,8 +215,8 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
 
 object FinancialStatementConnectorSpec {
 
-  val psaFSResponse: Seq[PsaFS] = Seq(
-    PsaFS(
+  val psaFSResponse: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -230,7 +229,7 @@ object FinancialStatementConnectorSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN"
     ),
-    PsaFS(
+    PsaFSDetail(
       chargeReference = "XY002610150185",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -243,7 +242,7 @@ object FinancialStatementConnectorSpec {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
     ),
-    PsaFS(
+    PsaFSDetail(
       chargeReference = "XY002610150186",
       chargeType = PAYMENT_ON_ACCOUNT,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -258,8 +257,10 @@ object FinancialStatementConnectorSpec {
     )
   )
 
-  val psaFSResponseToValidate: Seq[PsaFS] = Seq(
-    PsaFS(
+  val psaFs: PsaFS = PsaFS (false, psaFSResponse)
+
+  val psaFSResponseToValidate: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -272,7 +273,7 @@ object FinancialStatementConnectorSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN"
     ),
-    PsaFS(
+    PsaFSDetail(
       chargeReference = "XY002610150185",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -286,5 +287,5 @@ object FinancialStatementConnectorSpec {
       pstr = "24000041IN"
     )
   )
-
+  val psaFsToValidate: PsaFS = PsaFS (true, psaFSResponseToValidate)
 }

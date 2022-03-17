@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.actions._
 import models.ChargeDetailsFilter.{All, Upcoming}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
-import models.financialStatement.{PaymentOrChargeType, SchemeFS}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -56,8 +56,8 @@ class PaymentsAndChargesController @Inject()(
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
-              val (title, filteredPayments): (String, Seq[SchemeFS]) =
-                getTitleAndFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType, journeyType)
+              val (title, filteredPayments): (String, Seq[SchemeFSDetail]) =
+                getTitleAndFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType, journeyType)
 
               if (filteredPayments.nonEmpty) {
 
@@ -85,8 +85,8 @@ class PaymentsAndChargesController @Inject()(
 
   val isTaxYearFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
 
-  private def getTitleAndFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter)
-                                         (implicit messages: Messages): (String, Seq[SchemeFS]) =
+  private def getTitleAndFilteredPayments(payments: Seq[SchemeFSDetail], period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter)
+                                         (implicit messages: Messages): (String, Seq[SchemeFSDetail]) =
     if(paymentOrChargeType == AccountingForTaxCharges) {
 
       val startDate: LocalDate = LocalDate.parse(period)

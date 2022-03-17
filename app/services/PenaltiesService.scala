@@ -25,7 +25,7 @@ import models.LocalDateBinder._
 import models.PenaltiesFilter.Outstanding
 import models.financialStatement.PenaltyType._
 import models.financialStatement.PsaFSChargeType.CONTRACT_SETTLEMENT
-import models.financialStatement.{PenaltyType, PsaFS}
+import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
 import play.api.Logger
 import play.api.i18n.Messages
@@ -49,10 +49,10 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
   private val logger = Logger(classOf[PenaltiesService])
 
-  val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
+  val isPaymentOverdue: PsaFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
   //PENALTIES
-  def getPsaFsJson(penalties: Seq[PsaFS], identifier: String, chargeRefsIndex: String => String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
+  def getPsaFsJson(penalties: Seq[PsaFSDetail], identifier: String, chargeRefsIndex: String => String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
                   (implicit messages: Messages): JsObject = {
 
     val head: Seq[Cell] = Seq(
@@ -92,7 +92,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     )
   }
 
-  private def chargeTypeLink(identifier: String, data: PsaFS, chargeRefsIndex: String, journeyType: PenaltiesFilter)
+  private def chargeTypeLink(identifier: String, data: PsaFSDetail, chargeRefsIndex: String, journeyType: PenaltiesFilter)
                             (implicit messages: Messages): Html =
           Html(s"<a id=${data.chargeReference} " +
             s"class=govuk-link href=${controllers.financialStatement.penalties.routes
@@ -100,7 +100,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
             s"${messages(data.chargeType.toString)}" +
             s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
 
-  private def accruedInterestLink(identifier: String, data: PsaFS, chargeRefsIndex: String)
+  private def accruedInterestLink(identifier: String, data: PsaFSDetail, chargeRefsIndex: String)
     (implicit messages: Messages): Html =
     Html(s"<a id=${data.chargeReference}-interest " +
       s"class=govuk-link href=${controllers.financialStatement.penalties.routes
@@ -108,7 +108,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       s"${messages("penalties.column.chargeType.interestOn", messages(data.chargeType.toString.toLowerCase))}" +
       s"<span class=govuk-visually-hidden>${messages(s"penalties.column.chargeType.interestToCome")}</span> </a>")
 
-  private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
+  private def statusCell(data: PsaFSDetail)(implicit messages: Messages): Cell = {
     val (classes, content) = (isPaymentOverdue(data), data.amountDue) match {
       case (true, _) => ("govuk-tag govuk-tag--red", messages("penalties.status.paymentOverdue"))
       case (_, amount) if amount == BigDecimal(0.00) =>
@@ -119,7 +119,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
   }
 
   //CHARGE DETAILS
-  def chargeDetailsRows(data: PsaFS): Seq[SummaryList.Row] =
+  def chargeDetailsRows(data: PsaFSDetail): Seq[SummaryList.Row] =
     Seq(
       Row(
         key = Key(Literal(data.chargeType.toString), classes = Seq("govuk-!-width-three-quarters")),
@@ -129,7 +129,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     ) ++ paymentRow(data) ++ amountUnderReviewRow(data) ++ totalDueRow(data)
 
 
-  private def totalInterestDueRow(data: PsaFS): Seq[SummaryList.Row] = {
+  private def totalInterestDueRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
     val dateAsOf: String = LocalDate.now.format(dateFormatterDMY)
     Seq(Row(
       key = Key(msg"penalties.interest.totalDueAsOf".withArgs(dateAsOf), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
@@ -138,7 +138,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     ))
   }
 
-  def interestRows(data: PsaFS): Seq[SummaryList.Row] =
+  def interestRows(data: PsaFSDetail): Seq[SummaryList.Row] =
     Seq(
       Row(
         key = Key(Message("penalties.status.interestAccruing"), classes = Seq("govuk-!-width-three-quarters")),
@@ -147,7 +147,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       )
     ) ++ totalInterestDueRow(data)
 
-  private def paymentRow(data: PsaFS): Seq[SummaryList.Row] = {
+  private def paymentRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
     val paymentAmount: BigDecimal = data.totalAmount - data.outstandingAmount
     if (paymentAmount != BigDecimal(0.00)) {
       Seq(Row(
@@ -161,7 +161,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
   }
 
-  private def amountUnderReviewRow(data: PsaFS): Seq[SummaryList.Row] = {
+  private def amountUnderReviewRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
     if (data.stoodOverAmount != BigDecimal(0.00)) {
       Seq(Row(
         key = Key(msg"penalties.chargeDetails.amountUnderReview", classes = Seq("govuk-!-width-three-quarters")),
@@ -174,7 +174,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
   }
 
-  private def totalDueRow(data: PsaFS): Seq[SummaryList.Row] = {
+  private def totalDueRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
     if (data.amountDue > BigDecimal(0.00) && data.dueDate.isDefined) {
       val dueDate: String = data.dueDate.get.format(dateFormatterDMY)
       Seq(Row(
@@ -193,7 +193,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
   }
 
   //SELECT SCHEME
-  def penaltySchemes(startDate: LocalDate, psaId: String, penalties: Seq[PsaFS])
+  def penaltySchemes(startDate: LocalDate, psaId: String, penalties: Seq[PsaFSDetail])
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] = {
 
       val filteredPenalties = penalties
@@ -203,7 +203,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       penaltySchemes(filteredPenalties, psaId)
     }
 
-  def penaltySchemes(year: Int, psaId: String, penaltyType: PenaltyType, penalties: Seq[PsaFS])
+  def penaltySchemes(year: Int, psaId: String, penaltyType: PenaltyType, penalties: Seq[PsaFSDetail])
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] = {
 
       val filteredPenalties = penalties
@@ -213,7 +213,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       penaltySchemes(filteredPenalties, psaId)
     }
 
-  private def penaltySchemes(filteredPenalties: Seq[PsaFS], psaId: String)
+  private def penaltySchemes(filteredPenalties: Seq[PsaFSDetail], psaId: String)
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] =
     for {
       listOfSchemes <- getListOfSchemes(psaId)
@@ -233,8 +233,8 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       associatedSchemes ++ unassociatedSchemes
     }
 
-  def unassociatedSchemes(seqPsaFS: Seq[PsaFS], startDate: LocalDate, psaId: String)
-                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] = {
+  def unassociatedSchemes(seqPsaFS: Seq[PsaFSDetail], startDate: LocalDate, psaId: String)
+                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFSDetail]] = {
     for {
       listOfSchemes <- getListOfSchemes(psaId)
       schemesWithPstr = listOfSchemes.filter(_.pstr.isDefined)
@@ -244,8 +244,8 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
         .filter(psaFS => !schemesWithPstr.map(_.pstr.get).contains(psaFS.pstr))
   }
 
-  def unassociatedSchemes(seqPsaFS: Seq[PsaFS], year: Int, psaId: String)
-                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] = {
+  def unassociatedSchemes(seqPsaFS: Seq[PsaFSDetail], year: Int, psaId: String)
+                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFSDetail]] = {
     for {
       listOfSchemes <- getListOfSchemes(psaId)
       schemesWithPstr = listOfSchemes.filter(_.pstr.isDefined)
@@ -267,8 +267,8 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     for {
       penalties <- fsConnector.getPsaFS(psaId)
       minimalDetails <- minimalConnector.getMinimalPsaDetails(psaId)
-      _ <- fiCacheConnector.save(Json.toJson(PenaltiesCache(psaId, minimalDetails.name, penalties)))
-    } yield PenaltiesCache(psaId, minimalDetails.name, penalties)
+      _ <- fiCacheConnector.save(Json.toJson(PenaltiesCache(psaId, minimalDetails.name, penalties.seqPsaFSDetail)))
+    } yield PenaltiesCache(psaId, minimalDetails.name, penalties.seqPsaFSDetail)
 
 
   def getPenaltiesFromCache(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PenaltiesCache] =
@@ -291,7 +291,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
   //Navigation helper methods
 
-  def navFromOverviewPage(penalties: Seq[PsaFS], psaId: String, journeyType: PenaltiesFilter)
+  def navFromOverviewPage(penalties: Seq[PsaFSDetail], psaId: String, journeyType: PenaltiesFilter)
   (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     val penaltyTypes: Seq[PenaltyType] = penalties.map(p => getPenaltyType(p.chargeType)).distinct
 
@@ -305,7 +305,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
   }
 
-  def navFromPenaltiesTypePage(penalties: Seq[PsaFS], penaltyType: PenaltyType, psaId: String, journeyType: PenaltiesFilter)
+  def navFromPenaltiesTypePage(penalties: Seq[PsaFSDetail], penaltyType: PenaltyType, psaId: String, journeyType: PenaltiesFilter)
                               (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
     val yearsSeq = penalties
@@ -321,7 +321,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
   }
 
-  def navFromNonAftYearsPage(penalties: Seq[PsaFS], year: String, psaId: String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
+  def navFromNonAftYearsPage(penalties: Seq[PsaFSDetail], year: String, psaId: String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
                             (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
     val penaltiesUrl = penaltyType match {
@@ -348,7 +348,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
   }
 
-  def navFromAftYearsPage(penalties: Seq[PsaFS], year: Int, psaId: String, journeyType: PenaltiesFilter)
+  def navFromAftYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, journeyType: PenaltiesFilter)
                          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     val quartersSeq = penalties
       .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
@@ -365,7 +365,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
   }
 
-  def navFromAftQuartersPage(penalties: Seq[PsaFS], startDate: LocalDate, psaId: String, journeyType: PenaltiesFilter)
+  def navFromAftQuartersPage(penalties: Seq[PsaFSDetail], startDate: LocalDate, psaId: String, journeyType: PenaltiesFilter)
                             (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] =
     penaltySchemes(startDate, psaId, penalties).map { schemes =>
       if(schemes.size > 1) {
@@ -393,7 +393,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
 }
 
-case class PenaltiesCache(psaId: String, psaName: String, penalties: Seq[PsaFS])
+case class PenaltiesCache(psaId: String, psaName: String, penalties: Seq[PsaFSDetail])
 object PenaltiesCache {
   implicit val format: OFormat[PenaltiesCache] = Json.format[PenaltiesCache]
 }

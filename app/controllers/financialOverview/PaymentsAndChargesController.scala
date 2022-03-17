@@ -21,7 +21,7 @@ import connectors.AFTConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter.Upcoming
-import models.financialStatement.{SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
 import models.{ChargeDetailsFilter, UserAnswers}
 import pages.{AFTReceiptDateQuery, AFTVersionQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -53,8 +53,8 @@ class PaymentsAndChargesController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  private def getMapChargeTypeToVersionAndDate(seqSchemeFS: Seq[SchemeFS], pstr: String)(implicit ec: ExecutionContext,
-                                                            headerCarrier: HeaderCarrier): Future[Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])]] = {
+  private def getMapChargeTypeToVersionAndDate(seqSchemeFS: Seq[SchemeFSDetail], pstr: String)(implicit ec: ExecutionContext,
+                                                                                               headerCarrier: HeaderCarrier): Future[Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])]] = {
     val tuple = Future.sequence {
       seqSchemeFS.map { scheme =>
         scheme.formBundleNumber match {
@@ -75,15 +75,15 @@ class PaymentsAndChargesController @Inject()(
   def onPageLoad(srn: String, pstr: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
-        val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFS)
+        val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFSDetail)
         val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
         val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
-        val upcomingCharges: Seq[SchemeFS] = paymentsAndChargesService.extractUpcomingCharges(paymentsCache.schemeFS)
+        val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(paymentsCache.schemeFSDetail)
         val totalUpcoming : BigDecimal = upcomingCharges.map(_.amountDue).sum
 
-        if (paymentsCache.schemeFS.nonEmpty) {
-          getMapChargeTypeToVersionAndDate(paymentsCache.schemeFS, pstr).flatMap { mapChargeTypesVersionsAndDate =>
-            val table = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, paymentsCache.schemeFS, mapChargeTypesVersionsAndDate, journeyType)
+        if (paymentsCache.schemeFSDetail.nonEmpty) {
+          getMapChargeTypeToVersionAndDate(paymentsCache.schemeFSDetail, pstr).flatMap { mapChargeTypesVersionsAndDate =>
+            val table = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, paymentsCache.schemeFSDetail, mapChargeTypesVersionsAndDate, journeyType)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
               fields =
