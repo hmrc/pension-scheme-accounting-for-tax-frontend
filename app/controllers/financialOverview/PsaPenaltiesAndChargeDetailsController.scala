@@ -18,7 +18,7 @@ package controllers.financialOverview
 
 import controllers.actions._
 import models.ChargeDetailsFilter
-import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT, INTEREST_ON_CONTRACT_SETTLEMENT}
+import models.financialStatement.PsaFSChargeType.INTEREST_ON_CONTRACT_SETTLEMENT
 import models.financialStatement.{PsaFS, PsaFSChargeType}
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -29,7 +29,7 @@ import services.SchemeService
 import services.financialOverview.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.formatDateDMY
+import utils.DateHelper.dateFormatterDMY
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -73,7 +73,46 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       }
   }
 
-  private def setInsetText(psaFS: PsaFS, interestUrl: String) (implicit messages: Messages): Html = {
+  private val isChargeTypeVowel: PsaFS => Boolean = psaFS => psaFS.chargeType.toString.toLowerCase().charAt(0)  match {
+    case 'a' | 'e' | 'i' | 'o' | 'u' => true
+    case _ => false
+  }
+
+  private def setInsetText(isChargeAssigned: Boolean, psaFS: PsaFS, interestUrl: String) (implicit messages: Messages): Html = {
+    (isChargeAssigned, psaFS.dueDate, psaFS.accruedInterestTotal > 0, psaFS.amountDue > 0, isChargeTypeVowel(psaFS))  match {
+      case (false, Some(date), true, true, _) =>
+        Html(
+          s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
+            s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
+            s" <span class=govuk-!-font-weight-bold>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
+              psaFS.accruedInterestTotal)}</span>" +
+            s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", date.format(dateFormatterDMY))}<span>" +
+            s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
+        )
+      case (true, _, _, _, _) =>
+        Html(
+          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2", psaFS.chargeType.toString.toLowerCase())}</p>" +
+            s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
+        )
+      case (true, _, _, _, true) =>
+        Html(
+          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1_vowel", psaFS.chargeType.toString.toLowerCase())}</p>" +
+            s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
+        )
+      case (true, _, _, _, false) =>
+        Html(
+          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1_consonant", psaFS.chargeType.toString.toLowerCase())}</p>" +
+            s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
+        )
+      case _ =>
+        Html("")
+    }
+  }
+  /*private def setInsetText(psaFS: PsaFS, interestUrl: String) (implicit messages: Messages): Html = {
 
     if(psaFS.chargeType == CONTRACT_SETTLEMENT && psaFS.accruedInterestTotal > 0) {
       Html(
@@ -88,7 +127,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     } else {
       Html("")
     }
-  }
+  }*/
 
 
   private def commonJson(
@@ -106,13 +145,28 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     val detailsChargeType = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
 
+    val insetText = fs.sourceChargeRefForInterest match {
+      case sourceChargeRef =>
+        val originalCharge = psaFS.find(_.chargeReference.equals(sourceChargeRef))
+        val index = originalCharge.map(_.chargeReference) match {
+          case Some(chargeValue) => chargeReferenceIndex.indexOf(chargeValue).toString
+          case None => ""
+        }
+        val interestUrl = controllers.financialOverview.routes.PsaPaymentsAndChargesInterestController
+          .onPageLoad(fs.pstr, chargeReferenceIndex, journeyType).url
+        setInsetText(true, fs, interestUrl)
+      case _ =>
+        setInsetText(false, fs, interestUrl)
+    }
+
+
     Json.obj(
       "heading" ->   detailsChargeTypeHeading.toString,
       "isOverdue" ->        psaPenaltiesAndChargesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
       "period" ->           period,
       "chargeReference" ->  fs.chargeReference,
       "penaltyAmount" ->    psaFSDetails.totalAmount,
-      "htmlInsetText" ->    setInsetText(fs, interestUrl),
+      "htmlInsetText" ->    insetText,
       "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
       "returnUrl" -> routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url,
       "isInterestAccruing" -> isInterestAccruing,

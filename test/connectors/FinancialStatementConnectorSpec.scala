@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, INTEREST_ON_CONTRACT_SETTLEMENT, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
-import models.financialStatement.{DocumentLineItemDetail, PsaFS, SchemeFSClearingReason}
+import models.financialStatement.{DocumentLineItemDetail, PsaFS, FSClearingReason}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status
@@ -230,7 +230,7 @@ object FinancialStatementConnectorSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN",
       documentLineItemDetails = Seq(DocumentLineItemDetail(
-        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     ),
@@ -247,7 +247,7 @@ object FinancialStatementConnectorSpec {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN",
       documentLineItemDetails = Seq(DocumentLineItemDetail(
-        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     ),
@@ -264,7 +264,7 @@ object FinancialStatementConnectorSpec {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN",
       documentLineItemDetails = Seq(DocumentLineItemDetail(
-        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     )
@@ -284,7 +284,7 @@ object FinancialStatementConnectorSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN",
       documentLineItemDetails = Seq(DocumentLineItemDetail(
-        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     )
@@ -304,7 +304,7 @@ object FinancialStatementConnectorSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN",
       documentLineItemDetails = Seq(DocumentLineItemDetail(
-        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     ),
@@ -321,7 +321,7 @@ object FinancialStatementConnectorSpec {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN",
       documentLineItemDetails = Seq(DocumentLineItemDetail(
-        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     )

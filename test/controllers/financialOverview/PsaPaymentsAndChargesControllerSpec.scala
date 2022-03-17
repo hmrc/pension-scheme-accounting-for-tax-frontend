@@ -114,15 +114,6 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
       templateCaptor.getValue mustEqual "financialOverview/psaPaymentsAndCharges.njk"
       //jsonCaptor.getValue must containJson(expectedJson)
     }
-
-    "redirect to Session Expired page when there is no data for a GET" in {
-      when(mockPsaPenaltiesAndChargesService.getPenaltiesFromCache(any())(any(), any())).
-        thenReturn(Future.successful(noDataCache))
-
-      val result = route(application, httpGETRequest(httpPathGET)).value
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
-    }
   }
 
 }

@@ -22,16 +22,16 @@ import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
+import models.financialStatement.FSClearingReason.{CLEARED_WITH_DELTA_CREDIT, CLEARED_WITH_PAYMENT, OTHER_REASONS, REPAYMENT_TO_THE_CUSTOMER, TRANSFERRED_TO_ANOTHER_ACCOUNT, WRITTEN_OFF}
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.PsaFSChargeType.{AFT_12_MONTH_LPP, AFT_30_DAY_LPP, AFT_6_MONTH_LPP, AFT_DAILY_LFP, AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, INTEREST_ON_CONTRACT_SETTLEMENT, OTC_12_MONTH_LPP, OTC_30_DAY_LPP, OTC_6_MONTH_LPP, PSS_INFO_NOTICE, PSS_PENALTY}
-import models.financialStatement.SchemeFSClearingReason.{CLEARED_WITH_DELTA_CREDIT, CLEARED_WITH_PAYMENT, OTHER_REASONS, REPAYMENT_TO_THE_CUSTOMER, TRANSFERRED_TO_ANOTHER_ACCOUNT, WRITTEN_OFF}
 import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFS, PsaFSChargeType}
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
-import services.{PenaltiesService, SchemeService}
+import services.SchemeService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -47,8 +47,7 @@ import javax.inject.Inject
 import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
-class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService,
-                                              fsConnector: FinancialStatementConnector,
+class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementConnector,
                                               financialInfoCacheConnector: FinancialInfoCacheConnector,
                                               schemeService: SchemeService,
                                               minimalConnector: MinimalConnector) {
@@ -95,7 +94,7 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
       }
 */
 
-      val tableRecords = getSchemeDetails(psaId, details.pstr).map { schemeName =>
+      val tableRecords = getSchemeName(psaId, details.pstr).map { schemeName =>
 
         //val originalChargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
 
@@ -174,7 +173,7 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
     chargeRefs
   }
 
-  private def getSchemeDetails(psaId: String, pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
+  private def getSchemeName(psaId: String, pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
     val res = for {
       schemeDetails <- schemeService.retrieveSchemeDetails(psaId, pstr, "pstr")
     } yield schemeDetails.schemeName
@@ -444,6 +443,7 @@ class PsaPenaltiesAndChargesService @Inject()(penaltiesService: PenaltiesService
 
   def interestRows(data: PsaFS): Seq[SummaryList.Row] =
     chargeReferenceInterestRow(data) ++ totalInterestDueRow(data)
+
 }
 
 case class PenaltiesCache(psaId: String, psaName: String, penalties: Seq[PsaFS])

@@ -41,7 +41,7 @@ import models.ChargeDetailsFilter.Overdue
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
-import models.financialStatement.{DocumentLineItemDetail, SchemeFS, SchemeFSClearingReason}
+import models.financialStatement.{DocumentLineItemDetail, SchemeFS, FSClearingReason}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest._
@@ -292,7 +292,7 @@ object PaymentsAndChargeDetailsControllerSpec {
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
-        clearingReason= Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     )
