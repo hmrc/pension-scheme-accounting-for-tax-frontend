@@ -19,9 +19,9 @@ package controllers.financialOverview
 import config.FrontendAppConfig
 import connectors.{FinancialInfoCreditAccessConnector, FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
+import models.AdministratorOrPractitioner.Administrator
 import models.CreditAccessType
 import models.CreditAccessType.{AccessedByLoggedInPsaOrPsp, AccessedByOtherPsa, AccessedByOtherPsp}
-import models.LocalDateBinder.localDateToString
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -49,47 +49,55 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
     with I18nSupport
     with NunjucksSupport {
 
-  private val psaIdRegex = "^A[0-9]{7}$".r
-  private def isPsaId(s:String) = psaIdRegex.findFirstIn(s).isDefined
-
   private def creditAccess(srn: String)(implicit request: IdentifierRequest[AnyContent]): Future[Option[CreditAccessType]] = {
     val id = request.idOrException
-    val isPsa = isPsaId(id)
-    if (isPsa) {
-      financialInfoCreditAccessConnector.creditAccessForPsa(id, srn)
-    } else {
-      financialInfoCreditAccessConnector.creditAccessForPsp(id, srn)
+    request.schemeAdministratorType match {
+      case Administrator => financialInfoCreditAccessConnector.creditAccessForPsa(id, srn)
+      case _ => financialInfoCreditAccessConnector.creditAccessForPsp(id, srn)
     }
   }
 
+  private def out[A](x:A, s:String) = {
+    println("\n>>>>>>>" + s)
+    x
+  }
+
   private def requestRefundURL(srn: String)(implicit request: IdentifierRequest[AnyContent]):Future[String] = {
-    val id = request.idOrException
-    val isPsa = isPsaId(id)
+println("\nUUUUUUU")
     for {
-      psaOrPspName <- minimalConnector.getPsaOrPspName
-      schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
+      _ <- Future.successful{
+        println("ooooooooooooo")
+        ""
+      }
+      psaOrPspName <- out(minimalConnector.getPsaOrPspName, "KKKK")
+      schemeDetails <- out(schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn"), "WWW1")
       creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
     } yield {
+      println("\nA")
       val pstr = schemeDetails.pstr
       val creditBalance = psaSchemePartialService.getCreditBalanceAmount(creditSchemeFS)
       val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
-      if (isPsa){
-        s"$creditBalanceBaseUrl?requestType=1&psaName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
-      }
-      else {
-        s"$creditBalanceBaseUrl?requestType=2&pspName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
+      request.schemeAdministratorType match {
+        case Administrator => s"$creditBalanceBaseUrl?requestType=1&psaName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
+        case _ => s"$creditBalanceBaseUrl?requestType=2&pspName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
       }
     }
   }
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    creditAccess(srn).flatMap{
-      case None => requestRefundURL(srn).map(url => Redirect(Call("GET", url)))
-      case Some(cat) => renderPage(cat)
+    println("\n>>>WAAA")
+    requestRefundURL(srn).flatMap{ url =>
+      creditAccess(srn).flatMap{
+        case None => Future.successful(Redirect(Call("GET", url)))
+        case Some(cat) =>
+        println("\n>>>" + cat)
+        println("\n>>d>" + url)
+          renderPage(cat, url)
+      }
     }
   }
 
-  private def renderPage(creditAccessType: CreditAccessType)(implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
+  private def renderPage(creditAccessType: CreditAccessType, continueUrl: String)(implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
     val (heading, p1) = creditAccessType match {
       case AccessedByLoggedInPsaOrPsp =>
         Tuple2("requestRefund.youAlready.h1", "requestRefund.youAlready.p1")
@@ -101,7 +109,8 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
 
     val json = Json.obj(
       "heading" -> heading,
-      "p1" -> p1
+      "p1" -> p1,
+      "continueUrl" -> continueUrl
     )
 
     renderer.render("financialOverview/requestRefund.njk", json).map(Ok(_))
