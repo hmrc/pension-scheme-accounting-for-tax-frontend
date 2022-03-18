@@ -144,8 +144,10 @@ class ValidationController @Inject()(
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
 
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
-
-    val parserResult: Either[Seq[ParserValidationError], UserAnswers] = TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing and Validation")
+    val startTime = System.currentTimeMillis
+    val parserResult: Either[Seq[ParserValidationError], UserAnswers] =
+      TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing and Validation")
+    val endTime = System.currentTimeMillis
     val futureResult = parserResult.fold[Future[Result]](
       processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>
@@ -156,7 +158,7 @@ class ValidationController @Inject()(
       sendAuditEvent(
         chargeType = chargeType,
         linesFromCSV.size - 1,
-        fileValidationTimeInSeconds = 0,
+        fileValidationTimeInSeconds = ((endTime - startTime) / 1000).toInt,
         parserResult = parserResult)
       result
     }
