@@ -211,7 +211,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half")),
         Cell(Literal(s"${data.chargeReference}")),
-        Cell(Literal(data.originalChargeAmount)),
+        if (data.originalChargeAmount.isEmpty) {
+          Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
+        } else {
+          Cell(Literal(data.originalChargeAmount))
+        },
         Cell(Literal(data.paymentDue)),
         Cell(htmlStatus(data), classes = Nil)
       )
