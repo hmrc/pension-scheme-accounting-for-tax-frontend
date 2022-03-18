@@ -71,15 +71,13 @@ class PsaFinancialOverviewController @Inject()(
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
     logger.debug(s"AFT service returned InterestAccruing - ${psaCharges._3}")
 
-    val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
-    val requestRefundUrl = s"$creditBalanceBaseUrl?requestType=3&psaName=$psaName&availAmt=$creditBalance"
 
     renderer.render(
       template = "financialOverview/psaFinancialOverview.njk",
       ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1 ,
         "totalOverdueCharge" -> psaCharges._2 ,
         "totalInterestAccruing" -> psaCharges._3 ,
-        "psaName" -> psaName, "requestRefundUrl" -> requestRefundUrl,
+        "psaName" -> psaName, "requestRefundUrl" -> routes.PsaRequestRefundController.onPageLoad.url,
         "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }

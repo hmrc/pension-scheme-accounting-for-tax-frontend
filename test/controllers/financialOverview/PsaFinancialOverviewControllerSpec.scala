@@ -68,7 +68,7 @@ class PsaFinancialOverviewControllerSpec
       "totalOverdueCharge" -> "10",
       "totalInterestAccruing" -> "10",
       "psaName" -> "John Doe",
-      "requestRefundUrl" ->  requestRefundUrl,
+      "requestRefundUrl" ->  routes.PsaRequestRefundController.onPageLoad.url,
       "creditBalanceFormatted" -> "£1,000.00",
       "creditBalance" -> 1000
   )

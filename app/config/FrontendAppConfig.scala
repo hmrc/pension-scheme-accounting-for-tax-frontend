@@ -108,11 +108,14 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val isAftNonZero: String = s"$aftUrl${configuration.get[String](path = "urls.isAftNonZero")}"
   lazy val psaFinancialStatementUrl: String = s"$aftUrl${configuration.get[String](path = "urls.psaFinancialStatement")}"
 
-  def financialInfoCreditAccessPsaUrl(psaId: String, srn: String): String =
-    s"$aftUrl${configuration.get[String](path = "urls.financialInfoCreditAccessConnectorPsa").format(psaId, srn)}"
+  def financialInfoCreditAccessSchemePsaUrl(psaId: String, srn: String): String =
+    s"$aftUrl${configuration.get[String](path = "urls.financialInfoCreditAccessConnectorSchemePsa").format(psaId, srn)}"
 
-  def financialInfoCreditAccessPspUrl(pspId: String, srn: String): String =
-    s"$aftUrl${configuration.get[String](path = "urls.financialInfoCreditAccessConnectorPsp").format(pspId, srn)}"
+  def financialInfoCreditAccessSchemePspUrl(pspId: String, srn: String): String =
+    s"$aftUrl${configuration.get[String](path = "urls.financialInfoCreditAccessConnectorSchemePsp").format(pspId, srn)}"
+
+  def financialInfoCreditAccessPsaUrl(psaId: String): String =
+    s"$aftUrl${configuration.get[String](path = "urls.financialInfoCreditAccessConnectorPsa").format(psaId)}"
 
   lazy val viewPenaltiesUrl: String = configuration.get[String](path = "urls.partials.psaFinancialStatementLink")
   lazy val viewUpcomingPenaltiesUrl: String = configuration.get[String](path = "urls.partials.upcomingPenaltiesLink")
