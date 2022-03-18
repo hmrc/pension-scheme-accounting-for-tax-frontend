@@ -142,7 +142,7 @@ class ValidationController @Inject()(
 
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
-
+    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found. Srn is $srn")
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
     val startTime = System.currentTimeMillis
     val parserResult: Either[Seq[ParserValidationError], UserAnswers] =
@@ -156,6 +156,7 @@ class ValidationController @Inject()(
     )
     futureResult.map { result =>
       sendAuditEvent(
+        pstr = pstr,
         chargeType = chargeType,
         linesFromCSV.size - 1,
         fileValidationTimeInSeconds = ((endTime - startTime) / 1000).toInt,
@@ -164,7 +165,8 @@ class ValidationController @Inject()(
     }
   }
 
-  private def sendAuditEvent(chargeType: ChargeType,
+  private def sendAuditEvent(pstr: String,
+                             chargeType: ChargeType,
                              numberOfEntries: Int,
                              fileValidationTimeInSeconds: Int,
                              parserResult: Either[Seq[ParserValidationError], UserAnswers]
@@ -190,7 +192,7 @@ class ValidationController @Inject()(
       AFTFileValidationCheckAuditEvent(
         administratorOrPractitioner = request.schemeAdministratorType,
         id = request.idOrException,
-        pstr = "",
+        pstr = pstr,
         numberOfEntries = numberOfEntries,
         chargeType = chargeType,
         validationCheckSuccessful = parserResult.isRight,

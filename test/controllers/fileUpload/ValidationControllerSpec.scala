@@ -36,6 +36,7 @@ import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAns
 import org.apache.commons.lang3.StringUtils.EMPTY
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import pages.PSTRQuery
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
 import pages.chargeB.ChargeBDetailsPage
 import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, WhichTypeOfSponsoringEmployerPage}
@@ -115,7 +116,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val auditEventSent = auditCaptor.getValue
       auditEventSent.administratorOrPractitioner mustBe Administrator
       auditEventSent.id mustBe psaId
-      //      auditEventSent.pstr mustBe pstr
+      auditEventSent.pstr mustBe pstr
       auditEventSent.numberOfEntries mustBe 2
       auditEventSent.chargeType mustBe ChargeTypeAnnualAllowance
       auditEventSent.validationCheckSuccessful mustBe false
@@ -132,7 +133,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       auditEventSent.administratorOrPractitioner mustBe Administrator
       auditEventSent.id mustBe psaId
-      //     auditEventSent.pstr mustBe pstr
+      auditEventSent.pstr mustBe pstr
       auditEventSent.numberOfEntries mustBe 2
       auditEventSent.chargeType mustBe ChargeTypeAnnualAllowance
       auditEventSent.validationCheckSuccessful mustBe false
@@ -161,7 +162,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       auditEventSent.administratorOrPractitioner mustBe Administrator
       auditEventSent.id mustBe psaId
-      //     auditEventSent.pstr mustBe pstr
+      auditEventSent.pstr mustBe pstr
       auditEventSent.numberOfEntries mustBe 2
       auditEventSent.chargeType mustBe ChargeTypeAnnualAllowance
       auditEventSent.validationCheckSuccessful mustBe false
@@ -178,6 +179,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       mutableFakeDataRetrievalAction.setDataToReturn(Some(uaAllChargeTypes))
 
       val uaUpdatedWithParsedItems = uaAllChargeTypes
+
         .setOrException(MemberDDetailsPage(0).path, Json.toJson(memberDetails3))
         .setOrException(ChargeDDetailsPage(0).path, Json.toJson(chargeDDetails))
 
@@ -198,7 +200,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       auditEventSent.administratorOrPractitioner mustBe Administrator
       auditEventSent.id mustBe psaId
-      //     auditEventSent.pstr mustBe pstr
+      auditEventSent.pstr mustBe pstr
       auditEventSent.numberOfEntries mustBe 1
       auditEventSent.chargeType mustBe ChargeTypeLifetimeAllowance
       auditEventSent.validationCheckSuccessful mustBe true
@@ -479,7 +481,7 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
     .setOrException(MemberGDetailsPage(1), SampleData.memberGDetails)
     .setOrException(ChargeAmountsPage(1), SampleData.chargeAmounts)
     .setOrException(ChargeGDetailsPage(1), SampleData.chargeGDetails)
-
+    .setOrException(PSTRQuery, pstr)
 
   def retrieveChargeCount(ua: UserAnswers): Seq[Int] = {
     val chargeACount = ua.get(ChargeADetailsPage).map(_ => 1).getOrElse(0)
