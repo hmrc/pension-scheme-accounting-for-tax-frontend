@@ -16,6 +16,7 @@
 
 package controllers.fileUpload
 
+import audit.{AFTFileValidationCheckAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
@@ -53,7 +54,8 @@ class ValidationController @Inject()(
                                       lifeTimeAllowanceParser: LifetimeAllowanceParser,
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService: AFTService,
-                                      fileUploadAftReturnService: FileUploadAftReturnService
+                                      fileUploadAftReturnService: FileUploadAftReturnService,
+                                      auditService: AuditService
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -71,7 +73,6 @@ class ValidationController @Inject()(
     val fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
     val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
     val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
-
     errors match {
       case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
         Future.successful(Redirect(routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType)))
@@ -144,12 +145,58 @@ class ValidationController @Inject()(
 
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
 
-    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing and Validation")
-    parserResult.fold[Future[Result]](
+    val parserResult: Either[Seq[ParserValidationError], UserAnswers] = TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing and Validation")
+    val futureResult = parserResult.fold[Future[Result]](
       processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>
-        TimeLogger.logOperationTime( processSuccessResult(chargeType, updatedUA).map(_ =>
+        TimeLogger.logOperationTime(processSuccessResult(chargeType, updatedUA).map(_ =>
           Redirect(routes.FileUploadSuccessController.onPageLoad(srn, startDate.toString, accessType, version, chargeType))), "processSuccessResult")
+    )
+    futureResult.map { result =>
+      sendAuditEvent(
+        chargeType = chargeType,
+        linesFromCSV.size - 1,
+        fileValidationTimeInSeconds = 0,
+        parserResult = parserResult)
+      result
+    }
+  }
+
+  private def sendAuditEvent(chargeType: ChargeType,
+                             numberOfEntries: Int,
+                             fileValidationTimeInSeconds: Int,
+                             parserResult: Either[Seq[ParserValidationError], UserAnswers]
+                            )(implicit request: DataRequest[AnyContent]): Unit = {
+    val numberOfFailures = parserResult match {
+      case Left(s) => s.size
+      case _ => 0
+    }
+    val failureReason: Option[String] =
+      parserResult match {
+        case Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
+          Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error)
+        case Left(errors) =>
+          if (errors.size <= maximumNumberOfError) {
+            Some("Field Validation failure(Less than 10)")
+          } else {
+            Some("Generic failure (more than 10)")
+          }
+        case _ => None
+      }
+
+    auditService.sendEvent(
+      AFTFileValidationCheckAuditEvent(
+        administratorOrPractitioner = request.schemeAdministratorType,
+        id = request.idOrException,
+        pstr = "",
+        numberOfEntries = numberOfEntries,
+        chargeType = chargeType,
+        validationCheckSuccessful = parserResult.isRight,
+        fileValidationTimeInSeconds = fileValidationTimeInSeconds,
+        failureReason = failureReason,
+        numberOfFailures = numberOfFailures,
+        validationFailureContent = ""
+      )
     )
   }
 

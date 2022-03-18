@@ -16,19 +16,24 @@
 
 package controllers.fileUpload
 
+import audit.{AFTFileValidationCheckAuditEvent, AuditService}
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
+import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, OverseasTransferParser, ParserValidationError}
 import matchers.JsonMatchers
+import models.AdministratorOrPractitioner.Administrator
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
+import org.apache.commons.lang3.StringUtils.EMPTY
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
@@ -42,6 +47,7 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json._
+import play.api.mvc.Result
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
@@ -57,6 +63,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val templateToBeRendered = "fileUpload/invalid.njk"
   private val genericTemplateToBeRendered = "fileUpload/genericErrors.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
+  private val mockAuditService = mock[AuditService]
 
   private def ua: UserAnswers = userAnswersWithSchemeName
 
@@ -71,20 +78,135 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     bind[OverseasTransferParser].toInstance(mockOverseasTransferParser),
     bind[UploadProgressTracker].toInstance(fakeUploadProgressTracker),
     bind[AFTService].toInstance(mockAFTService),
-    bind[FileUploadAftReturnService].toInstance(mockFileUploadAftReturnService)
+    bind[FileUploadAftReturnService].toInstance(mockFileUploadAftReturnService),
+    bind[AuditService].toInstance(mockAuditService)
   )
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockUpscanInitiateConnector, mockAppConfig, mockRenderer, mockAnnualAllowanceParser, mockLifetimeAllowanceParser, mockOverseasTransferParser)
+    reset(mockUpscanInitiateConnector, mockAppConfig, mockRenderer, mockAnnualAllowanceParser, mockLifetimeAllowanceParser,
+      mockOverseasTransferParser, mockAuditService)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK,
       "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory\nJoy,Smith,9717C,2020,268.28,2020-01-01,true")))
+    doNothing.when(mockAuditService).sendEvent(any())(any(), any())
   }
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
+  def runValidation(errors: Seq[ParserValidationError]): Future[Result] = {
+    when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK,
+      "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory\n" +
+        "Joy,Smith,9717C,2020,268.28,2020-01-01,true\nJoy,Smath,9717C,2020,268.28,2020-01-01,true")))
+    mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+    when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
+    route(
+      application,
+      httpGETRequest(
+        controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+    ).value
+  }
+
   "onPageLoad" must {
+    "send correct audit event for failure when header invalid" in {
+      status(runValidation(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))) mustEqual SEE_OTHER
+      val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
+      verify(mockAuditService, times(1)).sendEvent(auditCaptor.capture())(any(), any())
+      val auditEventSent = auditCaptor.getValue
+      auditEventSent.administratorOrPractitioner mustBe Administrator
+      auditEventSent.id mustBe psaId
+      //      auditEventSent.pstr mustBe pstr
+      auditEventSent.numberOfEntries mustBe 2
+      auditEventSent.chargeType mustBe ChargeTypeAnnualAllowance
+      auditEventSent.validationCheckSuccessful mustBe false
+      auditEventSent.failureReason mustBe Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error)
+      auditEventSent.numberOfFailures mustBe 1
+      auditEventSent.validationFailureContent mustBe ""
+    }
+
+    "send correct audit event for failure when less than 10 (non-header) errors" in {
+      status(runValidation(Seq(ParserValidationError(1, 1, "Field error one", EMPTY), ParserValidationError(2, 1, "Field error two", EMPTY)))) mustEqual OK
+      val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
+      verify(mockAuditService, times(1)).sendEvent(auditCaptor.capture())(any(), any())
+      val auditEventSent = auditCaptor.getValue
+
+      auditEventSent.administratorOrPractitioner mustBe Administrator
+      auditEventSent.id mustBe psaId
+      //     auditEventSent.pstr mustBe pstr
+      auditEventSent.numberOfEntries mustBe 2
+      auditEventSent.chargeType mustBe ChargeTypeAnnualAllowance
+      auditEventSent.validationCheckSuccessful mustBe false
+      auditEventSent.failureReason mustBe Some("Field Validation failure(Less than 10)")
+      auditEventSent.numberOfFailures mustBe 2
+      auditEventSent.validationFailureContent mustBe ""
+    }
+
+    "send correct audit event for failure when more than 10 (non-header) errors" in {
+      status(runValidation(Seq(
+        ParserValidationError(1, 1, "Field error one", EMPTY),
+        ParserValidationError(2, 1, "Field error two", EMPTY),
+        ParserValidationError(2, 2, "Field error two", EMPTY),
+        ParserValidationError(2, 3, "Field error two", EMPTY),
+        ParserValidationError(2, 4, "Field error two", EMPTY),
+        ParserValidationError(2, 1, "Field error two", EMPTY),
+        ParserValidationError(2, 3, "Field error two", EMPTY),
+        ParserValidationError(2, 4, "Field error two", EMPTY),
+        ParserValidationError(2, 2, "Field error two", EMPTY),
+        ParserValidationError(2, 1, "Field error two", EMPTY),
+        ParserValidationError(2, 1, "Field error two", EMPTY),
+      ))) mustEqual OK
+      val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
+      verify(mockAuditService, times(1)).sendEvent(auditCaptor.capture())(any(), any())
+      val auditEventSent = auditCaptor.getValue
+
+      auditEventSent.administratorOrPractitioner mustBe Administrator
+      auditEventSent.id mustBe psaId
+      //     auditEventSent.pstr mustBe pstr
+      auditEventSent.numberOfEntries mustBe 2
+      auditEventSent.chargeType mustBe ChargeTypeAnnualAllowance
+      auditEventSent.validationCheckSuccessful mustBe false
+      auditEventSent.failureReason mustBe Some("Generic failure (more than 10)")
+      auditEventSent.numberOfFailures mustBe 11
+      auditEventSent.validationFailureContent mustBe ""
+    }
+
+    "send correct audit event for when there are no failures" in {
+      val chargeType = ChargeType.ChargeTypeLifetimeAllowance
+      val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
+        .thenReturn(Future.successful(JsNull))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(uaAllChargeTypes))
+
+      val uaUpdatedWithParsedItems = uaAllChargeTypes
+        .setOrException(MemberDDetailsPage(0).path, Json.toJson(memberDetails3))
+        .setOrException(ChargeDDetailsPage(0).path, Json.toJson(chargeDDetails))
+
+      when(mockLifetimeAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
+      when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
+      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
+
+      status(result) mustEqual SEE_OTHER
+      val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
+      verify(mockAuditService, times(1)).sendEvent(auditCaptor.capture())(any(), any())
+      val auditEventSent = auditCaptor.getValue
+
+      auditEventSent.administratorOrPractitioner mustBe Administrator
+      auditEventSent.id mustBe psaId
+      //     auditEventSent.pstr mustBe pstr
+      auditEventSent.numberOfEntries mustBe 1
+      auditEventSent.chargeType mustBe ChargeTypeLifetimeAllowance
+      auditEventSent.validationCheckSuccessful mustBe true
+      auditEventSent.failureReason mustBe None
+      auditEventSent.numberOfFailures mustBe 0
+      auditEventSent.validationFailureContent mustBe ""
+    }
+
     "return OK and the correct view for a GET where there are validation errors" in {
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
