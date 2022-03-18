@@ -18,7 +18,6 @@ package controllers.fileUpload
 
 import audit.{AFTFileValidationCheckAuditEvent, AuditService}
 import config.FrontendAppConfig
-import org.apache.commons.lang3.StringUtils.EMPTY
 import connectors.UpscanInitiateConnector
 import controllers.actions._
 import controllers.fileUpload.FileUploadGenericErrorReporter.generateGenericErrorReport
@@ -27,6 +26,7 @@ import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
+import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
@@ -143,7 +143,7 @@ class ValidationController @Inject()(
 
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
-    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found. Srn is $srn")
+    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache. Srn is $srn")
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
     val startTime = System.currentTimeMillis
     val parserResult: Either[Seq[ParserValidationError], UserAnswers] =
@@ -166,37 +166,45 @@ class ValidationController @Inject()(
     }
   }
 
+  private def failureReasonAndErrorReportForAudit(errors: Seq[ParserValidationError],
+                                                  chargeType: ChargeType)(implicit messages: Messages): Option[(String, String)] = {
+    if (errors.isEmpty) {
+      None
+    } else if (errors.size <= maximumNumberOfError) {
+      val errorReport = errorJson(errors, messages).foldLeft("") { (acc, jsObject) =>
+        ((jsObject \ "cell").asOpt[String], (jsObject \ "error").asOpt[String]) match {
+          case (Some(cell), Some(error)) => acc ++ ((if (acc.nonEmpty) "\n" else EMPTY) + s"$cell: $error")
+          case _ => acc
+        }
+      }
+      Some(Tuple2("Field Validation failure(Less than 10)", errorReport))
+    } else {
+      val errorReport = generateGenericErrorReport(errors, chargeType).foldLeft(EMPTY) { (acc, c) =>
+        acc ++ (if (acc.nonEmpty) "\n" else EMPTY) + messages(c)
+      }
+      (errors.size, errorReport)
+      Some(Tuple2("Generic failure (more than 10)", errorReport))
+    }
+  }
+
   private def sendAuditEvent(pstr: String,
                              chargeType: ChargeType,
                              numberOfEntries: Int,
                              fileValidationTimeInSeconds: Int,
                              parserResult: Either[Seq[ParserValidationError], UserAnswers]
                             )(implicit request: DataRequest[AnyContent], messages: Messages): Unit = {
-    val numberOfFailures = parserResult match {
-      case Left(errors) => errors.size
-      case _ => 0
+
+    val numberOfFailures = parserResult.fold(_.size, _ => 0)
+    val (failureReason, errorReport) = parserResult match {
+      case Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
+        Tuple2(Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error), EMPTY)
+      case Left(errors) =>
+        failureReasonAndErrorReportForAudit(errors, chargeType)(messages) match {
+          case Some(Tuple2(reason, report)) => Tuple2(Some(reason), report)
+          case _ => Tuple2(None, EMPTY)
+        }
+      case _ => Tuple2(None, EMPTY)
     }
-    val (failureReason, errorReport) =
-      parserResult match {
-        case Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
-          (Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error), EMPTY)
-        case Left(errors) =>
-          if (errors.size <= maximumNumberOfError) {
-            val errorReport = errorJson(errors, messages).foldLeft(""){ (acc, jsObject) =>
-              val cell = (jsObject \ "cell").asOpt[String].getOrElse(EMPTY)
-              val err = (jsObject \ "error").asOpt[String].getOrElse(EMPTY)
-              acc ++ ((if(acc.nonEmpty) "\n" else "") + s"$cell: $err")
-            }
-            (Some("Field Validation failure(Less than 10)"), errorReport)
-          } else {
-            val errorReport = generateGenericErrorReport(errors, chargeType).foldLeft(""){ (acc,c) =>
-              acc ++ (if(acc.nonEmpty) "\n" else "") + messages(c)
-            }
-            (errors.size, errorReport)
-            (Some("Generic failure (more than 10)"), errorReport)
-          }
-        case _ => (None, EMPTY)
-      }
 
     auditService.sendEvent(
       AFTFileValidationCheckAuditEvent(
@@ -215,7 +223,7 @@ class ValidationController @Inject()(
   }
 
   private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
-                                  (implicit request: DataRequest[AnyContent]) = {
+                                  (implicit request: DataRequest[AnyContent]): Future[UserAnswers] = {
 
     for {
       updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
