@@ -207,8 +207,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       val result =
         paymentsAndChargesService.getChargeDetailsForSelectedCharge(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05), Upcoming, Some(submittedDate))
 
-      result mustBe  chargeReferenceRow ++ totalAmountDueChargeDetailsRow ++ clearingChargeDetailsRow ++
-        stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
+      result mustBe dateSubmittedRow ++ chargeReferenceRow ++ originalAmountChargeDetailsRow ++
+        clearingChargeDetailsRow ++ stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
     }
   }
 
@@ -483,7 +483,7 @@ object PaymentsAndChargesServiceSpec {
     Seq(
       Row(
         key = Key(
-          content = msg"financialPaymentsAndCharges.paymentDue.noDueDate".withArgs(LocalDate.parse("2020-05-15").format(dateFormatterDMY)),
+          content = msg"financialPaymentsAndCharges.paymentDue.upcoming.dueDate".withArgs(LocalDate.parse("2020-05-15").format(dateFormatterDMY)),
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(
