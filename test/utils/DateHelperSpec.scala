@@ -47,6 +47,13 @@ class DateHelperSpec extends SpecBase {
     }
   }
 
+  "formatDateDMYString" must {
+    "display correct morning am date" in {
+      val result = DateHelper.formatDateDMYString("2020-04-12")
+      result mustBe "12 April 2020"
+    }
+  }
+
   "formatStartDate" must {
     "display correct morning am date" in {
       val result = DateHelper.formatStartDate(LocalDate.of(2020, 4, 12))

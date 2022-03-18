@@ -17,19 +17,16 @@
 package controllers.financialOverview
 
 import config.FrontendAppConfig
+import connectors.FinancialStatementConnectorSpec.{psaFSResponse, psaFs}
 import connectors.{FinancialStatementConnector, MinimalConnector}
-import connectors.FinancialStatementConnectorSpec.psaFSResponse
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.PaymentsAndChargesControllerSpec.srn
 import controllers.financialOverview.PsaPaymentsAndChargesControllerSpec.{responseOverdue, responseUpcoming}
 import controllers.financialOverview.routes.PsaPaymentsAndChargesController
-import controllers.financialStatement.penalties.SelectSchemeControllerSpec.psaFS
 import data.SampleData.{dummyCall, emptyChargesTable, psaFsSeq, psaId, schemeDetails, srn}
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
-import models.financialStatement.{PsaFS, SchemeFS}
+import models.financialStatement.{PsaFS, PsaFSDetail, SchemeFS}
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -42,9 +39,9 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty}
 import play.twirl.api.Html
 import services.financialOverview.{PaymentsCache, PenaltiesCache, PsaPenaltiesAndChargesService}
-import services.paymentsAndCharges.PaymentsCache
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Text.Message
 import viewmodels.Table
 
 import java.time.LocalDate
@@ -78,10 +75,15 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
 
   val penaltiesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
 
+  val expectedJson = Json.obj("totalUpcomingCharge" -> "100",
+    "totalOverdueCharge" -> "100",
+    "totalInterestAccruing" -> "100",
+    "titleMessage" -> "Overdue penalties and interest charges")
+
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockRenderer, mockPsaPenaltiesAndChargesService)
-    when(mockPsaPenaltiesAndChargesService.getAllPaymentsAndCharges(any(), any(), any(), any())(any(), any(), any())).
+    when(mockPsaPenaltiesAndChargesService.getAllPaymentsAndCharges(any(), any(), any())(any(), any(), any())).
       thenReturn(Future.successful(penaltiesTable))
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
@@ -89,16 +91,10 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     when(mockPsaPenaltiesAndChargesService.getOverdueCharges(any())).thenReturn(responseOverdue)
     when(mockPsaPenaltiesAndChargesService.extractUpcomingCharges(any())).thenReturn(responseUpcoming)
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
-    when(mockFSConnector.getPsaFSWithPaymentOnAccount(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
+    when(mockFSConnector.getPsaFSWithPaymentOnAccount(any())(any(), any())).thenReturn(Future.successful(psaFs))
     when(mockPsaPenaltiesAndChargesService.retrievePsaChargesAmount(any())(any())).thenReturn(("100","100","100"))
 
   }
-
-  private def expectedJson: JsObject = Json.obj(
-    fields = "paymentAndChargesTable" -> penaltiesTable,
-    "schemeName" -> schemeDetails.schemeName,
-    "returnUrl" -> dummyCall.url
-  )
 
   "PsaPaymentsAndChargesController" must {
 
@@ -112,7 +108,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialOverview/psaPaymentsAndCharges.njk"
-      //jsonCaptor.getValue must containJson(expectedJson)
+      jsonCaptor.getValue must containJson(expectedJson)
     }
   }
 
@@ -121,8 +117,8 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
 object PsaPaymentsAndChargesControllerSpec {
 
   private val pstr = "test-pstr"
-  private def createPsaFSCharge(chargeReference: String): PsaFS = {
-    PsaFS(
+  private def createPsaFSCharge(chargeReference: String): PsaFSDetail = {
+    PsaFSDetail(
       chargeReference = chargeReference,
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -134,16 +130,17 @@ object PsaPaymentsAndChargesControllerSpec {
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN",
+      sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
     )
   }
 
-  val responseOverdue: Seq[PsaFS] = Seq(
+  val responseOverdue: Seq[PsaFSDetail] = Seq(
     createPsaFSCharge("XAB3497340527"),
     createPsaFSCharge("XY53243456464")
   )
 
-  val responseUpcoming: Seq[PsaFS] = Seq(
+  val responseUpcoming: Seq[PsaFSDetail] = Seq(
     createPsaFSCharge("XY549561095122"),
     createPsaFSCharge("XY122335465641")
   )

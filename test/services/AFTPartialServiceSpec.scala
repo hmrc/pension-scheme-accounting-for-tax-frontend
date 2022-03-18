@@ -23,7 +23,7 @@ import data.SampleData.multiplePenalties
 import helpers.FormatHelper
 import models._
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
-import models.financialStatement.{SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentMatchers, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
@@ -180,8 +180,8 @@ class AFTPartialServiceSpec
 
     "return a model for a single period upcoming charges with past charges" in {
       val service = app.injector.instanceOf[AFTPartialService]
-      val schemeFS = schemeFSResponseSinglePeriod() ++ pastCharges
-      service.retrievePspDashboardUpcomingAftChargesModel(schemeFS, srn) mustBe
+      val schemeFSDetail = schemeFSResponseSinglePeriod() ++ pastCharges
+      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSDetail, srn) mustBe
         DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
@@ -209,8 +209,8 @@ class AFTPartialServiceSpec
 
     "return a model for multiple period upcoming charges with past charges" in {
       val service = app.injector.instanceOf[AFTPartialService]
-      val schemeFS = schemeFSResponseMultiplePeriods() ++ pastCharges
-      service.retrievePspDashboardUpcomingAftChargesModel(schemeFS, srn) mustBe
+      val schemeFSDetail = schemeFSResponseMultiplePeriods() ++ pastCharges
+      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSDetail, srn) mustBe
         DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
@@ -458,19 +458,19 @@ class AFTPartialServiceSpec
       DateHelper.setDate(Some(LocalDate.of(2022, 3, 2)))
       when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesMultiple)
       when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(outstandingAmountOverdue)
-      service.retrievePspDashboardPaymentsAndChargesModel(upcomingChargesMultiple, srn) mustBe paymentsAndChargesModel
+      service.retrievePspDashboardPaymentsAndChargesModel(upcomingChargesMultiple, srn, pstr) mustBe paymentsAndChargesModel
 
     }
   }
 
 
-  private val charge1: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(100.00),
+  private val charge1: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(100.00),
     BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), LocalDate.parse(startDate), LocalDate.parse(endDate), None, None, Nil)
 
-  private val charge2: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
+  private val charge2: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
     BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), LocalDate.parse("2021-01-01"), LocalDate.parse("2021-03-31"), None, None, Nil)
-  private val upcomingChargesMultiple: Seq[SchemeFS] = Seq(charge1, charge2)
-  private val outstandingAmountOverdue: Seq[SchemeFS]= Seq(charge1)
+  private val upcomingChargesMultiple: Seq[SchemeFSDetail] = Seq(charge1, charge2)
+  private val outstandingAmountOverdue: Seq[SchemeFSDetail]= Seq(charge1)
   private def paymentsAndChargesModel(implicit messages: Messages): Seq[CardViewModel] = {
     Seq(CardViewModel(
       id = "aft-overdue-charges",
@@ -510,7 +510,7 @@ class AFTPartialServiceSpec
   private def viewAllPaymentsAndChargesLink(): Link =
     Link(
       id = "past-payments-and-charges",
-      url = viewPastChargesUrl,
+      url = viewFinancialInfoPastChargesUrl,
       linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
       hiddenText = None
     )
@@ -652,6 +652,7 @@ object AFTPartialServiceSpec {
   val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
   val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
   val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
+  val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/pstr/past-payments-logic"
 
   def startModel: AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,
@@ -763,8 +764,8 @@ object AFTPartialServiceSpec {
                             dueDate: Option[LocalDate] = Option(LocalDate.parse("2021-02-15")),
                             chargeReference: String,
                             accruedInterestTotal: BigDecimal = 0.00
-                          ): SchemeFS = {
-    SchemeFS(
+                          ): SchemeFSDetail = {
+    SchemeFSDetail(
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
       dueDate = dueDate,
@@ -781,7 +782,7 @@ object AFTPartialServiceSpec {
     )
   }
 
-  private def schemeFSResponseSinglePeriod(accruedInterestTotal: BigDecimal = 0.00): Seq[SchemeFS] = Seq(
+  private def schemeFSResponseSinglePeriod(accruedInterestTotal: BigDecimal = 0.00): Seq[SchemeFSDetail] = Seq(
     createCharge(
       startDate = "2020-10-01",
       endDate = "2020-12-31",
@@ -802,7 +803,7 @@ object AFTPartialServiceSpec {
     )
   )
 
-  private def schemeFSResponseMultiplePeriods(accruedInterestTotal: BigDecimal = 0.00): Seq[SchemeFS] = Seq(
+  private def schemeFSResponseMultiplePeriods(accruedInterestTotal: BigDecimal = 0.00): Seq[SchemeFSDetail] = Seq(
     createCharge(
       startDate = "2020-10-01",
       endDate = "2020-12-31",
@@ -824,7 +825,7 @@ object AFTPartialServiceSpec {
     )
   )
 
-  private val pastCharges: Seq[SchemeFS] = Seq(
+  private val pastCharges: Seq[SchemeFSDetail] = Seq(
     createCharge(
       startDate = "2020-06-01",
       endDate = "2020-09-30",

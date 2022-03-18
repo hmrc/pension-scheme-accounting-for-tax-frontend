@@ -36,7 +36,7 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
-import models.financialStatement.{PaymentOrChargeType, SchemeFS}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -79,7 +79,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
-      val years = getYears(paymentsCache.schemeFS, paymentOrChargeType)
+      val years = getYears(paymentsCache.schemeFSDetail, paymentOrChargeType)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
       val json = Json.obj(
@@ -99,7 +99,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     identify.async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
       val typeParam: String = service.getTypeParam(paymentOrChargeType)
-      val years = getYears(paymentsCache.schemeFS, paymentOrChargeType)
+      val years = getYears(paymentsCache.schemeFSDetail, paymentOrChargeType)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
       form(journeyType, paymentOrChargeType, typeParam, config).bindFromRequest().fold(
@@ -116,7 +116,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
         },
         value => if(paymentOrChargeType == AccountingForTaxCharges) {
-          navService.navFromAFTYearsPage(paymentsCache.schemeFS, value.year, srn, journeyType)
+          navService.navFromAFTYearsPage(paymentsCache.schemeFSDetail, value.year, srn, journeyType)
         } else {
           Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType, journeyType)))
         }
@@ -132,7 +132,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
       messages(s"selectChargesYear.$journeyType.title", typeParam)
     }
 
-  def getYears(payments: Seq[SchemeFS], paymentOrChargeType: PaymentOrChargeType): Seq[DisplayYear] =
+  def getYears(payments: Seq[SchemeFSDetail], paymentOrChargeType: PaymentOrChargeType): Seq[DisplayYear] =
     payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
       .map(_.periodEndDate.getYear).distinct.sorted.reverse.map { year =>

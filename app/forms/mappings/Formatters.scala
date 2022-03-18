@@ -84,7 +84,7 @@ trait Formatters extends Transforms with Constraints {
         Map(key -> value)
     }
 
-  private[mappings] def booleanFormatter(requiredKey: String, invalidKey: String): Formatter[Boolean] =
+  private[mappings] def booleanFormatter(requiredKey: String, invalidKey: String, invalidPaymentTypeBoolean: String): Formatter[Boolean] =
     new Formatter[Boolean] {
 
       private val baseFormatter = stringFormatter(requiredKey)
@@ -95,6 +95,8 @@ trait Formatters extends Transforms with Constraints {
           .right.flatMap {
           case "true" => Right(true)
           case "false" => Right(false)
+          case "0" => Left(Seq(FormError(key, invalidPaymentTypeBoolean)))
+          case "1" => Left(Seq(FormError(key, invalidPaymentTypeBoolean)))
           case _ => Left(Seq(FormError(key, invalidKey)))
         }
 

@@ -151,6 +151,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val aftContinueReturnUrl: String = s"${configuration.get[String](path = "urls.partials.aftContinueReturn")}"
   lazy val aftAmendUrl: String = s"${configuration.get[String](path = "urls.partials.aftAmendLink")}"
   lazy val paymentsAndChargesUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesLogicLink")}"
+  lazy val financialPaymentsAndChargesUrl: String = s"${configuration.get[String](path = "urls.partials.financialPaymentsAndChargesLogicLink")}"
   lazy val upcomingChargesUrl: String = s"${configuration.get[String](path = "urls.partials.upcomingChargesLogicLink")}"
   lazy val overdueChargesUrl: String = s"${configuration.get[String](path = "urls.partials.overdueChargesLogicLink")}"
 

@@ -75,7 +75,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     "return validation error for not enough fields" in {
       val result = parser.parse(startDate, Seq(header, "one,two"),UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 0, "Not enough fields")
+        ParserValidationError(1, 0, "Enter all of the information for this member")
       ))
     }
 
@@ -134,7 +134,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
 
     "return validation errors when not enough fields" in {
       val result = parser.parse(startDate, Seq(header, "Bloggs,AB123456C,2020268.28,2020-01-01,true"),UserAnswers())
-      result mustBe Left(Seq(ParserValidationError(1, 0, "Not enough fields")))
+      result mustBe Left(Seq(ParserValidationError(1, 0, "Enter all of the information for this member")))
     }
   }
 }

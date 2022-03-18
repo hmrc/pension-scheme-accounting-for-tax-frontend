@@ -17,14 +17,14 @@
 package controllers.financialOverview
 
 import connectors.FinancialStatementConnector
-import connectors.FinancialStatementConnectorSpec.{interestPsaFsResponse, psaFSResponse}
+import connectors.FinancialStatementConnectorSpec.{interestPsaFSResponse, psaFSResponse}
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.PsaPaymentsAndChargesInterestControllerSpec.{chargeRef, rows}
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
-import models.financialStatement.PsaFS
+import models.financialStatement.{PsaFS, PsaFSDetail}
 import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -82,16 +82,16 @@ class PsaPaymentsAndChargesInterestControllerSpec
     "list" -> rows
   )
 
-  val isOverdue: PsaFS => Boolean = _ => true
+  val isOverdue: PsaFSDetail => Boolean = _ => true
 
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPsaPenaltiesAndChargesService, mockRenderer)
     when(mockPsaPenaltiesAndChargesService.interestRows(any())).thenReturn(rows)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesFromCache(any())(any(), any())).
-      thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", interestPsaFsResponse)))
+      thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", interestPsaFSResponse)))
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
-      thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", interestPsaFsResponse)))
+      thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", interestPsaFSResponse)))
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockPsaPenaltiesAndChargesService.setPeriod(any(), any(), any())).
       thenReturn("Period: 1 January to 2 February 2021")
@@ -105,7 +105,7 @@ class PsaPaymentsAndChargesInterestControllerSpec
 
       "render the correct view with details for associated interest charge type" in {
 
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(interestPsaFsResponse))))
+        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(interestPsaFSResponse))))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])

@@ -25,7 +25,7 @@ import models.Enumerable
 import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
-import models.financialStatement.{PenaltyType, PsaFS}
+import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
@@ -86,7 +86,7 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSuppo
 object PenaltiesLogicControllerSpec {
 
   val psaName: String = "psa-name"
-  val psaFS1: PsaFS = PsaFS(
+  val psaFS1: PsaFSDetail = PsaFSDetail(
     chargeReference = "XY002610150184",
     chargeType = AFT_INITIAL_LFP,
     dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -98,6 +98,7 @@ object PenaltiesLogicControllerSpec {
     periodStartDate = LocalDate.parse("2020-04-01"),
     periodEndDate = LocalDate.parse("2020-06-30"),
     pstr = "24000040IN",
+    sourceChargeRefForInterest = None,
     documentLineItemDetails = Nil
   )
 }

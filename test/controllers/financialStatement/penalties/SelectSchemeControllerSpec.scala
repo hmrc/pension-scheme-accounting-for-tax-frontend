@@ -26,7 +26,7 @@ import forms.SelectSchemeFormProvider
 import matchers.JsonMatchers
 import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.ContractSettlementCharges
-import models.financialStatement.{PenaltyType, PsaFS}
+import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{Enumerable, PenaltySchemes}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -113,7 +113,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
 
 
-        val pstrIndex: String = psaFS.as[Seq[PsaFS]].map(_.pstr).indexOf(ps2.pstr).toString
+        val pstrIndex: String = psaFS.as[Seq[PsaFSDetail]].map(_.pstr).indexOf(ps2.pstr).toString
 
         val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq(ps2.pstr)))).value
 

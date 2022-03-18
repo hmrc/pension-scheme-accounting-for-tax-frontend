@@ -24,7 +24,7 @@ import controllers.financialOverview.PsaPenaltiesAndChargeDetailsControllerSpec.
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
-import models.financialStatement.PsaFS
+import models.financialStatement.{PsaFS, PsaFSDetail}
 import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -84,7 +84,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     "list" -> rows
   )
 
-  val isOverdue: PsaFS => Boolean = _ => true
+  val isOverdue: PsaFSDetail => Boolean = _ => true
 
   override def beforeEach: Unit = {
     super.beforeEach

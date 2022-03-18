@@ -19,7 +19,7 @@ package controllers.financialOverview
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.ChargeDetailsFilter
 import models.financialStatement.PsaFSChargeType.INTEREST_ON_CONTRACT_SETTLEMENT
-import models.financialStatement.{PsaFS, PsaFSChargeType}
+import models.financialStatement.{PsaFSChargeType, PsaFSDetail}
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -53,7 +53,7 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
         psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
           val chargeRefs: Seq[String] = penaltiesCache.penalties.map(_.chargeReference)
-          def penaltyOpt: Option[PsaFS] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
+          def penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
 
           if(chargeRefs.length > chargeReferenceIndex.toInt && penaltyOpt.nonEmpty) {
             schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
@@ -73,8 +73,8 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
     }
 
   private def commonJson(
-                          fs: PsaFS,
-                          psaFS: Seq[PsaFS],
+                          fs: PsaFSDetail,
+                          psaFS: Seq[PsaFSDetail],
                           chargeRefs: Seq[String],
                           chargeReferenceIndex: String,
                           journeyType: ChargeDetailsFilter

@@ -19,7 +19,7 @@ package controllers.financialStatement.penalties
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
-import models.financialStatement.PsaFS
+import models.financialStatement.PsaFSDetail
 import models.{AFTQuarter, DisplayHint, DisplayQuarter, PaymentOverdue, PenaltiesFilter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -108,12 +108,12 @@ class SelectPenaltiesQuarterController @Inject()(
     }
   }
 
-  val filteredPenalties: (Seq[PsaFS], Int) => Seq[PsaFS] = (penalties, year) =>
+  val filteredPenalties: (Seq[PsaFSDetail], Int) => Seq[PsaFSDetail] = (penalties, year) =>
     penalties
       .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
       .filter(_.periodStartDate.getYear == year)
 
-  private def getDisplayQuarters(year: String, penalties: Seq[PsaFS]): Seq[DisplayQuarter] = {
+  private def getDisplayQuarters(year: String, penalties: Seq[PsaFSDetail]): Seq[DisplayQuarter] = {
 
     val quartersFound: Seq[LocalDate] = penalties.map(_.periodStartDate).distinct.sortBy(_.getMonth)
 
@@ -126,7 +126,7 @@ class SelectPenaltiesQuarterController @Inject()(
     }
   }
 
-  private def getQuarters(year: String, penalties: Seq[PsaFS]): Seq[AFTQuarter] =
+  private def getQuarters(year: String, penalties: Seq[PsaFSDetail]): Seq[AFTQuarter] =
     penalties.distinct.map(penalty => Quarters.getQuarter(penalty.periodStartDate))
 
 

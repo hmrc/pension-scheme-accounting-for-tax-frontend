@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, INTEREST_ON_CONTRACT_SETTLEMENT, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
-import models.financialStatement.{DocumentLineItemDetail, PsaFS, FSClearingReason}
+import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFS, PsaFSDetail}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status
@@ -53,12 +53,12 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
             aResponse()
               .withStatus(Status.OK)
               .withHeader("Content-Type", "application/json")
-              .withBody(Json.toJson(psaFSResponse).toString)
+              .withBody(Json.toJson(psaFsToValidate).toString)
           )
       )
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getPsaFS(psaId).map(fs => fs mustBe psaFSResponseToValidate)
+      connector.getPsaFS(psaId).map(fs => fs mustBe psaFsToValidate)
 
     }
 
@@ -93,13 +93,13 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
             aResponse()
               .withStatus(Status.OK)
               .withHeader("Content-Type", "application/json")
-              .withBody(Json.toJson(psaFSResponse).toString)
+              .withBody(Json.toJson(psaFs).toString)
           )
       )
       val connector = injector.instanceOf[FinancialStatementConnector]
 
       connector.getPsaFSWithPaymentOnAccount(psaId).map(
-        fs => fs mustBe psaFSResponse
+        fs => fs mustBe psaFs
       )
 
     }
@@ -141,8 +141,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
 
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getSchemeFS(pstr).map(fs => fs mustBe SampleData.schemeFSResponseAftAndOTC)
-
+      connector.getSchemeFS(pstr).map(_.seqSchemeFSDetail mustBe SampleData.schemeFSResponseAftAndOTC.seqSchemeFSDetail)
     }
 
     "throw BadRequestException for a 400 INVALID_PSTR response" in {
@@ -216,8 +215,8 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with Matchers with W
 
 object FinancialStatementConnectorSpec {
 
-  val psaFSResponse: Seq[PsaFS] = Seq(
-    PsaFS(
+  val psaFSResponse: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -229,12 +228,13 @@ object FinancialStatementConnectorSpec {
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN",
+      sourceChargeRefForInterest = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     ),
-    PsaFS(
+    PsaFSDetail(
       chargeReference = "XY002610150185",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -246,12 +246,13 @@ object FinancialStatementConnectorSpec {
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     ),
-    PsaFS(
+    PsaFSDetail(
       chargeReference = "XY002610150186",
       chargeType = PAYMENT_ON_ACCOUNT,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -263,6 +264,7 @@ object FinancialStatementConnectorSpec {
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
@@ -270,28 +272,30 @@ object FinancialStatementConnectorSpec {
     )
   )
 
-  val interestPsaFsResponse: Seq[PsaFS] = Seq(
-    PsaFS(
+  val interestPsaFSResponse: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = INTEREST_ON_CONTRACT_SETTLEMENT,
       dueDate = Some(LocalDate.parse("2020-07-15")),
       totalAmount = 80000.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
-      accruedInterestTotal = 100.00,
+      accruedInterestTotal = 0.00,
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN",
+      sourceChargeRefForInterest = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     )
   )
+  val psaFs: PsaFS = PsaFS (false, psaFSResponse)
 
-  val psaFSResponseToValidate: Seq[PsaFS] = Seq(
-    PsaFS(
+  val psaFSResponseToValidate: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -303,12 +307,13 @@ object FinancialStatementConnectorSpec {
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN",
+      sourceChargeRefForInterest = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     ),
-    PsaFS(
+    PsaFSDetail(
       chargeReference = "XY002610150185",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -320,11 +325,12 @@ object FinancialStatementConnectorSpec {
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     )
   )
-
+  val psaFsToValidate: PsaFS = PsaFS (true, psaFSResponseToValidate)
 }

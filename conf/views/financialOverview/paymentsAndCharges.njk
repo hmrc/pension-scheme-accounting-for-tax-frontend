@@ -34,7 +34,8 @@
                </h2>
                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalInterestAccruing }}</p>
             </div>
-        {% else %}
+        {% endif %}
+        {% if journeyType == "upcoming" %}
             <div class="govuk-grid-column-one-half">
                 <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
                    {{ messages("psaSchemeFinancial.h2.totalDuePayment") }}
@@ -42,7 +43,15 @@
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalUpcoming }}</p>
             </div>
        {% endif %}
-        </div>
+       {% if journeyType == "all" %}
+           <div class="govuk-grid-column-one-half">
+               <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+                   {{ messages("psaSchemeFinancial.h2.totalOutstandingPayment") }}
+               </h2>
+               <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalDue }}</p>
+           </div>
+       {% endif %}
+    </div>
         </div>
         </div>
         <div class="govuk-grid-row">

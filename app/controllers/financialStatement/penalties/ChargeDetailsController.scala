@@ -19,7 +19,7 @@ package controllers.financialStatement.penalties
 import config.Constants._
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.PenaltiesFilter
-import models.financialStatement.PsaFS
+import models.financialStatement.PsaFSDetail
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -51,7 +51,7 @@ class ChargeDetailsController @Inject()(
       penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
 
           val chargeRefs: Seq[String] = penaltiesCache.penalties.map(_.chargeReference)
-          def penaltyOpt: Option[PsaFS] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
+          def penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
 
           if(chargeRefs.length > chargeReferenceIndex.toInt && penaltyOpt.nonEmpty) {
                 if (identifier.matches(srnRegex)) {
@@ -83,8 +83,8 @@ class ChargeDetailsController @Inject()(
   }
 
   private def commonJson(
-                          fs: PsaFS,
-                          psaFS: Seq[PsaFS],
+                          fs: PsaFSDetail,
+                          psaFS: Seq[PsaFSDetail],
                           chargeRefs: Seq[String],
                           chargeReferenceIndex: String
                         )(implicit request: IdentifierRequest[AnyContent]): JsObject =
