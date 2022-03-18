@@ -20,6 +20,7 @@ import audit.{AFTFileValidationCheckAuditEvent, AuditService}
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
+import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import data.SampleData
 import data.SampleData._
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
@@ -126,7 +127,10 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "send correct audit event for failure when less than 10 (non-header) errors" in {
-      status(runValidation(Seq(ParserValidationError(1, 1, "Field error one", EMPTY), ParserValidationError(2, 1, "Field error two", EMPTY)))) mustEqual OK
+      status(runValidation(Seq(
+        ParserValidationError(1, 1, "Field error one", AnnualAllowanceFieldNames.chargeAmount),
+        ParserValidationError(2, 1, "Field error two", AnnualAllowanceFieldNames.dateNoticeReceived)
+      ))) mustEqual OK
       val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
       verify(mockAuditService, times(1)).sendEvent(auditCaptor.capture())(any(), any())
       val auditEventSent = auditCaptor.getValue
@@ -139,22 +143,24 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       auditEventSent.validationCheckSuccessful mustBe false
       auditEventSent.failureReason mustBe Some("Field Validation failure(Less than 10)")
       auditEventSent.numberOfFailures mustBe 2
-      auditEventSent.validationFailureContent mustBe ""
+      val expectedFailureContent = """B2: Field error one
+                                     |B3: Field error two""".stripMargin
+      auditEventSent.validationFailureContent mustBe expectedFailureContent
     }
 
     "send correct audit event for failure when more than 10 (non-header) errors" in {
       status(runValidation(Seq(
-        ParserValidationError(1, 1, "Field error one", EMPTY),
-        ParserValidationError(2, 1, "Field error two", EMPTY),
-        ParserValidationError(2, 2, "Field error two", EMPTY),
-        ParserValidationError(2, 3, "Field error two", EMPTY),
-        ParserValidationError(2, 4, "Field error two", EMPTY),
-        ParserValidationError(2, 1, "Field error two", EMPTY),
-        ParserValidationError(2, 3, "Field error two", EMPTY),
-        ParserValidationError(2, 4, "Field error two", EMPTY),
-        ParserValidationError(2, 2, "Field error two", EMPTY),
-        ParserValidationError(2, 1, "Field error two", EMPTY),
-        ParserValidationError(2, 1, "Field error two", EMPTY),
+        ParserValidationError(1, 1, "Field error 1", AnnualAllowanceFieldNames.chargeAmount),
+        ParserValidationError(1, 1, "Field error 2", AnnualAllowanceFieldNames.dateNoticeReceived),
+        ParserValidationError(1, 1, "Field error 3", AnnualAllowanceFieldNames.isPaymentMandatory),
+        ParserValidationError(1, 1, "Field error 4", AnnualAllowanceFieldNames.chargeAmount),
+        ParserValidationError(1, 1, "Field error 5", AnnualAllowanceFieldNames.taxYear),
+        ParserValidationError(1, 1, "Field error 6", AnnualAllowanceFieldNames.dateNoticeReceivedDay),
+        ParserValidationError(1, 1, "Field error 7", AnnualAllowanceFieldNames.chargeAmount),
+        ParserValidationError(1, 1, "Field error 8", AnnualAllowanceFieldNames.chargeAmount),
+        ParserValidationError(1, 1, "Field error 9", AnnualAllowanceFieldNames.chargeAmount),
+        ParserValidationError(1, 1, "Field error 10", AnnualAllowanceFieldNames.chargeAmount),
+        ParserValidationError(1, 1, "Field error 11", AnnualAllowanceFieldNames.chargeAmount)
       ))) mustEqual OK
       val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
       verify(mockAuditService, times(1)).sendEvent(auditCaptor.capture())(any(), any())
@@ -168,7 +174,11 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       auditEventSent.validationCheckSuccessful mustBe false
       auditEventSent.failureReason mustBe Some("Generic failure (more than 10)")
       auditEventSent.numberOfFailures mustBe 11
-      auditEventSent.validationFailureContent mustBe ""
+      auditEventSent.validationFailureContent mustBe
+        """charge amount is missing or in the wrong format
+          |date you received notice to pay the charge is missing or in the wrong format
+          |payment type is missing or in the wrong format
+          |tax year to which the annual allowance charge relates is missing or in the wrong format""".stripMargin
     }
 
     "send correct audit event for when there are no failures" in {
@@ -287,7 +297,8 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         "srn" -> srn,
         "totalError" -> errors.size,
         "errors" -> expectedErrors,
-        "fileDownloadInstructionsLink" -> "/manage-pension-scheme-accounting-for-tax/annual-allowance-charge/aft-annual-allowance-charge-upload-format-instructions",
+        "fileDownloadInstructionsLink" ->
+          "/manage-pension-scheme-accounting-for-tax/annual-allowance-charge/aft-annual-allowance-charge-upload-format-instructions",
         "returnToFileUploadURL" -> "",
         "returnToSchemeDetails" -> "/manage-pension-scheme-accounting-for-tax/aa/2020-04-01/draft/1/return-to-scheme-details",
         "schemeName" -> "Big Scheme"

@@ -18,6 +18,7 @@ package controllers.fileUpload
 
 import audit.{AFTFileValidationCheckAuditEvent, AuditService}
 import config.FrontendAppConfig
+import org.apache.commons.lang3.StringUtils.EMPTY
 import connectors.UpscanInitiateConnector
 import controllers.actions._
 import controllers.fileUpload.FileUploadGenericErrorReporter.generateGenericErrorReport
@@ -170,22 +171,31 @@ class ValidationController @Inject()(
                              numberOfEntries: Int,
                              fileValidationTimeInSeconds: Int,
                              parserResult: Either[Seq[ParserValidationError], UserAnswers]
-                            )(implicit request: DataRequest[AnyContent]): Unit = {
+                            )(implicit request: DataRequest[AnyContent], messages: Messages): Unit = {
     val numberOfFailures = parserResult match {
-      case Left(s) => s.size
+      case Left(errors) => errors.size
       case _ => 0
     }
-    val failureReason: Option[String] =
+    val (failureReason, errorReport) =
       parserResult match {
         case Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
-          Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error)
+          (Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error), EMPTY)
         case Left(errors) =>
           if (errors.size <= maximumNumberOfError) {
-            Some("Field Validation failure(Less than 10)")
+            val errorReport = errorJson(errors, messages).foldLeft(""){ (acc, jsObject) =>
+              val cell = (jsObject \ "cell").asOpt[String].getOrElse(EMPTY)
+              val err = (jsObject \ "error").asOpt[String].getOrElse(EMPTY)
+              acc ++ ((if(acc.nonEmpty) "\n" else "") + s"$cell: $err")
+            }
+            (Some("Field Validation failure(Less than 10)"), errorReport)
           } else {
-            Some("Generic failure (more than 10)")
+            val errorReport = generateGenericErrorReport(errors, chargeType).foldLeft(""){ (acc,c) =>
+              acc ++ (if(acc.nonEmpty) "\n" else "") + messages(c)
+            }
+            (errors.size, errorReport)
+            (Some("Generic failure (more than 10)"), errorReport)
           }
-        case _ => None
+        case _ => (None, EMPTY)
       }
 
     auditService.sendEvent(
@@ -199,7 +209,7 @@ class ValidationController @Inject()(
         fileValidationTimeInSeconds = fileValidationTimeInSeconds,
         failureReason = failureReason,
         numberOfFailures = numberOfFailures,
-        validationFailureContent = ""
+        validationFailureContent = errorReport
       )
     )
   }
