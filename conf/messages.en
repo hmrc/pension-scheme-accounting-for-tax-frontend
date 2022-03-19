@@ -1175,6 +1175,7 @@ paymentsAndCharges.chargeDetails.paymentStatus = Payment status
 paymentsAndCharges.chargeDetails.noAmountDueDate = Amount due
 paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue = No payment due
 paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue = Payment is due
+paymentsAndCharges.chargeDetails.visuallyHiddenText = Does not apply
 
 paymentsAndCharges.chargeDetails.chargeReference = Charge reference: {0}
 paymentsAndCharges.chargeDetails.interestAccruing = Interest is accruing on this charge
