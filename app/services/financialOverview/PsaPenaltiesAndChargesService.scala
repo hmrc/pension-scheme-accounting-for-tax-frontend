@@ -210,9 +210,9 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half")),
-        Cell(Literal(s"${data.chargeReference}")),
-        Cell(Literal(data.originalChargeAmount)),
-        Cell(Literal(data.paymentDue)),
+        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-quarter")),
         Cell(htmlStatus(data), classes = Nil)
       )
     }
@@ -285,8 +285,8 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
     Seq(
       Row(
-        key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")),
+        value = Value(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter"))
       ))
   }
 
@@ -294,9 +294,9 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
     Seq(
       Row(
-        key = Key(msg"psa.financial.overview.penaltyAmount", classes = Seq("govuk-!-width-three-quarters")),
+        key = Key(msg"psa.financial.overview.penaltyAmount", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")),
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
-                      classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+                      classes = Seq("govuk-!-width-one-quarter"))
       ))
   }
 
@@ -310,11 +310,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               Row(
                 key = Key(
                   content = clearingDetailsValue,
-                  classes = Seq("govuk-!-width-three-quarters")
+                  classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
                 ),
                 value = Value(
                   content = Literal(s"-${formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"),
-                  classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+                  classes = Seq("govuk-!-width-one-quarter")
                 ),
                 actions = Nil
               ))
@@ -356,11 +356,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         Row(
           key = Key(
             content = msg"paymentsAndCharges.chargeDetails.stoodOverAmount",
-            classes = Seq("govuk-!-width-three-quarters")
+            classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
           ),
           value = Value(
             content = Literal(s"-${formatCurrencyAmountAsString(data.stoodOverAmount)}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+            classes = Seq("govuk-!-width-one-quarter")
           ),
           actions = Nil
         ))
@@ -380,11 +380,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         Row(
           key = Key(
             content = amountDueKey,
-            classes = Seq("govuk-!-width-three-quarters")
+            classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
           ),
           value = Value(
             content = Literal(s"${formatCurrencyAmountAsString(data.amountDue)}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+            classes = Seq("govuk-!-width-one-quarter","govuk-!-font-weight-bold")
           ),
           actions = Nil
         ))
@@ -412,7 +412,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     Seq(Row(
       key = Key(msg"psa.financial.overview.totalDueAsOf".withArgs(dateAsOf), classes = Seq("govuk-!-width-two-quarters")),
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
-        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        classes = Seq("govuk-!-width-one-quarter"))
     ))
   }
 
@@ -421,7 +421,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     Seq(
       Row(
         key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-width-two-quarters")),
-        value = Value(msg"paymentsAndCharges.chargeReference.toBeAssigned", classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        value = Value(msg"paymentsAndCharges.chargeReference.toBeAssigned", classes = Seq("govuk-!-width-one-quarter"))
       ))
   }
 

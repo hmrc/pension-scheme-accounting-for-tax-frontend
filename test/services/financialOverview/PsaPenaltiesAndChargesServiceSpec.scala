@@ -119,9 +119,9 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
     Seq(
       Cell(htmlChargeType(penaltyType, chargeReference, redirectUrl, visuallyHiddenText, schemeName, pstr), classes = Seq("govuk-!-width-one-half")),
-      Cell(Literal(s"$chargeReference")),
-      Cell(Literal(penaltyAmount)),
-      Cell(Literal(paymentDue)),
+      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal(penaltyAmount), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal(paymentDue), classes = Seq("govuk-!-width-one-quarter")),
       Cell(statusHtml)
     )
   }
@@ -246,7 +246,7 @@ object PsaPenaltiesAndChargesServiceSpec {
 
   def psaFS(
              amountDue: BigDecimal = BigDecimal(1029.05),
-             dueDate: Option[LocalDate] = Some(dateNow),
+             dueDate: Option[LocalDate] = Some(LocalDate.parse("2022-03-18")),
              totalAmount: BigDecimal = BigDecimal(80000.00),
              outStandingAmount: BigDecimal = BigDecimal(56049.08),
              stoodOverAmount: BigDecimal = BigDecimal(25089.08)
@@ -335,36 +335,21 @@ object PsaPenaltiesAndChargesServiceSpec {
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
-    )/*,
-    PsaFSDetail(
-      chargeReference = "XY002610150184",
-      chargeType = CONTRACT_SETTLEMENT,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 500.00,
-      outstandingAmount = 0.00,
-      accruedInterestTotal = 155.00,
-      stoodOverAmount = 0.00,
-      amountDue = 0.00,
-      periodStartDate = LocalDate.parse("2020-04-01"),
-      periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000041IN",
-      sourceChargeRefForInterest = None,
-      documentLineItemDetails = Nil
-    )*/
+    )
   )
-  val psaFs: PsaFS = PsaFS (false, psaFsSeq)
+  val psaFs: PsaFS = PsaFS (inhibitRefundSignal = false, psaFsSeq)
 
   private def chargeReferenceRow: Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(
           content = msg"psa.financial.overview.charge.reference",
-          classes = Seq("govuk-!-width-three-quarters")
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(
           content = Literal("XY002610150184"),
           classes =
-            Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+            Seq("govuk-!-width-one-quarter")
         ),
         actions = Nil
       ))
@@ -375,12 +360,12 @@ object PsaPenaltiesAndChargesServiceSpec {
       Row(
         key = Key(
           content = msg"psa.financial.overview.penaltyAmount",
-          classes = Seq("govuk-!-width-three-quarters")
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(
           content = Literal(s"${formatCurrencyAmountAsString(80000.00)}"),
           classes =
-            Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+            Seq("govuk-!-width-one-quarter")
         ),
         actions = Nil
       ))
@@ -391,11 +376,11 @@ object PsaPenaltiesAndChargesServiceSpec {
       Row(
         key = Key(
           content = msg"financialPaymentsAndCharges.paymentDue.overdue.dueDate".withArgs(LocalDate.parse("2022-03-18").format(dateFormatterDMY)),
-          classes = Seq("govuk-!-width-three-quarters")
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(
           Literal(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+          classes = Seq("govuk-!-width-one-quarter","govuk-!-font-weight-bold")
         ),
         actions = Nil
       ))
@@ -406,11 +391,11 @@ object PsaPenaltiesAndChargesServiceSpec {
       Row(
         key = Key(
           content = msg"paymentsAndCharges.chargeDetails.stoodOverAmount",
-          classes = Seq("govuk-!-width-three-quarters")
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(
           content = Literal(s"-${formatCurrencyAmountAsString(25089.08)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+          classes = Seq("govuk-!-width-one-quarter")
         ),
         actions = Nil
       ))
