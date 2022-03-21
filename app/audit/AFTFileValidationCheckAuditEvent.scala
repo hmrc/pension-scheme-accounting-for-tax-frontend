@@ -41,7 +41,7 @@ case class AFTFileValidationCheckAuditEvent(administratorOrPractitioner: Adminis
 
     val failureFields = failureReason match {
       case None => Map.empty
-      case Some(dd) => Map( "failureReason" -> dd)
+      case Some(reason) => Map( "failureReason" -> reason)
     }
 
     idMap ++
@@ -50,7 +50,7 @@ case class AFTFileValidationCheckAuditEvent(administratorOrPractitioner: Adminis
         "numberOfEntries" -> numberOfEntries.toString,
         "chargeType" -> chargeType.toString,
         "validationCheckStatus" -> (if (validationCheckSuccessful) "Success" else "Failure"),
-        "fileValidationTime" -> s"${fileValidationTimeInSeconds.toString} second(s)",
+        "fileValidationTimeInSeconds" -> fileValidationTimeInSeconds.toString,
         "numberOfFailures" -> numberOfFailures.toString,
         "validationFailureContent" -> validationFailureContent
       ) ++ failureFields
