@@ -89,7 +89,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPsaPenaltiesAndChargesService, mockRenderer)
-    when(mockPsaPenaltiesAndChargesService.chargeDetailsRows(any())).thenReturn(rows)
+    when(mockPsaPenaltiesAndChargesService.chargeDetailsRows(any(),any())).thenReturn(rows)
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))

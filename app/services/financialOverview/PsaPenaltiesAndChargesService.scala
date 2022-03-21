@@ -280,9 +280,9 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       .filter(charge => charge.dueDate.nonEmpty && !charge.dueDate.get.isBefore(DateHelper.today))
       .filter(_.amountDue > BigDecimal(0.00))
 
-  def chargeDetailsRows(data: PsaFSDetail): Seq[SummaryList.Row] = {
+  def chargeDetailsRows(data: PsaFSDetail, journeyType: ChargeDetailsFilter): Seq[SummaryList.Row] = {
     chargeReferenceRow(data) ++ penaltyAmountRow(data) ++ clearingChargeDetailsRow(data) ++
-      stoodOverAmountChargeDetailsRow(data) ++ totalAmountDueChargeDetailsRow(data, "overdue")
+      stoodOverAmountChargeDetailsRow(data) ++ totalAmountDueChargeDetailsRow(data, journeyType)
   }
 
   private def chargeReferenceRow(data: PsaFSDetail): Seq[SummaryList.Row] = {

@@ -136,7 +136,8 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
       "returnUrl" ->        routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url,
       "isInterestAccruing" -> isInterestAccruing,
-      "list" ->             psaPenaltiesAndChargesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head)
+      "list" ->             psaPenaltiesAndChargesService.chargeDetailsRows(psaFS.filter(_.chargeReference ==
+        chargeRefs(chargeReferenceIndex.toInt)).head, journeyType)
     )
   }
 

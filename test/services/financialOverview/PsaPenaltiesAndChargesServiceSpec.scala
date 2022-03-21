@@ -231,7 +231,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
     "chargeDetailsRows" must {
       "return the row for original charge amount, payments and credits, stood over amount and total amount due" in {
         val result =
-          psaPenaltiesAndChargesService.chargeDetailsRows(psaFS())
+          psaPenaltiesAndChargesService.chargeDetailsRows(psaFS(), Overdue)
 
         result mustBe chargeReferenceRow ++ penaltyAmountRow ++
           stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
