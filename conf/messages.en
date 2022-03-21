@@ -1485,5 +1485,14 @@ fileupload.invalid.h1 = Problems with your file
 fileupload.invalid.item1= Cell
 fileupload.invalid.item2 = Error
 
+requestRefund.youAlready.h1 = You might have already requested a refund
+requestRefund.youAlready.p1 = You might have recently requested a refund for this scheme.
 
+requestRefund.p2 = Your credit balance will only change once a refund has been paid. We aim to process refund requests within 15 working days.
+requestRefund.p3 = Select continue to request a refund.
 
+requestRefund.psaAlready.h1 = Someone else might have already requested a refund
+requestRefund.psaAlready.p1 = A scheme administrator registered to this scheme might have recently requested a refund.
+
+requestRefund.pspAlready.h1 = Someone else might have already requested a refund
+requestRefund.pspAlready.p1 = A scheme practitioner authorised to this scheme might have recently requested a refund.
