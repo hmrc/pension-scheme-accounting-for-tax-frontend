@@ -76,35 +76,43 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
   private def setInsetText(psaFS: PsaFSDetail, interestUrl: String, originalChargeUrl: String)
                            (implicit messages: Messages): Html = {
     if (psaFS.chargeType == CONTRACT_SETTLEMENT && psaFS.accruedInterestTotal > 0) {
-      val dueDate = psaFS.dueDate.get
-      Html(
-        s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
-          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
-          s" <span class=govuk-!-font-weight-bold>${
-            messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
-              psaFS.accruedInterestTotal)
-          }</span>" +
-          s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", dueDate.format(dateFormatterDMY))}<span>" +
-          s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
-          s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
-      )
+      setInsetTextForContractCharge(psaFS, interestUrl, messages)
     } else if (psaFS.chargeType == CONTRACT_SETTLEMENT_INTEREST) {
-      Html(
-        s"<p class=govuk-body>${messages("psa.financial.overview.interest.late.payment.text", psaFS.chargeType.toString.toLowerCase())}</p>" +
-          s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$originalChargeUrl>" +
-          s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
-      )
+      setInsetTextForContractInterest(psaFS, originalChargeUrl, messages)
     }
     else {
       Html("")
     }
   }
 
-  private def commonJson( fs: PsaFSDetail,
-                          psaFS: Seq[PsaFSDetail],
-                          chargeRefs: Seq[String],
-                          chargeReferenceIndex: String,
-                          journeyType: ChargeDetailsFilter
+  private def setInsetTextForContractInterest(psaFS: PsaFSDetail, originalChargeUrl: String, messages: Messages) = {
+    Html(
+      s"<p class=govuk-body>${messages("psa.financial.overview.interest.late.payment.text", psaFS.chargeType.toString.toLowerCase())}</p>" +
+        s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$originalChargeUrl>" +
+        s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
+    )
+  }
+
+  private def setInsetTextForContractCharge(psaFS: PsaFSDetail, interestUrl: String, messages: Messages) = {
+    val dueDate = psaFS.dueDate.get
+    Html(
+      s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
+        s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
+        s" <span class=govuk-!-font-weight-bold>${
+          messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
+            psaFS.accruedInterestTotal)
+        }</span>" +
+        s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", dueDate.format(dateFormatterDMY))}<span>" +
+        s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
+        s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
+    )
+  }
+
+  private def commonJson(fs: PsaFSDetail,
+                         psaFS: Seq[PsaFSDetail],
+                         chargeRefs: Seq[String],
+                         chargeReferenceIndex: String,
+                         journeyType: ChargeDetailsFilter
                         )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
     val psaFSDetails = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head
     val period = psaPenaltiesAndChargesService.setPeriod(fs.chargeType, fs.periodStartDate, fs.periodEndDate)
