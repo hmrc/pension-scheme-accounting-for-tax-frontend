@@ -18,7 +18,6 @@ package audit
 
 import models.AdministratorOrPractitioner.Administrator
 import models.{AdministratorOrPractitioner, ChargeType}
-import play.api.libs.json.Json
 
 case class AFTFileValidationCheckAuditEvent(administratorOrPractitioner: AdministratorOrPractitioner,
                                             id: String,

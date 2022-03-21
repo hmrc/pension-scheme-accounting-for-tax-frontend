@@ -34,7 +34,6 @@ import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
-import org.apache.commons.lang3.StringUtils.EMPTY
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import pages.PSTRQuery
@@ -433,10 +432,6 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 }
 
 object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val templateToBeRendered = "fileUpload/invalid.njk"
-  private val chargeType = ChargeType.ChargeTypeAnnualAllowance
-
   private def ua: UserAnswers = userAnswersWithSchemeName
 
   private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
