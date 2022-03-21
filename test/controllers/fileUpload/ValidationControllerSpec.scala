@@ -123,7 +123,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       auditEventSent.validationCheckSuccessful mustBe false
       auditEventSent.failureReason mustBe Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error)
       auditEventSent.numberOfFailures mustBe 1
-      auditEventSent.validationFailureContent mustBe ""
+      auditEventSent.validationFailureContent mustBe None
     }
 
     "send correct audit event for failure when less than 10 (non-header) errors" in {
@@ -145,7 +145,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       auditEventSent.numberOfFailures mustBe 2
       val expectedFailureContent = """B2: Field error one
                                      |B3: Field error two""".stripMargin
-      auditEventSent.validationFailureContent mustBe expectedFailureContent
+      auditEventSent.validationFailureContent mustBe Some(expectedFailureContent)
     }
 
     "send correct audit event for failure when more than 10 (non-header) errors" in {
@@ -174,11 +174,11 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       auditEventSent.validationCheckSuccessful mustBe false
       auditEventSent.failureReason mustBe Some("Generic failure (more than 10)")
       auditEventSent.numberOfFailures mustBe 11
-      auditEventSent.validationFailureContent mustBe
+      auditEventSent.validationFailureContent mustBe Some(
         """charge amount is missing or in the wrong format
           |date you received notice to pay the charge is missing or in the wrong format
           |payment type is missing or in the wrong format
-          |tax year to which the annual allowance charge relates is missing or in the wrong format""".stripMargin
+          |tax year to which the annual allowance charge relates is missing or in the wrong format""".stripMargin)
     }
 
     "send correct audit event for when there are no failures" in {
@@ -216,7 +216,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       auditEventSent.validationCheckSuccessful mustBe true
       auditEventSent.failureReason mustBe None
       auditEventSent.numberOfFailures mustBe 0
-      auditEventSent.validationFailureContent mustBe ""
+      auditEventSent.validationFailureContent mustBe None
     }
 
     "return OK and the correct view for a GET where there are validation errors" in {

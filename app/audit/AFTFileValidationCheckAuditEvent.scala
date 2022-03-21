@@ -18,6 +18,7 @@ package audit
 
 import models.AdministratorOrPractitioner.Administrator
 import models.{AdministratorOrPractitioner, ChargeType}
+import play.api.libs.json.Json
 
 case class AFTFileValidationCheckAuditEvent(administratorOrPractitioner: AdministratorOrPractitioner,
                                             id: String,
@@ -28,7 +29,7 @@ case class AFTFileValidationCheckAuditEvent(administratorOrPractitioner: Adminis
                                             fileValidationTimeInSeconds: Int,
                                             failureReason: Option[String],
                                             numberOfFailures: Int,
-                                            validationFailureContent: String
+                                            validationFailureContent: Option[String]
                                            ) extends AuditEvent {
 
   override def auditType: String = "AFTFileValidationCheck"
@@ -39,10 +40,13 @@ case class AFTFileValidationCheckAuditEvent(administratorOrPractitioner: Adminis
       case _ => Map("pspId" -> id)
     }
 
-    val failureFields = failureReason match {
+    val failureFields = (failureReason match {
       case None => Map.empty
-      case Some(reason) => Map( "failureReason" -> reason)
-    }
+      case Some(reason) => Map("failureReason" -> reason)
+    }) ++ (validationFailureContent match {
+      case Some(c) => Map("validationFailureContent" -> c)
+      case _ => Map.empty
+    })
 
     idMap ++
       Map(
@@ -51,8 +55,7 @@ case class AFTFileValidationCheckAuditEvent(administratorOrPractitioner: Adminis
         "chargeType" -> chargeType.toString,
         "validationCheckStatus" -> (if (validationCheckSuccessful) "Success" else "Failure"),
         "fileValidationTimeInSeconds" -> fileValidationTimeInSeconds.toString,
-        "numberOfFailures" -> numberOfFailures.toString,
-        "validationFailureContent" -> validationFailureContent
+        "numberOfFailures" -> numberOfFailures.toString
       ) ++ failureFields
   }
 }

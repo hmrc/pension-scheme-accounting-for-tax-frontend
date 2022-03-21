@@ -197,13 +197,13 @@ class ValidationController @Inject()(
     val numberOfFailures = parserResult.fold(_.size, _ => 0)
     val (failureReason, errorReport) = parserResult match {
       case Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
-        Tuple2(Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error), EMPTY)
+        Tuple2(Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error), None)
       case Left(errors) =>
         failureReasonAndErrorReportForAudit(errors, chargeType)(messages) match {
-          case Some(Tuple2(reason, report)) => Tuple2(Some(reason), report)
-          case _ => Tuple2(None, EMPTY)
+          case Some(Tuple2(reason, report)) => Tuple2(Some(reason), Some(report))
+          case _ => Tuple2(None, None)
         }
-      case _ => Tuple2(None, EMPTY)
+      case _ => Tuple2(None, None)
     }
 
     auditService.sendEvent(
