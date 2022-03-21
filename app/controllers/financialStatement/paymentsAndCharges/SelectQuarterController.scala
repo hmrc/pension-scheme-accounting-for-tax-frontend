@@ -22,7 +22,7 @@ import controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndCharg
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
-import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSDetail
 import models.{AFTQuarter, ChargeDetailsFilter, DisplayHint, DisplayQuarter, PaymentOverdue, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -57,7 +57,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   def onPageLoad(srn: String, year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
-      val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFS)
+      val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFSDetail)
 
         if (quarters.nonEmpty) {
 
@@ -66,7 +66,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "year" -> year,
             "form" -> form(quarters, year, journeyType),
-            "radios" -> Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFS),
+            "radios" -> Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
@@ -82,7 +82,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   def onSubmit(srn: String, year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
-      val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFS)
+      val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFSDetail)
         if (quarters.nonEmpty) {
 
           form(quarters, year, journeyType).bindFromRequest().fold(
@@ -93,7 +93,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                     "schemeName" -> paymentsCache.schemeDetails.schemeName,
                     "year" -> year,
                     "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFS),
+                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
                       Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false),
                     "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
                   )
@@ -110,7 +110,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
     }
   }
 
-  private def getDisplayQuarters(year: String, payments: Seq[SchemeFS]): Seq[DisplayQuarter] = {
+  private def getDisplayQuarters(year: String, payments: Seq[SchemeFSDetail]): Seq[DisplayQuarter] = {
 
     val quartersFound: Seq[LocalDate] = payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
@@ -126,7 +126,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
     }
   }
 
-  private def getQuarters(year: String, payments: Seq[SchemeFS]): Seq[AFTQuarter] =
+  private def getQuarters(year: String, payments: Seq[SchemeFSDetail]): Seq[AFTQuarter] =
     payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
       .filter(_.periodStartDate.getYear == year.toInt)

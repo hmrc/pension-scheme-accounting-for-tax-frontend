@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
 import helpers.FormatHelper
-import models.financialStatement.{PsaFS, PsaFSChargeType}
+import models.financialStatement.{PsaFS, PsaFSChargeType, PsaFSDetail}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -55,29 +55,36 @@ class PsaFinancialOverviewController @Inject()(
         psaOrPspName <- minimalConnector.getPsaOrPspName
         psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
       } yield {
-        val psaFSWithoutPaymentOnAccount: Seq[PsaFS] = psaFSWithPaymentOnAccount.filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
+        val psaFSWithoutPaymentOnAccount: Seq[PsaFSDetail] = psaFSWithPaymentOnAccount.seqPsaFSDetail
+          .filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
         renderFinancialOverview(psaOrPspName, psaFSWithoutPaymentOnAccount, request, psaFSWithPaymentOnAccount)
       }
       response.flatten
   }
 
-  private def renderFinancialOverview(psaName: String, psaFS: Seq[PsaFS],
-                                       request: RequestHeader, creditPsaFS: Seq[PsaFS]) (implicit messages: Messages) : Future[Result] = {
-    val psaCharges:(String,String,String) = service.retrievePsaChargesAmount(psaFS)
-    val creditBalance = service.getCreditBalanceAmount(creditPsaFS)
+  private def renderFinancialOverview(psaName: String, psaFSDetail: Seq[PsaFSDetail],
+                                      request: RequestHeader, creditPsaFS: PsaFS)(implicit messages: Messages) : Future[Result] = {
+    val creditPsaFSDetails = creditPsaFS.seqPsaFSDetail
+    val psaCharges:(String,String,String) = service.retrievePsaChargesAmount(psaFSDetail)
+    val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)
     val creditBalanceFormatted: String =  s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
 
     logger.debug(s"AFT service returned UpcomingCharge - ${psaCharges._1}")
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
     logger.debug(s"AFT service returned InterestAccruing - ${psaCharges._3}")
 
+    val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
+    val requestRefundUrl = creditPsaFS.inhibitRefundSignal match {
+      case true => routes.RefundUnavailableController.onPageLoad.url
+      case false => routes.PsaRequestRefundController.onPageLoad.url
+    }
 
     renderer.render(
       template = "financialOverview/psaFinancialOverview.njk",
       ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1 ,
         "totalOverdueCharge" -> psaCharges._2 ,
         "totalInterestAccruing" -> psaCharges._3 ,
-        "psaName" -> psaName, "requestRefundUrl" -> routes.PsaRequestRefundController.onPageLoad.url,
+        "psaName" -> psaName, "requestRefundUrl" -> requestRefundUrl,
         "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }

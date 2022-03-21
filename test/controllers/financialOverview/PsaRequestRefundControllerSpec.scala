@@ -71,7 +71,7 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with NunjucksSup
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
-      .thenReturn(Future.successful(psaFsSeq))
+      .thenReturn(Future.successful(psaFs))
     when(mockService.getCreditBalanceAmount(any())).thenReturn(BigDecimal(44.4))
 
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any()))

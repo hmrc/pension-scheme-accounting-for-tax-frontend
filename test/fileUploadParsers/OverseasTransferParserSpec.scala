@@ -74,7 +74,7 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
     "return validation error for not enough fields" in {
       val result = parser.parse(startDate, Seq(header, "one,two"),UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 0, "Not enough fields")
+        ParserValidationError(1, 0, "Enter all of the information for this member")
       ))
     }
 

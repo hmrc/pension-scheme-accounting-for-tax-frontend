@@ -64,7 +64,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
       creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
     } yield {
       val pstr = schemeDetails.pstr
-      val creditBalance = psaSchemePartialService.getCreditBalanceAmount(creditSchemeFS)
+      val creditBalance = psaSchemePartialService.getCreditBalanceAmount(creditSchemeFS.seqSchemeFSDetail)
       val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
       request.schemeAdministratorType match {
         case Administrator => s"$creditBalanceBaseUrl?requestType=1&psaName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"

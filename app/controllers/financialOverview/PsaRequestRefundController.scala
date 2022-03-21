@@ -50,7 +50,8 @@ class PsaRequestRefundController @Inject()(appConfig: FrontendAppConfig,
       psaName <- minimalConnector.getPsaOrPspName
       creditPsaFS <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
     } yield {
-      val creditBalance = service.getCreditBalanceAmount(creditPsaFS)
+      val creditPsaFSDetails = creditPsaFS.seqPsaFSDetail
+      val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)
       val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
 
       s"$creditBalanceBaseUrl?requestType=3&psaName=$psaName&availAmt=$creditBalance"

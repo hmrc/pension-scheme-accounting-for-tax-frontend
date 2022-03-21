@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.financialStatement.PenaltyTypeFormProvider
 import models.financialStatement.PenaltyType.getPenaltyType
-import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFS}
+import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFSDetail}
 import models.{DisplayHint, PaymentOverdue, PenaltiesFilter}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -79,7 +79,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
     }
   }
 
-  private def getPenaltyTypes(penalties: Seq[PsaFS]): Seq[DisplayPenaltyType] =
+  private def getPenaltyTypes(penalties: Seq[PsaFSDetail]): Seq[DisplayPenaltyType] =
     penalties.map(p => getPenaltyType(p.chargeType)).distinct.sortBy(_.toString).map { category =>
 
       val isOverdue: Boolean = penalties.filter(p => getPenaltyType(p.chargeType) == category).exists(service.isPaymentOverdue)

@@ -26,7 +26,7 @@ import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
-import models.financialStatement.{SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
@@ -73,36 +73,36 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
-  private def expectedJson(schemeFS: SchemeFS, chargeType: String, index: String): JsObject = Json.obj(
+  private def expectedJson(schemeFSDetail: SchemeFSDetail, chargeType: String, index: String): JsObject = Json.obj(
     fields = "chargeDetailsList" -> Seq(
       Row(
         key = Key(msg"paymentsAndCharges.interest", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.accruedInterestTotal)}"),
+          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
         ),
         actions = Nil
       ),
       Row(
         key = Key(
-          msg"paymentsAndCharges.interestFrom".withArgs(schemeFS.periodEndDate.plusDays(46).format(dateFormatterDMY)),
+          msg"paymentsAndCharges.interestFrom".withArgs(schemeFSDetail.periodEndDate.plusDays(46).format(dateFormatterDMY)),
           classes = Seq("govuk-table__cell--numeric", "govuk-!-padding-right-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
         ),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.accruedInterestTotal)}"),
+          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")
         ),
         actions = Nil
       )
     ),
     "tableHeader" -> messages("paymentsAndCharges.caption",
-      schemeFS.periodStartDate.format(dateFormatterStartDate),
-      schemeFS.periodEndDate.format(dateFormatterDMY)),
+      schemeFSDetail.periodStartDate.format(dateFormatterStartDate),
+      schemeFSDetail.periodEndDate.format(dateFormatterDMY)),
     "schemeName" -> schemeName,
-    "accruedInterest" -> schemeFS.accruedInterestTotal,
+    "accruedInterest" -> schemeFSDetail.accruedInterestTotal,
     "chargeType" -> chargeType,
     "originalAmountUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, schemeFS.periodStartDate, index, AccountingForTaxCharges, All)
+      .onPageLoad(srn, schemeFSDetail.periodStartDate, index, AccountingForTaxCharges, All)
       .url,
     "returnUrl" -> dummyCall.url
   )
@@ -113,7 +113,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
 
-      val schemeFS = createCharge(chargeReference = "XY002610150184", chargeType = PSS_AFT_RETURN)
+      val schemeFSDetail = createCharge(chargeReference = "XY002610150184", chargeType = PSS_AFT_RETURN)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
@@ -122,14 +122,14 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeInterest.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFS, PSS_AFT_RETURN_INTEREST.toString, "0"))
+      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, PSS_AFT_RETURN_INTEREST.toString, "0"))
     }
 
     "return OK and the correct view for interest accrued for overseas transfer charge if amount is due and interest is accruing for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
 
-      val schemeFS = createCharge(chargeReference = "XY002610150185", chargeType = PSS_OTC_AFT_RETURN)
+      val schemeFSDetail = createCharge(chargeReference = "XY002610150185", chargeType = PSS_OTC_AFT_RETURN)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
@@ -138,7 +138,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeInterest.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFS, PSS_OTC_AFT_RETURN_INTEREST.toString, "1"))
+      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, PSS_OTC_AFT_RETURN_INTEREST.toString, "1"))
     }
 
     "redirect to Session Expired page when there is no data for the selected charge reference for a GET" in {
@@ -154,8 +154,8 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 object PaymentsAndChargesInterestControllerSpec {
   private val srn = "test-srn"
 
-  private def createCharge(chargeReference: String, chargeType: SchemeFSChargeType): SchemeFS = {
-    SchemeFS(
+  private def createCharge(chargeReference: String, chargeType: SchemeFSChargeType): SchemeFSDetail = {
+    SchemeFSDetail(
       chargeReference = chargeReference,
       chargeType = chargeType,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -172,7 +172,7 @@ object PaymentsAndChargesInterestControllerSpec {
     )
   }
 
-  private val schemeFSResponse: Seq[SchemeFS] = Seq(
+  private val schemeFSResponse: Seq[SchemeFSDetail] = Seq(
     createCharge(chargeReference = "XY002610150184", PSS_AFT_RETURN),
     createCharge(chargeReference = "XY002610150185", PSS_OTC_AFT_RETURN)
   )

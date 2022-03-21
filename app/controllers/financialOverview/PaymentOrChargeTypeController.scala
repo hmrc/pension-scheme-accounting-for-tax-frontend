@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
 import models.financialStatement.PaymentOrChargeType.getPaymentOrChargeType
-import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFS}
+import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -51,7 +51,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   def onPageLoad(srn: String,  pstr: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
-      val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFS)
+      val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail)
       val json = Json.obj(
         "titleMessage" -> s"paymentOrChargeType.all.title",
         "form" -> form(),
@@ -71,18 +71,18 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
           val json = Json.obj(
             "titleMessage" -> s"paymentOrChargeType.all.title",
             "form" -> formWithErrors,
-            "radios" -> PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFS)),
+            "radios" -> PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail)),
             "schemeName" -> cache.schemeDetails.schemeName,
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
           renderer.render(template = "financialOverview/paymentOrChargeType.njk", json).map(BadRequest(_))
         },
-        value => navService.navFromPaymentsTypePage(cache.schemeFS, srn, pstr, value)
+        value => navService.navFromPaymentsTypePage(cache.schemeFSDetail, srn, pstr, value)
       )
     }
   }
 
-  private def getPaymentOrChargeTypes(paymentsOrCharges: Seq[SchemeFS]): Seq[DisplayPaymentOrChargeType] =
+  private def getPaymentOrChargeTypes(paymentsOrCharges: Seq[SchemeFSDetail]): Seq[DisplayPaymentOrChargeType] =
     paymentsOrCharges.map(p => getPaymentOrChargeType(p.chargeType)).distinct.sortBy(_.toString).map { category =>
 
       val isOverdue: Boolean = paymentsOrCharges.filter(p => getPaymentOrChargeType(p.chargeType) == category).exists(service.isPaymentOverdue)

@@ -24,7 +24,7 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSDetail
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
@@ -104,8 +104,8 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 object PaymentsAndChargesControllerSpec {
   private val startDate = "2020-04-01"
   private val srn = "test-srn"
-  private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFS = {
-    SchemeFS(
+  private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
+    SchemeFSDetail(
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -121,7 +121,7 @@ object PaymentsAndChargesControllerSpec {
       documentLineItemDetails = Nil
     )
   }
-  private val schemeFSResponse: Seq[SchemeFS] = Seq(
+  private val schemeFSResponse: Seq[SchemeFSDetail] = Seq(
     createCharge(startDate = "2020-04-01", endDate = "2020-06-30", chargeReference = "XY002610150184"),
     createCharge(startDate = "2020-01-01", endDate = "2020-03-31", chargeReference = "AYU3494534632"),
     createCharge(startDate = "2021-04-01", endDate = "2021-06-30", chargeReference = "XY002610150185")

@@ -24,9 +24,8 @@ import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.financialStatement.{PsaFS, SchemeFS}
-import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint,
-  MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.financialStatement.{PsaFS, PsaFSDetail, SchemeFS, SchemeFSDetail}
+import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -134,8 +133,8 @@ object SampleData {
   val memberDetails5: MemberDetails = MemberDetails("Joe", "Bleggs", "AB123458C")
   val memberDetails6: MemberDetails = MemberDetails("Joe", "Blyggs", "AB123458C")
   val memberDetails7: MemberDetails = MemberDetails("Joe", "Blyggs", "AB123458C")
-  val memberGDetails: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.of(2000,4,1), "AB123456C")
-  val memberGDetails2: MemberDetailsG = MemberDetailsG("Joe", "Bloggs", LocalDate.of(2000,4,1), "AB123456C")
+  val memberGDetails: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.of(2000, 4, 1), "AB123456C")
+  val memberGDetails2: MemberDetailsG = MemberDetailsG("Joe", "Bloggs", LocalDate.of(2000, 4, 1), "AB123456C")
 
   val chargeCEmployer: UserAnswers = userAnswersWithSchemeNameAndIndividual
     .setOrException(ChargeCDetailsPage(0), chargeCDetails)
@@ -219,44 +218,47 @@ object SampleData {
       tpssReportPresent = false,
       Some(AFTOverviewVersion(numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)))
 
-  val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
+  val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
   val emptyChargesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
 
-  val schemeFSResponseAftAndOTC: Seq[SchemeFS] = Seq(
+  val schemeFSResponseAftAndOTC: SchemeFS =
     SchemeFS(
-      chargeReference = "XY002610150184",
-      chargeType = PSS_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 12345.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      accruedInterestTotal = 23000.55,
-      periodStartDate = LocalDate.parse("2020-04-01"),
-      periodEndDate = LocalDate.parse("2020-06-30"),
-      formBundleNumber = None,
-      sourceChargeRefForInterest = None,
-      documentLineItemDetails = Nil
-    ),
-    SchemeFS(
-      chargeReference = "XY002610150184",
-      chargeType = PSS_OTC_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 56432.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      accruedInterestTotal = 24000.41,
-      periodStartDate = LocalDate.parse("2020-04-01"),
-      periodEndDate = LocalDate.parse("2020-06-30"),
-      formBundleNumber = None,
-      sourceChargeRefForInterest = None,
-      documentLineItemDetails = Nil
+      seqSchemeFSDetail = Seq(
+        SchemeFSDetail(
+          chargeReference = "XY002610150184",
+          chargeType = PSS_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2020-02-15")),
+          totalAmount = 12345.00,
+          outstandingAmount = 56049.08,
+          stoodOverAmount = 25089.08,
+          amountDue = 1029.05,
+          accruedInterestTotal = 23000.55,
+          periodStartDate = LocalDate.parse("2020-04-01"),
+          periodEndDate = LocalDate.parse("2020-06-30"),
+          formBundleNumber = None,
+          sourceChargeRefForInterest = None,
+          documentLineItemDetails = Nil
+        ),
+        SchemeFSDetail(
+          chargeReference = "XY002610150184",
+          chargeType = PSS_OTC_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2020-02-15")),
+          totalAmount = 56432.00,
+          outstandingAmount = 56049.08,
+          stoodOverAmount = 25089.08,
+          amountDue = 1029.05,
+          accruedInterestTotal = 24000.41,
+          periodStartDate = LocalDate.parse("2020-04-01"),
+          periodEndDate = LocalDate.parse("2020-06-30"),
+          formBundleNumber = None,
+          sourceChargeRefForInterest = None,
+          documentLineItemDetails = Nil
+        )
+      )
     )
-  )
 
-  val psaFsSeq: Seq[PsaFS] = Seq(
-    PsaFS(
+  val psaFsSeq: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -269,7 +271,7 @@ object SampleData {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
     ),
-    PsaFS(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -283,9 +285,9 @@ object SampleData {
       pstr = "24000041IN"
     )
   )
-
-  val multiplePenalties: Seq[PsaFS] = Seq(
-    PsaFS(
+  val psaFs: PsaFS = PsaFS (false, psaFsSeq)
+  val multiplePenalties: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -298,7 +300,7 @@ object SampleData {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
     ),
-    PsaFS(
+    PsaFSDetail(
       chargeReference = "XY002610150185",
       chargeType = CONTRACT_SETTLEMENT_INTEREST,
       dueDate = Some(LocalDate.parse("2020-02-15")),
