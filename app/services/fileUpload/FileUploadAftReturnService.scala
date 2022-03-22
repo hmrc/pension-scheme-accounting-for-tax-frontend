@@ -19,12 +19,12 @@ import connectors.cache.UserAnswersCacheConnector
 import helpers.{ChargeServiceHelper, ChargeTypeHelper}
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
-import models.{ChargeType, UserAnswers}
+import models.{AmendedChargeStatus, ChargeType, MemberDetails, UserAnswers}
+import pages.{chargeD => chargeDStatus, chargeE => chargeEStatus, chargeG => chargeGStatus}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 @Singleton
 class FileUploadAftReturnService @Inject()(
@@ -34,21 +34,35 @@ class FileUploadAftReturnService @Inject()(
 
   def preProcessAftReturn(chargeType: ChargeType,
                           ua: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[UserAnswers] = {
-    for {
-      updatedAnswers <- Future.fromTry(updateTotalAmount(chargeType, ua))
-      _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-    } yield {
-      updatedAnswers
-    }
+    val userAnswersWithTotalAmount = updateTotalAmount(chargeType, ua)
+    val updatedUserAnswers = setMemberStatus(userAnswersWithTotalAmount, chargeType)(request)
+    userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data).map(_ => updatedUserAnswers)
   }
 
-  private def updateTotalAmount(chargeType: ChargeType, ua: UserAnswers): Try[UserAnswers] = {
+  private def updateTotalAmount(chargeType: ChargeType, ua: UserAnswers): UserAnswers = {
     chargeType match {
       case ChargeTypeAnnualAllowance |  ChargeTypeLifetimeAllowance | ChargeTypeOverseasTransfer =>
         val totalAmount = chargeServiceHelper.totalAmount(ua, getChargeTypeText(chargeType))
-        ua.set(ChargeTypeHelper.getTotalChargeAmountPage(chargeType), totalAmount)
-      case _ => Try(ua)
+        ua.setOrException(ChargeTypeHelper.getTotalChargeAmountPage(chargeType), totalAmount)
+      case _ => ua
     }
+  }
+
+  private def setMemberStatus(ua: UserAnswers, chargeType: ChargeType)(implicit request: DataRequest[_]): UserAnswers = {
+    val userAnswersWithMemberStatus = ua.getAllMembersInCharge[MemberDetails](charge = getChargeTypeText(chargeType))
+      .zipWithIndex.foldLeft(ua) { case (acc, Tuple2(_, index)) =>
+      val memberStatusPage = chargeType match {
+        case ChargeTypeAnnualAllowance => chargeEStatus.MemberStatusPage(index)
+        case ChargeTypeLifetimeAllowance => chargeDStatus.MemberStatusPage(index)
+        case ChargeTypeOverseasTransfer => chargeGStatus.MemberStatusPage(index)
+      }
+      if (request.isAmendment) {
+        acc.setOrException(memberStatusPage, AmendedChargeStatus.Added.toString)
+      } else {
+        acc
+      }
+    }
+    userAnswersWithMemberStatus
   }
 
   private def getChargeTypeText(chargeType: ChargeType): String = {
@@ -56,6 +70,7 @@ class FileUploadAftReturnService @Inject()(
       case ChargeTypeAnnualAllowance   => "chargeEDetails"
       case ChargeTypeLifetimeAllowance => "chargeDDetails"
       case ChargeTypeOverseasTransfer  => "chargeGDetails"
+      case _ => ""
     }
   }
 }
