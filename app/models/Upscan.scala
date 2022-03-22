@@ -41,14 +41,16 @@ object UploadedSuccessfully {
   implicit val uploadedSuccessfullyFormat: OFormat[UploadedSuccessfully] = Json.format[UploadedSuccessfully]
 }
 
-case class FileUploadStatus(_type: String, failureReason: Option[String]=None, message: Option[String]=None, downloadUrl: Option[String]=None , mimeType: Option[String]=None,
+case class FileUploadStatus(_type: String, failureReason: Option[String]=None, message: Option[String]=None,
+                            downloadUrl: Option[String]=None , mimeType: Option[String]=None,
                             name: Option[String]=None, size: Option[Long]=None)
 
 object FileUploadStatus {
   implicit val reads: OFormat[FileUploadStatus] = Json.format[FileUploadStatus]
 }
 
-case class FileUploadDataCache(uploadId: String, reference: String, status: FileUploadStatus, lastUpdated: LocalDateTime, expireAt: LocalDateTime)
+case class FileUploadDataCache(uploadId: String, reference: String, status: FileUploadStatus,created: LocalDateTime,
+                               lastUpdated: LocalDateTime, expireAt: LocalDateTime)
 
 
 object FileUploadDataCache {

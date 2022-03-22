@@ -36,7 +36,7 @@ import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
+import java.time.{Duration, LocalDate, LocalDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,7 +49,6 @@ class ValidationController @Inject()(
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
                                       auditService: AuditService,
-                                      schemeDetails: SchemeDetails,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
                                       annualAllowanceParser: AnnualAllowanceParser,
@@ -175,8 +174,18 @@ class ValidationController @Inject()(
               case (Some(_), "" | "Failed" | "InProgress") => sessionExpired
               case (None, _) => sessionExpired
               case (Some(parser), "UploadedSuccessfully") =>
+               val created:LocalDateTime =LocalDateTime.now
+                val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
                 upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap {
                   response =>
+                    val duration = Duration.between( LocalDateTime.now,created)
+                    val uploadTime = duration.getSeconds()
+                    auditService.sendEvent(
+                      AFTUpscanFileDownloadAuditEvent
+                      (request.idOrException, request.schemeAdministratorType,
+                        chargeType.toString, pstr, uploadStatus.toString, uploadStatus.status.failureReason.toString ,
+                        downloadTime = uploadTime, uploadStatus.status.size.toString, uploadStatus.reference
+                      ))
                     response.status match {
                       case OK =>
                         val linesFromCSV = response.body.split("\n").toList
@@ -184,10 +193,12 @@ class ValidationController @Inject()(
                       case _ =>
                         Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
                           .map{
-                          result => auditService.sendEvent(
+                          result =>
+
+                            auditService.sendEvent(
                             AFTUpscanFileDownloadAuditEvent
                             (request.idOrException, request.schemeAdministratorType,
-                            chargeType.toString, schemeDetails.pstr, uploadStatus.toString, uploadStatus.status.failureReason.toString ,
+                            chargeType.toString, pstr, uploadStatus.toString, uploadStatus.status.failureReason.toString ,
                             downloadTime = ???, uploadStatus.status.size.toString, uploadStatus.reference
                           ))
                             result

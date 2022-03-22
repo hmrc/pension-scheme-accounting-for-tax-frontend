@@ -16,6 +16,7 @@
 
 package controllers.fileUpload
 
+import audit.{AFTUpscanFileUploadAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
@@ -25,7 +26,7 @@ import models.fileUpload.UploadCheckSelection
 import models.fileUpload.UploadCheckSelection.{No, Yes}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, FileUploadDataCache, GenericViewModel, UploadId}
-import pages.SchemeNameQuery
+import pages.{PSTRQuery, SchemeNameQuery}
 import pages.fileUpload.{UploadCheckPage, UploadedFileName}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -36,7 +37,7 @@ import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
+import java.time.{Duration, LocalDate}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -51,7 +52,8 @@ class FileUploadCheckController @Inject()(
                                            formProvider: UploadCheckSelectionFormProvider,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            uploadProgressTracker: UploadProgressTracker,
-                                           upscanErrorHandlingService: UpscanErrorHandlingService
+                                           upscanErrorHandlingService: UpscanErrorHandlingService,
+                                           auditService: AuditService
                                          )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport
@@ -59,6 +61,7 @@ class FileUploadCheckController @Inject()(
 
   private val form = formProvider()
   private val logger = Logger(classOf[FileUploadCheckController])
+
   def onPageLoad(srn: String,
                  startDate: String,
                  accessType: AccessType,
@@ -74,15 +77,33 @@ class FileUploadCheckController @Inject()(
             case Some(fileUploadDataCache) =>
               val fileUploadStatus = fileUploadDataCache.status
               fileUploadStatus._type match {
-              case "UploadedSuccessfully" =>
-                  renderPage(fileUploadStatus.name.getOrElse(""), srn, startDate, accessType, version, chargeType, uploadId)
-              case "InProgress" =>
-                renderPage("InProgress", srn, startDate, accessType, version, chargeType, uploadId)
-              case "Failed" =>
-              upscanErrorHandlingService.handleFailureResponse(fileUploadStatus.failureReason.getOrElse(""), srn, startDate, accessType, version)
+                case "UploadedSuccessfully" =>
+                  renderPage(fileUploadStatus.name.getOrElse(""), srn, startDate, accessType, version, chargeType, uploadId).map {
+                    result =>
+                      sendAuditEvent(chargeType, fileUploadDataCache)
+                      result
+                  }
+                case "InProgress" =>
+                  renderPage("InProgress", srn, startDate, accessType, version, chargeType, uploadId)
+                case "Failed" =>
+                  upscanErrorHandlingService.handleFailureResponse(fileUploadStatus.failureReason.getOrElse(""), srn, startDate, accessType, version).map {
+                    result =>
+                      sendAuditEvent(chargeType, fileUploadDataCache)
+                      result
+                  }
               }
           }
     }
+
+  private def sendAuditEvent(chargeType: ChargeType,fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]) = {
+    val fileUploadStatus = fileUploadDataCache.status
+    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
+    val duration = Duration.between( fileUploadDataCache.lastUpdated,fileUploadDataCache.created)
+    val uploadTime = duration.getSeconds()
+    auditService.sendEvent(AFTUpscanFileUploadAuditEvent(request.idOrException, pstr,
+      request.schemeAdministratorType, chargeType, fileUploadStatus._type, fileUploadStatus.failureReason, uploadTime = uploadTime,
+      fileUploadStatus.size, fileUploadDataCache.reference))
+  }
 
   private def renderPage(name: String, srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType,
                          uploadId: UploadId)

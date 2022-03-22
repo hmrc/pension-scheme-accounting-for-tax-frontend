@@ -28,7 +28,7 @@ case class AFTUpscanFileDownloadAuditEvent(
                                             pstr: String,
                                             downloadStatus: String,
                                             failureReason: String,
-                                            downloadTime: LocalDateTime,
+                                            downloadTime: Long,
                                             fileSize: String,
                                             reference: String
                                           ) extends AuditEvent {

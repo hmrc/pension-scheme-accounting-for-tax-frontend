@@ -23,8 +23,8 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, AdministratorOrPractitioner, ChargeType, GenericViewModel, SchemeDetails, UploadId}
-import pages.SchemeNameQuery
+import models.{AccessType, AdministratorOrPractitioner, ChargeType, FileUploadDataCache, FileUploadStatus, GenericViewModel, SchemeDetails, UploadId}
+import pages.{PSTRQuery, SchemeNameQuery}
 import pages.fileUpload.UploadedFileName
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -34,6 +34,7 @@ import renderer.Renderer
 import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
+import java.time.Duration
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -45,7 +46,6 @@ class FileUploadController @Inject()(
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
-                                      schemeDetails: SchemeDetails,
                                       auditService: AuditService,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
@@ -100,11 +100,15 @@ class FileUploadController @Inject()(
               fileUploadStatus._type match {
                 case "UploadedSuccessfully" =>
                   logger.info("FileUploadController.showResult UploadedSuccessfully")
-                  for {
+                val successResult =  for {
                     updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), fileUploadStatus.name.getOrElse("")))
                     _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, Some(chargeType))
                   } yield {
-                    Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
+                   Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
+                  }
+                  successResult.map { result =>
+                    sendAuditEvent(chargeType, fileUploadDataCache)
+                    result
                   }
                 case "InProgress" =>
                   logger.info("FileUploadController.showResult InProgress")
@@ -112,14 +116,23 @@ class FileUploadController @Inject()(
                 case "Failed" =>
                   upscanErrorHandlingService.handleFailureResponse(fileUploadStatus.failureReason.getOrElse(""), srn, startDate, accessType, version).map{
                     result =>
-                    auditService.sendEvent(AFTUpscanFileUploadAuditEvent(request.idOrException, schemeDetails.pstr,
-                      request.schemeAdministratorType, chargeType, fileUploadStatus._type, fileUploadStatus.failureReason.toString, uploadTime = ??? ,
-                      fileUploadStatus.size.toString, fileUploadDataCache.reference ))
-                    result
+                      sendAuditEvent(chargeType,fileUploadDataCache)
+                      result
                   }
               }
           }
     }
+
+
+  private def sendAuditEvent(chargeType: ChargeType,fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]) = {
+    val fileUploadStatus = fileUploadDataCache.status
+    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
+    val duration = Duration.between( fileUploadDataCache.lastUpdated,fileUploadDataCache.created)
+    val uploadTime = duration.getSeconds()
+    auditService.sendEvent(AFTUpscanFileUploadAuditEvent(request.idOrException, pstr,
+      request.schemeAdministratorType, chargeType, fileUploadStatus._type, fileUploadStatus.failureReason, uploadTime = uploadTime,
+      fileUploadStatus.size, fileUploadDataCache.reference))
+  }
 
   private def getErrorCode(request: DataRequest[AnyContent]):Option[String] = {
     if (request.queryString.contains("errorCode") && request.queryString("errorCode").nonEmpty) {

@@ -29,8 +29,8 @@ case class AFTUpscanFileUploadAuditEvent(
                                           chargeType: ChargeType,
                                           uploadStatus: String,
                                           failureReason: Option[String]= None,
-                                          uploadTime: LocalDateTime,
-                                          fileSize: Option[String]=None,
+                                          uploadTime: Long,
+                                          fileSize: Option[Long]=None,
                                           reference: String
                                         ) extends AuditEvent {
   override def auditType: String = "AFTFileUpscanUploadCheck"
@@ -47,7 +47,7 @@ case class AFTUpscanFileUploadAuditEvent(
       "uploadStatus" -> uploadStatus,
       "failureReason" -> failureReason.getOrElse(""),
       "uploadTime" -> uploadTime.toString(),
-      "fileSize" -> fileSize.getOrElse(""),
+      "fileSize" -> fileSize.getOrElse("").toString,
       "reference" -> reference
     ) ++ psaOrPspIdJson
   }
