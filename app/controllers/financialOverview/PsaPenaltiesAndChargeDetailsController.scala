@@ -94,19 +94,24 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
   }
 
   private def setInsetTextForContractCharge(psaFS: PsaFSDetail, interestUrl: String, messages: Messages) = {
-    val dueDate = psaFS.dueDate.get
-    Html(
-      s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
-        s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
-        s" <span class=govuk-!-font-weight-bold>${
-          messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
-            psaFS.accruedInterestTotal)
-        }</span>" +
-        s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", dueDate.format(dateFormatterDMY))}<span>" +
-        s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
-        s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
-    )
+    if (psaFS.dueDate.isDefined) {
+      val dueDate = psaFS.dueDate.get
+      Html(
+        s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
+          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
+          s" <span class=govuk-!-font-weight-bold>${
+            messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
+              psaFS.accruedInterestTotal)
+          }</span>" +
+          s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", dueDate.format(dateFormatterDMY))}<span>" +
+          s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
+          s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
+      )
+    } else {
+      Html("")
+    }
   }
+
 
   private def commonJson(fs: PsaFSDetail,
                          psaFS: Seq[PsaFSDetail],
