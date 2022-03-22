@@ -16,6 +16,7 @@
 
 package controllers.fileUpload
 
+import audit.{AFTFileValidationCheckAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
@@ -25,6 +26,7 @@ import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
+import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
@@ -53,7 +55,8 @@ class ValidationController @Inject()(
                                       lifeTimeAllowanceParser: LifetimeAllowanceParser,
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService: AFTService,
-                                      fileUploadAftReturnService: FileUploadAftReturnService
+                                      fileUploadAftReturnService: FileUploadAftReturnService,
+                                      auditService: AuditService
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -71,7 +74,6 @@ class ValidationController @Inject()(
     val fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
     val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
     val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
-
     errors match {
       case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
         Future.successful(Redirect(routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType)))
@@ -141,20 +143,87 @@ class ValidationController @Inject()(
 
     //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
-
+    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache. Srn is $srn")
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
-
-    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing and Validation")
-    parserResult.fold[Future[Result]](
+    val startTime = System.currentTimeMillis
+    val parserResult: Either[Seq[ParserValidationError], UserAnswers] =
+      TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing and Validation")
+    val endTime = System.currentTimeMillis
+    val futureResult = parserResult.fold[Future[Result]](
       processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>
-        TimeLogger.logOperationTime( processSuccessResult(chargeType, updatedUA).map(_ =>
+        TimeLogger.logOperationTime(processSuccessResult(chargeType, updatedUA).map(_ =>
           Redirect(routes.FileUploadSuccessController.onPageLoad(srn, startDate.toString, accessType, version, chargeType))), "processSuccessResult")
+    )
+    futureResult.map { result =>
+      sendAuditEvent(
+        pstr = pstr,
+        chargeType = chargeType,
+        linesFromCSV.size - 1,
+        fileValidationTimeInSeconds = ((endTime - startTime) / 1000).toInt,
+        parserResult = parserResult)
+      result
+    }
+  }
+
+  private def failureReasonAndErrorReportForAudit(errors: Seq[ParserValidationError],
+                                                  chargeType: ChargeType)(implicit messages: Messages): Option[(String, String)] = {
+    if (errors.isEmpty) {
+      None
+    } else if (errors.size <= maximumNumberOfError) {
+      val errorReport = errorJson(errors, messages).foldLeft("") { (acc, jsObject) =>
+        ((jsObject \ "cell").asOpt[String], (jsObject \ "error").asOpt[String]) match {
+          case (Some(cell), Some(error)) => acc ++ ((if (acc.nonEmpty) "\n" else EMPTY) + s"$cell: $error")
+          case _ => acc
+        }
+      }
+      Some(Tuple2("Field Validation failure(Less than 10)", errorReport))
+    } else {
+      val errorReport = generateGenericErrorReport(errors, chargeType).foldLeft(EMPTY) { (acc, c) =>
+        acc ++ (if (acc.nonEmpty) "\n" else EMPTY) + messages(c)
+      }
+      (errors.size, errorReport)
+      Some(Tuple2("Generic failure (more than 10)", errorReport))
+    }
+  }
+
+  private def sendAuditEvent(pstr: String,
+                             chargeType: ChargeType,
+                             numberOfEntries: Int,
+                             fileValidationTimeInSeconds: Int,
+                             parserResult: Either[Seq[ParserValidationError], UserAnswers]
+                            )(implicit request: DataRequest[AnyContent], messages: Messages): Unit = {
+
+    val numberOfFailures = parserResult.fold(_.size, _ => 0)
+    val (failureReason, errorReport) = parserResult match {
+      case Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
+        Tuple2(Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error), None)
+      case Left(errors) =>
+        failureReasonAndErrorReportForAudit(errors, chargeType)(messages) match {
+          case Some(Tuple2(reason, report)) => Tuple2(Some(reason), Some(report))
+          case _ => Tuple2(None, None)
+        }
+      case _ => Tuple2(None, None)
+    }
+
+    auditService.sendEvent(
+      AFTFileValidationCheckAuditEvent(
+        administratorOrPractitioner = request.schemeAdministratorType,
+        id = request.idOrException,
+        pstr = pstr,
+        numberOfEntries = numberOfEntries,
+        chargeType = chargeType,
+        validationCheckSuccessful = parserResult.isRight,
+        fileValidationTimeInSeconds = fileValidationTimeInSeconds,
+        failureReason = failureReason,
+        numberOfFailures = numberOfFailures,
+        validationFailureContent = errorReport
+      )
     )
   }
 
   private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
-                                  (implicit request: DataRequest[AnyContent]) = {
+                                  (implicit request: DataRequest[AnyContent]): Future[UserAnswers] = {
 
     for {
       updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
