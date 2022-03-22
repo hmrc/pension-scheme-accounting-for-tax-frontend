@@ -429,4 +429,5 @@ GET         /:srn/:startDate/:accessType/:version/fileupload/lifetime-allowance-
 GET         /:srn/:startDate/:accessType/:version/fileupload/overseas-transfer-charge/upload-header-error                                         controllers.fileUpload.UpscanErrorController.invalidHeaderOrBodyError(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType = ChargeType.ChargeTypeOverseasTransfer)
 
 GET         /:srn/might-already-requested-refund                                                                                                  controllers.financialOverview.RequestRefundController.onPageLoad(srn: String)
+GET         /might-already-requested-refund                                                                                                       controllers.financialOverview.PsaRequestRefundController.onPageLoad
 

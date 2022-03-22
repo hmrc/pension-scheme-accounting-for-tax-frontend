@@ -44,7 +44,7 @@ class FinancialInfoCreditAccessConnectorSpec extends AsyncWordSpec with Matchers
   }
 
 
-  "creditAccessForPsa" must {
+  "creditAccessForSchemePsa" must {
     "return correct value when accessed by current PSA" in {
       val url = s"/pension-scheme-accounting-for-tax/cache/financial-info-credit-access/psa/$psaPspId/$srn"
       server.stubFor(
@@ -58,7 +58,7 @@ class FinancialInfoCreditAccessConnectorSpec extends AsyncWordSpec with Matchers
       )
       val connector = app.injector.instanceOf[FinancialInfoCreditAccessConnector]
 
-      connector.creditAccessForPsa(psaPspId, srn).map(fs => fs mustBe Some(AccessedByLoggedInPsaOrPsp))
+      connector.creditAccessForSchemePsa(psaPspId, srn).map(fs => fs mustBe Some(AccessedByLoggedInPsaOrPsp))
     }
 
     "return correct value when accessed by different PSA" in {
@@ -74,7 +74,7 @@ class FinancialInfoCreditAccessConnectorSpec extends AsyncWordSpec with Matchers
       )
       val connector = app.injector.instanceOf[FinancialInfoCreditAccessConnector]
 
-      connector.creditAccessForPsa(psaPspId, srn).map(fs => fs mustBe Some(AccessedByOtherPsa))
+      connector.creditAccessForSchemePsa(psaPspId, srn).map(fs => fs mustBe Some(AccessedByOtherPsa))
     }
 
     "return correct value when not accessed by any PSA or PSP" in {
@@ -89,11 +89,11 @@ class FinancialInfoCreditAccessConnectorSpec extends AsyncWordSpec with Matchers
       )
       val connector = app.injector.instanceOf[FinancialInfoCreditAccessConnector]
 
-      connector.creditAccessForPsa(psaPspId, srn).map(fs => fs mustBe None)
+      connector.creditAccessForSchemePsa(psaPspId, srn).map(fs => fs mustBe None)
     }
   }
 
-  "creditAccessForPsp" must {
+  "creditAccessForSchemePsp" must {
     "return correct value when accessed by current PSP" in {
       val url = s"/pension-scheme-accounting-for-tax/cache/financial-info-credit-access/psp/$psaPspId/$srn"
       server.stubFor(
@@ -107,7 +107,7 @@ class FinancialInfoCreditAccessConnectorSpec extends AsyncWordSpec with Matchers
       )
       val connector = app.injector.instanceOf[FinancialInfoCreditAccessConnector]
 
-      connector.creditAccessForPsp(psaPspId, srn).map(fs => fs mustBe Some(AccessedByLoggedInPsaOrPsp))
+      connector.creditAccessForSchemePsp(psaPspId, srn).map(fs => fs mustBe Some(AccessedByLoggedInPsaOrPsp))
     }
 
     "return correct value when accessed by different PSP" in {
@@ -123,7 +123,7 @@ class FinancialInfoCreditAccessConnectorSpec extends AsyncWordSpec with Matchers
       )
       val connector = app.injector.instanceOf[FinancialInfoCreditAccessConnector]
 
-      connector.creditAccessForPsp(psaPspId, srn).map(fs => fs mustBe Some(AccessedByOtherPsp))
+      connector.creditAccessForSchemePsp(psaPspId, srn).map(fs => fs mustBe Some(AccessedByOtherPsp))
     }
 
     "return correct value when accessed by no PSA or PSP" in {
@@ -138,7 +138,40 @@ class FinancialInfoCreditAccessConnectorSpec extends AsyncWordSpec with Matchers
       )
       val connector = app.injector.instanceOf[FinancialInfoCreditAccessConnector]
 
-      connector.creditAccessForPsp(psaPspId, srn).map(fs => fs mustBe None)
+      connector.creditAccessForSchemePsp(psaPspId, srn).map(fs => fs mustBe None)
+    }
+  }
+
+  "creditAccessForPsa" must {
+    "return correct value when accessed by current PSA" in {
+      val url = s"/pension-scheme-accounting-for-tax/cache/financial-info-credit-access/psa/$psaPspId"
+      server.stubFor(
+        get(urlEqualTo(url))
+          .willReturn(
+            aResponse()
+              .withStatus(Status.OK)
+              .withHeader("Content-Type", "application/json")
+              .withBody(JsString(AccessedByLoggedInPsaOrPsp.toString).toString)
+          )
+      )
+      val connector = app.injector.instanceOf[FinancialInfoCreditAccessConnector]
+
+      connector.creditAccessForPsa(psaPspId).map(fs => fs mustBe Some(AccessedByLoggedInPsaOrPsp))
+    }
+
+    "return correct value when not accessed by any PSA" in {
+      val url = s"/pension-scheme-accounting-for-tax/cache/financial-info-credit-access/psa/$psaPspId"
+      server.stubFor(
+        get(urlEqualTo(url))
+          .willReturn(
+            aResponse()
+              .withStatus(Status.NOT_FOUND)
+              .withHeader("Content-Type", "application/json")
+          )
+      )
+      val connector = app.injector.instanceOf[FinancialInfoCreditAccessConnector]
+
+      connector.creditAccessForSchemePsa(psaPspId, srn).map(fs => fs mustBe None)
     }
   }
 }

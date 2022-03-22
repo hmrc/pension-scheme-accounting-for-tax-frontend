@@ -76,7 +76,7 @@ class PsaFinancialOverviewController @Inject()(
     val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
     val requestRefundUrl = creditPsaFS.inhibitRefundSignal match {
       case true => routes.RefundUnavailableController.onPageLoad.url
-      case false => s"$creditBalanceBaseUrl?requestType=3&psaName=$psaName&availAmt=$creditBalance"
+      case false => routes.PsaRequestRefundController.onPageLoad.url
     }
 
     renderer.render(

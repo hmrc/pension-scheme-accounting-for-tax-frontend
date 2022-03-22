@@ -29,10 +29,10 @@ import scala.concurrent.{ExecutionContext, Future}
 class FinancialInfoCreditAccessConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
-  def creditAccessForPsa(psaId: String, srn: String)
+  def creditAccessForSchemePsa(psaId: String, srn: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CreditAccessType]] = {
 
-    val url = config.financialInfoCreditAccessPsaUrl(psaId, srn)
+    val url = config.financialInfoCreditAccessSchemePsaUrl(psaId, srn)
 
     http.GET[HttpResponse](url)(implicitly, hc, implicitly).map { response =>
       response.status match {
@@ -44,10 +44,25 @@ class FinancialInfoCreditAccessConnector @Inject()(http: HttpClient, config: Fro
     }
   }
 
-  def creditAccessForPsp(pspId: String, srn: String)
+  def creditAccessForSchemePsp(pspId: String, srn: String)
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CreditAccessType]] = {
 
-    val url = config.financialInfoCreditAccessPspUrl(pspId, srn)
+    val url = config.financialInfoCreditAccessSchemePspUrl(pspId, srn)
+
+    http.GET[HttpResponse](url)(implicitly, hc, implicitly).map { response =>
+      response.status match {
+        case OK => response.json.asOpt[CreditAccessType]
+        case NOT_FOUND => None
+        case _ =>
+          handleErrorResponse("GET", url)(response)
+      }
+    }
+  }
+
+  def creditAccessForPsa(psaId: String)
+                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CreditAccessType]] = {
+
+    val url = config.financialInfoCreditAccessPsaUrl(psaId)
 
     http.GET[HttpResponse](url)(implicitly, hc, implicitly).map { response =>
       response.status match {

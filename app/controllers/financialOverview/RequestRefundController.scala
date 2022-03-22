@@ -52,8 +52,8 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
   private def creditAccess(srn: String)(implicit request: IdentifierRequest[AnyContent]): Future[Option[CreditAccessType]] = {
     val id = request.idOrException
     request.schemeAdministratorType match {
-      case Administrator => financialInfoCreditAccessConnector.creditAccessForPsa(id, srn)
-      case _ => financialInfoCreditAccessConnector.creditAccessForPsp(id, srn)
+      case Administrator => financialInfoCreditAccessConnector.creditAccessForSchemePsa(id, srn)
+      case _ => financialInfoCreditAccessConnector.creditAccessForSchemePsp(id, srn)
     }
   }
 
