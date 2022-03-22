@@ -28,7 +28,7 @@ import models.LocalDateBinder._
 import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, PensionsPenalties}
 import models.financialStatement.PsaFSChargeType._
-import models.financialStatement.{PsaFS, PsaFSChargeType, PsaFSDetail}
+import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFS, PsaFSChargeType, PsaFSDetail}
 import models.{ListOfSchemes, ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.MockitoSugar
@@ -431,7 +431,9 @@ object PenaltiesServiceSpec {
         amountDue = amountDue,
         periodStartDate = LocalDate.parse("2020-04-01"),
         periodEndDate = LocalDate.parse("2020-06-30"),
-        pstr = "24000040IN"
+        pstr = "24000040IN",
+        sourceChargeRefForInterest = None,
+        documentLineItemDetails = Nil
       )
   }
   val psaFSResponseStub: PsaFS = PsaFS(false, psaFSResponse())
@@ -447,7 +449,9 @@ object PenaltiesServiceSpec {
       amountDue = amountDue,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
+      pstr = "24000040IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     ),
     PsaFSDetail(
       chargeReference = "XY002610150185",
@@ -460,7 +464,9 @@ object PenaltiesServiceSpec {
       amountDue = amountDue,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     ),
     PsaFSDetail(
       chargeReference = "XY002610150186",
@@ -473,7 +479,9 @@ object PenaltiesServiceSpec {
       amountDue = amountDue,
       periodStartDate = LocalDate.parse("2020-10-01"),
       periodEndDate = LocalDate.parse("2020-12-31"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     )
   )
 
@@ -485,7 +493,11 @@ object PenaltiesServiceSpec {
              stoodOverAmount: BigDecimal = BigDecimal(25089.08)
            ): PsaFSDetail =
     PsaFSDetail("XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
-      accruedInterestTotal = 0.00, dateNow, dateNow, pstr)
+      accruedInterestTotal = 0.00, dateNow, dateNow, pstr, None, documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00))))
+
 
   val pstr: String = "24000040IN"
   val zeroAmount: BigDecimal = BigDecimal(0.00)
@@ -578,7 +590,6 @@ object PenaltiesServiceSpec {
 
   def customPsaFS(chargeType: PsaFSChargeType, startDate: String = "2021-01-01", endDate: String = "2021-03-31", pstr: String = pstr): PsaFSDetail =
     PsaFSDetail("XY002610150184", chargeType, Some(LocalDate.parse("2021-05-15")), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),
-      BigDecimal(0.00), BigDecimal(0.00), LocalDate.parse(startDate), LocalDate.parse(endDate), pstr)
-
+      BigDecimal(0.00), BigDecimal(0.00), LocalDate.parse(startDate), LocalDate.parse(endDate), pstr, Some(""), Nil)
 
 }

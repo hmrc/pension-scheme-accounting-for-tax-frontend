@@ -85,6 +85,8 @@ class PsaFinancialOverviewController @Inject()(
         "totalOverdueCharge" -> psaCharges._2 ,
         "totalInterestAccruing" -> psaCharges._3 ,
         "psaName" -> psaName, "requestRefundUrl" -> requestRefundUrl,
+        "allOverduePenaltiesAndInterestLink" -> routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
+        "duePaymentLink" -> routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
         "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }

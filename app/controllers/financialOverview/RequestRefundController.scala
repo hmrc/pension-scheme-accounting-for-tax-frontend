@@ -63,12 +63,16 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
       schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
       creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
     } yield {
-      val pstr = schemeDetails.pstr
-      val creditBalance = psaSchemePartialService.getCreditBalanceAmount(creditSchemeFS.seqSchemeFSDetail)
-      val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
-      request.schemeAdministratorType match {
-        case Administrator => s"$creditBalanceBaseUrl?requestType=1&psaName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
-        case _ => s"$creditBalanceBaseUrl?requestType=2&pspName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
+      if (creditSchemeFS.inhibitRefundSignal) {
+        routes.RefundUnavailableController.onPageLoad.url
+      } else {
+        val pstr = schemeDetails.pstr
+        val creditBalance = psaSchemePartialService.getCreditBalanceAmount(creditSchemeFS.seqSchemeFSDetail)
+        val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
+        request.schemeAdministratorType match {
+          case Administrator => s"$creditBalanceBaseUrl?requestType=1&psaName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
+          case _ => s"$creditBalanceBaseUrl?requestType=2&pspName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
+        }
       }
     }
   }

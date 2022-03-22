@@ -28,7 +28,7 @@ import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{DocumentLineItemDetail, SchemeFS, SchemeFSChargeType, SchemeFSClearingReason, SchemeFSDetail}
+import models.financialStatement._
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
@@ -36,7 +36,7 @@ import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json
-import services.{PenaltiesCache, SchemeService}
+import services.SchemeService
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
@@ -367,7 +367,8 @@ object PaymentsAndChargesServiceSpec {
   val startDate: String = QUARTER_START_DATE.format(dateFormatterStartDate)
   val endDate: String = QUARTER_END_DATE.format(dateFormatterDMY)
   val paymentsCache: PaymentsCache = PaymentsCache(psaId, srn, schemeDetails, schemeFSResponseAftAndOTC.seqSchemeFSDetail)
-  val item: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-05-14")), Some(SchemeFSClearingReason.CLEARED_WITH_PAYMENT))
+  val item: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-05-14")), Some(FSClearingReason.CLEARED_WITH_PAYMENT))
+
   private def createCharge(
                             chargeType: SchemeFSChargeType,
                             totalAmount: BigDecimal,

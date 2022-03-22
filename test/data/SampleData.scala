@@ -269,7 +269,9 @@ object SampleData {
       amountDue = 100.00,
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     ),
     PsaFSDetail(
       chargeReference = "XY002610150184",
@@ -282,7 +284,9 @@ object SampleData {
       amountDue = 100.00,
       periodStartDate = LocalDate.parse("2020-10-01"),
       periodEndDate = LocalDate.parse("2020-12-31"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     )
   )
   val psaFs: PsaFS = PsaFS (false, psaFsSeq)
@@ -298,7 +302,9 @@ object SampleData {
       amountDue = 100.00,
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     ),
     PsaFSDetail(
       chargeReference = "XY002610150185",
@@ -311,8 +317,11 @@ object SampleData {
       amountDue = 100.00,
       periodStartDate = LocalDate.parse("2020-10-01"),
       periodEndDate = LocalDate.parse("2020-12-31"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     )
   )
+
 
 }
