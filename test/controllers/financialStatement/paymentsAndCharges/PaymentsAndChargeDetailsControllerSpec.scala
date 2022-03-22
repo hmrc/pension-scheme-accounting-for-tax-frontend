@@ -28,7 +28,7 @@ import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
-import models.financialStatement.{PsaFS, SchemeFS}
+import models.financialStatement.{PsaFSDetail, SchemeFSDetail}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest._
@@ -84,35 +84,35 @@ class PaymentsAndChargeDetailsControllerSpec
       .thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
-  private def insetTextWithAmountDueAndInterest(schemeFS: SchemeFS): uk.gov.hmrc.viewmodels.Html = {
+  private def insetTextWithAmountDueAndInterest(schemeFSDetail: SchemeFSDetail): uk.gov.hmrc.viewmodels.Html = {
     uk.gov.hmrc.viewmodels.Html(
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
         s"<p class=govuk-body>${
           messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate",
-            schemeFS.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))
+            schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))
         }" +
         s" <span>" +
         s"<a id='breakdown' class=govuk-link href=${
           controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-            .onPageLoad(srn, schemeFS.periodStartDate, "1", AccountingForTaxCharges, All)
+            .onPageLoad(srn, schemeFSDetail.periodStartDate, "1", AccountingForTaxCharges, All)
             .url
         }>" +
         s"${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
     )
   }
 
-  private def insetTextWithNoAmountDue(schemeFS: SchemeFS): uk.gov.hmrc.viewmodels.Html = {
+  private def insetTextWithNoAmountDue(schemeFSDetail: SchemeFSDetail): uk.gov.hmrc.viewmodels.Html = {
     uk.gov.hmrc.viewmodels.Html(
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccrued")}</h2>" +
         s"<p class=govuk-body>${
           messages("paymentsAndCharges.chargeDetails.amount.paid.after.dueDate",
-            schemeFS.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))
+            schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))
         }</p>"
     )
   }
 
   private def expectedJson(
-                            schemeFS: SchemeFS,
+                            schemeFSDetail: SchemeFSDetail,
                             insetText: uk.gov.hmrc.viewmodels.Html,
                             isPaymentOverdue: Boolean = false,
                             isInCredit: Boolean = false,
@@ -121,22 +121,22 @@ class PaymentsAndChargeDetailsControllerSpec
     val commonJson = Json.obj(
       "chargeDetailsList" -> Nil,
       "tableHeader" -> messages("paymentsAndCharges.caption",
-        schemeFS.periodStartDate.format(dateFormatterStartDate),
-        schemeFS.periodEndDate.format(dateFormatterDMY)),
+        schemeFSDetail.periodStartDate.format(dateFormatterStartDate),
+        schemeFSDetail.periodEndDate.format(dateFormatterDMY)),
       "schemeName" -> schemeName,
-      "chargeType" -> schemeFS.chargeType.toString,
+      "chargeType" -> schemeFSDetail.chargeType.toString,
       "chargeReferenceTextMessage" -> (if (isInCredit) {
         messages(
           "paymentsAndCharges.credit.information",
-          s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}"
+          s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.totalAmount.abs)}"
         )
       }
       else {
-        messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
+        messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFSDetail.chargeReference)
       }),
       "isPaymentOverdue" -> isPaymentOverdue,
       "insetText" -> insetText,
-      "interest" -> schemeFS.accruedInterestTotal,
+      "interest" -> schemeFSDetail.accruedInterestTotal,
       "returnUrl" -> dummyCall.url,
       "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
     )
@@ -156,7 +156,7 @@ class PaymentsAndChargeDetailsControllerSpec
             ))
         ))
 
-      val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00)
+      val schemeFSDetail = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
@@ -168,7 +168,7 @@ class PaymentsAndChargeDetailsControllerSpec
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
 
       jsonCaptor.getValue must containJson(
-        expectedJson(schemeFS, insetTextWithAmountDueAndInterest(schemeFS), isPaymentOverdue = true)
+        expectedJson(schemeFSDetail, insetTextWithAmountDueAndInterest(schemeFSDetail), isPaymentOverdue = true)
       )
     }
 
@@ -181,7 +181,7 @@ class PaymentsAndChargeDetailsControllerSpec
           )
         ))
 
-      val schemeFS = createChargeWithAmountDueAndInterestPayment(
+      val schemeFSDetail = createChargeWithAmountDueAndInterestPayment(
         chargeReference = "XY002610150188",
         interest = BigDecimal(0.00)
       )
@@ -195,7 +195,7 @@ class PaymentsAndChargeDetailsControllerSpec
 
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(
-        expectedJson(schemeFS, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
+        expectedJson(schemeFSDetail, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
       )
     }
 
@@ -204,7 +204,7 @@ class PaymentsAndChargeDetailsControllerSpec
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest("XY002610150186"))
           )
         ))
-      val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150186")
+      val schemeFSDetail = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150186")
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
@@ -214,7 +214,7 @@ class PaymentsAndChargeDetailsControllerSpec
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFS, insetTextWithNoAmountDue(schemeFS)))
+      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, insetTextWithNoAmountDue(schemeFSDetail)))
     }
 
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
@@ -222,7 +222,7 @@ class PaymentsAndChargeDetailsControllerSpec
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest("XY002610150187", interest = 0.00))
           )
         ))
-      val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00)
+      val schemeFSDetail = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
@@ -232,7 +232,7 @@ class PaymentsAndChargeDetailsControllerSpec
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFS, uk.gov.hmrc.viewmodels.Html("")))
+      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, uk.gov.hmrc.viewmodels.Html("")))
     }
 
     "return OK and the correct view with no inset text and correct chargeReference text if amount is in credit for a GET" in {
@@ -240,7 +240,7 @@ class PaymentsAndChargeDetailsControllerSpec
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithDeltaCredit())
           )
         ))
-      val schemeFS = createChargeWithDeltaCredit()
+      val schemeFSDetail = createChargeWithDeltaCredit()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
@@ -250,7 +250,7 @@ class PaymentsAndChargeDetailsControllerSpec
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFS, uk.gov.hmrc.viewmodels.Html(""), isInCredit = true))
+      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, uk.gov.hmrc.viewmodels.Html(""), isInCredit = true))
     }
 
     "catch IndexOutOfBoundsException" in {
@@ -318,8 +318,8 @@ class PaymentsAndChargeDetailsControllerSpec
 object PaymentsAndChargeDetailsControllerSpec {
   private val srn = "test-srn"
 
-  def psaFS(chargeReference: String): PsaFS =
-    PsaFS(
+  def psaFS(chargeReference: String): PsaFSDetail =
+    PsaFSDetail(
       chargeReference = chargeReference,
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -330,15 +330,17 @@ object PaymentsAndChargeDetailsControllerSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
+      pstr = "24000040IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     )
 
   private def createChargeWithAmountDueAndInterest(
                                                     chargeReference: String,
                                                     amountDue: BigDecimal = 0.00,
                                                     interest: BigDecimal = 123.00
-                                                  ): SchemeFS = {
-    SchemeFS(
+                                                  ): SchemeFSDetail = {
+    SchemeFSDetail(
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -359,8 +361,8 @@ object PaymentsAndChargeDetailsControllerSpec {
                                                            chargeReference: String,
                                                            amountDue: BigDecimal = 0.00,
                                                            interest: BigDecimal
-                                                         ): SchemeFS = {
-    SchemeFS(
+                                                         ): SchemeFSDetail = {
+    SchemeFSDetail(
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN_INTEREST,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -377,8 +379,8 @@ object PaymentsAndChargeDetailsControllerSpec {
     )
   }
 
-  private def createChargeWithDeltaCredit(): SchemeFS = {
-    SchemeFS(
+  private def createChargeWithDeltaCredit(): SchemeFSDetail = {
+    SchemeFSDetail(
       chargeReference = "XY002610150185",
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -395,7 +397,7 @@ object PaymentsAndChargeDetailsControllerSpec {
     )
   }
 
-  private val schemeFSResponse: Seq[SchemeFS] = Seq(
+  private val schemeFSResponse: Seq[SchemeFSDetail] = Seq(
     createChargeWithDeltaCredit(),
     createChargeWithAmountDueAndInterest(chargeReference = "XY002610150186"),
     createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00),

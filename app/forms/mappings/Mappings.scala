@@ -79,8 +79,9 @@ trait Mappings extends Formatters with Constraints with Transforms {
     of(bigDecimalTotalFormatter(itemsToTotal: _*))
 
   protected def boolean(requiredKey: String = "error.required",
-                        invalidKey: String = "error.boolean"): FieldMapping[Boolean] =
-    of(booleanFormatter(requiredKey, invalidKey))
+                        invalidKey: String = "error.boolean",
+                        invalidPaymentTypeBoolean: String = "error.paymentType"): FieldMapping[Boolean] =
+    of(booleanFormatter(requiredKey, invalidKey, invalidPaymentTypeBoolean))
 
 
   protected def enumerable[A](requiredKey: String = "error.required",

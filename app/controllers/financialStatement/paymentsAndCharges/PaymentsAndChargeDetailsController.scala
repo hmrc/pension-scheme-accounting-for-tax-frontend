@@ -23,7 +23,7 @@ import models.ChargeDetailsFilter
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
-import models.financialStatement.{PaymentOrChargeType, SchemeFS}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -60,13 +60,13 @@ class PaymentsAndChargeDetailsController @Inject()(
     implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
-        val schemeFS: Seq[SchemeFS] = getFilteredPayments(paymentsCache.schemeFS, period, paymentOrChargeType)
-        buildPage(schemeFS, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType, journeyType)
+        val schemeFSDetail: Seq[SchemeFSDetail] = getFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
+        buildPage(schemeFSDetail, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType, journeyType)
       }
   }
 
   private def buildPage(
-                         filteredCharges: Seq[SchemeFS],
+                         filteredCharges: Seq[SchemeFSDetail],
                          period: String,
                          index: String,
                          schemeName: String,
@@ -104,10 +104,10 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
-  private def summaryListData(srn: String, period: String, schemeFS: SchemeFS, schemeName: String,
+  private def summaryListData(srn: String, period: String, schemeFSDetail: SchemeFSDetail, schemeName: String,
                               returnUrl: String, paymentOrChargeType: PaymentOrChargeType, interestUrl: String)
                              (implicit messages: Messages): JsObject = {
-    val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
+    val htmlInsetText = (schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0) match {
       case (Some(_), true, true) =>
         Html(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
@@ -125,29 +125,29 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
 
     Json.obj(
-      "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS),
-      "tableHeader" -> tableHeader(schemeFS),
+      "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFSDetail),
+      "tableHeader" -> tableHeader(schemeFSDetail),
       "schemeName" -> schemeName,
-      "chargeType" -> schemeFS.chargeType.toString,
-      "chargeReferenceTextMessage" -> chargeReferenceTextMessage(schemeFS),
-      "isPaymentOverdue" -> isPaymentOverdue(schemeFS),
+      "chargeType" -> schemeFSDetail.chargeType.toString,
+      "chargeReferenceTextMessage" -> chargeReferenceTextMessage(schemeFSDetail),
+      "isPaymentOverdue" -> isPaymentOverdue(schemeFSDetail),
       "insetText" -> htmlInsetText,
-      "interest" -> schemeFS.accruedInterestTotal,
+      "interest" -> schemeFSDetail.accruedInterestTotal,
       "returnUrl" -> returnUrl
-    ) ++ returnHistoryUrl(srn, period, paymentOrChargeType) ++ optHintText(schemeFS)
+    ) ++ returnHistoryUrl(srn, period, paymentOrChargeType) ++ optHintText(schemeFSDetail)
 
   }
 
-  private def chargeReferenceTextMessage(schemeFS: SchemeFS)(implicit messages: Messages): String =
-    if (schemeFS.totalAmount < 0) {
+  private def chargeReferenceTextMessage(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): String =
+    if (schemeFSDetail.totalAmount < 0) {
       messages("paymentsAndCharges.credit.information",
-        s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}")
+        s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.totalAmount.abs)}")
     } else {
-      messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
+      messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFSDetail.chargeReference)
     }
 
-  private def optHintText(schemeFS: SchemeFS)(implicit messages: Messages): JsObject =
-    if (schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00)) {
+  private def optHintText(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): JsObject =
+    if (schemeFSDetail.chargeType == PSS_AFT_RETURN_INTEREST && schemeFSDetail.amountDue == BigDecimal(0.00)) {
       Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
     } else {
       Json.obj()
@@ -160,18 +160,18 @@ class PaymentsAndChargeDetailsController @Inject()(
       Json.obj()
     }
 
-  private def isPaymentOverdue(schemeFS: SchemeFS): Boolean =
-    (schemeFS.amountDue > 0 && schemeFS.accruedInterestTotal > 0
-      && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN))
+  private def isPaymentOverdue(schemeFSDetail: SchemeFSDetail): Boolean =
+    (schemeFSDetail.amountDue > 0 && schemeFSDetail.accruedInterestTotal > 0
+      && (schemeFSDetail.chargeType == PSS_AFT_RETURN || schemeFSDetail.chargeType == PSS_OTC_AFT_RETURN))
 
-  private def tableHeader(schemeFS: SchemeFS)(implicit messages: Messages): String =
+  private def tableHeader(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): String =
     messages(
       "paymentsAndCharges.caption",
-      schemeFS.periodStartDate.format(dateFormatterStartDate),
-      schemeFS.periodEndDate.format(dateFormatterDMY)
+      schemeFSDetail.periodStartDate.format(dateFormatterStartDate),
+      schemeFSDetail.periodEndDate.format(dateFormatterDMY)
     )
 
-  private def getFilteredPayments(payments: Seq[SchemeFS], period: String, paymentOrChargeType: PaymentOrChargeType): Seq[SchemeFS] =
+  private def getFilteredPayments(payments: Seq[SchemeFSDetail], period: String, paymentOrChargeType: PaymentOrChargeType): Seq[SchemeFSDetail] =
     if(paymentOrChargeType == AccountingForTaxCharges) {
       val startDate: LocalDate = LocalDate.parse(period)
       payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate)

@@ -16,11 +16,10 @@
 
 package controllers.financialOverview
 
-import config.FrontendAppConfig
-import connectors.{FinancialStatementConnector, MinimalConnector}
+import connectors.FinancialStatementConnector
 import controllers.actions._
 import models.SchemeDetails
-import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSDetail
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -34,65 +33,54 @@ import viewmodels.CardViewModel
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PsaSchemeFinancialOverviewController @Inject()(
-                                                      appConfig: FrontendAppConfig,
-                                                      identify: IdentifierAction,
+class PsaSchemeFinancialOverviewController @Inject()( identify: IdentifierAction,
                                                       override val messagesApi: MessagesApi,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       schemeService: SchemeService,
                                                       financialStatementConnector: FinancialStatementConnector,
                                                       service: PsaSchemePartialService,
-                                                      renderer: Renderer,
-                                                      minimalConnector: MinimalConnector
+                                                      renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   private val logger = Logger(classOf[PsaSchemeFinancialOverviewController])
-  private val psaIdRegex = "^A[0-9]{7}$".r
-  private def isPsaId(s:String) = psaIdRegex.findFirstIn(s).isDefined
   def psaSchemeFinancialOverview(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
       val response = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
-        psaOrPspName <- minimalConnector.getPsaOrPspName
         schemeFS <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
         aftModel <- service.aftCardModel(schemeDetails, srn)
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
-        val isPsa = isPsaId(request.idOrException)
-        renderFinancialOverview(srn, psaOrPspName, schemeDetails, schemeFS, aftModel, request, creditSchemeFS, isPsa)
+        renderFinancialOverview(srn, schemeDetails, schemeFS.seqSchemeFSDetail, aftModel, request, creditSchemeFS.seqSchemeFSDetail)
       }
       response.flatten
   }
 
-  private def renderFinancialOverview(srn: String, psaOrPspName: String, schemeDetails: SchemeDetails, schemeFS: Seq[SchemeFS],
-                                      aftModel: Seq[CardViewModel], request: RequestHeader, creditSchemeFS: Seq[SchemeFS], isPsa: Boolean) (implicit messages: Messages) : Future[Result] = {
+  // scalastyle:off parameter.number
+  private def renderFinancialOverview(srn: String,
+                                      schemeDetails: SchemeDetails,
+                                      schemeFSDetail: Seq[SchemeFSDetail],
+                                      aftModel: Seq[CardViewModel],
+                                      request: RequestHeader,
+                                      creditSchemeFSDetail: Seq[SchemeFSDetail]) (implicit messages: Messages) : Future[Result] = {
     val schemeName = schemeDetails.schemeName
-    val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFS, srn)
-    val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFS, srn)
-    val creditBalanceFormatted: String = service.creditBalanceAmountFormatted(creditSchemeFS)
+    val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFSDetail, srn)
+    val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFSDetail, srn)
+    val creditBalanceFormatted: String = service.creditBalanceAmountFormatted(creditSchemeFSDetail)
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(aftModel)}")
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(upcomingTile)}")
     logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(overdueTile)}")
 
-    val pstr = schemeDetails.pstr
-    val creditBalance = service.getCreditBalanceAmount(creditSchemeFS)
-    val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
-    val requestRefundUrl = if (isPsa){
-      s"$creditBalanceBaseUrl?requestType=1&psaName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
-    }
-    else {
-      s"$creditBalanceBaseUrl?requestType=2&pspName=$psaOrPspName&pstr=$pstr&availAmt=$creditBalance"
-    }
-
+    val creditBalance = service.getCreditBalanceAmount(creditSchemeFSDetail)
 
     renderer.render(
        template = "financialOverview/psaSchemeFinancialOverview.njk",
         ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),
         "schemeName" -> schemeName,
-        "requestRefundUrl" -> requestRefundUrl,
+        "requestRefundUrl" -> controllers.financialOverview.routes.RequestRefundController.onPageLoad(srn).url,
          "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "overdue").url,
          "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "upcoming").url,
          "allPaymentLink" -> routes.PaymentOrChargeTypeController.onPageLoad(srn, schemeDetails.pstr).url,

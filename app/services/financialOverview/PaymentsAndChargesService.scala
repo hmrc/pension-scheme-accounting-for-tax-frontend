@@ -26,8 +26,8 @@ import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.SchemeFSClearingReason._
-import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFS, SchemeFSChargeType}
+import models.financialStatement.FSClearingReason._
+import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFSDetail, SchemeFSChargeType}
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
@@ -56,26 +56,26 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   case class IndexRef(chargeType: String, chargeReference: String, period: String)
 
-  def getPaymentsAndCharges(   srn: String,
-                               pstr: String,
-                               schemeFS: Seq[SchemeFS],
-                               mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
-                               chargeDetailsFilter: ChargeDetailsFilter
+  def getPaymentsAndCharges(srn: String,
+                            pstr: String,
+                            schemeFSDetail: Seq[SchemeFSDetail],
+                            mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
+                            chargeDetailsFilter: ChargeDetailsFilter
                               )
                               (implicit messages: Messages): Table = {
 
-    val chargeRefForAll: Seq[String] = schemeFS.map(_.chargeReference)
+    val chargeRefForAll: Seq[String] = schemeFSDetail.map(_.chargeReference)
 
-    val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFS.flatMap { paymentOrCharge =>
-      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefForAll, chargeRefs(schemeFS), mapChargeTypesVersionAndDate, chargeDetailsFilter)
+    val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFSDetail.flatMap { paymentOrCharge =>
+      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefForAll, chargeRefs(schemeFSDetail), mapChargeTypesVersionAndDate, chargeDetailsFilter)
     }
 
     mapToTable(seqPayments, chargeDetailsFilter)
   }
 
 
-  def chargeRefs (schemeFS: Seq[SchemeFS]) : Map[(String,String), Seq[String]] = {
-    val indexRefs: Seq[IndexRef] = schemeFS.map { scheme =>
+  def chargeRefs (schemeFSDetail: Seq[SchemeFSDetail]) : Map[(String,String), Seq[String]] = {
+    val indexRefs: Seq[IndexRef] = schemeFSDetail.map { scheme =>
       val chargeType = getPaymentOrChargeType(scheme.chargeType).toString
       val period: String = if (chargeType == AccountingForTaxCharges.toString) {
         scheme.periodStartDate.toString
@@ -97,25 +97,25 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  val isPaymentOverdue: SchemeFS => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
+  val isPaymentOverdue: SchemeFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
 
-  val extractUpcomingCharges: Seq[SchemeFS] => Seq[SchemeFS] = schemeFS =>
-    schemeFS.filter(charge => charge.dueDate.nonEmpty
+  val extractUpcomingCharges: Seq[SchemeFSDetail] => Seq[SchemeFSDetail] = schemeFSDetail =>
+    schemeFSDetail.filter(charge => charge.dueDate.nonEmpty
       && charge.dueDate.get.isAfter(DateHelper.today)
       && charge.amountDue > BigDecimal(0.00))
 
-  def getOverdueCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
-    schemeFS
+  def getOverdueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
+    schemeFSDetail
       .filter(_.dueDate.nonEmpty)
       .filter(_.dueDate.get.isBefore(DateHelper.today))
       .filter(_.amountDue > BigDecimal(0.00))
 
-  def getDueCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
-    schemeFS
+  def getDueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
+    schemeFSDetail
       .filter(_.amountDue >= BigDecimal(0.00))
 
-  def getInterestCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
-    schemeFS
+  def getInterestCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
+    schemeFSDetail
       .filter(_.accruedInterestTotal >= BigDecimal(0.00))
 
   private def setSubmittedDate(submittedDate: Option[String], chargeType: SchemeFSChargeType)
@@ -147,13 +147,13 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   // scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
   private def paymentsAndChargesDetails(
-                                            details: SchemeFS,
-                                            srn: String,
-                                            pstr: String,
-                                            chargeRefForAll: Seq[String],
-                                            chargeRefs: Map[(String,String), Seq[String]],
-                                            mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
-                                            chargeDetailsFilter: ChargeDetailsFilter
+                                         details: SchemeFSDetail,
+                                         srn: String,
+                                         pstr: String,
+                                         chargeRefForAll: Seq[String],
+                                         chargeRefs: Map[(String,String), Seq[String]],
+                                         mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
+                                         chargeDetailsFilter: ChargeDetailsFilter
                                           )(implicit messages: Messages): Seq[FinancialPaymentAndChargesDetails] = {
 
 
@@ -332,11 +332,11 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     )
   }
 
-  def getChargeDetailsForSelectedCharge(schemeFS: SchemeFS, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
+  def getChargeDetailsForSelectedCharge(schemeFSDetail: SchemeFSDetail, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
                                        : Seq[SummaryList.Row] = {
-    dateSubmittedRow(schemeFS.chargeType, submittedDate) ++ chargeReferenceRow(schemeFS) ++ originalAmountChargeDetailsRow(schemeFS) ++
-      clearingChargeDetailsRow(schemeFS.documentLineItemDetails) ++
-      stoodOverAmountChargeDetailsRow(schemeFS) ++ totalAmountDueChargeDetailsRow(schemeFS, journeyType)
+    dateSubmittedRow(schemeFSDetail.chargeType, submittedDate) ++ chargeReferenceRow(schemeFSDetail) ++ originalAmountChargeDetailsRow(schemeFSDetail) ++
+      clearingChargeDetailsRow(schemeFSDetail.documentLineItemDetails) ++
+      stoodOverAmountChargeDetailsRow(schemeFSDetail) ++ totalAmountDueChargeDetailsRow(schemeFSDetail, journeyType)
   }
 
   private def dateSubmittedRow(chargeType: SchemeFSChargeType, submittedDate: Option[String]): Seq[SummaryList.Row] = {
@@ -361,7 +361,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   }
 
-  private def chargeReferenceRow(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
+  private def chargeReferenceRow(schemeFSDetail: SchemeFSDetail): Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(
@@ -369,7 +369,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(
-          content = Literal(schemeFS.chargeReference),
+          content = Literal(schemeFSDetail.chargeReference),
           classes =
             Seq("govuk-!-width-one-quarter")
         ),
@@ -377,7 +377,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       ))
   }
 
-  private def originalAmountChargeDetailsRow(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
+  private def originalAmountChargeDetailsRow(schemeFSDetail: SchemeFSDetail): Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(
@@ -385,7 +385,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(
-          content = Literal(s"${formatCurrencyAmountAsString(schemeFS.totalAmount)}"),
+          content = Literal(s"${formatCurrencyAmountAsString(schemeFSDetail.totalAmount)}"),
           classes =
             Seq("govuk-!-width-one-quarter")
         ),
@@ -393,8 +393,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       ))
   }
 
-  private def stoodOverAmountChargeDetailsRow(schemeFS: SchemeFS): Seq[SummaryList.Row] =
-    if (schemeFS.stoodOverAmount > 0) {
+  private def stoodOverAmountChargeDetailsRow(schemeFSDetail: SchemeFSDetail): Seq[SummaryList.Row] =
+    if (schemeFSDetail.stoodOverAmount > 0) {
       Seq(
         Row(
           key = Key(
@@ -402,7 +402,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
           ),
           value = Value(
-            content = Literal(s"-${formatCurrencyAmountAsString(schemeFS.stoodOverAmount)}"),
+            content = Literal(s"-${formatCurrencyAmountAsString(schemeFSDetail.stoodOverAmount)}"),
             classes = Seq("govuk-!-width-one-quarter")
           ),
           actions = Nil
@@ -411,14 +411,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       Nil
     }
 
-  private def totalAmountDueChargeDetailsRow(schemeFS: SchemeFS, journeyType: ChargeDetailsFilter): Seq[SummaryList.Row] = {
-    val amountDueKey: Content = (schemeFS.dueDate, schemeFS.amountDue > 0) match {
+  private def totalAmountDueChargeDetailsRow(schemeFSDetail: SchemeFSDetail, journeyType: ChargeDetailsFilter): Seq[SummaryList.Row] = {
+    val amountDueKey: Content = (schemeFSDetail.dueDate, schemeFSDetail.amountDue > 0) match {
       case (Some(date), true) =>
         msg"financialPaymentsAndCharges.paymentDue.${journeyType.toString}.dueDate".withArgs(date.format(dateFormatterDMY))
       case _ =>
         msg"financialPaymentsAndCharges.paymentDue.noDueDate"
     }
-    if (schemeFS.totalAmount > 0) {
+    if (schemeFSDetail.totalAmount > 0) {
       Seq(
         Row(
           key = Key(
@@ -426,7 +426,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
           ),
           value = Value(
-            content = Literal(s"${formatCurrencyAmountAsString(schemeFS.amountDue)}"),
+            content = Literal(s"${formatCurrencyAmountAsString(schemeFSDetail.amountDue)}"),
             classes = Seq("govuk-!-padding-left-0", "govuk-!-width--one-half", "govuk-!-font-weight-bold")
           ),
           actions = Nil
@@ -470,8 +470,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaymentsCache] =
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(loggedInId, srn, "srn")
-      schemeFS <- fsConnector.getSchemeFS(schemeDetails.pstr)
-      paymentsCache = PaymentsCache(loggedInId, srn, schemeDetails, schemeFS)
+      schemeFSDetail <- fsConnector.getSchemeFS(schemeDetails.pstr)
+      paymentsCache = PaymentsCache(loggedInId, srn, schemeDetails, schemeFSDetail.seqSchemeFSDetail)
       _ <- financialInfoCacheConnector.save(Json.toJson(paymentsCache))
     } yield paymentsCache
 
@@ -490,8 +490,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
     getPaymentsFromCache(loggedInId, srn).map { cache =>
       journeyType match {
-        case Overdue => cache.copy(schemeFS = getOverdueCharges(cache.schemeFS))
-        case Upcoming => cache.copy(schemeFS = extractUpcomingCharges(cache.schemeFS))
+        case Overdue => cache.copy(schemeFSDetail = getOverdueCharges(cache.schemeFSDetail))
+        case Upcoming => cache.copy(schemeFSDetail = extractUpcomingCharges(cache.schemeFSDetail))
         case _ => cache
       }
     }
@@ -524,7 +524,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
 import models.SchemeDetails
 
-case class PaymentsCache(loggedInId: String, srn: String, schemeDetails: SchemeDetails, schemeFS: Seq[SchemeFS])
+case class PaymentsCache(loggedInId: String, srn: String, schemeDetails: SchemeDetails, schemeFSDetail: Seq[SchemeFSDetail])
 
 object PaymentsCache {
   implicit val format: OFormat[PaymentsCache] = Json.format[PaymentsCache]

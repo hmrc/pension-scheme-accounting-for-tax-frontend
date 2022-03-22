@@ -55,7 +55,7 @@ class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
-      navService.navFromSchemeDashboard(paymentsCache.schemeFS, srn, journeyType)
+      navService.navFromSchemeDashboard(paymentsCache.schemeFSDetail, srn, journeyType)
     }
   }
 

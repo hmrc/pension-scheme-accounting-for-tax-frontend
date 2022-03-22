@@ -64,7 +64,7 @@ class PsaSchemeFinancialOverviewControllerSpec
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+  private val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPsaSchemePartialService, mockRenderer)
@@ -98,6 +98,8 @@ class PsaSchemeFinancialOverviewControllerSpec
         status(result) mustEqual OK
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
         templateCaptor.getValue mustEqual "financialOverview/psaSchemeFinancialOverview.njk"
+        val actualJson = jsonCaptor.getValue
+        (actualJson \ "requestRefundUrl").asOpt[String] mustBe Some(controllers.financialOverview.routes.RequestRefundController.onPageLoad(srn).url)
       }
     }
 

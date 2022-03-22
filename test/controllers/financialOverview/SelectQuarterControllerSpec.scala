@@ -23,7 +23,7 @@ import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import models.{AFTQuarter, DisplayQuarter, Enumerable, PaymentOverdue, Quarters}
 import org.mockito.ArgumentCaptor
@@ -67,7 +67,7 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   lazy val httpPathGET: String = routes.SelectQuarterController.onPageLoad(srn, pstr, year).url
   lazy val httpPathPOST: String = routes.SelectQuarterController.onSubmit(srn, pstr, year).url
-  private val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
+  private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
   private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
     "form" -> form,
@@ -85,7 +85,8 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC)))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+      .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))
   }
 
   "SelectQuarter Controller" must {

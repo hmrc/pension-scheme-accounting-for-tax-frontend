@@ -18,19 +18,19 @@ package models.financialStatement
 
 import models.{Enumerable, WithName}
 
-sealed trait SchemeFSClearingReason
+sealed trait FSClearingReason
 
-object SchemeFSClearingReason extends Enumerable.Implicits {
+object FSClearingReason extends Enumerable.Implicits {
 
-  case object CLEARED_WITH_PAYMENT extends WithName("C1") with SchemeFSClearingReason
-  case object CLEARED_WITH_DELTA_CREDIT extends WithName("C2") with SchemeFSClearingReason
-  case object REPAYMENT_TO_THE_CUSTOMER extends WithName("C3") with SchemeFSClearingReason
-  case object WRITTEN_OFF extends WithName("C4") with SchemeFSClearingReason
-  case object TRANSFERRED_TO_ANOTHER_ACCOUNT extends WithName( "C5") with SchemeFSClearingReason
-  case object OTHER_REASONS extends WithName("C6") with SchemeFSClearingReason
+  case object CLEARED_WITH_PAYMENT extends WithName("C1") with FSClearingReason
+  case object CLEARED_WITH_DELTA_CREDIT extends WithName("C2") with FSClearingReason
+  case object REPAYMENT_TO_THE_CUSTOMER extends WithName("C3") with FSClearingReason
+  case object WRITTEN_OFF extends WithName("C4") with FSClearingReason
+  case object TRANSFERRED_TO_ANOTHER_ACCOUNT extends WithName( "C5") with FSClearingReason
+  case object OTHER_REASONS extends WithName("C6") with FSClearingReason
 
 
-  val values: Seq[SchemeFSClearingReason] = Seq(
+  val values: Seq[FSClearingReason] = Seq(
     CLEARED_WITH_PAYMENT,
     CLEARED_WITH_DELTA_CREDIT,
     REPAYMENT_TO_THE_CUSTOMER,
@@ -39,7 +39,7 @@ object SchemeFSClearingReason extends Enumerable.Implicits {
     OTHER_REASONS
   )
 
-  implicit val enumerable: Enumerable[SchemeFSClearingReason] =
+  implicit val enumerable: Enumerable[FSClearingReason] =
     Enumerable(values.map(v => v.toString -> v): _*)
 }
 
