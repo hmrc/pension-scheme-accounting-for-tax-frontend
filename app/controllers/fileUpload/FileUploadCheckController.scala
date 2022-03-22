@@ -98,7 +98,7 @@ class FileUploadCheckController @Inject()(
   private def sendAuditEvent(chargeType: ChargeType,fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]) = {
     val fileUploadStatus = fileUploadDataCache.status
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
-    val duration = Duration.between( fileUploadDataCache.lastUpdated,fileUploadDataCache.created)
+    val duration = Duration.between(fileUploadDataCache.created, fileUploadDataCache.lastUpdated)
     val uploadTime = duration.getSeconds()
     auditService.sendEvent(AFTUpscanFileUploadAuditEvent(request.idOrException, pstr,
       request.schemeAdministratorType, chargeType, fileUploadStatus._type, fileUploadStatus.failureReason, uploadTime = uploadTime,

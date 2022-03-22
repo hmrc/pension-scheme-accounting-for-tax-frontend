@@ -100,15 +100,11 @@ class FileUploadController @Inject()(
               fileUploadStatus._type match {
                 case "UploadedSuccessfully" =>
                   logger.info("FileUploadController.showResult UploadedSuccessfully")
-                val successResult =  for {
+               for {
                     updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), fileUploadStatus.name.getOrElse("")))
                     _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, Some(chargeType))
                   } yield {
                    Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
-                  }
-                  successResult.map { result =>
-                    sendAuditEvent(chargeType, fileUploadDataCache)
-                    result
                   }
                 case "InProgress" =>
                   logger.info("FileUploadController.showResult InProgress")
@@ -127,7 +123,7 @@ class FileUploadController @Inject()(
   private def sendAuditEvent(chargeType: ChargeType,fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]) = {
     val fileUploadStatus = fileUploadDataCache.status
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
-    val duration = Duration.between( fileUploadDataCache.lastUpdated,fileUploadDataCache.created)
+    val duration = Duration.between(fileUploadDataCache.created, fileUploadDataCache.lastUpdated)
     val uploadTime = duration.getSeconds()
     auditService.sendEvent(AFTUpscanFileUploadAuditEvent(request.idOrException, pstr,
       request.schemeAdministratorType, chargeType, fileUploadStatus._type, fileUploadStatus.failureReason, uploadTime = uploadTime,
