@@ -26,7 +26,7 @@ import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.SchemeFSClearingReason._
+import models.financialStatement.FSClearingReason._
 import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFSDetail, SchemeFSChargeType}
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus

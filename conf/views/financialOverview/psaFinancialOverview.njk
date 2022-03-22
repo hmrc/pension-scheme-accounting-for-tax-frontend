@@ -35,7 +35,7 @@
                     </div>
                {% if totalOverdueCharge != "£0.00" and totalInterestAccruing != "£0.00" %}
                 <p class="govuk-body-m">
-                    <a id="allOverdue" class=govuk-link href="#"> {{ messages("psa.financial.overview.allOverdue.link") }}</a>
+                    <a id="allOverdue" class=govuk-link href="{{allOverduePenaltiesAndInterestLink}}"> {{ messages("psa.financial.overview.allOverdue.link") }}</a>
                 </p>
                {% endif %}
                 <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
@@ -51,7 +51,7 @@
                 </div>
                 {% if totalUpcomingCharge != "£0.00" %}
                  <p class="govuk-body-m">
-                        <a id="allDue" class=govuk-link href="#"> {{ messages("psa.financial.overview.allDue.link") }}</a>
+                        <a id="allDue" class=govuk-link href="{{duePaymentLink}}"> {{ messages("psa.financial.overview.allDue.link") }}</a>
                  </p>
                  {% endif %}
                 <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">

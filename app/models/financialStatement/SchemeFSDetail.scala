@@ -30,7 +30,7 @@ object SchemeFS {
   implicit val formats: Format[SchemeFS] = Json.format[SchemeFS]
 }
 
-case class DocumentLineItemDetail(clearedAmountItem: BigDecimal, clearingDate: Option[LocalDate], clearingReason: Option[SchemeFSClearingReason])
+case class DocumentLineItemDetail(clearedAmountItem: BigDecimal, clearingDate: Option[LocalDate], clearingReason: Option[FSClearingReason])
 
 object DocumentLineItemDetail {
   implicit val formats: Format[DocumentLineItemDetail] = Json.format[DocumentLineItemDetail]

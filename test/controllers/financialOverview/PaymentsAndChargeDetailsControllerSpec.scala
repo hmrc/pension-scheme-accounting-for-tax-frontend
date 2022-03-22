@@ -42,7 +42,7 @@ import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
-import models.financialStatement.{PsaFSDetail, SchemeFSDetail, SchemeFSChargeType}
+import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFSDetail, SchemeFSChargeType, SchemeFSDetail}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest._
@@ -275,7 +275,9 @@ object PaymentsAndChargeDetailsControllerSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
+      pstr = "24000040IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     )
 
   private def createChargeWithAmountDueAndInterest(
@@ -342,7 +344,10 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate = LocalDate.parse(QUARTER_END_DATE),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
-      documentLineItemDetails = Nil
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     )
   }
 
