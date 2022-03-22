@@ -16,6 +16,7 @@
 
 package controllers.fileUpload
 
+import audit.{AFTUpscanFileDownloadAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
@@ -24,7 +25,7 @@ import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidO
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
+import models.{AccessType, AdministratorOrPractitioner, ChargeType, SchemeDetails, UploadId, UserAnswers}
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
@@ -47,6 +48,8 @@ class ValidationController @Inject()(
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
+                                      auditService: AuditService,
+                                      schemeDetails: SchemeDetails,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
                                       annualAllowanceParser: AnnualAllowanceParser,
@@ -138,8 +141,6 @@ class ValidationController @Inject()(
                                     chargeType: ChargeType,
                                     linesFromCSV: List[String],
                                     parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
-
-    //removes non-printable characters like ^M$
     val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
 
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
@@ -182,6 +183,15 @@ class ValidationController @Inject()(
                         parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
                       case _ =>
                         Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
+                          .map{
+                          result => auditService.sendEvent(
+                            AFTUpscanFileDownloadAuditEvent
+                            (request.idOrException, request.schemeAdministratorType,
+                            chargeType.toString, schemeDetails.pstr, uploadStatus.toString, uploadStatus.status.failureReason.toString ,
+                            downloadTime = ???, uploadStatus.status.size.toString, uploadStatus.reference
+                          ))
+                            result
+                        }
                     }
                 }
             }

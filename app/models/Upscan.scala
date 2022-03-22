@@ -17,7 +17,6 @@
 package models
 
 
-import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json._
 import play.api.mvc.QueryStringBindable
 
@@ -50,6 +49,7 @@ object FileUploadStatus {
 }
 
 case class FileUploadDataCache(uploadId: String, reference: String, status: FileUploadStatus, lastUpdated: LocalDateTime, expireAt: LocalDateTime)
+
 
 object FileUploadDataCache {
   implicit val reads: OFormat[FileUploadDataCache] = Json.format[FileUploadDataCache]

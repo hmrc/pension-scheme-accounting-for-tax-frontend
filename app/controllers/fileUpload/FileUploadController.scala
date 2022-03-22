@@ -16,13 +16,14 @@
 
 package controllers.fileUpload
 
+import audit.{AFTUpscanFileUploadAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, GenericViewModel, UploadId}
+import models.{AccessType, AdministratorOrPractitioner, ChargeType, GenericViewModel, SchemeDetails, UploadId}
 import pages.SchemeNameQuery
 import pages.fileUpload.UploadedFileName
 import play.api.Logger
@@ -44,6 +45,8 @@ class FileUploadController @Inject()(
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
+                                      schemeDetails: SchemeDetails,
+                                      auditService: AuditService,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -107,7 +110,13 @@ class FileUploadController @Inject()(
                   logger.info("FileUploadController.showResult InProgress")
                   Future.successful(Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId)))
                 case "Failed" =>
-                  upscanErrorHandlingService.handleFailureResponse(fileUploadStatus.failureReason.getOrElse(""), srn, startDate, accessType, version)
+                  upscanErrorHandlingService.handleFailureResponse(fileUploadStatus.failureReason.getOrElse(""), srn, startDate, accessType, version).map{
+                    result =>
+                    auditService.sendEvent(AFTUpscanFileUploadAuditEvent(request.idOrException, schemeDetails.pstr,
+                      request.schemeAdministratorType, chargeType, fileUploadStatus._type, fileUploadStatus.failureReason.toString, uploadTime = ??? ,
+                      fileUploadStatus.size.toString, fileUploadDataCache.reference ))
+                    result
+                  }
               }
           }
     }

@@ -28,7 +28,7 @@ import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
-import models.{ChargeType, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
+import models.{ChargeType, FileUploadDataCache, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
@@ -315,7 +315,7 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
     override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus)(implicit ec: ExecutionContext,
                                                                                         hc: HeaderCarrier): Future[Unit] = Future.successful(())
 
-    override def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UploadStatus]] =
+    override def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[FileUploadDataCache]] =
       Future.successful(
         Some(
           UploadedSuccessfully(
