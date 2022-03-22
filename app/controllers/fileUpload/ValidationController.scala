@@ -138,16 +138,14 @@ class ValidationController @Inject()(
                                     accessType: AccessType,
                                     version: Int,
                                     chargeType: ChargeType,
-                                    linesFromCSV: List[String],
+                                    csvContent: Seq[Array[String]],
                                     parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
 
-    //removes non-printable characters like ^M$
-    val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
+
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache. Srn is $srn")
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
     val startTime = System.currentTimeMillis
-    val parserResult: Either[Seq[ParserValidationError], UserAnswers] =
-      TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing and Validation")
+    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, csvContent, updatedUA), "Parsing and Validation")
     val endTime = System.currentTimeMillis
     val futureResult = parserResult.fold[Future[Result]](
       processInvalid(srn, startDate, accessType, version, chargeType, _),
@@ -159,7 +157,7 @@ class ValidationController @Inject()(
       sendAuditEvent(
         pstr = pstr,
         chargeType = chargeType,
-        linesFromCSV.size - 1,
+        csvContent.size - 1,
         fileValidationTimeInSeconds = ((endTime - startTime) / 1000).toInt,
         parserResult = parserResult)
       result
@@ -222,6 +220,8 @@ class ValidationController @Inject()(
     )
   }
 
+
+
   private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
                                   (implicit request: DataRequest[AnyContent]): Future[UserAnswers] = {
 
@@ -245,7 +245,8 @@ class ValidationController @Inject()(
               upscanInitiateConnector.download(ud.downloadUrl).flatMap { response =>
                 response.status match {
                   case OK =>
-                    val linesFromCSV = response.body.split("\n").toList
+
+                    val linesFromCSV = CsvLineSplitter.split(response.body) //response.body.split("\n").toList
                     parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
                   case _ =>
                     Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
