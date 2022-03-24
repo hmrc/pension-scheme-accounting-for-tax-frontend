@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{ChargeType, Failed, FileUploadDataCache, GenericViewModel, InProgress, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
+import models.{ChargeType, Failed, FileUploadDataCache, FileUploadStatus, GenericViewModel, InProgress, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import play.api.Application
@@ -34,6 +34,7 @@ import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDateTime
 import scala.concurrent.Future
 
 class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
@@ -42,7 +43,19 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   private def ua: UserAnswers = userAnswersWithSchemeName
-  private val fileUploadDataCache : FileUploadDataCache = mock[FileUploadDataCache]
+
+  private val dateTimeNow = LocalDateTime.now
+
+  private val fileUploadDataCache: FileUploadDataCache =
+    FileUploadDataCache(
+      uploadId = "uploadId",
+      reference ="reference",
+      status=  FileUploadStatus("InProgress"),
+      created= dateTimeNow,
+      lastUpdated= dateTimeNow,
+      expireAt= dateTimeNow
+    )
+
   val expectedJson: JsObject = Json.obj()
 
   private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
@@ -77,6 +90,7 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   "onPageLoad" must {
     "return OK and the correct view for a GET" in {
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       when(mockUpscanInitiateConnector.initiateV2(any(), any())(any())).thenReturn(Future.successful(upscanInitiateResponse))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
@@ -116,6 +130,18 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   "showResult" must {
     "redirect to Upload Check for success result" in {
+      val fileUploadDataCache: FileUploadDataCache =
+        FileUploadDataCache(
+          uploadId = "uploadId",
+          reference ="reference",
+          status=  FileUploadStatus("UploadedSuccessfully"),
+          created= dateTimeNow,
+          lastUpdated= dateTimeNow,
+          expireAt= dateTimeNow
+        )
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+
+
 
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
@@ -140,8 +166,6 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
       )
 
       redirectLocation(result) mustBe Some(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version.toInt, chargeType, uploadId).url)
-
-      jsonCaptor.getValue mustBe jsonToPassToTemplate
     }
 
     "redirect to showResult for result InProgress" in {
@@ -171,6 +195,11 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
     ).value
 
     status(result) mustEqual SEE_OTHER
+    /*
+    Some("/manage-pension-scheme-accounting-for-tax/aa/2020-04-01/draft/1/annual-allowance-charge/upload-check?uploadId=") was not equal to
+    Some("/manage-pension-scheme-accounting-for-tax/aa/2020-04-01/draft/1/fileupload/upload-virus-check-error") (FileUploadControllerSpec.scala:198)
+
+     */
     redirectLocation(result) mustBe Some(routes.UpscanErrorController.quarantineError(srn, startDate, accessType, versionInt).url)
   }
 

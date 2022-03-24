@@ -65,8 +65,8 @@ class FileUploadController @Inject()(
 
       val errorRedirectUrl = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
       logger.info("FileUploadController.onPageLoad BF upscanInitiate")
-      upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)).flatMap{ uir =>
-        uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap{ _ =>
+      upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)).flatMap { uir =>
+        uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap { _ =>
           val viewModel = GenericViewModel(
             submitUrl = uir.postTarget,
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
@@ -100,27 +100,28 @@ class FileUploadController @Inject()(
               fileUploadStatus._type match {
                 case "UploadedSuccessfully" =>
                   logger.info("FileUploadController.showResult UploadedSuccessfully")
-               for {
+                  for {
                     updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadedFileName(chargeType), fileUploadStatus.name.getOrElse("")))
                     _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, Some(chargeType))
                   } yield {
-                   Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
+                    Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
                   }
                 case "InProgress" =>
                   logger.info("FileUploadController.showResult InProgress")
                   Future.successful(Redirect(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId)))
                 case "Failed" =>
-                  upscanErrorHandlingService.handleFailureResponse(fileUploadStatus.failureReason.getOrElse(""), srn, startDate, accessType, version).map{
+                  upscanErrorHandlingService.handleFailureResponse(fileUploadStatus.failureReason.getOrElse(""), srn, startDate, accessType, version).map {
                     result =>
-                      sendAuditEvent(chargeType,fileUploadDataCache)
+                      sendAuditEvent(chargeType, fileUploadDataCache)
                       result
                   }
+                case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
               }
           }
     }
 
 
-  private def sendAuditEvent(chargeType: ChargeType,fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]) = {
+  private def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]) = {
     val fileUploadStatus = fileUploadDataCache.status
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
     val duration = Duration.between(fileUploadDataCache.created, fileUploadDataCache.lastUpdated)
@@ -130,7 +131,7 @@ class FileUploadController @Inject()(
       fileUploadStatus.size, fileUploadDataCache.reference))
   }
 
-  private def getErrorCode(request: DataRequest[AnyContent]):Option[String] = {
+  private def getErrorCode(request: DataRequest[AnyContent]): Option[String] = {
     if (request.queryString.contains("errorCode") && request.queryString("errorCode").nonEmpty) {
       Some(request.queryString("errorCode").head)
     } else {

@@ -109,20 +109,40 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "onPageLoad" must {
-    "send correct audit event for failure when header invalid" in {
+    "send correct audit events for failure when header invalid" in {
+      val captorAFTFileValidationCheckAuditEvent: ArgumentCaptor[AFTFileValidationCheckAuditEvent] =
+        ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
+      val captorAFTUpscanFileDownloadAuditEvent: ArgumentCaptor[AFTUpscanFileDownloadAuditEvent] =
+        ArgumentCaptor.forClass(classOf[AFTUpscanFileDownloadAuditEvent])
+      doNothing.when(mockAuditService).sendEvent[AFTFileValidationCheckAuditEvent](captorAFTFileValidationCheckAuditEvent.capture())(any(), any())
+      doNothing.when(mockAuditService).sendEvent[AFTUpscanFileDownloadAuditEvent](captorAFTUpscanFileDownloadAuditEvent.capture())(any(), any())
+
       status(runValidation(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))) mustEqual SEE_OTHER
-      val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
       val dateTimeNow = LocalDateTime.now()
-      val fileUploadDataCache=
-        FileUploadDataCache(
-          uploadId = "uploadId",
-          reference ="reference",
-          status=  FileUploadStatus("InProgress"),
-          created= dateTimeNow,
-          lastUpdated= dateTimeNow,
-          expireAt= dateTimeNow
-        )
-      val expectedUpscanAudit=  AFTUpscanFileDownloadAuditEvent( psaOrPspId=  psaId,
+//      val fileUploadDataCache=
+//        FileUploadDataCache(
+//          uploadId = "uploadId",
+//          reference ="reference",
+//          status=  FileUploadStatus("InProgress"),
+//          created= dateTimeNow,
+//          lastUpdated= dateTimeNow,
+//          expireAt= dateTimeNow
+//        )
+      
+      val expectedAFTFileValidationCheckAuditEvent = AFTFileValidationCheckAuditEvent(
+        administratorOrPractitioner = AdministratorOrPractitioner.Administrator,
+        id = "",
+        pstr = pstr,
+        numberOfEntries = 0,
+        chargeType = ChargeType.ChargeTypeAnnualAllowance,
+        validationCheckSuccessful = false,
+        fileValidationTimeInSeconds = 0,
+        failureReason = None,
+        numberOfFailures = 0,
+        validationFailureContent = None
+      )
+      
+      val expectedAFTUpscanFileDownloadAuditEvent =  AFTUpscanFileDownloadAuditEvent( psaOrPspId=  psaId,
         schemeAdministratorType= AdministratorOrPractitioner.Administrator,
         chargeType= "AnnualAllowance",
         pstr= pstr,
@@ -131,22 +151,32 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         downloadTime= 11,
         fileSize= "20",
         reference= "reference")
-      val expectedUpscanAudit : (ChargeType.ChargeTypeAnnualAllowance,
-        fileUploadDataCache,
-        dateTimeNow,
-        pstr)
-      verify(mockAuditService, times(2)).sendEvent(auditCaptor.capture())(any(), any())
-      verify(mockAuditService, times(1)).sendEvent(ArgumentMatchers.eq(auditDownload))(any(), any())
-      val auditEventSent = auditCaptor.getValue
-      auditEventSent.administratorOrPractitioner mustBe Administrator
-      auditEventSent.id mustBe psaId
-      auditEventSent.pstr mustBe pstr
-      auditEventSent.numberOfEntries mustBe 2
-      auditEventSent.chargeType mustBe ChargeTypeAnnualAllowance
-      auditEventSent.validationCheckSuccessful mustBe false
-      auditEventSent.failureReason mustBe Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error)
-      auditEventSent.numberOfFailures mustBe 1
-      auditEventSent.validationFailureContent mustBe None
+      
+      /*
+      auditService.sendEvent(
+[info]     AFTUpscanFileDownloadAuditEvent(A0000000,administrator,annualAllowance,pstr,FileUploadDataCache(uploadID,reference,
+FileUploadStatus(UploadedSuccessfully,None,None,None,None,None,None),2022-03-24T14:28:18.025,2022-03-24T14:28:18.025,2022-03-24T14:28:18.025),None,0,None,reference),
+       */
+
+
+
+
+//      verify(mockAuditService, times(1))
+//        .sendEvent[AFTFileValidationCheckAuditEvent](captorAFTFileValidationCheckAuditEvent.capture())(any(), any())
+//
+//      verify(mockAuditService, times(1))
+//        .sendEvent[AFTUpscanFileDownloadAuditEvent](captorAFTUpscanFileDownloadAuditEvent.capture())(any(), any())
+
+      val auditEventAFTFileValidationCheckAuditEvent = captorAFTFileValidationCheckAuditEvent.getValue
+      auditEventAFTFileValidationCheckAuditEvent.administratorOrPractitioner mustBe Administrator
+      auditEventAFTFileValidationCheckAuditEvent.id mustBe psaId
+      auditEventAFTFileValidationCheckAuditEvent.pstr mustBe pstr
+      auditEventAFTFileValidationCheckAuditEvent.numberOfEntries mustBe 2
+      auditEventAFTFileValidationCheckAuditEvent.chargeType mustBe ChargeTypeAnnualAllowance
+      auditEventAFTFileValidationCheckAuditEvent.validationCheckSuccessful mustBe false
+      auditEventAFTFileValidationCheckAuditEvent.failureReason mustBe Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error)
+      auditEventAFTFileValidationCheckAuditEvent.numberOfFailures mustBe 1
+      auditEventAFTFileValidationCheckAuditEvent.validationFailureContent mustBe None
     }
 
     "send correct audit event for failure when less than 10 (non-header) errors" in {

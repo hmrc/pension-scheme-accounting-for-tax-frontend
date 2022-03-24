@@ -18,7 +18,7 @@ package services.fileUpload
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import connectors.Reference
-import models.{FileUploadStatus, InProgress, UploadId, UploadedSuccessfully}
+import models.{FileUploadDataCache, FileUploadStatus, UploadId, UploadedSuccessfully}
 import org.scalatest._
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
@@ -26,6 +26,8 @@ import play.api.http.Status.OK
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import utils.WireMockHelper
+
+import java.time.LocalDateTime
 
 class UploadProgressTrackerSpec extends AsyncWordSpec with Matchers with WireMockHelper with OptionValues with RecoverMethods {
 
@@ -54,16 +56,29 @@ class UploadProgressTrackerSpec extends AsyncWordSpec with Matchers with WireMoc
     }
 
     "return data if data is present in the collection" in {
+      val dateTimeNow = LocalDateTime.now
+      val payload = Json.obj("uploadId" -> "uploadId", "reference" -> "reference", "status" -> Json.obj("_type" -> "InProgress"),
+        "created" -> dateTimeNow, "lastUpdated" -> dateTimeNow, "expireAt" -> dateTimeNow).toString()
+
       server.stubFor(
         get(urlEqualTo(url))
           .willReturn(
-            ok(Json.obj(fields = "_type" -> "InProgress").toString())
+            ok(payload)
           )
       )
 
       connector.getUploadResult(UploadId("uploadId")) map {
         result =>
-          result.value mustEqual InProgress
+          val dataToReturn: FileUploadDataCache =
+            FileUploadDataCache(
+              uploadId = "uploadId",
+              reference = "reference",
+              status = FileUploadStatus("InProgress"),
+              created = dateTimeNow,
+              lastUpdated = dateTimeNow,
+              expireAt = dateTimeNow
+            )
+          result.value mustEqual dataToReturn
       }
     }
 
@@ -115,8 +130,8 @@ class UploadProgressTrackerSpec extends AsyncWordSpec with Matchers with WireMoc
   }
 
   ".registerUploadResult" must {
-    val fileUploadStatus=UploadedSuccessfully("test.csv","text/binary","www.test.com",Some("100".toLong))
-    val response=Json.toJson(FileUploadStatus("UploadedSuccessfully", None, None, Some("www.test.com"), Some("text/binary"), Some("test.csv"), Some("100".toLong)))
+    val fileUploadStatus = UploadedSuccessfully("test.csv", "text/binary", "www.test.com", Some("100".toLong))
+    val response = Json.toJson(FileUploadStatus("UploadedSuccessfully", None, None, Some("www.test.com"), Some("text/binary"), Some("test.csv"), Some("100".toLong)))
     "save the data in the collection" in {
       server.stubFor(
         post(urlEqualTo(urlFileUploadResult))
@@ -126,7 +141,7 @@ class UploadProgressTrackerSpec extends AsyncWordSpec with Matchers with WireMoc
           )
       )
 
-      connector.registerUploadResult(Reference("referenceId"),fileUploadStatus) map {
+      connector.registerUploadResult(Reference("referenceId"), fileUploadStatus) map {
         _.mustEqual((): Unit)
       }
     }
@@ -141,7 +156,7 @@ class UploadProgressTrackerSpec extends AsyncWordSpec with Matchers with WireMoc
           )
       )
       recoverToSucceededIf[HttpException] {
-        connector.registerUploadResult(Reference("referenceId"),fileUploadStatus)
+        connector.registerUploadResult(Reference("referenceId"), fileUploadStatus)
       }
     }
   }
