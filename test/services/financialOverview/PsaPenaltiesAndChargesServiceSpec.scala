@@ -139,7 +139,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
       .thenReturn(Future.successful(Some(Json.toJson(penaltiesCache))))
   }
 
-  "getAllPaymentsAndCharges" must {
+  "getPenaltiesAndCharges" must {
 
     Seq(CONTRACT_SETTLEMENT).foreach {
       chargeType =>
@@ -177,9 +177,9 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
               )
             ))
 
-          val row1 = psaPenaltiesAndChargesService.getAllPaymentsAndCharges(
+          val row1 = psaPenaltiesAndChargesService.getPenaltiesAndCharges(
             pstr, psaFsSeq, Overdue)
-          val row2 = psaPenaltiesAndChargesService.getAllPaymentsAndCharges(
+          val row2 = psaPenaltiesAndChargesService.getPenaltiesAndCharges(
             pstr, psaFsSeq, Upcoming)
 
           row1 map {

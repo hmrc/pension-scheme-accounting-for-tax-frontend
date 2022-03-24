@@ -16,14 +16,16 @@
 
 package models.viewModels.financialOverview
 
+import models.financialStatement.PsaFSChargeType
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 
-case class PsaPaymentsAndChargesDetails(chargeType: String,
+case class PsaPaymentsAndChargesDetails(chargeType: PsaFSChargeType,
                                         chargeReference: String,
                                         originalChargeAmount: String,
                                         paymentDue: String,
                                         status: PaymentAndChargeStatus,
                                         redirectUrl: String,
                                         pstr: String,
+                                        period: String,
                                         schemeName: String,
                                         visuallyHiddenText: String)

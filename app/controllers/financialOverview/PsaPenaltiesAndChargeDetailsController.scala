@@ -16,8 +16,10 @@
 
 package controllers.financialOverview
 
+import config.FrontendAppConfig
 import controllers.actions._
 import models.ChargeDetailsFilter
+import models.ChargeDetailsFilter.All
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, INTEREST_ON_CONTRACT_SETTLEMENT}
 import models.financialStatement.{PsaFSChargeType, PsaFSDetail}
 import models.requests.IdentifierRequest
@@ -27,9 +29,10 @@ import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
 import services.financialOverview.PsaPenaltiesAndChargesService
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -139,6 +142,8 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       case _ => ""
     }
 
+    val returnLinkBasedOnJourney = getReturnUrlText(fs, journeyType)
+
     Json.obj(
       "heading" ->   detailsChargeTypeHeading.toString,
       "isOverdue" ->        psaPenaltiesAndChargesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
@@ -154,4 +159,24 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     )
   }
 
+  def getReturnUrl(srn: String, pstr: String, psaId: Option[PsaId], pspId: Option[PspId], config: FrontendAppConfig,
+                   journeyType: ChargeDetailsFilter): String = {
+    journeyType match {
+      case All => config.schemeDashboardUrl(psaId, pspId).format(srn)
+      case _ => routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url
+    }
+  }
+
+  private def getReturnUrlText(fs: PsaFSDetail, journeyType: ChargeDetailsFilter) = {
+    val returnLinkBasedOnJourney = journeyType match {
+      case All =>
+        val startDate = formatStartDate(fs.periodStartDate)
+        val endDate = formatDateDMY(fs.periodEndDate)
+        val returnText = msg"financialPaymentsAndCharges.returnLink" + s"$startDate to $endDate"
+        msg"$returnText $startDate to $endDate"
+      case _ =>
+        msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}"
+    }
+    returnLinkBasedOnJourney
+  }
 }

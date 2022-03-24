@@ -19,6 +19,7 @@ package controllers.financialOverview
 import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
+import controllers.financialOverview.psa.routes._
 import helpers.FormatHelper
 import models.financialStatement.{PsaFS, PsaFSChargeType, PsaFSDetail}
 import play.api.Logger
@@ -87,6 +88,7 @@ class PsaFinancialOverviewController @Inject()(
         "psaName" -> psaName, "requestRefundUrl" -> requestRefundUrl,
         "allOverduePenaltiesAndInterestLink" -> routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
         "duePaymentLink" -> routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
+        "allPaymentLink" -> psa.routes.PenaltyTypeController.onPageLoad("all").url,
         "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }
