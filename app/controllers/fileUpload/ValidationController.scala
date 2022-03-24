@@ -262,7 +262,7 @@ class ValidationController @Inject()(
         }
     }
 
-  private def sendAuditEventForUpScanDownload(chargeType: ChargeType,
+  def sendAuditEventForUpScanDownload(chargeType: ChargeType,
                                               uploadStatus: FileUploadDataCache,
                                               created: LocalDateTime,
                                               pstr: String)(implicit request: DataRequest[AnyContent]) = {

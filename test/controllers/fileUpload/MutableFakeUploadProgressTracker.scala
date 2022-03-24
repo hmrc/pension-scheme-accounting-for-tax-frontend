@@ -17,21 +17,26 @@
 package controllers.fileUpload
 
 import connectors.Reference
-import models.{UploadId, UploadStatus, UploadedSuccessfully}
+import controllers.fileUpload.ValidationControllerSpec.mockFileUploadStatus
+import models.{FileUploadDataCache, FileUploadStatus, UploadId, UploadStatus, UploadedSuccessfully}
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.LocalDateTime
 import scala.concurrent.{ExecutionContext, Future}
 
 class MutableFakeUploadProgressTracker extends UploadProgressTracker {
-  private var dataToReturn: UploadStatus =
-    UploadedSuccessfully(
-      name = "name",
-      mimeType = "mime",
-      downloadUrl = "/test",
-      size = Some(1L)
+  private var dataToReturn: FileUploadDataCache =
+        FileUploadDataCache(
+          uploadId = "uploadID",
+          reference ="reference",
+          status=  FileUploadStatus(
+            _type= "someString"),
+          created= LocalDateTime.now,
+          lastUpdated= LocalDateTime.now,
+          expireAt= LocalDateTime.now
     )
-  def setDataToReturn(result: UploadStatus): Unit = dataToReturn = result
+  def setDataToReturn(result: FileUploadDataCache): Unit = dataToReturn = result
 
   override def requestUpload(uploadId: UploadId, fileReference: Reference)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] =
     Future.successful(())
@@ -39,6 +44,6 @@ class MutableFakeUploadProgressTracker extends UploadProgressTracker {
   override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus)(implicit ec: ExecutionContext,
                                                                                       hc: HeaderCarrier): Future[Unit] = Future.successful(())
 
-  override def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UploadStatus]] =
+  override def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[FileUploadDataCache]] =
     Future.successful(Some(dataToReturn))
 }

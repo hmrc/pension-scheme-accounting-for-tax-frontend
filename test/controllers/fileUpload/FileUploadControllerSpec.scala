@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{ChargeType, GenericViewModel, InProgress, Failed, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
+import models.{ChargeType, Failed, FileUploadDataCache, GenericViewModel, InProgress, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import play.api.Application
@@ -42,7 +42,7 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   private def ua: UserAnswers = userAnswersWithSchemeName
-
+  private val fileUploadDataCache : FileUploadDataCache = mock[FileUploadDataCache]
   val expectedJson: JsObject = Json.obj()
 
   private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
@@ -145,7 +145,7 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "redirect to showResult for result InProgress" in {
-      fakeUploadProgressTracker.setDataToReturn(InProgress)
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val uploadId = UploadId("")
       val result = route(
@@ -161,7 +161,7 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "redirect to quarantineError for result Failed(QUARANTINE)" in {
-    fakeUploadProgressTracker.setDataToReturn(Failed("QUARANTINE", "file may contain virus"))
+    fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
     val uploadId = UploadId("")
     val result = route(
@@ -175,7 +175,7 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "redirect to rejectedError for result Failed(REJECTED)" in {
-    fakeUploadProgressTracker.setDataToReturn(Failed("REJECTED", "file type may be incorrect"))
+    fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
     val uploadId = UploadId("")
     val result = route(
@@ -189,7 +189,7 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "redirect to unknownError for result Failed(UNKNOWN)" in {
-    fakeUploadProgressTracker.setDataToReturn(Failed("UNKNOWN", "Please try again later"))
+    fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
     val uploadId = UploadId("")
     val result = route(

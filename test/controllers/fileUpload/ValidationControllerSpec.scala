@@ -16,7 +16,7 @@
 
 package controllers.fileUpload
 
-import audit.{AFTFileValidationCheckAuditEvent, AuditService}
+import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AuditService}
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
@@ -33,8 +33,8 @@ import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
-import models.{ChargeType, FileUploadDataCache, UploadId, UploadStatus, UploadedSuccessfully, UserAnswers}
-import org.mockito.ArgumentCaptor
+import models.{AdministratorOrPractitioner, ChargeType, FileUploadDataCache, FileUploadStatus, UploadId, UploadStatus, UserAnswers}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.ArgumentMatchers.any
 import pages.PSTRQuery
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
@@ -56,7 +56,7 @@ import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 
 class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
@@ -65,7 +65,6 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val genericTemplateToBeRendered = "fileUpload/genericErrors.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
   private val mockAuditService = mock[AuditService]
-
   private def ua: UserAnswers = userAnswersWithSchemeName
 
   val expectedJson: JsObject = Json.obj()
@@ -80,7 +79,8 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     bind[UploadProgressTracker].toInstance(fakeUploadProgressTracker),
     bind[AFTService].toInstance(mockAFTService),
     bind[FileUploadAftReturnService].toInstance(mockFileUploadAftReturnService),
-    bind[AuditService].toInstance(mockAuditService)
+    bind[AuditService].toInstance(mockAuditService),
+
   )
 
   override def beforeEach: Unit = {
@@ -112,7 +112,31 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "send correct audit event for failure when header invalid" in {
       status(runValidation(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))) mustEqual SEE_OTHER
       val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
-      verify(mockAuditService, times(1)).sendEvent(auditCaptor.capture())(any(), any())
+      val dateTimeNow = LocalDateTime.now()
+      val fileUploadDataCache=
+        FileUploadDataCache(
+          uploadId = "uploadId",
+          reference ="reference",
+          status=  FileUploadStatus("InProgress"),
+          created= dateTimeNow,
+          lastUpdated= dateTimeNow,
+          expireAt= dateTimeNow
+        )
+      val expectedUpscanAudit=  AFTUpscanFileDownloadAuditEvent( psaOrPspId=  psaId,
+        schemeAdministratorType= AdministratorOrPractitioner.Administrator,
+        chargeType= "AnnualAllowance",
+        pstr= pstr,
+        downloadStatus= "UploadedSuccessfully",
+        failureReason= "",
+        downloadTime= 11,
+        fileSize= "20",
+        reference= "reference")
+      val expectedUpscanAudit : (ChargeType.ChargeTypeAnnualAllowance,
+        fileUploadDataCache,
+        dateTimeNow,
+        pstr)
+      verify(mockAuditService, times(2)).sendEvent(auditCaptor.capture())(any(), any())
+      verify(mockAuditService, times(1)).sendEvent(ArgumentMatchers.eq(auditDownload))(any(), any())
       val auditEventSent = auditCaptor.getValue
       auditEventSent.administratorOrPractitioner mustBe Administrator
       auditEventSent.id mustBe psaId
@@ -131,7 +155,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         ParserValidationError(2, 1, "Field error two", AnnualAllowanceFieldNames.dateNoticeReceived)
       ))) mustEqual OK
       val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
-      verify(mockAuditService, times(1)).sendEvent(auditCaptor.capture())(any(), any())
+      verify(mockAuditService, times(2)).sendEvent(auditCaptor.capture())(any(), any())
       val auditEventSent = auditCaptor.getValue
 
       auditEventSent.administratorOrPractitioner mustBe Administrator
@@ -162,7 +186,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         ParserValidationError(1, 1, "Field error 11", AnnualAllowanceFieldNames.chargeAmount)
       ))) mustEqual OK
       val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
-      verify(mockAuditService, times(1)).sendEvent(auditCaptor.capture())(any(), any())
+      verify(mockAuditService, times(2)).sendEvent(auditCaptor.capture())(any(), any())
       val auditEventSent = auditCaptor.getValue
 
       auditEventSent.administratorOrPractitioner mustBe Administrator
@@ -204,7 +228,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       status(result) mustEqual SEE_OTHER
       val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
-      verify(mockAuditService, times(1)).sendEvent(auditCaptor.capture())(any(), any())
+      verify(mockAuditService, times(2)).sendEvent(auditCaptor.capture())(any(), any())
       val auditEventSent = auditCaptor.getValue
 
       auditEventSent.administratorOrPractitioner mustBe Administrator
@@ -237,7 +261,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       ).value
 
       status(result) mustEqual OK
-
+         //here
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
@@ -283,7 +307,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       ).value
 
       status(result) mustEqual OK
-
+     //here
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedErrors = Seq("fileUpload.memberDetails.generic.error.firstName",
@@ -432,12 +456,10 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 }
 
 object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-  private def ua: UserAnswers = userAnswersWithSchemeName
-
   private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
   private val mockAFTService: AFTService = mock[AFTService]
   private val mockFileUploadAftReturnService: FileUploadAftReturnService = mock[FileUploadAftReturnService]
-
+  private val mockFileUploadStatus : FileUploadStatus = mock[FileUploadStatus]
   private val fakeUploadProgressTracker: UploadProgressTracker = new UploadProgressTracker {
     override def requestUpload(uploadId: UploadId, fileReference: Reference)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] =
       Future.successful(())
@@ -445,15 +467,19 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
     override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus)(implicit ec: ExecutionContext,
                                                                                         hc: HeaderCarrier): Future[Unit] = Future.successful(())
 
-    override def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[FileUploadDataCache]] =
+    override def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier) :Future[Option[FileUploadDataCache]]= {
+
       Future.successful(
         Some(
-          UploadedSuccessfully(
-            name = "name",
-            mimeType = "mime",
-            downloadUrl = "/test",
-            size = Some(1L)
+          FileUploadDataCache(
+            uploadId = "uploadID",
+            reference ="reference",
+            status=  FileUploadStatus(_type= "UploadedSuccessfully" ),
+            created= LocalDateTime.now,
+            lastUpdated= LocalDateTime.now,
+            expireAt= LocalDateTime.now
           )))
+    }
   }
 
   private val mockAnnualAllowanceParser = mock[AnnualAllowanceParser]
