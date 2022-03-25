@@ -48,17 +48,18 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
     "return charges in user answers when there are no validation errors" in {
       val GivingValidCSVFile = CsvLineSplitter.split(
         s"""$header
-                            Joe,Bloggs,AB123456C,01/04/2020,268.28,0.00
-                            Joe,Bliggs,AB123457C,01/04/2020,268.28,0.00"""
+                            Joe,Bloggs,AB123456C,01/04/2020,268.28,0
+                            Joe,Bliggs,AB123457C,01/04/2020,0,268.28"""
       )
 
-      val chargeDetails = ChargeDDetails(LocalDate.of(2020, 4, 1), Some(BigDecimal(268.28)), None)
+      val chargeDetails1 = ChargeDDetails(LocalDate.of(2020, 4, 1), Some(BigDecimal(268.28)), Some(BigDecimal(0.0)))
+      val chargeDetails2 = ChargeDDetails(LocalDate.of(2020, 4, 1), Some(BigDecimal(0.0)), Some(BigDecimal(268.28)))
       val result = parser.parse(startDate, GivingValidCSVFile, UserAnswers())
       result mustBe Right(UserAnswers()
         .setOrException(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2))
-        .setOrException(ChargeDetailsPage(0).path, Json.toJson(chargeDetails))
+        .setOrException(ChargeDetailsPage(0).path, Json.toJson(chargeDetails1))
         .setOrException(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3))
-        .setOrException(ChargeDetailsPage(1).path, Json.toJson(chargeDetails))
+        .setOrException(ChargeDetailsPage(1).path, Json.toJson(chargeDetails2))
       )
     }
 
