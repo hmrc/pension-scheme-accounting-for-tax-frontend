@@ -17,9 +17,8 @@
 package audit
 
 import audit.AuditEvent
-import models.{AdministratorOrPractitioner, ChargeType}
+import models.{AdministratorOrPractitioner, ChargeType, FileUploadDataCache}
 
-import java.time.LocalDateTime
 
 
 case class AFTUpscanFileUploadAuditEvent(
@@ -27,11 +26,8 @@ case class AFTUpscanFileUploadAuditEvent(
                                           pstr: String,
                                           schemeAdministratorType: AdministratorOrPractitioner,
                                           chargeType: ChargeType,
-                                          uploadStatus: String,
-                                          failureReason: Option[String]= None,
-                                          uploadTime: Long,
-                                          fileSize: Option[Long]=None,
-                                          reference: String
+                                          fileUploadDataCache:FileUploadDataCache,
+                                          uploadTimeInSeconds: Int,
                                         ) extends AuditEvent {
   override def auditType: String = "AFTFileUpscanUploadCheck"
 
@@ -41,14 +37,20 @@ case class AFTUpscanFileUploadAuditEvent(
         Map("psaId" -> psaOrPspId)
       case _ => Map("pspId" -> psaOrPspId)
     }
+
+    val failureReason = fileUploadDataCache.status.failureReason match {
+      case Some(r) => Map("failureReason" -> r)
+      case _ => Map.empty
+    }
+
+    psaOrPspIdJson ++
     Map(
       "pstr" -> pstr,
       "chargeType" -> chargeType.toString,
-      "uploadStatus" -> uploadStatus,
-      "failureReason" -> failureReason.getOrElse(""),
-      "uploadTime" -> uploadTime.toString(),
-      "fileSize" -> fileSize.getOrElse("").toString,
-      "reference" -> reference
-    ) ++ psaOrPspIdJson
+      "uploadStatus" -> fileUploadDataCache.status._type,
+      "uploadTime" -> uploadTimeInSeconds.toString,
+      "fileSize" -> fileUploadDataCache.status.size.toString,
+      "reference" -> fileUploadDataCache.reference
+    )  ++failureReason
   }
 }

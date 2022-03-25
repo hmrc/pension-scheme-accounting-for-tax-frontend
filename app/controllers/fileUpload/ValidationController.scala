@@ -262,7 +262,7 @@ class ValidationController @Inject()(
     }
 
   def sendAuditEventForUpScanDownload(chargeType: ChargeType,
-                                      uploadStatus: FileUploadDataCache,
+                                      fileUploadDataCache: FileUploadDataCache,
                                       created: LocalDateTime,
                                       pstr: String)(implicit request: DataRequest[AnyContent]): Unit = {
     val duration = Duration.between(created, LocalDateTime.now)
@@ -273,7 +273,7 @@ class ValidationController @Inject()(
         schemeAdministratorType = request.schemeAdministratorType,
         chargeType = chargeType,
         pstr = pstr,
-        fileUploadDataCache = uploadStatus,
+        fileUploadDataCache = fileUploadDataCache,
         downloadTimeInSeconds = (uploadTime / 1000).toInt
       ))
   }

@@ -113,6 +113,7 @@ class FileUploadController @Inject()(
                   upscanErrorHandlingService.handleFailureResponse(fileUploadStatus.failureReason.getOrElse(""), srn, startDate, accessType, version).map {
                     result =>
                       sendAuditEvent(chargeType, fileUploadDataCache)
+                      println("\n\n\n\n\n\n\n======================================================="+ sendAuditEvent(chargeType, fileUploadDataCache))
                       result
                   }
                 case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -122,13 +123,17 @@ class FileUploadController @Inject()(
 
 
   private def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]) = {
-    val fileUploadStatus = fileUploadDataCache.status
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
     val duration = Duration.between(fileUploadDataCache.created, fileUploadDataCache.lastUpdated)
     val uploadTime = duration.getSeconds()
-    auditService.sendEvent(AFTUpscanFileUploadAuditEvent(request.idOrException, pstr,
-      request.schemeAdministratorType, chargeType, fileUploadStatus._type, fileUploadStatus.failureReason, uploadTime = uploadTime,
-      fileUploadStatus.size, fileUploadDataCache.reference))
+    auditService.sendEvent(AFTUpscanFileUploadAuditEvent
+    (psaOrPspId = request.idOrException,
+      pstr = pstr,
+      schemeAdministratorType = request.schemeAdministratorType,
+      chargeType= chargeType,
+      fileUploadDataCache =fileUploadDataCache,
+      uploadTimeInSeconds = (uploadTime/1000).toInt
+    ))
   }
 
   private def getErrorCode(request: DataRequest[AnyContent]): Option[String] = {
