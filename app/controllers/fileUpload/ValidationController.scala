@@ -221,7 +221,6 @@ class ValidationController @Inject()(
   }
 
 
-
   private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
                                   (implicit request: DataRequest[AnyContent]): Future[UserAnswers] = {
 
@@ -239,40 +238,43 @@ class ValidationController @Inject()(
         val parser = findParser(chargeType)
         uploadProgressTracker.getUploadResult(uploadId).flatMap {
           case Some(uploadStatus) =>
-          (parser, uploadStatus.status._type) match {
-            case (Some(_), "" | "Failed" | "InProgress") => sessionExpired
-            case (None, _) => sessionExpired
-            case (Some(parser), "UploadedSuccessfully") =>
-              val created:LocalDateTime =LocalDateTime.now
-              val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
-              upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap { response =>
+            (parser, uploadStatus.status._type) match {
+              case (Some(_), "" | "Failed" | "InProgress") => sessionExpired
+              case (None, _) => sessionExpired
+              case (Some(parser), "UploadedSuccessfully") =>
+                val created: LocalDateTime = LocalDateTime.now
+                val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
+                upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap { response =>
 
-                sendAuditEventForUpScanDownload(chargeType, uploadStatus, created, pstr)
+                  sendAuditEventForUpScanDownload(chargeType, uploadStatus, created, pstr)
 
-                response.status match {
-                  case OK =>
-                    val linesFromCSV = CsvLineSplitter.split(response.body) //response.body.split("\n").toList
-                    parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
-                  case _ =>
-                    Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
+                  response.status match {
+                    case OK =>
+                      val linesFromCSV = CsvLineSplitter.split(response.body) //response.body.split("\n").toList
+                      parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                    case _ =>
+                      Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
+                  }
                 }
-              }
-          }
+            }
           case _ => sessionExpired
         }
     }
 
   def sendAuditEventForUpScanDownload(chargeType: ChargeType,
-                                              uploadStatus: FileUploadDataCache,
-                                              created: LocalDateTime,
-                                              pstr: String)(implicit request: DataRequest[AnyContent]) = {
+                                      uploadStatus: FileUploadDataCache,
+                                      created: LocalDateTime,
+                                      pstr: String)(implicit request: DataRequest[AnyContent]): Unit = {
     val duration = Duration.between(created, LocalDateTime.now)
     val uploadTime = duration.getSeconds
     auditService.sendEvent(
-      AFTUpscanFileDownloadAuditEvent
-      (request.idOrException, request.schemeAdministratorType,
-        chargeType.toString, pstr, uploadStatus.toString, uploadStatus.status.failureReason.toString,
-        downloadTime = uploadTime, uploadStatus.status.size.toString, uploadStatus.reference
+      AFTUpscanFileDownloadAuditEvent(
+        psaOrPspId = request.idOrException,
+        schemeAdministratorType = request.schemeAdministratorType,
+        chargeType = chargeType,
+        pstr = pstr,
+        fileUploadDataCache = uploadStatus,
+        downloadTimeInSeconds = (uploadTime / 1000).toInt
       ))
   }
 

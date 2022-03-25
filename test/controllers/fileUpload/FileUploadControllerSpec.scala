@@ -185,6 +185,15 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "redirect to quarantineError for result Failed(QUARANTINE)" in {
+    val fileUploadDataCache: FileUploadDataCache =
+      FileUploadDataCache(
+        uploadId = "uploadId",
+        reference ="reference",
+        status=  FileUploadStatus("Failed", failureReason = Some("QUARANTINE")),
+        created= dateTimeNow,
+        lastUpdated= dateTimeNow,
+        expireAt= dateTimeNow
+      )
     fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
     val uploadId = UploadId("")
@@ -195,15 +204,19 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
     ).value
 
     status(result) mustEqual SEE_OTHER
-    /*
-    Some("/manage-pension-scheme-accounting-for-tax/aa/2020-04-01/draft/1/annual-allowance-charge/upload-check?uploadId=") was not equal to
-    Some("/manage-pension-scheme-accounting-for-tax/aa/2020-04-01/draft/1/fileupload/upload-virus-check-error") (FileUploadControllerSpec.scala:198)
-
-     */
     redirectLocation(result) mustBe Some(routes.UpscanErrorController.quarantineError(srn, startDate, accessType, versionInt).url)
   }
 
   "redirect to rejectedError for result Failed(REJECTED)" in {
+    val fileUploadDataCache: FileUploadDataCache =
+      FileUploadDataCache(
+        uploadId = "uploadId",
+        reference ="reference",
+        status=  FileUploadStatus("Failed", failureReason = Some("REJECTED")),
+        created= dateTimeNow,
+        lastUpdated= dateTimeNow,
+        expireAt= dateTimeNow
+      )
     fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
     val uploadId = UploadId("")
@@ -218,6 +231,15 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "redirect to unknownError for result Failed(UNKNOWN)" in {
+    val fileUploadDataCache: FileUploadDataCache =
+      FileUploadDataCache(
+        uploadId = "uploadId",
+        reference ="reference",
+        status=  FileUploadStatus("Failed", failureReason = Some("UNKNOWN")),
+        created= dateTimeNow,
+        lastUpdated= dateTimeNow,
+        expireAt= dateTimeNow
+      )
     fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
     val uploadId = UploadId("")

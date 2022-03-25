@@ -16,21 +16,16 @@
 
 package audit
 
-import models.AdministratorOrPractitioner
-
-import java.time.LocalDateTime
+import models.{AdministratorOrPractitioner, ChargeType, FileUploadDataCache}
 
 
 case class AFTUpscanFileDownloadAuditEvent(
                                             psaOrPspId: String,
                                             schemeAdministratorType: AdministratorOrPractitioner,
-                                            chargeType: String,
+                                            chargeType: ChargeType,
                                             pstr: String,
-                                            downloadStatus: String,
-                                            failureReason: String,
-                                            downloadTime: Long,
-                                            fileSize: String,
-                                            reference: String
+                                            fileUploadDataCache:FileUploadDataCache,
+                                            downloadTimeInSeconds: Int
                                           ) extends AuditEvent {
   override def auditType: String = "AFTFileUpscanDownloadCheck"
 
@@ -40,13 +35,19 @@ case class AFTUpscanFileDownloadAuditEvent(
         Map("psaId" -> psaOrPspId)
       case _ => Map("pspId" -> psaOrPspId)
     }
+
+    val failureReason = fileUploadDataCache.status.failureReason match {
+      case Some(r) => Map("failureReason" -> r)
+      case _ => Map.empty
+    }
+
+    psaOrPspIdJson ++
     Map(
       "pstr" -> pstr,
-      "chargeType" -> chargeType,
-      "downloadStatus" -> downloadStatus,
-      "failureReason" -> failureReason,
-      "downloadTime" -> downloadTime.toString(),
-      "reference" -> reference
-    ) ++ psaOrPspIdJson
+      "chargeType" -> chargeType.toString,
+      "downloadStatus" -> fileUploadDataCache.status._type,
+      "downloadTimeInSeconds" -> downloadTimeInSeconds.toString,
+      "reference" -> fileUploadDataCache.reference
+    ) ++ failureReason
   }
 }

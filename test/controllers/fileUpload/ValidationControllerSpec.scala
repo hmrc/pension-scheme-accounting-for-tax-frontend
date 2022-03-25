@@ -16,7 +16,7 @@
 
 package controllers.fileUpload
 
-import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AuditService}
+import audit.{AFTFileValidationCheckAuditEvent, AuditEvent, AuditService}
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
@@ -33,8 +33,8 @@ import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
-import models.{AdministratorOrPractitioner, ChargeType, FileUploadDataCache, FileUploadStatus, UploadId, UploadStatus, UserAnswers}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import models.{ChargeType, FileUploadDataCache, FileUploadStatus, UploadId, UploadStatus, UserAnswers}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import pages.PSTRQuery
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
@@ -57,6 +57,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.{LocalDate, LocalDateTime}
+import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
@@ -65,6 +66,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val genericTemplateToBeRendered = "fileUpload/genericErrors.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
   private val mockAuditService = mock[AuditService]
+
   private def ua: UserAnswers = userAnswersWithSchemeName
 
   val expectedJson: JsObject = Json.obj()
@@ -110,73 +112,38 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   "onPageLoad" must {
     "send correct audit events for failure when header invalid" in {
-      val captorAFTFileValidationCheckAuditEvent: ArgumentCaptor[AFTFileValidationCheckAuditEvent] =
-        ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
-      val captorAFTUpscanFileDownloadAuditEvent: ArgumentCaptor[AFTUpscanFileDownloadAuditEvent] =
-        ArgumentCaptor.forClass(classOf[AFTUpscanFileDownloadAuditEvent])
-      doNothing.when(mockAuditService).sendEvent[AFTFileValidationCheckAuditEvent](captorAFTFileValidationCheckAuditEvent.capture())(any(), any())
-      doNothing.when(mockAuditService).sendEvent[AFTUpscanFileDownloadAuditEvent](captorAFTUpscanFileDownloadAuditEvent.capture())(any(), any())
-
       status(runValidation(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))) mustEqual SEE_OTHER
-      val dateTimeNow = LocalDateTime.now()
-//      val fileUploadDataCache=
-//        FileUploadDataCache(
-//          uploadId = "uploadId",
-//          reference ="reference",
-//          status=  FileUploadStatus("InProgress"),
-//          created= dateTimeNow,
-//          lastUpdated= dateTimeNow,
-//          expireAt= dateTimeNow
-//        )
-      
-      val expectedAFTFileValidationCheckAuditEvent = AFTFileValidationCheckAuditEvent(
-        administratorOrPractitioner = AdministratorOrPractitioner.Administrator,
-        id = "",
-        pstr = pstr,
-        numberOfEntries = 0,
-        chargeType = ChargeType.ChargeTypeAnnualAllowance,
-        validationCheckSuccessful = false,
-        fileValidationTimeInSeconds = 0,
-        failureReason = None,
-        numberOfFailures = 0,
-        validationFailureContent = None
-      )
-      
-      val expectedAFTUpscanFileDownloadAuditEvent =  AFTUpscanFileDownloadAuditEvent( psaOrPspId=  psaId,
-        schemeAdministratorType= AdministratorOrPractitioner.Administrator,
-        chargeType= "AnnualAllowance",
-        pstr= pstr,
-        downloadStatus= "UploadedSuccessfully",
-        failureReason= "",
-        downloadTime= 11,
-        fileSize= "20",
-        reference= "reference")
-      
-      /*
-      auditService.sendEvent(
-[info]     AFTUpscanFileDownloadAuditEvent(A0000000,administrator,annualAllowance,pstr,FileUploadDataCache(uploadID,reference,
-FileUploadStatus(UploadedSuccessfully,None,None,None,None,None,None),2022-03-24T14:28:18.025,2022-03-24T14:28:18.025,2022-03-24T14:28:18.025),None,0,None,reference),
-       */
+      val captorAuditEvents: ArgumentCaptor[AuditEvent] =
+        ArgumentCaptor.forClass(classOf[AuditEvent])
 
+      verify(mockAuditService, times(2))
+        .sendEvent(captorAuditEvents.capture())(any(), any())
 
+      val auditEventsSent = captorAuditEvents.getAllValues.asScala
 
+      auditEventsSent.find(_.auditType == "AFTFileValidationCheck").map { actualAuditEvent =>
+        actualAuditEvent.details mustBe Map(
+          "failureReason" -> "Header invalid or File is empty",
+          "numberOfEntries" -> "2",
+          "psaId" -> "A0000000",
+          "pstr" -> "pstr",
+          "fileValidationTimeInSeconds" -> "0",
+          "chargeType" -> "annualAllowance",
+          "validationCheckStatus" -> "Failure",
+          "numberOfFailures" -> "1"
+        )
+      }
 
-//      verify(mockAuditService, times(1))
-//        .sendEvent[AFTFileValidationCheckAuditEvent](captorAFTFileValidationCheckAuditEvent.capture())(any(), any())
-//
-//      verify(mockAuditService, times(1))
-//        .sendEvent[AFTUpscanFileDownloadAuditEvent](captorAFTUpscanFileDownloadAuditEvent.capture())(any(), any())
-
-      val auditEventAFTFileValidationCheckAuditEvent = captorAFTFileValidationCheckAuditEvent.getValue
-      auditEventAFTFileValidationCheckAuditEvent.administratorOrPractitioner mustBe Administrator
-      auditEventAFTFileValidationCheckAuditEvent.id mustBe psaId
-      auditEventAFTFileValidationCheckAuditEvent.pstr mustBe pstr
-      auditEventAFTFileValidationCheckAuditEvent.numberOfEntries mustBe 2
-      auditEventAFTFileValidationCheckAuditEvent.chargeType mustBe ChargeTypeAnnualAllowance
-      auditEventAFTFileValidationCheckAuditEvent.validationCheckSuccessful mustBe false
-      auditEventAFTFileValidationCheckAuditEvent.failureReason mustBe Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error)
-      auditEventAFTFileValidationCheckAuditEvent.numberOfFailures mustBe 1
-      auditEventAFTFileValidationCheckAuditEvent.validationFailureContent mustBe None
+      auditEventsSent.find(_.auditType == "AFTFileUpscanDownloadCheck").map { actualAuditEvent =>
+        actualAuditEvent.details mustBe Map(
+          "reference" -> "reference",
+          "downloadStatus" -> "UploadedSuccessfully",
+          "psaId" -> "A0000000",
+          "pstr" -> "pstr",
+          "chargeType" -> "annualAllowance",
+          "downloadTimeInSeconds" -> "0"
+        )
+      }
     }
 
     "send correct audit event for failure when less than 10 (non-header) errors" in {
@@ -196,8 +163,9 @@ FileUploadStatus(UploadedSuccessfully,None,None,None,None,None,None),2022-03-24T
       auditEventSent.validationCheckSuccessful mustBe false
       auditEventSent.failureReason mustBe Some("Field Validation failure(Less than 10)")
       auditEventSent.numberOfFailures mustBe 2
-      val expectedFailureContent = """B2: Field error one
-                                     |B3: Field error two""".stripMargin
+      val expectedFailureContent =
+        """B2: Field error one
+          |B3: Field error two""".stripMargin
       auditEventSent.validationFailureContent mustBe Some(expectedFailureContent)
     }
 
@@ -291,7 +259,7 @@ FileUploadStatus(UploadedSuccessfully,None,None,None,None,None,None),2022-03-24T
       ).value
 
       status(result) mustEqual OK
-         //here
+      //here
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
@@ -337,7 +305,7 @@ FileUploadStatus(UploadedSuccessfully,None,None,None,None,None,None),2022-03-24T
       ).value
 
       status(result) mustEqual OK
-     //here
+      //here
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedErrors = Seq("fileUpload.memberDetails.generic.error.firstName",
@@ -489,7 +457,7 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
   private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
   private val mockAFTService: AFTService = mock[AFTService]
   private val mockFileUploadAftReturnService: FileUploadAftReturnService = mock[FileUploadAftReturnService]
-  private val mockFileUploadStatus : FileUploadStatus = mock[FileUploadStatus]
+  private val mockFileUploadStatus: FileUploadStatus = mock[FileUploadStatus]
   private val fakeUploadProgressTracker: UploadProgressTracker = new UploadProgressTracker {
     override def requestUpload(uploadId: UploadId, fileReference: Reference)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] =
       Future.successful(())
@@ -497,17 +465,17 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
     override def registerUploadResult(reference: Reference, uploadStatus: UploadStatus)(implicit ec: ExecutionContext,
                                                                                         hc: HeaderCarrier): Future[Unit] = Future.successful(())
 
-    override def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier) :Future[Option[FileUploadDataCache]]= {
+    override def getUploadResult(id: UploadId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[FileUploadDataCache]] = {
 
       Future.successful(
         Some(
           FileUploadDataCache(
             uploadId = "uploadID",
-            reference ="reference",
-            status=  FileUploadStatus(_type= "UploadedSuccessfully" ),
-            created= LocalDateTime.now,
-            lastUpdated= LocalDateTime.now,
-            expireAt= LocalDateTime.now
+            reference = "reference",
+            status = FileUploadStatus(_type = "UploadedSuccessfully"),
+            created = LocalDateTime.now,
+            lastUpdated = LocalDateTime.now,
+            expireAt = LocalDateTime.now
           )))
     }
   }

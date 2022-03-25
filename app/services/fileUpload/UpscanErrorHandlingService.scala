@@ -35,6 +35,8 @@ class UpscanErrorHandlingService {
         Future.successful(Redirect(routes.UpscanErrorController.rejectedError(srn, startDate, accessType, version)))
       case "UNKNOWN" =>
         Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate, accessType, version)))
+      case _ =>
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
