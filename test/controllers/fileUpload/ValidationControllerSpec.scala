@@ -121,12 +121,14 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val auditEventsSent = captorAuditEvents.getAllValues.asScala
 
-      auditEventsSent.find(_.auditType == "AFTFileValidationCheck").map { actualAuditEvent =>
+      val foundAFTFileValidationCheck = auditEventsSent.find(_.auditType == "AFTFileValidationCheck")
+      foundAFTFileValidationCheck.isDefined mustBe true
+      foundAFTFileValidationCheck.map { actualAuditEvent =>
         actualAuditEvent.details mustBe Map(
           "failureReason" -> "Header invalid or File is empty",
           "numberOfEntries" -> "2",
-          "psaId" -> "A0000000",
-          "pstr" -> "pstr",
+          "psaId" -> psaId,
+          "pstr" -> pstr,
           "fileValidationTimeInSeconds" -> "0",
           "chargeType" -> "annualAllowance",
           "validationCheckStatus" -> "Failure",
@@ -134,12 +136,14 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         )
       }
 
-      auditEventsSent.find(_.auditType == "AFTFileUpscanDownloadCheck").map { actualAuditEvent =>
+      val foundAFTFileUpscanDownloadCheck = auditEventsSent.find(_.auditType == "AFTFileUpscanDownloadCheck")
+      foundAFTFileUpscanDownloadCheck.isDefined mustBe true
+      foundAFTFileUpscanDownloadCheck.map { actualAuditEvent =>
         actualAuditEvent.details mustBe Map(
           "reference" -> "reference",
           "downloadStatus" -> "UploadedSuccessfully",
-          "psaId" -> "A0000000",
-          "pstr" -> "pstr",
+          "psaId" -> psaId,
+          "pstr" -> pstr,
           "chargeType" -> "annualAllowance",
           "downloadTimeInSeconds" -> "0"
         )
