@@ -95,7 +95,7 @@ class FileUploadCheckController @Inject()(
           }
     }
 
-  private def sendAuditEvent(chargeType: ChargeType,fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]) = {
+  private def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]) = {
     val fileUploadStatus = fileUploadDataCache.status
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
     val duration = Duration.between(fileUploadDataCache.created, fileUploadDataCache.lastUpdated)
@@ -152,11 +152,11 @@ class FileUploadCheckController @Inject()(
                   for {
                     updatedAnswers <- Future.fromTry(request.userAnswers.set(UploadCheckPage(chargeType), value))
                     updatedUa <- Future.fromTry(updatedAnswers.set(UploadedFileName(chargeType), fileName))
-                    _ <- userAnswersCacheConnector.savePartial(request.internalId,updatedUa.data,Some(chargeType))
+                    _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedUa.data, Some(chargeType))
                   } yield {
                     value match {
                       case Yes => Redirect(routes.ValidationController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
-                      case No  => Redirect(routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, chargeType))
+                      case No => Redirect(routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, chargeType))
                     }
                   }
               )
@@ -165,15 +165,13 @@ class FileUploadCheckController @Inject()(
 
   private def getFileName(uploadStatus: Option[FileUploadDataCache])(implicit request: DataRequest[AnyContent]): String = {
     logger.info("FileUploadCheckController.getFileName")
-    uploadStatus.map {
-      result=>{
-        val status=result.status
+    uploadStatus.map { result =>
+        val status = result.status
         status._type match {
           case "UploadedSuccessfully" => status.name.getOrElse("No File Found")
-          case "InProgress"           => "InProgress"
-          case _                      => "No File Found"
+          case "InProgress" => "InProgress"
+          case _ => "No File Found"
         }
-      }
     }.getOrElse("No File Found")
   }
 
