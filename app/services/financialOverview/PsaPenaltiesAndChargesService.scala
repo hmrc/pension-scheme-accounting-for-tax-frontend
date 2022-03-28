@@ -188,7 +188,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
                 schemeName = schemeName,
                 redirectUrl = controllers.financialOverview.routes.PsaPaymentsAndChargesInterestController
-                  .onPageLoad(detail.pstr, chargeRefsIndex(detail.chargeReference), journeyType).url,
+                  .onPageLoad(detail.pstr, index, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
               ))
           } else {

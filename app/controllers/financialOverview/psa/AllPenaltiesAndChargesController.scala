@@ -63,8 +63,11 @@ class AllPenaltiesAndChargesController @Inject()(
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
         val allChargeRefs = penaltiesCache.penalties.map(_.chargeReference)
-        val filteredPenalties = penaltiesCache.penalties.filter(p =>
-          getPenaltyType(p.chargeType) == AccountingForTaxPenalties).filter(_.periodStartDate == startDate)
+
+        val filteredPenalties: Seq[PsaFSDetail] = penaltiesCache.penalties
+          .filter(_.periodStartDate == startDate)
+          .filter(_.pstr == pstr)
+          .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
 
         val dueCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getDueCharges(filteredPenalties)
         val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
@@ -72,27 +75,27 @@ class AllPenaltiesAndChargesController @Inject()(
         val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
         val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
 
-          if (filteredPenalties.nonEmpty) {
+        if (filteredPenalties.nonEmpty) {
 
-            psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
-              request.idOrException, allChargeRefs, filteredPenalties, All) flatMap { table =>
+          psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
+            request.idOrException, allChargeRefs, filteredPenalties, All) flatMap { table =>
 
-              val json = Json.obj(
-                fields =
-                  "titleMessage" -> title,
-                "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
-                "journeyType" -> journeyType.toString,
-                "paymentAndChargesTable" -> table,
-                "totalOutstandingCharge" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
-                "pstr" -> pstr,
-                "psaName" -> penaltiesCache.psaName
-              )
-              renderer.render(template = "financialOverview/psaPaymentsAndCharges.njk", json).map(Ok(_))
-            }
-          } else {
-              logger.warn(s"No Scheme Payments and Charges returned for the selected period $startDate")
-              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+            val json = Json.obj(
+              fields =
+                "titleMessage" -> title,
+              "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
+              "journeyType" -> journeyType.toString,
+              "paymentAndChargesTable" -> table,
+              "totalOutstandingCharge" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+              "pstr" -> pstr,
+              "psaName" -> penaltiesCache.psaName
+            )
+            renderer.render(template = "financialOverview/psaPaymentsAndCharges.njk", json).map(Ok(_))
           }
+        } else {
+            logger.warn(s"No Scheme Payments and Charges returned for the selected period $startDate")
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+        }
       }
     }
 
@@ -103,8 +106,10 @@ class AllPenaltiesAndChargesController @Inject()(
 
         val allChargeRefs = penaltiesCache.penalties.map(_.chargeReference)
         val title: Message = Message("penalties.nonAft.title", Message(s"penaltyType.${penaltyType.toString}"), year)
-        val filteredPenalties = penaltiesCache.penalties.filter(p =>
-          getPenaltyType(p.chargeType) == penaltyType).filter(_.periodEndDate.getYear == year.toInt)
+        val filteredPenalties: Seq[PsaFSDetail] = penaltiesCache.penalties
+          .filter(_.periodEndDate.getYear == year.toInt)
+          .filter(_.pstr == pstr)
+          .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
         val dueCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getDueCharges(filteredPenalties)
         val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum

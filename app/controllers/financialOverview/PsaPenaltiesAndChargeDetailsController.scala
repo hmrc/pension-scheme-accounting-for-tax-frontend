@@ -150,7 +150,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       "chargeReference" ->  fs.chargeReference,
       "penaltyAmount" ->    psaFSDetails.totalAmount,
       "htmlInsetText" ->    setInsetText(fs, interestUrl, originalChargeUrl),
-      "returnUrl" ->        getReturnUrl(fs, fs.pstr, penaltyType, journeyType),//routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url,
+      "returnUrl" ->        getReturnUrl(fs, fs.pstr, penaltyType, journeyType),
       "isInterestAccruing" -> isInterestAccruing,
       "list" ->             psaPenaltiesAndChargesService.chargeDetailsRows(psaFS.filter(_.chargeReference ==
         chargeRefs(chargeReferenceIndex.toInt)).head, journeyType)
@@ -177,7 +177,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
         Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.aft.returnLink", startDate, endDate))
       case (All, _) =>
         Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.returnLink", fs.periodStartDate.getYear.toString))
-      case _ => Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.returnLink", journeyType.toString))
+      case _ => Json.obj("returnLinkBasedOnJourney" -> messages("financialPaymentsAndCharges.returnLink." +s"${journeyType.toString}"))
     }
   }
 }
