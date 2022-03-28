@@ -37,7 +37,7 @@ object PenaltyType extends Enumerable.Implicits {
     chargeType match {
       case PSS_PENALTY => PensionsPenalties
       case PSS_INFO_NOTICE => InformationNoticePenalties
-      case CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST => ContractSettlementCharges
+      case CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST | INTEREST_ON_CONTRACT_SETTLEMENT => ContractSettlementCharges
       case _ => AccountingForTaxPenalties
     }
 

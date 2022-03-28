@@ -1478,6 +1478,8 @@ psa.financial.overview.hintLink = original amount due
 psa.financial.overview.hint2 = in full. You can only pay the interest once a charge reference has been generated.
 psa.financial.overview.interest.late.payment.text = This interest charge was the result of late payment of a contract settlement charge.
 psa.financial.overview.penalties.pstr.text = Pension Scheme Tax Reference: {0}
+psa.financial.overview.penalties.all.returnLink = your penalties for {0}
+psa.financial.overview.penalties.all.aft.returnLink = your penalties for {0} to {1}
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format

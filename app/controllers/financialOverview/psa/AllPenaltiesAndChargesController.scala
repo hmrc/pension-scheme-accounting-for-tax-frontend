@@ -17,16 +17,14 @@
 package controllers.financialOverview.psa
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter.All
-import models.financialStatement.PaymentOrChargeType.{ExcessReliefPaidCharges, InterestOnExcessRelief}
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
@@ -47,7 +45,6 @@ class AllPenaltiesAndChargesController @Inject()(
                                               val controllerComponents: MessagesControllerComponents,
                                               config: FrontendAppConfig,
                                               psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                              aftConnector: AFTConnector,
                                               renderer: Renderer
                                             )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -63,9 +60,9 @@ class AllPenaltiesAndChargesController @Inject()(
         startDate.format(dateFormatterStartDate),
         Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY))
 
-      println("\n\n\n\n" +  title)
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
+        val allChargeRefs = penaltiesCache.penalties.map(_.chargeReference)
         val filteredPenalties = penaltiesCache.penalties.filter(p =>
           getPenaltyType(p.chargeType) == AccountingForTaxPenalties).filter(_.periodStartDate == startDate)
 
@@ -77,8 +74,8 @@ class AllPenaltiesAndChargesController @Inject()(
 
           if (filteredPenalties.nonEmpty) {
 
-            psaPenaltiesAndChargesService.getPenaltiesAndCharges(
-              request.idOrException, filteredPenalties, All) flatMap { table =>
+            psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
+              request.idOrException, allChargeRefs, filteredPenalties, All) flatMap { table =>
 
               val json = Json.obj(
                 fields =
@@ -104,8 +101,10 @@ class AllPenaltiesAndChargesController @Inject()(
 
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
+        val allChargeRefs = penaltiesCache.penalties.map(_.chargeReference)
         val title: Message = Message("penalties.nonAft.title", Message(s"penaltyType.${penaltyType.toString}"), year)
-        val filteredPenalties = penaltiesCache.penalties.filter(p => getPenaltyType(p.chargeType) == penaltyType).filter(_.periodEndDate.getYear == year.toInt)
+        val filteredPenalties = penaltiesCache.penalties.filter(p =>
+          getPenaltyType(p.chargeType) == penaltyType).filter(_.periodEndDate.getYear == year.toInt)
 
         val dueCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getDueCharges(filteredPenalties)
         val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
@@ -116,7 +115,7 @@ class AllPenaltiesAndChargesController @Inject()(
         if (filteredPenalties.nonEmpty) {
 
           psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
-            request.idOrException, filteredPenalties, All) flatMap { table =>
+            request.idOrException, allChargeRefs, filteredPenalties, All) flatMap { table =>
 
             val json = Json.obj(
               fields =
@@ -136,33 +135,4 @@ class AllPenaltiesAndChargesController @Inject()(
         }
       }
     }
-
-  val isTaxYearFormat: PenaltyType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
-
-  private def getTitleAndFilteredPayments(payments: Seq[PsaFSDetail], period: String, penaltyType: PenaltyType)
-                                         (implicit messages: Messages): (String, Seq[PsaFSDetail]) =
-    if(penaltyType == AccountingForTaxPenalties) {
-
-      val startDate: LocalDate = LocalDate.parse(period)
-      (messages(s"paymentsAndCharges.all.aft.title",
-        startDate.format(dateFormatterStartDate),
-        Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY)),
-      payments.filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties).filter(_.periodStartDate == startDate))
-
-    } else {
-
-      val typeParam: String = messages(s"paymentOrChargeType.${penaltyType.toString}")
-      val filteredPayments = payments.filter(p => getPenaltyType(p.chargeType) == penaltyType).filter(_.periodEndDate.getYear == period.toInt)
-
-      val title = if(isTaxYearFormat(penaltyType) && filteredPayments.nonEmpty) {
-        messages(s"paymentsAndCharges.all.excessCharges.title", typeParam,
-          filteredPayments.head.periodStartDate.format(dateFormatterDMY),
-          filteredPayments.head.periodEndDate.format(dateFormatterDMY)
-        )
-      } else {
-        messages(s"paymentsAndCharges.all.nonAft.title", typeParam, period)
-      }
-        (title, filteredPayments)
-    }
-
 }

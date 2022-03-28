@@ -16,12 +16,13 @@
 
 package controllers.financialOverview
 
-import config.FrontendAppConfig
 import controllers.actions._
+import controllers.financialOverview.psa.routes.AllPenaltiesAndChargesController
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.All
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, INTEREST_ON_CONTRACT_SETTLEMENT}
-import models.financialStatement.{PsaFSChargeType, PsaFSDetail}
+import models.financialStatement.{PenaltyType, PsaFSChargeType, PsaFSDetail}
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -29,7 +30,6 @@ import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
 import services.financialOverview.PsaPenaltiesAndChargesService
-import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
@@ -129,6 +129,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     val isInterestAccruing: Boolean = fs.accruedInterestTotal > 0
     val detailsChargeType = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
+    val penaltyType = getPenaltyType(detailsChargeType)
 
     val originalChargeUrl = fs.sourceChargeRefForInterest match {
       case Some(sourceChargeRef) =>
@@ -142,8 +143,6 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       case _ => ""
     }
 
-    val returnLinkBasedOnJourney = getReturnUrlText(fs, journeyType)
-
     Json.obj(
       "heading" ->   detailsChargeTypeHeading.toString,
       "isOverdue" ->        psaPenaltiesAndChargesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
@@ -151,32 +150,34 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       "chargeReference" ->  fs.chargeReference,
       "penaltyAmount" ->    psaFSDetails.totalAmount,
       "htmlInsetText" ->    setInsetText(fs, interestUrl, originalChargeUrl),
-      "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
-      "returnUrl" ->        routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url,
+      "returnUrl" ->        getReturnUrl(fs, fs.pstr, penaltyType, journeyType),//routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url,
       "isInterestAccruing" -> isInterestAccruing,
       "list" ->             psaPenaltiesAndChargesService.chargeDetailsRows(psaFS.filter(_.chargeReference ==
         chargeRefs(chargeReferenceIndex.toInt)).head, journeyType)
-    )
+    ) ++ getReturnUrlText(fs, penaltyType, journeyType)
   }
 
-  def getReturnUrl(srn: String, pstr: String, psaId: Option[PsaId], pspId: Option[PspId], config: FrontendAppConfig,
+  def getReturnUrl(fs: PsaFSDetail, pstr: String, penaltyType: PenaltyType,
                    journeyType: ChargeDetailsFilter): String = {
-    journeyType match {
-      case All => config.schemeDashboardUrl(psaId, pspId).format(srn)
+    (journeyType, penaltyType) match {
+      case (All, AccountingForTaxPenalties) =>
+        AllPenaltiesAndChargesController.onPageLoad(fs.periodStartDate.toString, fs.pstr, penaltyType).url
+      case (All, _) =>
+        AllPenaltiesAndChargesController.onPageLoad(fs.periodStartDate.getYear.toString, pstr, penaltyType).url
       case _ => routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url
     }
   }
 
-  private def getReturnUrlText(fs: PsaFSDetail, journeyType: ChargeDetailsFilter) = {
-    val returnLinkBasedOnJourney = journeyType match {
-      case All =>
+  private def getReturnUrlText(fs: PsaFSDetail, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter)
+                              (implicit messages: Messages): JsObject = {
+    (journeyType, penaltyType) match {
+      case (All, AccountingForTaxPenalties) =>
         val startDate = formatStartDate(fs.periodStartDate)
         val endDate = formatDateDMY(fs.periodEndDate)
-        val returnText = msg"financialPaymentsAndCharges.returnLink" + s"$startDate to $endDate"
-        msg"$returnText $startDate to $endDate"
-      case _ =>
-        msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}"
+        Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.aft.returnLink", startDate, endDate))
+      case (All, _) =>
+        Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.returnLink", fs.periodStartDate.getYear.toString))
+      case _ => Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.returnLink", journeyType.toString))
     }
-    returnLinkBasedOnJourney
   }
 }

@@ -16,15 +16,13 @@
 
 package services.financialOverview
 
-import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
+import connectors.ListOfSchemesConnector
 import controllers.financialOverview.psa.routes._
-import controllers.financialOverview.routes._
 import models.ChargeDetailsFilter.All
-import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, getPenaltyType}
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, ListSchemeDetails, PenaltySchemes}
+import play.api.Logger
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.http.HeaderCarrier
@@ -34,10 +32,9 @@ import javax.inject.Inject
 import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
-class PenaltiesNavigationService @Inject()(fsConnector: FinancialStatementConnector,
-                                           fiCacheConnector: FinancialInfoCacheConnector,
-                                           listOfSchemesConnector: ListOfSchemesConnector,
-                                           minimalConnector: MinimalConnector) {
+class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemesConnector) {
+
+  private val logger = Logger(classOf[PenaltiesNavigationService])
 
   def navFromPSADashboard(payments: Seq[PsaFSDetail], pstr: String)
                          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
@@ -60,16 +57,15 @@ class PenaltiesNavigationService @Inject()(fsConnector: FinancialStatementConnec
       .filter(p => getPenaltyType(p.chargeType) == penaltyType)
       .map(_.periodEndDate.getYear).distinct.sorted.reverse
 
-    println("\n\n\n\npenaltyType,yearsSeq " + penaltyType + yearsSeq)
     (penaltyType, yearsSeq.size) match {
-      case (AccountingForTaxPenalties, 1) => navFromAFTYearsPage(penalties, yearsSeq.head, AccountingForTaxPenalties, psaId, All)
-      case (_, 1) => navFromNonAftYearsPage(penalties, yearsSeq.head, psaId, penaltyType, All)
+      case (AccountingForTaxPenalties, 1) => navFromAFTYearsPage(penalties, yearsSeq.head, psaId, AccountingForTaxPenalties)
+      case (_, 1) => navFromNonAftYearsPage(penalties, yearsSeq.head, psaId, penaltyType)
       case (_, size) if size > 1 => Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
-  def navFromAFTYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter)
+  def navFromAFTYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType)
                          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
     val quartersSeq = penalties
@@ -82,25 +78,22 @@ class PenaltiesNavigationService @Inject()(fsConnector: FinancialStatementConnec
     } else if (quartersSeq.size == 1) {
       Future.successful(Redirect(SelectSchemeController.onPageLoad(penaltyType, year.toString)))
       navFromQuartersPage(penalties, quartersSeq.head, psaId)
-      //Future.successful(Redirect(AllPenaltiesAndChargesController.onPageLoad(quartersSeq.head.toString, AccountingForTaxCharges)))
     } else {
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
 
-  def navFromNonAftYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType,
-                             journeyType: ChargeDetailsFilter)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
+  def navFromNonAftYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType)
+                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
     penaltySchemes(year, psaId, penaltyType, penalties).map { schemes =>
 
       if(schemes.size > 1) {
-        println("\n\n\n\n more scheme")
         Redirect(SelectSchemeController.onPageLoad(penaltyType, year.toString))
       } else if (schemes.size == 1) {
-        println("\n\n\n\n single scheme")
-        val pstrIndex: String = penalties.map(_.pstr).indexOf(schemes.head.pstr).toString
-        Redirect(AllPenaltiesAndChargesController.onPageLoad(year.toString, pstrIndex, penaltyType))
+        logger.debug(s"Skipping the select scheme page for year $year and type $penaltyType")
+        Redirect(AllPenaltiesAndChargesController.onPageLoad(year.toString, schemes.head.pstr, penaltyType))
       } else {
         Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
@@ -114,7 +107,7 @@ class PenaltiesNavigationService @Inject()(fsConnector: FinancialStatementConnec
       if (schemes.size > 1) {
         Redirect(SelectSchemeController.onPageLoad(AccountingForTaxPenalties, startDate.toString))
       } else if (schemes.size == 1) {
-        //        logger.debug(s"Skipping the select scheme page for startDate $startDate and type AFT")
+        logger.debug(s"Skipping the select scheme page for startDate $startDate and type AFT")
         val pstrIndex: String = penalties.map(_.pstr).indexOf(schemes.head.pstr).toString
         Redirect(AllPenaltiesAndChargesController.onPageLoadAFT(startDate.toString, pstrIndex))
       } else {
@@ -131,11 +124,11 @@ class PenaltiesNavigationService @Inject()(fsConnector: FinancialStatementConnec
       case InformationNoticePenalties => identifier => AllPenaltiesAndChargesController.onPageLoad(year.toString, identifier, journeyType)
     }
 
-    penaltySchemes(year.toInt, psaId, penaltyType, penalties).map { schemes =>
+    penaltySchemes(year, psaId, penaltyType, penalties).map { schemes =>
       if (schemes.size > 1) {
         Redirect(SelectSchemeController.onPageLoad(penaltyType, year.toString))
       } else if (schemes.size == 1) {
-        //logger.debug(s"Skipping the select scheme page for year $year and type $penaltyType")
+        logger.debug(s"Skipping the select scheme page for year $year and type $penaltyType")
         schemes.head.srn match {
           case Some(srn) =>
             Redirect(penaltiesUrl(srn))
@@ -148,7 +141,6 @@ class PenaltiesNavigationService @Inject()(fsConnector: FinancialStatementConnec
       }
     }
   }
-
 
   def penaltySchemes(startDate: LocalDate, psaId: String, penalties: Seq[PsaFSDetail])
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] = {

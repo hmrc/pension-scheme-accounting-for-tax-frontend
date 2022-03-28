@@ -29,7 +29,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
-import services.FeatureToggleService
 import services.financialOverview.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -46,8 +45,7 @@ class SelectSchemeController @Inject()(
                                         formProvider: SelectSchemeFormProvider,
                                         psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                         navService: PenaltiesNavigationService,
-                                        renderer: Renderer,
-                                        toggleService: FeatureToggleService
+                                        renderer: Renderer
                                       )(implicit ec: ExecutionContext)
                                         extends FrontendBaseController
                                           with I18nSupport
@@ -71,7 +69,7 @@ class SelectSchemeController @Inject()(
               "form" -> form(penaltySchemes, typeParam),
               "radios" -> PenaltySchemes.radios(form(penaltySchemes, typeParam), penaltySchemes))
 
-            renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(Ok(_))
+            renderer.render(template = "financialOverview/psa/selectScheme.njk", json).map(Ok(_))
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
           }
@@ -98,27 +96,16 @@ class SelectSchemeController @Inject()(
                 "form" -> formWithErrors,
                 "radios" -> PenaltySchemes.radios(formWithErrors, penaltySchemes))
 
-              renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(BadRequest(_))
+              renderer.render(template = "financialOverview/psa/selectScheme.njk", json).map(BadRequest(_))
             },
-            value => psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).map { penalties =>
+            value => psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).map { penaltiesCache =>
               val pstrIndex: String = penaltiesCache.penalties.map(_.pstr).indexOf(value.pstr).toString
-              Redirect(redirectUrl(pstrIndex))
+              Redirect(redirectUrl(value.pstr))
             }
           )
         }
       }
   }
-            /*{
-              Future.successful(Redirect(redirectUrl("srn")))//Redirect(redirectUrl(pstrIndex))*/
-              /*value.srn match {
-                case Some(srn) =>
-                  Future.successful(Redirect(redirectUrl(srn)))
-                case _ =>
-                  psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).map { penalties =>
-                    val pstrIndex: String = penaltiesCache.penalties.map(_.pstr).indexOf(value.pstr).toString
-                    Redirect(redirectUrl(pstrIndex))
-                  }
-              }*/
 
   def getSchemesAndUrl(penaltyType: PenaltyType, period: String, psaId: String, journeyType: ChargeDetailsFilter)
                       (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail] => Future[Seq[PenaltySchemes]], String => Call) =
@@ -127,7 +114,6 @@ class SelectSchemeController @Inject()(
         (penalties => navService.penaltySchemes(LocalDate.parse(period), psaId, penalties),
           identifier => AllPenaltiesAndChargesController.onPageLoadAFT(period, identifier))
       case _ =>
-        println("\n\n\n\n non aft case")
         (penalties => navService.penaltySchemes(period.toInt, psaId, penaltyType, penalties),
           identifier => AllPenaltiesAndChargesController.onPageLoad(period, identifier, penaltyType))
     }

@@ -16,7 +16,6 @@
 
 package controllers.financialOverview.psa
 
-import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.PenaltyType._
@@ -41,7 +40,6 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
                                               formProvider: YearsFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
                                               renderer: Renderer,
-                                              config: FrontendAppConfig,
                                               psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                               navService: PenaltiesNavigationService)
                                              (implicit ec: ExecutionContext) extends FrontendBaseController
@@ -66,16 +64,15 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
         "radios" -> FSYears.radios(form(typeParam), years)
       )
 
-      renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(Ok(_))
+      renderer.render(template = "financialOverview/psa/selectYear.njk", json).map(Ok(_))
     }
 
   }
 
   def onSubmit(penaltyType: PenaltyType, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
 
-    println("\n\n\n\n penalty year navigate")
     val navMethod: (Seq[PsaFSDetail], Int) => Future[Result] =
-      if (penaltyType == AccountingForTaxPenalties) aftNavMethod(request.psaIdOrException.id, journeyType) else nonAftNavMethod(penaltyType, journeyType)
+      if (penaltyType == AccountingForTaxPenalties) aftNavMethod(request.psaIdOrException.id) else nonAftNavMethod(penaltyType)
     val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
 
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
@@ -90,12 +87,11 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
             "form" -> formWithErrors,
             "radios" -> FSYears.radios(formWithErrors, getYears(penaltyType, penaltiesCache.penalties))
           )
-          renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(BadRequest(_))
+          renderer.render(template = "financialOverview/psa/selectYear.njk", json).map(BadRequest(_))
         },
         value => if (penaltyType == AccountingForTaxPenalties) {
           navMethod(penaltiesCache.penalties, value.year)
         } else {
-          println("\n\n\n\nnavigating to schemes")
           Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(penaltyType, value.year.toString).url))
         }
       )
@@ -117,16 +113,15 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       }
   }
 
-  private def aftNavMethod(psaId: String, journeyType: ChargeDetailsFilter)
+  private def aftNavMethod(psaId: String)
                           (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] =
     (penalties, year) => {
       val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
-      navService.navFromAFTYearsPage(filteredPenalties, year, psaId, AccountingForTaxPenalties, journeyType)
+      navService.navFromAFTYearsPage(filteredPenalties, year, psaId, AccountingForTaxPenalties)
     }
 
-  private def nonAftNavMethod(penaltyType: PenaltyType, journeyType: ChargeDetailsFilter)
+  private def nonAftNavMethod(penaltyType: PenaltyType)
                              (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] =
-//  (penalties, year) => navService.navFromPenaltyNonAftYearsPage(penalties, year.toString, request.psaIdOrException.id, penaltyType, journeyType)
-  (penalties, year) => navService.navFromNonAftYearsPage(penalties, year, penaltyType, request.idOrException, journeyType)
+  (penalties, year) => navService.navFromNonAftYearsPage(penalties, year, penaltyType, request.idOrException)
 
 }

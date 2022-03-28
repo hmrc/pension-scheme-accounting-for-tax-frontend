@@ -71,7 +71,7 @@ class SelectPenaltiesQuarterController @Inject()(
             "year" -> year
           )
 
-          renderer.render(template = "financialStatement/penalties/selectQuarter.njk", json).map(Ok(_))
+          renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(Ok(_))
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
@@ -98,7 +98,7 @@ class SelectPenaltiesQuarterController @Inject()(
                     "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
                     "year" -> year
                   )
-                  renderer.render(template = "financialStatement/penalties/selectQuarter.njk", json).map(BadRequest(_))
+                  renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(BadRequest(_))
 
               },
 //              value => navService.navFromPenaltyQuartersPage(penaltiesCache.penalties, value.startDate, request.psaIdOrException.id, journeyType)

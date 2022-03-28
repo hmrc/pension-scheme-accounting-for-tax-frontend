@@ -16,7 +16,6 @@
 
 package controllers.financialOverview.psa
 
-import config.FrontendAppConfig
 import controllers.actions._
 import forms.financialStatement.PenaltyTypeFormProvider
 import models.financialStatement.PenaltyType.getPenaltyType
@@ -40,7 +39,6 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
                                       formProvider: PenaltyTypeFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
-                                      config: FrontendAppConfig,
                                       psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                       navService: PenaltiesNavigationService)
                                      (implicit ec: ExecutionContext) extends FrontendBaseController
@@ -50,8 +48,6 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
   private def form: Form[PenaltyType] = formProvider()
 
   def onPageLoad(journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
-    println("\n\n\n\n\n In penalty type")
-
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties)
       val json = Json.obj(
@@ -61,7 +57,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
         "submitUrl" -> routes.PenaltyTypeController.onSubmit(journeyType).url
       )
 
-      renderer.render(template = "financialStatement/penalties/penaltyType.njk", json).map(Ok(_))
+      renderer.render(template = "financialOverview/psa/penaltyType.njk", json).map(Ok(_))
     }
   }
 
@@ -75,9 +71,8 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
             "radios" -> PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties)),
             "submitUrl" -> routes.PenaltyTypeController.onSubmit(journeyType).url
           )
-          renderer.render(template = "financialStatement/penalties/penaltyType.njk", json).map(BadRequest(_))
+          renderer.render(template = "financialOverview/psa/penaltyType.njk", json).map(BadRequest(_))
         },
-//        value => navService.navFromPenaltiesTypePage(penaltiesCache.penalties, value, request.psaIdOrException.id, journeyType)
         value => navService.navFromPenaltiesTypePage(penaltiesCache.penalties, request.psaIdOrException.id, value)
       )
     }

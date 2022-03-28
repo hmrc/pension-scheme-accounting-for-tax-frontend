@@ -17,7 +17,7 @@
 package services.financialOverview
 
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
+import connectors.{FinancialStatementConnector, MinimalConnector}
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter
@@ -50,7 +50,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementConnector,
                                               financialInfoCacheConnector: FinancialInfoCacheConnector,
                                               schemeService: SchemeService,
-                                              listOfSchemesConnector: ListOfSchemesConnector,
                                               minimalConnector: MinimalConnector) {
 
   val isPaymentOverdue: PsaFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
@@ -74,103 +73,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     (totalUpcomingChargeFormatted, totalOverdueChargeFormatted, totalInterestAccruingFormatted)
   }
 
-  /*def getAllPenaltiesAndCharges(pstr: String,
-                                psaFSDetails: Seq[PsaFSDetail],
-                                chargeDetailsFilter: ChargeDetailsFilter)
-                           (implicit messages: Messages): Table = {
-
-    val chargeRefForAll: Seq[String] = psaFSDetails.map(_.chargeReference)
-
-    val seqPayments: Seq[PsaPaymentsAndChargesDetails] = psaFSDetails.flatMap { psaFSDetail =>
-      getPenaltiesAndCharges(psaFSDetail, pstr, chargeRefForAll, chargeRefs(psaFSDetails), chargeDetailsFilter)
-    }
-
-    mapToTable(seqPayments, chargeDetailsFilter)
-  }*/
-
-  /*private def getPenaltiesAndCharges(
-                                         details: PsaFSDetail,
-                                         srn: String,
-                                         pstr: String,
-                                         chargeRefForAll: Seq[String],
-                                         chargeRefs: Map[(String,String), Seq[String]],
-                                         chargeDetailsFilter: ChargeDetailsFilter
-                                       )(implicit messages: Messages): Seq[PsaPaymentsAndChargesDetails] = {
-
-
-
-    val chargeType = getPaymentOrChargeType(details.chargeType)
-    val paymentOrChargeType = details.chargeType
-    val onlyAFTAndOTCChargeTypes: Boolean =
-      paymentOrChargeType == PSS_AFT_RETURN || paymentOrChargeType == PSS_OTC_AFT_RETURN
-    val ifAFTAndOTCChargeTypes: Boolean =
-      onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
-
-    val (suffix, version, submittedDate) = (ifAFTAndOTCChargeTypes, mapChargeTypesVersionAndDate.get(paymentOrChargeType)) match {
-      case (true, Some(Tuple2(Some(version), Some(date)))) => (Some(s" submission $version"), Some(version), Some(formatDateYMD(date)))
-      case _ => (None, None, None)
-    }
-
-    val periodValue: String = if (chargeType.toString == AccountingForTaxCharges.toString) {
-      details.periodStartDate.toString
-    } else {
-      details.periodEndDate.getYear.toString
-    }
-
-    val seqChargeRefs = chargeRefs.find(_._1 == (chargeType.toString, periodValue))  match {
-      case Some(found) => found._2
-      case _ => Nil
-    }
-
-    val index : String = {
-      chargeDetailsFilter match {
-        case All => chargeRefForAll.indexOf(details.chargeReference).toString
-        case _ => seqChargeRefs.indexOf(details.chargeReference).toString
-      }
-    }
-
-    val chargeDetailsItemWithStatus: PaymentAndChargeStatus => PsaPaymentsAndChargesDetails =
-      status =>
-        PsaPaymentsAndChargesDetails(
-          chargeType = details.chargeType.toString + suffix.getOrElse(""),
-          chargeReference = details.chargeReference,
-          originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
-          paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
-          status = status,
-          period = setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate),
-          submittedDate = setSubmittedDate(submittedDate, details.chargeType),
-          redirectUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(
-            srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
-          visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
-        )
-
-    (onlyAFTAndOTCChargeTypes, details.amountDue > 0) match {
-      case (true, true) if details.accruedInterestTotal > 0 =>
-        val interestChargeType =
-          if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
-        Seq(
-          chargeDetailsItemWithStatus(PaymentOverdue),
-          FinancialPaymentAndChargesDetails(
-            chargeType = interestChargeType.toString + suffix.getOrElse(""),
-            chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
-            originalChargeAmount = "",
-            paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
-            status = InterestIsAccruing,
-            period = setPeriod(interestChargeType, details.periodStartDate, details.periodEndDate),
-            redirectUrl = routes.PaymentsAndChargesInterestController.onPageLoad(
-              srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
-            visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
-          )
-        )
-      case (true, _) if details.totalAmount < 0 =>
-        Seq.empty
-      case _ =>
-        Seq(
-          chargeDetailsItemWithStatus(NoStatus)
-        )
-    }
-  }
-*/
   //scalastyle:off parameter.number
   //scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
@@ -244,32 +146,15 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   //scalastyle:off cyclomatic.complexity
   def getAllPenaltiesAndCharges(
                               psaId: String,
+                              allChargeRefs: Seq[String],
                               penalties: Seq[PsaFSDetail],
                               journeyType: ChargeDetailsFilter)(implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
 
     val seqPayments = penalties.foldLeft[Seq[Future[Table]]] (
       Nil) { (acc, detail) =>
 
-      val penaltyType = getPenaltyType(detail.chargeType)
-      val periodValue: String = if(penaltyType.toString == AccountingForTaxPenalties) {
-        detail.periodStartDate.toString
-      } else {
-        detail.periodEndDate.getYear.toString
-      }
-
-      val seqChargeRefs = getPenaltyChargeRefs(penalties).find(_._1 == (penaltyType, periodValue)) match {
-        case Some(found) => found._2
-        case _ => Nil
-      }
-
-      val index: String = seqChargeRefs.indexOf(detail.chargeReference).toString
+      val index: String = allChargeRefs.indexOf(detail.chargeReference).toString
       val chargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
-
-
-      println("\n\n\n\n\n\n seqChargeRefs" + seqChargeRefs)
-      println("\n\n\n\n\n\n index" + index)
-      println("\n\n\n\n\n\n chargeRefsIndex" + chargeRefsIndex)
-      println("\n\n\n\n\n\n penalties.map(_.chargeReference).indexOf(cr).toString" + penalties.map(_.chargeReference))
 
       val tableRecords = getSchemeName(psaId, detail.pstr).map { schemeName =>
 
@@ -286,8 +171,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
               schemeName = schemeName,
               redirectUrl = controllers.financialOverview.routes.PsaPenaltiesAndChargeDetailsController
-                .onPageLoad(detail.pstr, index, journeyType)
-                .url,
+                .onPageLoad(detail.pstr, index, journeyType).url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", detail.chargeReference)
             )
 
@@ -324,30 +208,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         )
       }
     }
-  }
-
-  def getPenaltyChargeRefs(penalties: Seq[PsaFSDetail]): Map[(String, String), Seq[String]] = {
-    val indexRefs: Seq[IndexRef] = penalties.map { penalty =>
-      val chargeType = PenaltyType.getPenaltyType(penalty.chargeType).toString
-      val period: String = if (chargeType == AccountingForTaxPenalties.toString) {
-        penalty.periodStartDate.toString
-      } else {
-        penalty.periodEndDate.getYear.toString
-      }
-      IndexRef(chargeType, penalty.chargeReference, period)
-    }
-
-    val ref: Map[(String, String), Seq[IndexRef]] = indexRefs.groupBy { x =>
-      (x.chargeType, x.period)
-    }
-
-    val chargeRefs = ref.map { item =>
-      val chargeRef = item._2.map { value =>
-        value.chargeReference
-      }
-      Tuple2(item._1, chargeRef)
-    }
-    chargeRefs
   }
 
   private def getSchemeName(psaId: String, pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
@@ -387,16 +247,14 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
           case _                => data.chargeReference
         }
 
-      println("\n\n\n\n\n journeyType, data.chargeType" + journeyType + data.chargeType)
-      val htmlChargeType = journeyType match {
-        case All =>
-          if (getPenaltyType(data.chargeType) == AccountingForTaxPenalties) {
+      val htmlChargeType = (journeyType, getPenaltyType(data.chargeType)) match {
+        case (All, AccountingForTaxPenalties) =>
             Html(
               s"<a id=$linkId class=govuk-link href=" +
                 s"${data.redirectUrl}>" +
                 s"${data.chargeType} " +
                 s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
-          } else {
+        case (All, _) =>
             Html(
               s"<a id=$linkId class=govuk-link href=" +
                 s"${data.redirectUrl}>" +
@@ -404,7 +262,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
                 s"<p class=govuk-hint>" +
                 s"${data.period} </br>")
-          }
         case _ =>
           Html(
             s"<a id=$linkId class=govuk-link href=" +
@@ -414,8 +271,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               s"<p class=govuk-hint>" +
               s"${data.schemeName} </br>" +
               s"(${data.pstr})")
-
-      }
+        }
 
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half")),
@@ -471,7 +327,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       journeyType match {
         case Overdue  => cache.copy(penalties = getOverdueCharges(cache.penalties))
         case Upcoming => cache.copy(penalties = extractUpcomingCharges(cache.penalties))
-        case _        => cache
+        case _        => cache.copy(penalties = getOverdueCharges(cache.penalties))
       }
     }
 
@@ -509,7 +365,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   }
 
   private def chargeReferenceRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
-
     Seq(
       Row(
         key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")),
