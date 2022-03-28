@@ -122,7 +122,7 @@ class FileUploadController @Inject()(
     }
 
 
-   def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]) = {
+   def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]): Unit = {
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
     val endTime = System.currentTimeMillis
     val duration = endTime- startTime
@@ -132,7 +132,7 @@ class FileUploadController @Inject()(
       schemeAdministratorType = request.schemeAdministratorType,
       chargeType= chargeType,
       fileUploadDataCache =fileUploadDataCache,
-      uploadTimeInSeconds = duration
+      uploadTimeInMiliSeconds = duration
     ))
   }
 

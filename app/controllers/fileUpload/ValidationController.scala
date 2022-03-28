@@ -270,7 +270,7 @@ class ValidationController @Inject()(
       schemeAdministratorType = request.schemeAdministratorType,
       chargeType= chargeType,
       fileUploadDataCache =fileUploadDataCache,
-      downloadTimeInSeconds= duration
+      downloadTimeInMiliSeconds= duration
     ))
   }
 

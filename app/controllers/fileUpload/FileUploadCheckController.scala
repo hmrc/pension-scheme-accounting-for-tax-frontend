@@ -107,7 +107,7 @@ class FileUploadCheckController @Inject()(
       schemeAdministratorType = request.schemeAdministratorType,
       chargeType= chargeType,
       fileUploadDataCache =fileUploadDataCache,
-      uploadTimeInSeconds = duration
+      uploadTimeInMiliSeconds = duration
     ))
   }
 
