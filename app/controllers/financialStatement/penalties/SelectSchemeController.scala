@@ -28,7 +28,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
-import services.{FeatureToggleService, PenaltiesService}
+import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -43,8 +43,7 @@ class SelectSchemeController @Inject()(
                                         val controllerComponents: MessagesControllerComponents,
                                         formProvider: SelectSchemeFormProvider,
                                         penaltiesService: PenaltiesService,
-                                        renderer: Renderer,
-                                        toggleService: FeatureToggleService
+                                        renderer: Renderer
                                       )(implicit ec: ExecutionContext)
                                         extends FrontendBaseController
                                           with I18nSupport
