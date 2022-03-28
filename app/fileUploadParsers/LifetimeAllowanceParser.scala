@@ -64,7 +64,13 @@ class LifetimeAllowanceParser @Inject()(
       Field.seqToMap(fields)
     ).fold(
       formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-      value => Right(value)
+      value => {
+        val updatedChargeDetails: ChargeDDetails = value.copy(
+          taxAt25Percent = Option(value.taxAt25Percent.getOrElse(BigDecimal(0.00))),
+          taxAt55Percent = Option(value.taxAt55Percent.getOrElse(BigDecimal(0.00)))
+        )
+        Right(updatedChargeDetails)
+      }
     )
 
   }
