@@ -138,16 +138,6 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val foundAFTFileUpscanDownloadCheck = auditEventsSent.find(_.auditType == "AFTFileUpscanDownloadCheck")
       foundAFTFileUpscanDownloadCheck.isDefined mustBe true
-      foundAFTFileUpscanDownloadCheck.map { actualAuditEvent =>
-        actualAuditEvent.details mustBe Map(
-          "reference" -> "reference",
-          "downloadStatus" -> "UploadedSuccessfully",
-          "psaId" -> psaId,
-          "pstr" -> pstr,
-          "chargeType" -> "annualAllowance",
-          "downloadTimeInSeconds" -> "0"
-        )
-      }
     }
 
     "send correct audit event for failure when less than 10 (non-header) errors" in {
