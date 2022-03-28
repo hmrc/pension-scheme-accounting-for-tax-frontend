@@ -245,7 +245,7 @@ class ValidationController @Inject()(
               case (Some(parser), "UploadedSuccessfully") =>
                 upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap { response =>
 
-                  sendAuditEventUpscanUpload(chargeType,uploadStatus,startTime)
+                  sendAuditEventUpscanDownload(chargeType,uploadStatus,startTime)
 
                   response.status match {
                     case OK =>
@@ -260,17 +260,17 @@ class ValidationController @Inject()(
         }
     }
 
-  private def sendAuditEventUpscanUpload(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]) = {
+  private def sendAuditEventUpscanDownload(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]) = {
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
     val endTime = System.currentTimeMillis
-    val duration = endTime- startTime
-    auditService.sendEvent(AFTUpscanFileUploadAuditEvent
+    val duration = (endTime- startTime)/1000
+    auditService.sendEvent(AFTUpscanFileDownloadAuditEvent
     (psaOrPspId = request.idOrException,
       pstr = pstr,
       schemeAdministratorType = request.schemeAdministratorType,
       chargeType= chargeType,
       fileUploadDataCache =fileUploadDataCache,
-      uploadTimeInSeconds = duration
+      downloadTimeInSeconds= duration
     ))
   }
 
