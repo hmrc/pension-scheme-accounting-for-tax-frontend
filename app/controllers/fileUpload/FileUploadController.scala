@@ -34,7 +34,7 @@ import renderer.Renderer
 import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
-import java.time.Duration
+import java.time.{Duration, LocalDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -97,6 +97,7 @@ class FileUploadController @Inject()(
           .flatMap {
             case Some(fileUploadDataCache) =>
               val fileUploadStatus = fileUploadDataCache.status
+              val startTime = System.currentTimeMillis
               fileUploadStatus._type match {
                 case "UploadedSuccessfully" =>
                   logger.info("FileUploadController.showResult UploadedSuccessfully")
@@ -112,8 +113,7 @@ class FileUploadController @Inject()(
                 case "Failed" =>
                   upscanErrorHandlingService.handleFailureResponse(fileUploadStatus.failureReason.getOrElse(""), srn, startDate, accessType, version).map {
                     result =>
-                      sendAuditEvent(chargeType, fileUploadDataCache)
-                      println("\n\n\n\n\n\n\n======================================================="+ sendAuditEvent(chargeType, fileUploadDataCache))
+                      sendAuditEvent(chargeType, fileUploadDataCache,startTime)
                       result
                   }
                 case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -122,17 +122,17 @@ class FileUploadController @Inject()(
     }
 
 
-  private def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]) = {
+   def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]) = {
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
-    val duration = Duration.between(fileUploadDataCache.created, fileUploadDataCache.lastUpdated)
-    val uploadTime = duration.getSeconds()
+    val endTime = System.currentTimeMillis
+    val duration = endTime- startTime
     auditService.sendEvent(AFTUpscanFileUploadAuditEvent
     (psaOrPspId = request.idOrException,
       pstr = pstr,
       schemeAdministratorType = request.schemeAdministratorType,
       chargeType= chargeType,
       fileUploadDataCache =fileUploadDataCache,
-      uploadTimeInSeconds = (uploadTime/1000).toInt
+      uploadTimeInSeconds = duration
     ))
   }
 

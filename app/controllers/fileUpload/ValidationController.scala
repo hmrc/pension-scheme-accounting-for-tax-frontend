@@ -16,7 +16,7 @@
 
 package controllers.fileUpload
 
-import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AuditService}
+import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AFTUpscanFileUploadAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
@@ -236,21 +236,20 @@ class ValidationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         val parser = findParser(chargeType)
+        val startTime = System.currentTimeMillis
         uploadProgressTracker.getUploadResult(uploadId).flatMap {
           case Some(uploadStatus) =>
             (parser, uploadStatus.status._type) match {
               case (Some(_), "" | "Failed" | "InProgress") => sessionExpired
               case (None, _) => sessionExpired
               case (Some(parser), "UploadedSuccessfully") =>
-                val created: LocalDateTime = LocalDateTime.now
-                val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
                 upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap { response =>
 
-                  sendAuditEventForUpScanDownload(chargeType, uploadStatus, created, pstr)
+                  sendAuditEventUpscanUpload(chargeType,uploadStatus,startTime)
 
                   response.status match {
                     case OK =>
-                      val linesFromCSV = CsvLineSplitter.split(response.body) //response.body.split("\n").toList
+                      val linesFromCSV = CsvLineSplitter.split(response.body)
                       parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
                     case _ =>
                       Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
@@ -261,21 +260,18 @@ class ValidationController @Inject()(
         }
     }
 
-  def sendAuditEventForUpScanDownload(chargeType: ChargeType,
-                                      fileUploadDataCache: FileUploadDataCache,
-                                      created: LocalDateTime,
-                                      pstr: String)(implicit request: DataRequest[AnyContent]): Unit = {
-    val duration = Duration.between(created, LocalDateTime.now)
-    val uploadTime = duration.getSeconds
-    auditService.sendEvent(
-      AFTUpscanFileDownloadAuditEvent(
-        psaOrPspId = request.idOrException,
-        schemeAdministratorType = request.schemeAdministratorType,
-        chargeType = chargeType,
-        pstr = pstr,
-        fileUploadDataCache = fileUploadDataCache,
-        downloadTimeInSeconds = (uploadTime / 1000).toInt
-      ))
+  private def sendAuditEventUpscanUpload(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]) = {
+    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
+    val endTime = System.currentTimeMillis
+    val duration = endTime- startTime
+    auditService.sendEvent(AFTUpscanFileUploadAuditEvent
+    (psaOrPspId = request.idOrException,
+      pstr = pstr,
+      schemeAdministratorType = request.schemeAdministratorType,
+      chargeType= chargeType,
+      fileUploadDataCache =fileUploadDataCache,
+      uploadTimeInSeconds = duration
+    ))
   }
 
   private def sessionExpired: Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))

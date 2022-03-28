@@ -44,7 +44,6 @@ object UploadedSuccessfully {
 case class FileUploadStatus(_type: String, failureReason: Option[String]=None, message: Option[String]=None,
                             downloadUrl: Option[String]=None , mimeType: Option[String]=None,
                             name: Option[String]=None, size: Option[Long]=None)
-
 object FileUploadStatus {
   implicit val reads: OFormat[FileUploadStatus] = Json.format[FileUploadStatus]
 }
