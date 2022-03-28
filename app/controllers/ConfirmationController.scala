@@ -73,7 +73,7 @@ class ConfirmationController @Inject()(
       srn = srn,
       schemeIdType = "srn"
     ) flatMap { schemeDetails =>
-      fsConnector.getSchemeFS(schemeDetails.pstr).map(_.seqSchemeFSDetail.exists(_.periodStartDate == startDate))
+      fsConnector.getSchemeFS(schemeDetails.pstr).map(_.seqSchemeFSDetail.exists(_.periodStartDate.contains(startDate)))
     } recover { case e =>
       logger.error("Exception (not rendered to user) when checking for financial information", e)
       false

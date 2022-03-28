@@ -21,7 +21,7 @@ import connectors.AFTConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
-import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail, SchemeFSChargeType}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, Quarters, UserAnswers}
 import pages.{AFTReceiptDateQuery, AFTVersionQuery}
 import play.api.Logger
@@ -34,6 +34,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
+import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
@@ -123,17 +124,17 @@ class AllPaymentsAndChargesController @Inject()(
       (messages(s"paymentsAndCharges.all.aft.title",
         startDate.format(dateFormatterStartDate),
         Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY)),
-      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate))
+      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate.contains(startDate)))
 
     } else {
 
       val typeParam: String = messages(s"paymentOrChargeType.${paymentOrChargeType.toString}")
-      val filteredPayments = payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt)
-
+      val filteredPayments = payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
+        .filter(_.periodEndDate.exists(_.getYear == period.toInt))
       val title = if(isTaxYearFormat(paymentOrChargeType) && filteredPayments.nonEmpty) {
         messages(s"paymentsAndCharges.all.excessCharges.title", typeParam,
-          filteredPayments.head.periodStartDate.format(dateFormatterDMY),
-          filteredPayments.head.periodEndDate.format(dateFormatterDMY)
+          DateHelper.formatDateDMY(filteredPayments.head.periodStartDate),
+          DateHelper.formatDateDMY(filteredPayments.head.periodEndDate)
         )
       } else {
         messages(s"paymentsAndCharges.all.nonAft.title", typeParam, period)

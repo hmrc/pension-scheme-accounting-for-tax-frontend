@@ -73,7 +73,6 @@ class PsaFinancialOverviewController @Inject()(
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
     logger.debug(s"AFT service returned InterestAccruing - ${psaCharges._3}")
 
-    val creditBalanceBaseUrl = appConfig.creditBalanceRefundLink
     val requestRefundUrl = creditPsaFS.inhibitRefundSignal match {
       case true => routes.RefundUnavailableController.onPageLoad.url
       case false => routes.PsaRequestRefundController.onPageLoad.url

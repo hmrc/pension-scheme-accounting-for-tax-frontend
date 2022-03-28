@@ -50,8 +50,8 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
       stoodOverAmount = 0.00,
       amountDue = 0.00,
       accruedInterestTotal = 0.00,
-      periodStartDate = QUARTER_START_DATE,
-      periodEndDate = QUARTER_END_DATE,
+      periodStartDate = Some(QUARTER_START_DATE),
+      periodEndDate = Some(QUARTER_END_DATE),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
@@ -65,8 +65,8 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
       stoodOverAmount = 0.00,
       amountDue = 0.00,
       accruedInterestTotal = 0.00,
-      periodStartDate = charge2Start,
-      periodEndDate = charge2End,
+      periodStartDate = Some(charge2Start),
+      periodEndDate = Some(charge2End),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil

@@ -48,7 +48,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                           financialInfoCacheConnector: FinancialInfoCacheConnector
                                          ) {
 
-  def getPaymentsAndCharges(srn: String, schemeFSDetail: Seq[SchemeFSDetail], chargeDetailsFilter: ChargeDetailsFilter, paymentOrChargeType: PaymentOrChargeType)
+  def getPaymentsAndCharges(srn: String, schemeFSDetail: Seq[SchemeFSDetail], chargeDetailsFilter: ChargeDetailsFilter,
+                            paymentOrChargeType: PaymentOrChargeType)
                            (implicit messages: Messages): Table = {
 
         val chargeRefs: Seq[String] = schemeFSDetail.map(_.chargeReference)
@@ -84,7 +85,11 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val onlyAFTAndOTCChargeTypes: Boolean =
     details.chargeType == PSS_AFT_RETURN || details.chargeType == PSS_OTC_AFT_RETURN
 
-    val period: String = if(paymentOrChargeType == AccountingForTaxCharges) details.periodStartDate.toString else details.periodEndDate.getYear.toString
+    val period: String = if (paymentOrChargeType == AccountingForTaxCharges) {
+      details.periodStartDate.map(_.toString).getOrElse("")
+    } else {
+      details.periodEndDate.map(_.getYear.toString).getOrElse("")
+    }
 
     val chargeDetailsItemWithStatus: PaymentAndChargeStatus => PaymentsAndChargesDetails =
       status => PaymentsAndChargesDetails(

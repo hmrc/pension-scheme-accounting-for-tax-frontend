@@ -26,7 +26,7 @@ import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
-import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
+import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
@@ -41,6 +41,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.AFTConstants._
+import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
@@ -85,7 +86,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       ),
       Row(
         key = Key(
-          msg"paymentsAndCharges.interestFrom".withArgs(schemeFSDetail.periodEndDate.plusDays(46).format(dateFormatterDMY)),
+          msg"paymentsAndCharges.interestFrom".withArgs(DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46)))),
           classes = Seq("govuk-table__cell--numeric", "govuk-!-padding-right-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
         ),
         value = Value(
@@ -96,13 +97,13 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       )
     ),
     "tableHeader" -> messages("paymentsAndCharges.caption",
-      schemeFSDetail.periodStartDate.format(dateFormatterStartDate),
-      schemeFSDetail.periodEndDate.format(dateFormatterDMY)),
+      DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
+      DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
     "schemeName" -> schemeName,
     "accruedInterest" -> schemeFSDetail.accruedInterestTotal,
     "chargeType" -> chargeType,
     "originalAmountUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, schemeFSDetail.periodStartDate, index, AccountingForTaxCharges, All)
+      .onPageLoad(srn, schemeFSDetail.periodStartDate.get, index, AccountingForTaxCharges, All)
       .url,
     "returnUrl" -> dummyCall.url
   )
@@ -164,8 +165,8 @@ object PaymentsAndChargesInterestControllerSpec {
       stoodOverAmount = 25089.08,
       amountDue = 1234.00,
       accruedInterestTotal = 2000.00,
-      periodStartDate = LocalDate.parse(QUARTER_START_DATE),
-      periodEndDate = LocalDate.parse(QUARTER_END_DATE),
+      periodStartDate = Some(LocalDate.parse(QUARTER_START_DATE)),
+      periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil

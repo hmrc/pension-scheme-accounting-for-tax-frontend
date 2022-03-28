@@ -45,8 +45,8 @@ case class SchemeFSDetail(
                      outstandingAmount: BigDecimal,
                      accruedInterestTotal: BigDecimal,
                      stoodOverAmount: BigDecimal,
-                     periodStartDate: LocalDate,
-                     periodEndDate: LocalDate,
+                     periodStartDate: Option[LocalDate],
+                     periodEndDate: Option[LocalDate],
                      formBundleNumber: Option[String],
                      sourceChargeRefForInterest: Option[String],
                      documentLineItemDetails: Seq[DocumentLineItemDetail]
@@ -77,8 +77,8 @@ object SchemeFSDetail {
     x.outstandingAmount,
     x.accruedInterestTotal,
     x.stoodOverAmount,
-    Some(x.periodStartDate),
-    Some(x.periodEndDate),
+    x.periodStartDate,
+    x.periodEndDate,
     x.formBundleNumber,
     x.sourceChargeRefForInterest,
     x.documentLineItemDetails
@@ -111,8 +111,8 @@ object SchemeFSDetail {
         outstandingAmount,
         accruedInterestTotal,
         stoodOverAmount,
-        periodStartDateOpt.getOrElse(LocalDate.of(1900, 1, 1)),
-        periodEndDateOpt.getOrElse(LocalDate.of(2900, 12, 31)),
+        periodStartDateOpt,
+        periodEndDateOpt,
         formBundleNumberOpt,
         sourceChargeRefForInterestOpt,
         documentLineItemDetails

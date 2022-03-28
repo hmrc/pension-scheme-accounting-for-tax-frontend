@@ -41,7 +41,8 @@ import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.AFTConstants._
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper
+import utils.DateHelper.dateFormatterDMY
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -94,7 +95,7 @@ class PaymentsAndChargeDetailsControllerSpec
         s" <span>" +
         s"<a id='breakdown' class=govuk-link href=${
           controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-            .onPageLoad(srn, schemeFSDetail.periodStartDate, "1", AccountingForTaxCharges, All)
+            .onPageLoad(srn, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, All)
             .url
         }>" +
         s"${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
@@ -121,8 +122,8 @@ class PaymentsAndChargeDetailsControllerSpec
     val commonJson = Json.obj(
       "chargeDetailsList" -> Nil,
       "tableHeader" -> messages("paymentsAndCharges.caption",
-        schemeFSDetail.periodStartDate.format(dateFormatterStartDate),
-        schemeFSDetail.periodEndDate.format(dateFormatterDMY)),
+        DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
+        DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
       "schemeName" -> schemeName,
       "chargeType" -> schemeFSDetail.chargeType.toString,
       "chargeReferenceTextMessage" -> (if (isInCredit) {
@@ -349,8 +350,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       stoodOverAmount = 25089.08,
       amountDue = amountDue,
       accruedInterestTotal = interest,
-      periodStartDate = LocalDate.parse(QUARTER_START_DATE),
-      periodEndDate = LocalDate.parse(QUARTER_END_DATE),
+      periodStartDate = Some(LocalDate.parse(QUARTER_START_DATE)),
+      periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
@@ -371,8 +372,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       stoodOverAmount = 25089.08,
       amountDue = amountDue,
       accruedInterestTotal = interest,
-      periodStartDate = LocalDate.parse(QUARTER_START_DATE),
-      periodEndDate = LocalDate.parse(QUARTER_END_DATE),
+      periodStartDate = Some(LocalDate.parse(QUARTER_START_DATE)),
+      periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
@@ -389,8 +390,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       stoodOverAmount = 0.00,
       amountDue = 0.00,
       accruedInterestTotal = 0.00,
-      periodStartDate = LocalDate.parse(QUARTER_START_DATE),
-      periodEndDate = LocalDate.parse(QUARTER_END_DATE),
+      periodStartDate = Some(LocalDate.parse(QUARTER_START_DATE)),
+      periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
