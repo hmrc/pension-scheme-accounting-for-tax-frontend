@@ -46,7 +46,7 @@ case class AFTUpscanFileDownloadAuditEvent(
       "pstr" -> pstr,
       "chargeType" -> chargeType.toString,
       "downloadStatus" -> fileUploadDataCache.status._type,
-      "downloadTimeInSeconds" -> downloadTimeInMiliSeconds.toString,
+      "downloadTimeInMiliSeconds" -> downloadTimeInMiliSeconds.toString,
       "reference" -> fileUploadDataCache.reference
     ) ++ failureReason
   }

@@ -48,7 +48,7 @@ case class AFTUpscanFileUploadAuditEvent(
       "pstr" -> pstr,
       "chargeType" -> chargeType.toString,
       "uploadStatus" -> fileUploadDataCache.status._type,
-      "uploadTimeInSeconds" -> uploadTimeInMiliSeconds.toString,
+      "uploadTimeInMiliSeconds" -> uploadTimeInMiliSeconds.toString,
       "fileSize" -> fileUploadDataCache.status.size.toString,
       "reference" -> fileUploadDataCache.reference
     )  ++failureReason
