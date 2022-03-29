@@ -176,7 +176,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       details.periodEndDate.map(_.getYear.toString).getOrElse("")
     }
 
-    val seqChargeRefs = chargeRefs.find(_._1 == (chargeType.toString, periodValue))  match {
+    val seqChargeRefs = chargeRefs.find(_._1 == Tuple2(chargeType.toString, periodValue))  match {
       case Some(found) => found._2
       case _ => Nil
     }
