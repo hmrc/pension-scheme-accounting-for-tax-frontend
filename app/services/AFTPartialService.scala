@@ -463,8 +463,8 @@ class AFTPartialService @Inject()(
   private def viewAllPenaltiesAndChargesLink(): Seq[Link] =
     Seq(Link(
       id = "past-penalties-id",
-      url = appConfig.viewPenaltiesUrl,
-      linkText = msg"psaPenaltiesCard.viewPastPenalties",
+      url = appConfig.viewAllPenaltiesForFinancialOverviewUrl,
+      linkText = msg"psa.financial.overview.pastPenalties.link",
       hiddenText = None
     ))
 
@@ -509,7 +509,7 @@ class AFTPartialService @Inject()(
 
     DashboardAftViewModel(
       subHeadings = Seq(subHeadingPaymentDue, subHeadingTotalOverduePayments),
-      links = outstandingLink :+ Link("past-penalties-id", appConfig.viewPenaltiesUrl, msg"psaPenaltiesCard.viewPastPenalties", None))
+      links = outstandingLink :+ Link("past-penalties-id", appConfig.viewAllPenaltiesForFinancialOverviewUrl, msg"psaPenaltiesCard.viewPastPenalties", None))
   }
 
   def retrievePsaChargesAmount(psaFs: Seq[PsaFSDetail])
