@@ -22,7 +22,7 @@ import connectors.MinimalConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.psa.SelectSchemeControllerSpec.pstr
-import data.SampleData.{dummyCall, emptyChargesTable, psaFsSeq, psaId, schemeDetails}
+import data.SampleData.{dummyCall, emptyChargesTable, multiplePenalties, psaFsSeq, psaId, schemeDetails}
 import matchers.JsonMatchers
 import models.SchemeDetails
 import models.requests.IdentifierRequest
@@ -47,6 +47,7 @@ import scala.concurrent.Future
 class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
 
   private val startDate = LocalDate.parse("2020-07-01")
+  val pstr = "24000041IN"
   private def httpPathGET(startDate: String = startDate.toString): String =
     routes.AllPenaltiesAndChargesController.onPageLoadAFT(startDate, pstr).url
 
@@ -71,9 +72,9 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with Nunju
     reset(mockRenderer, mockPsaPenaltiesAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
-      thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
-    when(mockPsaPenaltiesAndChargesService.getDueCharges(any())).thenReturn(psaFSResponse)
-    when(mockPsaPenaltiesAndChargesService.getInterestCharges(any())).thenReturn(psaFSResponse)
+      thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
+    when(mockPsaPenaltiesAndChargesService.getDueCharges(any())).thenReturn(multiplePenalties)
+    when(mockPsaPenaltiesAndChargesService.getInterestCharges(any())).thenReturn(multiplePenalties)
     when(mockPsaPenaltiesAndChargesService.getAllPenaltiesAndCharges(any(), any(), any(), any())(any(), any(), any())).
       thenReturn(Future.successful(emptyChargesTable))
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
@@ -87,8 +88,8 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with Nunju
 
   private def expectedJson: JsObject = Json.obj(
     fields = "paymentAndChargesTable" -> emptyChargesTable,
-    "pstr" -> "24000040IN",
-    "totalOutstandingCharge" -> "£3,087.15"
+    "pstr" -> "24000041IN",
+    "totalOutstandingCharge" -> "£200.00"
   )
 
   "AllPenaltiesAndChargesController" must {
