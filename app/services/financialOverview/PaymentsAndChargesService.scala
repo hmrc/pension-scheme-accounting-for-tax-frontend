@@ -24,10 +24,10 @@ import controllers.financialOverview.routes
 import helpers.FormatHelper._
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
+import models.financialStatement.FSClearingReason._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.FSClearingReason._
-import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFSDetail, SchemeFSChargeType}
+import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFSChargeType, SchemeFSDetail}
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
@@ -40,7 +40,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Content, Html, SummaryList, _}
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatDateDMYString, formatDateYMD, formatStartDate}
+import utils.DateHelper._
 import viewmodels.Table
 import viewmodels.Table.Cell
 
@@ -78,9 +78,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val indexRefs: Seq[IndexRef] = schemeFSDetail.map { scheme =>
       val chargeType = getPaymentOrChargeType(scheme.chargeType).toString
       val period: String = if (chargeType == AccountingForTaxCharges.toString) {
-        scheme.periodStartDate.toString
+        scheme.periodStartDate.map(_.toString).getOrElse("")
       } else {
-        scheme.periodEndDate.getYear.toString
+        scheme.periodEndDate.map(_.getYear.toString).getOrElse("")
       }
       IndexRef(chargeType, scheme.chargeReference, period)
     }
@@ -171,12 +171,12 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
 
     val periodValue: String = if (chargeType.toString == AccountingForTaxCharges.toString) {
-      details.periodStartDate.toString
+      details.periodStartDate.map(_.toString).getOrElse("")
     } else {
-      details.periodEndDate.getYear.toString
+      details.periodEndDate.map(_.getYear.toString).getOrElse("")
     }
 
-    val seqChargeRefs = chargeRefs.find(_._1 == (chargeType.toString, periodValue))  match {
+    val seqChargeRefs = chargeRefs.find(_._1 == Tuple2(chargeType.toString, periodValue))  match {
       case Some(found) => found._2
       case _ => Nil
     }
@@ -237,7 +237,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       messages(s"paymentOrChargeType.${paymentType.toString}").toLowerCase()
     }
 
-  def setPeriod(chargeType: SchemeFSChargeType, periodStartDate: LocalDate, periodEndDate: LocalDate): String = {
+  def setPeriod(chargeType: SchemeFSChargeType, periodStartDate: Option[LocalDate], periodEndDate: Option[LocalDate]): String = {
     chargeType match {
       case PSS_AFT_RETURN | PSS_OTC_AFT_RETURN | PSS_AFT_RETURN_INTEREST | PSS_OTC_AFT_RETURN_INTEREST
            | AFT_MANUAL_ASST | AFT_MANUAL_ASST_INTEREST | OTC_MANUAL_ASST | OTC_MANUAL_ASST_INTEREST =>

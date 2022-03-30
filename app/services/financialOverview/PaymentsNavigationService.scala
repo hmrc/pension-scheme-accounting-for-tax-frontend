@@ -43,7 +43,10 @@ class PaymentsNavigationService {
 
       val yearsSeq: Seq[Int] = payments
         .filter(p => getPaymentOrChargeType(p.chargeType) == paymentType)
-        .map(_.periodEndDate.getYear).distinct.sorted.reverse
+        .filter(_.periodEndDate.nonEmpty)
+        .map(_.periodEndDate match {
+          case Some(x) => x.getYear
+        }).distinct.sorted.reverse
 
     (paymentType, yearsSeq.size) match {
       case (AccountingForTaxCharges, 1) => navFromAFTYearsPage(payments, yearsSeq.head, srn, pstr)
@@ -57,8 +60,11 @@ class PaymentsNavigationService {
 
     val quartersSeq = payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
-      .filter(_.periodEndDate.getYear == year)
-      .map(_.periodStartDate).distinct
+      .filter(_.periodEndDate.exists(_.getYear == year))
+      .filter(_.periodStartDate.nonEmpty)
+      .map(_.periodStartDate match {
+        case Some(x) => x
+      }).distinct
 
     if (quartersSeq.size > 1) {
       Future.successful(Redirect(SelectQuarterController.onPageLoad(srn, pstr, year.toString)))

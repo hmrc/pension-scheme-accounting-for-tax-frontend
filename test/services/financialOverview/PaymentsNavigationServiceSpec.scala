@@ -40,38 +40,40 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
   private def payments(charge2Start: LocalDate = Q3_2020_START,
                        charge2End: LocalDate = Q3_2020_END,
                        charge1Type: SchemeFSChargeType = PSS_AFT_RETURN,
-                       charge2Type: SchemeFSChargeType = PSS_OTC_AFT_RETURN): Seq[SchemeFSDetail] = Seq(
-    SchemeFSDetail(
-      chargeReference = "1",
-      chargeType = charge1Type,
-      dueDate = Some(LocalDate.parse("2020-05-15")),
-      totalAmount = -20000.00,
-      outstandingAmount = 0.00,
-      stoodOverAmount = 0.00,
-      amountDue = 0.00,
-      accruedInterestTotal = 0.00,
-      periodStartDate = QUARTER_START_DATE,
-      periodEndDate = QUARTER_END_DATE,
-      formBundleNumber = None,
-      sourceChargeRefForInterest = None,
-      documentLineItemDetails = Nil
-    ),
-    SchemeFSDetail(
-      chargeReference = "2",
-      chargeType = charge2Type,
-      dueDate = Some(LocalDate.parse("2020-05-15")),
-      totalAmount = -20000.00,
-      outstandingAmount = 0.00,
-      stoodOverAmount = 0.00,
-      amountDue = 0.00,
-      accruedInterestTotal = 0.00,
-      periodStartDate = charge2Start,
-      periodEndDate = charge2End,
-      formBundleNumber = None,
-      sourceChargeRefForInterest = None,
-      documentLineItemDetails = Nil
+                       charge2Type: SchemeFSChargeType = PSS_OTC_AFT_RETURN): Seq[SchemeFSDetail] = {
+    Seq(
+      SchemeFSDetail(
+        chargeReference = "1",
+        chargeType = charge1Type,
+        dueDate = Some(LocalDate.parse("2020-05-15")),
+        totalAmount = -20000.00,
+        outstandingAmount = 0.00,
+        stoodOverAmount = 0.00,
+        amountDue = 0.00,
+        accruedInterestTotal = 0.00,
+        periodStartDate = Some(QUARTER_START_DATE),
+        periodEndDate = Some(QUARTER_END_DATE),
+        formBundleNumber = None,
+        sourceChargeRefForInterest = None,
+        documentLineItemDetails = Nil
+      ),
+      SchemeFSDetail(
+        chargeReference = "2",
+        chargeType = charge2Type,
+        dueDate = Some(LocalDate.parse("2020-05-15")),
+        totalAmount = -20000.00,
+        outstandingAmount = 0.00,
+        stoodOverAmount = 0.00,
+        amountDue = 0.00,
+        accruedInterestTotal = 0.00,
+        periodStartDate = Some(charge2Start),
+        periodEndDate = Some(charge2End),
+        formBundleNumber = None,
+        sourceChargeRefForInterest = None,
+        documentLineItemDetails = Nil
+      )
     )
-  )
+  }
 
   val paymentsNavigationService: PaymentsNavigationService = new PaymentsNavigationService
 

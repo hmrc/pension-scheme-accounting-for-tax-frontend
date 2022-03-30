@@ -114,8 +114,8 @@ object PaymentsAndChargesControllerSpec {
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
       accruedInterestTotal = 0.00,
-      periodStartDate = LocalDate.parse(startDate),
-      periodEndDate = LocalDate.parse(endDate),
+      periodStartDate = Some(LocalDate.parse(startDate)),
+      periodEndDate = Some(LocalDate.parse(endDate)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil

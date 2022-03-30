@@ -38,10 +38,13 @@ object DateHelper {
   def formatDateDMYString(date: String): String = LocalDate.parse(date, dateFormatterYMD).format(dateFormatterDMY)
   def formatDateYMD(date: LocalDate): String = date.format(dateFormatterYMD)
   def formatStartDate(date: LocalDate): String = date.format(dateFormatterStartDate)
+  def formatStartDate(date: Option[LocalDate]): String = date.map(_.format(dateFormatterStartDate)).getOrElse("")
   def formatSubmittedDate(dateTime: ZonedDateTime): String = {
     val str = dateFormatterSubmittedDate.format(dateTime)
     val suffix = str.takeRight(2).toLowerCase
     val prefix = str.take(str.length -2)
     prefix + suffix
   }
+
+  def formatDateDMY(date: Option[LocalDate]): String = date.map(_.format(dateFormatterDMY)).getOrElse("")
 }
