@@ -27,7 +27,7 @@ case class AFTUpscanFileUploadAuditEvent(
                                           schemeAdministratorType: AdministratorOrPractitioner,
                                           chargeType: ChargeType,
                                           fileUploadDataCache:FileUploadDataCache,
-                                          uploadTimeInMilliSeconds: Long,
+                                          uploadTimeInMiliSeconds: Long,
                                         ) extends AuditEvent {
   override def auditType: String = "AFTFileUpscanUploadCheck"
 
@@ -37,17 +37,18 @@ case class AFTUpscanFileUploadAuditEvent(
         Map("psaId" -> psaOrPspId)
       case _ => Map("pspId" -> psaOrPspId)
     }
-    
+
     val failureReason = fileUploadDataCache.status.failureReason match {
       case Some(r) => Map("failureReason" -> r)
       case _ => Map.empty
     }
+
     psaOrPspIdJson ++
     Map(
       "pstr" -> pstr,
       "chargeType" -> chargeType.toString,
       "uploadStatus" -> fileUploadDataCache.status._type,
-      "uploadTimeInMillSeconds" -> uploadTimeInMilliSeconds.toString,
+      "uploadTimeInMiliSeconds" -> uploadTimeInMiliSeconds.toString,
       "fileSize" -> fileUploadDataCache.status.size.toString,
       "reference" -> fileUploadDataCache.reference
     )  ++failureReason

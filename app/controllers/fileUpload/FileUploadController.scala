@@ -65,7 +65,7 @@ class FileUploadController @Inject()(
 
       val errorRedirectUrl = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
       logger.info("FileUploadController.onPageLoad BF upscanInitiate")
-      upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl), chargeType).flatMap { uir =>
+      upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)).flatMap { uir =>
         uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap { _ =>
           val viewModel = GenericViewModel(
             submitUrl = uir.postTarget,
@@ -122,7 +122,7 @@ class FileUploadController @Inject()(
     }
 
 
-   private def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]): Unit = {
+   def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]): Unit = {
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
     val endTime = System.currentTimeMillis
     val duration = endTime- startTime
@@ -132,7 +132,7 @@ class FileUploadController @Inject()(
       schemeAdministratorType = request.schemeAdministratorType,
       chargeType= chargeType,
       fileUploadDataCache =fileUploadDataCache,
-      uploadTimeInMilliSeconds = duration
+      uploadTimeInMiliSeconds = duration
     ))
   }
 
