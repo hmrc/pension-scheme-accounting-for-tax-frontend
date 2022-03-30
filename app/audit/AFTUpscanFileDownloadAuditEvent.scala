@@ -25,7 +25,7 @@ case class AFTUpscanFileDownloadAuditEvent(
                                             chargeType: ChargeType,
                                             pstr: String,
                                             fileUploadDataCache:FileUploadDataCache,
-                                            downloadTimeInMiliSeconds: Long
+                                            downloadTimeInMilliSeconds: Long
                                           ) extends AuditEvent {
   override def auditType: String = "AFTFileUpscanDownloadCheck"
 
@@ -46,7 +46,7 @@ case class AFTUpscanFileDownloadAuditEvent(
       "pstr" -> pstr,
       "chargeType" -> chargeType.toString,
       "downloadStatus" -> fileUploadDataCache.status._type,
-      "downloadTimeInMiliSeconds" -> downloadTimeInMiliSeconds.toString,
+      "downloadTimeInMilliSeconds" -> downloadTimeInMilliSeconds.toString,
       "reference" -> fileUploadDataCache.reference
     ) ++ failureReason
   }

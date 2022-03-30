@@ -16,7 +16,7 @@
 
 package controllers.fileUpload
 
-import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AFTUpscanFileUploadAuditEvent, AuditService}
+import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
@@ -25,7 +25,7 @@ import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidO
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, FileUploadDataCache, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
+import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -37,7 +37,7 @@ import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.{Duration, LocalDate, LocalDateTime}
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -270,7 +270,7 @@ class ValidationController @Inject()(
       schemeAdministratorType = request.schemeAdministratorType,
       chargeType= chargeType,
       fileUploadDataCache =fileUploadDataCache,
-      downloadTimeInMiliSeconds= duration
+      downloadTimeInMilliSeconds= duration
     ))
   }
 
