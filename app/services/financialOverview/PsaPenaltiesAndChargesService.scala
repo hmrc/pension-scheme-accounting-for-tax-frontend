@@ -327,7 +327,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       journeyType match {
         case Overdue  => cache.copy(penalties = getOverdueCharges(cache.penalties))
         case Upcoming => cache.copy(penalties = extractUpcomingCharges(cache.penalties))
-        case _        => cache.copy(penalties = getOverdueCharges(cache.penalties))
+        case _        => cache
       }
     }
 
