@@ -30,6 +30,7 @@ object ChargeType extends Enumerable.Implicits {
       case ChargeTypeAnnualAllowance => "ChargeTypeAnnualAllowance"
       case ChargeTypeLifetimeAllowance => "ChargeTypeLifetimeAllowance"
       case ChargeTypeOverseasTransfer => "ChargeTypeOverseasTransfer"
+      case _ => throw new RuntimeException(s"Unimplemented charge type: $value")
     }
   }
 
@@ -37,6 +38,7 @@ object ChargeType extends Enumerable.Implicits {
     case ChargeTypeAnnualAllowance => "annual-allowance-charge"
     case ChargeTypeLifetimeAllowance => "lifetime-allowance-charge"
     case ChargeTypeOverseasTransfer => "overseas-transfer-charge"
+    case _ => throw new RuntimeException(s"Unimplemented charge type: $value")
   }
 
   case object ChargeTypeAnnualAllowance extends WithName("annualAllowance") with ChargeType

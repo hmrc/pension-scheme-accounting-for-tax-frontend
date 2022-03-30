@@ -233,8 +233,8 @@ object SampleData {
           stoodOverAmount = 25089.08,
           amountDue = 1029.05,
           accruedInterestTotal = 23000.55,
-          periodStartDate = LocalDate.parse("2020-04-01"),
-          periodEndDate = LocalDate.parse("2020-06-30"),
+          periodStartDate = Some(LocalDate.parse("2020-04-01")),
+          periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
           sourceChargeRefForInterest = None,
           documentLineItemDetails = Nil
@@ -248,8 +248,8 @@ object SampleData {
           stoodOverAmount = 25089.08,
           amountDue = 1029.05,
           accruedInterestTotal = 24000.41,
-          periodStartDate = LocalDate.parse("2020-04-01"),
-          periodEndDate = LocalDate.parse("2020-06-30"),
+          periodStartDate = Some(LocalDate.parse("2020-04-01")),
+          periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
           sourceChargeRefForInterest = None,
           documentLineItemDetails = Nil
