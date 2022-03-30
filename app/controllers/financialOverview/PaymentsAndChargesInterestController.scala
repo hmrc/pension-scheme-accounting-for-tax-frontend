@@ -36,7 +36,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, SummaryList}
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -71,9 +71,9 @@ class PaymentsAndChargesInterestController @Inject()(
   private def getFilteredPayments(payments: Seq[SchemeFSDetail], period: String, paymentOrChargeType: PaymentOrChargeType): Seq[SchemeFSDetail] =
     if(paymentOrChargeType == AccountingForTaxCharges) {
       val startDate: LocalDate = LocalDate.parse(period)
-      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate)
+      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate.contains(startDate))
     } else {
-      payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt)
+      payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.exists(_.getYear == period.toInt))
     }
 
   //scalastyle:off parameter.number
@@ -178,7 +178,7 @@ class PaymentsAndChargesInterestController @Inject()(
       Row(
         key = Key(
           msg"paymentsAndCharges.interestFrom".withArgs(
-            schemeFSDetail.periodEndDate.plusDays(46).format(dateFormatterDMY)),
+          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46)))),
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
         ),
         value = Value(

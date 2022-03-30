@@ -209,8 +209,7 @@ class PsaSchemePartialService @Inject()(
                              (implicit messages: Messages): Seq[CardViewModel] = {
     val upcomingCharges: Seq[SchemeFSDetail] =
       paymentsAndChargesService.extractUpcomingCharges(schemeFs)
-
-    val pastCharges: Seq[SchemeFSDetail] = schemeFs.filter(_.periodEndDate.isBefore(DateHelper.today))
+    val pastCharges: Seq[SchemeFSDetail] = schemeFs.filter(_.periodEndDate.exists(_.isBefore(DateHelper.today)))
 
     if (upcomingCharges == Seq.empty && pastCharges == Seq.empty) {
       Nil
@@ -254,8 +253,12 @@ class PsaSchemePartialService @Inject()(
 
       val linkText: Text = if (upcomingCharges.map(_.dueDate).distinct.size == 1 && nonAftUpcomingCharges.isEmpty) {
         msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
-          upcomingCharges.map(_.periodStartDate).distinct.head.format(smallDatePattern),
-          upcomingCharges.map(_.periodEndDate).distinct.head.format(smallDatePattern))
+          upcomingCharges.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate match {
+            case Some(x) => x
+          }).distinct.head.format(smallDatePattern),
+          upcomingCharges.filter(_.periodEndDate.nonEmpty).map(_.periodEndDate match {
+            case Some(x) => x
+          }).distinct.head.format(smallDatePattern))
       } else {
         msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
       }
@@ -322,12 +325,16 @@ class PsaSchemePartialService @Inject()(
 
   private def viewOverdueLink(schemeFs: Seq[SchemeFSDetail], srn: String): Seq[Link] = {
     val nonAftOverdueCharges: Seq[SchemeFSDetail] = schemeFs.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
-    val linkText = if (schemeFs.map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
+    val linkText = if (schemeFs.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
       //messages associated with each scenario of links for the overdue charges tile
       msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
         .withArgs(
-          schemeFs.map(_.periodStartDate).distinct.head.format(smallDatePattern),
-          schemeFs.map(_.periodEndDate).distinct.head.format(smallDatePattern))
+          schemeFs.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate match {
+            case Some(x) => x
+          }).distinct.head.format(smallDatePattern),
+          schemeFs.filter(_.periodEndDate.nonEmpty).map(_.periodEndDate match {
+            case Some(x) => x
+          }).distinct.head.format(smallDatePattern))
     } else {
       msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"
     }

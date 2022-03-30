@@ -108,7 +108,7 @@ class PaymentsAndChargeDetailsControllerSpec
         s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))}<span>" +
         s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=${
           controllers.financialOverview.routes.PaymentsAndChargesInterestController
-            .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url
+            .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url
         }>" +
         s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
 
@@ -119,7 +119,7 @@ class PaymentsAndChargeDetailsControllerSpec
     uk.gov.hmrc.viewmodels.Html(
       s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2", schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
         s"<p class=govuk-body><a id='breakdown' class=govuk-link href=${controllers.financialOverview.routes.PaymentsAndChargeDetailsController
-          .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url}>" +
+          .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url}>" +
         s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
     )
   }
@@ -295,8 +295,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       stoodOverAmount = 25089.08,
       amountDue = amountDue,
       accruedInterestTotal = interest,
-      periodStartDate = LocalDate.parse(QUARTER_START_DATE),
-      periodEndDate = LocalDate.parse(QUARTER_END_DATE),
+      periodStartDate = Some(LocalDate.parse(QUARTER_START_DATE)),
+      periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
@@ -318,8 +318,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       stoodOverAmount = 25089.08,
       amountDue = amountDue,
       accruedInterestTotal = interest,
-      periodStartDate = LocalDate.parse(QUARTER_START_DATE),
-      periodEndDate = LocalDate.parse(QUARTER_END_DATE),
+      periodStartDate =  Some(LocalDate.parse(QUARTER_START_DATE)),
+      periodEndDate =  Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = Some(sourceChargeReference),
       documentLineItemDetails = Nil
@@ -340,8 +340,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       stoodOverAmount = 25089.08,
       amountDue = amountDue,
       accruedInterestTotal = interest,
-      periodStartDate = LocalDate.parse(QUARTER_START_DATE),
-      periodEndDate = LocalDate.parse(QUARTER_END_DATE),
+      periodStartDate =  Some(LocalDate.parse(QUARTER_START_DATE)),
+      periodEndDate =  Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
@@ -361,8 +361,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       stoodOverAmount = 0.00,
       amountDue = 0.00,
       accruedInterestTotal = 0.00,
-      periodStartDate = LocalDate.parse(QUARTER_START_DATE),
-      periodEndDate = LocalDate.parse(QUARTER_END_DATE),
+      periodStartDate =  Some(LocalDate.parse(QUARTER_START_DATE)),
+      periodEndDate =  Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil

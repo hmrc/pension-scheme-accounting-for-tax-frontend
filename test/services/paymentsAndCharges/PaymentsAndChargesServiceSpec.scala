@@ -370,8 +370,8 @@ object PaymentsAndChargesServiceSpec {
       stoodOverAmount = 25089.08,
       amountDue = amountDue,
       accruedInterestTotal = 153.00,
-      periodStartDate = QUARTER_START_DATE,
-      periodEndDate = QUARTER_END_DATE,
+      periodStartDate = Some(QUARTER_START_DATE),
+      periodEndDate = Some(QUARTER_END_DATE),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
@@ -387,8 +387,8 @@ object PaymentsAndChargesServiceSpec {
     stoodOverAmount = 0.00,
     amountDue = 0.00,
     accruedInterestTotal = 0.00,
-    periodStartDate = QUARTER_START_DATE,
-    periodEndDate = QUARTER_END_DATE,
+    periodStartDate = Some(QUARTER_START_DATE),
+    periodEndDate = Some(QUARTER_END_DATE),
     formBundleNumber = None,
     sourceChargeRefForInterest = None,
     documentLineItemDetails = Nil
