@@ -30,6 +30,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Failure
 
 sealed trait UpscanInitiateRequest
 
@@ -108,7 +109,8 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
       fileReference = UpscanFileReference(response.reference.reference)
       postTarget = response.uploadRequest.href
       formFields = response.uploadRequest.fields
-    } yield UpscanInitiateResponse(fileReference, postTarget, formFields)).recoverWith { case e: Throwable =>
+    } yield UpscanInitiateResponse(fileReference, postTarget, formFields)).andThen {
+      case Failure(e) =>
       sendAuditEvent(chargeType, fileUploadDataCache, startTime)
       Future.failed(UpscanInitiateError(e))
     }

@@ -37,7 +37,7 @@ case class AFTUpscanFileUploadAuditEvent(
         Map("psaId" -> psaOrPspId)
       case _ => Map("pspId" -> psaOrPspId)
     }
-    
+
     val failureReason = fileUploadDataCache.status.failureReason match {
       case Some(r) => Map("failureReason" -> r)
       case _ => Map.empty
