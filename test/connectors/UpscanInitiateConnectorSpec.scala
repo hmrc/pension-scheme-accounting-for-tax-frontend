@@ -18,14 +18,19 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.FrontendAppConfig
+import data.SampleData
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.requests.DataRequest
-import models.{Draft, UploadId}
+import models.{Draft, UploadId, UserAnswers}
 import org.mockito.MockitoSugar.mock
 import org.scalatest._
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status.OK
+import play.api.mvc.AnyContent
+import play.api.test.FakeRequest
+import play.api.test.Helpers.GET
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
 
@@ -44,6 +49,9 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
   //scalastyle.off: magic.number
   private val startDate = LocalDate.of(2020,1,1)
   private val uploadId = UploadId.generate
+
+  private implicit val dataRequest: DataRequest[AnyContent] =
+    DataRequest(FakeRequest(GET, "/"), "test-internal-id", Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
 
   ".initiateV2" must {
     val successRedirectUrl = appConfig.successEndpointTarget("srn", startDate, Draft, 1, ChargeTypeAnnualAllowance, uploadId)
@@ -77,7 +85,7 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
           )
       )
 
-      connector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl), ChargeTypeAnnualAllowance)(DataRequest) map { result =>
+      connector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl), ChargeTypeAnnualAllowance) map { result =>
         result.fileReference.reference mustEqual "11370e18-6e24-453e-b45a-76d3e32ea33d"
         result.formFields.get("success_action_redirect") mustEqual Some("https://myservice.com/nextPage")
       }
