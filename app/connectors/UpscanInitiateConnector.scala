@@ -76,13 +76,13 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
                 (implicit request: DataRequest[AnyContent], headerCarrier: HeaderCarrier): Future[UpscanInitiateResponse] = {
 
 
-    val request = UpscanInitiateRequestV2(
+    val req = UpscanInitiateRequestV2(
       callbackUrl = appConfig.upScanCallBack,
       successRedirect = redirectOnSuccess,
       errorRedirect = redirectOnError,
       maximumFileSize = Some(appConfig.maxUploadFileSize  * (1024 * 1024))
     )
-    initiate(appConfig.initiateV2Url, request,chargeType)
+    initiate(appConfig.initiateV2Url,req, chargeType)
   }
   private def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]): Unit = {
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")

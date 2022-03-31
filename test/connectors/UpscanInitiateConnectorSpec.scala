@@ -19,6 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.FrontendAppConfig
 import models.ChargeType.ChargeTypeAnnualAllowance
+import models.requests.DataRequest
 import models.{Draft, UploadId}
 import org.mockito.MockitoSugar.mock
 import org.scalatest._
@@ -76,7 +77,7 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
           )
       )
 
-      connector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl)) map { result =>
+      connector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl), ChargeTypeAnnualAllowance)(DataRequest) map { result =>
         result.fileReference.reference mustEqual "11370e18-6e24-453e-b45a-76d3e32ea33d"
         result.formFields.get("success_action_redirect") mustEqual Some("https://myservice.com/nextPage")
       }
