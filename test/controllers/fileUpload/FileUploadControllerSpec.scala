@@ -91,7 +91,7 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   "onPageLoad" must {
     "return OK and the correct view for a GET" in {
       fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
-      when(mockUpscanInitiateConnector.initiateV2(any(), any())(any())).thenReturn(Future.successful(upscanInitiateResponse))
+      when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
