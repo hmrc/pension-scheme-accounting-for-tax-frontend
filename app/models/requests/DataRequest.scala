@@ -42,7 +42,6 @@ case class DataRequest[A] (
   def aftVersion: Int = sessionData.sessionAccessData.version
   def areSubmittedVersionsAvailable: Boolean = sessionData.sessionAccessData.areSubmittedVersionsAvailable
   def isAmendment: Boolean = aftVersion > 1
-  //def isInDraft : Boolean = aftVersion.
   def isViewOnly: Boolean = sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModeViewOnly
   def isPrecompile: Boolean = sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModePreCompile
   def isEditable: Boolean = !isViewOnly
