@@ -24,13 +24,13 @@
         {% if journeyType == "overdue" %}
             <div class="govuk-grid-column-one-half">
                 <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
-                    {{ messages("psaSchemeFinancial.h2.overduePayments") }}
+                    {{ messages("schemeFinancial.h2.overduePayments") }}
                 </h2>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalOverdue }}</p>
             </div>
             <div class="govuk-grid-column-one-half">
                <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
-                  {{ messages("psaSchemeFinancial.h2.totalInterestAccruing") }}
+                  {{ messages("schemeFinancial.h2.totalInterestAccruing") }}
                </h2>
                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalInterestAccruing }}</p>
             </div>
@@ -38,7 +38,7 @@
         {% if journeyType == "upcoming" %}
             <div class="govuk-grid-column-one-half">
                 <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
-                   {{ messages("psaSchemeFinancial.h2.totalDuePayment") }}
+                   {{ messages("schemeFinancial.h2.totalDuePayment") }}
                 </h2>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalUpcoming }}</p>
             </div>
@@ -46,7 +46,7 @@
        {% if journeyType == "all" %}
            <div class="govuk-grid-column-one-half">
                <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
-                   {{ messages("psaSchemeFinancial.h2.totalOutstandingPayment") }}
+                   {{ messages("schemeFinancial.h2.totalOutstandingPayment") }}
                </h2>
                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalDue }}</p>
            </div>
