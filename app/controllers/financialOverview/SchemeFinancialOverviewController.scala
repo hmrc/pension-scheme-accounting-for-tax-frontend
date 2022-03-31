@@ -18,6 +18,7 @@ package controllers.financialOverview
 
 import connectors.FinancialStatementConnector
 import controllers.actions._
+import helpers.FormatHelper
 import models.SchemeDetails
 import models.financialStatement.SchemeFSDetail
 import play.api.Logger
@@ -25,10 +26,10 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.{PsaSchemePartialService, SchemeService}
+import services.SchemeService
+import services.financialOverview.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import viewmodels.CardViewModel
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,7 +39,7 @@ class PsaSchemeFinancialOverviewController @Inject()( identify: IdentifierAction
                                                       val controllerComponents: MessagesControllerComponents,
                                                       schemeService: SchemeService,
                                                       financialStatementConnector: FinancialStatementConnector,
-                                                      service: PsaSchemePartialService,
+                                                      service: PaymentsAndChargesService,
                                                       renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -46,15 +47,15 @@ class PsaSchemeFinancialOverviewController @Inject()( identify: IdentifierAction
     with NunjucksSupport {
 
   private val logger = Logger(classOf[PsaSchemeFinancialOverviewController])
+
   def psaSchemeFinancialOverview(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
       val response = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
         schemeFS <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
-        aftModel <- service.aftCardModel(schemeDetails, srn)
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
-        renderFinancialOverview(srn, schemeDetails, schemeFS.seqSchemeFSDetail, aftModel, request, creditSchemeFS.seqSchemeFSDetail)
+        renderFinancialOverview(srn, schemeDetails, schemeFS.seqSchemeFSDetail, request, creditSchemeFS.seqSchemeFSDetail)
       }
       response.flatten
   }
@@ -63,28 +64,50 @@ class PsaSchemeFinancialOverviewController @Inject()( identify: IdentifierAction
   private def renderFinancialOverview(srn: String,
                                       schemeDetails: SchemeDetails,
                                       schemeFSDetail: Seq[SchemeFSDetail],
-                                      aftModel: Seq[CardViewModel],
                                       request: RequestHeader,
-                                      creditSchemeFSDetail: Seq[SchemeFSDetail]) (implicit messages: Messages) : Future[Result] = {
+                                      creditSchemeFSDetail: Seq[SchemeFSDetail])(implicit messages: Messages): Future[Result] = {
     val schemeName = schemeDetails.schemeName
-    val upcomingTile: Seq[CardViewModel] = service.upcomingAftChargesModel(schemeFSDetail, srn)
-    val overdueTile: Seq[CardViewModel] = service.overdueAftChargesModel(schemeFSDetail, srn)
-    val creditBalanceFormatted: String = service.creditBalanceAmountFormatted(creditSchemeFSDetail)
-    logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(aftModel)}")
-    logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(upcomingTile)}")
-    logger.debug(s"AFT service returned partial for psa scheme financial overview - ${Json.toJson(overdueTile)}")
+    val overdueCharges: Seq[SchemeFSDetail] = service.getOverdueCharges(schemeFSDetail)
+    val totalOverdueCharge: BigDecimal = overdueCharges.map(_.amountDue).sum
+    val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
+    val upcomingCharges: Seq[SchemeFSDetail] = service.extractUpcomingCharges(schemeFSDetail)
+    val totalUpcomingCharge : BigDecimal = upcomingCharges.map(_.amountDue).sum
+    val totalUpcomingChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalUpcomingCharge)}"
+    val totalOverdueChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalOverdueCharge)}"
+    val totalInterestAccruingFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}"
+    val creditBalanceFormatted: String = creditBalanceAmountFormatted(creditSchemeFSDetail)
+    logger.debug(s"AFT service returned UpcomingCharge - $totalUpcomingCharge")
+    logger.debug(s"AFT service returned OverdueCharge - $totalOverdueCharge")
+    logger.debug(s"AFT service returned InterestAccruing - $totalInterestAccruing")
 
-    val creditBalance = service.getCreditBalanceAmount(creditSchemeFSDetail)
+    val creditBalance = getCreditBalanceAmount(creditSchemeFSDetail)
 
     renderer.render(
-       template = "financialOverview/psaSchemeFinancialOverview.njk",
-        ctx = Json.obj("cards" -> Json.toJson(aftModel ++ upcomingTile ++ overdueTile),
+      template = "financialOverview/psaSchemeFinancialOverview.njk",
+      ctx = Json.obj("totalUpcomingCharge" -> totalUpcomingChargeFormatted,
+        "totalOverdueCharge" -> totalOverdueChargeFormatted,
+        "totalInterestAccruing" -> totalInterestAccruingFormatted ,
         "schemeName" -> schemeName,
         "requestRefundUrl" -> controllers.financialOverview.routes.RequestRefundController.onPageLoad(srn).url,
-         "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "overdue").url,
-         "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "upcoming").url,
-         "allPaymentLink" -> routes.PaymentOrChargeTypeController.onPageLoad(srn, schemeDetails.pstr).url,
-        "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
+        "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "overdue").url,
+        "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "upcoming").url,
+        "allPaymentLink" -> routes.PaymentOrChargeTypeController.onPageLoad(srn, schemeDetails.pstr).url,
+        "creditBalanceFormatted" -> creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
+  }
+
+  def getCreditBalanceAmount(schemeFs: Seq[SchemeFSDetail]): BigDecimal = {
+    val sumAmountOverdue = schemeFs.filter(_.dueDate.nonEmpty).map(_.amountDue).sum
+
+    val creditBalanceAmt = if (sumAmountOverdue >= 0) {
+      BigDecimal(0.00)
+    } else {
+      sumAmountOverdue.abs
+    }
+    creditBalanceAmt
+  }
+  def creditBalanceAmountFormatted(schemeFs: Seq[SchemeFSDetail]): String = {
+    val creditToDisplay = getCreditBalanceAmount(schemeFs)
+    s"${FormatHelper.formatCurrencyAmountAsString(creditToDisplay)}"
   }
 }

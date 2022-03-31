@@ -39,7 +39,7 @@ import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
 
 import scala.concurrent.Future
 
-class PsaSchemeFinancialOverviewControllerSpec
+class SchemeFinancialOverviewControllerSpec
   extends ControllerSpecBase
     with NunjucksSupport
     with JsonMatchers
