@@ -110,10 +110,8 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
       postTarget = response.uploadRequest.href
       formFields = response.uploadRequest.fields
     } yield {
-      println("\n\n\n\n\n\n\n\n"+ response)
       UpscanInitiateResponse(fileReference, postTarget, formFields)}).andThen {
       case Failure(e) =>
-        println("\n\n\n\n\n@@@@@@@@@@@@"+e)
       sendAuditEvent(chargeType, fileUploadDataCache, startTime)
       Future.failed(UpscanInitiateError(e))
     }
