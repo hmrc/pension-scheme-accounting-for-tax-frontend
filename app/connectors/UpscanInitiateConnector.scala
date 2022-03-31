@@ -102,7 +102,7 @@ class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: Front
     val startTime = System.currentTimeMillis
 
     val fileUploadDataCache = FileUploadDataCache(uploadId = "", reference = UUID.randomUUID().toString, status =
-      FileUploadStatus(_type = "Failed", failureReason = Some("Upscan failure"), message = None, downloadUrl = None, mimeType = None, name = None, size = None),
+      FileUploadStatus(_type = "Failed", failureReason = Some("SERVICE UNAVAILABLE"), message = None, downloadUrl = None, mimeType = None, name = None, size = None),
       created = LocalDateTime.now(), lastUpdated = LocalDateTime.now(), expireAt = LocalDateTime.now())
     (for {
       response <- httpClient.POST[T, PreparedUpload](url, initialRequest, headers.toSeq)
