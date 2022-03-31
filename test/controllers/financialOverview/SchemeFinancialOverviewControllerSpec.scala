@@ -48,7 +48,7 @@ class SchemeFinancialOverviewControllerSpec
     with Results
     with ScalaFutures {
 
-  private def getPartial: String = routes.PsaSchemeFinancialOverviewController.psaSchemeFinancialOverview(srn).url
+  private def getPartial: String = routes.SchemeFinancialOverviewController.schemeFinancialOverview(srn).url
 
   private val mockPsaSchemePartialService: PsaSchemePartialService = mock[PsaSchemePartialService]
   private val mockSchemeService: SchemeService = mock[SchemeService]
@@ -76,7 +76,7 @@ class SchemeFinancialOverviewControllerSpec
 
   }
 
-  "PsaSchemeFinancial Controller" when {
+  "SchemeFinancial Controller" when {
     "schemeFinancialOverview" must {
 
       "return the html with information received from overview api" in {
@@ -97,7 +97,7 @@ class SchemeFinancialOverviewControllerSpec
 
         status(result) mustEqual OK
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        templateCaptor.getValue mustEqual "financialOverview/psaSchemeFinancialOverview.njk"
+        templateCaptor.getValue mustEqual "financialOverview/schemeFinancialOverview.njk"
         val actualJson = jsonCaptor.getValue
         (actualJson \ "requestRefundUrl").asOpt[String] mustBe Some(controllers.financialOverview.routes.RequestRefundController.onPageLoad(srn).url)
       }

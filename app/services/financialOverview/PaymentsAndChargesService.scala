@@ -112,6 +112,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   def getDueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
     schemeFSDetail
+      .filter(_.dueDate.nonEmpty)
       .filter(_.amountDue >= BigDecimal(0.00))
 
   def getInterestCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =

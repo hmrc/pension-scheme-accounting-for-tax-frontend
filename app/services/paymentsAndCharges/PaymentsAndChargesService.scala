@@ -74,6 +74,10 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   val isPaymentOverdue: SchemeFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
 
+  def getInterestCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
+    schemeFSDetail
+      .filter(_.accruedInterestTotal >= BigDecimal(0.00))
+
   private def paymentsAndChargesDetails(
                                          details: SchemeFSDetail,
                                          srn: String,

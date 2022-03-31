@@ -176,9 +176,12 @@ class AFTPartialService @Inject()(
                                                 (implicit messages: Messages): Seq[CardViewModel] ={
     val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFs)
     val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFs)
-    val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
-    val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
-    val totalUpcomingCharges: BigDecimal = upcomingCharges.map(_.amountDue).sum
+    val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(schemeFs)
+    val overdueChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFs.filter(_.amountDue > BigDecimal(0.00)))
+    val upcomingChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFs.filter(_.amountDue > BigDecimal(0.00)))
+    val totalOverdue: BigDecimal = overdueChargesAbs.map(_.amountDue).sum
+    val totalInterestAccruing: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
+    val totalUpcomingCharges: BigDecimal = upcomingChargesAbs.map(_.amountDue).sum
     val totalOutstandingPayments: BigDecimal = totalUpcomingCharges + totalOverdue + totalInterestAccruing
     val subHeadingTotalOutstanding: Seq[CardSubHeading] = Seq(CardSubHeading(
     subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),

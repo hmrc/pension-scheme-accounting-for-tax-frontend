@@ -34,21 +34,21 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PsaSchemeFinancialOverviewController @Inject()( identify: IdentifierAction,
-                                                      override val messagesApi: MessagesApi,
-                                                      val controllerComponents: MessagesControllerComponents,
-                                                      schemeService: SchemeService,
-                                                      financialStatementConnector: FinancialStatementConnector,
-                                                      service: PaymentsAndChargesService,
-                                                      renderer: Renderer
+class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
+                                                  override val messagesApi: MessagesApi,
+                                                  val controllerComponents: MessagesControllerComponents,
+                                                  schemeService: SchemeService,
+                                                  financialStatementConnector: FinancialStatementConnector,
+                                                  service: PaymentsAndChargesService,
+                                                  renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private val logger = Logger(classOf[PsaSchemeFinancialOverviewController])
+  private val logger = Logger(classOf[SchemeFinancialOverviewController])
 
-  def psaSchemeFinancialOverview(srn: String): Action[AnyContent] = identify.async {
+  def schemeFinancialOverview(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
       val response = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
@@ -68,8 +68,9 @@ class PsaSchemeFinancialOverviewController @Inject()( identify: IdentifierAction
                                       creditSchemeFSDetail: Seq[SchemeFSDetail])(implicit messages: Messages): Future[Result] = {
     val schemeName = schemeDetails.schemeName
     val overdueCharges: Seq[SchemeFSDetail] = service.getOverdueCharges(schemeFSDetail)
+    val interestCharges: Seq[SchemeFSDetail] = service.getInterestCharges(schemeFSDetail)
     val totalOverdueCharge: BigDecimal = overdueCharges.map(_.amountDue).sum
-    val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
+    val totalInterestAccruing: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
     val upcomingCharges: Seq[SchemeFSDetail] = service.extractUpcomingCharges(schemeFSDetail)
     val totalUpcomingCharge : BigDecimal = upcomingCharges.map(_.amountDue).sum
     val totalUpcomingChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalUpcomingCharge)}"
@@ -83,7 +84,7 @@ class PsaSchemeFinancialOverviewController @Inject()( identify: IdentifierAction
     val creditBalance = getCreditBalanceAmount(creditSchemeFSDetail)
 
     renderer.render(
-      template = "financialOverview/psaSchemeFinancialOverview.njk",
+      template = "financialOverview/schemeFinancialOverview.njk",
       ctx = Json.obj("totalUpcomingCharge" -> totalUpcomingChargeFormatted,
         "totalOverdueCharge" -> totalOverdueChargeFormatted,
         "totalInterestAccruing" -> totalInterestAccruingFormatted ,
