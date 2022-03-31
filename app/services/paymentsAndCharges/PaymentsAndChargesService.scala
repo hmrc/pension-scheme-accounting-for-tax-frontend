@@ -62,7 +62,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
 
   val extractUpcomingCharges: Seq[SchemeFSDetail] => Seq[SchemeFSDetail] = schemeFSDetail =>{
-    schemeFSDetail.filter(charge => charge.dueDate.nonEmpty && !charge.dueDate.get.isBefore(DateHelper.today))}
+    schemeFSDetail.filter(charge => charge.dueDate.nonEmpty
+      && (charge.dueDate.get.isEqual(DateHelper.today) || charge.dueDate.get.isAfter(DateHelper.today)))}
 
   def getOverdueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
     schemeFSDetail
