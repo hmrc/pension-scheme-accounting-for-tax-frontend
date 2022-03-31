@@ -72,7 +72,7 @@ class AFTPartialService @Inject()(
     val upcomingCharges: Seq[SchemeFSDetail] =
       paymentsAndChargesService.extractUpcomingCharges(schemeFs)
 
-    val pastCharges: Seq[SchemeFSDetail] = schemeFs.filter(_.periodEndDate.isBefore(DateHelper.today))
+    val pastCharges: Seq[SchemeFSDetail] = schemeFs.filter(_.periodEndDate.exists(_.isBefore(DateHelper.today)))
 
     val total = upcomingCharges.map(_.amountDue).sum
 
@@ -154,7 +154,7 @@ class AFTPartialService @Inject()(
         None
       } else {
         val nonAftOverdueCharges: Seq[SchemeFSDetail] = schemeFs.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
-        val linkText: Text = if (schemeFs.map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
+        val linkText: Text = if (schemeFs.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
             msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
               .withArgs(
                 startDate(schemeFs).format(DateTimeFormatter.ofPattern("d MMMM")),
@@ -237,8 +237,12 @@ class AFTPartialService @Inject()(
     }
 
 
-  val startDate: Seq[SchemeFSDetail] => LocalDate = schemeFs => schemeFs.map(_.periodStartDate).distinct.head
-  val endDate: Seq[SchemeFSDetail] => LocalDate = schemeFs => schemeFs.map(_.periodEndDate).distinct.head
+  val startDate: Seq[SchemeFSDetail] => LocalDate = schemeFs => schemeFs.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate match{
+    case Some(startDateValue) => startDateValue
+  }).distinct.head
+  val endDate: Seq[SchemeFSDetail] => LocalDate = schemeFs => schemeFs.filter(_.periodEndDate.nonEmpty).map(_.periodEndDate match{
+    case Some(endDateValue) => endDateValue
+  }).distinct.head
 
   private def optionSubHeading(
                                 inProgressReturns: Seq[AFTOverviewOnPODS],

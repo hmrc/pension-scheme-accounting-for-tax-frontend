@@ -26,8 +26,8 @@ import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.{SchemeFS, SchemeFSDetail}
+import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
 import models.{AccessMode, GenericViewModel, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
@@ -98,8 +98,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
           stoodOverAmount = 25089.08,
           amountDue = 1029.05,
           accruedInterestTotal = 23000.55,
-          periodStartDate = LocalDate.parse("2021-04-01"),
-          periodEndDate = LocalDate.parse("2021-06-30"),
+          periodStartDate = Some(LocalDate.parse("2021-04-01")),
+          periodEndDate = Some(LocalDate.parse("2021-06-30")),
           formBundleNumber = None,
           sourceChargeRefForInterest = None,
           documentLineItemDetails = Nil
