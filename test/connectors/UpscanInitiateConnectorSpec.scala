@@ -22,11 +22,9 @@ import config.FrontendAppConfig
 import data.SampleData
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.requests.DataRequest
-import models.{AdministratorOrPractitioner, Draft, FileUploadDataCache, FileUploadStatus, UploadId, UserAnswers}
-import org.mockito.ArgumentCaptor
+import models.{Draft, FileUploadDataCache, FileUploadStatus, UploadId, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.times
-import org.mockito.MockitoSugar.mock
+import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest._
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
@@ -43,31 +41,29 @@ import utils.WireMockHelper
 
 import java.time.{LocalDate, LocalDateTime}
 
-class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with OptionValues with RecoverMethods {
+class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with OptionValues with RecoverMethods with MockitoSugar {
+  //scalastyle.off: magic.number
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
   override protected def portConfigKey: String = "microservice.services.upscan-initiate.port"
 
-  private lazy val connector: UpscanInitiateConnector = injector.instanceOf[UpscanInitiateConnector]
+  private lazy val connector: UpscanInitiateConnector = app.injector.instanceOf[UpscanInitiateConnector]
   implicit val appConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val url = "/upscan/v2/initiate"
   private val dateTimeNow = LocalDateTime.now()
   private val dataToReturn = FileUploadDataCache(uploadId = "", reference = "s", status =
     FileUploadStatus(_type = "Failed", failureReason = Some("Upscan failure"), message = None, downloadUrl = None, mimeType = None, name = None, size = None),
     dateTimeNow, dateTimeNow, dateTimeNow)
-  //scalastyle.off: magic.number
+
   private val startDate = LocalDate.of(2020, 1, 1)
   private val uploadId = UploadId.generate
   private val mockAuditService = mock[AuditService]
-  private val expectedAuditEvent = AFTUpscanFileUploadAuditEvent(SampleData.psaId, SampleData.pstr, AdministratorOrPractitioner.Administrator,
-    ChargeTypeAnnualAllowance, dataToReturn, System.currentTimeMillis())
   private implicit val dataRequest: DataRequest[AnyContent] =
     DataRequest(FakeRequest(GET, "/"), "test-internal-id", Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
 
-
-  val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[AuditService].toInstance(mockAuditService),
+  override protected def bindings: Seq[GuiceableModule] = Seq[GuiceableModule](
+    bind[AuditService].toInstance(mockAuditService)
   )
 
   ".initiateV2" must {
@@ -114,19 +110,14 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
       val eventCaptor: ArgumentCaptor[AFTUpscanFileUploadAuditEvent] = ArgumentCaptor.forClass(classOf[AFTUpscanFileUploadAuditEvent])
       server.stubFor(
         post(urlEqualTo(url))
-          .willReturn(
-            aResponse().withStatus(400)
-          )
+          .willReturn(aResponse().withStatus(400))
       )
       recoverToExceptionIf[BadRequestException] {
         connector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl), ChargeTypeAnnualAllowance)
-      } map { x =>
-        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(),any())
-        x.responseCode mustEqual Status.BAD_REQUEST
+      } map { ex =>
+        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+        ex.responseCode mustEqual Status.BAD_REQUEST
       }
     }
   }
-  
 }
-
-
