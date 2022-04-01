@@ -46,7 +46,7 @@
             {% endif %}
             {{ hmrcPageHeading({
                   text: summarySearchHeadingText+ messages('aft.summary.heading', quarterStartDate, quarterEndDate),
-                  section: viewModel.schemeName
+                  section: submissionNumber
                 }) }}
             <form action="{{ searchURL }}" method="post" autocomplete="off" novalidate >
                 {{ csrf() | safe }}

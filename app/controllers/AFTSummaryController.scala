@@ -22,7 +22,7 @@ import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
 import helpers.AFTSummaryHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
+import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, Submission, UserAnswers}
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.Logger
@@ -177,6 +177,11 @@ class AFTSummaryController @Inject()(
                             accessType: AccessType)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
     val getLegendHtml = Json.obj("summaryheadingtext" -> confirmationPanelText(schemeName, startDate, endDate,formSearchText.value).toString())
+    val submissionNumber =  if (accessType == Submission){
+      "Submission" + ' '+ version.toString
+    }else{
+      ("Draft")
+    }
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
     } else {
@@ -187,6 +192,7 @@ class AFTSummaryController @Inject()(
       "srn" -> srn,
       "startDate" -> Some(localDateToString(startDate)),
       "form" -> form,
+      "submissionNumber" -> submissionNumber,
       "formSearchText" -> formSearchText,
       "isAmendment" -> request.isAmendment,
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, version, accessType),
