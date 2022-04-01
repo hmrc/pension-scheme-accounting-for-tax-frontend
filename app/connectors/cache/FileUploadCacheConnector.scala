@@ -19,7 +19,7 @@ package connectors.cache
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.Reference
-import models.{Failed, FileUploadStatus, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
+import models.{Failed, FileUploadDataCache, FileUploadStatus, InProgress, UploadId, UploadStatus, UploadedSuccessfully}
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json._
@@ -40,26 +40,13 @@ class FileUploadCacheConnector @Inject()(
 
   protected def urlUploadResult = s"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/fileUploadResult"
 
-  private val failedFormat: OFormat[Failed] = Json.format[Failed]
-
-  private val uploadedSuccessfullyFormat: OFormat[UploadedSuccessfully] = Json.format[UploadedSuccessfully]
-
   override def getUploadResult(id: UploadId)
-                              (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[UploadStatus]] = {
+                              (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[FileUploadDataCache]] = {
 
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("uploadId", id.value))
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    implicit val read: Reads[UploadStatus] = (json: JsValue) => {
-      val jsObject = json.asInstanceOf[JsObject]
-      jsObject.value.get("_type") match {
-        case Some(JsString("InProgress")) => JsSuccess(InProgress)
-        case Some(JsString("Failed")) => Json.fromJson[Failed](jsObject)(failedFormat)
-        case Some(JsString("UploadedSuccessfully")) => Json.fromJson[UploadedSuccessfully](jsObject)(uploadedSuccessfullyFormat)
-        case Some(value) => JsError(s"Unexpected value of _type: $value")
-        case None => JsError("Missing _type field")
-      }
-    }
+
     http.GET[HttpResponse](url)(implicitly, hc, implicitly)
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
@@ -67,7 +54,7 @@ class FileUploadCacheConnector @Inject()(
           case NOT_FOUND =>
             None
           case OK =>
-            Some(response.json.as[UploadStatus])
+            Some(response.json.as[FileUploadDataCache])
           case _ =>
             throw new HttpException(response.body, response.status)
         }
