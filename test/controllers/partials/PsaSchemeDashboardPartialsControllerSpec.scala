@@ -153,8 +153,8 @@ class PsaSchemeDashboardPartialsControllerSpec
   )
   private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
   private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
-  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
+  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
   private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
   private val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
 }

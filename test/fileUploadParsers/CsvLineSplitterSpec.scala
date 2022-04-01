@@ -21,8 +21,6 @@ import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 
-import scala.collection.mutable.ArrayBuffer
-
 class CsvLineSplitterSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   "split" must {

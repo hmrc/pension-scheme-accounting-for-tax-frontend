@@ -22,7 +22,7 @@ import config.FrontendAppConfig
 import data.SampleData
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.requests.DataRequest
-import models.{AdministratorOrPractitioner, Draft, FileUploadDataCache, FileUploadStatus, UploadId, UserAnswers}
+import models.{AdministratorOrPractitioner, Draft, UploadId, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest._
@@ -39,7 +39,7 @@ import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier}
 import utils.WireMockHelper
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.LocalDate
 
 class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with OptionValues with RecoverMethods with MockitoSugar {
   //scalastyle.off: magic.number
@@ -51,10 +51,6 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
   private lazy val connector: UpscanInitiateConnector = app.injector.instanceOf[UpscanInitiateConnector]
   implicit val appConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val url = "/upscan/v2/initiate"
-  private val dateTimeNow = LocalDateTime.now()
-  private val dataToReturn = FileUploadDataCache(uploadId = "", reference = "s", status =
-    FileUploadStatus(_type = "Failed", failureReason = Some("Upscan failure"), message = None, downloadUrl = None, mimeType = None, name = None, size = None),
-    dateTimeNow, dateTimeNow, dateTimeNow)
 
   private val startDate = LocalDate.of(2020, 1, 1)
   private val uploadId = UploadId.generate

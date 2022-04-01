@@ -24,7 +24,7 @@ import controllers.financialOverview.PsaPenaltiesAndChargeDetailsControllerSpec.
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
-import models.financialStatement.{PsaFS, PsaFSDetail}
+import models.financialStatement.PsaFSDetail
 import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -36,8 +36,8 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import services.financialOverview.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import services.SchemeService
+import services.financialOverview.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal

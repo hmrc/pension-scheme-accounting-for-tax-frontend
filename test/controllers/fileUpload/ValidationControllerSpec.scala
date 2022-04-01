@@ -449,7 +449,6 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
   private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
   private val mockAFTService: AFTService = mock[AFTService]
   private val mockFileUploadAftReturnService: FileUploadAftReturnService = mock[FileUploadAftReturnService]
-  private val mockFileUploadStatus: FileUploadStatus = mock[FileUploadStatus]
   private val fakeUploadProgressTracker: UploadProgressTracker = new UploadProgressTracker {
     override def requestUpload(uploadId: UploadId, fileReference: Reference)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] =
       Future.successful(())

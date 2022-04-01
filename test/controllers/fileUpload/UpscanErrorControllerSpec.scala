@@ -16,22 +16,17 @@
 
 package controllers.fileUpload
 
-import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData.{accessType, dummyCall, schemeName, srn, userAnswersWithSchemeName, versionInt}
-import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
-import fileUploadParsers.ParserValidationError
-import models.LocalDateBinder._
+import data.SampleData._
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{ChargeType, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
-import play.api.inject.bind
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport

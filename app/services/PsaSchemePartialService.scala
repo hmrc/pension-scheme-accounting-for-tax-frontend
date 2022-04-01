@@ -22,6 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSDetail
+import models.financialStatement.SchemeFSDetail.{endDate, startDate}
 import models.{AFTOverview, AFTOverviewOnPODS, Draft, Quarters, SchemeDetails}
 import play.api.i18n.Messages
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -253,12 +254,9 @@ class PsaSchemePartialService @Inject()(
 
       val linkText: Text = if (upcomingCharges.map(_.dueDate).distinct.size == 1 && nonAftUpcomingCharges.isEmpty) {
         msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
-          upcomingCharges.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate match {
-            case Some(x) => x
-          }).distinct.head.format(smallDatePattern),
-          upcomingCharges.filter(_.periodEndDate.nonEmpty).map(_.periodEndDate match {
-            case Some(x) => x
-          }).distinct.head.format(smallDatePattern))
+          startDate(upcomingCharges).format(smallDatePattern),
+          endDate(upcomingCharges).format(smallDatePattern)
+        )
       } else {
         msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
       }

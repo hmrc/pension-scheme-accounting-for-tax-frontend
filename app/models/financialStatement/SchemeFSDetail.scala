@@ -118,4 +118,15 @@ object SchemeFSDetail {
         documentLineItemDetails
       )
   )
+
+
+  val startDate: Seq[SchemeFSDetail] => LocalDate = schemeFs =>
+    getOrException(schemeFs.filter(_.periodStartDate.nonEmpty).flatMap(_.periodStartDate.toSeq).distinct
+      .headOption)
+
+  val endDate: Seq[SchemeFSDetail] => LocalDate = schemeFs =>
+    getOrException(schemeFs.filter(_.periodEndDate.nonEmpty).flatMap(_.periodEndDate.toSeq).distinct
+      .headOption)
+
+  private def getOrException[A](v:Option[A]): A = v.getOrElse(throw new RuntimeException("Value not found"))
 }

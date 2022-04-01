@@ -117,6 +117,7 @@ class FileUploadController @Inject()(
                   }
                 case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
               }
+            case _ => throw new RuntimeException("No upload data cache found")
           }
     }
 

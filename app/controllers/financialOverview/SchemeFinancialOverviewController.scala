@@ -20,9 +20,9 @@ import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.SchemeDetails
-import models.financialStatement.SchemeFSDetail
+import models.financialStatement.{SchemeFS, SchemeFSDetail}
 import play.api.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
@@ -55,7 +55,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
         schemeFS <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
-        renderFinancialOverview(srn, schemeDetails, schemeFS.seqSchemeFSDetail, request, creditSchemeFS.seqSchemeFSDetail)
+        renderFinancialOverview(srn, schemeDetails, schemeFS, request, creditSchemeFS.seqSchemeFSDetail)
       }
       response.flatten
   }
@@ -63,9 +63,10 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
   // scalastyle:off parameter.number
   private def renderFinancialOverview(srn: String,
                                       schemeDetails: SchemeDetails,
-                                      schemeFSDetail: Seq[SchemeFSDetail],
+                                      schemeFS: SchemeFS,
                                       request: RequestHeader,
-                                      creditSchemeFSDetail: Seq[SchemeFSDetail])(implicit messages: Messages): Future[Result] = {
+                                      creditSchemeFSDetail: Seq[SchemeFSDetail]): Future[Result] = {
+    val schemeFSDetail = schemeFS.seqSchemeFSDetail
     val schemeName = schemeDetails.schemeName
     val overdueCharges: Seq[SchemeFSDetail] = service.getOverdueCharges(schemeFSDetail)
     val interestCharges: Seq[SchemeFSDetail] = service.getInterestCharges(schemeFSDetail)
@@ -83,13 +84,19 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
 
     val creditBalance = getCreditBalanceAmount(creditSchemeFSDetail)
 
+    val requestRefundUrl = schemeFS.inhibitRefundSignal match {
+      case true => routes.RefundUnavailableController.onPageLoad.url
+      case false => routes.RequestRefundController.onPageLoad(srn).url
+    }
+
+
     renderer.render(
       template = "financialOverview/schemeFinancialOverview.njk",
       ctx = Json.obj("totalUpcomingCharge" -> totalUpcomingChargeFormatted,
         "totalOverdueCharge" -> totalOverdueChargeFormatted,
         "totalInterestAccruing" -> totalInterestAccruingFormatted ,
         "schemeName" -> schemeName,
-        "requestRefundUrl" -> controllers.financialOverview.routes.RequestRefundController.onPageLoad(srn).url,
+        "requestRefundUrl" -> requestRefundUrl,
         "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "overdue").url,
         "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "upcoming").url,
         "allPaymentLink" -> routes.PaymentOrChargeTypeController.onPageLoad(srn, schemeDetails.pstr).url,

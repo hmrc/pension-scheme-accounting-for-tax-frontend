@@ -135,8 +135,8 @@ class SchemeFinancialOverviewControllerSpec
     if  (creditBalance >= 0) BigDecimal(0.00).toString()
     else creditBalance.abs.toString()
   }
-  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
+  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
   private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
   private val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
 }

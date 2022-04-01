@@ -63,6 +63,7 @@ object FileUploadGenericErrorReporter {
     case ChargeTypeAnnualAllowance => annualAllowanceHeader
     case ChargeTypeLifetimeAllowance => lifetimeAllowanceHeader
     case ChargeTypeOverseasTransfer => overseasTransferHeader
+    case _ => throw new RuntimeException("Invalid charge type")
   }
 
   def generateGenericErrorReport(errors: Seq[ParserValidationError], chargeType: ChargeType): ErrorReport = {
