@@ -17,7 +17,6 @@
 package controllers.fileUpload
 
 import audit.{AFTUpscanFileUploadAuditEvent, AuditService}
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.fileUpload.UploadCheckSelectionFormProvider
