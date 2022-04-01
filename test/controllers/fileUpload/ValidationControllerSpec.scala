@@ -253,7 +253,6 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       ).value
 
       status(result) mustEqual OK
-      //here
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
@@ -299,7 +298,6 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       ).value
 
       status(result) mustEqual OK
-      //here
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedErrors = Seq("fileUpload.memberDetails.generic.error.firstName",

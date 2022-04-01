@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{ChargeType, Failed, FileUploadDataCache, FileUploadStatus, GenericViewModel, InProgress, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
+import models.{ChargeType, FileUploadDataCache, FileUploadStatus, GenericViewModel, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import play.api.Application
