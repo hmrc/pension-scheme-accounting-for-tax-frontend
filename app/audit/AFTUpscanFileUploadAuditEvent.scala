@@ -39,7 +39,8 @@ case class AFTUpscanFileUploadAuditEvent(
       case Left(error) =>
         Map(
           "uploadStatus" -> "Failed",
-          "failureReason" -> error
+          "failureReason" -> "Service Unavailable",
+          "failureDetail" -> error
         )
       case Right(fileUploadDataCache) =>
         val failureReasonMap = fileUploadDataCache.status.failureReason match {
