@@ -23,9 +23,9 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, AdministratorOrPractitioner, ChargeType, FileUploadDataCache, FileUploadStatus, GenericViewModel, SchemeDetails, UploadId}
-import pages.{PSTRQuery, SchemeNameQuery}
+import models.{AccessType, ChargeType, FileUploadDataCache, GenericViewModel, UploadId}
 import pages.fileUpload.UploadedFileName
+import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -34,7 +34,6 @@ import renderer.Renderer
 import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
-import java.time.{Duration, LocalDateTime}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -122,7 +121,10 @@ class FileUploadController @Inject()(
     }
 
 
-   private def sendAuditEvent(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]): Unit = {
+   private def sendAuditEvent(
+                               chargeType: ChargeType,
+                               fileUploadDataCache: FileUploadDataCache,
+                               startTime: Long)(implicit request: DataRequest[AnyContent]): Unit = {
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
     val endTime = System.currentTimeMillis
     val duration = endTime- startTime
@@ -131,7 +133,7 @@ class FileUploadController @Inject()(
       pstr = pstr,
       schemeAdministratorType = request.schemeAdministratorType,
       chargeType= chargeType,
-      fileUploadDataCache =fileUploadDataCache,
+      outcome = Right(fileUploadDataCache),
       uploadTimeInMilliSeconds = duration
     ))
   }

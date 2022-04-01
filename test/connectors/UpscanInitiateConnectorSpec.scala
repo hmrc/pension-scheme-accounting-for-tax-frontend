@@ -22,7 +22,7 @@ import config.FrontendAppConfig
 import data.SampleData
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.requests.DataRequest
-import models.{Draft, FileUploadDataCache, FileUploadStatus, UploadId, UserAnswers}
+import models.{AdministratorOrPractitioner, Draft, FileUploadDataCache, FileUploadStatus, UploadId, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, MockitoSugar}
 import org.scalatest._
@@ -59,8 +59,9 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
   private val startDate = LocalDate.of(2020, 1, 1)
   private val uploadId = UploadId.generate
   private val mockAuditService = mock[AuditService]
+  private val psaId = "A2100000"
   private implicit val dataRequest: DataRequest[AnyContent] =
-    DataRequest(FakeRequest(GET, "/"), "test-internal-id", Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
+    DataRequest(FakeRequest(GET, "/"), "test-internal-id", Some(PsaId(psaId)), None, UserAnswers(), SampleData.sessionData())
 
   override protected def bindings: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[AuditService].toInstance(mockAuditService)
@@ -110,13 +111,23 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
       val eventCaptor: ArgumentCaptor[AFTUpscanFileUploadAuditEvent] = ArgumentCaptor.forClass(classOf[AFTUpscanFileUploadAuditEvent])
       server.stubFor(
         post(urlEqualTo(url))
-          .willReturn(aResponse().withStatus(400))
+          .willReturn(
+            aResponse()
+              .withStatus(400)
+              .withBody("test")
+          )
       )
       recoverToExceptionIf[BadRequestException] {
         connector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl), ChargeTypeAnnualAllowance)
       } map { ex =>
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
         ex.responseCode mustEqual Status.BAD_REQUEST
+        val actualEvent: AFTUpscanFileUploadAuditEvent = eventCaptor.getValue
+        actualEvent.psaOrPspId mustBe psaId
+        actualEvent.schemeAdministratorType mustBe AdministratorOrPractitioner.Administrator
+        actualEvent.chargeType mustBe ChargeTypeAnnualAllowance
+        val error = actualEvent.outcome.fold(identity, _ => "")
+        error.contains("returned 400 (Bad Request). Response body 'test'") mustBe true
       }
     }
   }

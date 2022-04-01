@@ -16,40 +16,55 @@
 
 package audit
 
-import audit.AuditEvent
 import models.{AdministratorOrPractitioner, ChargeType, FileUploadDataCache}
-
-
 
 case class AFTUpscanFileUploadAuditEvent(
                                           psaOrPspId: String,
                                           pstr: String,
                                           schemeAdministratorType: AdministratorOrPractitioner,
                                           chargeType: ChargeType,
-                                          fileUploadDataCache:FileUploadDataCache,
+                                          outcome: Either[String, FileUploadDataCache],
                                           uploadTimeInMilliSeconds: Long,
                                         ) extends AuditEvent {
   override def auditType: String = "AFTFileUpscanUploadCheck"
 
-  override def details:Map[String, String] = {
+  override def details: Map[String, String] = {
     val psaOrPspIdJson = schemeAdministratorType match {
       case AdministratorOrPractitioner.Administrator =>
         Map("psaId" -> psaOrPspId)
       case _ => Map("pspId" -> psaOrPspId)
     }
 
-    val failureReason = fileUploadDataCache.status.failureReason match {
-      case Some(r) => Map("failureReason" -> r)
-      case _ => Map.empty
+    val detailMap = outcome match {
+      case Left(error) =>
+        Map(
+          "uploadStatus" -> "Failed",
+          "failureReason" -> error
+        )
+      case Right(fileUploadDataCache) =>
+        val failureReasonMap = fileUploadDataCache.status.failureReason match {
+          case Some(failureReason) =>
+            Map(
+              "failureReason" -> failureReason
+            )
+          case _ => Map.empty
+        }
+
+        Map(
+          "uploadStatus" -> fileUploadDataCache.status._type) ++
+          failureReasonMap ++
+          Map(
+            "fileSize" -> fileUploadDataCache.status.size.toString,
+            "reference" -> fileUploadDataCache.reference
+          )
     }
+
+
     psaOrPspIdJson ++
-    Map(
-      "pstr" -> pstr,
-      "chargeType" -> chargeType.toString,
-      "uploadStatus" -> fileUploadDataCache.status._type,
-      "uploadTimeInMillSeconds" -> uploadTimeInMilliSeconds.toString,
-      "fileSize" -> fileUploadDataCache.status.size.toString,
-      "reference" -> fileUploadDataCache.reference
-    )  ++failureReason
+      Map(
+        "pstr" -> pstr,
+        "chargeType" -> chargeType.toString,
+        "uploadTimeInMillSeconds" -> uploadTimeInMilliSeconds.toString
+      ) ++ detailMap
   }
 }
