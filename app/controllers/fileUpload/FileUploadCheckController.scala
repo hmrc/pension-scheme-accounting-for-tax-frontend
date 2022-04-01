@@ -54,7 +54,7 @@ class FileUploadCheckController @Inject()(
                                            uploadProgressTracker: UploadProgressTracker,
                                            upscanErrorHandlingService: UpscanErrorHandlingService,
                                            auditService: AuditService
-                                         )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
+                                         )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
@@ -173,7 +173,7 @@ class FileUploadCheckController @Inject()(
           }
     }
 
-  private def getFileName(uploadStatus: Option[FileUploadDataCache])(implicit request: DataRequest[AnyContent]): String = {
+  private def getFileName(uploadStatus: Option[FileUploadDataCache]): String = {
     logger.info("FileUploadCheckController.getFileName")
     uploadStatus.map { result =>
         val status = result.status
