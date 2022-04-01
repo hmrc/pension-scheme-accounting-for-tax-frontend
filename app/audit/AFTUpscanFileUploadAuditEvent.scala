@@ -50,11 +50,18 @@ case class AFTUpscanFileUploadAuditEvent(
           case _ => Map.empty
         }
 
+        val fileSizeMap = fileUploadDataCache.status.size match {
+          case Some(v) =>
+            Map(
+              "fileSize" -> v.toString
+            )
+          case _ => Map.empty
+        }
+
         Map(
           "uploadStatus" -> fileUploadDataCache.status._type) ++
-          failureReasonMap ++
+          failureReasonMap ++ fileSizeMap ++
           Map(
-            "fileSize" -> fileUploadDataCache.status.size.toString,
             "reference" -> fileUploadDataCache.reference
           )
     }
