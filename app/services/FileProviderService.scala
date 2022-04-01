@@ -17,33 +17,33 @@
 package services
 
 import models.ChargeType
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import play.api.Environment
 
 import java.io.File
 import javax.inject.Inject
 
 class FileProviderService @Inject()(environment: Environment){
+  private val baseInstructionsPath: String = "conf/resources/fileDownload/instructions"
+  private val baseTemplatePath: String = "conf/resources/fileDownload/template"
 
-  private val baseInstructionsPath: String = "conf/resources/fileDownload/instructions/"
+  private val instructionsFilePath = Map(
+    "annualAllowance" -> s"$baseInstructionsPath/aft-annual-allowance-charge-upload-format-instructions.ods",
+    "lifeTimeAllowance" -> s"$baseInstructionsPath/aft-lifetime-allowance-charge-upload-format-instructions.ods",
+    "overseasTransfer"-> s"$baseInstructionsPath/aft-overseas-transfer-charge-upload-format-instructions.ods"
+  )
+
+  private val templateFilePathMap = Map(
+    "annualAllowance" -> s"$baseTemplatePath/aft-annual-allowance-charge-upload-template.csv",
+    "lifeTimeAllowance"-> s"$baseTemplatePath/aft-lifetime-allowance-charge-upload-template.csv",
+    "overseasTransfer"-> s"$baseTemplatePath/aft-overseas-transfer-charge-upload-template.csv"
+  )
 
   private def instructionsFilePath(chargeType: ChargeType): String = {
-    chargeType match {
-      case ChargeTypeAnnualAllowance => baseInstructionsPath + "aft-annual-allowance-charge-upload-format-instructions.ods"
-      case ChargeTypeLifetimeAllowance => baseInstructionsPath + "aft-lifetime-allowance-charge-upload-format-instructions.ods"
-      case ChargeTypeOverseasTransfer => baseInstructionsPath + "aft-overseas-transfer-charge-upload-format-instructions.ods"
-
-    }
+    instructionsFilePath(chargeType.toString)
   }
 
-  private val baseTemplatePath: String = "conf/resources/fileDownload/template/"
-
   private def templateFilePath(chargeType: ChargeType): String = {
-    chargeType match {
-      case ChargeTypeAnnualAllowance   => baseTemplatePath + "aft-annual-allowance-charge-upload-template.csv"
-      case ChargeTypeLifetimeAllowance => baseTemplatePath + "aft-lifetime-allowance-charge-upload-template.csv"
-      case ChargeTypeOverseasTransfer  => baseTemplatePath + "aft-overseas-transfer-charge-upload-template.csv"
-    }
+    templateFilePathMap(chargeType.toString)
   }
 
 

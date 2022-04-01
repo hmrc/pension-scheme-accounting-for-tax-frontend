@@ -54,7 +54,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
   val isPaymentOverdue: PsaFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
-  def retrievePsaChargesAmount(psaFs: Seq[PsaFSDetail])(implicit messages: Messages): (String, String, String) = {
+  def retrievePsaChargesAmount(psaFs: Seq[PsaFSDetail]): (String, String, String) = {
 
     val upcomingCharges: Seq[PsaFSDetail] =
       psaFs.filter(_.dueDate.exists(!_.isBefore(DateHelper.today)))
@@ -154,8 +154,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       Nil) { (acc, detail) =>
 
       val index: String = allChargeRefs.indexOf(detail.chargeReference).toString
-      val chargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
-
       val tableRecords = getSchemeName(psaId, detail.pstr).map { schemeName =>
 
         val tableChargeType = if (detail.chargeType == CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detail.chargeType
@@ -230,7 +228,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     )
   }
 
-  private def mapToTable(allPayments: Seq[PsaPaymentsAndChargesDetails], includeHeadings: Boolean = true,
+  private def mapToTable(allPayments: Seq[PsaPaymentsAndChargesDetails], includeHeadings: Boolean,
                          journeyType: ChargeDetailsFilter)(implicit messages: Messages): Table = {
 
     val head = if (includeHeadings) {

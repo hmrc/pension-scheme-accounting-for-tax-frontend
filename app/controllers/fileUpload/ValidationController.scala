@@ -25,7 +25,7 @@ import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidO
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UploadStatus, UserAnswers}
+import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -34,7 +34,6 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
-import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 

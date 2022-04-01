@@ -32,7 +32,7 @@ class MongoDateTimeFormatsSpec extends SpecBase with Matchers with OptionValues 
     val dateMillis = 1517443200000L
 
     val json = Json.obj(
-      "$date" -> dateMillis
+      "$" + "date" -> dateMillis
     )
 
     "must serialise to json" in {
