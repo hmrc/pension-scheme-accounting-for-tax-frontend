@@ -22,7 +22,7 @@ import helpers.FormatHelper
 import models.SchemeDetails
 import models.financialStatement.{SchemeFS, SchemeFSDetail}
 import play.api.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
@@ -65,7 +65,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
                                       schemeDetails: SchemeDetails,
                                       schemeFS: SchemeFS,
                                       request: RequestHeader,
-                                      creditSchemeFSDetail: Seq[SchemeFSDetail])(implicit messages: Messages): Future[Result] = {
+                                      creditSchemeFSDetail: Seq[SchemeFSDetail]): Future[Result] = {
     val schemeFSDetail = schemeFS.seqSchemeFSDetail
     val schemeName = schemeDetails.schemeName
     val overdueCharges: Seq[SchemeFSDetail] = service.getOverdueCharges(schemeFSDetail)

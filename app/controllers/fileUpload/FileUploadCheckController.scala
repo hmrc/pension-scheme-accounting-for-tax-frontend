@@ -26,8 +26,8 @@ import models.fileUpload.UploadCheckSelection
 import models.fileUpload.UploadCheckSelection.{No, Yes}
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, FileUploadDataCache, GenericViewModel, UploadId}
-import pages.{PSTRQuery, SchemeNameQuery}
 import pages.fileUpload.{UploadCheckPage, UploadedFileName}
+import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -37,7 +37,7 @@ import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.{Duration, LocalDate, LocalDateTime}
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -94,6 +94,7 @@ class FileUploadCheckController @Inject()(
                       result
                   }
               }
+            case _ => throw new RuntimeException("No upload data cache")
           }
     }
 

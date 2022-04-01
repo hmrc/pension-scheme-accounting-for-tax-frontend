@@ -159,11 +159,6 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual SEE_OTHER
 
       verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
-      val jsonToPassToTemplate = Json.obj(
-        "schemeName" ->schemeName,
-        "pstr" -> pstr,
-        "annualAllowance" -> Json.obj("uploadedFileName"->"name")
-      )
 
       redirectLocation(result) mustBe Some(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version.toInt, chargeType, uploadId).url)
     }

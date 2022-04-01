@@ -255,6 +255,7 @@ class ValidationController @Inject()(
                       Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
                   }
                 }
+              case _ => sessionExpired
             }
           case _ => sessionExpired
         }

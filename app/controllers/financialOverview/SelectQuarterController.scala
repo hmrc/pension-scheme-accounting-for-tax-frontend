@@ -110,14 +110,10 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   }
 
   private def getDisplayQuarters(year: String, payments: Seq[SchemeFSDetail]): Seq[DisplayQuarter] = {
-
     val quartersFound: Seq[LocalDate] = payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
       .filter(_.periodStartDate.exists(_.getYear == year.toInt))
-      .map(_.periodStartDate match {
-        case Some(x) => x
-        }
-      ).distinct
+      .flatMap(_.periodStartDate.toSeq).distinct
       .sortBy(_.getMonth)
 
     quartersFound.map { startDate =>
@@ -133,7 +129,9 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
     payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
       .filter(_.periodStartDate.exists(_.getYear == year.toInt))
-      .map(paymentOrCharge => paymentOrCharge.periodStartDate match {
-        case Some(x) => Quarters.getQuarter(x)
-      }).distinct
+      .flatMap{ paymentOrCharge =>
+        paymentOrCharge.periodStartDate.toSeq.map(x => Quarters.getQuarter(x))
+      }.distinct
+
+
 }

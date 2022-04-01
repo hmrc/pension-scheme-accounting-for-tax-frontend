@@ -86,9 +86,6 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
     DashboardAftViewModel(subHeadings = subheadings, links = links)
   }
 
-  private def psaPaymentsAndChargesViewModel: Seq[CardViewModel] =
-    allTypesMultipleReturnsModel
-
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockFSConnector, mockRenderer)

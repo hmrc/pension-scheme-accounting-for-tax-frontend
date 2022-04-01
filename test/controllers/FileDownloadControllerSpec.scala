@@ -19,13 +19,6 @@ package controllers
 import controllers.base.ControllerSpecBase
 import models.ChargeType.ChargeTypeAnnualAllowance
 import org.scalatest.concurrent.ScalaFutures.whenReady
-import play.api.mvc.Result
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import services.PsaSchemePartialServiceSpec.{schemeDetails, srn}
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 

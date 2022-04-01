@@ -18,18 +18,15 @@ package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import connectors.Reference
-import controllers.fileUpload.ValidationControllerSpec.mock
 import models.{FileUploadDataCache, FileUploadStatus, InProgress, UploadId}
 import org.scalatest._
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
-import play.api.http.Status
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import utils.WireMockHelper
 
 import java.time.LocalDateTime
-import scala.concurrent.Future
 
 class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with OptionValues with RecoverMethods {
 
@@ -109,8 +106,8 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
           )
       )
 
-      connector.requestUpload(UploadId("uploadId"),Reference("reference")) map {
-        _ mustEqual ()
+      connector.requestUpload(UploadId("uploadId"),Reference("reference")) map { _ =>
+        assert(true)
       }
     }
 
@@ -146,7 +143,8 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
       )
 
       connector.registerUploadResult(Reference(""),InProgress) map {
-        _ mustEqual ()
+        _ =>
+        assert(true)
       }
     }
 

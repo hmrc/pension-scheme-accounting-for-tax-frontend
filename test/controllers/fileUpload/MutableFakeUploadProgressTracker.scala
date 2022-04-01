@@ -17,8 +17,7 @@
 package controllers.fileUpload
 
 import connectors.Reference
-import controllers.fileUpload.ValidationControllerSpec.mockFileUploadStatus
-import models.{FileUploadDataCache, FileUploadStatus, UploadId, UploadStatus, UploadedSuccessfully}
+import models.{FileUploadDataCache, FileUploadStatus, UploadId, UploadStatus}
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.http.HeaderCarrier
 

@@ -86,7 +86,7 @@ class PsaFinancialOverviewControllerSpec
     "schemeFinancialOverview" must {
 
       "return the html with information received from overview api" in {
-        when(mockAFTPartialService.retrievePsaChargesAmount(any())(any()))
+        when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
 
         when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))

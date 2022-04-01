@@ -18,6 +18,8 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
+import controllers.fileUpload.FileUploadHeaders.OverseasTransferFieldNames._
 import forms.chargeG.{ChargeAmountsFormProvider, ChargeDetailsFormProvider, MemberDetailsFormProvider}
 import models.Quarters
 import models.chargeG.{ChargeAmounts, ChargeDetails, MemberDetails}
@@ -27,8 +29,6 @@ import play.api.i18n.Messages
 import play.api.libs.json.Json
 
 import java.time.LocalDate
-import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
-import controllers.fileUpload.FileUploadHeaders.OverseasTransferFieldNames._
 
 
 class OverseasTransferParser @Inject()(
@@ -48,7 +48,7 @@ class OverseasTransferParser @Inject()(
   private final val FieldNoAmountTaxDue = 7
 
   def chargeMemberDetailsValidation(index: Int, chargeFields: Seq[String],
-                                    memberDetailsForm: Form[MemberDetails])(implicit messages: Messages): Either[Seq[ParserValidationError], MemberDetails] = {
+                                    memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val parsedDOB = splitDayMonthYear(chargeFields(FieldNoDateOfBirth))
     val fields = Seq(
       Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, FieldNoFirstName),
