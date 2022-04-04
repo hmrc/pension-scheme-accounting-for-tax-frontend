@@ -76,12 +76,4 @@ class FileUploadAftReturnService @Inject()(
       "overseasTransfer" -> "chargeGDetails")
     map.getOrElse(chargeType.toString, "")
   }
-  private def getChargeTypeText2(chargeType: ChargeType): String = {
-    chargeType match {
-      case ChargeTypeAnnualAllowance   => "chargeEDetails"
-      case ChargeTypeLifetimeAllowance => "chargeDDetails"
-      case ChargeTypeOverseasTransfer  => "chargeGDetails"
-      case _ => ""
-    }
-  }
 }
