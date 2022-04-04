@@ -19,11 +19,10 @@ package controllers.financialOverview
 import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
-import controllers.financialOverview.psa.routes._
 import helpers.FormatHelper
 import models.financialStatement.{PsaFS, PsaFSChargeType, PsaFSDetail}
 import play.api.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
@@ -64,7 +63,7 @@ class PsaFinancialOverviewController @Inject()(
   }
 
   private def renderFinancialOverview(psaName: String, psaFSDetail: Seq[PsaFSDetail],
-                                      request: RequestHeader, creditPsaFS: PsaFS)(implicit messages: Messages) : Future[Result] = {
+                                      request: RequestHeader, creditPsaFS: PsaFS): Future[Result] = {
     val creditPsaFSDetails = creditPsaFS.seqPsaFSDetail
     val psaCharges:(String,String,String) = service.retrievePsaChargesAmount(psaFSDetail)
     val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)

@@ -18,7 +18,6 @@ package services.fileUpload
 
 import controllers.fileUpload.routes
 import models.AccessType
-import models.requests.DataRequest
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 
@@ -27,7 +26,7 @@ import scala.concurrent.Future
 class UpscanErrorHandlingService {
 
   def handleFailureResponse(failureResponse: String,srn: String, startDate: String, accessType: AccessType,
-                                    version: Int)(implicit request: DataRequest[_]): Future[Result]  = {
+                                    version: Int): Future[Result]  = {
     failureResponse match {
       case "QUARANTINE" =>
         Future.successful(Redirect(routes.UpscanErrorController.quarantineError(srn, startDate, accessType, version)))
@@ -35,6 +34,8 @@ class UpscanErrorHandlingService {
         Future.successful(Redirect(routes.UpscanErrorController.rejectedError(srn, startDate, accessType, version)))
       case "UNKNOWN" =>
         Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate, accessType, version)))
+      case _ =>
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 

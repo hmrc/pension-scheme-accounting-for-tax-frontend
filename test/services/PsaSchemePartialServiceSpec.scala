@@ -142,12 +142,14 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
     "return the correct model when there are multiple overdue charges and past charges" in {
       DateHelper.setDate(Some(LocalDate.of(2021, 5, 1)))
       when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(upcomingChargesMultiple)
+      when(paymentsAndChargesService.getInterestCharges(any())).thenReturn(upcomingChargesMultiple)
 
       service.overdueAftChargesModel(upcomingChargesMultiple, srn) mustBe overdueChargesModel()
     }
 
     "return the correct model when there is a single upcoming charge and no past charges" in {
       when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(upcomingChargesSingle)
+      when(paymentsAndChargesService.getInterestCharges(any())).thenReturn(upcomingChargesSingle)
 
       service.overdueAftChargesModel(upcomingChargesSingle, srn) mustBe overdueChargesSingleModel
     }
@@ -167,6 +169,7 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
     "return the correct model when there is an outstanding amount to be displayed when there are overdue charges" in {
       DateHelper.setDate(Some(LocalDate.of(2022, 3, 2)))
       when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(outstandingAmountOverdue)
+      when(paymentsAndChargesService.getInterestCharges(any())).thenReturn(outstandingAmountOverdue)
       when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesMultiple)
       service.paymentsAndCharges(outstandingAmountOverdue, srn, pstr) mustBe paymentsAndChargesModel
 

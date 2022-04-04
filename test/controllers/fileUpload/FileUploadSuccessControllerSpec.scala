@@ -26,7 +26,6 @@ import models.requests.IdentifierRequest
 import models.{ChargeType, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
-import pages.fileUpload.WhatYouWillNeedPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._

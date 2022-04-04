@@ -19,11 +19,9 @@ package services.financialOverview
 import base.SpecBase
 import controllers.financialOverview.routes._
 import data.SampleData._
-import models.ChargeDetailsFilter
-import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
+import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -34,7 +32,6 @@ import java.time.LocalDate
 
 class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
-  private val journeyType: ChargeDetailsFilter = All
   private val year: Int = 2020
 
   private def payments(charge2Start: LocalDate = Q3_2020_START,

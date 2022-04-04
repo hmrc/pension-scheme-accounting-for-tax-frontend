@@ -197,7 +197,8 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
   "retrievePsaChargesAmount" must {
     "return true if the amount due is positive and due date is before today" in {
-      psaPenaltiesAndChargesService.retrievePsaChargesAmount(psaFsSeq) must equal("£0.00", "£500.00", "£155.00")
+      val expected = Tuple3("£0.00", "£500.00", "£155.00")
+      psaPenaltiesAndChargesService.retrievePsaChargesAmount(psaFsSeq) mustEqual expected
     }
 
     "getPenaltiesForJourney" must {

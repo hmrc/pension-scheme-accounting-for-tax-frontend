@@ -1398,18 +1398,18 @@ fileupload.template.link = the template file
 return.to.fileupload = Return to file upload
 
 
-psaSchemeFinancial.h1 = Your financial overview
-psaSchemeFinancial.h2.overduePayments  = Total of overdue payments and charges
-psaSchemeFinancial.h2.totalInterestAccruing  = Total interest accruing to date
-psaSchemeFinancial.h2.totalDuePayment  = Total of due payments and charges
-psaSchemeFinancial.h2.totalOutstandingPayment  = Total of outstanding payments
-psaSchemeFinancial.h2.creditBalance  = Credit balance
-psaSchemeFinancial.h2.repaymentInterest  = Repayment interest
-psaSchemeFinancial.allOverdue.link  = View all overdue payments and interest charges
-psaSchemeFinancial.allDue.link  = View all due payments and charges
-psaSchemeFinancial.allPaymentCharges.link  = View all payments and charges
-psaSchemeFinancial.title = Your financial overview
-psaSchemeFinancial.refund = Request a refund
+schemeFinancial.h1 = Your financial overview
+schemeFinancial.h2.overduePayments  = Total of overdue payments and charges
+schemeFinancial.h2.totalInterestAccruing  = Total interest accruing to date
+schemeFinancial.h2.totalDuePayment  = Total of due payments and charges
+schemeFinancial.h2.totalOutstandingPayment  = Total of outstanding payments
+schemeFinancial.h2.creditBalance  = Credit balance
+schemeFinancial.h2.repaymentInterest  = Repayment interest
+schemeFinancial.allOverdue.link  = View all overdue payments and interest charges
+schemeFinancial.allDue.link  = View all due payments and charges
+schemeFinancial.allPaymentCharges.link  = View all payments and charges
+schemeFinancial.title = Your financial overview
+schemeFinancial.refund = Request a refund
 
 financialPaymentsAndCharges.overdue.title = Overdue payments and interest charges
 financialPaymentsAndCharges.overdue.reflect.charge.text = The information may not reflect payments made in the last 3 days.
@@ -1448,7 +1448,7 @@ financialPaymentsAndCharges.refundUnavailable.title = Refund unavailable
 financialPaymentsAndCharges.refundUnavailable.p1 = You cannot request a refund using this service at the moment.
 financialPaymentsAndCharges.refundUnavailable.p2 = for more information.
 financialPaymentsAndCharges.refundUnavailable.linkText = Contact HMRC
-psaSchemeFinancial.refund = Request a refund
+schemeFinancial.refund = Request a refund
 
 
 psa.financial.overview.title = Your financial overview

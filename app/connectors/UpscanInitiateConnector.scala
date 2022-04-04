@@ -16,26 +16,31 @@
 
 package connectors
 
+import audit.{AFTUpscanFileUploadAuditEvent, AuditService}
 import config.FrontendAppConfig
-import models.{UpscanFileReference, UpscanInitiateResponse}
-import play.api.libs.json.{Json, OFormat, Reads, Writes}
+import models.requests.DataRequest
+import models.{ChargeType, UpscanFileReference, UpscanInitiateResponse}
+import pages.PSTRQuery
+import play.api.libs.json._
+import play.api.mvc.AnyContent
 import play.mvc.Http.HeaderNames
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Failure
 
 sealed trait UpscanInitiateRequest
 
 // TODO expectedContentType is also an optional value
 case class UpscanInitiateRequestV2(
-  callbackUrl: String,
-  successRedirect: Option[String] = None,
-  errorRedirect: Option[String]   = None,
-  minimumFileSize: Option[Int]    = None,
-  maximumFileSize: Option[Int]    = Some(512),
-  expectedContentType: Option[String] = None)
-    extends UpscanInitiateRequest
+                                    callbackUrl: String,
+                                    successRedirect: Option[String] = None,
+                                    errorRedirect: Option[String] = None,
+                                    minimumFileSize: Option[Int] = None,
+                                    maximumFileSize: Option[Int] = Some(512),
+                                    expectedContentType: Option[String] = None)
+  extends UpscanInitiateRequest
 
 case class UploadForm(href: String, fields: Map[String, String])
 
@@ -43,7 +48,7 @@ case class Reference(reference: String) extends AnyVal
 
 object Reference {
   implicit val referenceReader: Reads[Reference] = Reads.StringReads.map(Reference(_))
-  implicit val referenceWrites = Json.writes[Reference]
+  implicit val referenceWrites: OWrites[Reference] = Json.writes[Reference]
 }
 
 case class PreparedUpload(reference: Reference, uploadRequest: UploadForm)
@@ -59,34 +64,64 @@ object PreparedUpload {
   implicit val format: Reads[PreparedUpload] = Json.reads[PreparedUpload]
 }
 
-class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: FrontendAppConfig)(implicit ec: ExecutionContext) {
+class UpscanInitiateConnector @Inject()(httpClient: HttpClient, appConfig: FrontendAppConfig, auditService: AuditService)(implicit ec: ExecutionContext) {
 
   private val headers = Map(
     HeaderNames.CONTENT_TYPE -> "application/json"
   )
 
-  def initiateV2(redirectOnSuccess: Option[String], redirectOnError: Option[String])
-                (implicit hc: HeaderCarrier): Future[UpscanInitiateResponse] = {
-    val request = UpscanInitiateRequestV2(
+  def initiateV2(redirectOnSuccess: Option[String], redirectOnError: Option[String], chargeType: ChargeType)
+                (implicit request: DataRequest[AnyContent], headerCarrier: HeaderCarrier): Future[UpscanInitiateResponse] = {
+
+
+    val req = UpscanInitiateRequestV2(
       callbackUrl = appConfig.upScanCallBack,
       successRedirect = redirectOnSuccess,
       errorRedirect = redirectOnError,
-      maximumFileSize = Some(appConfig.maxUploadFileSize  * (1024 * 1024))
+      maximumFileSize = Some(appConfig.maxUploadFileSize * (1024 * 1024))
     )
-    initiate(appConfig.initiateV2Url, request)
+    initiate(appConfig.initiateV2Url, req, chargeType)
   }
 
-  private def initiate[T](url: String, request: T)(
-    implicit hc: HeaderCarrier,
-    wts: Writes[T]): Future[UpscanInitiateResponse] =
-    for {
-      response <- httpClient.POST[T, PreparedUpload](url, request, headers.toSeq)
-      fileReference = UpscanFileReference(response.reference.reference)
-      postTarget    = response.uploadRequest.href
-      formFields    = response.uploadRequest.fields
-    } yield UpscanInitiateResponse(fileReference, postTarget, formFields)
+  private def sendFailureAuditEvent(
+                              chargeType: ChargeType,
+                              errorMessage: String,
+                              startTime: Long)(implicit request: DataRequest[AnyContent]): Unit = {
+    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
+    val endTime = System.currentTimeMillis
+    val duration = endTime - startTime
+    auditService.sendEvent(
+      AFTUpscanFileUploadAuditEvent(
+        psaOrPspId = request.idOrException,
+        pstr = pstr,
+        schemeAdministratorType = request.schemeAdministratorType,
+        chargeType = chargeType,
+        outcome = Left(errorMessage),
+        uploadTimeInMilliSeconds = duration
+      )
+    )
+  }
 
-  def download(downloadUrl: String)(implicit hc: HeaderCarrier) = {
+  private def initiate[T](url: String, initialRequest: T, chargeType: ChargeType)(
+    implicit request: DataRequest[AnyContent], headerCarrier: HeaderCarrier, wts: Writes[T]): Future[UpscanInitiateResponse] = {
+    val startTime = System.currentTimeMillis
+
+    (for {
+      response <- httpClient.POST[T, PreparedUpload](url, initialRequest, headers.toSeq)
+      fileReference = UpscanFileReference(response.reference.reference)
+      postTarget = response.uploadRequest.href
+      formFields = response.uploadRequest.fields
+    } yield {
+      UpscanInitiateResponse(fileReference, postTarget, formFields)
+    }) andThen {
+      case Failure(t) =>
+        sendFailureAuditEvent(chargeType, t.getMessage, startTime)
+    }
+  }
+
+  def download(downloadUrl: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     httpClient.GET(downloadUrl)
   }
+
+  case class UpscanInitiateError(e: Throwable) extends RuntimeException(e)
 }

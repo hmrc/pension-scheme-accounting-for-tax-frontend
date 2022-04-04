@@ -16,7 +16,7 @@
 
 package controllers.fileUpload
 
-import audit.{AFTFileValidationCheckAuditEvent, AuditService}
+import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
@@ -25,7 +25,7 @@ import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidO
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
+import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -49,14 +49,14 @@ class ValidationController @Inject()(
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
+                                      auditService: AuditService,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
                                       annualAllowanceParser: AnnualAllowanceParser,
                                       lifeTimeAllowanceParser: LifetimeAllowanceParser,
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService: AFTService,
-                                      fileUploadAftReturnService: FileUploadAftReturnService,
-                                      auditService: AuditService
+                                      fileUploadAftReturnService: FileUploadAftReturnService
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -221,7 +221,6 @@ class ValidationController @Inject()(
   }
 
 
-
   private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
                                   (implicit request: DataRequest[AnyContent]): Future[UserAnswers] = {
 
@@ -237,24 +236,44 @@ class ValidationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         val parser = findParser(chargeType)
-        uploadProgressTracker.getUploadResult(uploadId).flatMap { uploadStatus =>
-          (parser, uploadStatus) match {
-            case (Some(_), None | Some(Failed(_, _)) | Some(InProgress)) => sessionExpired
-            case (None, _) => sessionExpired
-            case (Some(parser), Some(ud: UploadedSuccessfully)) =>
-              upscanInitiateConnector.download(ud.downloadUrl).flatMap { response =>
-                response.status match {
-                  case OK =>
+        val startTime = System.currentTimeMillis
+        uploadProgressTracker.getUploadResult(uploadId).flatMap {
+          case Some(uploadStatus) =>
+            (parser, uploadStatus.status._type) match {
+              case (Some(_), "" | "Failed" | "InProgress") => sessionExpired
+              case (None, _) => sessionExpired
+              case (Some(parser), "UploadedSuccessfully") =>
+                upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap { response =>
 
-                    val linesFromCSV = CsvLineSplitter.split(response.body) //response.body.split("\n").toList
-                    parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
-                  case _ =>
-                    Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
+                  sendAuditEventUpscanDownload(chargeType, uploadStatus, startTime)
+
+                  response.status match {
+                    case OK =>
+                      val linesFromCSV = CsvLineSplitter.split(response.body)
+                      parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                    case _ =>
+                      Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
+                  }
                 }
-              }
-          }
+              case _ => sessionExpired
+            }
+          case _ => sessionExpired
         }
     }
+
+  private def sendAuditEventUpscanDownload(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]): Unit = {
+    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
+    val endTime = System.currentTimeMillis
+    val duration = endTime- startTime
+    auditService.sendEvent(AFTUpscanFileDownloadAuditEvent
+    (psaOrPspId = request.idOrException,
+      pstr = pstr,
+      schemeAdministratorType = request.schemeAdministratorType,
+      chargeType= chargeType,
+      fileUploadDataCache =fileUploadDataCache,
+      downloadTimeInMilliSeconds= duration
+    ))
+  }
 
   private def sessionExpired: Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 

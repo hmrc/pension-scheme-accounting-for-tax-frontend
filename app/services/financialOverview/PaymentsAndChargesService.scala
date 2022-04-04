@@ -101,7 +101,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   val extractUpcomingCharges: Seq[SchemeFSDetail] => Seq[SchemeFSDetail] = schemeFSDetail =>
     schemeFSDetail.filter(charge => charge.dueDate.nonEmpty
-      && charge.dueDate.get.isAfter(DateHelper.today)
+      && (charge.dueDate.get.isEqual(DateHelper.today) || charge.dueDate.get.isAfter(DateHelper.today))
       && charge.amountDue > BigDecimal(0.00))
 
   def getOverdueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
@@ -112,6 +112,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   def getDueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
     schemeFSDetail
+      .filter(_.dueDate.nonEmpty)
       .filter(_.amountDue >= BigDecimal(0.00))
 
   def getInterestCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =

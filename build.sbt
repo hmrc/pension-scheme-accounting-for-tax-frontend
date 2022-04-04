@@ -44,8 +44,6 @@ lazy val root = (project in file("."))
     scalacOptions ++= Seq("-feature", "-deprecation"),
     libraryDependencies ++= AppDependencies(),
     retrieveManaged := true,
-    evictionWarningOptions in update :=
-      EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
     resolvers ++= Seq(
       Resolver.jcenterRepo
     ),

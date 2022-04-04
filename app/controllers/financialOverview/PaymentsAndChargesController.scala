@@ -76,8 +76,9 @@ class PaymentsAndChargesController @Inject()(
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
         val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFSDetail)
+        val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(paymentsCache.schemeFSDetail)
         val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
-        val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
+        val totalInterestAccruing: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
         val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(paymentsCache.schemeFSDetail)
         val totalUpcoming : BigDecimal = upcomingCharges.map(_.amountDue).sum
 

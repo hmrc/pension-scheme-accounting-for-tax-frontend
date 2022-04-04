@@ -19,33 +19,29 @@ package services.fileUpload
 import base.SpecBase
 import controllers.fileUpload.routes._
 import data.SampleData._
-import models.requests.DataRequest
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
-import play.api.mvc.AnyContent
 import play.api.mvc.Results.Redirect
 
 class UpscanErrorHandlingServiceSpec extends SpecBase with MockitoSugar with ScalaFutures{
 
   private val upscanErrorHandlingService = new UpscanErrorHandlingService
-  private def dataRequest: DataRequest[AnyContent] =
-    DataRequest(fakeRequest, "", None, None, userAnswersWithSchemeName, sessionData(version))
 
   "handleFailureResponse" must {
     "redirect to quarantine error when failureResponse is QUARANTINE" in {
-      whenReady(upscanErrorHandlingService.handleFailureResponse("QUARANTINE", srn, startDate.toString, accessType, versionInt)(dataRequest)) {
+      whenReady(upscanErrorHandlingService.handleFailureResponse("QUARANTINE", srn, startDate.toString, accessType, versionInt)) {
         _ mustBe Redirect(UpscanErrorController.quarantineError(srn, startDate.toString, accessType, versionInt))
       }
     }
 
     "redirect to quarantine error when failureResponse is REJECTED" in {
-      whenReady(upscanErrorHandlingService.handleFailureResponse("REJECTED", srn, startDate.toString, accessType, versionInt)(dataRequest)) {
+      whenReady(upscanErrorHandlingService.handleFailureResponse("REJECTED", srn, startDate.toString, accessType, versionInt)) {
         _ mustBe Redirect(UpscanErrorController.rejectedError(srn, startDate.toString, accessType, versionInt))
       }
     }
 
     "redirect to quarantine error when failureResponse is UNKNOWN" in {
-      whenReady(upscanErrorHandlingService.handleFailureResponse("UNKNOWN", srn, startDate.toString, accessType, versionInt)(dataRequest)) {
+      whenReady(upscanErrorHandlingService.handleFailureResponse("UNKNOWN", srn, startDate.toString, accessType, versionInt)) {
         _ mustBe Redirect(UpscanErrorController.unknownError(srn, startDate.toString, accessType, versionInt))
       }
     }

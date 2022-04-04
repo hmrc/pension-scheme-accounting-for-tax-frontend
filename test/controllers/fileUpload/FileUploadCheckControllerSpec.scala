@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.fileUpload.UploadCheckSelection
 import models.fileUpload.UploadCheckSelection.Yes
-import models.{ChargeType, GenericViewModel, UploadId, UserAnswers}
+import models.{ChargeType, FileUploadDataCache, FileUploadStatus, GenericViewModel, UploadId, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import pages.fileUpload.UploadCheckPage
@@ -37,6 +37,7 @@ import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDateTime
 import scala.concurrent.Future
 
 class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
@@ -78,6 +79,18 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupp
     "fileName" -> "name"
   )
 
+  private val dateTimeNow = LocalDateTime.now
+
+  private val fileUploadDataCache: FileUploadDataCache =
+    FileUploadDataCache(
+      uploadId = "uploadId",
+      reference ="reference",
+      status=  FileUploadStatus("UploadedSuccessfully", name = Some("name")),
+      created= dateTimeNow,
+      lastUpdated= dateTimeNow,
+      expireAt= dateTimeNow
+    )
+
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
@@ -97,6 +110,7 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupp
   )
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -108,11 +122,11 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupp
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.apply()))
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       val ua = validData.set(UploadCheckPage(chargeType), Yes).get
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
@@ -132,7 +146,7 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupp
 
 
     "Save data to user answers and redirect to Validation Page when valid Yes value submitted" in {
-
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -148,7 +162,7 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupp
     }
 
     "Save data to user answers and redirect to File upload Page when valid No value submitted" in {
-
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -164,6 +178,7 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupp
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value

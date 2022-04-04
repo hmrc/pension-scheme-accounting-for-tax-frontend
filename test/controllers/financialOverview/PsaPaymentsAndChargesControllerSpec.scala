@@ -23,25 +23,24 @@ import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeI
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.PsaPaymentsAndChargesControllerSpec.{responseOverdue, responseUpcoming}
 import controllers.financialOverview.routes.PsaPaymentsAndChargesController
-import data.SampleData.{dummyCall, emptyChargesTable, psaFsSeq, psaId, schemeDetails, srn}
+import data.SampleData.psaId
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
-import models.financialStatement.{PsaFS, PsaFSDetail, SchemeFS}
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
+import models.financialStatement.PsaFSDetail
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
-import play.api.http.Status.{OK, SEE_OTHER}
+import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty}
+import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
 import play.twirl.api.Html
-import services.financialOverview.{PaymentsCache, PenaltiesCache, PsaPenaltiesAndChargesService}
+import services.financialOverview.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Text.Message
 import viewmodels.Table
 
 import java.time.LocalDate
@@ -115,8 +114,6 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
 }
 
 object PsaPaymentsAndChargesControllerSpec {
-
-  private val pstr = "test-pstr"
   private def createPsaFSCharge(chargeReference: String): PsaFSDetail = {
     PsaFSDetail(
       chargeReference = chargeReference,

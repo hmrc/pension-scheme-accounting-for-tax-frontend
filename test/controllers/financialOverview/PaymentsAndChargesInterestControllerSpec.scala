@@ -58,7 +58,6 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.AFTConstants._
 import utils.DateHelper
-import utils.DateHelper.dateFormatterDMY
 
 import java.time.LocalDate
 import scala.concurrent.Future

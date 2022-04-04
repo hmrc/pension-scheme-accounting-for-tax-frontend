@@ -306,7 +306,7 @@ object PaymentsAndChargeDetailsControllerSpec {
                                                     chargeReference: String,
                                                     sourceChargeReference: String,
                                                     chargeType: SchemeFSChargeType = PSS_AFT_RETURN_INTEREST,
-                                                    amountDue: BigDecimal = 0.00,
+                                                    amountDue: BigDecimal,
                                                     interest: BigDecimal = 123.00
                                                   ): SchemeFSDetail = {
     SchemeFSDetail(
