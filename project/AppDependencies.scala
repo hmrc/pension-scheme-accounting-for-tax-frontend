@@ -22,7 +22,7 @@ object AppDependencies {
     "org.jsoup"                   %  "jsoup"              % "1.10.3",
     "com.typesafe.play"           %% "play-test"          % PlayVersion.current,
     "org.mockito"                 % "mockito-core"        % "4.0.0",
-    "org.mockito"                 %% "mockito-scala"      % "1.16.42",
+    "org.mockito"                 %% "mockito-scala"      % "1.17.5",
     "org.scalacheck"              %% "scalacheck"         % "1.15.2",
     "org.scalatestplus"           %% "scalatestplus-scalacheck"   % "3.1.0.0-RC2",
     "com.github.tomakehurst"      %  "wiremock-jre8"      % "2.26.0",

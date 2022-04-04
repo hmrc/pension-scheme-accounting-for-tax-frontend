@@ -458,6 +458,7 @@ class AFTPartialServiceSpec
       DateHelper.setDate(Some(LocalDate.of(2022, 3, 2)))
       when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesMultiple)
       when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(outstandingAmountOverdue)
+      when(paymentsAndChargesService.getInterestCharges(any())).thenReturn(outstandingAmountOverdue)
       service.retrievePspDashboardPaymentsAndChargesModel(upcomingChargesMultiple, srn, pstr) mustBe paymentsAndChargesModel
 
     }

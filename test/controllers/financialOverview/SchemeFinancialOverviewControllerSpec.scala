@@ -39,7 +39,7 @@ import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
 
 import scala.concurrent.Future
 
-class PsaSchemeFinancialOverviewControllerSpec
+class SchemeFinancialOverviewControllerSpec
   extends ControllerSpecBase
     with NunjucksSupport
     with JsonMatchers
@@ -48,7 +48,7 @@ class PsaSchemeFinancialOverviewControllerSpec
     with Results
     with ScalaFutures {
 
-  private def getPartial: String = routes.PsaSchemeFinancialOverviewController.psaSchemeFinancialOverview(srn).url
+  private def getPartial: String = routes.SchemeFinancialOverviewController.schemeFinancialOverview(srn).url
 
   private val mockPsaSchemePartialService: PsaSchemePartialService = mock[PsaSchemePartialService]
   private val mockSchemeService: SchemeService = mock[SchemeService]
@@ -76,7 +76,7 @@ class PsaSchemeFinancialOverviewControllerSpec
 
   }
 
-  "PsaSchemeFinancial Controller" when {
+  "SchemeFinancial Controller" when {
     "schemeFinancialOverview" must {
 
       "return the html with information received from overview api" in {
@@ -97,7 +97,7 @@ class PsaSchemeFinancialOverviewControllerSpec
 
         status(result) mustEqual OK
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        templateCaptor.getValue mustEqual "financialOverview/psaSchemeFinancialOverview.njk"
+        templateCaptor.getValue mustEqual "financialOverview/schemeFinancialOverview.njk"
         val actualJson = jsonCaptor.getValue
         (actualJson \ "requestRefundUrl").asOpt[String] mustBe Some(controllers.financialOverview.routes.RequestRefundController.onPageLoad(srn).url)
       }
@@ -135,8 +135,8 @@ class PsaSchemeFinancialOverviewControllerSpec
     if  (creditBalance >= 0) BigDecimal(0.00).toString()
     else creditBalance.abs.toString()
   }
-  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
+  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
   private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
   private val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
 }

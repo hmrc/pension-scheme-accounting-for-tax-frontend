@@ -183,7 +183,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     )
   }
 
-  private def mapToTable(allPayments: Seq[PsaPaymentsAndChargesDetails], includeHeadings: Boolean = true)(implicit messages: Messages): Table = {
+  private def mapToTable(allPayments: Seq[PsaPaymentsAndChargesDetails], includeHeadings: Boolean)(implicit messages: Messages): Table = {
 
     val head = if (includeHeadings) {
       getHeading()

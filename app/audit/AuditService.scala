@@ -44,7 +44,6 @@ class AuditService @Inject()(
 
     val details = rh.toAuditDetails() ++ event.details
     logger.debug(s"[AuditService][sendEvent] sending ${event.auditType}")
-
     val result: Future[AuditResult] = connector.sendEvent(
       DataEvent(
         auditSource = config.appName,
