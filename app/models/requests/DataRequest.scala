@@ -44,6 +44,7 @@ case class DataRequest[A] (
   def isAmendment: Boolean = aftVersion > 1
   def isViewOnly: Boolean = sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModeViewOnly
   def isPrecompile: Boolean = sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModePreCompile
+  def isCompile : Boolean= sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModeCompile
   def isEditable: Boolean = !isViewOnly
   def isLocked: Boolean = sessionData.lockDetail.isDefined
   def isLockedByPsp: Boolean = sessionData.lockDetail

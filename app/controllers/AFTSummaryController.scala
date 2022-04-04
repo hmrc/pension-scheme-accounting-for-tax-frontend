@@ -20,10 +20,10 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
 import helpers.AFTSummaryHelper
-import models.AccessMode.PageAccessModeCompile
+import models.AccessMode.{PageAccessModeCompile, PageAccessModePreCompile, PageAccessModeViewOnly}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessMode, AccessType, GenericViewModel, Mode, NormalMode, Quarters, Submission, UserAnswers}
+import models.{AFTVersion, AccessMode, AccessType, Draft, GenericViewModel, Mode, NormalMode, Quarters, Submission, UserAnswers}
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.Logger
@@ -168,7 +168,7 @@ class AFTSummaryController @Inject()(
           )
       }
     }
-//request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile
+
   private def getJsonCommon(form: Form[Boolean],
                             formSearchText: Form[String],
                             srn: String,
@@ -178,14 +178,12 @@ class AFTSummaryController @Inject()(
                             accessType: AccessType)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
     val getLegendHtml = Json.obj("summaryheadingtext" -> confirmationPanelText(schemeName, startDate, endDate,formSearchText.value).toString())
-    val submissionNumber = if (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile && accessType == Submission){
-      "Draft"
-    }else{
+    val submissionNumber = if (request.isCompile ){
+       "Draft"
+    }
+    else {
       "Submission" + ' ' + version.toString
     }
-
-
-
 
 
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
