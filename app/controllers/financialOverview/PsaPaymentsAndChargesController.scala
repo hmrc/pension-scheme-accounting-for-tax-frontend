@@ -87,7 +87,7 @@ class PsaPaymentsAndChargesController @Inject()(
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
     logger.debug(s"AFT service returned InterestAccruing - ${psaCharges._3}")
 
-    psaPenaltiesAndChargesService.getAllPaymentsAndCharges(psaId,
+    psaPenaltiesAndChargesService.getPenaltiesAndCharges(psaId,
       penaltiesCache.penalties, journeyType) flatMap { table =>
 
       val penaltiesTable = if (journeyType == Upcoming) {

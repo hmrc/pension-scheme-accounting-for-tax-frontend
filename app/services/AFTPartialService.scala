@@ -463,8 +463,8 @@ class AFTPartialService @Inject()(
   private def viewAllPenaltiesAndChargesLink(): Seq[Link] =
     Seq(Link(
       id = "past-penalties-id",
-      url = appConfig.viewPenaltiesUrl,
-      linkText = msg"psaPenaltiesCard.viewPastPenalties",
+      url = appConfig.viewAllPenaltiesForFinancialOverviewUrl,
+      linkText = msg"psa.financial.overview.pastPenalties.link",
       hiddenText = None
     ))
 

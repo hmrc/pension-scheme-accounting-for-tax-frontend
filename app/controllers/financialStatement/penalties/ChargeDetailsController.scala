@@ -49,7 +49,6 @@ class ChargeDetailsController @Inject()(
   def onPageLoad(identifier: String, chargeReferenceIndex: String, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-
           val chargeRefs: Seq[String] = penaltiesCache.penalties.map(_.chargeReference)
           def penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
 

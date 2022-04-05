@@ -18,6 +18,10 @@
           section: psaName
         }) }}
 
+        {% if journeyType == "all" %}
+                   <p class="govuk-body">{{ messages("psa.financial.overview.penalties.pstr.text", pstr) }}</br>
+       {% endif %}
+
         <p class="govuk-body">{{ reflectChargeText }}</p>
 
     <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
@@ -34,12 +38,21 @@
                </h2>
                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalInterestAccruing }}</p>
             </div>
-        {% else %}
+        {% endif %}
+        {% if journeyType == "upcoming"%}
             <div class="govuk-grid-column-one-half">
                 <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
                    {{ messages("psa.financial.overview.h2.totalDuePenalties") }}
                 </h2>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalUpcomingCharge }}</p>
+            </div>
+        {% endif %}
+        {% if journeyType == "all" %}
+            <div class="govuk-grid-column-one-half">
+                <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+                   {{ messages("schemeFinancial.h2.totalOutstandingPayment") }}
+                </h2>
+                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalOutstandingCharge }}</p>
             </div>
        {% endif %}
         </div>
@@ -58,7 +71,7 @@
         </div>
 
     <div class="govuk-grid-row">
-                  <div class="govuk-grid-column-two-thirds">
+                  <div class="govuk-grid-column-full">
             {% if paymentAndChargesTable.rows.length > 0 %}
                  <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">{{ messages(titleMessage) }}</span>
                  <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">

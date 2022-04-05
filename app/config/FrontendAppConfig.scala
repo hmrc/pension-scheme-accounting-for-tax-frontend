@@ -118,6 +118,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
     s"$aftUrl${configuration.get[String](path = "urls.financialInfoCreditAccessConnectorPsa").format(psaId)}"
 
   lazy val viewPenaltiesUrl: String = configuration.get[String](path = "urls.partials.psaFinancialStatementLink")
+  lazy val viewAllPenaltiesForFinancialOverviewUrl: String = configuration.get[String](path = "urls.partials.psaAllPenaltiesLink")
   lazy val viewUpcomingPenaltiesUrl: String = configuration.get[String](path = "urls.partials.upcomingPenaltiesLink")
   lazy val schemeFinancialStatementUrl: String = s"$aftUrl${configuration.get[String](path = "urls.schemeFinancialStatement")}"
 

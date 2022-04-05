@@ -82,7 +82,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockRenderer, mockPsaPenaltiesAndChargesService)
-    when(mockPsaPenaltiesAndChargesService.getAllPaymentsAndCharges(any(), any(), any())(any(), any(), any())).
+    when(mockPsaPenaltiesAndChargesService.getPenaltiesAndCharges(any(), any(), any())(any(), any(), any())).
       thenReturn(Future.successful(penaltiesTable))
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))

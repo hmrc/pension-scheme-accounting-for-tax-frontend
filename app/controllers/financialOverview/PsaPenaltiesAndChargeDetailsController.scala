@@ -17,9 +17,12 @@
 package controllers.financialOverview
 
 import controllers.actions._
+import controllers.financialOverview.psa.routes.AllPenaltiesAndChargesController
 import models.ChargeDetailsFilter
+import models.ChargeDetailsFilter.All
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, INTEREST_ON_CONTRACT_SETTLEMENT}
-import models.financialStatement.{PsaFSChargeType, PsaFSDetail}
+import models.financialStatement.{PenaltyType, PsaFSChargeType, PsaFSDetail}
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -29,7 +32,7 @@ import services.SchemeService
 import services.financialOverview.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -126,6 +129,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     val isInterestAccruing: Boolean = fs.accruedInterestTotal > 0
     val detailsChargeType = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
+    val penaltyType = getPenaltyType(detailsChargeType)
 
     val originalChargeUrl = fs.sourceChargeRefForInterest match {
       case Some(sourceChargeRef) =>
@@ -146,12 +150,34 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       "chargeReference" ->  fs.chargeReference,
       "penaltyAmount" ->    psaFSDetails.totalAmount,
       "htmlInsetText" ->    setInsetText(fs, interestUrl, originalChargeUrl),
-      "returnLinkBasedOnJourney" -> msg"financialPaymentsAndCharges.returnLink.${journeyType.toString}",
-      "returnUrl" ->        routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url,
+      "returnUrl" ->        getReturnUrl(fs, fs.pstr, penaltyType, journeyType),
       "isInterestAccruing" -> isInterestAccruing,
       "list" ->             psaPenaltiesAndChargesService.chargeDetailsRows(psaFS.filter(_.chargeReference ==
         chargeRefs(chargeReferenceIndex.toInt)).head, journeyType)
-    )
+    ) ++ getReturnUrlText(fs, penaltyType, journeyType)
   }
 
+  def getReturnUrl(fs: PsaFSDetail, pstr: String, penaltyType: PenaltyType,
+                   journeyType: ChargeDetailsFilter): String = {
+    (journeyType, penaltyType) match {
+      case (All, AccountingForTaxPenalties) =>
+        AllPenaltiesAndChargesController.onPageLoad(fs.periodStartDate.toString, fs.pstr, penaltyType).url
+      case (All, _) =>
+        AllPenaltiesAndChargesController.onPageLoad(fs.periodStartDate.getYear.toString, pstr, penaltyType).url
+      case _ => routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url
+    }
+  }
+
+  private def getReturnUrlText(fs: PsaFSDetail, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter)
+                              (implicit messages: Messages): JsObject = {
+    (journeyType, penaltyType) match {
+      case (All, AccountingForTaxPenalties) =>
+        val startDate = formatStartDate(fs.periodStartDate)
+        val endDate = formatDateDMY(fs.periodEndDate)
+        Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.aft.returnLink", startDate, endDate))
+      case (All, _) =>
+        Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.returnLink", fs.periodStartDate.getYear.toString))
+      case _ => Json.obj("returnLinkBasedOnJourney" -> messages("financialPaymentsAndCharges.returnLink." +s"${journeyType.toString}"))
+    }
+  }
 }
