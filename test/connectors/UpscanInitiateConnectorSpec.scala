@@ -36,7 +36,7 @@ import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.GET
 import uk.gov.hmrc.domain.PsaId
-import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier}
+import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier, Upstream4xxResponse, UpstreamErrorResponse}
 import utils.WireMockHelper
 
 import java.time.LocalDate
@@ -113,17 +113,17 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
               .withBody("test")
           )
       )
-      recoverToExceptionIf[BadRequestException] {
+      recoverToExceptionIf[UpstreamErrorResponse] {
         connector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl), ChargeTypeAnnualAllowance)
       } map { ex =>
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
-        ex.responseCode mustEqual Status.BAD_REQUEST
+        ex.statusCode mustEqual Status.BAD_REQUEST
         val actualEvent: AFTUpscanFileUploadAuditEvent = eventCaptor.getValue
         actualEvent.psaOrPspId mustBe psaId
         actualEvent.schemeAdministratorType mustBe AdministratorOrPractitioner.Administrator
         actualEvent.chargeType mustBe ChargeTypeAnnualAllowance
         val error = actualEvent.outcome.fold(identity, _ => "")
-        error.contains("returned 400 (Bad Request). Response body 'test'") mustBe true
+        error.contains("returned 400. Response body: 'test'") mustBe true
       }
     }
   }
