@@ -74,12 +74,10 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
       response.status match {
         case OK =>
           val schemeFS = response.json.as[SchemeFS]
-          val x= SchemeFS(
+          SchemeFS(
             inhibitRefundSignal = schemeFS.inhibitRefundSignal,
             seqSchemeFSDetail = schemeFS.seqSchemeFSDetail.filterNot(_.chargeType == SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
           )
-          println( "\n\n>>>" + x)
-            x
         case _ =>
           handleErrorResponse("GET", url)(response)
       }
@@ -94,9 +92,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
-          val x = response.json.as[SchemeFS]
-          println("\n\n>>>>" + x)
-          x
+          response.json.as[SchemeFS]
         case _ =>
           handleErrorResponse("GET", url)(response)
       }
