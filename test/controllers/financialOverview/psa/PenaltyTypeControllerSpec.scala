@@ -72,8 +72,8 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
   val penaltyTypes: Seq[PenaltyType] = PenaltyType.values
   val pstr = "24000041IN"
 
-  lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad(All).url
-  lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit(All).url
+  lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad().url
+  lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit().url
 
   private val jsonToPassToTemplate: Form[PenaltyType] => JsObject = form => Json.obj(
     "form" -> form,
