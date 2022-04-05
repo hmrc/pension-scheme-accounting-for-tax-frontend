@@ -68,7 +68,6 @@ class AllPenaltiesAndChargesController @Inject()(
           .filter(_.periodStartDate == startDate)
           .filter(_.pstr == pstr)
           .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
-
         val dueCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getDueCharges(filteredPenalties)
         val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
         val interestCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getInterestCharges(filteredPenalties)

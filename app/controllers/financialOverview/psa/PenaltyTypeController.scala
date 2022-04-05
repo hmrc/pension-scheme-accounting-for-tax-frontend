@@ -54,7 +54,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
         "psaName" -> penaltiesCache.psaName,
         "form" -> form,
         "radios" -> PenaltyType.radios(form, penaltyTypes),
-        "submitUrl" -> routes.PenaltyTypeController.onSubmit(journeyType).url
+        "submitUrl" -> routes.PenaltyTypeController.onSubmit.url
       )
 
       renderer.render(template = "financialOverview/psa/penaltyType.njk", json).map(Ok(_))
@@ -69,7 +69,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
             "psaName" -> penaltiesCache.psaName,
             "form" -> formWithErrors,
             "radios" -> PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties)),
-            "submitUrl" -> routes.PenaltyTypeController.onSubmit(journeyType).url
+            "submitUrl" -> routes.PenaltyTypeController.onSubmit.url
           )
           renderer.render(template = "financialOverview/psa/penaltyType.njk", json).map(BadRequest(_))
         },

@@ -18,7 +18,6 @@ package services.financialOverview
 
 import connectors.ListOfSchemesConnector
 import controllers.financialOverview.psa.routes._
-import models.ChargeDetailsFilter.All
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, getPenaltyType}
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, ListSchemeDetails, PenaltySchemes}
@@ -42,7 +41,7 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
     val paymentTypes: Seq[PenaltyType] = payments.map(p => getPenaltyType(p.chargeType)).distinct
 
     if (paymentTypes.size > 1) {
-      Future.successful(Redirect(PenaltyTypeController.onPageLoad(All)))
+      Future.successful(Redirect(PenaltyTypeController.onPageLoad()))
     } else if (paymentTypes.size == 1) {
       navFromPenaltiesTypePage(payments, pstr, paymentTypes.head)
     } else {
