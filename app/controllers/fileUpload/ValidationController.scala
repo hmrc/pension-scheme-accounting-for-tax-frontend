@@ -260,7 +260,10 @@ class ValidationController @Inject()(
         }
     }
 
-  private def sendAuditEventUpscanDownload(chargeType: ChargeType, responseStatus: Int, startTime: Long, fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]): Unit = {
+  private def sendAuditEventUpscanDownload(chargeType: ChargeType,
+                                           responseStatus: Int,
+                                           startTime: Long,
+                                           fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]): Unit = {
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
     val endTime = System.currentTimeMillis
     val duration = endTime- startTime
