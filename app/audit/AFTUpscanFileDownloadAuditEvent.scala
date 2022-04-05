@@ -24,7 +24,8 @@ case class AFTUpscanFileDownloadAuditEvent(
                                             schemeAdministratorType: AdministratorOrPractitioner,
                                             chargeType: ChargeType,
                                             pstr: String,
-                                            fileUploadDataCache:FileUploadDataCache,
+                                            fileUploadDataCache: FileUploadDataCache,
+                                            downloadStatus: String,
                                             downloadTimeInMilliSeconds: Long
                                           ) extends AuditEvent {
   override def auditType: String = "AFTFileUpscanDownloadCheck"
@@ -36,18 +37,14 @@ case class AFTUpscanFileDownloadAuditEvent(
       case _ => Map("pspId" -> psaOrPspId)
     }
 
-    val failureReason = fileUploadDataCache.status.failureReason match {
-      case Some(r) => Map("failureReason" -> r)
-      case _ => Map.empty
-    }
 
     psaOrPspIdJson ++
     Map(
       "pstr" -> pstr,
       "chargeType" -> chargeType.toString,
-      "downloadStatus" -> fileUploadDataCache.status._type,
+      "downloadStatus" -> downloadStatus,
       "downloadTimeInMilliSeconds" -> downloadTimeInMilliSeconds.toString,
       "reference" -> fileUploadDataCache.reference
-    ) ++ failureReason
+    )
   }
 }
