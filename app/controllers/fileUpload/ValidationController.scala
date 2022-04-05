@@ -25,7 +25,7 @@ import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidO
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
+import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UploadStatus, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -34,6 +34,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
+import uk.gov.hmrc.http.HttpResponse
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -245,8 +246,7 @@ class ValidationController @Inject()(
               case (Some(parser), "UploadedSuccessfully") =>
                 upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap { response =>
 
-                  sendAuditEventUpscanDownload(chargeType, uploadStatus, startTime)
-
+                  sendAuditEventUpscanDownload(chargeType, response.status, startTime, uploadStatus)
                   response.status match {
                     case OK =>
                       val linesFromCSV = CsvLineSplitter.split(response.body)
@@ -260,7 +260,7 @@ class ValidationController @Inject()(
         }
     }
 
-  private def sendAuditEventUpscanDownload(chargeType: ChargeType, fileUploadDataCache: FileUploadDataCache, startTime: Long)(implicit request: DataRequest[AnyContent]): Unit = {
+  private def sendAuditEventUpscanDownload(chargeType: ChargeType, responseStatus: Int, startTime: Long, fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]): Unit = {
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
     val endTime = System.currentTimeMillis
     val duration = endTime- startTime
@@ -269,7 +269,11 @@ class ValidationController @Inject()(
       pstr = pstr,
       schemeAdministratorType = request.schemeAdministratorType,
       chargeType= chargeType,
-      fileUploadDataCache =fileUploadDataCache,
+      fileUploadDataCache = fileUploadDataCache,
+      downloadStatus= responseStatus match{
+        case 200 => "Success"
+        case _ => "Failed"
+      },
       downloadTimeInMilliSeconds= duration
     ))
   }
