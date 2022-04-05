@@ -202,19 +202,19 @@ object PsaSchemePartialServiceSpec {
   private val positiveNumberFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(900)}"
   private val zeroFormatted : String = s"${FormatHelper.formatCurrencyAmountAsString(0)}"
 
-  private val charge1: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
-    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), Some(LocalDate.parse(startDate)), Some(LocalDate.parse(endDate)), None, None, Nil)
+  private val charge1: SchemeFSDetail = SchemeFSDetail(index = 0, "XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
+    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), Some(LocalDate.parse(startDate)), Some(LocalDate.parse(endDate)), None, None, None, None, Nil)
 
-  private val charge2: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
-    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, Nil)
+  private val charge2: SchemeFSDetail = SchemeFSDetail(index = 0, "XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
+    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None,Nil)
 
-  private val charge3: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PAYMENT_ON_ACCOUNT, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
-    BigDecimal(-1200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, Nil)
+  private val charge3: SchemeFSDetail = SchemeFSDetail(index = 0, "XYZ", SchemeFSChargeType.PAYMENT_ON_ACCOUNT, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
+    BigDecimal(-1200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None,Nil)
 
-  private val charge4: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
-    BigDecimal(600.00), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, Nil)
-  private val charge5: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
-    BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, Nil)
+  private val charge4: SchemeFSDetail = SchemeFSDetail(index = 0, "XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
+    BigDecimal(600.00), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None,Nil)
+  private val charge5: SchemeFSDetail = SchemeFSDetail(index = 0, "XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
+    BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None,Nil)
   private val upcomingChargesMultiple: Seq[SchemeFSDetail] = Seq(charge1, charge2)
   private val upcomingChargesSingle: Seq[SchemeFSDetail] = Seq(charge1)
   private val upcomingChargesMultipleNegative: Seq[SchemeFSDetail] = Seq(charge1, charge2, charge3)

@@ -465,11 +465,11 @@ class AFTPartialServiceSpec
   }
 
 
-  private val charge1: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(100.00),
-    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), Some(LocalDate.parse(startDate)), Some(LocalDate.parse(endDate)), None, None, Nil)
+  private val charge1: SchemeFSDetail = SchemeFSDetail(index = 0,"XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(100.00),
+    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), Some(LocalDate.parse(startDate)), Some(LocalDate.parse(endDate)), None, None, None, None, Nil)
 
-  private val charge2: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
-    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, Nil)
+  private val charge2: SchemeFSDetail = SchemeFSDetail(index = 0,"XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
+    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None, Nil)
   private val upcomingChargesMultiple: Seq[SchemeFSDetail] = Seq(charge1, charge2)
   private val outstandingAmountOverdue: Seq[SchemeFSDetail]= Seq(charge1)
   private def paymentsAndChargesModel(implicit messages: Messages): Seq[CardViewModel] = {
@@ -767,6 +767,7 @@ object AFTPartialServiceSpec {
                             accruedInterestTotal: BigDecimal = 0.00
                           ): SchemeFSDetail = {
     SchemeFSDetail(
+      index = 0,
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
       dueDate = dueDate,
@@ -779,6 +780,8 @@ object AFTPartialServiceSpec {
       periodEndDate = Some(LocalDate.parse(endDate)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
+      sourceChargeIndex = None,
+      sourceChargeFormBundleNumber = None,
       documentLineItemDetails = Nil
     )
   }

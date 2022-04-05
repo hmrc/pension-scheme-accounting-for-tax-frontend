@@ -110,6 +110,7 @@ object PaymentsAndChargesControllerSpec {
   private val pstr = "test-pstr"
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(
+      index = 0,
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -122,6 +123,8 @@ object PaymentsAndChargesControllerSpec {
       periodEndDate = Some(LocalDate.parse(endDate)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
+      sourceChargeIndex = None,
+      sourceChargeFormBundleNumber = None,
       documentLineItemDetails = Nil
     )
   }

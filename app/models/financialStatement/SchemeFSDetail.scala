@@ -37,6 +37,7 @@ object DocumentLineItemDetail {
 }
 
 case class SchemeFSDetail(
+                     index: Int,
                      chargeReference: String,
                      chargeType: SchemeFSChargeType,
                      dueDate: Option[LocalDate],
@@ -49,13 +50,16 @@ case class SchemeFSDetail(
                      periodEndDate: Option[LocalDate],
                      formBundleNumber: Option[String],
                      sourceChargeRefForInterest: Option[String],
+                     sourceChargeIndex: Option[Int],
+                     sourceChargeFormBundleNumber: Option[String],
                      documentLineItemDetails: Seq[DocumentLineItemDetail]
                    )
 
 object SchemeFSDetail {
 
   implicit val writesSchemeFS: Writes[SchemeFSDetail] = (
-    (JsPath \ "chargeReference").write[String] and
+      (JsPath \ "index").write[Int] and
+      (JsPath \ "chargeReference").write[String] and
       (JsPath \ "chargeType").write[SchemeFSChargeType] and
       (JsPath \ "dueDate").writeNullable[LocalDate] and
       (JsPath \ "totalAmount").write[BigDecimal] and
@@ -67,8 +71,11 @@ object SchemeFSDetail {
       (JsPath \ "periodEndDate").writeNullable[LocalDate] and
       (JsPath \ "formBundleNumber").writeNullable[String] and
       (JsPath \ "sourceChargeRefForInterest").writeNullable[String] and
+      (JsPath \ "sourceChargeIndex").writeNullable[Int] and
+      (JsPath \ "sourceChargeFormBundleNumber").writeNullable[String] and
       (JsPath \ "documentLineItemDetails").write[Seq[DocumentLineItemDetail]]
     ) (x => (
+    x.index,
     x.chargeReference,
     x.chargeType,
     x.dueDate,
@@ -81,10 +88,13 @@ object SchemeFSDetail {
     x.periodEndDate,
     x.formBundleNumber,
     x.sourceChargeRefForInterest,
+    x.sourceChargeIndex,
+    x.sourceChargeFormBundleNumber,
     x.documentLineItemDetails
   ))
 
   implicit val rdsSchemeFSDetail: Reads[SchemeFSDetail] = (
+    (JsPath \ "index").readNullable[Int] and
     (JsPath \ "chargeReference").read[String] and
       (JsPath \ "chargeType").read[SchemeFSChargeType] and
       (JsPath \ "dueDate").readNullable[LocalDate] and
@@ -97,12 +107,16 @@ object SchemeFSDetail {
       (JsPath \ "periodEndDate").readNullable[LocalDate] and
       (JsPath \ "formBundleNumber").readNullable[String] and
       (JsPath \ "sourceChargeRefForInterest").readNullable[String] and
+      (JsPath \ "sourceChargeIndex").readNullable[Int] and
+      (JsPath \ "sourceChargeFormBundleNumber").readNullable[String] and
       (JsPath \ "documentLineItemDetails").read[Seq[DocumentLineItemDetail]]
     ) (
-    (chargeReference, chargeType, dueDateOpt, totalAmount, amountDue, outstandingAmount,
+    (index, chargeReference, chargeType, dueDateOpt, totalAmount, amountDue, outstandingAmount,
      accruedInterestTotal, stoodOverAmount, periodStartDateOpt, periodEndDateOpt,
-     formBundleNumberOpt, sourceChargeRefForInterestOpt, documentLineItemDetails) =>
+     formBundleNumberOpt, sourceChargeRefForInterestOpt, sourceChargeIndex, sourceChargeFormBundleNumber,
+     documentLineItemDetails) =>
       SchemeFSDetail(
+        index.getOrElse(0),
         chargeReference,
         chargeType,
         dueDateOpt,
@@ -115,6 +129,8 @@ object SchemeFSDetail {
         periodEndDateOpt,
         formBundleNumberOpt,
         sourceChargeRefForInterestOpt,
+        sourceChargeIndex,
+        sourceChargeFormBundleNumber,
         documentLineItemDetails
       )
   )

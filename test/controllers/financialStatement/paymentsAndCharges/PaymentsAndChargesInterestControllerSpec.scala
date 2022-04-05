@@ -157,6 +157,7 @@ object PaymentsAndChargesInterestControllerSpec {
 
   private def createCharge(chargeReference: String, chargeType: SchemeFSChargeType): SchemeFSDetail = {
     SchemeFSDetail(
+      index = 0,
       chargeReference = chargeReference,
       chargeType = chargeType,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -169,6 +170,8 @@ object PaymentsAndChargesInterestControllerSpec {
       periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
+      sourceChargeIndex = None,
+      sourceChargeFormBundleNumber = None,
       documentLineItemDetails = Nil
     )
   }

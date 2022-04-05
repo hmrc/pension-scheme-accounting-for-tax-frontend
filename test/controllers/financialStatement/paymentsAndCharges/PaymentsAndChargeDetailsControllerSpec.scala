@@ -342,6 +342,7 @@ object PaymentsAndChargeDetailsControllerSpec {
                                                     interest: BigDecimal = 123.00
                                                   ): SchemeFSDetail = {
     SchemeFSDetail(
+      index = 0,
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -354,6 +355,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
+      sourceChargeIndex = None,
+      sourceChargeFormBundleNumber = None,
       documentLineItemDetails = Nil
     )
   }
@@ -364,6 +367,7 @@ object PaymentsAndChargeDetailsControllerSpec {
                                                            interest: BigDecimal
                                                          ): SchemeFSDetail = {
     SchemeFSDetail(
+      index = 0,
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN_INTEREST,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -376,12 +380,15 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
+      sourceChargeIndex = None,
+      sourceChargeFormBundleNumber = None,
       documentLineItemDetails = Nil
     )
   }
 
   private def createChargeWithDeltaCredit(): SchemeFSDetail = {
     SchemeFSDetail(
+      index = 0,
       chargeReference = "XY002610150185",
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -394,6 +401,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
+      sourceChargeIndex = None,
+      sourceChargeFormBundleNumber = None,
       documentLineItemDetails = Nil
     )
   }

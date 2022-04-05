@@ -90,6 +90,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     SchemeFS(
       seqSchemeFSDetail = Seq(
         SchemeFSDetail(
+          index = 0,
           chargeReference = "XY002610150184",
           chargeType = PSS_AFT_RETURN,
           dueDate = Some(LocalDate.parse("2021-02-15")),
@@ -102,6 +103,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
           periodEndDate = Some(LocalDate.parse("2021-06-30")),
           formBundleNumber = None,
           sourceChargeRefForInterest = None,
+          sourceChargeIndex = None,
+          sourceChargeFormBundleNumber = None,
           documentLineItemDetails = Nil
         )
       )

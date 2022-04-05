@@ -225,6 +225,7 @@ object SampleData {
     SchemeFS(
       seqSchemeFSDetail = Seq(
         SchemeFSDetail(
+          index = 0,
           chargeReference = "XY002610150184",
           chargeType = PSS_AFT_RETURN,
           dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -237,9 +238,12 @@ object SampleData {
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
           sourceChargeRefForInterest = None,
+          sourceChargeIndex = None,
+          sourceChargeFormBundleNumber = None,
           documentLineItemDetails = Nil
         ),
         SchemeFSDetail(
+          index = 0,
           chargeReference = "XY002610150184",
           chargeType = PSS_OTC_AFT_RETURN,
           dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -252,6 +256,8 @@ object SampleData {
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
           sourceChargeRefForInterest = None,
+          sourceChargeIndex = None,
+          sourceChargeFormBundleNumber = None,
           documentLineItemDetails = Nil
         )
       )

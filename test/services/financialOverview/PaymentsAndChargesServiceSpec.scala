@@ -381,6 +381,7 @@ object PaymentsAndChargesServiceSpec {
                             accruedInterestTotal: Option[BigDecimal] = Some(153.00)
                           ): SchemeFSDetail = {
     SchemeFSDetail(
+      index = 0,
       chargeReference = "AYU3494534632",
       chargeType = chargeType,
       dueDate = dueDate,
@@ -393,11 +394,14 @@ object PaymentsAndChargesServiceSpec {
       periodEndDate = Some(QUARTER_END_DATE),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
+      sourceChargeIndex = None,
+      sourceChargeFormBundleNumber = None,
       documentLineItemDetails = Seq(item)
     )
   }
 
   private def chargeWithCredit = SchemeFSDetail(
+    index = 0,
     chargeReference = "AYU3494534632",
     chargeType = PSS_AFT_RETURN,
     dueDate = Some(LocalDate.parse("2020-05-15")),
@@ -410,6 +414,8 @@ object PaymentsAndChargesServiceSpec {
     periodEndDate = Some(QUARTER_END_DATE),
     formBundleNumber = None,
     sourceChargeRefForInterest = None,
+    sourceChargeIndex = None,
+    sourceChargeFormBundleNumber = None,
     documentLineItemDetails = Nil
   )
 
