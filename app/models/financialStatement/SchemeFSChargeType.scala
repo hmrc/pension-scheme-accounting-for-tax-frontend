@@ -58,6 +58,13 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     PAYMENT_ON_ACCOUNT
   )
 
+  def isAFTOrOTCNonInterestChargeType(schemeFSChargeType:SchemeFSChargeType):Boolean =
+    schemeFSChargeType == PSS_AFT_RETURN || schemeFSChargeType == PSS_OTC_AFT_RETURN
+
+  def isAFTOrOTCInclInterestChargeType(schemeFSChargeType:SchemeFSChargeType):Boolean =
+    isAFTOrOTCNonInterestChargeType(schemeFSChargeType) ||
+      schemeFSChargeType == PSS_AFT_RETURN_INTEREST || schemeFSChargeType == PSS_OTC_AFT_RETURN_INTEREST
+
   implicit val enumerable: Enumerable[SchemeFSChargeType] =
     Enumerable(values.map(v => v.toString -> v): _*)
 }

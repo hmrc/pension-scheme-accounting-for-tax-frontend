@@ -71,7 +71,7 @@ class PaymentsAndChargesController @Inject()(
     tuple.map(_.toMap)
   }
 
-    // scalastyle:off method.length
+  // scalastyle:off method.length
   def onPageLoad(srn: String, pstr: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
@@ -80,23 +80,22 @@ class PaymentsAndChargesController @Inject()(
         val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
         val totalInterestAccruing: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
         val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(paymentsCache.schemeFSDetail)
-        val totalUpcoming : BigDecimal = upcomingCharges.map(_.amountDue).sum
+        val totalUpcoming: BigDecimal = upcomingCharges.map(_.amountDue).sum
 
         if (paymentsCache.schemeFSDetail.nonEmpty) {
-          getMapChargeTypeToVersionAndDate(paymentsCache.schemeFSDetail, pstr).flatMap { mapChargeTypesVersionsAndDate =>
-            val table = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, paymentsCache.schemeFSDetail, mapChargeTypesVersionsAndDate, journeyType)
+          paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, paymentsCache.schemeFSDetail, journeyType).flatMap { table =>
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
               fields =
                 "titleMessage" -> Message(s"financialPaymentsAndCharges.$journeyType.title"),
-                "reflectChargeText" -> Message(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text"),
-                "journeyType" -> journeyType.toString,
-                "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
-                "schemeName" -> paymentsCache.schemeDetails.schemeName,
-                "totalOverdue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
-                "totalInterestAccruing" -> s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
-                "totalUpcoming" -> s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
-                "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+              "reflectChargeText" -> Message(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text"),
+              "journeyType" -> journeyType.toString,
+              "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
+              "schemeName" -> paymentsCache.schemeDetails.schemeName,
+              "totalOverdue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
+              "totalInterestAccruing" -> s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
+              "totalUpcoming" -> s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
+              "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
             )
             renderer.render(template = "financialOverview/paymentsAndCharges.njk", json).map(Ok(_))
           }
