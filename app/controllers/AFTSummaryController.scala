@@ -179,9 +179,10 @@ class AFTSummaryController @Inject()(
     val endDate = Quarters.getQuarter(startDate).endDate
     val getLegendHtml = Json.obj("summaryheadingtext" -> confirmationPanelText(schemeName, startDate, endDate,formSearchText.value).toString())
 
-    val submissionNumber = (request.isCompile, request.isAmendment) match {
-      case (true, true) =>  "Draft"
-      case (_, false) => schemeName
+    val submissionNumber = (request.isCompile, request.isAmendment, request.isViewOnly) match {
+      case (true, true, _) =>  "Draft"
+      case (true, false, _) => schemeName
+      case (_,_,true) => "Submission" + ' ' + (request.aftVersion)
       case _ => "Submission" + ' ' + (request.aftVersion -1)
     }
 
