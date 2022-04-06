@@ -60,7 +60,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
       )
 
-      renderer.render(template = "financialOverview/paymentOrChargeType.njk", json).map(Ok(_))
+      renderer.render(template = "financialOverview/scheme/paymentOrChargeType.njk", json).map(Ok(_))
     }
   }
 
@@ -75,7 +75,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
             "schemeName" -> cache.schemeDetails.schemeName,
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
-          renderer.render(template = "financialOverview/paymentOrChargeType.njk", json).map(BadRequest(_))
+          renderer.render(template = "financialOverview/scheme/paymentOrChargeType.njk", json).map(BadRequest(_))
         },
         value => navService.navFromPaymentsTypePage(cache.schemeFSDetail, srn, pstr, value)
       )

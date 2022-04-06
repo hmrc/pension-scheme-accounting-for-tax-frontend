@@ -104,7 +104,7 @@ class AllPaymentsAndChargesController @Inject()(
                       "totalDue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
                       "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
                   )
-                  renderer.render(template = "financialOverview/paymentsAndCharges.njk", json).map(Ok(_))
+                  renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
                 }
               } else {
                 logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")

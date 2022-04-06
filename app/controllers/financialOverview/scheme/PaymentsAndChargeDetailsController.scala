@@ -18,7 +18,6 @@ package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions._
-import controllers.financialOverview.scheme.routes
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
@@ -112,7 +111,7 @@ class PaymentsAndChargeDetailsController @Inject()(
         (chargeRef, interestRef) match {
          case (Some(schemeFs), None) =>
            renderer.render(
-             template = "financialOverview/paymentsAndChargeDetails.njk",
+             template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
              ctx =
                summaryListData(srn, pstr, period, schemeFs, schemeName, paymentOrChargeType, interestUrl, version, submittedDate, journeyType, false)
            ).map(Ok(_))
@@ -134,7 +133,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, index,
                  paymentOrChargeType, version, submittedDate, journeyType).url
                renderer.render(
-                 template = "financialOverview/paymentsAndChargeDetails.njk",
+                 template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
                  ctx =
                    summaryListData(srn, pstr, period, schemeFs, schemeName, paymentOrChargeType, originalAmountUrl,
                      version, submittedDate, journeyType, true)
