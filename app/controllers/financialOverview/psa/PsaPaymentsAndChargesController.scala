@@ -27,7 +27,8 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.financialOverview.{PenaltiesCache, PsaPenaltiesAndChargesService}
+import services.financialOverview.psa.PenaltiesCache
+import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport

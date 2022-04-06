@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services.financialOverview
+package services.financialOverview.psa
 
 import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, MinimalConnector}

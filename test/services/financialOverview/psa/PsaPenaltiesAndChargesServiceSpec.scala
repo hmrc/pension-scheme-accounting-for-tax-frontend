@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package services.financialOverview
+package services.financialOverview.psa
 
 import base.SpecBase
 import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, MinimalConnector}
-import controllers.financialOverview.psa.routes.{PsaPaymentsAndChargesInterestController, PsaPenaltiesAndChargeDetailsController}
 import data.SampleData._
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
@@ -36,7 +35,6 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json
 import services.PenaltiesServiceSpec.dateNow
 import services.SchemeService
-import services.financialOverview.PsaPenaltiesAndChargesServiceSpec.{psaFsSeq, pstr, schemeName, _}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, SummaryList}
@@ -44,12 +42,15 @@ import utils.DateHelper.dateFormatterDMY
 import viewmodels.Radios.MessageInterpolators
 import viewmodels.Table
 import viewmodels.Table.Cell
+import controllers.financialOverview.psa.routes._
 
 import java.time.LocalDate
 import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
+
+  import PsaPenaltiesAndChargesServiceSpec._
 
   val mockSchemeService: SchemeService = mock[SchemeService]
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]

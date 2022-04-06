@@ -27,7 +27,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
-import services.financialOverview.PaymentsAndChargesService
+import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 

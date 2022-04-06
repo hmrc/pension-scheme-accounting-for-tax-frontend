@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package services.financialOverview
+package services.financialOverview.psa
 
 import base.SpecBase
 import connectors.ListOfSchemesConnector
-import controllers.financialOverview.psa.routes._
 import controllers.routes
 import data.SampleData.psaId
 import models.financialStatement.PenaltyType.AccountingForTaxPenalties
@@ -30,12 +29,14 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.mvc.Results.Redirect
 import services.PenaltiesServiceSpec.listOfSchemes
-import services.financialOverview.PenaltiesNavigationServiceSpec.{getAftPenalties, penalties}
+import controllers.financialOverview.psa.routes._
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesNavigationServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
+
+  import PenaltiesNavigationServiceSpec._
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   private val year: Int = 2020

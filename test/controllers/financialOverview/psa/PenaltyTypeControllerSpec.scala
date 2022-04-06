@@ -20,29 +20,28 @@ import config.FrontendAppConfig
 import connectors.ListOfSchemesConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.psa.SelectSchemeControllerSpec.{penaltySchemes}
+import controllers.financialOverview.psa.SelectSchemeControllerSpec.penaltySchemes
 import data.SampleData.{dummyCall, multiplePenalties, psaId}
 import forms.financialStatement.PenaltyTypeFormProvider
 import matchers.JsonMatchers
-import models.ChargeDetailsFilter.All
-import models.{Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
-import models.financialStatement.{DisplayPenaltyType, PenaltyType}
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
+import models.financialStatement.{DisplayPenaltyType, PenaltyType}
 import models.requests.IdentifierRequest
+import models.{Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import play.api.Application
 import play.api.data.Form
 import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
-import play.api.{Application, inject}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
 import play.twirl.api.Html
-import services.financialOverview.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
+import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -37,7 +37,8 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
-import services.financialOverview.{PenaltiesCache, PsaPenaltiesAndChargesService}
+import services.financialOverview.psa.PenaltiesCache
+import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services.financialOverview
+package services.financialOverview.scheme
 
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}

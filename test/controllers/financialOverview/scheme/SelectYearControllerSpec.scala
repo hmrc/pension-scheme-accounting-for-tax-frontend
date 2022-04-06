@@ -39,7 +39,8 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.financialOverview.{PaymentsAndChargesService, PaymentsCache}
+import services.financialOverview.scheme.PaymentsCache
+import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
 

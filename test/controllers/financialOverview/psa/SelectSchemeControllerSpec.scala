@@ -41,7 +41,8 @@ import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
 import play.twirl.api.Html
-import services.financialOverview.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
+import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
+import services.financialOverview.psa.PenaltiesCache
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
