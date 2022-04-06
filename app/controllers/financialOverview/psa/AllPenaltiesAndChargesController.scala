@@ -16,7 +16,6 @@
 
 package controllers.financialOverview.psa
 
-import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter.All
@@ -43,7 +42,6 @@ class AllPenaltiesAndChargesController @Inject()(
                                               identify: IdentifierAction,
                                               allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                               val controllerComponents: MessagesControllerComponents,
-                                              config: FrontendAppConfig,
                                               psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                               renderer: Renderer
                                             )(implicit ec: ExecutionContext)
@@ -131,7 +129,7 @@ class AllPenaltiesAndChargesController @Inject()(
               "pstr" -> pstr,
               "psaName" -> penaltiesCache.psaName
             )
-            renderer.render(template = "financialOverview/psaPaymentsAndCharges.njk", json).map(Ok(_))
+            renderer.render(template = "financialOverview/psa/psaPaymentsAndCharges.njk", json).map(Ok(_))
           }
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $year")

@@ -75,7 +75,7 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
     if (quartersSeq.size > 1) {
       Future.successful(Redirect(SelectPenaltiesQuarterController.onPageLoad(year.toString)))
     } else if (quartersSeq.size == 1) {
-      Future.successful(Redirect(SelectSchemeController.onPageLoad(penaltyType, year.toString)))
+      logger.debug(s"Skipping the select quarter page")
       navFromQuartersPage(penalties, quartersSeq.head, psaId)
     } else {
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -107,8 +107,7 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
         Redirect(SelectSchemeController.onPageLoad(AccountingForTaxPenalties, startDate.toString))
       } else if (schemes.size == 1) {
         logger.debug(s"Skipping the select scheme page for startDate $startDate and type AFT")
-        val pstrIndex: String = penalties.map(_.pstr).indexOf(schemes.head.pstr).toString
-        Redirect(AllPenaltiesAndChargesController.onPageLoadAFT(startDate.toString, pstrIndex))
+        Redirect(AllPenaltiesAndChargesController.onPageLoadAFT(startDate.toString, schemes.head.pstr))
       } else {
         Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }

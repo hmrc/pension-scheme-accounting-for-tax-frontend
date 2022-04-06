@@ -18,7 +18,6 @@ package controllers.financialOverview.psa
 
 import controllers.actions._
 import controllers.financialOverview.psa.routes._
-import controllers.financialStatement.penalties.routes._
 import forms.SelectSchemeFormProvider
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFSDetail}
@@ -56,13 +55,12 @@ class SelectSchemeController @Inject()(
 
   def onPageLoad(penaltyType: PenaltyType, period: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-      val (penaltySchemesFunction, _) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id, journeyType)
+      val (penaltySchemesFunction, _) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id)
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
         penaltySchemesFunction(penaltiesCache.penalties).flatMap { penaltySchemes =>
           if (penaltySchemes.nonEmpty) {
 
             val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
-
             val json = Json.obj(
               "psaName" -> penaltiesCache.psaName,
               "typeParam" -> typeParam,
@@ -80,7 +78,7 @@ class SelectSchemeController @Inject()(
   def onSubmit(penaltyType: PenaltyType, period: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async {
     implicit request =>
 
-      val (penaltySchemesFunction, redirectUrl) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id, journeyType)
+      val (penaltySchemesFunction, redirectUrl) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id)
 
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
         penaltySchemesFunction(penaltiesCache.penalties).flatMap { penaltySchemes =>
@@ -99,7 +97,6 @@ class SelectSchemeController @Inject()(
               renderer.render(template = "financialOverview/psa/selectScheme.njk", json).map(BadRequest(_))
             },
             value => psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).map { penaltiesCache =>
-              val pstrIndex: String = penaltiesCache.penalties.map(_.pstr).indexOf(value.pstr).toString
               Redirect(redirectUrl(value.pstr))
             }
           )
@@ -107,7 +104,7 @@ class SelectSchemeController @Inject()(
       }
   }
 
-  def getSchemesAndUrl(penaltyType: PenaltyType, period: String, psaId: String, journeyType: ChargeDetailsFilter)
+  def getSchemesAndUrl(penaltyType: PenaltyType, period: String, psaId: String)
                       (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail] => Future[Seq[PenaltySchemes]], String => Call) =
     penaltyType match {
       case AccountingForTaxPenalties =>

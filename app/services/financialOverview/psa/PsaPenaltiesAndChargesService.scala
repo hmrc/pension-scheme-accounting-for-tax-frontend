@@ -28,7 +28,7 @@ import models.financialStatement.PsaFSChargeType.{AFT_12_MONTH_LPP, AFT_30_DAY_L
 import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFSChargeType, PsaFSDetail}
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
 import services.SchemeService
@@ -126,7 +126,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             Nil
           }
 
-        val seqForTable = Seq(penaltyDetailsItemWithStatus(PaymentOverdue)) ++ seqInterestCharge
+        val seqForTable = if (detail.amountDue > 0 ) {
+          Seq(penaltyDetailsItemWithStatus(PaymentOverdue)) ++ seqInterestCharge
+        } else {
+          Seq(penaltyDetailsItemWithStatus(NoStatus)) ++ seqInterestCharge
+        }
         mapToTable(seqForTable, includeHeadings = false, journeyType)
 
       }
@@ -154,8 +158,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       Nil) { (acc, detail) =>
 
       val index: String = allChargeRefs.indexOf(detail.chargeReference).toString
-      val chargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
-
       val tableRecords = getSchemeName(psaId, detail.pstr).map { schemeName =>
 
         val tableChargeType = if (detail.chargeType == CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detail.chargeType
@@ -195,7 +197,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             Nil
           }
 
-        val seqForTable = Seq(penaltyDetailsItemWithStatus(PaymentOverdue)) ++ seqInterestCharge
+        val seqForTable = if (detail.amountDue > 0 ) {
+          Seq(penaltyDetailsItemWithStatus(PaymentOverdue)) ++ seqInterestCharge
+        } else {
+          Seq(penaltyDetailsItemWithStatus(NoStatus)) ++ seqInterestCharge
+        }
         mapToTable(seqForTable, includeHeadings = false, journeyType)
 
       }
