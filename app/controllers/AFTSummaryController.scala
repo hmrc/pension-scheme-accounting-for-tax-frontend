@@ -189,7 +189,6 @@ class AFTSummaryController @Inject()(
     logger.warn("This is your AFT version ---------------------------"+ request.aftVersion)
     logger.warn("This is your IsAmendment answer ////////////////////////////////////////"+ request.isAmendment)
 
-
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
     } else {
