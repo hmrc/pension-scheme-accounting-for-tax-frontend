@@ -263,6 +263,48 @@ object SampleData {
       )
     )
 
+  val schemeFSResponseAftAndOTCWithExtraFieldValues: SchemeFS =
+    SchemeFS(
+      seqSchemeFSDetail = Seq(
+        SchemeFSDetail(
+          index = 1,
+          chargeReference = "XY002610150184",
+          chargeType = PSS_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2020-02-15")),
+          totalAmount = 12345.00,
+          outstandingAmount = 56049.08,
+          stoodOverAmount = 25089.08,
+          amountDue = 1029.05,
+          accruedInterestTotal = 23000.55,
+          periodStartDate = Some(LocalDate.parse("2020-04-01")),
+          periodEndDate = Some(LocalDate.parse("2020-06-30")),
+          formBundleNumber = Some("12345678"),
+          sourceChargeRefForInterest = None,
+          sourceChargeIndex = None,
+          sourceChargeFormBundleNumber = None,
+          documentLineItemDetails = Nil
+        ),
+        SchemeFSDetail(
+          index = 2,
+          chargeReference = "XY002610150185",
+          chargeType = PSS_OTC_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2020-02-15")),
+          totalAmount = 56432.00,
+          outstandingAmount = 56049.08,
+          stoodOverAmount = 25089.08,
+          amountDue = 1029.05,
+          accruedInterestTotal = 24000.41,
+          periodStartDate = Some(LocalDate.parse("2020-04-01")),
+          periodEndDate = Some(LocalDate.parse("2020-06-30")),
+          formBundleNumber = None,
+          sourceChargeRefForInterest = Some("XY002610150184"),
+          sourceChargeIndex = Some(1),
+          sourceChargeFormBundleNumber = Some("12345678"),
+          documentLineItemDetails = Nil
+        )
+      )
+    )
+
   val psaFsSeq: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
       chargeReference = "XY002610150184",
