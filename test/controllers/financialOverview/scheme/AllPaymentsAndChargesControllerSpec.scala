@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.routes._
 import data.SampleData._
 import matchers.JsonMatchers
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.SchemeFSDetail
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -47,7 +46,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
   import AllPaymentsAndChargesControllerSpec._
 
   private def httpPathGET(startDate: String = startDate): String =
-    AllPaymentsAndChargesController.onPageLoad(srn, pstr, startDate, AccountingForTaxCharges).url
+    routes.AllPaymentsAndChargesController.onPageLoad(srn, pstr, startDate, AccountingForTaxCharges).url
 
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()

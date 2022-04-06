@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import connectors.{FinancialInfoCreditAccessConnector, FinancialStatementConnector, MinimalConnector}
@@ -43,7 +43,7 @@ class RequestRefundControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   import RequestRefundControllerSpec._
 
-  private def httpPathGET: String = controllers.financialOverview.routes.RequestRefundController.onPageLoad(srn).url
+  private def httpPathGET: String = routes.RequestRefundController.onPageLoad(srn).url
 
   private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
   private val mockPsaSchemePartialService = mock[PsaSchemePartialService]

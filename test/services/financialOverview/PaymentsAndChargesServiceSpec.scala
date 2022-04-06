@@ -20,7 +20,7 @@ import base.SpecBase
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
-import controllers.financialOverview.routes.{PaymentsAndChargeDetailsController, PaymentsAndChargesInterestController}
+import controllers.financialOverview.scheme.routes.{PaymentsAndChargeDetailsController, PaymentsAndChargesInterestController}
 import data.SampleData._
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString

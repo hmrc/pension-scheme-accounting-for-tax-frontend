@@ -140,7 +140,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                    journeyType: ChargeDetailsFilter): String = {
     journeyType match {
       case All => config.schemeDashboardUrl(psaId, pspId).format(srn)
-      case _ => routes.PaymentsAndChargesController.onPageLoad(srn, pstr, journeyType).url
+      case _ => controllers.financialOverview.scheme.routes.PaymentsAndChargesController.onPageLoad(srn, pstr, journeyType).url
     }
   }
 
@@ -199,7 +199,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           status = status,
           period = setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate),
           submittedDate = setSubmittedDate(submittedDate, details.chargeType),
-          redirectUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(
+          redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargeDetailsController.onPageLoad(
             srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
           visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
         )
@@ -217,7 +217,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
             status = InterestIsAccruing,
             period = setPeriod(interestChargeType, details.periodStartDate, details.periodEndDate),
-            redirectUrl = routes.PaymentsAndChargesInterestController.onPageLoad(
+            redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargesInterestController.onPageLoad(
               srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
             visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
           )

@@ -21,8 +21,6 @@ import connectors.ListOfSchemesConnector
 import controllers.financialOverview.psa.routes._
 import controllers.routes
 import data.SampleData.psaId
-import models.ChargeDetailsFilter
-import models.ChargeDetailsFilter.All
 import models.financialStatement.PenaltyType.AccountingForTaxPenalties
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.PsaFSDetail
@@ -40,7 +38,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class PenaltiesNavigationServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
-  private val journeyType: ChargeDetailsFilter = All
   private val year: Int = 2020
   private val aftPenalty = AccountingForTaxPenalties
   private val quarterPeriodStartDate = LocalDate.parse("2020-07-01")

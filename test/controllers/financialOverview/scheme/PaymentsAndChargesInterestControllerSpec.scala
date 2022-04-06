@@ -30,7 +30,7 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
@@ -67,7 +67,8 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
   import PaymentsAndChargesInterestControllerSpec._
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
-    routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url
+    routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges,
+      Some(versionInt), Some(submittedDate), Overdue).url
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
@@ -94,7 +95,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
   private def insetTextWithAmountDueAndInterest(index: String): uk.gov.hmrc.viewmodels.Html = {
     uk.gov.hmrc.viewmodels.Html(
       s"<p class=govuk-body>${messages("paymentsAndCharges.interest.chargeReference.text1")}" +
-        s" <span><a id='breakdown' class=govuk-link href=${controllers.financialOverview.routes.PaymentsAndChargeDetailsController
+        s" <span><a id='breakdown' class=govuk-link href=${routes.PaymentsAndChargeDetailsController
           .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url}>" +
         s" ${messages("paymentsAndCharges.interest.chargeReference.linkText")}</a></span>" +
         s" ${messages("paymentsAndCharges.interest.chargeReference.text2")}</p>"
@@ -116,7 +117,8 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       ),
       Row(
         key = Key(
-          msg"paymentsAndCharges.interestFrom".withArgs(DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46)))),
+          msg"paymentsAndCharges.interestFrom".withArgs(DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.
+            map(_.plusDays(46)))),
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
         ),
         value = Value(
@@ -131,8 +133,8 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     "accruedInterest" -> schemeFSDetail.accruedInterestTotal,
     "chargeType" -> (chargeType + s" submission $version"),
     "insetText" -> insetText,
-    "originalAmountUrl" -> controllers.financialOverview.routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url,
+    "originalAmountUrl" -> routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, startDate, index,
+      AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url,
     "returnLinkBasedOnJourney" -> "",
     "returnUrl" -> ""
   )

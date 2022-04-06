@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.psa
 
 import controllers.actions._
 import controllers.financialOverview.psa.routes.AllPenaltiesAndChargesController
@@ -124,8 +124,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                         )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
     val psaFSDetails = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head
     val period = psaPenaltiesAndChargesService.setPeriod(fs.chargeType, fs.periodStartDate, fs.periodEndDate)
-    val interestUrl = controllers.financialOverview.routes.PsaPaymentsAndChargesInterestController
-      .onPageLoad(fs.pstr, chargeReferenceIndex, journeyType).url
+    val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(fs.pstr, chargeReferenceIndex, journeyType).url
     val isInterestAccruing: Boolean = fs.accruedInterestTotal > 0
     val detailsChargeType = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
@@ -138,8 +137,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
           case Some(chargeValue) => chargeRefs.indexOf(chargeValue).toString
           case None => ""
         }
-        controllers.financialOverview.routes.PsaPenaltiesAndChargeDetailsController
-          .onPageLoad(fs.pstr, index, journeyType).url
+        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(fs.pstr, index, journeyType).url
       case _ => ""
     }
 

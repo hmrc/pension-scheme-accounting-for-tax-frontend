@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.routes._
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
-import models.financialStatement.SchemeFSDetail
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -47,7 +46,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
   import PaymentsAndChargesControllerSpec._
 
   private def httpPathGET: String =
-    PaymentsAndChargesController.onPageLoad(srn, pstr, Overdue).url
+    routes.PaymentsAndChargesController.onPageLoad(srn, pstr, Overdue).url
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
@@ -68,8 +67,10 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     super.beforeEach
     reset(mockRenderer, mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(schemeFSResponseOverdue)))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), ArgumentMatchers.eq(pstr), any(), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).
+      thenReturn(Future.successful(paymentsCache(schemeFSResponseOverdue)))
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
+      ArgumentMatchers.eq(pstr), any(), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))

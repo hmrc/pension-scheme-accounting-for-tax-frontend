@@ -19,7 +19,7 @@ package services.financialOverview
 import base.SpecBase
 import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, MinimalConnector}
-import controllers.financialOverview.routes.{PsaPaymentsAndChargesInterestController, PsaPenaltiesAndChargeDetailsController}
+import controllers.financialOverview.psa.routes.{PsaPaymentsAndChargesInterestController, PsaPenaltiesAndChargeDetailsController}
 import data.SampleData._
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString

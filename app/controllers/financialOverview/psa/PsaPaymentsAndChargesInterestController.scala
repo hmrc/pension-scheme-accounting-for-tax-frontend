@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.psa
 
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import controllers.financialOverview.psa.routes.AllPenaltiesAndChargesController
@@ -86,8 +86,7 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
     val psaFSDetails = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head
     val period = psaPenaltiesAndChargesService.setPeriod(fs.chargeType, fs.periodStartDate, fs.periodEndDate)
     val originalChargeRefsIndex: String => String = cr => psaFS.map(_.chargeReference).indexOf(cr).toString
-    val originalAmountURL = controllers.financialOverview.routes.PsaPenaltiesAndChargeDetailsController.
-      onPageLoad(fs.pstr, originalChargeRefsIndex(fs.chargeReference), journeyType).url
+    val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(fs.pstr, originalChargeRefsIndex(fs.chargeReference), journeyType).url
     val detailsChargeType = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
     val penaltyType = getPenaltyType(detailsChargeType)

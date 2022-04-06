@@ -100,7 +100,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               pstr = detail.pstr,
               period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
               schemeName = schemeName,
-              redirectUrl = controllers.financialOverview.routes.PsaPenaltiesAndChargeDetailsController
+              redirectUrl = controllers.financialOverview.psa.routes.PsaPenaltiesAndChargeDetailsController
                 .onPageLoad(detail.pstr, chargeRefsIndex(detail.chargeReference), journeyType)
                 .url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", detail.chargeReference)
@@ -118,7 +118,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 pstr = detail.pstr,
                 period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
                 schemeName = schemeName,
-                redirectUrl = controllers.financialOverview.routes.PsaPaymentsAndChargesInterestController
+                redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
                   .onPageLoad(detail.pstr, chargeRefsIndex(detail.chargeReference), journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
               ))
@@ -170,7 +170,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               pstr = detail.pstr,
               period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
               schemeName = schemeName,
-              redirectUrl = controllers.financialOverview.routes.PsaPenaltiesAndChargeDetailsController
+              redirectUrl = controllers.financialOverview.psa.routes.PsaPenaltiesAndChargeDetailsController
                 .onPageLoad(detail.pstr, index, journeyType).url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", detail.chargeReference)
             )
@@ -187,7 +187,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 pstr = detail.pstr,
                 period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
                 schemeName = schemeName,
-                redirectUrl = controllers.financialOverview.routes.PsaPaymentsAndChargesInterestController
+                redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
                   .onPageLoad(detail.pstr, index, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
               ))

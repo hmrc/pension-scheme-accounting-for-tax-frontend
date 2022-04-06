@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction

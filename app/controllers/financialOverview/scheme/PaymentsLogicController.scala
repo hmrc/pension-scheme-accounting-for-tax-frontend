@@ -30,7 +30,7 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import controllers.actions._
 import models.ChargeDetailsFilter

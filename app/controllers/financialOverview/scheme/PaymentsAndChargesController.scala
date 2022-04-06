@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter.Upcoming
-import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
+import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, UserAnswers}
 import pages.{AFTReceiptDateQuery, AFTVersionQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}

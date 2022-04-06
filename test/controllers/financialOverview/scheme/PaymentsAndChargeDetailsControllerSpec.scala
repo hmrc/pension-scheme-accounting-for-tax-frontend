@@ -30,11 +30,10 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.routes._
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
@@ -42,7 +41,7 @@ import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
-import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFSDetail, SchemeFSChargeType, SchemeFSDetail}
+import models.financialStatement._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest._
@@ -72,7 +71,8 @@ class PaymentsAndChargeDetailsControllerSpec
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
-    PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url
+    routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges,
+      Some(versionInt), Some(submittedDate), Overdue).url
 
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
@@ -104,11 +104,13 @@ class PaymentsAndChargeDetailsControllerSpec
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
         s"<p class=govuk-body>${
           messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
-        s" <span class=govuk-!-font-weight-bold>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2", schemeFSDetail.accruedInterestTotal)}</span>" +
-        s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))}<span>" +
+        s" <span class=govuk-!-font-weight-bold>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
+          schemeFSDetail.accruedInterestTotal)}</span>" +
+        s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3",
+          schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))}<span>" +
         s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=${
-          controllers.financialOverview.routes.PaymentsAndChargesInterestController
-            .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url
+          routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get,
+            "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url
         }>" +
         s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
 
@@ -118,7 +120,7 @@ class PaymentsAndChargeDetailsControllerSpec
   private def insetTextForInterestWithQuarter(schemeFSDetail: SchemeFSDetail): uk.gov.hmrc.viewmodels.Html = {
     uk.gov.hmrc.viewmodels.Html(
       s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2", schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
-        s"<p class=govuk-body><a id='breakdown' class=govuk-link href=${controllers.financialOverview.routes.PaymentsAndChargeDetailsController
+        s"<p class=govuk-body><a id='breakdown' class=govuk-link href=${routes.PaymentsAndChargeDetailsController
           .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url}>" +
         s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
     )
@@ -135,7 +137,7 @@ class PaymentsAndChargeDetailsControllerSpec
       "tableHeader" -> "",
       "schemeName" -> schemeName,
       "chargeType" -> (schemeFSDetail.chargeType.toString + s" submission $version"),
-      "versionValue" -> (s" submission $version"),
+      "versionValue" -> s" submission $version",
       "isPaymentOverdue" -> isPaymentOverdue,
       "insetText" -> insetText,
       "interest" -> schemeFSDetail.accruedInterestTotal,

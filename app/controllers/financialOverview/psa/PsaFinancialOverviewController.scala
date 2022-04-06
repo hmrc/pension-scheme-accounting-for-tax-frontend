@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.psa
 
 import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
+import controllers.financialOverview.psa
 import helpers.FormatHelper
 import models.financialStatement.{PsaFS, PsaFSChargeType, PsaFSDetail}
 import play.api.Logger
@@ -74,7 +75,7 @@ class PsaFinancialOverviewController @Inject()(
     logger.debug(s"AFT service returned InterestAccruing - ${psaCharges._3}")
 
     val requestRefundUrl = creditPsaFS.inhibitRefundSignal match {
-      case true => routes.RefundUnavailableController.onPageLoad.url
+      case true => controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
       case false => routes.PsaRequestRefundController.onPageLoad.url
     }
 
