@@ -14,68 +14,70 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview.psa
+package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, psaId}
-import forms.YearsFormProvider
+import data.SampleData._
+import forms.QuartersFormProvider
 import matchers.JsonMatchers
-import models.StartYears.enumerable
-import models.financialStatement.PenaltyType
-import models.financialStatement.PenaltyType.ContractSettlementCharges
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
+import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
-import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
+import models.{AFTQuarter, DisplayQuarter, Enumerable, PaymentOverdue, Quarters}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.data.Form
-import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
-import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
+import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.financialOverview.psa.PsaPenaltiesAndChargesServiceSpec.psaFsSeq
-import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
+import services.financialOverview.scheme.PaymentsCache
+import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
-  private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
-  private val mockNavigationService = mock[PenaltiesNavigationService]
+  val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService)
-  )
-
-  private val years: Seq[DisplayYear] = Seq(DisplayYear(2020, Some(PaymentOverdue)))
-
-  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialOverview/psa/selectYear.njk"
-  val formProvider = new YearsFormProvider()
-  val form: Form[Year] = formProvider()
-  val penaltyType: PenaltyType = ContractSettlementCharges
-
-  lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad(penaltyType).url
-  lazy val httpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(penaltyType).url
-
-  private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> FSYears.radios(form, years)
+    bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
   )
 
   private val year = "2020"
 
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
+  private val quarters: Seq[AFTQuarter] = Seq(q22020)
+  private val displayQuarters: Seq[DisplayQuarter] = Seq(
+    DisplayQuarter(q22020, displayYear = false, None, Some(PaymentOverdue))
+  )
+
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+  val templateToBeRendered = "financialOverview/selectQuarter.njk"
+  val formProvider = new QuartersFormProvider()
+  val form: Form[AFTQuarter] = formProvider("selectChargesQuarter.error", quarters)
+
+  lazy val httpPathGET: String = routes.SelectQuarterController.onPageLoad(srn, pstr, year).url
+  lazy val httpPathPOST: String = routes.SelectQuarterController.onSubmit(srn, pstr, year).url
+  private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
+
+  private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
+    "form" -> form,
+    "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
+    "schemeName" -> schemeName,
+    "year" -> year
+  )
+
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q22020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
   override def beforeEach: Unit = {
@@ -83,15 +85,13 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
-      thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
-    when(mockPsaPenaltiesAndChargesService.getTypeParam(ContractSettlementCharges)).
-      thenReturn(ContractSettlementCharges.toString)
+    when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+      .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))
   }
 
-  "SelectYearController" must {
-    "return OK and the correct view for a GET with the select option for Year" in {
+  "SelectQuarter Controller" must {
+    "return OK and the correct view for a GET" in {
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -101,25 +101,29 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
       templateCaptor.getValue mustEqual templateToBeRendered
+
       jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
     }
 
     "redirect to next page when valid data is submitted" in {
-      when(mockNavigationService.navFromAFTYearsPage(any(), any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(ContractSettlementCharges, year))))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result) mustBe Some(routes.SelectSchemeController.onPageLoad(ContractSettlementCharges, year).url)
+
+      redirectLocation(result) mustBe Some(routes.AllPaymentsAndChargesController.onPageLoad(srn, pstr, q22020.startDate.toString, AccountingForTaxCharges).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
       status(result) mustEqual BAD_REQUEST
+
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
   }
-
 }
+

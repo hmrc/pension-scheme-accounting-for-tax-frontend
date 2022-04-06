@@ -182,7 +182,7 @@ class AFTSummaryController @Inject()(
        "Draft"
     }
     else {
-      "Submission" + ' ' + version.toString
+      "Submission" + ' ' + request.aftVersion.toString
     }
 
 
