@@ -21,12 +21,10 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData.{dummyCall, psaId}
 import forms.YearsFormProvider
-import io.apigee.trireme.node12.node.url
 import matchers.JsonMatchers
-import models.ChargeDetailsFilter.All
 import models.StartYears.enumerable
 import models.financialStatement.PenaltyType
-import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
+import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import org.mockito.ArgumentCaptor
@@ -42,8 +40,8 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
 import play.twirl.api.Html
-import services.financialOverview.PsaPenaltiesAndChargesServiceSpec.psaFsSeq
-import services.financialOverview.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
+import services.financialOverview.psa.PsaPenaltiesAndChargesServiceSpec.psaFsSeq
+import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
