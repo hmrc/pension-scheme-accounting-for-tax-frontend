@@ -58,7 +58,7 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialOverview/paymentOrChargeType.njk"
+  val templateToBeRendered = "financialOverview/scheme/paymentOrChargeType.njk"
   val formProvider = new PaymentOrChargeTypeFormProvider()
   val form: Form[PaymentOrChargeType] = formProvider()
 

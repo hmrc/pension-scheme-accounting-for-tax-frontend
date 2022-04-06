@@ -16,7 +16,6 @@
 
 package controllers.financialOverview.scheme
 
-import controllers.financialOverview.scheme.routes
 import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
@@ -100,7 +99,7 @@ class PaymentsAndChargesInterestController @Inject()(
       filteredSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
           renderer.render(
-            template = "financialOverview/paymentsAndChargeInterest.njk",
+            template = "financialOverview/scheme/paymentsAndChargeInterest.njk",
             ctx = summaryListData(srn, pstr, request.psaId, request.pspId, schemeFs, schemeName, originalAmountUrl, version, journeyType)
           ).map(Ok(_))
         case _ =>

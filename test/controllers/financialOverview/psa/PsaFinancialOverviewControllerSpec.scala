@@ -100,7 +100,7 @@ class PsaFinancialOverviewControllerSpec
 
         status(result) mustEqual OK
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        templateCaptor.getValue mustEqual "financialOverview/psaFinancialOverview.njk"
+        templateCaptor.getValue mustEqual "financialOverview/psa/psaFinancialOverview.njk"
         jsonCaptor.getValue must containJson(jsonToPassToTemplate)
       }
     }

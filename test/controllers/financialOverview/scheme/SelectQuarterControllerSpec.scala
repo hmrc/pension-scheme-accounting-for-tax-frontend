@@ -61,7 +61,7 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialOverview/selectQuarter.njk"
+  val templateToBeRendered = "financialOverview/scheme/selectQuarter.njk"
   val formProvider = new QuartersFormProvider()
   val form: Form[AFTQuarter] = formProvider("selectChargesQuarter.error", quarters)
 

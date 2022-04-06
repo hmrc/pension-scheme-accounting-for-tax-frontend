@@ -18,7 +18,6 @@ package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions._
-import controllers.financialOverview.routes
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
@@ -71,7 +70,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
           "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
         )
 
-        renderer.render(template = "financialOverview/selectQuarter.njk", json).map(Ok(_))
+        renderer.render(template = "financialOverview/scheme/selectQuarter.njk", json).map(Ok(_))
       } else {
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
       }

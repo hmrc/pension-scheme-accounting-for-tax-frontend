@@ -74,7 +74,7 @@ class PsaPaymentsAndChargesInterestControllerSpec
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-  private val templateToBeRendered = "financialOverview/psaInterestDetails.njk"
+  private val templateToBeRendered = "financialOverview/psa/psaInterestDetails.njk"
   private val commonJson: JsObject = Json.obj(
     "heading" -> "Interest on contract settlement charge",
     "period" -> "Period: 1 January to 2 February 2021",

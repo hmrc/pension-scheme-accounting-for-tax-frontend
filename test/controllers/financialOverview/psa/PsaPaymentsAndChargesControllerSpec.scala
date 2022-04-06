@@ -102,7 +102,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "financialOverview/psaPaymentsAndCharges.njk"
+      templateCaptor.getValue mustEqual "financialOverview/psa/psaPaymentsAndCharges.njk"
       jsonCaptor.getValue must containJson(expectedJson)
     }
   }

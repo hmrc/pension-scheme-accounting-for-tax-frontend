@@ -34,7 +34,6 @@ package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions._
-import controllers.financialOverview.routes
 import forms.YearsFormProvider
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
@@ -92,7 +91,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
       )
 
-      renderer.render(template = "financialOverview/selectYear.njk", json).map(Ok(_))
+      renderer.render(template = "financialOverview/scheme/selectYear.njk", json).map(Ok(_))
     }
   }
 
@@ -114,7 +113,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
             "radios" -> FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType)),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
-          renderer.render(template = "financialOverview/selectYear.njk", json).map(BadRequest(_))
+          renderer.render(template = "financialOverview/scheme/selectYear.njk", json).map(BadRequest(_))
         },
         value => if(paymentOrChargeType == AccountingForTaxCharges) {
           navService.navFromAFTYearsPage(paymentsCache.schemeFSDetail, value.year, srn, pstr)

@@ -170,7 +170,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "financialOverview/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
 
       jsonCaptor.getValue must containJson(
         expectedJson(schemeFSDetail, insetTextWithAmountDueAndInterest(schemeFSDetail), isPaymentOverdue = true)
@@ -198,7 +198,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "financialOverview/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(
         expectedJson(schemeFSDetail, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
       )
@@ -222,7 +222,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "financialOverview/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
 
       jsonCaptor.getValue must containJson(
         expectedJson(schemeFSDetail, insetTextForInterestWithQuarter(schemeFSDetail))
@@ -244,7 +244,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "financialOverview/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, uk.gov.hmrc.viewmodels.Html("")))
     }
 
