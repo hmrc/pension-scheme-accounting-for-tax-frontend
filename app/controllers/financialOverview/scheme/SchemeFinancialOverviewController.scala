@@ -91,7 +91,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
 
 
     renderer.render(
-      template = "financialOverview/schemeFinancialOverview.njk",
+      template = "financialOverview/scheme/schemeFinancialOverview.njk",
       ctx = Json.obj("totalUpcomingCharge" -> totalUpcomingChargeFormatted,
         "totalOverdueCharge" -> totalOverdueChargeFormatted,
         "totalInterestAccruing" -> totalInterestAccruingFormatted ,

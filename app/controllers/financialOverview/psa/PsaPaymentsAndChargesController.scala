@@ -98,7 +98,7 @@ class PsaPaymentsAndChargesController @Inject()(
       }
 
       renderer.render(
-        template = "financialOverview/psaPaymentsAndCharges.njk",
+        template = "financialOverview/psa/psaPaymentsAndCharges.njk",
         ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1,
           "totalOverdueCharge" -> psaCharges._2,
           "totalInterestAccruing" -> psaCharges._3,

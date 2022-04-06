@@ -89,7 +89,7 @@ class AllPenaltiesAndChargesController @Inject()(
               "pstr" -> pstr,
               "psaName" -> penaltiesCache.psaName
             )
-            renderer.render(template = "financialOverview/psaPaymentsAndCharges.njk", json).map(Ok(_))
+            renderer.render(template = "financialOverview/psa/psaPaymentsAndCharges.njk", json).map(Ok(_))
           }
         } else {
             logger.warn(s"No Scheme Payments and Charges returned for the selected period $startDate")

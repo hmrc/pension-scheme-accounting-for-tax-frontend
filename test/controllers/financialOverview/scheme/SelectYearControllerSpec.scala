@@ -62,7 +62,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialOverview/selectYear.njk"
+  val templateToBeRendered = "financialOverview/scheme/selectYear.njk"
   val formProvider = new YearsFormProvider()
   val form: Form[Year] = formProvider()
 

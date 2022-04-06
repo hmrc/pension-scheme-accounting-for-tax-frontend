@@ -68,7 +68,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                 "schemeName" -> schemeDetails.schemeName
               ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex, journeyType)
 
-              renderer.render(template = "financialOverview/psaChargeDetails.njk", json).map(Ok(_))
+              renderer.render(template = "financialOverview/psa/psaChargeDetails.njk", json).map(Ok(_))
             }
           } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))

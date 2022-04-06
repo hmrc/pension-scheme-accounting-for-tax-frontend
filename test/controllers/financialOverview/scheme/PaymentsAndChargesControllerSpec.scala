@@ -93,7 +93,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "financialOverview/paymentsAndCharges.njk"
+      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndCharges.njk"
       jsonCaptor.getValue must containJson(expectedJson)
     }
 

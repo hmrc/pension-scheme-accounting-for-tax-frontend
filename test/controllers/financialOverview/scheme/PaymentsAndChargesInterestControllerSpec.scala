@@ -153,7 +153,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "financialOverview/paymentsAndChargeInterest.njk"
+      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeInterest.njk"
       jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, PSS_AFT_RETURN_INTEREST.toString, insetTextWithAmountDueAndInterest("0"), "0"))
     }
 
@@ -169,7 +169,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "financialOverview/paymentsAndChargeInterest.njk"
+      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeInterest.njk"
      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, PSS_OTC_AFT_RETURN_INTEREST.toString, insetTextWithAmountDueAndInterest("1"), "1"))
     }
 

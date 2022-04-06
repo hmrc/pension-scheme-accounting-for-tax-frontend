@@ -97,7 +97,7 @@ class PaymentsAndChargesController @Inject()(
               "totalUpcoming" -> s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
               "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
             )
-            renderer.render(template = "financialOverview/paymentsAndCharges.njk", json).map(Ok(_))
+            renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
           }
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
