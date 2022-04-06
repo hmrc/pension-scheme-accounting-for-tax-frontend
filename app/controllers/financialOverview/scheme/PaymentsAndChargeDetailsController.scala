@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions._
+import controllers.financialOverview.scheme.routes
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
-import models.financialStatement.SchemeFSChargeType.{AFT_MANUAL_ASST_INTEREST, CONTRACT_SETTLEMENT_INTEREST, OTC_MANUAL_ASST_INTEREST, PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_CHARGE_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
+import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import models.{ChargeDetailsFilter, Submission}
@@ -103,8 +104,8 @@ class PaymentsAndChargeDetailsController @Inject()(
                        )(
                          implicit request: IdentifierRequest[AnyContent]
                        ): Future[Result] = {
-    val interestUrl = controllers.financialOverview.routes.PaymentsAndChargesInterestController
-        .onPageLoad(srn, pstr, period, index, paymentOrChargeType, version, submittedDate, journeyType).url
+    val interestUrl = routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, period, index,
+      paymentOrChargeType, version, submittedDate, journeyType).url
     if (chargeRefs(filteredCharges).size > index.toInt) {
       val chargeRef = filteredCharges.find(_.chargeReference == chargeRefs(filteredCharges)(index.toInt))
       val interestRef =  filteredCharges.find(_.sourceChargeRefForInterest.contains(interestChargeRefs(filteredCharges)(index.toInt)))
@@ -130,8 +131,8 @@ class PaymentsAndChargeDetailsController @Inject()(
                  case Some(chargeValue) => seqChargeRefs.indexOf(chargeValue).toString
                  case None => ""
                }
-               val originalAmountUrl = routes.PaymentsAndChargeDetailsController
-                 .onPageLoad(srn, pstr, period, index, paymentOrChargeType, version, submittedDate, journeyType).url
+               val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, index,
+                 paymentOrChargeType, version, submittedDate, journeyType).url
                renderer.render(
                  template = "financialOverview/paymentsAndChargeDetails.njk",
                  ctx =

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.psa
 
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.PsaPenaltiesAndChargeDetailsControllerSpec.{chargeRef, rows}
+import controllers.financialOverview.psa.PsaPenaltiesAndChargeDetailsControllerSpec.{chargeRef, rows}
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
@@ -57,8 +57,8 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     with ScalaFutures {
 
   private def httpPathGETAssociated(chargeReferenceIndex: String): String = {
-    controllers.financialOverview.routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(
-      identifier = pstr, chargeReferenceIndex = chargeReferenceIndex, Overdue).url
+    routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(identifier = pstr,
+      chargeReferenceIndex = chargeReferenceIndex, Overdue).url
   }
 
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]

@@ -17,7 +17,7 @@
 package services.financialOverview
 
 import base.SpecBase
-import controllers.financialOverview.routes._
+import controllers.financialOverview.scheme.routes._
 import data.SampleData._
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.SchemeFSChargeType._

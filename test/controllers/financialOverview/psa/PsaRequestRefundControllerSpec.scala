@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.psa
 
 import config.FrontendAppConfig
 import connectors.{FinancialInfoCreditAccessConnector, FinancialStatementConnector, MinimalConnector}
@@ -41,7 +41,7 @@ import scala.concurrent.Future
 
 class PsaRequestRefundControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
 
-  private def httpPathGET: String = controllers.financialOverview.routes.PsaRequestRefundController.onPageLoad.url
+  private def httpPathGET: String = routes.PsaRequestRefundController.onPageLoad.url
 
   private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
   private val mockService = mock[AFTPartialService]

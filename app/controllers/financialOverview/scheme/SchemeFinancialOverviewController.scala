@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import connectors.FinancialStatementConnector
 import controllers.actions._
@@ -85,7 +85,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     val creditBalance = getCreditBalanceAmount(creditSchemeFSDetail)
 
     val requestRefundUrl = schemeFS.inhibitRefundSignal match {
-      case true => routes.RefundUnavailableController.onPageLoad.url
+      case true => controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
       case false => routes.RequestRefundController.onPageLoad(srn).url
     }
 

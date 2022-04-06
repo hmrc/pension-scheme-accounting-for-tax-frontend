@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.psa
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnectorSpec.{psaFSResponse, psaFs}
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.PsaPaymentsAndChargesControllerSpec.{responseOverdue, responseUpcoming}
-import controllers.financialOverview.routes.PsaPaymentsAndChargesController
+import controllers.financialOverview.psa.PsaPaymentsAndChargesControllerSpec.{responseOverdue, responseUpcoming}
 import data.SampleData.psaId
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
@@ -49,7 +48,7 @@ import scala.concurrent.Future
 class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
 
   private def httpPathGET: String =
-    PsaPaymentsAndChargesController.onPageLoad(Overdue).url
+    routes.PsaPaymentsAndChargesController.onPageLoad(Overdue).url
 
   private val mockPsaPenaltiesAndChargesService: PsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -69,12 +68,9 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     )
     .build()
 
-  val penaltiesCache = PenaltiesCache(psaId, "psa-name", psaFSResponse)
-  val noDataCache = PenaltiesCache("", "", Nil)
+  private val penaltiesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
 
-  val penaltiesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
-
-  val expectedJson = Json.obj("totalUpcomingCharge" -> "100",
+  private val expectedJson = Json.obj("totalUpcomingCharge" -> "100",
     "totalOverdueCharge" -> "100",
     "totalInterestAccruing" -> "100",
     "titleMessage" -> "Overdue penalties and interest charges")

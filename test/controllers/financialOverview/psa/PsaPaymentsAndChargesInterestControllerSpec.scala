@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.psa
 
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.{interestPsaFSResponse, psaFSResponse}
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.PsaPaymentsAndChargesInterestControllerSpec.{chargeRef, rows}
+import controllers.financialOverview.psa.PsaPaymentsAndChargesInterestControllerSpec.{chargeRef, rows}
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
@@ -56,7 +56,7 @@ class PsaPaymentsAndChargesInterestControllerSpec
     with ScalaFutures {
 
   private def httpPathGETAssociated(chargeReferenceIndex: String): String = {
-    controllers.financialOverview.routes.PsaPaymentsAndChargesInterestController.onPageLoad(
+    controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController.onPageLoad(
       identifier = pstr, chargeReferenceIndex = chargeReferenceIndex, Overdue).url
   }
 

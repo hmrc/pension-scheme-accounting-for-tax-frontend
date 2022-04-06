@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.base.ControllerSpecBase
@@ -99,7 +99,7 @@ class SchemeFinancialOverviewControllerSpec
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
         templateCaptor.getValue mustEqual "financialOverview/schemeFinancialOverview.njk"
         val actualJson = jsonCaptor.getValue
-        (actualJson \ "requestRefundUrl").asOpt[String] mustBe Some(controllers.financialOverview.routes.RequestRefundController.onPageLoad(srn).url)
+        (actualJson \ "requestRefundUrl").asOpt[String] mustBe Some(routes.RequestRefundController.onPageLoad(srn).url)
       }
     }
 

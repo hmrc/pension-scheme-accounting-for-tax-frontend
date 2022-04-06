@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import connectors.{FinancialInfoCreditAccessConnector, FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
+import controllers.financialOverview.scheme.routes
 import models.AdministratorOrPractitioner.Administrator
 import models.CreditAccessType
 import models.CreditAccessType.{AccessedByLoggedInPsaOrPsp, AccessedByOtherPsa, AccessedByOtherPsp}
@@ -64,7 +65,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
       creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
     } yield {
       if (creditSchemeFS.inhibitRefundSignal) {
-        routes.RefundUnavailableController.onPageLoad.url
+        controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
       } else {
         val pstr = schemeDetails.pstr
         val creditBalance = psaSchemePartialService.getCreditBalanceAmount(creditSchemeFS.seqSchemeFSDetail)

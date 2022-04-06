@@ -16,7 +16,6 @@
 
 package services.financialOverview
 
-import controllers.financialOverview.routes._
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import play.api.mvc.Result
@@ -31,7 +30,7 @@ class PaymentsNavigationService {
     val paymentTypes: Seq[PaymentOrChargeType] = payments.map(p => getPaymentOrChargeType(p.chargeType)).distinct
 
     if (paymentTypes.size > 1) {
-      Future.successful(Redirect(PaymentOrChargeTypeController.onPageLoad(srn, pstr)))
+      Future.successful(Redirect(controllers. financialOverview.scheme.routes.PaymentOrChargeTypeController.onPageLoad(srn, pstr)))
     } else if (paymentTypes.size == 1) {
       navFromPaymentsTypePage(payments, srn, pstr, paymentTypes.head)
     } else {
@@ -50,8 +49,10 @@ class PaymentsNavigationService {
 
     (paymentType, yearsSeq.size) match {
       case (AccountingForTaxCharges, 1) => navFromAFTYearsPage(payments, yearsSeq.head, srn, pstr)
-      case (_, 1) => Future.successful(Redirect(AllPaymentsAndChargesController.onPageLoad(srn, pstr, yearsSeq.head.toString, paymentType)))
-      case (_, size) if size > 1 => Future.successful(Redirect(SelectYearController.onPageLoad(srn, pstr, paymentType)))
+      case (_, 1) => Future.successful(Redirect(controllers. financialOverview.scheme.routes.
+        AllPaymentsAndChargesController.onPageLoad(srn, pstr, yearsSeq.head.toString, paymentType)))
+      case (_, size) if size > 1 => Future.successful(Redirect(controllers. financialOverview.scheme.routes.
+        SelectYearController.onPageLoad(srn, pstr, paymentType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
     }
@@ -67,9 +68,10 @@ class PaymentsNavigationService {
       }).distinct
 
     if (quartersSeq.size > 1) {
-      Future.successful(Redirect(SelectQuarterController.onPageLoad(srn, pstr, year.toString)))
+      Future.successful(Redirect(controllers. financialOverview.scheme.routes.SelectQuarterController.onPageLoad(srn, pstr, year.toString)))
     } else if (quartersSeq.size == 1) {
-      Future.successful(Redirect(AllPaymentsAndChargesController.onPageLoad(srn, pstr, quartersSeq.head.toString, AccountingForTaxCharges)))
+      Future.successful(Redirect(controllers. financialOverview.scheme.routes.AllPaymentsAndChargesController.
+        onPageLoad(srn, pstr, quartersSeq.head.toString, AccountingForTaxCharges)))
     } else {
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }

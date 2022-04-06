@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package controllers.financialOverview
+package controllers.financialOverview.scheme
 
+import controllers.financialOverview.scheme.routes
 import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
@@ -93,8 +94,8 @@ class PaymentsAndChargesInterestController @Inject()(
                        ): Future[Result] = {
 
     val chargeRefs: Seq[String] = filteredSchemeFS.map(_.chargeReference)
-    val originalAmountUrl = controllers.financialOverview.routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, pstr, period, index, paymentOrChargeType, version, submittedDate, journeyType).url
+    val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, index,
+      paymentOrChargeType, version, submittedDate, journeyType).url
     if (chargeRefs.size > index.toInt) {
       filteredSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
