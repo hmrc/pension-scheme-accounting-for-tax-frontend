@@ -28,7 +28,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
-import services.financialOverview.PaymentsAndChargesService
+import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport

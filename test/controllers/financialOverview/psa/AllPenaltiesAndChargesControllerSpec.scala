@@ -37,7 +37,8 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
 import play.twirl.api.Html
 import services.SchemeService
-import services.financialOverview.{PenaltiesCache, PsaPenaltiesAndChargesService}
+import services.financialOverview.psa.PenaltiesCache
+import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 

@@ -34,7 +34,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import play.twirl.api.Html
-import services.financialOverview.{PaymentsAndChargesService, PaymentsCache}
+import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 

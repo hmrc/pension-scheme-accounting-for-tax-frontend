@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package services.financialOverview
+package services.financialOverview.scheme
 
 import base.SpecBase
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
-import controllers.financialOverview.scheme.routes.{PaymentsAndChargeDetailsController, PaymentsAndChargesInterestController}
 import data.SampleData._
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
@@ -37,6 +36,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json
 import services.SchemeService
+import services.financialOverview.psa.PenaltiesCache
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
@@ -45,6 +45,7 @@ import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatDateDMY}
 import viewmodels.Table
 import viewmodels.Table.Cell
+import controllers.financialOverview.scheme.routes._
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global

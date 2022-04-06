@@ -31,7 +31,7 @@ import play.api.libs.json.Json._
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
-import services.financialOverview.PaymentsAndChargesService
+import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}

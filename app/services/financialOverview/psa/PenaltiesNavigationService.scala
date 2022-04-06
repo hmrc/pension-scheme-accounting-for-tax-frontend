@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package services.financialOverview
+package services.financialOverview.psa
 
 import connectors.ListOfSchemesConnector
-import controllers.financialOverview.psa.routes._
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, getPenaltyType}
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, ListSchemeDetails, PenaltySchemes}
@@ -30,6 +29,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
+import controllers.financialOverview.psa.routes._
 
 class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemesConnector) {
 
