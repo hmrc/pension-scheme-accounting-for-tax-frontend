@@ -185,6 +185,7 @@ class AFTSummaryController @Inject()(
       case _ => "Submission" + ' ' + (request.aftVersion -1)
     }
 
+    logger.warn("This is your compile ---------------------------"+ request.isCompile)
     logger.warn("This is your AFT version ---------------------------"+ request.aftVersion)
     logger.warn("This is your IsAmendment answer ////////////////////////////////////////"+ request.isAmendment)
 
