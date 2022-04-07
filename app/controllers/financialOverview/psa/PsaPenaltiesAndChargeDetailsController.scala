@@ -56,10 +56,10 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     implicit request =>
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
-        val chargeRefs: Seq[String] = penaltiesCache.penalties.map(_.chargeReference)
-        def penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
+       val chargeRefs: Seq[String] = penaltiesCache.penalties.map(_.chargeReference)
+       def penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
 
-        if(chargeRefs.length > chargeReferenceIndex.toInt && penaltyOpt.nonEmpty) {
+        if(chargeRefs.length >= chargeReferenceIndex.toInt && penaltyOpt.nonEmpty) {
           schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
             schemeDetails =>
               val json = Json.obj(
@@ -130,14 +130,9 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
     val penaltyType = getPenaltyType(detailsChargeType)
 
-    val originalChargeUrl = fs.sourceChargeRefForInterest match {
+    val originalChargeUrl = fs.sourceChargeInfo match {
       case Some(sourceChargeRef) =>
-        val originalCharge = psaFS.find(_.chargeReference.equals(sourceChargeRef))
-        val index = originalCharge.map(_.chargeReference) match {
-          case Some(chargeValue) => chargeRefs.indexOf(chargeValue).toString
-          case None => ""
-        }
-        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(fs.pstr, index, journeyType).url
+        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(sourceChargeRef.pstr, sourceChargeRef.index.toString, journeyType).url
       case _ => ""
     }
 

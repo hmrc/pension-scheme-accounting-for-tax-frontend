@@ -63,7 +63,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     )
 
     val rows = penalties.flatMap { data =>
-      val content = chargeTypeLink(identifier, data, chargeRefsIndex(data.chargeReference), journeyType)
+      val content = chargeTypeLink(identifier, data,data.index.toString, journeyType)
       val charge = Seq(
         Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
@@ -73,7 +73,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
       )
 
       val interest = if (data.chargeType == CONTRACT_SETTLEMENT && data.accruedInterestTotal > 0) {
-        val content = accruedInterestLink(identifier, data, chargeRefsIndex(data.chargeReference))
+        val content = accruedInterestLink(identifier, data, data.index.toString)
         Seq(
           Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
           Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),

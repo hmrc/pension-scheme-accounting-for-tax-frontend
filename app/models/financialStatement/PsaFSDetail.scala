@@ -29,7 +29,8 @@ object PsaFS {
   implicit val formats: Format[PsaFS] = Json.format[PsaFS]
 }
 
-case class PsaFSDetail(chargeReference: String,
+case class PsaFSDetail(index: Int,
+                        chargeReference: String,
                        chargeType: PsaFSChargeType,
                        dueDate: Option[LocalDate],
                        totalAmount: BigDecimal,
@@ -41,8 +42,21 @@ case class PsaFSDetail(chargeReference: String,
                        periodEndDate: LocalDate,
                        pstr: String,
                        sourceChargeRefForInterest: Option[String],
+                       sourceChargeInfo: Option[SourceChargeInfo] = None,
                        documentLineItemDetails: Seq[DocumentLineItemDetail])
 
 object PsaFSDetail {
   implicit val formats: Format[PsaFSDetail] = Json.format[PsaFSDetail]
+}
+
+case class SourceChargeInfo(
+                             index: Int,
+                             chargeType: String,
+                             periodStartDate: LocalDate,
+                             periodEndDate: LocalDate,
+                             pstr: String
+                           )
+
+object SourceChargeInfo {
+  implicit val formats: Format[SourceChargeInfo] = Json.format[SourceChargeInfo]
 }
