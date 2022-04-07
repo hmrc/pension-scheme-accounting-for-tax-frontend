@@ -87,6 +87,7 @@ object PaymentOrChargeType extends Enumerable.Implicits {
       case "excess-relief-paid" => ExcessReliefPaidCharges
       case "interest-on-excess-relief-paid" => InterestOnExcessRelief
       case "pensions-charge" => PensionsCharges
+      case e => throw new RuntimeException("Unknown value:" + e)
     }
 
   case class UnknownChargeTypeException() extends Exception

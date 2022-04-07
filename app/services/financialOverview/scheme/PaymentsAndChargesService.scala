@@ -134,7 +134,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       case None => Tuple2(None, None)
       case Some(x) => Tuple2(x.version, x.receiptDate)
     }
-
+//http://localhost:8206/manage-pension-scheme-accounting-for-tax/S2400000041/financial-overview/accounting-for-tax/2022-01-01/2/interest/charge-details?pstr=24000041IN
     val suffix = version.map(v => s" submission $v")
     val submittedDate = receiptDate.map(x => formatDateYMD(x))
     val index = details.index.toString
@@ -161,8 +161,19 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
     (isAFTOrOTCNonInterestChargeType(details.chargeType), details.amountDue > 0) match {
       case (true, true) if details.accruedInterestTotal > 0 =>
+        println("\nIIIIIIIIII" + details)
+
+       // SchemeFSDetail(2,XAB9595406349,Accounting for Tax return,Some(2022-01-28),3295,3295,0,152.94,0,Some(2022-01-01),Some(2022-03-31),Some(123456789194),None,None,Vector())
+
+
         val interestChargeType =
           if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
+
+        val ttt = controllers.financialOverview.scheme.routes.PaymentsAndChargesInterestController.onPageLoad(
+          srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url
+
+        println( "\nURL=" + ttt)
+
         Seq(
           chargeDetailsItemWithStatus(PaymentOverdue),
           FinancialPaymentAndChargesDetails(

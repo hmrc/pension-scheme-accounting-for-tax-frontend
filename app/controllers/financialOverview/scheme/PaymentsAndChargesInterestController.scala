@@ -93,6 +93,7 @@ class PaymentsAndChargesInterestController @Inject()(
                        ): Future[Result] = {
     filteredSchemeFS.find(_.index == index.toInt) match {
       case Some(schemeFs) =>
+        println("\n>>>A")
         val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, index,
           paymentOrChargeType, version, submittedDate, journeyType).url
         renderer.render(
