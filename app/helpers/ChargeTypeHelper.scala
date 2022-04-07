@@ -17,15 +17,7 @@
 package helpers
 
 import models.ChargeType
-import models.ChargeType.{
-  ChargeTypeAnnualAllowance,
-  ChargeTypeAuthSurplus,
-  ChargeTypeDeRegistration,
-  ChargeTypeLifetimeAllowance,
-  ChargeTypeLumpSumDeath,
-  ChargeTypeOverseasTransfer,
-  ChargeTypeShortService
-}
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeAuthSurplus, ChargeTypeDeRegistration, ChargeTypeLifetimeAllowance, ChargeTypeLumpSumDeath, ChargeTypeOverseasTransfer, ChargeTypeShortService}
 import pages.chargeA.{CheckYourAnswersPage => ShortServiceCYAPage}
 import pages.chargeB.{CheckYourAnswersPage => LumpSumDeathCYAPage}
 import pages.chargeC.{CheckYourAnswersPage => AuthSurplusCYAPage, TotalChargeAmountPage => AuthSurplusTotalChargeAmount}
@@ -36,6 +28,11 @@ import pages.chargeG.{CheckYourAnswersPage => OverseasTransferCYAPage, TotalChar
 import pages.{Page, QuestionPage}
 
 case object ChargeTypeHelper {
+
+  private val totalChargeAmountMap = Map("annualAllowance" -> AnnualAllowanceTotalChargeAmount,
+                                         "lifeTimeAllowance" -> LifetimeAllowanceTotalChargeAmount,
+                                         "overseasTransfer" -> OverseasTransferTotalChargeAmount,
+                                         "authSurplus" -> AuthSurplusTotalChargeAmount)
 
   def getCheckYourAnswersPage(chargeType: ChargeType): Page = {
     chargeType match {
@@ -50,12 +47,7 @@ case object ChargeTypeHelper {
   }
 
   def getTotalChargeAmountPage(chargeType: ChargeType): QuestionPage[BigDecimal] = {
-    chargeType match {
-      case ChargeTypeAnnualAllowance   => AnnualAllowanceTotalChargeAmount
-      case ChargeTypeLifetimeAllowance => LifetimeAllowanceTotalChargeAmount
-      case ChargeTypeOverseasTransfer  => OverseasTransferTotalChargeAmount
-      case ChargeTypeAuthSurplus       => AuthSurplusTotalChargeAmount
-    }
+    totalChargeAmountMap(chargeType.toString)
   }
 
 }

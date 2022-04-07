@@ -24,10 +24,10 @@ import controllers.financialOverview.psa.SelectSchemeControllerSpec.penaltySchem
 import data.SampleData.{dummyCall, multiplePenalties, psaId}
 import forms.financialStatement.PenaltyTypeFormProvider
 import matchers.JsonMatchers
-import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
-import models.financialStatement.{DisplayPenaltyType, PenaltyType}
-import models.requests.IdentifierRequest
 import models.{Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
+import models.financialStatement.{DisplayPenaltyType, PenaltyType}
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
+import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
