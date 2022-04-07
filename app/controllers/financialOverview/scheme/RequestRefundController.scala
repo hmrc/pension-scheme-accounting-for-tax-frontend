@@ -19,7 +19,6 @@ package controllers.financialOverview.scheme
 import config.FrontendAppConfig
 import connectors.{FinancialInfoCreditAccessConnector, FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
-import controllers.financialOverview.scheme.routes
 import models.AdministratorOrPractitioner.Administrator
 import models.CreditAccessType
 import models.CreditAccessType.{AccessedByLoggedInPsaOrPsp, AccessedByOtherPsa, AccessedByOtherPsp}

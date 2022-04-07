@@ -97,6 +97,10 @@ class PsaSchemeDashboardPartialsController @Inject()(
               .map(Ok(_))
           }
         }
+        case Enabled(AftBulkUpload) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
+        case Disabled(AftBulkUpload) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
+        case Disabled(MigrationTransferAft) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
+        case Enabled(MigrationTransferAft) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
     }
   }
 

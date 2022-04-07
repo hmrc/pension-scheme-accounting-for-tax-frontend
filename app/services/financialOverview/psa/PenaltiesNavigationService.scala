@@ -17,9 +17,10 @@
 package services.financialOverview.psa
 
 import connectors.ListOfSchemesConnector
-import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, getPenaltyType}
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
+import controllers.financialOverview.psa.routes._
 import models.financialStatement.{PenaltyType, PsaFSDetail}
-import models.{ChargeDetailsFilter, ListSchemeDetails, PenaltySchemes}
+import models.{ListSchemeDetails, PenaltySchemes}
 import play.api.Logger
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
@@ -29,7 +30,6 @@ import java.time.LocalDate
 import javax.inject.Inject
 import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
-import controllers.financialOverview.psa.routes._
 
 class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemesConnector) {
 
@@ -108,32 +108,6 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
       } else if (schemes.size == 1) {
         logger.debug(s"Skipping the select scheme page for startDate $startDate and type AFT")
         Redirect(AllPenaltiesAndChargesController.onPageLoadAFT(startDate.toString, schemes.head.pstr))
-      } else {
-        Redirect(controllers.routes.SessionExpiredController.onPageLoad)
-      }
-    }
-  }
-
-  def navFromNonAFTPenaltyYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter)
-                                   (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-
-    val penaltiesUrl = penaltyType match {
-      case ContractSettlementCharges => identifier => AllPenaltiesAndChargesController.onPageLoad(year.toString, identifier, journeyType)
-      case InformationNoticePenalties => identifier => AllPenaltiesAndChargesController.onPageLoad(year.toString, identifier, journeyType)
-    }
-
-    penaltySchemes(year, psaId, penaltyType, penalties).map { schemes =>
-      if (schemes.size > 1) {
-        Redirect(SelectSchemeController.onPageLoad(penaltyType, year.toString))
-      } else if (schemes.size == 1) {
-        logger.debug(s"Skipping the select scheme page for year $year and type $penaltyType")
-        schemes.head.srn match {
-          case Some(srn) =>
-            Redirect(penaltiesUrl(srn))
-          case _ =>
-            val pstrIndex: String = penalties.map(_.pstr).indexOf(schemes.head.pstr).toString
-            Redirect(penaltiesUrl(pstrIndex))
-        }
       } else {
         Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }

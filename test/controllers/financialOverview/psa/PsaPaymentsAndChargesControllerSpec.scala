@@ -88,7 +88,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     when(mockPsaPenaltiesAndChargesService.extractUpcomingCharges(any())).thenReturn(responseUpcoming)
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
     when(mockFSConnector.getPsaFSWithPaymentOnAccount(any())(any(), any())).thenReturn(Future.successful(psaFs))
-    when(mockPsaPenaltiesAndChargesService.retrievePsaChargesAmount(any())(any())).thenReturn(("100","100","100"))
+    when(mockPsaPenaltiesAndChargesService.retrievePsaChargesAmount(any())).thenReturn(("100","100","100"))
 
   }
 

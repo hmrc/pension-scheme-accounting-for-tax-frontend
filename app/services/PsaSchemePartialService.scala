@@ -328,12 +328,8 @@ class PsaSchemePartialService @Inject()(
       //messages associated with each scenario of links for the overdue charges tile
       msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
         .withArgs(
-          schemeFs.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate match {
-            case Some(x) => x
-          }).distinct.head.format(smallDatePattern),
-          schemeFs.filter(_.periodEndDate.nonEmpty).map(_.periodEndDate match {
-            case Some(x) => x
-          }).distinct.head.format(smallDatePattern))
+          schemeFs.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate.get).distinct.head.format(smallDatePattern),
+          schemeFs.filter(_.periodEndDate.nonEmpty).map(_.periodEndDate.get).distinct.head.format(smallDatePattern))
     } else {
       msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"
     }

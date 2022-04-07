@@ -17,12 +17,10 @@
 package controllers.financialOverview.psa
 
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import connectors.MinimalConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.psa.SelectSchemeControllerSpec.pstr
-import data.SampleData.{dummyCall, emptyChargesTable, multiplePenalties, psaFsSeq, psaId, schemeDetails}
+import data.SampleData.{dummyCall, emptyChargesTable, multiplePenalties, psaId, schemeDetails}
 import matchers.JsonMatchers
 import models.SchemeDetails
 import models.requests.IdentifierRequest

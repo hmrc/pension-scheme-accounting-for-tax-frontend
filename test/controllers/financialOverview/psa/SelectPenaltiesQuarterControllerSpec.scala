@@ -24,7 +24,6 @@ import data.SampleData
 import data.SampleData.{dummyCall, psaId, q32020, q42020}
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
-import models.ChargeDetailsFilter.All
 import models.requests.IdentifierRequest
 import models.{AFTQuarter, DisplayQuarter, Enumerable, PaymentOverdue, Quarters}
 import org.mockito.ArgumentCaptor
