@@ -130,63 +130,61 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
     val chargeType = getPaymentOrChargeType(details.chargeType)
 
-    details.sourceChargeInfo.map{ x =>
-      x.version
-
+    val (version, receiptDate) = details.sourceChargeInfo match {
+      case None => Tuple2(None, None)
+      case Some(x) => Tuple2(x.version, x.receiptDate)
     }
 
-    details.sourceChargeInfo match {
-      case Some(SourceChargeInfo(_, _, version, receiptDate, _, _, _, _, _, _)) =>
-        val suffix = version.map(v => s" submission $v")
-        val submittedDate = receiptDate.map(x => formatDateYMD(x))
-        val index = details.index.toString
-        val periodValue: String = if (chargeType.toString == AccountingForTaxCharges.toString) {
-          details.periodStartDate.map(_.toString).getOrElse("")
-        } else {
-          details.periodEndDate.map(_.getYear.toString).getOrElse("")
-        }
-
-        val chargeDetailsItemWithStatus: PaymentAndChargeStatus => FinancialPaymentAndChargesDetails =
-          status =>
-            FinancialPaymentAndChargesDetails(
-              chargeType = details.chargeType.toString + suffix.getOrElse(""),
-              chargeReference = details.chargeReference,
-              originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
-              paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
-              status = status,
-              period = setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate),
-              submittedDate = setSubmittedDate(submittedDate, details.chargeType),
-              redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargeDetailsController.onPageLoad(
-                srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
-              visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
-            )
-
-        (isAFTOrOTCNonInterestChargeType(details.chargeType), details.amountDue > 0) match {
-          case (true, true) if details.accruedInterestTotal > 0 =>
-            val interestChargeType =
-              if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
-            Seq(
-              chargeDetailsItemWithStatus(PaymentOverdue),
-              FinancialPaymentAndChargesDetails(
-                chargeType = interestChargeType.toString + suffix.getOrElse(""),
-                chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
-                originalChargeAmount = "",
-                paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
-                status = InterestIsAccruing,
-                period = setPeriod(interestChargeType, details.periodStartDate, details.periodEndDate),
-                redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargesInterestController.onPageLoad(
-                  srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
-                visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
-              )
-            )
-          case (true, _) if details.totalAmount < 0 =>
-            Seq.empty
-          case _ =>
-            Seq(
-              chargeDetailsItemWithStatus(NoStatus)
-            )
-        }
+    val suffix = version.map(v => s" submission $v")
+    val submittedDate = receiptDate.map(x => formatDateYMD(x))
+    val index = details.index.toString
+    val periodValue: String = if (chargeType.toString == AccountingForTaxCharges.toString) {
+      details.periodStartDate.map(_.toString).getOrElse("")
+    } else {
+      details.periodEndDate.map(_.getYear.toString).getOrElse("")
     }
+
+    val chargeDetailsItemWithStatus: PaymentAndChargeStatus => FinancialPaymentAndChargesDetails =
+      status =>
+        FinancialPaymentAndChargesDetails(
+          chargeType = details.chargeType.toString + suffix.getOrElse(""),
+          chargeReference = details.chargeReference,
+          originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
+          paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
+          status = status,
+          period = setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate),
+          submittedDate = setSubmittedDate(submittedDate, details.chargeType),
+          redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargeDetailsController.onPageLoad(
+            srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
+          visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
+        )
+
+    (isAFTOrOTCNonInterestChargeType(details.chargeType), details.amountDue > 0) match {
+      case (true, true) if details.accruedInterestTotal > 0 =>
+        val interestChargeType =
+          if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
+        Seq(
+          chargeDetailsItemWithStatus(PaymentOverdue),
+          FinancialPaymentAndChargesDetails(
+            chargeType = interestChargeType.toString + suffix.getOrElse(""),
+            chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
+            originalChargeAmount = "",
+            paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
+            status = InterestIsAccruing,
+            period = setPeriod(interestChargeType, details.periodStartDate, details.periodEndDate),
+            redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargesInterestController.onPageLoad(
+              srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
+            visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
+          )
+        )
+      case (true, _) if details.totalAmount < 0 =>
+        Seq.empty
+      case _ =>
+        Seq(
+          chargeDetailsItemWithStatus(NoStatus)
+        )
+    }
+
   }
 
   def getTypeParam(paymentType: PaymentOrChargeType)(implicit messages: Messages): String =

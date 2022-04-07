@@ -24,7 +24,6 @@ import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import models.{ChargeDetailsFilter, Submission}
-import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
@@ -51,8 +50,6 @@ class PaymentsAndChargeDetailsController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
-
   def onPageLoad(srn: String, pstr: String, period: String, index: String,
                  paymentOrChargeType: PaymentOrChargeType, version: Option[Int],
                  submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
@@ -61,18 +58,6 @@ class PaymentsAndChargeDetailsController @Inject()(
         paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
           val schemeFSDetail: Seq[SchemeFSDetail] = getFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
           buildPage(schemeFSDetail, period, index, paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, journeyType, submittedDate, version)
-        }
-    }
-
-  val chargeRefs: Seq[SchemeFSDetail] => Seq[String] = filteredCharges => filteredCharges.map(_.chargeReference)
-  val interestChargeRefs: Seq[SchemeFSDetail] => Seq[String] = filteredCharges =>
-    filteredCharges.map {
-      schemeFSDetail =>
-        schemeFSDetail.chargeType match {
-          case PSS_AFT_RETURN_INTEREST | PSS_OTC_AFT_RETURN_INTEREST | CONTRACT_SETTLEMENT_INTEREST |
-               AFT_MANUAL_ASST_INTEREST | OTC_MANUAL_ASST_INTEREST | PSS_CHARGE_INTEREST
-          => schemeFSDetail.sourceChargeRefForInterest.getOrElse("")
-          case _ => ""
         }
     }
 
@@ -145,26 +130,14 @@ class PaymentsAndChargeDetailsController @Inject()(
       case (Some(schemeFs), Some(sourceChargeInfo)) =>
         val sourceChargeIndex = sourceChargeInfo.index.toString
         val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, sourceChargeIndex,
-          paymentOrChargeType, version, submittedDate, journeyType).url
+          paymentOrChargeType, version, submittedDate, "all").url
         renderer.render(
           template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
           ctx = summaryListData(schemeFs, originalAmountUrl, version, isChargeAssigned = true)
         ).map(Ok(_))
-      case _ => logger.warn(
-        s"No Payments and Charge details found for the " +
-          s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
-      )
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-      case _ =>
-        logger.warn(
-          s"No sourceChargeRefForInterest found for the " +
-            s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
-        )
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
       case _ =>
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
-
   }
 
   private def setInsetText(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): Html = {
@@ -237,5 +210,4 @@ class PaymentsAndChargeDetailsController @Inject()(
     } else {
       payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.exists(_.getYear == period.toInt))
     }
-
 }
