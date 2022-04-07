@@ -343,9 +343,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     )
   }
 
-  def getChargeDetailsForSelectedCharge(schemeFSDetail: SchemeFSDetail, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
+  def getChargeDetailsForSelectedCharge(chargeInfo: SourceChargeInfo, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
   : Seq[SummaryList.Row] = {
-    dateSubmittedRow(schemeFSDetail.chargeType, submittedDate) ++ chargeReferenceRow(schemeFSDetail) ++ originalAmountChargeDetailsRow(schemeFSDetail) ++
+    dateSubmittedRow(chargeInfo.chargeType, submittedDate) ++ chargeReferenceRow(schemeFSDetail) ++ originalAmountChargeDetailsRow(schemeFSDetail) ++
       clearingChargeDetailsRow(schemeFSDetail.documentLineItemDetails) ++
       stoodOverAmountChargeDetailsRow(schemeFSDetail) ++ totalAmountDueChargeDetailsRow(schemeFSDetail, journeyType)
   }
