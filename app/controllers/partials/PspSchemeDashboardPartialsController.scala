@@ -19,7 +19,7 @@ package controllers.partials
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import models.FeatureToggle.{Disabled, Enabled}
-import models.FeatureToggleName.FinancialInformationAFT
+import models.FeatureToggleName.{AftBulkUpload, FinancialInformationAFT, MigrationTransferAft}
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -50,7 +50,7 @@ class PspSchemeDashboardPartialsController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
-
+  // scalastyle:off
   def pspDashboardAllTilesPartial(): Action[AnyContent] = identify.async {
     implicit request =>
       val idNumber = request.headers.get("idNumber")
@@ -85,6 +85,11 @@ class PspSchemeDashboardPartialsController @Inject()(
                 scala.collection.immutable.Seq(aftReturnsHtml, paymentsAndChargesHtml)
               }
               futureSeqHtml.map(HtmlFormat.fill).map(Ok(_))
+            case Enabled(AftBulkUpload) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
+            case Disabled(AftBulkUpload) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
+            case Disabled(MigrationTransferAft) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
+            case Enabled(MigrationTransferAft) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
+
           }
         case _ =>
           Future.failed(

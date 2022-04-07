@@ -44,8 +44,6 @@ import play.twirl.api.Html
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import services.financialOverview.psa.PenaltiesCache
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-
-import java.time.LocalDate
 import scala.concurrent.Future
 
 class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
@@ -129,7 +127,6 @@ object SelectSchemeControllerSpec {
   val penaltySchemes: Seq[PenaltySchemes] = Seq(ps1, ps2)
   val psaFS: JsValue = Json.toJson(psaFSResponse)
   val penaltyType: PenaltyType = ContractSettlementCharges
-  private val startDate = LocalDate.parse("2020-07-01")
 
   private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad(penaltyType, year).url
 

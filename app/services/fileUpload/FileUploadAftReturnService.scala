@@ -31,7 +31,7 @@ class FileUploadAftReturnService @Inject()(
                                             userAnswersCacheConnector: UserAnswersCacheConnector,
                                             chargeServiceHelper: ChargeServiceHelper
                                           ) {
-
+  val acceptedChargeTypes = List(ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer)
   def preProcessAftReturn(chargeType: ChargeType,
                           ua: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[UserAnswers] = {
     val userAnswersWithTotalAmount = updateTotalAmount(chargeType, ua)
@@ -40,22 +40,18 @@ class FileUploadAftReturnService @Inject()(
   }
 
   private def updateTotalAmount(chargeType: ChargeType, ua: UserAnswers): UserAnswers = {
-    chargeType match {
-      case ChargeTypeAnnualAllowance |  ChargeTypeLifetimeAllowance | ChargeTypeOverseasTransfer =>
-        val totalAmount = chargeServiceHelper.totalAmount(ua, getChargeTypeText(chargeType))
-        ua.setOrException(ChargeTypeHelper.getTotalChargeAmountPage(chargeType), totalAmount)
-      case _ => ua
-    }
+    if(acceptedChargeTypes.contains(chargeType)) totalCharges(chargeType, ua) else ua
+  }
+
+  private def totalCharges(chargeType: ChargeType, ua: UserAnswers): UserAnswers = {
+    val totalAmount = chargeServiceHelper.totalAmount(ua, getChargeTypeText(chargeType))
+    ua.setOrException(ChargeTypeHelper.getTotalChargeAmountPage(chargeType), totalAmount)
   }
 
   private def setMemberStatus(ua: UserAnswers, chargeType: ChargeType)(implicit request: DataRequest[_]): UserAnswers = {
     val userAnswersWithMemberStatus = ua.getAllMembersInCharge[MemberDetails](charge = getChargeTypeText(chargeType))
       .zipWithIndex.foldLeft(ua) { case (acc, Tuple2(_, index)) =>
-      val memberStatusPage = chargeType match {
-        case ChargeTypeAnnualAllowance => chargeEStatus.MemberStatusPage(index)
-        case ChargeTypeLifetimeAllowance => chargeDStatus.MemberStatusPage(index)
-        case ChargeTypeOverseasTransfer => chargeGStatus.MemberStatusPage(index)
-      }
+      val memberStatusPage = getMemberStatusPage(chargeType, index)
       if (request.isAmendment) {
         acc.setOrException(memberStatusPage, AmendedChargeStatus.Added.toString)
       } else {
@@ -65,12 +61,19 @@ class FileUploadAftReturnService @Inject()(
     userAnswersWithMemberStatus
   }
 
+  private def getMemberStatusPage(chargeType: ChargeType, index: Int)  = {
+    val memberStatusPageMap = Map("annualAllowance" -> chargeEStatus.MemberStatusPage(index),
+      "lifeTimeAllowance" -> chargeDStatus.MemberStatusPage(index),
+      "overseasTransfer" -> chargeGStatus.MemberStatusPage(index))
+
+    memberStatusPageMap(chargeType.toString)
+  }
+
+
   private def getChargeTypeText(chargeType: ChargeType): String = {
-    chargeType match {
-      case ChargeTypeAnnualAllowance   => "chargeEDetails"
-      case ChargeTypeLifetimeAllowance => "chargeDDetails"
-      case ChargeTypeOverseasTransfer  => "chargeGDetails"
-      case _ => ""
-    }
+    val map = Map("annualAllowance" -> "chargeEDetails",
+      "lifeTimeAllowance" -> "chargeDDetails",
+      "overseasTransfer" -> "chargeGDetails")
+    map.getOrElse(chargeType.toString, "")
   }
 }

@@ -18,7 +18,6 @@ package controllers.financialOverview.psa
 
 import controllers.actions._
 import controllers.financialOverview.psa.routes._
-import controllers.financialStatement.penalties.routes._
 import forms.SelectSchemeFormProvider
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFSDetail}
@@ -99,7 +98,6 @@ class SelectSchemeController @Inject()(
               renderer.render(template = "financialOverview/psa/selectScheme.njk", json).map(BadRequest(_))
             },
             value => psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).map { penaltiesCache =>
-              val pstrIndex: String = penaltiesCache.penalties.map(_.pstr).indexOf(value.pstr).toString
               Redirect(redirectUrl(value.pstr))
             }
           )

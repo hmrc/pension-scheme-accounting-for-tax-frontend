@@ -38,7 +38,7 @@ class FileDownloadController @Inject()(override val messagesApi: MessagesApi,
     with NunjucksSupport {
 
   def templateFile(chargeType: ChargeType): Action[AnyContent] = {
-    (identify andThen allowAccess()).async { implicit request =>
+    (identify andThen allowAccess()).async { _ =>
       Future.successful(
         Ok.sendFile(
           content = fileProviderService.getTemplateFile(chargeType),
@@ -48,7 +48,7 @@ class FileDownloadController @Inject()(override val messagesApi: MessagesApi,
   }
 
   def instructionsFile(chargeType: ChargeType): Action[AnyContent] = {
-    (identify andThen allowAccess()).async { implicit request =>
+    (identify andThen allowAccess()).async { _ =>
       Future.successful(
         Ok.sendFile(
           content = fileProviderService.getInstructionsFile(chargeType),

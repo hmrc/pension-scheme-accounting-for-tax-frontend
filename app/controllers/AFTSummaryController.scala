@@ -20,10 +20,9 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
 import helpers.AFTSummaryHelper
-import models.AccessMode.{PageAccessModeCompile, PageAccessModePreCompile, PageAccessModeViewOnly}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTVersion, AccessMode, AccessType, Draft, GenericViewModel, Mode, NormalMode, Quarters, Submission, UserAnswers}
+import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.Logger
