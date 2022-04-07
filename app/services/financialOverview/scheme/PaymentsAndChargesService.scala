@@ -17,22 +17,21 @@
 package services.financialOverview.scheme
 
 import config.FrontendAppConfig
-import connectors.{AFTConnector, FinancialStatementConnector}
 import connectors.cache.FinancialInfoCacheConnector
+import connectors.{AFTConnector, FinancialStatementConnector}
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper._
-import models.{ChargeDetailsFilter, UserAnswers}
+import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFSChargeType, SchemeFSDetail, SourceChargeInfo}
+import models.financialStatement._
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
-import pages.{AFTReceiptDateQuery, AFTVersionQuery}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, JsSuccess, Json, OFormat}
+import play.api.libs.json.{JsSuccess, Json, OFormat}
 import services.SchemeService
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -64,35 +63,10 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                            )
                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Table = {
 
-    val chargeRefForAll: Seq[String] = schemeFSDetail.map(_.chargeReference)
-
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFSDetail.flatMap { paymentOrCharge =>
-      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefForAll, chargeDetailsFilter)
+      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeDetailsFilter)
     }
     mapToTable(seqPayments, chargeDetailsFilter)
-  }
-
-  def chargeRefs(schemeFSDetail: Seq[SchemeFSDetail]): Map[(String, String), Seq[String]] = {
-    val indexRefs: Seq[IndexRef] = schemeFSDetail.map { scheme =>
-      val chargeType = getPaymentOrChargeType(scheme.chargeType).toString
-      val period: String = if (chargeType == AccountingForTaxCharges.toString) {
-        scheme.periodStartDate.map(_.toString).getOrElse("")
-      } else {
-        scheme.periodEndDate.map(_.getYear.toString).getOrElse("")
-      }
-      IndexRef(chargeType, scheme.chargeReference, period)
-    }
-    val ref: Map[(String, String), Seq[IndexRef]] = indexRefs.groupBy {
-      x => (x.chargeType, x.period)
-    }
-    ref.map {
-      item =>
-        val chargeRef = item._2.map {
-          value =>
-            value.chargeReference
-        }
-        Tuple2(item._1, chargeRef)
-    }
   }
 
   val isPaymentOverdue: SchemeFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
@@ -150,50 +124,27 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                          details: SchemeFSDetail,
                                          srn: String,
                                          pstr: String,
-                                         chargeRefForAll: Seq[String],
-                                         //chargeRefs: Map[(String, String), Seq[String]],
-                                         //mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
                                          chargeDetailsFilter: ChargeDetailsFilter
                                        )(implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Seq[FinancialPaymentAndChargesDetails] = {
 
 
     val chargeType = getPaymentOrChargeType(details.chargeType)
-    val paymentOrChargeType = details.chargeType
-    //    val onlyAFTAndOTCChargeTypes: Boolean =
-    //      paymentOrChargeType == PSS_AFT_RETURN || paymentOrChargeType == PSS_OTC_AFT_RETURN
-    //    val ifAFTAndOTCChargeTypes: Boolean =
-    //      onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
 
+    details.sourceChargeInfo.map{ x =>
+      x.version
+
+    }
 
     details.sourceChargeInfo match {
       case Some(SourceChargeInfo(_, _, version, receiptDate, _, _, _, _, _, _)) =>
         val suffix = version.map(v => s" submission $v")
         val submittedDate = receiptDate.map(x => formatDateYMD(x))
         val index = details.index.toString
-
-        //
-        //    val (suffix, version, submittedDate) = (ifAFTAndOTCChargeTypes, mapChargeTypesVersionAndDate.get(paymentOrChargeType)) match {
-        //      case (true, Some(Tuple2(Some(version), Some(date)))) => (Some(s" submission $version"), Some(version), Some(formatDateYMD(date)))
-        //      case _ => (None, None, None)
-        //    }
-
         val periodValue: String = if (chargeType.toString == AccountingForTaxCharges.toString) {
           details.periodStartDate.map(_.toString).getOrElse("")
         } else {
           details.periodEndDate.map(_.getYear.toString).getOrElse("")
         }
-
-        //      val seqChargeRefs = chargeRefs.find(_._1 == Tuple2(chargeType.toString, periodValue)) match {
-        //        case Some(found) => found._2
-        //        case _ => Nil
-        //      }
-
-        //      val index: String = {
-        //        chargeDetailsFilter match {
-        //          case All => chargeRefForAll.indexOf(details.chargeReference).toString
-        //          case _ => seqChargeRefs.indexOf(details.chargeReference).toString
-        //        }
-        //      }
 
         val chargeDetailsItemWithStatus: PaymentAndChargeStatus => FinancialPaymentAndChargesDetails =
           status =>
@@ -343,9 +294,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     )
   }
 
-  def getChargeDetailsForSelectedCharge(chargeInfo: SourceChargeInfo, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
+  def getChargeDetailsForSelectedCharge(schemeFSDetail: SchemeFSDetail, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
   : Seq[SummaryList.Row] = {
-    dateSubmittedRow(chargeInfo.chargeType, submittedDate) ++ chargeReferenceRow(schemeFSDetail) ++ originalAmountChargeDetailsRow(schemeFSDetail) ++
+    dateSubmittedRow(schemeFSDetail.chargeType, submittedDate) ++ chargeReferenceRow(schemeFSDetail) ++ originalAmountChargeDetailsRow(schemeFSDetail) ++
       clearingChargeDetailsRow(schemeFSDetail.documentLineItemDetails) ++
       stoodOverAmountChargeDetailsRow(schemeFSDetail) ++ totalAmountDueChargeDetailsRow(schemeFSDetail, journeyType)
   }

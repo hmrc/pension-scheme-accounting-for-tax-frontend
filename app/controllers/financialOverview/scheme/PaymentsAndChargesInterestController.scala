@@ -60,16 +60,16 @@ class PaymentsAndChargesInterestController @Inject()(
   def onPageLoad(srn: String, pstr: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType,
                  version: Option[Int], submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async {
-    implicit request =>
-      paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
-        val schemeFSDetail: Seq[SchemeFSDetail] = getFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
+      implicit request =>
+        paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
+          val schemeFSDetail: Seq[SchemeFSDetail] = getFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
 
-        buildPage(schemeFSDetail, period, index,paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, version, submittedDate, journeyType)
-      }
-  }
+          buildPage(schemeFSDetail, period, index, paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, version, submittedDate, journeyType)
+        }
+    }
 
   private def getFilteredPayments(payments: Seq[SchemeFSDetail], period: String, paymentOrChargeType: PaymentOrChargeType): Seq[SchemeFSDetail] =
-    if(paymentOrChargeType == AccountingForTaxCharges) {
+    if (paymentOrChargeType == AccountingForTaxCharges) {
       val startDate: LocalDate = LocalDate.parse(period)
       payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate.contains(startDate))
     } else {
@@ -91,36 +91,22 @@ class PaymentsAndChargesInterestController @Inject()(
                        )(
                          implicit request: IdentifierRequest[AnyContent]
                        ): Future[Result] = {
-
-    val chargeRefs: Seq[String] = filteredSchemeFS.map(_.chargeReference)
-    val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, index,
-      paymentOrChargeType, version, submittedDate, journeyType).url
-    if (chargeRefs.size > index.toInt) {
-      filteredSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
-        case Some(schemeFs) =>
-          renderer.render(
-            template = "financialOverview/scheme/paymentsAndChargeInterest.njk",
-            ctx = summaryListData(srn, pstr, request.psaId, request.pspId, schemeFs, schemeName, originalAmountUrl, version, journeyType)
-          ).map(Ok(_))
-        case _ =>
-          logger.warn(s"No Payments and Charge details " +
-            s"found for the selected charge reference ${chargeRefs(index.toInt)}")
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-      }
-    } else {
-
-      logger.warn(
-        "[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:" +
-          s"index $period/$index of attempted"
-      )
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+    filteredSchemeFS.find(_.index == index.toInt) match {
+      case Some(schemeFs) =>
+        val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, index,
+          paymentOrChargeType, version, submittedDate, journeyType).url
+        renderer.render(
+          template = "financialOverview/scheme/paymentsAndChargeInterest.njk",
+          ctx = summaryListData(srn, pstr, request.psaId, request.pspId, schemeFs, schemeName, originalAmountUrl, version, journeyType)
+        ).map(Ok(_))
+      case _ =>
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
-
   }
 
   private def summaryListData(srn: String, pstr: String, psaId: Option[PsaId], pspId: Option[PspId], schemeFSDetail: SchemeFSDetail, schemeName: String,
                               originalAmountUrl: String, version: Option[Int], journeyType: ChargeDetailsFilter)
-                              (implicit messages: Messages): JsObject = {
+                             (implicit messages: Messages): JsObject = {
 
     val htmlInsetText =
       Html(
@@ -178,7 +164,7 @@ class PaymentsAndChargesInterestController @Inject()(
       Row(
         key = Key(
           msg"paymentsAndCharges.interestFrom".withArgs(
-          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46)))),
+            DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46)))),
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
         ),
         value = Value(

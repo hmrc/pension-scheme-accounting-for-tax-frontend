@@ -21,7 +21,7 @@ import controllers.actions._
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail, SourceChargeInfo}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import models.{ChargeDetailsFilter, Submission}
 import play.api.Logger
@@ -105,9 +105,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                          implicit request: IdentifierRequest[AnyContent]
                        ): Future[Result] = {
 
-    def summaryListData(
-                     //    schemeFSDetail: SchemeFSDetail,
-                        chargeInfo:SourceChargeInfo,
+    def summaryListData(schemeFSDetail: SchemeFSDetail,
                         interestUrl: String,
                         version: Option[Int],
                         isChargeAssigned: Boolean
@@ -134,57 +132,39 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
 
     val indexAsInt = index.toInt
-
-    if (chargeRefs(filteredCharges).size > index.toInt) {
-      //      val chargeRef = filteredCharges.find(_.chargeReference == chargeRefs(filteredCharges)(index.toInt))
-
-      val chargeRef = filteredCharges.find(_.index == indexAsInt)
-      //val interestRef =  filteredCharges.find(_.sourceChargeRefForInterest.contains(interestChargeRefs(filteredCharges)(index.toInt)))
-      val interestRef = chargeRef.flatMap { cr =>
-        cr.sourceChargeInfo
-      }
-      (chargeRef, interestRef) match {
-        case (Some(schemeFs), None) =>
-          val interestUrl = routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, period, index,
-            paymentOrChargeType, version, submittedDate, journeyType).url
-          renderer.render(
-            template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
-            ctx = summaryListData(schemeFs, interestUrl, version, isChargeAssigned = false)
-          ).map(Ok(_))
-        case (None, Some(sourceChargeInfo)) =>
-          //               val seqChargeRefs = paymentsAndChargesService.chargeRefs(filteredCharges)
-          //                 .find{x => originalCharge.map (charge => getPaymentOrChargeType(charge.chargeType).toString).contains(x._1._1)
-          //                   x._1._2.equals(period)}  match {
-          //                 case Some(found) =>
-          //                   found._2
-          //                 case _ => Nil
-          //               }
-          val sourceChargeIndex = sourceChargeInfo.index.toString
-          val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, sourceChargeIndex,
-            paymentOrChargeType, version, submittedDate, journeyType).url
-          renderer.render(
-            template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
-            ctx = summaryListData(schemeFs, originalAmountUrl, version, isChargeAssigned = true)
-          ).map(Ok(_))
-        case _ => logger.warn(
-          s"No Payments and Charge details found for the " +
+    val chargeRef = filteredCharges.find(_.index == indexAsInt)
+    val optionSourceChargeInfo = chargeRef.flatMap(_.sourceChargeInfo)
+    (chargeRef, optionSourceChargeInfo) match {
+      case (Some(schemeFs), None) =>
+        val interestUrl = routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, period, index,
+          paymentOrChargeType, version, submittedDate, journeyType).url
+        renderer.render(
+          template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
+          ctx = summaryListData(schemeFs, interestUrl, version, isChargeAssigned = false)
+        ).map(Ok(_))
+      case (Some(schemeFs), Some(sourceChargeInfo)) =>
+        val sourceChargeIndex = sourceChargeInfo.index.toString
+        val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, sourceChargeIndex,
+          paymentOrChargeType, version, submittedDate, journeyType).url
+        renderer.render(
+          template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
+          ctx = summaryListData(schemeFs, originalAmountUrl, version, isChargeAssigned = true)
+        ).map(Ok(_))
+      case _ => logger.warn(
+        s"No Payments and Charge details found for the " +
+          s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
+      )
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ =>
+        logger.warn(
+          s"No sourceChargeRefForInterest found for the " +
             s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
         )
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-        case _ =>
-          logger.warn(
-            s"No sourceChargeRefForInterest found for the " +
-              s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
-          )
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-      }
-    } else {
-      logger.warn(
-        s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
-          s"index $period/$index of attempted"
-      )
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ =>
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
+
   }
 
   private def setInsetText(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): Html = {
