@@ -52,6 +52,8 @@ case class SchemeFSDetail(
                      sourceChargeRefForInterest: Option[String],
                      sourceChargeIndex: Option[Int],
                      sourceChargeFormBundleNumber: Option[String],
+                         // TODO: Add 4 extra fields: sourceChargeChargeType, sourceChargePeriodStart, sourceChargePeriodEnd, sourceChargeAmountDue in b/e and f/e
+                         // possibly nesting all thes and other 2 inside sourceCharge node
                      documentLineItemDetails: Seq[DocumentLineItemDetail]
                    )
 

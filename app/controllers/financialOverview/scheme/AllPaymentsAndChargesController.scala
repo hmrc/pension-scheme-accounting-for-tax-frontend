@@ -21,16 +21,14 @@ import connectors.AFTConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
-import models.financialStatement.{PaymentOrChargeType, SchemeFSChargeType, SchemeFSDetail}
-import models.{ChargeDetailsFilter, Quarters, UserAnswers}
-import pages.{AFTReceiptDateQuery, AFTVersionQuery}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
+import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
 import services.financialOverview.scheme.PaymentsAndChargesService
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
@@ -56,24 +54,6 @@ class AllPaymentsAndChargesController @Inject()(
     with NunjucksSupport {
 
   private val logger = Logger(classOf[AllPaymentsAndChargesController])
-
-  private def getMapChargeTypeToVersionAndDate(seqSchemeFS: Seq[SchemeFSDetail], pstr: String)(implicit ec: ExecutionContext,
-                                                                                               headerCarrier: HeaderCarrier): Future[Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])]] = {
-    val tuple = Future.sequence {
-      seqSchemeFS.map { scheme =>
-        scheme.formBundleNumber match {
-          case Some(fb) => aftConnector
-            .getAFTDetailsWithFbNumber(pstr, fb)
-            .map { aftDetails =>
-              val ua = UserAnswers(aftDetails.as[JsObject])
-              Seq(Tuple2(scheme.chargeType, (ua.get(AFTVersionQuery), ua.get(AFTReceiptDateQuery))))
-            }
-          case None => Future.successful(Nil)
-        }
-      }
-    }.map(_.flatten)
-    tuple.map(_.toMap)
-  }
 
   def onPageLoad(srn: String, pstr: String, period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
@@ -106,7 +86,6 @@ class AllPaymentsAndChargesController @Inject()(
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
-
       }
     }
 

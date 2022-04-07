@@ -103,47 +103,53 @@ class PaymentsAndChargeDetailsController @Inject()(
                        )(
                          implicit request: IdentifierRequest[AnyContent]
                        ): Future[Result] = {
+
+    val indexAsInt = index.toInt
     val interestUrl = routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, period, index,
       paymentOrChargeType, version, submittedDate, journeyType).url
     if (chargeRefs(filteredCharges).size > index.toInt) {
-      val chargeRef = filteredCharges.find(_.chargeReference == chargeRefs(filteredCharges)(index.toInt))
-      val interestRef =  filteredCharges.find(_.sourceChargeRefForInterest.contains(interestChargeRefs(filteredCharges)(index.toInt)))
+//      val chargeRef = filteredCharges.find(_.chargeReference == chargeRefs(filteredCharges)(index.toInt))
+
+      val chargeRef = filteredCharges.find(_.index == indexAsInt)
+      //val interestRef =  filteredCharges.find(_.sourceChargeRefForInterest.contains(interestChargeRefs(filteredCharges)(index.toInt)))
+      val interestRef =  chargeRef.flatMap{ cr =>
+        cr.sourceChargeIndex
+      }
         (chargeRef, interestRef) match {
          case (Some(schemeFs), None) =>
            renderer.render(
              template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
              ctx =
-               summaryListData(srn, pstr, period, schemeFs, schemeName, paymentOrChargeType, interestUrl, version, submittedDate, journeyType, false)
+               summaryListData(Tmp(srn, pstr, period, schemeFs, schemeName, paymentOrChargeType, interestUrl, version, submittedDate, journeyType, false))
            ).map(Ok(_))
-         case (_, Some(schemeFs)) =>
-           schemeFs.sourceChargeRefForInterest match {
-             case Some(sourceChargeRef) =>
-               val originalCharge = filteredCharges.find(_.chargeReference.equals(sourceChargeRef))
-               val seqChargeRefs = paymentsAndChargesService.chargeRefs(filteredCharges)
-                 .find{x => originalCharge.map (charge => getPaymentOrChargeType(charge.chargeType).toString).contains(x._1._1)
-                   x._1._2.equals(period)}  match {
-                 case Some(found) =>
-                   found._2
-                 case _ => Nil
-               }
-               val index = originalCharge.map(_.chargeReference) match {
-                 case Some(chargeValue) => seqChargeRefs.indexOf(chargeValue).toString
-                 case None => ""
-               }
-               val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, index,
+         case (_, Some(sourceChargeIndex)) =>
+//           schemeFs.sourceChargeRefForInterest match {
+//             case Some(sourceChargeRef) =>
+//               val originalCharge = filteredCharges.find(_.chargeReference.equals(sourceChargeRef))
+//               val seqChargeRefs = paymentsAndChargesService.chargeRefs(filteredCharges)
+//                 .find{x => originalCharge.map (charge => getPaymentOrChargeType(charge.chargeType).toString).contains(x._1._1)
+//                   x._1._2.equals(period)}  match {
+//                 case Some(found) =>
+//                   found._2
+//                 case _ => Nil
+//               }
+//               val index = originalCharge.map(_.chargeReference) match {
+//                 case Some(chargeValue) => seqChargeRefs.indexOf(chargeValue).toString
+//                 case None => ""
+//               }
+               val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, sourceChargeIndex.toString,
                  paymentOrChargeType, version, submittedDate, journeyType).url
                renderer.render(
                  template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
-                 ctx =
-                   summaryListData(srn, pstr, period, schemeFs, schemeName, paymentOrChargeType, originalAmountUrl,
-                     version, submittedDate, journeyType, true)
+                 ctx = summaryListData(Tmp(srn, pstr, period, schemeFs, schemeName, paymentOrChargeType, originalAmountUrl,
+                     version, submittedDate, journeyType, true))
                ).map(Ok(_))
-             case _ => logger.warn(
-               s"No Payments and Charge details found for the " +
-                 s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
-             )
-               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-           }
+//             case _ => logger.warn(
+//               s"No Payments and Charge details found for the " +
+//                 s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
+//             )
+//               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+//           }
         case _ =>
           logger.warn(
             s"No sourceChargeRefForInterest found for the " +
@@ -159,6 +165,107 @@ class PaymentsAndChargeDetailsController @Inject()(
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
+
+  private case class Tmp(srn: String, pstr:String, period: String, schemeFSDetail: SchemeFSDetail, schemeName: String,
+                         paymentOrChargeType: PaymentOrChargeType, interestUrl: String, version: Option[Int],
+                         submittedDate: Option[String], journeyType: ChargeDetailsFilter, isChargeAssigned: Boolean)
+
+  private def summaryListData(tmp:Tmp)
+                             (implicit request: IdentifierRequest[AnyContent]): JsObject = {
+    Json.obj(
+      "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(tmp.schemeFSDetail, tmp.journeyType, tmp.submittedDate),
+      "tableHeader" -> tableHeader(tmp.schemeFSDetail),
+      "schemeName" -> tmp.schemeName,
+      "chargeType" ->  (tmp.version match {
+        case Some(value) => tmp.schemeFSDetail.chargeType.toString + s" submission $value"
+        case _ => tmp.schemeFSDetail.chargeType.toString
+      }),
+      "versionValue" -> (tmp.version match {
+        case Some(value) => s" submission $value"
+        case _ => Nil
+      }),
+      "isPaymentOverdue" -> isPaymentOverdue(tmp.schemeFSDetail),
+      "insetText" -> setInsetText(tmp.isChargeAssigned, tmp.schemeFSDetail, tmp.interestUrl),
+      "interest" -> tmp.schemeFSDetail.accruedInterestTotal,
+      "returnLinkBasedOnJourney" -> paymentsAndChargesService.getReturnLinkBasedOnJourney(tmp.journeyType, tmp.schemeName),
+      "returnUrl" -> paymentsAndChargesService.getReturnUrl(tmp.srn, tmp.pstr, request.psaId, request.pspId, config, tmp.journeyType)
+    ) ++ returnHistoryUrl(tmp.srn, tmp.period, tmp.paymentOrChargeType, tmp.version.getOrElse(0)) ++ optHintText(tmp.schemeFSDetail)
+  }
+
+  //scalastyle:off parameter.number
+  // scalastyle:off method.length
+  //scalastyle:off cyclomatic.complexity
+  private def builsOLDdPage(
+                         filteredCharges: Seq[SchemeFSDetail],
+                         period: String,
+                         index: String,
+                         schemeName: String,
+                         srn: String,
+                         pstr: String,
+                         paymentOrChargeType: PaymentOrChargeType,
+                         journeyType: ChargeDetailsFilter,
+                         submittedDate: Option[String],
+                         version: Option[Int]
+                       )(
+                         implicit request: IdentifierRequest[AnyContent]
+                       ): Future[Result] = {
+    val interestUrl = routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, period, index,
+      paymentOrChargeType, version, submittedDate, journeyType).url
+    if (chargeRefs(filteredCharges).size > index.toInt) {
+      val chargeRef = filteredCharges.find(_.chargeReference == chargeRefs(filteredCharges)(index.toInt))
+      val interestRef =  filteredCharges.find(_.sourceChargeRefForInterest.contains(interestChargeRefs(filteredCharges)(index.toInt)))
+      (chargeRef, interestRef) match {
+        case (Some(schemeFs), None) =>
+          renderer.render(
+            template = "financialOverview/paymentsAndChargeDetails.njk",
+            ctx =
+              summaryListData(srn, pstr, period, schemeFs, schemeName, paymentOrChargeType, interestUrl, version, submittedDate, journeyType, false)
+          ).map(Ok(_))
+        case (_, Some(schemeFs)) =>
+          schemeFs.sourceChargeRefForInterest match {
+            case Some(sourceChargeRef) =>
+              val originalCharge = filteredCharges.find(_.chargeReference.equals(sourceChargeRef))
+              val seqChargeRefs = paymentsAndChargesService.chargeRefs(filteredCharges)
+                .find{x => originalCharge.map (charge => getPaymentOrChargeType(charge.chargeType).toString).contains(x._1._1)
+                  x._1._2.equals(period)}  match {
+                case Some(found) =>
+                  found._2
+                case _ => Nil
+              }
+              val index = originalCharge.map(_.chargeReference) match {
+                case Some(chargeValue) => seqChargeRefs.indexOf(chargeValue).toString
+                case None => ""
+              }
+              val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, index,
+                paymentOrChargeType, version, submittedDate, journeyType).url
+              renderer.render(
+                template = "financialOverview/paymentsAndChargeDetails.njk",
+                ctx =
+                  summaryListData(srn, pstr, period, schemeFs, schemeName, paymentOrChargeType, originalAmountUrl,
+                    version, submittedDate, journeyType, true)
+              ).map(Ok(_))
+            case _ => logger.warn(
+              s"No Payments and Charge details found for the " +
+                s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
+            )
+              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+          }
+        case _ =>
+          logger.warn(
+            s"No sourceChargeRefForInterest found for the " +
+              s"selected charge reference ${chargeRefs(filteredCharges)(index.toInt)}"
+          )
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      }
+    } else {
+      logger.warn(
+        s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
+          s"index $period/$index of attempted"
+      )
+      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+    }
+  }
+
 
   private def setInsetText(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): Html = {
     (isChargeAssigned, schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0, isQuarterApplicable(schemeFSDetail), isChargeTypeVowel(schemeFSDetail))  match {
@@ -195,29 +302,9 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
-  private def summaryListData(srn: String, pstr:String, period: String, schemeFSDetail: SchemeFSDetail, schemeName: String,
-                              paymentOrChargeType: PaymentOrChargeType, interestUrl: String, version: Option[Int],
-                              submittedDate: Option[String], journeyType: ChargeDetailsFilter, isChargeAssigned: Boolean)
-                             (implicit request: IdentifierRequest[AnyContent]): JsObject = {
-    Json.obj(
-      "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFSDetail, journeyType, submittedDate),
-      "tableHeader" -> tableHeader(schemeFSDetail),
-      "schemeName" -> schemeName,
-      "chargeType" ->  (version match {
-        case Some(value) => schemeFSDetail.chargeType.toString + s" submission $value"
-        case _ => schemeFSDetail.chargeType.toString
-      }),
-        "versionValue" -> (version match {
-        case Some(value) => s" submission $value"
-        case _ => Nil
-      }),
-      "isPaymentOverdue" -> isPaymentOverdue(schemeFSDetail),
-      "insetText" -> setInsetText(isChargeAssigned, schemeFSDetail, interestUrl),
-      "interest" -> schemeFSDetail.accruedInterestTotal,
-      "returnLinkBasedOnJourney" -> paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-      "returnUrl" -> paymentsAndChargesService.getReturnUrl(srn, pstr, request.psaId, request.pspId, config, journeyType)
-    ) ++ returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)) ++ optHintText(schemeFSDetail)
-  }
+
+
+
 
   private def optHintText(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): JsObject =
     if (schemeFSDetail.chargeType == PSS_AFT_RETURN_INTEREST && schemeFSDetail.amountDue == BigDecimal(0.00)) {

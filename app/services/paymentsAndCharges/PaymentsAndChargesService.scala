@@ -79,6 +79,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     schemeFSDetail
       .filter(_.accruedInterestTotal >= BigDecimal(0.00))
 
+  //scalastyle:off parameter.number
+  //scalastyle:off method.length
+  //scalastyle:off cyclomatic.complexity
   private def paymentsAndChargesDetails(
                                          details: SchemeFSDetail,
                                          srn: String,
