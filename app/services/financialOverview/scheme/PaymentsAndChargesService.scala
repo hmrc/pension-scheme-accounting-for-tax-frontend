@@ -26,7 +26,7 @@ import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFSChargeType, SchemeFSDetail}
+import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFSChargeType, SchemeFSDetail, SourceChargeInfo}
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
@@ -60,26 +60,19 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   def getPaymentsAndCharges(srn: String,
                             pstr: String,
                             schemeFSDetail: Seq[SchemeFSDetail],
-                           // mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
+                            //mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
                             chargeDetailsFilter: ChargeDetailsFilter
                            )
-                           (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Table] = {
+                           (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Table = {
 
     val chargeRefForAll: Seq[String] = schemeFSDetail.map(_.chargeReference)
 
-    val seqPayments: Future[Seq[FinancialPaymentAndChargesDetails]] =
-      Future.sequence(
-        schemeFSDetail.map { paymentOrCharge =>
-          paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefForAll, /*chargeRefs(schemeFSDetail), mapChargeTypesVersionAndDate,*/ chargeDetailsFilter)
-        }
-      ).map {
-        _.flatten
-      }
-    seqPayments.map { x =>
-      mapToTable(x, chargeDetailsFilter)
+    val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFSDetail.flatMap { paymentOrCharge =>
+      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefForAll, /* chargeRefs(schemeFSDetail), mapChargeTypesVersionAndDate,*/ chargeDetailsFilter)
     }
-  }
 
+    mapToTable(seqPayments, chargeDetailsFilter)
+  }
 
   def chargeRefs(schemeFSDetail: Seq[SchemeFSDetail]): Map[(String, String), Seq[String]] = {
     val indexRefs: Seq[IndexRef] = schemeFSDetail.map { scheme =>
@@ -152,19 +145,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  private def retrieveVersionAndReceiptDate(pstr: String,
-                                            schemeFSDetail: SchemeFSDetail)(implicit messages: Messages, ec: ExecutionContext,
-                                                                            hc: HeaderCarrier): Future[(Option[Int], Option[LocalDate])] = {
-    (schemeFSDetail.chargeType, schemeFSDetail.sourceChargeFormBundleNumber) match {
-      case (chargeType, Some(fb)) if isAFTOrOTCInclInterestChargeType(chargeType) =>
-        aftConnector.getAFTDetailsWithFbNumber(pstr, fb).map { aftDetails =>
-          val ua = UserAnswers(aftDetails.as[JsObject])
-          Tuple2(ua.get(AFTVersionQuery), ua.get(AFTReceiptDateQuery))
-        }
-      case _ => Future.successful(Tuple2(None, None))
-    }
-  }
-
   //scalastyle:off parameter.number
   // scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
@@ -176,7 +156,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                          //chargeRefs: Map[(String, String), Seq[String]],
                                          //mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
                                          chargeDetailsFilter: ChargeDetailsFilter
-                                       )(implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[FinancialPaymentAndChargesDetails]] = {
+                                       )(implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Seq[FinancialPaymentAndChargesDetails] = {
 
 
     val chargeType = getPaymentOrChargeType(details.chargeType)
@@ -187,7 +167,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     //      onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
 
 
-    retrieveVersionAndReceiptDate(pstr, details).map { case (version, receiptDate) =>
+    details.sourceChargeInfo match {
+      case Some(SourceChargeInfo(_, _, version, receiptDate)) =>
       val suffix = version.map(v => s" submission $v")
       val submittedDate = receiptDate.map(x => formatDateYMD(x))
       val index = details.index.toString

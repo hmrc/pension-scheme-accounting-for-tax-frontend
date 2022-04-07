@@ -302,8 +302,7 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
-      sourceChargeIndex = None,
-      sourceChargeFormBundleNumber = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   }
@@ -328,8 +327,7 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate =  Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = Some(sourceChargeReference),
-      sourceChargeIndex = None,
-      sourceChargeFormBundleNumber = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   }
@@ -353,8 +351,7 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate =  Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
-      sourceChargeIndex = None,
-      sourceChargeFormBundleNumber = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
@@ -377,8 +374,7 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate =  Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
-      sourceChargeIndex = None,
-      sourceChargeFormBundleNumber = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   }

@@ -62,7 +62,7 @@ class PaymentsAndChargesController @Inject()(
         val totalUpcoming: BigDecimal = upcomingCharges.map(_.amountDue).sum
 
         if (paymentsCache.schemeFSDetail.nonEmpty) {
-          paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, paymentsCache.schemeFSDetail, journeyType).flatMap { table =>
+          val table = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, paymentsCache.schemeFSDetail, journeyType)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
               fields =
@@ -77,7 +77,6 @@ class PaymentsAndChargesController @Inject()(
               "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
             )
             renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
-          }
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }

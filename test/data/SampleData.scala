@@ -24,7 +24,7 @@ import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.financialStatement.{PsaFS, PsaFSDetail, SchemeFS, SchemeFSDetail}
+import models.financialStatement.{PsaFS, PsaFSDetail, SchemeFS, SchemeFSDetail, SourceChargeInfo}
 import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
@@ -238,8 +238,7 @@ object SampleData {
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
           sourceChargeRefForInterest = None,
-          sourceChargeIndex = None,
-          sourceChargeFormBundleNumber = None,
+          sourceChargeInfo = None,
           documentLineItemDetails = Nil
         ),
         SchemeFSDetail(
@@ -256,8 +255,7 @@ object SampleData {
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
           sourceChargeRefForInterest = None,
-          sourceChargeIndex = None,
-          sourceChargeFormBundleNumber = None,
+          sourceChargeInfo = None,
           documentLineItemDetails = Nil
         )
       )
@@ -280,8 +278,7 @@ object SampleData {
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = Some("12345678"),
           sourceChargeRefForInterest = None,
-          sourceChargeIndex = None,
-          sourceChargeFormBundleNumber = None,
+          sourceChargeInfo = None,
           documentLineItemDetails = Nil
         ),
         SchemeFSDetail(
@@ -298,8 +295,12 @@ object SampleData {
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
           sourceChargeRefForInterest = Some("XY002610150184"),
-          sourceChargeIndex = Some(1),
-          sourceChargeFormBundleNumber = Some("12345678"),
+          sourceChargeInfo = Some(
+            SourceChargeInfo(
+              index = 1,
+              formBundleNumber = Some("12345678")
+            )
+          ),
           documentLineItemDetails = Nil
         )
       )
@@ -337,7 +338,7 @@ object SampleData {
       documentLineItemDetails = Nil
     )
   )
-  val psaFs: PsaFS = PsaFS (false, psaFsSeq)
+  val psaFs: PsaFS = PsaFS(false, psaFsSeq)
   val multiplePenalties: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
       chargeReference = "XY002610150184",

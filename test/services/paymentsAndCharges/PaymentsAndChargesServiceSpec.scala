@@ -375,8 +375,7 @@ object PaymentsAndChargesServiceSpec {
       periodEndDate = Some(QUARTER_END_DATE),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
-      sourceChargeIndex = None,
-      sourceChargeFormBundleNumber = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   }
@@ -395,8 +394,7 @@ object PaymentsAndChargesServiceSpec {
     periodEndDate = Some(QUARTER_END_DATE),
     formBundleNumber = None,
     sourceChargeRefForInterest = None,
-    sourceChargeIndex = None,
-    sourceChargeFormBundleNumber = None,
+    sourceChargeInfo = None,
     documentLineItemDetails = Nil
   )
 

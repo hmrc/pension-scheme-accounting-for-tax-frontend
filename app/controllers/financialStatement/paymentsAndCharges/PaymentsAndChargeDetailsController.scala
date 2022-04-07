@@ -77,14 +77,11 @@ class PaymentsAndChargeDetailsController @Inject()(
                          implicit request: IdentifierRequest[AnyContent]
                        ): Future[Result] = {
 
-    val indexAsInt = index.toInt
-
     val chargeRefs: Seq[String] = filteredCharges.map(_.chargeReference)
     val interestUrl = controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
         .onPageLoad(srn, period, index, paymentOrChargeType, journeyType).url
     if (chargeRefs.size > index.toInt) {
-//      filteredCharges.find(_.chargeReference == chargeRefs(index.toInt)) match {
-      filteredCharges.find(_.index == indexAsInt) match {
+      filteredCharges.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
           val returnUrl = config.schemeDashboardUrl(request.psaId, request.pspId).format(srn)
           renderer.render(

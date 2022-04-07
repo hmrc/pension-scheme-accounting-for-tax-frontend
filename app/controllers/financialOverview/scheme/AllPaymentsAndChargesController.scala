@@ -69,7 +69,7 @@ class AllPaymentsAndChargesController @Inject()(
         val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
 
         if (filteredPayments.nonEmpty) {
-          paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, filteredPayments, journeyType).flatMap { tableOfPaymentsAndCharges =>
+          val tableOfPaymentsAndCharges = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, filteredPayments, journeyType)
             val json = Json.obj(
               fields =
                 "titleMessage" -> title,
@@ -81,7 +81,6 @@ class AllPaymentsAndChargesController @Inject()(
               "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
             )
             renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
-          }
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))

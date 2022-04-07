@@ -53,8 +53,7 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
         periodEndDate = Some(QUARTER_END_DATE),
         formBundleNumber = None,
         sourceChargeRefForInterest = None,
-        sourceChargeIndex = None,
-        sourceChargeFormBundleNumber = None,
+        sourceChargeInfo = None,
         documentLineItemDetails = Nil
       ),
       SchemeFSDetail(
@@ -71,8 +70,7 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
         periodEndDate = Some(charge2End),
         formBundleNumber = None,
         sourceChargeRefForInterest = None,
-        sourceChargeIndex = None,
-        sourceChargeFormBundleNumber = None,
+        sourceChargeInfo = None,
         documentLineItemDetails = Nil
       )
     )

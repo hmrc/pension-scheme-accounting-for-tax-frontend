@@ -74,10 +74,12 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
       response.status match {
         case OK =>
           val schemeFS = response.json.as[SchemeFS]
-          SchemeFS(
+          val x= SchemeFS(
             inhibitRefundSignal = schemeFS.inhibitRefundSignal,
             seqSchemeFSDetail = schemeFS.seqSchemeFSDetail.filterNot(_.chargeType == SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
           )
+          println( "\n\n>>>>>>>" + x + "\n\n")
+          x
         case _ =>
           handleErrorResponse("GET", url)(response)
       }
