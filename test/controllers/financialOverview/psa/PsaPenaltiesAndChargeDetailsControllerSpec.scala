@@ -57,9 +57,9 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     with Results
     with ScalaFutures {
 
-  private def httpPathGETAssociated(chargeReferenceIndex: String): String = {
+  private def httpPathGETAssociated(indexValue: String): String = {
     routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(identifier = pstr,
-      chargeReferenceIndex = chargeReferenceIndex, Overdue).url
+      index = indexValue, Overdue).url
   }
 
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
@@ -109,7 +109,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-        val result = route(application, httpGETRequest(httpPathGETAssociated("0"))).value
+        val result = route(application, httpGETRequest(httpPathGETAssociated("1"))).value
         val json = Json.obj(
           "schemeAssociated" -> true,
           "schemeName" -> schemeDetails.schemeName
@@ -127,7 +127,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
       "catch IndexOutOfBoundsException" in {
         when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
-        val result = route(application, httpGETRequest(httpPathGETAssociated("3"))).value
+        val result = route(application, httpGETRequest(httpPathGETAssociated("5"))).value
 
         status(result) mustBe SEE_OTHER
         redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url

@@ -259,6 +259,7 @@ object SampleData {
 
   val psaFsSeq: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
+      index = 1,
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -274,6 +275,7 @@ object SampleData {
       documentLineItemDetails = Nil
     ),
     PsaFSDetail(
+      index = 2,
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -292,6 +294,7 @@ object SampleData {
   val psaFs: PsaFS = PsaFS (false, psaFsSeq)
   val multiplePenalties: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
+      index = 1,
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -307,6 +310,7 @@ object SampleData {
       documentLineItemDetails = Nil
     ),
     PsaFSDetail(
+      index = 2,
       chargeReference = "XY002610150185",
       chargeType = CONTRACT_SETTLEMENT_INTEREST,
       dueDate = Some(LocalDate.parse("2020-02-15")),

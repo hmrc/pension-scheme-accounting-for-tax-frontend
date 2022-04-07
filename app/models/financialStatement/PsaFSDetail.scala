@@ -51,10 +51,9 @@ object PsaFSDetail {
 
 case class SourceChargeInfo(
                              index: Int,
-                             chargeType: String,
+                             chargeType: PsaFSChargeType,
                              periodStartDate: LocalDate,
-                             periodEndDate: LocalDate,
-                             pstr: String
+                             periodEndDate: LocalDate
                            )
 
 object SourceChargeInfo {

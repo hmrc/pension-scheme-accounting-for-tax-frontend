@@ -86,6 +86,7 @@ object PenaltiesNavigationServiceSpec {
 
   val penalties: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
+      index = 1,
       chargeReference = "XY002610150186",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -98,9 +99,11 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     ),
     PsaFSDetail(
+      index = 2,
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -113,9 +116,11 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate = LocalDate.parse("2020-12-31"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     ),
     PsaFSDetail(
+      index = 3,
       chargeReference = "XY002610150185",
       chargeType = CONTRACT_SETTLEMENT_INTEREST,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -128,6 +133,7 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate = LocalDate.parse("2020-12-31"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   )
@@ -138,6 +144,7 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate2: LocalDate = LocalDate.parse("2020-09-30")
                      ): Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
+      index = 1,
       chargeReference = "XY002610150186",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -150,9 +157,11 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     ),
     PsaFSDetail(
+      index = 2,
       chargeReference = "XY002610150186",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -165,6 +174,7 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate = periodEndDate2,
       pstr = schemeName2,
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   )

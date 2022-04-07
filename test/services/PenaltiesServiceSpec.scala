@@ -415,12 +415,14 @@ object PenaltiesServiceSpec {
   val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
 
   def createPsaFS(
+    index : Int = 0,
     amountDue: BigDecimal = BigDecimal(0.01),
     dueDate: LocalDate = dateNow,
     chargeType: PsaFSChargeType = AFT_INITIAL_LFP,
     accruedInterestTotal: BigDecimal = BigDecimal(0.00)
   ): PsaFSDetail = {
     PsaFSDetail(
+        index = index,
         chargeReference = "XY002610150184",
         chargeType = chargeType ,
         dueDate = Some(dueDate),
@@ -439,6 +441,7 @@ object PenaltiesServiceSpec {
   val psaFSResponseStub: PsaFS = PsaFS(false, psaFSResponse())
   def psaFSResponse(amountDue: BigDecimal = BigDecimal(0.01), dueDate: LocalDate = dateNow): Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
+      index = 0,
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(dueDate),
@@ -454,6 +457,7 @@ object PenaltiesServiceSpec {
       documentLineItemDetails = Nil
     ),
     PsaFSDetail(
+      index = 0,
       chargeReference = "XY002610150185",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(dueDate),
@@ -469,6 +473,7 @@ object PenaltiesServiceSpec {
       documentLineItemDetails = Nil
     ),
     PsaFSDetail(
+      index = 0,
       chargeReference = "XY002610150186",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(dueDate),
@@ -492,8 +497,8 @@ object PenaltiesServiceSpec {
              outStandingAmount: BigDecimal = BigDecimal(56049.08),
              stoodOverAmount: BigDecimal = BigDecimal(25089.08)
            ): PsaFSDetail =
-    PsaFSDetail("XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
-      accruedInterestTotal = 0.00, dateNow, dateNow, pstr, None, documentLineItemDetails = Seq(DocumentLineItemDetail(
+    PsaFSDetail(0, "XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
+      accruedInterestTotal = 0.00, dateNow, dateNow, pstr, None, None, documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00))))
@@ -589,7 +594,7 @@ object PenaltiesServiceSpec {
     ListSchemeDetails("Assoc scheme", "SRN123", "", None, Some("24000040IN"), None, None))))
 
   def customPsaFS(chargeType: PsaFSChargeType, startDate: String = "2021-01-01", endDate: String = "2021-03-31", pstr: String = pstr): PsaFSDetail =
-    PsaFSDetail("XY002610150184", chargeType, Some(LocalDate.parse("2021-05-15")), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),
-      BigDecimal(0.00), BigDecimal(0.00), LocalDate.parse(startDate), LocalDate.parse(endDate), pstr, Some(""), Nil)
+    PsaFSDetail(0, "XY002610150184", chargeType, Some(LocalDate.parse("2021-05-15")), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),
+      BigDecimal(0.00), BigDecimal(0.00), LocalDate.parse(startDate), LocalDate.parse(endDate), pstr, Some(""), None, Nil)
 
 }

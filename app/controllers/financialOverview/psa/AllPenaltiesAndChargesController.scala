@@ -16,7 +16,6 @@
 
 package controllers.financialOverview.psa
 
-import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter.All
@@ -43,7 +42,6 @@ class AllPenaltiesAndChargesController @Inject()(
                                               identify: IdentifierAction,
                                               allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                               val controllerComponents: MessagesControllerComponents,
-                                              config: FrontendAppConfig,
                                               psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                               renderer: Renderer
                                             )(implicit ec: ExecutionContext)
@@ -62,8 +60,6 @@ class AllPenaltiesAndChargesController @Inject()(
 
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
-        val allChargeRefs = penaltiesCache.penalties.map(_.chargeReference)
-
         val filteredPenalties: Seq[PsaFSDetail] = penaltiesCache.penalties
           .filter(_.periodStartDate == startDate)
           .filter(_.pstr == pstr)
@@ -77,7 +73,7 @@ class AllPenaltiesAndChargesController @Inject()(
         if (filteredPenalties.nonEmpty) {
 
           psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
-            request.idOrException, allChargeRefs, filteredPenalties, All) flatMap { table =>
+            request.idOrException, filteredPenalties, All) flatMap { table =>
 
             val json = Json.obj(
               fields =
@@ -103,7 +99,6 @@ class AllPenaltiesAndChargesController @Inject()(
 
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
-        val allChargeRefs = penaltiesCache.penalties.map(_.chargeReference)
         val title: Message = Message("penalties.nonAft.title", Message(s"penaltyType.${penaltyType.toString}"), year)
         val filteredPenalties: Seq[PsaFSDetail] = penaltiesCache.penalties
           .filter(_.periodEndDate.getYear == year.toInt)
@@ -119,7 +114,7 @@ class AllPenaltiesAndChargesController @Inject()(
         if (filteredPenalties.nonEmpty) {
 
           psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
-            request.idOrException, allChargeRefs, filteredPenalties, All) flatMap { table =>
+            request.idOrException, filteredPenalties, All) flatMap { table =>
 
             val json = Json.obj(
               fields =

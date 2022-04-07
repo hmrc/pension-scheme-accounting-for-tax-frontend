@@ -321,6 +321,7 @@ object PaymentsAndChargeDetailsControllerSpec {
 
   def psaFS(chargeReference: String): PsaFSDetail =
     PsaFSDetail(
+      index = 0,
       chargeReference = chargeReference,
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -333,6 +334,7 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN",
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
 
