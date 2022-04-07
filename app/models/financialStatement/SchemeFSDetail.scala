@@ -40,7 +40,13 @@ case class SourceChargeInfo(
                              index: Int,
                              formBundleNumber: Option[String],
                              version: Option[Int] = None,
-                             receiptDate: Option[LocalDate] = None
+                             receiptDate: Option[LocalDate] = None,
+                             chargeType: SchemeFSChargeType,
+                             dueDate: Option[LocalDate],
+                             amountDue: BigDecimal,
+                             accruedInterestTotal: BigDecimal,
+                             periodStartDate: Option[LocalDate],
+                             periodEndDate: Option[LocalDate]
                            )
 
 object SourceChargeInfo {
@@ -62,8 +68,6 @@ case class SchemeFSDetail(
                            formBundleNumber: Option[String],
                            sourceChargeRefForInterest: Option[String],
                            sourceChargeInfo: Option[SourceChargeInfo],
-                           // TODO: Add 4 extra fields: sourceChargeChargeType, sourceChargePeriodStart, sourceChargePeriodEnd, sourceChargeAmountDue in b/e and f/e
-                           // possibly nesting all thes and other 2 inside sourceCharge node
                            documentLineItemDetails: Seq[DocumentLineItemDetail]
                          )
 

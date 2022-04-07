@@ -17,7 +17,6 @@
 package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
@@ -46,7 +45,6 @@ class AllPaymentsAndChargesController @Inject()(
                                                  val controllerComponents: MessagesControllerComponents,
                                                  config: FrontendAppConfig,
                                                  paymentsAndChargesService: PaymentsAndChargesService,
-                                                 aftConnector: AFTConnector,
                                                  renderer: Renderer
                                                )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -58,7 +56,6 @@ class AllPaymentsAndChargesController @Inject()(
   def onPageLoad(srn: String, pstr: String, period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
-
         val (title, filteredPayments): (String, Seq[SchemeFSDetail]) =
           getTitleAndFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
 

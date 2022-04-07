@@ -289,16 +289,22 @@ object SampleData {
           totalAmount = 56432.00,
           outstandingAmount = 56049.08,
           stoodOverAmount = 25089.08,
-          amountDue = 1029.05,
+          amountDue = 129.05,
           accruedInterestTotal = 24000.41,
-          periodStartDate = Some(LocalDate.parse("2020-04-01")),
-          periodEndDate = Some(LocalDate.parse("2020-06-30")),
+          periodStartDate = Some(LocalDate.parse("2020-06-01")),
+          periodEndDate = Some(LocalDate.parse("2020-09-31")),
           formBundleNumber = None,
           sourceChargeRefForInterest = Some("XY002610150184"),
           sourceChargeInfo = Some(
             SourceChargeInfo(
               index = 1,
-              formBundleNumber = Some("12345678")
+              formBundleNumber = Some("12345678"),
+              chargeType = PSS_AFT_RETURN,
+              dueDate = Some(LocalDate.parse("2020-02-15")),
+              amountDue = BigDecimal(1029.05),
+              accruedInterestTotal = BigDecimal(23000.55),
+              periodStartDate = Some(LocalDate.parse("2020-04-01")),
+              periodEndDate = Some(LocalDate.parse("2020-06-30")),
             )
           ),
           documentLineItemDetails = Nil
