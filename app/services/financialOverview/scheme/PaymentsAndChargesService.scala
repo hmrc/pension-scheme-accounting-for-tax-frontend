@@ -126,7 +126,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val chargeType = getPaymentOrChargeType(details.chargeType)
     val (version, receiptDate) = (details.version, details.receiptDate)
     val suffix = version.map(v => s" submission $v")
-    val submittedDate = receiptDate.map(x => formatDateYMD(x))
+    val submittedDate = receiptDate.map(formatDateYMD)
     val index = details.index.toString
     val periodValue: String = if (chargeType.toString == AccountingForTaxCharges.toString) {
       details.periodStartDate.map(_.toString).getOrElse("")

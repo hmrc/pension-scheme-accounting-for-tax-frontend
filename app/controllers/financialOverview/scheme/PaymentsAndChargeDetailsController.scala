@@ -18,6 +18,7 @@ package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
 import controllers.actions._
+import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
@@ -31,7 +32,7 @@ import renderer.Renderer
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.{dateFormatterDMY, formatDateYMD}
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -74,16 +75,16 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   //scalastyle:off parameter.number
   // scalastyle:off method.length
-  private def buildPage( filteredCharges: Seq[SchemeFSDetail],
-                         period: String,
-                         index: String,
-                         schemeName: String,
-                         srn: String,
-                         pstr: String,
-                         paymentOrChargeType: PaymentOrChargeType,
-                         journeyType: ChargeDetailsFilter,
-                         submittedDate: Option[String],
-                         version: Option[Int]
+  private def buildPage(filteredCharges: Seq[SchemeFSDetail],
+                        period: String,
+                        index: String,
+                        schemeName: String,
+                        srn: String,
+                        pstr: String,
+                        paymentOrChargeType: PaymentOrChargeType,
+                        journeyType: ChargeDetailsFilter,
+                        submittedDate: Option[String],
+                        version: Option[Int]
                        )(
                          implicit request: IdentifierRequest[AnyContent]
                        ): Future[Result] = {
@@ -112,10 +113,9 @@ class PaymentsAndChargeDetailsController @Inject()(
       ) ++ returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)) ++ optHintText(schemeFSDetail)
     }
 
-    val indexAsInt = index.toInt
-    val chargeRef = filteredCharges.find(_.index == indexAsInt)
-    val optionSourceChargeInfo = chargeRef.flatMap(_.sourceChargeInfo)
-    (chargeRef, optionSourceChargeInfo) match {
+    val optSchemeFsDetail = filteredCharges.find(_.index == index.toInt)
+    val optionSourceChargeInfo = optSchemeFsDetail.flatMap(_.sourceChargeInfo)
+    (optSchemeFsDetail, optionSourceChargeInfo) match {
       case (Some(schemeFs), None) =>
         val interestUrl = routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, period, index,
           paymentOrChargeType, version, submittedDate, journeyType).url
@@ -124,9 +124,17 @@ class PaymentsAndChargeDetailsController @Inject()(
           ctx = summaryListData(schemeFs, interestUrl, version, isChargeAssigned = false)
         ).map(Ok(_))
       case (Some(schemeFs), Some(sourceChargeInfo)) =>
-        val sourceChargeIndex = sourceChargeInfo.index.toString
-        val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, sourceChargeIndex,
-          paymentOrChargeType, version, submittedDate, "all").url
+        val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(
+          srn = srn,
+          pstr = pstr,
+          period = period,
+          index = sourceChargeInfo.index.toString,
+          paymentsType = paymentOrChargeType,
+          version = sourceChargeInfo.version,
+          submittedDate = sourceChargeInfo.receiptDate.map(formatDateYMD),
+          journeyType = All
+        ).url
+
         renderer.render(
           template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
           ctx = summaryListData(schemeFs, originalAmountUrl, version, isChargeAssigned = true)
@@ -154,22 +162,28 @@ class PaymentsAndChargeDetailsController @Inject()(
         )
       case (true, _, _, _, true, _) => // EXP
         Html(
-          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2",
-            schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
+          s"<p class=govuk-body>${
+            messages("financialPaymentsAndCharges.interest.chargeReference.text2",
+              schemeFSDetail.chargeType.toString.toLowerCase())
+          }</p>" +
             s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
         )
       case (true, _, _, _, false, true) =>
         Html(
-          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1_vowel",
-            schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
+          s"<p class=govuk-body>${
+            messages("financialPaymentsAndCharges.interest.chargeReference.text1_vowel",
+              schemeFSDetail.chargeType.toString.toLowerCase())
+          }</p>" +
             s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
         )
       case (true, _, _, _, false, false) =>
         Html(
-          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1_consonant",
-            schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
+          s"<p class=govuk-body>${
+            messages("financialPaymentsAndCharges.interest.chargeReference.text1_consonant",
+              schemeFSDetail.chargeType.toString.toLowerCase())
+          }</p>" +
             s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
         )

@@ -215,6 +215,8 @@ class PaymentsAndChargeDetailsControllerSpec
     "return OK and the correct view with inset text linked to original charge page if linked interest is present and Quarter is applicable for a GET" in {
       val sourceChargeInfo = SourceChargeInfo(
         index = 1,
+        version = Some(1),
+        receiptDate = Some(LocalDate.parse("2016-12-17")),
         formBundleNumber = None
       )
 
