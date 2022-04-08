@@ -130,11 +130,11 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
     val chargeType = getPaymentOrChargeType(details.chargeType)
 
-    val (version, receiptDate) = details.sourceChargeInfo match {
-      case None => Tuple2(None, None)
-      case Some(x) => Tuple2(x.version, x.receiptDate)
-    }
-//http://localhost:8206/manage-pension-scheme-accounting-for-tax/S2400000041/financial-overview/accounting-for-tax/2022-01-01/2/interest/charge-details?pstr=24000041IN
+    val (version, receiptDate) = (details.version, details.receiptDate)
+//    match {
+//      case None => Tuple2(None, None)
+//      case Some(x) => Tuple2(x.version, x.receiptDate)
+//    }
     val suffix = version.map(v => s" submission $v")
     val submittedDate = receiptDate.map(x => formatDateYMD(x))
     val index = details.index.toString
