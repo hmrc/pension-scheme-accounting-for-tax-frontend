@@ -305,8 +305,7 @@ object SampleData {
           sourceChargeRefForInterest = Some("XY002610150184"),
           sourceChargeInfo = Some(
             SourceChargeInfo(
-              index = 1,
-              formBundleNumber = Some("12345678")
+              index = 1
             )
           ),
           documentLineItemDetails = Nil

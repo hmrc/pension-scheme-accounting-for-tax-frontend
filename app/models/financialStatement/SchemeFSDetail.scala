@@ -38,7 +38,6 @@ object DocumentLineItemDetail {
 
 case class SourceChargeInfo(
                              index: Int,
-                             formBundleNumber: Option[String],
                              version: Option[Int] = None,
                              receiptDate: Option[LocalDate] = None
                            )

@@ -216,8 +216,7 @@ class PaymentsAndChargeDetailsControllerSpec
       val sourceChargeInfo = SourceChargeInfo(
         index = 1,
         version = Some(1),
-        receiptDate = Some(LocalDate.parse("2016-12-17")),
-        formBundleNumber = None
+        receiptDate = Some(LocalDate.parse("2016-12-17"))
       )
 
       val schemeFSDetail = createChargeWithSourceChargeReference(
