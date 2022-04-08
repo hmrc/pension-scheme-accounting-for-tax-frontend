@@ -18,7 +18,6 @@ package controllers.financialOverview.psa
 
 import controllers.actions._
 import forms.QuartersFormProvider
-import models.ChargeDetailsFilter.All
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.PsaFSDetail
 import models.{AFTQuarter, ChargeDetailsFilter, DisplayHint, DisplayQuarter, PaymentOverdue, Quarters}
@@ -74,7 +73,7 @@ class SelectPenaltiesQuarterController @Inject()(
     }
   }
 
-  def onSubmit(year: String, journeyType: ChargeDetailsFilter = All): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
 
       val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
