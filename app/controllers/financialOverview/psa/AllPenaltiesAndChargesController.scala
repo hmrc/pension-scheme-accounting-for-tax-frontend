@@ -16,7 +16,6 @@
 
 package controllers.financialOverview.psa
 
-import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter.All
@@ -43,7 +42,6 @@ class AllPenaltiesAndChargesController @Inject()(
                                               identify: IdentifierAction,
                                               allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                               val controllerComponents: MessagesControllerComponents,
-                                              config: FrontendAppConfig,
                                               psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                               renderer: Renderer
                                             )(implicit ec: ExecutionContext)

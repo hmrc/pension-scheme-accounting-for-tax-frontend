@@ -18,6 +18,7 @@ package services.financialOverview.psa
 
 import base.SpecBase
 import connectors.ListOfSchemesConnector
+import controllers.financialOverview.psa.routes._
 import controllers.routes
 import data.SampleData.psaId
 import models.financialStatement.PenaltyType.AccountingForTaxPenalties
@@ -29,7 +30,6 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.mvc.Results.Redirect
 import services.PenaltiesServiceSpec.listOfSchemes
-import controllers.financialOverview.psa.routes._
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,6 +42,7 @@ class PenaltiesNavigationServiceSpec extends SpecBase with MockitoSugar with Bef
   private val year: Int = 2020
   private val aftPenalty = AccountingForTaxPenalties
   private val quarterPeriodStartDate = LocalDate.parse("2020-07-01")
+  private val pstr = "24000041IN"
 
   private val mockListOfSchemesConn: ListOfSchemesConnector = mock[ListOfSchemesConnector]
   val penaltiesNavigationServiceSpec: PenaltiesNavigationService = new PenaltiesNavigationService(mockListOfSchemesConn)
@@ -59,6 +60,12 @@ class PenaltiesNavigationServiceSpec extends SpecBase with MockitoSugar with Bef
     "redirect to Select Scheme page if there is only one quarter for the penalties" in {
       whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties("24000040IN"), year, psaId, aftPenalty )) {
         _ mustBe Redirect(SelectSchemeController.onPageLoad(aftPenalty, quarterPeriodStartDate.toString))
+      }
+    }
+
+    "redirect to AllPenalties page if there is only one quarter for the penalties and one scheme" in {
+      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties(), year, psaId, aftPenalty )) {
+        _ mustBe Redirect(AllPenaltiesAndChargesController.onPageLoadAFT(quarterPeriodStartDate.toString, pstr))
       }
     }
 

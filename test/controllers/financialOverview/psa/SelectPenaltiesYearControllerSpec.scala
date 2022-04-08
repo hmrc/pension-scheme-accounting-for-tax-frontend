@@ -17,6 +17,7 @@
 package controllers.financialOverview.psa
 
 import config.FrontendAppConfig
+import connectors.ListOfSchemesConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData.{dummyCall, psaId}
@@ -40,20 +41,24 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
 import play.twirl.api.Html
-import services.financialOverview.psa.PsaPenaltiesAndChargesServiceSpec.psaFsSeq
+import services.PenaltiesServiceSpec.listOfSchemes
+import services.financialOverview.psa.PsaPenaltiesAndChargesServiceSpec.{psaFsSeq, pstr}
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   implicit val config: FrontendAppConfig = mockAppConfig
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
   private val mockNavigationService = mock[PenaltiesNavigationService]
+  private val mockListOfSchemesConn: ListOfSchemesConnector = mock[ListOfSchemesConnector]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService)
+    bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
+    bind[ListOfSchemesConnector].toInstance(mockListOfSchemesConn)
   )
 
   private val years: Seq[DisplayYear] = Seq(DisplayYear(2020, Some(PaymentOverdue)))
@@ -93,6 +98,8 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
   "SelectYearController" must {
     "return OK and the correct view for a GET with the select option for Year" in {
 
+      when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -111,7 +118,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result) mustBe Some(routes.SelectSchemeController.onPageLoad(ContractSettlementCharges, year).url)
+      redirectLocation(result) mustBe Some(routes.AllPenaltiesAndChargesController.onPageLoad(year, pstr, ContractSettlementCharges).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
