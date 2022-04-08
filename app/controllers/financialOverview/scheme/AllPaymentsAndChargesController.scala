@@ -85,20 +85,17 @@ class AllPaymentsAndChargesController @Inject()(
       }
     }
 
-  val isTaxYearFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
+  private val isTaxYearFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
 
   private def getTitleAndFilteredPayments(payments: Seq[SchemeFSDetail], period: String, paymentOrChargeType: PaymentOrChargeType)
                                          (implicit messages: Messages): (String, Seq[SchemeFSDetail]) =
     if (paymentOrChargeType == AccountingForTaxCharges) {
-
       val startDate: LocalDate = LocalDate.parse(period)
       (messages(s"paymentsAndCharges.all.aft.title",
         startDate.format(dateFormatterStartDate),
         Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY)),
         payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate.contains(startDate)))
-
     } else {
-
       val typeParam: String = messages(s"paymentOrChargeType.${paymentOrChargeType.toString}")
       val filteredPayments = payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
         .filter(_.periodEndDate.exists(_.getYear == period.toInt))
@@ -112,5 +109,4 @@ class AllPaymentsAndChargesController @Inject()(
       }
       (title, filteredPayments)
     }
-
 }

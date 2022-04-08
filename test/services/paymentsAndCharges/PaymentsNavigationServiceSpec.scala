@@ -54,6 +54,8 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
       periodStartDate = Some(QUARTER_START_DATE),
       periodEndDate = Some(QUARTER_END_DATE),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
       sourceChargeInfo = None,
       documentLineItemDetails = Nil
@@ -71,6 +73,8 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
       periodStartDate = Some(charge2Start),
       periodEndDate = Some(charge2End),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
       sourceChargeInfo = None,
       documentLineItemDetails = Nil

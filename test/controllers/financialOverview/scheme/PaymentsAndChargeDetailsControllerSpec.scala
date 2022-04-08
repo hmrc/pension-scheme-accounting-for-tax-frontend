@@ -211,7 +211,6 @@ class PaymentsAndChargeDetailsControllerSpec
           createChargeWithSourceChargeReference("XY002610150184", "XY002610150183", amountDue = 123.00)
         ))
         ))
-      when(mockPaymentsAndChargesService.chargeRefs(any())).thenReturn(mapAFTResponse)
 
       val schemeFSDetail = createChargeWithSourceChargeReference("XY002610150184", "XY002610150183", amountDue = 123.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -301,6 +300,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodStartDate = Some(LocalDate.parse(QUARTER_START_DATE)),
       periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
       sourceChargeInfo = None,
       documentLineItemDetails = Nil
@@ -326,6 +327,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodStartDate =  Some(LocalDate.parse(QUARTER_START_DATE)),
       periodEndDate =  Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = Some(sourceChargeReference),
       sourceChargeInfo = None,
       documentLineItemDetails = Nil
@@ -350,6 +353,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodStartDate =  Some(LocalDate.parse(QUARTER_START_DATE)),
       periodEndDate =  Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
       sourceChargeInfo = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
@@ -373,6 +378,8 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodStartDate =  Some(LocalDate.parse(QUARTER_START_DATE)),
       periodEndDate =  Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
       sourceChargeInfo = None,
       documentLineItemDetails = Nil
@@ -386,9 +393,4 @@ object PaymentsAndChargeDetailsControllerSpec {
     createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00),
     createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150188", interest = 0.00)
   )
-
-  private val mapAFTResponse: Map[(String,String), Seq[String]] = {
-    Map((AccountingForTaxCharges.toString, QUARTER_START_DATE.toString) -> Seq("XY002610150184", "XY002610150183"))
-  }
-
 }

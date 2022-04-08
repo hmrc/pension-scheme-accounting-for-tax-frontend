@@ -102,6 +102,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
           periodStartDate = Some(LocalDate.parse("2021-04-01")),
           periodEndDate = Some(LocalDate.parse("2021-06-30")),
           formBundleNumber = None,
+          version = None,
+          receiptDate = None,
           sourceChargeRefForInterest = None,
           sourceChargeInfo = None,
           documentLineItemDetails = Nil

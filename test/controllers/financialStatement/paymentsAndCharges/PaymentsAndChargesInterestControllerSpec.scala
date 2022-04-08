@@ -168,6 +168,8 @@ object PaymentsAndChargesInterestControllerSpec {
       periodStartDate = Some(LocalDate.parse(QUARTER_START_DATE)),
       periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE)),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
       sourceChargeInfo = None,
       documentLineItemDetails = Nil

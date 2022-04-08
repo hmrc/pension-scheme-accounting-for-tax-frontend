@@ -17,11 +17,10 @@
 package services.financialOverview.scheme
 
 import config.FrontendAppConfig
+import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{AFTConnector, FinancialStatementConnector}
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper._
-import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
@@ -30,6 +29,7 @@ import models.financialStatement._
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
+import models.{ChargeDetailsFilter, SchemeDetails}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
 import services.SchemeService
@@ -49,8 +49,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                           fsConnector: FinancialStatementConnector,
-                                          financialInfoCacheConnector: FinancialInfoCacheConnector,
-                                          aftConnector: AFTConnector
+                                          financialInfoCacheConnector: FinancialInfoCacheConnector
                                          ) {
 
 
@@ -61,7 +60,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                             schemeFSDetail: Seq[SchemeFSDetail],
                             chargeDetailsFilter: ChargeDetailsFilter
                            )
-                           (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Table = {
+                           (implicit messages: Messages): Table = {
 
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFSDetail.flatMap { paymentOrCharge =>
       paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeDetailsFilter)
@@ -117,24 +116,15 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  //scalastyle:off parameter.number
   // scalastyle:off method.length
-  //scalastyle:off cyclomatic.complexity
   private def paymentsAndChargesDetails(
                                          details: SchemeFSDetail,
                                          srn: String,
                                          pstr: String,
                                          chargeDetailsFilter: ChargeDetailsFilter
-                                       )(implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Seq[FinancialPaymentAndChargesDetails] = {
-
-
+                                       )(implicit messages: Messages): Seq[FinancialPaymentAndChargesDetails] = {
     val chargeType = getPaymentOrChargeType(details.chargeType)
-
     val (version, receiptDate) = (details.version, details.receiptDate)
-//    match {
-//      case None => Tuple2(None, None)
-//      case Some(x) => Tuple2(x.version, x.receiptDate)
-//    }
     val suffix = version.map(v => s" submission $v")
     val submittedDate = receiptDate.map(x => formatDateYMD(x))
     val index = details.index.toString
@@ -161,18 +151,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
     (isAFTOrOTCNonInterestChargeType(details.chargeType), details.amountDue > 0) match {
       case (true, true) if details.accruedInterestTotal > 0 =>
-        println("\nIIIIIIIIII" + details)
-
-       // SchemeFSDetail(2,XAB9595406349,Accounting for Tax return,Some(2022-01-28),3295,3295,0,152.94,0,Some(2022-01-01),Some(2022-03-31),Some(123456789194),None,None,Vector())
-
-
         val interestChargeType =
           if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
-
-        val ttt = controllers.financialOverview.scheme.routes.PaymentsAndChargesInterestController.onPageLoad(
-          srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url
-
-        println( "\nURL=" + ttt)
 
         Seq(
           chargeDetailsItemWithStatus(PaymentOverdue),
@@ -195,7 +175,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           chargeDetailsItemWithStatus(NoStatus)
         )
     }
-
   }
 
   def getTypeParam(paymentType: PaymentOrChargeType)(implicit messages: Messages): String =
@@ -409,7 +388,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
 
   private def clearingChargeDetailsRow(documentLineItemDetails: Seq[DocumentLineItemDetail]): Seq[SummaryList.Row] = {
-
     documentLineItemDetails.flatMap {
       documentLineItemDetail => {
         if (documentLineItemDetail.clearedAmountItem > 0) {
@@ -429,9 +407,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                 ))
             case _ => Nil
           }
-        }
-        else
+        } else {
           Nil
+        }
       }
     }
   }
@@ -490,10 +468,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       case _ => None
     }
   }
-
 }
-
-import models.SchemeDetails
 
 case class PaymentsCache(loggedInId: String, srn: String, schemeDetails: SchemeDetails, schemeFSDetail: Seq[SchemeFSDetail])
 

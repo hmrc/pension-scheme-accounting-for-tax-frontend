@@ -237,6 +237,8 @@ object SampleData {
           periodStartDate = Some(LocalDate.parse("2020-04-01")),
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
+          version = None,
+          receiptDate = None,
           sourceChargeRefForInterest = None,
           sourceChargeInfo = None,
           documentLineItemDetails = Nil
@@ -254,6 +256,8 @@ object SampleData {
           periodStartDate = Some(LocalDate.parse("2020-04-01")),
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
+          version = None,
+          receiptDate = None,
           sourceChargeRefForInterest = None,
           sourceChargeInfo = None,
           documentLineItemDetails = Nil
@@ -277,6 +281,8 @@ object SampleData {
           periodStartDate = Some(LocalDate.parse("2020-04-01")),
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = Some("12345678"),
+          version = None,
+          receiptDate = None,
           sourceChargeRefForInterest = None,
           sourceChargeInfo = None,
           documentLineItemDetails = Nil
@@ -292,8 +298,10 @@ object SampleData {
           amountDue = 129.05,
           accruedInterestTotal = 24000.41,
           periodStartDate = Some(LocalDate.parse("2020-06-01")),
-          periodEndDate = Some(LocalDate.parse("2020-09-31")),
+          periodEndDate = Some(LocalDate.parse("2020-09-30")),
           formBundleNumber = None,
+          version = None,
+          receiptDate = None,
           sourceChargeRefForInterest = Some("XY002610150184"),
           sourceChargeInfo = Some(
             SourceChargeInfo(

@@ -118,6 +118,8 @@ object PaymentsAndChargesControllerSpec {
       periodStartDate = Some(LocalDate.parse(startDate)),
       periodEndDate = Some(LocalDate.parse(endDate)),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
       sourceChargeInfo = None,
       documentLineItemDetails = Nil

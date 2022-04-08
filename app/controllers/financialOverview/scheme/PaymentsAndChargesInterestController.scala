@@ -24,7 +24,6 @@ import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, g
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
-import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json._
 import play.api.libs.json.{JsObject, Json}
@@ -54,8 +53,6 @@ class PaymentsAndChargesInterestController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
-
-  private val logger = Logger(classOf[PaymentsAndChargesInterestController])
 
   def onPageLoad(srn: String, pstr: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType,
                  version: Option[Int], submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
@@ -93,7 +90,6 @@ class PaymentsAndChargesInterestController @Inject()(
                        ): Future[Result] = {
     filteredSchemeFS.find(_.index == index.toInt) match {
       case Some(schemeFs) =>
-        println("\n>>>A")
         val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, index,
           paymentOrChargeType, version, submittedDate, journeyType).url
         renderer.render(

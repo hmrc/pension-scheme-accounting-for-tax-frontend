@@ -374,6 +374,8 @@ object PaymentsAndChargesServiceSpec {
       periodStartDate = Some(QUARTER_START_DATE),
       periodEndDate = Some(QUARTER_END_DATE),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
       sourceChargeInfo = None,
       documentLineItemDetails = Nil
@@ -393,6 +395,8 @@ object PaymentsAndChargesServiceSpec {
     periodStartDate = Some(QUARTER_START_DATE),
     periodEndDate = Some(QUARTER_END_DATE),
     formBundleNumber = None,
+    version = None,
+    receiptDate = None,
     sourceChargeRefForInterest = None,
     sourceChargeInfo = None,
     documentLineItemDetails = Nil

@@ -74,9 +74,7 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   //scalastyle:off parameter.number
   // scalastyle:off method.length
-  //scalastyle:off cyclomatic.complexity
-  private def buildPage(
-                         filteredCharges: Seq[SchemeFSDetail],
+  private def buildPage( filteredCharges: Seq[SchemeFSDetail],
                          period: String,
                          index: String,
                          schemeName: String,
@@ -89,13 +87,11 @@ class PaymentsAndChargeDetailsController @Inject()(
                        )(
                          implicit request: IdentifierRequest[AnyContent]
                        ): Future[Result] = {
-
     def summaryListData(schemeFSDetail: SchemeFSDetail,
                         interestUrl: String,
                         version: Option[Int],
                         isChargeAssigned: Boolean
-                       )
-                       (implicit request: IdentifierRequest[AnyContent]): JsObject = {
+                       ): JsObject = {
       Json.obj(
         "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFSDetail, journeyType, submittedDate),
         "tableHeader" -> tableHeader(schemeFSDetail),
@@ -140,8 +136,10 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
+
   private def setInsetText(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): Html = {
-    (isChargeAssigned, schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0, isQuarterApplicable(schemeFSDetail), isChargeTypeVowel(schemeFSDetail)) match {
+    (isChargeAssigned, schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0,
+      isQuarterApplicable(schemeFSDetail), isChargeTypeVowel(schemeFSDetail)) match {
       case (false, Some(date), true, true, _, _) =>
         Html(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
@@ -156,19 +154,22 @@ class PaymentsAndChargeDetailsController @Inject()(
         )
       case (true, _, _, _, true, _) =>
         Html(
-          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2", schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
+          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2",
+            schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
             s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
         )
       case (true, _, _, _, false, true) =>
         Html(
-          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1_vowel", schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
+          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1_vowel",
+            schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
             s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
         )
       case (true, _, _, _, false, false) =>
         Html(
-          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1_consonant", schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
+          s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text1_consonant",
+            schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
             s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
         )
