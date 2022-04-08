@@ -215,13 +215,7 @@ class PaymentsAndChargeDetailsControllerSpec
     "return OK and the correct view with inset text linked to original charge page if linked interest is present and Quarter is applicable for a GET" in {
       val sourceChargeInfo = SourceChargeInfo(
         index = 1,
-        formBundleNumber = None,
-        chargeType = PSS_AFT_RETURN,
-        dueDate = Some(LocalDate.parse("2020-02-15")),
-        amountDue = BigDecimal(1234.00),
-        accruedInterestTotal = BigDecimal(23000.55),
-        periodStartDate = Some(LocalDate.parse("2020-04-01")),
-        periodEndDate = Some(LocalDate.parse("2020-06-30")),
+        formBundleNumber = None
       )
 
       val schemeFSDetail = createChargeWithSourceChargeReference(

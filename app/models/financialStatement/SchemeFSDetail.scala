@@ -40,13 +40,7 @@ case class SourceChargeInfo(
                              index: Int,
                              formBundleNumber: Option[String],
                              version: Option[Int] = None,
-                             receiptDate: Option[LocalDate] = None,
-                             chargeType: SchemeFSChargeType,
-                             dueDate: Option[LocalDate],
-                             amountDue: BigDecimal,
-                             accruedInterestTotal: BigDecimal,
-                             periodStartDate: Option[LocalDate],
-                             periodEndDate: Option[LocalDate]
+                             receiptDate: Option[LocalDate] = None
                            )
 
 object SourceChargeInfo {

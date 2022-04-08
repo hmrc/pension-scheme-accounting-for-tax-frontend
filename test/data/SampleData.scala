@@ -306,13 +306,7 @@ object SampleData {
           sourceChargeInfo = Some(
             SourceChargeInfo(
               index = 1,
-              formBundleNumber = Some("12345678"),
-              chargeType = PSS_AFT_RETURN,
-              dueDate = Some(LocalDate.parse("2020-02-15")),
-              amountDue = BigDecimal(1029.05),
-              accruedInterestTotal = BigDecimal(23000.55),
-              periodStartDate = Some(LocalDate.parse("2020-04-01")),
-              periodEndDate = Some(LocalDate.parse("2020-06-30")),
+              formBundleNumber = Some("12345678")
             )
           ),
           documentLineItemDetails = Nil
