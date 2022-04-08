@@ -176,9 +176,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
 
       Seq(
-        Cell(htmlChargeType, classes = Seq("govuk-!-width-two-thirds-quarter")),
-        Cell(Literal(data.amountDue), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(htmlChargeType, classes = Seq("govuk-!-padding-right-7")),
+        Cell(Literal(data.amountDue), classes = Seq("govuk-!-padding-right-7")),
+        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-padding-right-7")),
         Cell(htmlStatus(data), classes = Nil)
       )
     }
