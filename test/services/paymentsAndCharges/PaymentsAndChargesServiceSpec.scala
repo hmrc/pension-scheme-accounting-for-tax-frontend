@@ -102,9 +102,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
 
     Seq(
-      Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText), classes = Seq("govuk-!-width-two-thirds-quarter")),
-      Cell(Literal(amountDue), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText), classes = Seq("govuk-!-padding-right-7")),
+      Cell(Literal(amountDue), classes = Seq("govuk-!-padding-right-7")),
+      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-padding-right-7")),
       Cell(statusHtml)
     )
   }
