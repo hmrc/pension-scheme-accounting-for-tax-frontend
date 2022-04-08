@@ -28,7 +28,7 @@ import models.financialStatement.PsaFSChargeType._
 import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFSChargeType, PsaFSDetail}
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
 import services.SchemeService
@@ -124,7 +124,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             Nil
           }
 
-        val seqForTable = Seq(penaltyDetailsItemWithStatus(PaymentOverdue)) ++ seqInterestCharge
+        val seqForTable = if (detail.amountDue > 0 ) {
+          Seq(penaltyDetailsItemWithStatus(PaymentOverdue)) ++ seqInterestCharge
+        } else {
+          Seq(penaltyDetailsItemWithStatus(NoStatus)) ++ seqInterestCharge
+        }
         mapToTable(seqForTable, includeHeadings = false, journeyType)
 
       }
@@ -189,7 +193,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             Nil
           }
 
-        val seqForTable = Seq(penaltyDetailsItemWithStatus(PaymentOverdue)) ++ seqInterestCharge
+        val seqForTable = if (detail.amountDue > 0 ) {
+          Seq(penaltyDetailsItemWithStatus(PaymentOverdue)) ++ seqInterestCharge
+        } else {
+          Seq(penaltyDetailsItemWithStatus(NoStatus)) ++ seqInterestCharge
+        }
         mapToTable(seqForTable, includeHeadings = false, journeyType)
 
       }
