@@ -140,7 +140,7 @@ class PaymentsAndChargeDetailsController @Inject()(
   private def setInsetText(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): Html = {
     (isChargeAssigned, schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0,
       isQuarterApplicable(schemeFSDetail), isChargeTypeVowel(schemeFSDetail)) match {
-      case (false, Some(date), true, true, _, _) =>
+      case (false, Some(date), true, true, _, _) => // ACT
         Html(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
             s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
@@ -152,7 +152,7 @@ class PaymentsAndChargeDetailsController @Inject()(
             s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
         )
-      case (true, _, _, _, true, _) =>
+      case (true, _, _, _, true, _) => // EXP
         Html(
           s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2",
             schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
