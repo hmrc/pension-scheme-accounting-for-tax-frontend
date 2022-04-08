@@ -33,8 +33,8 @@ import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{Assertion, BeforeAndAfterEach}
 import play.api.libs.json.Json
 import services.SchemeService
 import services.financialOverview.psa.PenaltiesCache
