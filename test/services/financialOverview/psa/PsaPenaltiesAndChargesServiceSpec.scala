@@ -19,12 +19,13 @@ package services.financialOverview.psa
 import base.SpecBase
 import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, MinimalConnector}
+import controllers.financialOverview.psa.routes._
 import data.SampleData._
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, INTEREST_ON_CONTRACT_SETTLEMENT}
-import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFS, PsaFSDetail}
+import models.financialStatement._
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
 import models.{ChargeDetailsFilter, SchemeDetails}
@@ -42,7 +43,6 @@ import utils.DateHelper.dateFormatterDMY
 import viewmodels.Radios.MessageInterpolators
 import viewmodels.Table
 import viewmodels.Table.Cell
-import controllers.financialOverview.psa.routes._
 
 import java.time.LocalDate
 import scala.collection.Seq
@@ -246,6 +246,13 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
 object PsaPenaltiesAndChargesServiceSpec {
 
+  private val sourceChargeInfo : SourceChargeInfo = SourceChargeInfo(
+    index = 1,
+    chargeType = CONTRACT_SETTLEMENT,
+    periodStartDate = LocalDate.parse("2020-04-01"),
+    periodEndDate = LocalDate.parse("2020-06-30")
+  )
+
   def psaFS(
              amountDue: BigDecimal = BigDecimal(1029.05),
              dueDate: Option[LocalDate] = Some(LocalDate.parse("2022-03-18")),
@@ -317,7 +324,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
+      sourceChargeInfo = Some(sourceChargeInfo),
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
