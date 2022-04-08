@@ -66,6 +66,8 @@ case class SchemeFSDetail(
                            periodStartDate: Option[LocalDate],
                            periodEndDate: Option[LocalDate],
                            formBundleNumber: Option[String],
+                           version: Option[Int],
+                           receiptDate: Option[LocalDate],
                            sourceChargeRefForInterest: Option[String],
                            sourceChargeInfo: Option[SourceChargeInfo],
                            documentLineItemDetails: Seq[DocumentLineItemDetail]
@@ -86,6 +88,8 @@ object SchemeFSDetail {
       (JsPath \ "periodStartDate").writeNullable[LocalDate] and
       (JsPath \ "periodEndDate").writeNullable[LocalDate] and
       (JsPath \ "formBundleNumber").writeNullable[String] and
+      (JsPath \ "version").writeNullable[Int] and
+      (JsPath \ "receiptDate").writeNullable[LocalDate] and
       (JsPath \ "sourceChargeRefForInterest").writeNullable[String] and
       (JsPath \ "sourceChargeInfo").writeNullable[SourceChargeInfo] and
       (JsPath \ "documentLineItemDetails").write[Seq[DocumentLineItemDetail]]
@@ -102,6 +106,8 @@ object SchemeFSDetail {
     x.periodStartDate,
     x.periodEndDate,
     x.formBundleNumber,
+    x.version,
+    x.receiptDate,
     x.sourceChargeRefForInterest,
     x.sourceChargeInfo,
     x.documentLineItemDetails
@@ -120,13 +126,15 @@ object SchemeFSDetail {
       (JsPath \ "periodStartDate").readNullable[LocalDate] and
       (JsPath \ "periodEndDate").readNullable[LocalDate] and
       (JsPath \ "formBundleNumber").readNullable[String] and
+      (JsPath \ "version").readNullable[Int] and
+      (JsPath \ "receiptDate").readNullable[LocalDate] and
       (JsPath \ "sourceChargeRefForInterest").readNullable[String] and
       (JsPath \ "sourceChargeInfo").readNullable[SourceChargeInfo] and
       (JsPath \ "documentLineItemDetails").read[Seq[DocumentLineItemDetail]]
     ) (
     (index, chargeReference, chargeType, dueDateOpt, totalAmount, amountDue, outstandingAmount,
      accruedInterestTotal, stoodOverAmount, periodStartDateOpt, periodEndDateOpt,
-     formBundleNumberOpt, sourceChargeRefForInterestOpt, sourceChargeInfo,
+     formBundleNumberOpt, versionOpt, receiptDateOpt, sourceChargeRefForInterestOpt, sourceChargeInfo,
      documentLineItemDetails) =>
       SchemeFSDetail(
         index.getOrElse(0),
@@ -141,6 +149,8 @@ object SchemeFSDetail {
         periodStartDateOpt,
         periodEndDateOpt,
         formBundleNumberOpt,
+        versionOpt,
+        receiptDateOpt,
         sourceChargeRefForInterestOpt,
         sourceChargeInfo,
         documentLineItemDetails

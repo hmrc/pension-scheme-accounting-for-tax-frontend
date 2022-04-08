@@ -79,6 +79,11 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
             seqSchemeFSDetail = schemeFS.seqSchemeFSDetail.filterNot(_.chargeType == SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
           )
           println( "\n\n>>>>>>>" + x + "\n\n")
+          x.seqSchemeFSDetail.foreach{ e =>
+            println( ">>>>>>index>" + e.index )
+            println( ">>>>>>version>" + e.version )
+            println( ">>>>>>receiptdate>" + e.receiptDate)
+          }
           x
         case _ =>
           handleErrorResponse("GET", url)(response)
