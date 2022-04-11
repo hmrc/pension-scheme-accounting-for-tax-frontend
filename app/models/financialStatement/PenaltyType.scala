@@ -16,11 +16,15 @@
 
 package models.financialStatement
 
-import models.Enumerable
+import models.{DisplayQuarter, Enumerable}
+import models.Quarters.{getHint, getLabel}
 import models.financialStatement.PsaFSChargeType._
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.viewmodels._
+import viewmodels.Radios.Radio
+import viewmodels.{Hint, LabelClasses, Radios}
 
 import scala.language.implicitConversions
 
@@ -44,17 +48,20 @@ object PenaltyType extends Enumerable.Implicits {
   val values: Seq[PenaltyType] =
     Seq(AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, PensionsPenalties)
 
-  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType]): Seq[Radios.Item] =
-    Radios(
-      field = form("value"),
-      items = penaltyTypes.map {
-        value =>
-          Radios.Radio(
-            label = msg"penaltyType.${value.penaltyType.toString}",
-            value = value.penaltyType.toString
-          )
+  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
+            (implicit messages: Messages): Seq[Radios.Item] =
+    {
+      val x: Seq[Radio] = penaltyTypes.map { penaltyType =>
+
+        Radios.Radio(label = msg"penaltyType.${penaltyType.penaltyType.toString}",
+          value = penaltyType.penaltyType.toString,
+          hint = getHint(penaltyType, hintClass),
+          labelClasses = Some(LabelClasses(classes = if(areLabelsBold) Seq("govuk-!-font-weight-bold") else Nil)))
       }
-    )
+
+      Radios(form("value"), x)
+    }
+
 
   implicit val enumerable: Enumerable[PenaltyType] = Enumerable(values.map(v => v.toString -> v): _*)
 
@@ -94,4 +101,9 @@ object PenaltyType extends Enumerable.Implicits {
 
   case class UnknownPenaltyTypeException() extends Exception
 
+  private def getHint(penaltyTypes: DisplayPenaltyType, hintClass: Seq[String]): Option[Hint] =
+    penaltyTypes.hintText match {
+      case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))
+      case _ => None
+    }
 }
