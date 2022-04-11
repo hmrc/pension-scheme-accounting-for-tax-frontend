@@ -50,7 +50,6 @@ class PaymentsAndChargesController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  // scalastyle:off method.length
   def onPageLoad(srn: String, pstr: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
