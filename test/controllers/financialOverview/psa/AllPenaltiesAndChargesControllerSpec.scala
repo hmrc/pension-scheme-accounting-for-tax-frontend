@@ -74,7 +74,7 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with Nunju
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
     when(mockPsaPenaltiesAndChargesService.getDueCharges(any())).thenReturn(multiplePenalties)
     when(mockPsaPenaltiesAndChargesService.getInterestCharges(any())).thenReturn(multiplePenalties)
-    when(mockPsaPenaltiesAndChargesService.getAllPenaltiesAndCharges(any(), any(), any(), any())(any(), any(), any())).
+    when(mockPsaPenaltiesAndChargesService.getAllPenaltiesAndCharges(any(), any(), any())(any(), any(), any())).
       thenReturn(Future.successful(emptyChargesTable))
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))

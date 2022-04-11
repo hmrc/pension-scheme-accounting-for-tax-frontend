@@ -56,9 +56,9 @@ class PsaPaymentsAndChargesInterestControllerSpec
     with Results
     with ScalaFutures {
 
-  private def httpPathGETAssociated(chargeReferenceIndex: String): String = {
+  private def httpPathGETAssociated(indexVal: String): String = {
     controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController.onPageLoad(
-      identifier = pstr, chargeReferenceIndex = chargeReferenceIndex, Overdue).url
+      identifier = pstr, index = indexVal, Overdue).url
   }
 
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]

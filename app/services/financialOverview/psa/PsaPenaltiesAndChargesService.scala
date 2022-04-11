@@ -22,9 +22,9 @@ import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
-import models.financialStatement.FSClearingReason.{CLEARED_WITH_DELTA_CREDIT, CLEARED_WITH_PAYMENT, OTHER_REASONS, REPAYMENT_TO_THE_CUSTOMER, TRANSFERRED_TO_ANOTHER_ACCOUNT, WRITTEN_OFF}
+import models.financialStatement.FSClearingReason._
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
-import models.financialStatement.PsaFSChargeType.{AFT_12_MONTH_LPP, AFT_30_DAY_LPP, AFT_6_MONTH_LPP, AFT_DAILY_LFP, AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, INTEREST_ON_CONTRACT_SETTLEMENT, OTC_12_MONTH_LPP, OTC_30_DAY_LPP, OTC_6_MONTH_LPP, PSS_INFO_NOTICE, PSS_PENALTY}
+import models.financialStatement.PsaFSChargeType._
 import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFSChargeType, PsaFSDetail}
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
@@ -84,8 +84,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     val seqPayments = penalties.foldLeft[Seq[Future[Table]]] (
       Nil) { (acc, detail) =>
 
-      val chargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
-
       val tableRecords = getSchemeName(psaId, detail.pstr).map { schemeName =>
 
         val tableChargeType = if (detail.chargeType == CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detail.chargeType
@@ -101,7 +99,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
               schemeName = schemeName,
               redirectUrl = controllers.financialOverview.psa.routes.PsaPenaltiesAndChargeDetailsController
-                .onPageLoad(detail.pstr, chargeRefsIndex(detail.chargeReference), journeyType)
+                .onPageLoad(detail.pstr, detail.index.toString, journeyType)
                 .url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", detail.chargeReference)
             )
@@ -119,7 +117,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
                 schemeName = schemeName,
                 redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
-                  .onPageLoad(detail.pstr, chargeRefsIndex(detail.chargeReference), journeyType).url,
+                  .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
               ))
           } else {
@@ -150,14 +148,12 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   //scalastyle:off cyclomatic.complexity
   def getAllPenaltiesAndCharges(
                               psaId: String,
-                              allChargeRefs: Seq[String],
                               penalties: Seq[PsaFSDetail],
                               journeyType: ChargeDetailsFilter)(implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
 
     val seqPayments = penalties.foldLeft[Seq[Future[Table]]] (
       Nil) { (acc, detail) =>
 
-      val index: String = allChargeRefs.indexOf(detail.chargeReference).toString
       val tableRecords = getSchemeName(psaId, detail.pstr).map { schemeName =>
 
         val tableChargeType = if (detail.chargeType == CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detail.chargeType
@@ -173,7 +169,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
               schemeName = schemeName,
               redirectUrl = controllers.financialOverview.psa.routes.PsaPenaltiesAndChargeDetailsController
-                .onPageLoad(detail.pstr, index, journeyType).url,
+                .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", detail.chargeReference)
             )
 
@@ -190,7 +186,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
                 schemeName = schemeName,
                 redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
-                  .onPageLoad(detail.pstr, index, journeyType).url,
+                  .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
               ))
           } else {
@@ -481,8 +477,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
   }
 
-  case class IndexRef(chargeType: String, chargeReference: String, period: String)
-
   def setPeriod(chargeType: PsaFSChargeType, periodStartDate: LocalDate, periodEndDate: LocalDate): String = {
     "Tax period: " + formatDateDMY(periodStartDate) + " to " + formatDateDMY(periodEndDate)
     chargeType match {
@@ -504,7 +498,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     ))
   }
 
-  private def chargeReferenceInterestRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
+  private def chargeReferenceInterestRow: Seq[SummaryList.Row] = {
 
     Seq(
       Row(
@@ -514,7 +508,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   }
 
   def interestRows(data: PsaFSDetail): Seq[SummaryList.Row] =
-    chargeReferenceInterestRow(data) ++ totalInterestDueRow(data)
+    chargeReferenceInterestRow ++ totalInterestDueRow(data)
 
 }
 

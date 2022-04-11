@@ -87,6 +87,7 @@ object PenaltiesLogicControllerSpec {
 
   val psaName: String = "psa-name"
   val psaFS1: PsaFSDetail = PsaFSDetail(
+    index = 0,
     chargeReference = "XY002610150184",
     chargeType = AFT_INITIAL_LFP,
     dueDate = Some(LocalDate.parse("2020-07-15")),
