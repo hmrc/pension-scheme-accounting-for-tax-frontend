@@ -36,15 +36,15 @@ object DocumentLineItemDetail {
   implicit val formats: Format[DocumentLineItemDetail] = Json.format[DocumentLineItemDetail]
 }
 
-case class SourceChargeInfo(
+case class SchemeSourceChargeInfo(
                              index: Int,
                              version: Option[Int] = None,
                              receiptDate: Option[LocalDate] = None,
                              periodStartDate: Option[LocalDate] = None
                            )
 
-object SourceChargeInfo {
-  implicit val formats: Format[SourceChargeInfo] = Json.format[SourceChargeInfo]
+object SchemeSourceChargeInfo {
+  implicit val formats: Format[SchemeSourceChargeInfo] = Json.format[SchemeSourceChargeInfo]
 }
 
 case class SchemeFSDetail(
@@ -63,7 +63,7 @@ case class SchemeFSDetail(
                            version: Option[Int],
                            receiptDate: Option[LocalDate],
                            sourceChargeRefForInterest: Option[String],
-                           sourceChargeInfo: Option[SourceChargeInfo],
+                           sourceChargeInfo: Option[SchemeSourceChargeInfo],
                            documentLineItemDetails: Seq[DocumentLineItemDetail]
                          )
 
@@ -85,7 +85,7 @@ object SchemeFSDetail {
       (JsPath \ "version").writeNullable[Int] and
       (JsPath \ "receiptDate").writeNullable[LocalDate] and
       (JsPath \ "sourceChargeRefForInterest").writeNullable[String] and
-      (JsPath \ "sourceChargeInfo").writeNullable[SourceChargeInfo] and
+      (JsPath \ "sourceChargeInfo").writeNullable[SchemeSourceChargeInfo] and
       (JsPath \ "documentLineItemDetails").write[Seq[DocumentLineItemDetail]]
     ) (x => (
     x.index,
@@ -123,7 +123,7 @@ object SchemeFSDetail {
       (JsPath \ "version").readNullable[Int] and
       (JsPath \ "receiptDate").readNullable[LocalDate] and
       (JsPath \ "sourceChargeRefForInterest").readNullable[String] and
-      (JsPath \ "sourceChargeInfo").readNullable[SourceChargeInfo] and
+      (JsPath \ "sourceChargeInfo").readNullable[SchemeSourceChargeInfo] and
       (JsPath \ "documentLineItemDetails").read[Seq[DocumentLineItemDetail]]
     ) (
     (index, chargeReference, chargeType, dueDateOpt, totalAmount, amountDue, outstandingAmount,
