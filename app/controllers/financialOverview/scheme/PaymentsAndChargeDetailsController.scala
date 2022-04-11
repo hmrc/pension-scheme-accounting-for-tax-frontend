@@ -22,7 +22,7 @@ import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSChargeType, SchemeFSDetail, SchemeSourceChargeInfo}
 import models.requests.IdentifierRequest
 import models.{ChargeDetailsFilter, Submission}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -124,12 +124,12 @@ class PaymentsAndChargeDetailsController @Inject()(
           ctx = summaryListData(schemeFs, interestUrl, version, isChargeAssigned = false)
         ).map(Ok(_))
       case (Some(schemeFs), Some(sourceChargeInfo)) =>
-        sourceChargeInfo.periodStartDate.map(formatDateYMD) match {
-          case Some(sourcePeriodStartDate) =>
+        sourceChargePeriod(schemeFs.chargeType, sourceChargeInfo) match {
+          case Some(sourceChargePeriod) =>
             val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(
               srn = srn,
               pstr = pstr,
-              period = sourcePeriodStartDate,
+              period = sourceChargePeriod,
               index = sourceChargeInfo.index.toString,
               paymentsType = paymentOrChargeType,
               version = sourceChargeInfo.version,
@@ -149,6 +149,20 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
+  private def sourceChargePeriod(chargeType: SchemeFSChargeType, sourceChargeInfo: SchemeSourceChargeInfo): Option[String] = {
+    (sourceChargeInfo.periodStartDate, sourceChargeInfo.periodEndDate) match {
+      case (Some(startDate), Some(endDate)) =>
+        Some(
+          if (chargeType.toString == AccountingForTaxCharges.toString) {
+            formatDateYMD(startDate)
+          } else {
+            endDate.getYear.toString
+          }
+        )
+      case _ =>
+        None
+    }
+  }
 
   private def setInsetText(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): Html = {
     (isChargeAssigned, schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0,

@@ -40,7 +40,8 @@ case class SchemeSourceChargeInfo(
                              index: Int,
                              version: Option[Int] = None,
                              receiptDate: Option[LocalDate] = None,
-                             periodStartDate: Option[LocalDate] = None
+                             periodStartDate: Option[LocalDate] = None,
+                             periodEndDate: Option[LocalDate] = None
                            )
 
 object SchemeSourceChargeInfo {
