@@ -50,23 +50,22 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     with NunjucksSupport {
 
   def onPageLoad(identifier: String,
-                 chargeReferenceIndex: String,
+                 index: String,
                  journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async {
     implicit request =>
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
-        val chargeRefs: Seq[String] = penaltiesCache.penalties.map(_.chargeReference)
-        def penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
+       val penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.index.toString == index)
 
-        if(chargeRefs.length > chargeReferenceIndex.toInt && penaltyOpt.nonEmpty) {
+        if(penaltyOpt.nonEmpty) {
           schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
             schemeDetails =>
               val json = Json.obj(
                 "psaName" -> penaltiesCache.psaName,
                 "schemeAssociated" -> true,
                 "schemeName" -> schemeDetails.schemeName
-              ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex, journeyType)
+              ) ++ commonJson(penaltyOpt.head, journeyType)
 
               renderer.render(template = "financialOverview/psa/psaChargeDetails.njk", json).map(Ok(_))
             }
@@ -116,52 +115,42 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
   }
 
 
-  private def commonJson(fs: PsaFSDetail,
-                         psaFS: Seq[PsaFSDetail],
-                         chargeRefs: Seq[String],
-                         chargeReferenceIndex: String,
+  private def commonJson(psaFSDetail: PsaFSDetail,
                          journeyType: ChargeDetailsFilter
                         )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
-    val psaFSDetails = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head
-    val period = psaPenaltiesAndChargesService.setPeriod(fs.chargeType, fs.periodStartDate, fs.periodEndDate)
-    val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(fs.pstr, chargeReferenceIndex, journeyType).url
-    val isInterestAccruing: Boolean = fs.accruedInterestTotal > 0
-    val detailsChargeType = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType
+    val period = psaPenaltiesAndChargesService.setPeriod(psaFSDetail.chargeType, psaFSDetail.periodStartDate, psaFSDetail.periodEndDate)
+    val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(psaFSDetail.pstr, psaFSDetail.index.toString, journeyType).url
+    val isInterestPresent: Boolean = psaFSDetail.accruedInterestTotal > 0 || psaFSDetail.chargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST
+    val detailsChargeType = psaFSDetail.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
     val penaltyType = getPenaltyType(detailsChargeType)
 
-    val originalChargeUrl = fs.sourceChargeRefForInterest match {
+    val originalChargeUrl = psaFSDetail.sourceChargeInfo match {
       case Some(sourceChargeRef) =>
-        val originalCharge = psaFS.find(_.chargeReference.equals(sourceChargeRef))
-        val index = originalCharge.map(_.chargeReference) match {
-          case Some(chargeValue) => chargeRefs.indexOf(chargeValue).toString
-          case None => ""
-        }
-        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(fs.pstr, index, journeyType).url
+        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(psaFSDetail.pstr, sourceChargeRef.index.toString, All).url
       case _ => ""
     }
 
     Json.obj(
       "heading" ->   detailsChargeTypeHeading.toString,
-      "isOverdue" ->        psaPenaltiesAndChargesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
+      "isOverdue" ->        psaPenaltiesAndChargesService.isPaymentOverdue(psaFSDetail),
       "period" ->           period,
-      "chargeReference" ->  fs.chargeReference,
-      "penaltyAmount" ->    psaFSDetails.totalAmount,
-      "htmlInsetText" ->    setInsetText(fs, interestUrl, originalChargeUrl),
-      "returnUrl" ->        getReturnUrl(fs, fs.pstr, penaltyType, journeyType),
-      "isInterestAccruing" -> isInterestAccruing,
-      "list" ->             psaPenaltiesAndChargesService.chargeDetailsRows(psaFS.filter(_.chargeReference ==
-        chargeRefs(chargeReferenceIndex.toInt)).head, journeyType)
-    ) ++ getReturnUrlText(fs, penaltyType, journeyType)
+      "chargeReference" ->  psaFSDetail.chargeReference,
+      "penaltyAmount" ->    psaFSDetail.totalAmount,
+      "htmlInsetText" ->    setInsetText(psaFSDetail, interestUrl, originalChargeUrl),
+      "returnUrl" ->        getReturnUrl(psaFSDetail, penaltyType, journeyType),
+      "isInterestPresent" -> isInterestPresent,
+      "list" ->             psaPenaltiesAndChargesService.chargeDetailsRows(psaFSDetail, journeyType)
+    ) ++ getReturnUrlText(psaFSDetail, penaltyType, journeyType)
   }
 
-  def getReturnUrl(fs: PsaFSDetail, pstr: String, penaltyType: PenaltyType,
+  def getReturnUrl(fs: PsaFSDetail, penaltyType: PenaltyType,
                    journeyType: ChargeDetailsFilter): String = {
     (journeyType, penaltyType) match {
       case (All, AccountingForTaxPenalties) =>
         AllPenaltiesAndChargesController.onPageLoad(fs.periodStartDate.toString, fs.pstr, penaltyType).url
       case (All, _) =>
-        AllPenaltiesAndChargesController.onPageLoad(fs.periodStartDate.getYear.toString, pstr, penaltyType).url
+        AllPenaltiesAndChargesController.onPageLoad(fs.periodStartDate.getYear.toString, fs.pstr, penaltyType).url
       case _ => routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url
     }
   }

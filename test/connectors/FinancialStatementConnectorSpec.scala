@@ -217,6 +217,7 @@ object FinancialStatementConnectorSpec {
 
   val psaFSResponse: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
+      index = 1,
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -235,6 +236,7 @@ object FinancialStatementConnectorSpec {
         clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFSDetail(
+      index = 2,
       chargeReference = "XY002610150185",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -253,6 +255,7 @@ object FinancialStatementConnectorSpec {
         clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFSDetail(
+      index = 3,
       chargeReference = "XY002610150186",
       chargeType = PAYMENT_ON_ACCOUNT,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -274,6 +277,7 @@ object FinancialStatementConnectorSpec {
 
   val interestPsaFSResponse: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
+      index = 0,
       chargeReference = "XY002610150184",
       chargeType = INTEREST_ON_CONTRACT_SETTLEMENT,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -296,6 +300,7 @@ object FinancialStatementConnectorSpec {
 
   val psaFSResponseToValidate: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
+      index = 0,
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -314,6 +319,7 @@ object FinancialStatementConnectorSpec {
         clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFSDetail(
+      index = 1,
       chargeReference = "XY002610150185",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
