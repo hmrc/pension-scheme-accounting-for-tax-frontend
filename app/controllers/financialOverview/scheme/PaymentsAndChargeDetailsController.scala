@@ -124,21 +124,26 @@ class PaymentsAndChargeDetailsController @Inject()(
           ctx = summaryListData(schemeFs, interestUrl, version, isChargeAssigned = false)
         ).map(Ok(_))
       case (Some(schemeFs), Some(sourceChargeInfo)) =>
-        val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(
-          srn = srn,
-          pstr = pstr,
-          period = period,
-          index = sourceChargeInfo.index.toString,
-          paymentsType = paymentOrChargeType,
-          version = sourceChargeInfo.version,
-          submittedDate = sourceChargeInfo.receiptDate.map(formatDateYMD),
-          journeyType = All
-        ).url
+        sourceChargeInfo.periodStartDate.map(formatDateYMD) match {
+          case Some(sourcePeriodStartDate) =>
+            val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(
+              srn = srn,
+              pstr = pstr,
+              period = sourcePeriodStartDate,
+              index = sourceChargeInfo.index.toString,
+              paymentsType = paymentOrChargeType,
+              version = sourceChargeInfo.version,
+              submittedDate = sourceChargeInfo.receiptDate.map(formatDateYMD),
+              journeyType = All
+            ).url
 
-        renderer.render(
-          template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
-          ctx = summaryListData(schemeFs, originalAmountUrl, version, isChargeAssigned = true)
-        ).map(Ok(_))
+            renderer.render(
+              template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
+              ctx = summaryListData(schemeFs, originalAmountUrl, version, isChargeAssigned = true)
+            ).map(Ok(_))
+          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+        }
+
       case _ =>
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }

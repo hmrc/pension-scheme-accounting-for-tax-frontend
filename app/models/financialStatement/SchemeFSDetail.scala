@@ -39,7 +39,8 @@ object DocumentLineItemDetail {
 case class SourceChargeInfo(
                              index: Int,
                              version: Option[Int] = None,
-                             receiptDate: Option[LocalDate] = None
+                             receiptDate: Option[LocalDate] = None,
+                             periodStartDate: Option[LocalDate] = None
                            )
 
 object SourceChargeInfo {
