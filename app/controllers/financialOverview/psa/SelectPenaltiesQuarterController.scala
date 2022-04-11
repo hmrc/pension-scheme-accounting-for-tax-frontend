@@ -53,13 +53,9 @@ class SelectPenaltiesQuarterController @Inject()(
 
   def onPageLoad(year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
 
-
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-
       val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
-
         if (quarters.nonEmpty) {
-
           val json = Json.obj(
             "psaName" -> penaltiesCache.psaName,
             "form" -> form(quarters),
@@ -70,12 +66,10 @@ class SelectPenaltiesQuarterController @Inject()(
             "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
             "year" -> year
           )
-
           renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(Ok(_))
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
-
     }
   }
 
@@ -84,10 +78,8 @@ class SelectPenaltiesQuarterController @Inject()(
 
       val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
         if (quarters.nonEmpty) {
-
           form(quarters).bindFromRequest().fold(
               formWithErrors => {
-
                   val json = Json.obj(
                     "psaName" -> penaltiesCache.psaName,
                     "form" -> formWithErrors,
@@ -99,9 +91,7 @@ class SelectPenaltiesQuarterController @Inject()(
                     "year" -> year
                   )
                   renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(BadRequest(_))
-
               },
-//              value => navService.navFromPenaltyQuartersPage(penaltiesCache.penalties, value.startDate, request.psaIdOrException.id, journeyType)
               value => navService.navFromQuartersPage(penaltiesCache.penalties, value.startDate, journeyType)
             )
         } else {

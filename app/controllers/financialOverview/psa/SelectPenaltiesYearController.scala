@@ -89,11 +89,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
           )
           renderer.render(template = "financialOverview/psa/selectYear.njk", json).map(BadRequest(_))
         },
-        value => if (penaltyType == AccountingForTaxPenalties) {
-          navMethod(penaltiesCache.penalties, value.year)
-        } else {
-          Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(penaltyType, value.year.toString).url))
-        }
+        value => navMethod(penaltiesCache.penalties, value.year)
       )
     }
   }
@@ -121,7 +117,10 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
     }
 
   private def nonAftNavMethod(penaltyType: PenaltyType)
-                             (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] =
-  (penalties, year) => navService.navFromNonAftYearsPage(penalties, year, penaltyType, request.idOrException)
+                             (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] = {
+    (penalties, year) => navService.navFromNonAftYearsPage(penalties, year, request.idOrException, penaltyType)
+  }
+
+
 
 }

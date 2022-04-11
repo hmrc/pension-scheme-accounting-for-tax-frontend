@@ -55,13 +55,12 @@ class SelectSchemeController @Inject()(
 
   def onPageLoad(penaltyType: PenaltyType, period: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-      val (penaltySchemesFunction, _) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id, journeyType)
+      val (penaltySchemesFunction, _) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id)
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
         penaltySchemesFunction(penaltiesCache.penalties).flatMap { penaltySchemes =>
           if (penaltySchemes.nonEmpty) {
 
             val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
-
             val json = Json.obj(
               "psaName" -> penaltiesCache.psaName,
               "typeParam" -> typeParam,
@@ -79,7 +78,7 @@ class SelectSchemeController @Inject()(
   def onSubmit(penaltyType: PenaltyType, period: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async {
     implicit request =>
 
-      val (penaltySchemesFunction, redirectUrl) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id, journeyType)
+      val (penaltySchemesFunction, redirectUrl) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id)
 
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
         penaltySchemesFunction(penaltiesCache.penalties).flatMap { penaltySchemes =>
@@ -105,7 +104,7 @@ class SelectSchemeController @Inject()(
       }
   }
 
-  def getSchemesAndUrl(penaltyType: PenaltyType, period: String, psaId: String, journeyType: ChargeDetailsFilter)
+  def getSchemesAndUrl(penaltyType: PenaltyType, period: String, psaId: String)
                       (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail] => Future[Seq[PenaltySchemes]], String => Call) =
     penaltyType match {
       case AccountingForTaxPenalties =>

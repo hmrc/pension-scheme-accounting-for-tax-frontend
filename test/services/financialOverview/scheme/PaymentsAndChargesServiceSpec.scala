@@ -112,13 +112,13 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
     Seq(
       Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, period, visuallyHiddenText), classes = Seq("govuk-!-width-one-half")),
-      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-padding-right-7")),
       if (originalChargeAmount.isEmpty) {
         Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
       } else {
-        Cell(Literal(originalChargeAmount), classes = Seq("govuk-!-width-one-quarter"))
+        Cell(Literal(originalChargeAmount), classes = Seq("govuk-!-padding-right-7"))
       },
-      Cell(Literal(paymentDue), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal(paymentDue), classes = Seq("govuk-!-padding-right-7")),
       Cell(statusHtml)
     )
   }
