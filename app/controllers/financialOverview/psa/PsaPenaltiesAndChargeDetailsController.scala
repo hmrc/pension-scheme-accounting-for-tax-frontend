@@ -125,7 +125,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
     val penaltyType = getPenaltyType(detailsChargeType)
 
-    val originalChargeUrl = psaFSDetail.sourceChargeInfo match {
+    val originalChargeUrl = psaFSDetail.psaSourceChargeInfo match {
       case Some(sourceChargeRef) =>
         routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(psaFSDetail.pstr, sourceChargeRef.index.toString, All).url
       case _ => ""
