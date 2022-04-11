@@ -217,7 +217,8 @@ class PaymentsAndChargeDetailsControllerSpec
         index = 1,
         version = Some(1),
         receiptDate = Some(LocalDate.parse("2016-12-17")),
-        periodStartDate = Some(LocalDate.parse(QUARTER_START_DATE))
+        periodStartDate = Some(LocalDate.parse(QUARTER_START_DATE)),
+        periodEndDate = Some(LocalDate.parse(QUARTER_END_DATE))
       )
 
       val schemeFSDetail = createChargeWithSourceChargeReference(
@@ -245,6 +246,9 @@ class PaymentsAndChargeDetailsControllerSpec
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
+
+      println("\nACT=" + jsonCaptor.getValue)
+      println("\nexp=" + expectedJson(schemeFSDetail, insetTextForInterestWithQuarter(schemeFSDetail)))
 
       jsonCaptor.getValue must containJson(
         expectedJson(schemeFSDetail, insetTextForInterestWithQuarter(schemeFSDetail))

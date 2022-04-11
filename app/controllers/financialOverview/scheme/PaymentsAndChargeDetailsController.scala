@@ -150,10 +150,11 @@ class PaymentsAndChargeDetailsController @Inject()(
   }
 
   private def sourceChargePeriod(chargeType: SchemeFSChargeType, sourceChargeInfo: SchemeSourceChargeInfo): Option[String] = {
+    val paymentOrChargeType = getPaymentOrChargeType(chargeType)
     (sourceChargeInfo.periodStartDate, sourceChargeInfo.periodEndDate) match {
       case (Some(startDate), Some(endDate)) =>
         Some(
-          if (chargeType.toString == AccountingForTaxCharges.toString) {
+          if (paymentOrChargeType.toString == AccountingForTaxCharges.toString) {
             formatDateYMD(startDate)
           } else {
             endDate.getYear.toString
