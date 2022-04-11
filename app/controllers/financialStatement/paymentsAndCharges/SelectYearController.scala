@@ -135,8 +135,9 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
   def getYears(payments: Seq[SchemeFSDetail], paymentOrChargeType: PaymentOrChargeType): Seq[DisplayYear] =
     payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
-      .map(_.periodEndDate.getYear).distinct.sorted.reverse.map { year =>
-      val hint = if (payments.filter(_.periodEndDate.getYear == year).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
+      .filter(_.periodEndDate.nonEmpty)
+      .map(_.periodEndDate.get.getYear).distinct.sorted.reverse.map { year =>
+      val hint = if (payments.filter(_.periodEndDate.exists(_.getYear == year)).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
       DisplayYear(year, hint)
     }
 

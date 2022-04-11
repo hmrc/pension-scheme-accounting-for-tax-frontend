@@ -33,7 +33,7 @@ import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -167,16 +167,16 @@ class PaymentsAndChargeDetailsController @Inject()(
   private def tableHeader(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): String =
     messages(
       "paymentsAndCharges.caption",
-      schemeFSDetail.periodStartDate.format(dateFormatterStartDate),
-      schemeFSDetail.periodEndDate.format(dateFormatterDMY)
+      formatStartDate(schemeFSDetail.periodStartDate),
+      formatDateDMY(schemeFSDetail.periodEndDate)
     )
 
   private def getFilteredPayments(payments: Seq[SchemeFSDetail], period: String, paymentOrChargeType: PaymentOrChargeType): Seq[SchemeFSDetail] =
     if(paymentOrChargeType == AccountingForTaxCharges) {
       val startDate: LocalDate = LocalDate.parse(period)
-      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate)
+      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate.contains(startDate))
     } else {
-        payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt)
+        payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.exists(_.getYear == period.toInt))
     }
 
 }

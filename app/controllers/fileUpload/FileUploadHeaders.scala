@@ -16,12 +16,6 @@
 
 package controllers.fileUpload
 
-import fileUploadParsers.ParserValidationError
-import models.ChargeType
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
-
-
-
 object FileUploadHeaders {
 
   object MemberDetailsFieldNames {

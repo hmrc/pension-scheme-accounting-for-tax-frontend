@@ -100,9 +100,7 @@ class DeclarationController @Inject()(
     }
 
   private def sendEmail(email: String, quarter: AFTQuarter, schemeName: String, isAmendment: Boolean, amendedVersion: Int)(
-      implicit request: DataRequest[_],
-      hc: HeaderCarrier,
-      messages: Messages): Future[EmailStatus] = {
+      implicit request: DataRequest[_], hc: HeaderCarrier, messages: Messages): Future[EmailStatus] = {
     val requestId = hc.requestId.map(_.value).getOrElse(request.headers.get("X-Session-ID").getOrElse(""))
     val name = request.userAnswers.getOrException(NameQuery)
 

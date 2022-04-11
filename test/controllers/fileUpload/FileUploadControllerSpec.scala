@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{ChargeType, GenericViewModel, InProgress, Failed, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
+import models.{ChargeType, FileUploadDataCache, FileUploadStatus, GenericViewModel, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import play.api.Application
@@ -34,6 +34,7 @@ import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDateTime
 import scala.concurrent.Future
 
 class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
@@ -42,6 +43,18 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   private def ua: UserAnswers = userAnswersWithSchemeName
+
+  private val dateTimeNow = LocalDateTime.now
+
+  private val fileUploadDataCache: FileUploadDataCache =
+    FileUploadDataCache(
+      uploadId = "uploadId",
+      reference ="reference",
+      status=  FileUploadStatus("InProgress"),
+      created= dateTimeNow,
+      lastUpdated= dateTimeNow,
+      expireAt= dateTimeNow
+    )
 
   val expectedJson: JsObject = Json.obj()
 
@@ -77,7 +90,8 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   "onPageLoad" must {
     "return OK and the correct view for a GET" in {
-      when(mockUpscanInitiateConnector.initiateV2(any(), any())(any())).thenReturn(Future.successful(upscanInitiateResponse))
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+      when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
@@ -116,6 +130,18 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   "showResult" must {
     "redirect to Upload Check for success result" in {
+      val fileUploadDataCache: FileUploadDataCache =
+        FileUploadDataCache(
+          uploadId = "uploadId",
+          reference ="reference",
+          status=  FileUploadStatus("UploadedSuccessfully"),
+          created= dateTimeNow,
+          lastUpdated= dateTimeNow,
+          expireAt= dateTimeNow
+        )
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
+
+
 
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
@@ -133,19 +159,12 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual SEE_OTHER
 
       verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
-      val jsonToPassToTemplate = Json.obj(
-        "schemeName" ->schemeName,
-        "pstr" -> pstr,
-        "annualAllowance" -> Json.obj("uploadedFileName"->"name")
-      )
 
       redirectLocation(result) mustBe Some(routes.FileUploadCheckController.onPageLoad(srn, startDate, accessType, version.toInt, chargeType, uploadId).url)
-
-      jsonCaptor.getValue mustBe jsonToPassToTemplate
     }
 
     "redirect to showResult for result InProgress" in {
-      fakeUploadProgressTracker.setDataToReturn(InProgress)
+      fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val uploadId = UploadId("")
       val result = route(
@@ -161,7 +180,16 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "redirect to quarantineError for result Failed(QUARANTINE)" in {
-    fakeUploadProgressTracker.setDataToReturn(Failed("QUARANTINE", "file may contain virus"))
+    val fileUploadDataCache: FileUploadDataCache =
+      FileUploadDataCache(
+        uploadId = "uploadId",
+        reference ="reference",
+        status=  FileUploadStatus("Failed", failureReason = Some("QUARANTINE")),
+        created= dateTimeNow,
+        lastUpdated= dateTimeNow,
+        expireAt= dateTimeNow
+      )
+    fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
     val uploadId = UploadId("")
     val result = route(
@@ -175,7 +203,16 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "redirect to rejectedError for result Failed(REJECTED)" in {
-    fakeUploadProgressTracker.setDataToReturn(Failed("REJECTED", "file type may be incorrect"))
+    val fileUploadDataCache: FileUploadDataCache =
+      FileUploadDataCache(
+        uploadId = "uploadId",
+        reference ="reference",
+        status=  FileUploadStatus("Failed", failureReason = Some("REJECTED")),
+        created= dateTimeNow,
+        lastUpdated= dateTimeNow,
+        expireAt= dateTimeNow
+      )
+    fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
     val uploadId = UploadId("")
     val result = route(
@@ -189,7 +226,16 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "redirect to unknownError for result Failed(UNKNOWN)" in {
-    fakeUploadProgressTracker.setDataToReturn(Failed("UNKNOWN", "Please try again later"))
+    val fileUploadDataCache: FileUploadDataCache =
+      FileUploadDataCache(
+        uploadId = "uploadId",
+        reference ="reference",
+        status=  FileUploadStatus("Failed", failureReason = Some("UNKNOWN")),
+        created= dateTimeNow,
+        lastUpdated= dateTimeNow,
+        expireAt= dateTimeNow
+      )
+    fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
     val uploadId = UploadId("")
     val result = route(

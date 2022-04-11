@@ -114,12 +114,13 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
     val quartersFound: Seq[LocalDate] = payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
-      .filter(_.periodStartDate.getYear == year.toInt).map(_.periodStartDate).distinct
+      .filter(_.periodStartDate.nonEmpty)
+      .filter(_.periodStartDate.exists(_.getYear == year.toInt)).map(_.periodStartDate.get).distinct
       .sortBy(_.getMonth)
 
     quartersFound.map { startDate =>
       val hint: Option[DisplayHint] =
-        if (payments.filter(_.periodStartDate == startDate).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
+        if (payments.filter(_.periodStartDate.contains(startDate)).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
 
       DisplayQuarter(Quarters.getQuarter(startDate), displayYear = false, None, hint)
 
@@ -129,6 +130,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   private def getQuarters(year: String, payments: Seq[SchemeFSDetail]): Seq[AFTQuarter] =
     payments
       .filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
-      .filter(_.periodStartDate.getYear == year.toInt)
-      .map(paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate)).distinct
+      .filter(_.periodStartDate.nonEmpty)
+      .filter(_.periodStartDate.exists(_.getYear == year.toInt))
+      .map(paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate.get)).distinct
 }

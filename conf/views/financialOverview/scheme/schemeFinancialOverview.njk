@@ -1,0 +1,78 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"  import govukBackLink %}
+{% from "macros/title.njk"                      import title %}
+{% from "govuk/components/table/macro.njk"      import govukTable %}
+
+{% block pageTitle %}
+    {{ title(messages("schemeFinancial.title")) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+
+            {{ hmrcPageHeading({
+                text: messages("schemeFinancial.h1"),
+                section: schemeName
+            }) }}
+    <div class="govuk-grid-row">
+       <div class="govuk-grid-column-one-half">
+            <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+               {{ messages("schemeFinancial.h2.overduePayments") }}
+           </h2>
+           <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalOverdueCharge }}</p>
+         </div>
+       <div class="govuk-grid-column-one-half">
+                     <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+                        {{ messages("schemeFinancial.h2.totalInterestAccruing") }}
+                    </h2>
+                     <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{totalInterestAccruing }}</p>
+        </div>
+        </div>
+       {% if totalOverdueCharge != "£0.00" and totalInterestAccruing != "£0.00" %}
+                  <p class="govuk-body-m">
+                        <a id="allOverdue" class=govuk-link href="{{ overduePaymentLink }}"> {{ messages("schemeFinancial.allOverdue.link") }}</a>
+                    </p>
+        {% endif %}
+
+                          <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+<div class="govuk-grid-row">
+            <div class="govuk-grid-column-full">
+                    <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+                                   {{ messages("schemeFinancial.h2.totalDuePayment") }}
+                               </h2>
+                   <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalUpcomingCharge }}</p>
+
+                         </div>
+                          </div>
+
+                 {% if totalUpcomingCharge != "£0.00" %}
+                     <p class="govuk-body-m">
+                            <a id="allDue" class=govuk-link href="{{ duePaymentLink }}"> {{ messages("schemeFinancial.allDue.link") }}</a>
+                    </p>
+                 {% endif %}
+                         <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
+<div class="govuk-grid-row">
+                         <div class="govuk-grid-column-full">
+                             <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
+                                                    {{ messages("schemeFinancial.h2.creditBalance") }}
+                                </h2>
+                            <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold"> {{creditBalanceFormatted}} </p>
+                            {% if creditBalance > 0 %}
+                                <p class="govuk-body-m">
+                                    <a id="refund" class=govuk-link href="{{ requestRefundUrl }}"> {{ messages("schemeFinancial.refund") }} </a>
+                                </p>
+                            {% endif %}
+
+                         </div>
+</div>
+                    <p class="govuk-body-m">
+                                               <a id="allPaymentCharges" class=govuk-link href="{{ allPaymentLink }}"> {{ messages("schemeFinancial.allPaymentCharges.link") }}</a>
+                                       </p>
+
+        </div>
+    </div>
+
+{% endblock %}

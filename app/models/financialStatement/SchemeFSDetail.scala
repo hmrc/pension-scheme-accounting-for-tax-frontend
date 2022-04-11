@@ -30,7 +30,7 @@ object SchemeFS {
   implicit val formats: Format[SchemeFS] = Json.format[SchemeFS]
 }
 
-case class DocumentLineItemDetail(clearedAmountItem: BigDecimal, clearingDate: Option[LocalDate], clearingReason: Option[SchemeFSClearingReason])
+case class DocumentLineItemDetail(clearedAmountItem: BigDecimal, clearingDate: Option[LocalDate], clearingReason: Option[FSClearingReason])
 
 object DocumentLineItemDetail {
   implicit val formats: Format[DocumentLineItemDetail] = Json.format[DocumentLineItemDetail]
@@ -45,8 +45,8 @@ case class SchemeFSDetail(
                      outstandingAmount: BigDecimal,
                      accruedInterestTotal: BigDecimal,
                      stoodOverAmount: BigDecimal,
-                     periodStartDate: LocalDate,
-                     periodEndDate: LocalDate,
+                     periodStartDate: Option[LocalDate],
+                     periodEndDate: Option[LocalDate],
                      formBundleNumber: Option[String],
                      sourceChargeRefForInterest: Option[String],
                      documentLineItemDetails: Seq[DocumentLineItemDetail]
@@ -77,8 +77,8 @@ object SchemeFSDetail {
     x.outstandingAmount,
     x.accruedInterestTotal,
     x.stoodOverAmount,
-    Some(x.periodStartDate),
-    Some(x.periodEndDate),
+    x.periodStartDate,
+    x.periodEndDate,
     x.formBundleNumber,
     x.sourceChargeRefForInterest,
     x.documentLineItemDetails
@@ -111,11 +111,22 @@ object SchemeFSDetail {
         outstandingAmount,
         accruedInterestTotal,
         stoodOverAmount,
-        periodStartDateOpt.getOrElse(LocalDate.of(1900, 1, 1)),
-        periodEndDateOpt.getOrElse(LocalDate.of(2900, 12, 31)),
+        periodStartDateOpt,
+        periodEndDateOpt,
         formBundleNumberOpt,
         sourceChargeRefForInterestOpt,
         documentLineItemDetails
       )
   )
+
+
+  val startDate: Seq[SchemeFSDetail] => LocalDate = schemeFs =>
+    getOrException(schemeFs.filter(_.periodStartDate.nonEmpty).flatMap(_.periodStartDate.toSeq).distinct
+      .headOption)
+
+  val endDate: Seq[SchemeFSDetail] => LocalDate = schemeFs =>
+    getOrException(schemeFs.filter(_.periodEndDate.nonEmpty).flatMap(_.periodEndDate.toSeq).distinct
+      .headOption)
+
+  private def getOrException[A](v:Option[A]): A = v.getOrElse(throw new RuntimeException("Value not found"))
 }

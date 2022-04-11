@@ -48,7 +48,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                           financialInfoCacheConnector: FinancialInfoCacheConnector
                                          ) {
 
-  def getPaymentsAndCharges(srn: String, schemeFSDetail: Seq[SchemeFSDetail], chargeDetailsFilter: ChargeDetailsFilter, paymentOrChargeType: PaymentOrChargeType)
+  def getPaymentsAndCharges(srn: String, schemeFSDetail: Seq[SchemeFSDetail], chargeDetailsFilter: ChargeDetailsFilter,
+                            paymentOrChargeType: PaymentOrChargeType)
                            (implicit messages: Messages): Table = {
 
         val chargeRefs: Seq[String] = schemeFSDetail.map(_.chargeReference)
@@ -61,7 +62,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
 
   val extractUpcomingCharges: Seq[SchemeFSDetail] => Seq[SchemeFSDetail] = schemeFSDetail =>{
-    schemeFSDetail.filter(charge => charge.dueDate.nonEmpty && !charge.dueDate.get.isBefore(DateHelper.today))}
+    schemeFSDetail.filter(charge => charge.dueDate.nonEmpty
+      && (charge.dueDate.get.isEqual(DateHelper.today) || charge.dueDate.get.isAfter(DateHelper.today)))}
 
   def getOverdueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
     schemeFSDetail
@@ -72,6 +74,10 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     schemeFSDetail.filter(_.dueDate.nonEmpty)
 
   val isPaymentOverdue: SchemeFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
+
+  def getInterestCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
+    schemeFSDetail
+      .filter(_.accruedInterestTotal >= BigDecimal(0.00))
 
   private def paymentsAndChargesDetails(
                                          details: SchemeFSDetail,
@@ -84,7 +90,11 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val onlyAFTAndOTCChargeTypes: Boolean =
     details.chargeType == PSS_AFT_RETURN || details.chargeType == PSS_OTC_AFT_RETURN
 
-    val period: String = if(paymentOrChargeType == AccountingForTaxCharges) details.periodStartDate.toString else details.periodEndDate.getYear.toString
+    val period: String = if (paymentOrChargeType == AccountingForTaxCharges) {
+      details.periodStartDate.map(_.toString).getOrElse("")
+    } else {
+      details.periodEndDate.map(_.getYear.toString).getOrElse("")
+    }
 
     val chargeDetailsItemWithStatus: PaymentAndChargeStatus => PaymentsAndChargesDetails =
       status => PaymentsAndChargesDetails(
@@ -166,9 +176,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
 
       Seq(
-        Cell(htmlChargeType, classes = Seq("govuk-!-width-two-thirds-quarter")),
-        Cell(Literal(data.amountDue), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(htmlChargeType, classes = Seq("govuk-!-padding-right-7")),
+        Cell(Literal(data.amountDue), classes = Seq("govuk-!-padding-right-7")),
+        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-padding-right-7")),
         Cell(htmlStatus(data), classes = Nil)
       )
     }

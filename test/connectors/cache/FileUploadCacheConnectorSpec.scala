@@ -18,13 +18,15 @@ package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import connectors.Reference
-import models.{Failed, InProgress, UploadId}
+import models.{FileUploadDataCache, FileUploadStatus, InProgress, UploadId}
 import org.scalatest._
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import utils.WireMockHelper
+
+import java.time.LocalDateTime
 
 class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper with OptionValues with RecoverMethods {
 
@@ -52,16 +54,26 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
     }
 
     "return data if data is present in the collection" in {
+      val dateTimeNow = LocalDateTime.now()
+       val dataToReturn: FileUploadDataCache =
+             FileUploadDataCache(
+               uploadId = "uploadId",
+               reference ="reference",
+               status=  FileUploadStatus("InProgress"),
+               created= dateTimeNow,
+               lastUpdated= dateTimeNow,
+               expireAt= dateTimeNow
+             )
       server.stubFor(
         get(urlEqualTo(url))
           .willReturn(
-            ok(Json.obj(fields = "_type" -> InProgress.toString).toString())
-          )
-      )
+            ok(Json.obj("uploadId" -> "uploadId", "reference" -> "reference","status" -> Json.obj("_type"-> "InProgress"),
+              "created" -> dateTimeNow, "lastUpdated" -> dateTimeNow,"expireAt" -> dateTimeNow).toString())
+      ))
 
-      connector.getUploadResult(UploadId("test")) map {
+      connector.getUploadResult(UploadId("uploadID")) map {
         result =>
-          result.value mustEqual InProgress
+          result.value mustEqual dataToReturn
       }
     }
 
@@ -94,8 +106,8 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
           )
       )
 
-      connector.requestUpload(UploadId("uploadId"),Reference("reference")) map {
-        _ mustEqual ()
+      connector.requestUpload(UploadId("uploadId"),Reference("reference")) map { _ =>
+        assert(true)
       }
     }
 
@@ -131,7 +143,8 @@ class FileUploadCacheConnectorSpec extends AsyncWordSpec with Matchers with Wire
       )
 
       connector.registerUploadResult(Reference(""),InProgress) map {
-        _ mustEqual ()
+        _ =>
+        assert(true)
       }
     }
 

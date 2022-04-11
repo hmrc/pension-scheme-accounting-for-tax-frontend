@@ -24,11 +24,11 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
 import models.LocalDateBinder._
-import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
+import models.{AccessType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeC.SponsoringEmployerAddressSearchPage
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer

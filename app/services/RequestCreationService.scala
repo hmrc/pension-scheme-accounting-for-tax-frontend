@@ -117,7 +117,7 @@ class RequestCreationService @Inject()(
       val viewOnly = optionLockDetail.isDefined || versionInt < maxVersion
       val anyVersions = seqAFTOverview.nonEmpty
       val isInCompile = seqAFTOverview.headOption.exists(_.compiledVersionAvailable)
-
+       logger.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaa"+ seqAFTOverview)
       val areSubmittedVersionsAvailable = seqAFTOverview.headOption.exists(_.submittedVersionAvailable)
 
       val (version, accessMode) =

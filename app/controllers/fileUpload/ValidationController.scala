@@ -16,6 +16,7 @@
 
 package controllers.fileUpload
 
+import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import controllers.actions._
@@ -24,7 +25,8 @@ import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidO
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Failed, InProgress, UploadId, UploadedSuccessfully, UserAnswers}
+import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
+import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
@@ -47,6 +49,7 @@ class ValidationController @Inject()(
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
+                                      auditService: AuditService,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
                                       annualAllowanceParser: AnnualAllowanceParser,
@@ -71,7 +74,6 @@ class ValidationController @Inject()(
     val fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
     val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
     val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
-
     errors match {
       case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
         Future.successful(Redirect(routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType)))
@@ -136,25 +138,91 @@ class ValidationController @Inject()(
                                     accessType: AccessType,
                                     version: Int,
                                     chargeType: ChargeType,
-                                    linesFromCSV: List[String],
+                                    csvContent: Seq[Array[String]],
                                     parser: Parser)(implicit request: DataRequest[AnyContent]): Future[Result] = {
 
-    //removes non-printable characters like ^M$
-    val filteredLinesFromCSV = linesFromCSV.map(lines => lines.replaceAll("\\p{C}", ""))
 
+    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache. Srn is $srn")
     val updatedUA = removeMemberBasedCharge(request.userAnswers, chargeType)
-
-    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, filteredLinesFromCSV, updatedUA), "Parsing and Validation")
-    parserResult.fold[Future[Result]](
+    val startTime = System.currentTimeMillis
+    val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, csvContent, updatedUA), "Parsing and Validation")
+    val endTime = System.currentTimeMillis
+    val futureResult = parserResult.fold[Future[Result]](
       processInvalid(srn, startDate, accessType, version, chargeType, _),
       updatedUA =>
-        TimeLogger.logOperationTime( processSuccessResult(chargeType, updatedUA).map(_ =>
+        TimeLogger.logOperationTime(processSuccessResult(chargeType, updatedUA).map(_ =>
           Redirect(routes.FileUploadSuccessController.onPageLoad(srn, startDate.toString, accessType, version, chargeType))), "processSuccessResult")
+    )
+    futureResult.map { result =>
+      sendAuditEvent(
+        pstr = pstr,
+        chargeType = chargeType,
+        csvContent.size - 1,
+        fileValidationTimeInSeconds = ((endTime - startTime) / 1000).toInt,
+        parserResult = parserResult)
+      result
+    }
+  }
+
+  private def failureReasonAndErrorReportForAudit(errors: Seq[ParserValidationError],
+                                                  chargeType: ChargeType)(implicit messages: Messages): Option[(String, String)] = {
+    if (errors.isEmpty) {
+      None
+    } else if (errors.size <= maximumNumberOfError) {
+      val errorReport = errorJson(errors, messages).foldLeft("") { (acc, jsObject) =>
+        ((jsObject \ "cell").asOpt[String], (jsObject \ "error").asOpt[String]) match {
+          case (Some(cell), Some(error)) => acc ++ ((if (acc.nonEmpty) "\n" else EMPTY) + s"$cell: $error")
+          case _ => acc
+        }
+      }
+      Some(Tuple2("Field Validation failure(Less than 10)", errorReport))
+    } else {
+      val errorReport = generateGenericErrorReport(errors, chargeType).foldLeft(EMPTY) { (acc, c) =>
+        acc ++ (if (acc.nonEmpty) "\n" else EMPTY) + messages(c)
+      }
+      (errors.size, errorReport)
+      Some(Tuple2("Generic failure (more than 10)", errorReport))
+    }
+  }
+
+  private def sendAuditEvent(pstr: String,
+                             chargeType: ChargeType,
+                             numberOfEntries: Int,
+                             fileValidationTimeInSeconds: Int,
+                             parserResult: Either[Seq[ParserValidationError], UserAnswers]
+                            )(implicit request: DataRequest[AnyContent], messages: Messages): Unit = {
+
+    val numberOfFailures = parserResult.fold(_.size, _ => 0)
+    val (failureReason, errorReport) = parserResult match {
+      case Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
+        Tuple2(Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error), None)
+      case Left(errors) =>
+        failureReasonAndErrorReportForAudit(errors, chargeType)(messages) match {
+          case Some(Tuple2(reason, report)) => Tuple2(Some(reason), Some(report))
+          case _ => Tuple2(None, None)
+        }
+      case _ => Tuple2(None, None)
+    }
+
+    auditService.sendEvent(
+      AFTFileValidationCheckAuditEvent(
+        administratorOrPractitioner = request.schemeAdministratorType,
+        id = request.idOrException,
+        pstr = pstr,
+        numberOfEntries = numberOfEntries,
+        chargeType = chargeType,
+        validationCheckSuccessful = parserResult.isRight,
+        fileValidationTimeInSeconds = fileValidationTimeInSeconds,
+        failureReason = failureReason,
+        numberOfFailures = numberOfFailures,
+        validationFailureContent = errorReport
+      )
     )
   }
 
+
   private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
-                                  (implicit request: DataRequest[AnyContent]) = {
+                                  (implicit request: DataRequest[AnyContent]): Future[UserAnswers] = {
 
     for {
       updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
@@ -168,23 +236,50 @@ class ValidationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         val parser = findParser(chargeType)
-        uploadProgressTracker.getUploadResult(uploadId).flatMap { uploadStatus =>
-          (parser, uploadStatus) match {
-            case (Some(_), None | Some(Failed(_, _)) | Some(InProgress)) => sessionExpired
-            case (None, _) => sessionExpired
-            case (Some(parser), Some(ud: UploadedSuccessfully)) =>
-              upscanInitiateConnector.download(ud.downloadUrl).flatMap { response =>
-                response.status match {
-                  case OK =>
-                    val linesFromCSV = response.body.split("\n").toList
-                    parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
-                  case _ =>
-                    Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
+        val startTime = System.currentTimeMillis
+        uploadProgressTracker.getUploadResult(uploadId).flatMap {
+          case Some(uploadStatus) =>
+            (parser, uploadStatus.status._type) match {
+              case (Some(_), "" | "Failed" | "InProgress") => sessionExpired
+              case (None, _) => sessionExpired
+              case (Some(parser), "UploadedSuccessfully") =>
+                upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap { response =>
+
+                  sendAuditEventUpscanDownload(chargeType, response.status, startTime, uploadStatus)
+                  response.status match {
+                    case OK =>
+                      val linesFromCSV = CsvLineSplitter.split(response.body)
+                      parseAndRenderResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                    case _ =>
+                      Future.successful(Redirect(routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version)))
+                  }
                 }
-              }
-          }
+              case _ => sessionExpired
+            }
+          case _ => sessionExpired
         }
     }
+
+  private def sendAuditEventUpscanDownload(chargeType: ChargeType,
+                                           responseStatus: Int,
+                                           startTime: Long,
+                                           fileUploadDataCache: FileUploadDataCache)(implicit request: DataRequest[AnyContent]): Unit = {
+    val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache.")
+    val endTime = System.currentTimeMillis
+    val duration = endTime- startTime
+    auditService.sendEvent(AFTUpscanFileDownloadAuditEvent
+    (psaOrPspId = request.idOrException,
+      pstr = pstr,
+      schemeAdministratorType = request.schemeAdministratorType,
+      chargeType= chargeType,
+      fileUploadDataCache = fileUploadDataCache,
+      downloadStatus= responseStatus match{
+        case 200 => "Success"
+        case _ => "Failed"
+      },
+      downloadTimeInMilliSeconds= duration
+    ))
+  }
 
   private def sessionExpired: Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 

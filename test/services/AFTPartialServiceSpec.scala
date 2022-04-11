@@ -458,6 +458,7 @@ class AFTPartialServiceSpec
       DateHelper.setDate(Some(LocalDate.of(2022, 3, 2)))
       when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesMultiple)
       when(paymentsAndChargesService.getOverdueCharges(any())).thenReturn(outstandingAmountOverdue)
+      when(paymentsAndChargesService.getInterestCharges(any())).thenReturn(outstandingAmountOverdue)
       service.retrievePspDashboardPaymentsAndChargesModel(upcomingChargesMultiple, srn, pstr) mustBe paymentsAndChargesModel
 
     }
@@ -465,10 +466,10 @@ class AFTPartialServiceSpec
 
 
   private val charge1: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(100.00),
-    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), LocalDate.parse(startDate), LocalDate.parse(endDate), None, None, Nil)
+    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), Some(LocalDate.parse(startDate)), Some(LocalDate.parse(endDate)), None, None, Nil)
 
   private val charge2: SchemeFSDetail = SchemeFSDetail("XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
-    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), LocalDate.parse("2021-01-01"), LocalDate.parse("2021-03-31"), None, None, Nil)
+    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, Nil)
   private val upcomingChargesMultiple: Seq[SchemeFSDetail] = Seq(charge1, charge2)
   private val outstandingAmountOverdue: Seq[SchemeFSDetail]= Seq(charge1)
   private def paymentsAndChargesModel(implicit messages: Messages): Seq[CardViewModel] = {
@@ -774,8 +775,8 @@ object AFTPartialServiceSpec {
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
       accruedInterestTotal = accruedInterestTotal,
-      periodStartDate = LocalDate.parse(startDate),
-      periodEndDate = LocalDate.parse(endDate),
+      periodStartDate = Some(LocalDate.parse(startDate)),
+      periodEndDate = Some(LocalDate.parse(endDate)),
       formBundleNumber = None,
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil

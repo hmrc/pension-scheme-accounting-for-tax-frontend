@@ -18,17 +18,22 @@ package fileUploadParsers
 
 import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
+import fileUploadParsers.ParserErrorMessages.{HeaderInvalidOrFileIsEmpty, NotEnoughFields}
 import models.{MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{JsPath, JsValue}
-import utils.StringHelper
 
 import java.time.LocalDate
 
+object ParserErrorMessages{
+  val HeaderInvalidOrFileIsEmpty = "Header invalid or File is empty"
+  val NotEnoughFields = "Enter all of the information for this member"
+}
+
 object Parser {
-  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, "Header invalid or File is empty", EMPTY)
+  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty, EMPTY)
 }
 
 trait Parser {
@@ -40,9 +45,10 @@ trait Parser {
 
   protected val totalFields: Int
 
-  def parse(startDate: LocalDate, rows: Seq[String], userAnswers: UserAnswers)(implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
+  def parse(startDate: LocalDate, rows: Seq[Array[String]], userAnswers: UserAnswers)
+           (implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
     rows.headOption match {
-      case Some(row) if row.equalsIgnoreCase(validHeader) =>
+      case Some(row) if row.mkString(",").equalsIgnoreCase(validHeader) =>
         rows.size match {
           case n if n >= 2 => parseDataRows(startDate, rows).map{ commitItems =>
             commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
@@ -53,39 +59,40 @@ trait Parser {
     }
   }
 
-  private def parseDataRows(startDate: LocalDate, rows: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+  private def parseDataRows(startDate: LocalDate, rows: Seq[Array[String]])
+                           (implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) =>
-        val cells = StringHelper.split(row)
-        cells.length match {
+        row.length match {
           case this.totalFields =>
-            (acc, validateFields(startDate, index, cells)) match {
+            (acc, validateFields(startDate, index, row)) match {
               case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ newErrors)
               case (Right(_), newErrors@Left(_)) => newErrors
               case (currentErrors@Left(_), Right(_)) => currentErrors
               case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
             }
           case _ =>
-            Left(acc.left.getOrElse(Nil) :+ ParserValidationError(index, 0, "Enter all of the information for this member", EMPTY))
+            Left(acc.left.getOrElse(Nil) :+ ParserValidationError(index, 0, NotEnoughFields, EMPTY))
         }
     }
   }
 
   protected def validateFields(startDate: LocalDate,
                                index: Int,
-                               chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
+                               columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
 
-  protected def memberDetailsValidation(index: Int, chargeFields: Seq[String],
+  protected def memberDetailsValidation(index: Int, columns: Seq[String],
                                         memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
-      Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
-      Field(MemberDetailsFieldNames.lastName, chargeFields(FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
-      Field(MemberDetailsFieldNames.nino, chargeFields(FieldNoNino), MemberDetailsFieldNames.nino, 2)
+      Field(MemberDetailsFieldNames.firstName, columns(FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
+      Field(MemberDetailsFieldNames.lastName, columns(FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
+      Field(MemberDetailsFieldNames.nino, columns(FieldNoNino), MemberDetailsFieldNames.nino, 2)
     )
-    memberDetailsForm
-      .bind(Field.seqToMap(fields))
-      .fold(
+   val toMap = Field.seqToMap(fields)
+
+   val bind =  memberDetailsForm.bind(toMap)
+    bind.fold(
         formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
         value => Right(value)
       )

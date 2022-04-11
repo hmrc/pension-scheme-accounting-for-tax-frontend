@@ -30,6 +30,7 @@ import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 
@@ -85,7 +86,8 @@ class PaymentsAndChargesController @Inject()(
 
   val isTaxYearFormat: PaymentOrChargeType => Boolean = ct => ct == InterestOnExcessRelief || ct == ExcessReliefPaidCharges
 
-  private def getTitleAndFilteredPayments(payments: Seq[SchemeFSDetail], period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter)
+  private def getTitleAndFilteredPayments(payments: Seq[SchemeFSDetail], period: String,
+                                          paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter)
                                          (implicit messages: Messages): (String, Seq[SchemeFSDetail]) =
     if(paymentOrChargeType == AccountingForTaxCharges) {
 
@@ -93,18 +95,20 @@ class PaymentsAndChargesController @Inject()(
       (messages(s"paymentsAndCharges.$journeyType.aft.title",
         startDate.format(dateFormatterStartDate),
         Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY)),
-      payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges).filter(_.periodStartDate == startDate))
+        payments.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
+        .filter(_.periodStartDate.contains(startDate)))
 
     } else {
 
       val typeParam: String = messages(s"paymentOrChargeType.${paymentOrChargeType.toString}")
       val messageParam: String = if(journeyType == All) typeParam else typeParam.toLowerCase
-      val filteredPayments = payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType).filter(_.periodEndDate.getYear == period.toInt)
+      val filteredPayments = payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
+        .filter(_.periodEndDate.exists(_.getYear == period.toInt))
 
       val title = if(isTaxYearFormat(paymentOrChargeType) && filteredPayments.nonEmpty) {
         messages(s"paymentsAndCharges.$journeyType.excessCharges.title", messageParam,
-          filteredPayments.head.periodStartDate.format(dateFormatterDMY),
-          filteredPayments.head.periodEndDate.format(dateFormatterDMY)
+          DateHelper.formatDateDMY(filteredPayments.head.periodStartDate),
+          DateHelper.formatDateDMY(filteredPayments.head.periodEndDate)
         )
       } else {
         messages(s"paymentsAndCharges.$journeyType.nonAft.title", messageParam, period)

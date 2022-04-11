@@ -18,8 +18,8 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
-import models.financialStatement.{PsaFS, PsaFSDetail}
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, INTEREST_ON_CONTRACT_SETTLEMENT, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
+import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFS, PsaFSDetail}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.http.Status
@@ -227,7 +227,12 @@ object FinancialStatementConnectorSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
+      pstr = "24000040IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFSDetail(
       chargeReference = "XY002610150185",
@@ -240,7 +245,12 @@ object FinancialStatementConnectorSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFSDetail(
       chargeReference = "XY002610150186",
@@ -253,10 +263,35 @@ object FinancialStatementConnectorSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     )
   )
 
+  val interestPsaFSResponse: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
+      chargeReference = "XY002610150184",
+      chargeType = INTEREST_ON_CONTRACT_SETTLEMENT,
+      dueDate = Some(LocalDate.parse("2020-07-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      accruedInterestTotal = 0.00,
+      amountDue = 1029.05,
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30"),
+      pstr = "24000040IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
+    )
+  )
   val psaFs: PsaFS = PsaFS (false, psaFSResponse)
 
   val psaFSResponseToValidate: Seq[PsaFSDetail] = Seq(
@@ -271,7 +306,12 @@ object FinancialStatementConnectorSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-04-01"),
       periodEndDate = LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
+      pstr = "24000040IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFSDetail(
       chargeReference = "XY002610150185",
@@ -284,7 +324,12 @@ object FinancialStatementConnectorSpec {
       amountDue = 1029.05,
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        clearedAmountItem = BigDecimal(0.00)))
     )
   )
   val psaFsToValidate: PsaFS = PsaFS (true, psaFSResponseToValidate)
