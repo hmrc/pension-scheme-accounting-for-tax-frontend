@@ -19,7 +19,6 @@ package models.financialStatement
 import models.Enumerable
 import models.financialStatement.SchemeFSChargeType._
 import play.api.data.Form
-import play.api.i18n.Messages
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.viewmodels._
 import viewmodels.{Hint, LabelClasses, Radios}
@@ -50,7 +49,7 @@ object PaymentOrChargeType extends Enumerable.Implicits {
     Seq(AccountingForTaxCharges, ContractSettlementCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, PensionsCharges)
 
   def radios(form: Form[_], chargeTypes: Seq[DisplayPaymentOrChargeType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
-            (implicit messages: Messages): Seq[Radios.Item] =
+            : Seq[Radios.Item] =
   {
     val x: Seq[Radio] = chargeTypes.map { chargeType =>
 

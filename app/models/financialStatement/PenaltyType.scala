@@ -16,11 +16,9 @@
 
 package models.financialStatement
 
-import models.{DisplayQuarter, Enumerable}
-import models.Quarters.{getHint, getLabel}
+import models.Enumerable
 import models.financialStatement.PsaFSChargeType._
 import play.api.data.Form
-import play.api.i18n.Messages
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.viewmodels._
 import viewmodels.Radios.Radio
@@ -48,8 +46,7 @@ object PenaltyType extends Enumerable.Implicits {
   val values: Seq[PenaltyType] =
     Seq(AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, PensionsPenalties)
 
-  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
-            (implicit messages: Messages): Seq[Radios.Item] =
+  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true): Seq[Radios.Item] =
     {
       val x: Seq[Radio] = penaltyTypes.map { penaltyType =>
 
