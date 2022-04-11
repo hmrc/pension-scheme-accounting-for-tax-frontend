@@ -177,13 +177,17 @@ class AFTSummaryController @Inject()(
                             accessType: AccessType)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
     val getLegendHtml = Json.obj("summaryheadingtext" -> confirmationPanelText(schemeName, startDate, endDate,formSearchText.value).toString())
-    val submissionNumber = if (request.isCompile ){
-       "Draft"
-    }
-    else {
-      "Submission" + ' ' + request.aftVersion.toString
+
+    val submissionNumber = (request.isCompile, request.isAmendment, request.isViewOnly) match {
+      case (true, true, _) =>  "Draft"
+      case (true, false, _) => schemeName
+      case (_,_,true) => "Submission" + ' ' + (request.aftVersion)
+      case _ => "Submission" + ' ' + (request.aftVersion -1)
     }
 
+    logger.warn("This is your compile ---------------------------"+ request.isCompile)
+    logger.warn("This is your AFT version ---------------------------"+ request.aftVersion)
+    logger.warn("This is your IsAmendment answer ////////////////////////////////////////"+ request.isAmendment)
 
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
