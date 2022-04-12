@@ -17,24 +17,36 @@
 package models
 
 import play.api.data.Form
-import uk.gov.hmrc.viewmodels.Radios
-import uk.gov.hmrc.viewmodels.Radios.{Item, Radio}
 import uk.gov.hmrc.viewmodels.Text.Literal
+import viewmodels.Radios.{MessageInterpolators, Radio}
+import viewmodels.{Hint, LabelClasses, Radios}
 
 import scala.language.implicitConversions
 
-case class PenaltySchemes(name: Option[String], pstr: String, srn: Option[String])
+case class PenaltySchemes(name: Option[String], pstr: String, srn: Option[String], hintText: Option[DisplayHint])
 
 object PenaltySchemes extends Enumerable.Implicits {
 
   def values(schemes: Seq[PenaltySchemes]): Seq[String] = schemes.map(_.pstr)
 
-  def radios(form: Form[_], schemes: Seq[PenaltySchemes]): Seq[Item] = {
+  def radios(form: Form[_], schemes: Seq[PenaltySchemes], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true):
+      Seq[Radios.Item] = {
+
     val radio: Seq[Radio] = schemes.map { scheme =>
       if (scheme.name.isDefined) {
-        Radios.Radio(Literal(s"${scheme.name.getOrElse("")} (${scheme.pstr})"), scheme.pstr)
+        Radios.Radio(
+          label = Literal(s"${scheme.name.getOrElse("")} (${scheme.pstr})"),
+          value = scheme.pstr,
+          hint = getHint(scheme, hintClass),
+          labelClasses = Some(LabelClasses(classes = if(areLabelsBold) Seq("govuk-!-font-weight-bold") else Nil))
+        )
       } else {
-        Radios.Radio(Literal(s"${scheme.pstr}"), scheme.pstr)
+        Radios.Radio(
+          label = Literal(s"${scheme.pstr}" ),
+          value = scheme.pstr,
+          hint = getHint(scheme, hintClass),
+          labelClasses = Some(LabelClasses(classes = if(areLabelsBold) Seq("govuk-!-font-weight-bold") else Nil))
+        )
       }
     }
 
@@ -44,4 +56,9 @@ object PenaltySchemes extends Enumerable.Implicits {
   implicit def enumerable(schemes: Seq[PenaltySchemes]): Enumerable[PenaltySchemes] =
     Enumerable(schemes.map(v => v.pstr -> v): _*)
 
+  private def getHint(schemes: PenaltySchemes, hintClass: Seq[String]): Option[Hint] =
+    schemes.hintText match {
+      case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))
+      case _ => None
+    }
 }
