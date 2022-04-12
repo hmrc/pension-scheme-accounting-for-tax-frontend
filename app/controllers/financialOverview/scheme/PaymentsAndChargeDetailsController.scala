@@ -25,6 +25,7 @@ import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFSChargeType, SchemeFSDetail, SchemeSourceChargeInfo}
 import models.requests.IdentifierRequest
 import models.{ChargeDetailsFilter, Submission}
+import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
@@ -50,6 +51,7 @@ class PaymentsAndChargeDetailsController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
+  private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
 
   def onPageLoad(srn: String, pstr: String, period: String, index: String,
                  paymentOrChargeType: PaymentOrChargeType, version: Option[Int],
@@ -141,10 +143,13 @@ class PaymentsAndChargeDetailsController @Inject()(
               template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
               ctx = summaryListData(schemeFs, originalAmountUrl, version, isChargeAssigned = true)
             ).map(Ok(_))
-          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+          case _ =>
+            logger.warn(s"No source charge period found for ${schemeFs.chargeType} and $sourceChargeInfo")
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
 
       case _ =>
+        logger.warn(s"No scheme FS item found for index $index")
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }

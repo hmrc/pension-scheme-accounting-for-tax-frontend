@@ -24,6 +24,7 @@ import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, g
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
+import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json._
 import play.api.libs.json.{JsObject, Json}
@@ -53,7 +54,7 @@ class PaymentsAndChargesInterestController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
-
+  private val logger = Logger(classOf[PaymentsAndChargesInterestController])
   def onPageLoad(srn: String, pstr: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType,
                  version: Option[Int], submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async {
@@ -97,6 +98,7 @@ class PaymentsAndChargesInterestController @Inject()(
           ctx = summaryListData(srn, pstr, request.psaId, request.pspId, schemeFs, schemeName, originalAmountUrl, version, journeyType)
         ).map(Ok(_))
       case _ =>
+        logger.warn(s"Scheme not found for index $index")
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }

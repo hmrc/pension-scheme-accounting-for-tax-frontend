@@ -23,6 +23,7 @@ import helpers.FormatHelper
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.Upcoming
 import models.financialStatement.SchemeFSDetail
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -49,7 +50,7 @@ class PaymentsAndChargesController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
-
+  private val logger = Logger(classOf[PaymentsAndChargesController])
   def onPageLoad(srn: String, pstr: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
@@ -77,6 +78,7 @@ class PaymentsAndChargesController @Inject()(
             )
             renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
         } else {
+          logger.warn(s"Empty payments cache")
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
       }
