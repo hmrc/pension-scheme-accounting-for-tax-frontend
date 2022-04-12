@@ -19,12 +19,13 @@ package services.financialOverview.psa
 import base.SpecBase
 import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, MinimalConnector}
+import controllers.financialOverview.psa.routes._
 import data.SampleData._
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, INTEREST_ON_CONTRACT_SETTLEMENT}
-import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFS, PsaFSDetail}
+import models.financialStatement._
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
 import models.{ChargeDetailsFilter, SchemeDetails}
@@ -42,7 +43,6 @@ import utils.DateHelper.dateFormatterDMY
 import viewmodels.Radios.MessageInterpolators
 import viewmodels.Table
 import viewmodels.Table.Cell
-import controllers.financialOverview.psa.routes._
 
 import java.time.LocalDate
 import scala.collection.Seq
@@ -246,6 +246,13 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
 object PsaPenaltiesAndChargesServiceSpec {
 
+  private val sourceChargeInfo : SourceChargeInfo = SourceChargeInfo(
+    index = 1,
+    chargeType = CONTRACT_SETTLEMENT,
+    periodStartDate = LocalDate.parse("2020-04-01"),
+    periodEndDate = LocalDate.parse("2020-06-30")
+  )
+
   def psaFS(
              amountDue: BigDecimal = BigDecimal(1029.05),
              dueDate: Option[LocalDate] = Some(LocalDate.parse("2022-03-18")),
@@ -253,8 +260,8 @@ object PsaPenaltiesAndChargesServiceSpec {
              outStandingAmount: BigDecimal = BigDecimal(56049.08),
              stoodOverAmount: BigDecimal = BigDecimal(25089.08)
            ): PsaFSDetail =
-    PsaFSDetail("XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
-      accruedInterestTotal = 0.00, dateNow, dateNow, pstr, None, Seq(DocumentLineItemDetail(
+    PsaFSDetail( 0, "XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
+      accruedInterestTotal = 0.00, dateNow, dateNow, pstr, None, None, Seq(DocumentLineItemDetail(
         clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00))))
@@ -262,6 +269,7 @@ object PsaPenaltiesAndChargesServiceSpec {
 
   def createPsaFSCharge(chargeReference: String): PsaFSDetail =
     PsaFSDetail(
+      index = 0,
       chargeReference = chargeReference,
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
@@ -274,6 +282,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
@@ -282,6 +291,7 @@ object PsaPenaltiesAndChargesServiceSpec {
 
   def psaFSResponse(amountDue: BigDecimal = BigDecimal(0.01), dueDate: LocalDate = dateNow): Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
+      index = 1,
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(dueDate),
@@ -294,12 +304,14 @@ object PsaPenaltiesAndChargesServiceSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFSDetail(
+      index = 2,
       chargeReference = "XY002610150184",
       chargeType = CONTRACT_SETTLEMENT,
       dueDate = Some(dueDate),
@@ -312,6 +324,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = Some(sourceChargeInfo),
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
@@ -324,6 +337,7 @@ object PsaPenaltiesAndChargesServiceSpec {
 
   val psaFsSeq: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
+      index = 0,
       chargeReference = "XY002610150184",
       chargeType = CONTRACT_SETTLEMENT,
       dueDate = Some(LocalDate.parse("2020-11-15")),
@@ -336,6 +350,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   )

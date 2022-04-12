@@ -37,7 +37,6 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
 import play.twirl.api.Html
-import services.financialOverview.psa.PenaltiesCache
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -113,6 +112,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
 object PsaPaymentsAndChargesControllerSpec {
   private def createPsaFSCharge(chargeReference: String): PsaFSDetail = {
     PsaFSDetail(
+      index = 0,
       chargeReference = chargeReference,
       chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-07-15")),
