@@ -124,7 +124,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             Nil
           }
 
-        val seqForTable = if (detail.amountDue > 0 ) {
+        val seqForTable = if (isPaymentOverdue(detail)) {
           Seq(penaltyDetailsItemWithStatus(PaymentOverdue)) ++ seqInterestCharge
         } else {
           Seq(penaltyDetailsItemWithStatus(NoStatus)) ++ seqInterestCharge
@@ -193,7 +193,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             Nil
           }
 
-        val seqForTable = if (detail.amountDue > 0 ) {
+        val seqForTable = if (isPaymentOverdue(detail)) {
           Seq(penaltyDetailsItemWithStatus(PaymentOverdue)) ++ seqInterestCharge
         } else {
           Seq(penaltyDetailsItemWithStatus(NoStatus)) ++ seqInterestCharge

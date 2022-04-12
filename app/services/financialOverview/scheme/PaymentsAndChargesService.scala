@@ -221,6 +221,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
           )
         )
+      case (_, true) if details.dueDate.exists(_.isBefore(LocalDate.now())) =>
+        Seq(chargeDetailsItemWithStatus(PaymentOverdue))
       case (true, _) if details.totalAmount < 0 =>
         Seq.empty
       case _ =>

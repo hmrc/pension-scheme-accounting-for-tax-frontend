@@ -86,7 +86,7 @@ class AllPaymentsAndChargesController @Inject()(
         val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
         val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
         val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
-        val totalCharges: BigDecimal = totalDueCharges+ totalInterestCharges
+        val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
 
           if (filteredPayments.nonEmpty) {
 
