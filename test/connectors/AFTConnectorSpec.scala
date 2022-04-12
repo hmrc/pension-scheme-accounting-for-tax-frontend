@@ -50,18 +50,18 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       "periodEndDate" -> "2028-06-30",
       "tpssReportPresent" -> false,
       "versionDetails" -> Json.obj(
-      "numberOfVersions" -> JsNumber(1),
-      "submittedVersionAvailable" -> false,
-      "compiledVersionAvailable" -> true)
+        "numberOfVersions" -> JsNumber(1),
+        "submittedVersionAvailable" -> false,
+        "compiledVersionAvailable" -> true)
     ),
     Json.obj(
       "periodStartDate" -> "2022-01-01",
       "periodEndDate" -> "2022-03-31",
       "tpssReportPresent" -> false,
       "versionDetails" -> Json.obj(
-      "numberOfVersions" -> JsNumber(1),
-      "submittedVersionAvailable" -> true,
-      "compiledVersionAvailable" -> false)
+        "numberOfVersions" -> JsNumber(1),
+        "submittedVersionAvailable" -> true,
+        "compiledVersionAvailable" -> false)
     )
   ).toString()
 
@@ -223,75 +223,6 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
       )
 
       recoverToExceptionIf[UpstreamErrorResponse](connector.getAFTDetails(pstr, startDate, aftVersion)) map { response =>
-        response.statusCode mustBe Status.INTERNAL_SERVER_ERROR
-      }
-    }
-  }
-
-  "getAFTDetailsWithFbNumber" must {
-    val data = Json.obj(fields = "Id" -> "value")
-    val fbNumber = "123456789192"
-
-    "return addRequiredDetailsToUserAnswers when the backend has returned OK with UserAnswers Json" in {
-      server.stubFor(
-        get(urlEqualTo(getAftDetailsUrl))
-          .withHeader("pstr", equalTo(pstr))
-          .withHeader("fbNumber", equalTo(fbNumber))
-          .willReturn(
-            ok(Json.stringify(UserAnswers(data).data))
-          )
-      )
-
-      connector.getAFTDetailsWithFbNumber(pstr, fbNumber) map { response =>
-        response mustBe data
-      }
-    }
-
-    "return BAD REQUEST when the backend has returned BadRequestException" in {
-      server.stubFor(
-        get(urlEqualTo(getAftDetailsUrl))
-          .withHeader("pstr", equalTo(pstr))
-          .withHeader("fbNumber", equalTo(fbNumber))
-          .willReturn(
-            badRequest()
-          )
-      )
-
-      recoverToExceptionIf[BadRequestException] {
-        connector.getAFTDetailsWithFbNumber(pstr, fbNumber)
-      } map {
-        _.responseCode mustEqual Status.BAD_REQUEST
-      }
-    }
-
-    "return NOT FOUND when the backend has returned NotFoundException" in {
-      server.stubFor(
-        get(urlEqualTo(getAftDetailsUrl))
-          .withHeader("pstr", equalTo(pstr))
-          .withHeader("fbNumber", equalTo(fbNumber))
-          .willReturn(
-            notFound()
-          )
-      )
-
-      recoverToExceptionIf[NotFoundException] {
-        connector.getAFTDetailsWithFbNumber(pstr, fbNumber)
-      } map { response =>
-        response.responseCode mustEqual Status.NOT_FOUND
-      }
-    }
-
-    "return UpstreamErrorResponse when the backend has returned Internal Server Error" in {
-      server.stubFor(
-        get(urlEqualTo(getAftDetailsUrl))
-          .withHeader("pstr", equalTo(pstr))
-          .withHeader("fbNumber", equalTo(fbNumber))
-          .willReturn(
-            serverError()
-          )
-      )
-
-      recoverToExceptionIf[UpstreamErrorResponse](connector.getAFTDetailsWithFbNumber(pstr, fbNumber)) map { response =>
         response.statusCode mustBe Status.INTERNAL_SERVER_ERROR
       }
     }

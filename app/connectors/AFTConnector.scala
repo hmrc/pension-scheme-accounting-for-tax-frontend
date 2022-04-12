@@ -68,22 +68,6 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
     }
   }
 
-  def getAFTDetailsWithFbNumber(pstr: String, fbNumber: String)
-                   (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    val url = config.getAftDetails
-    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "fbNumber" -> fbNumber)
-    logger.warn(s"Calling getAFT details")
-    http.GET[HttpResponse](url)(implicitly, aftHc, implicitly).map { response =>
-      logger.warn(s"GetAFT details resturned response with status ${response.status}")
-      response.status match {
-        case OK => Json.parse(response.body)
-        case _ => handleErrorResponse("GET", url)(response)
-      }
-    } andThen {
-      case Failure(t: Throwable) => logger.warn("Unable to get aft details", t)
-    }
-  }
-
   def getIsAftNonZero(pstr: String, startDate: String, aftVersion: String)
                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Boolean] = {
     val url = config.isAftNonZero
