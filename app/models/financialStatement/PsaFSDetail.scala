@@ -42,20 +42,20 @@ case class PsaFSDetail(index: Int,
                        periodEndDate: LocalDate,
                        pstr: String,
                        sourceChargeRefForInterest: Option[String],
-                       sourceChargeInfo: Option[SourceChargeInfo] = None,
+                       psaSourceChargeInfo: Option[PsaSourceChargeInfo] = None,
                        documentLineItemDetails: Seq[DocumentLineItemDetail])
 
 object PsaFSDetail {
   implicit val formats: Format[PsaFSDetail] = Json.format[PsaFSDetail]
 }
 
-case class SourceChargeInfo(
+case class PsaSourceChargeInfo(
                              index: Int,
                              chargeType: PsaFSChargeType,
                              periodStartDate: LocalDate,
                              periodEndDate: LocalDate
                            )
 
-object SourceChargeInfo {
-  implicit val formats: Format[SourceChargeInfo] = Json.format[SourceChargeInfo]
+object PsaSourceChargeInfo {
+  implicit val formats: Format[PsaSourceChargeInfo] = Json.format[PsaSourceChargeInfo]
 }

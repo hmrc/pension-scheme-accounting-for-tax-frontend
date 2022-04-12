@@ -246,7 +246,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
 object PsaPenaltiesAndChargesServiceSpec {
 
-  private val sourceChargeInfo : SourceChargeInfo = SourceChargeInfo(
+  private val psaSourceChargeInfo : PsaSourceChargeInfo = PsaSourceChargeInfo(
     index = 1,
     chargeType = CONTRACT_SETTLEMENT,
     periodStartDate = LocalDate.parse("2020-04-01"),
@@ -282,7 +282,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
+      psaSourceChargeInfo = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
@@ -304,7 +304,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
+      psaSourceChargeInfo = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
@@ -324,7 +324,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = Some(sourceChargeInfo),
+      psaSourceChargeInfo = Some(psaSourceChargeInfo),
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
@@ -350,7 +350,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
+      psaSourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   )

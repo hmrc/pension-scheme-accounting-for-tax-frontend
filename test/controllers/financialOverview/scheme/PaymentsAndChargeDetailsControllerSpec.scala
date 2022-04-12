@@ -307,7 +307,7 @@ object PaymentsAndChargeDetailsControllerSpec {
       periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN",
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
+      psaSourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
 
