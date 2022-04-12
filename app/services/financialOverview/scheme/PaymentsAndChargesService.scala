@@ -149,7 +149,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
         )
 
-    (isAFTOrOTCNonInterestChargeType(details.chargeType), details.amountDue > 0) match {
+    (isDisplayInterestChargeType(details.chargeType), details.amountDue > 0) match {
       case (true, true) if details.accruedInterestTotal > 0 =>
         val interestChargeType =
           if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
@@ -157,7 +157,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         Seq(
           chargeDetailsItemWithStatus(PaymentOverdue),
           FinancialPaymentAndChargesDetails(
-            chargeType = interestChargeType.toString + suffix.getOrElse(""),
+            chargeType = getInterestChargeTypeText(details.chargeType) + suffix.getOrElse(""),
             chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
             originalChargeAmount = "",
             paymentDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
