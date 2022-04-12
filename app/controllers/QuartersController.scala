@@ -107,14 +107,14 @@ class QuartersController @Inject()(
                   if (tpssReports.nonEmpty) {
                     Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn, value.startDate)))
                   } else {
-                    val selectedDisplayQuarter = displayQuarters.find(_.quarter == value).getOrElse(throw InvalidValueSelected)
+                    val selectedDisplayQuarter = displayQuarters.find(_.quarter == value).getOrElse(throw InvalidValueSelected(s"display quarters = $displayQuarters and value = $value "))
                     selectedDisplayQuarter.hintText match {
                       case None => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate, Draft, version = 1)))
                       case Some(SubmittedHint) => Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
                       case _ =>
                         val version = aftOverview.find(_.periodStartDate == value.startDate)
                           .filter(_.versionDetails.nonEmpty).map(_.toPodsReport)
-                          .getOrElse(throw InvalidValueSelected).numberOfVersions
+                          .getOrElse(throw InvalidValueSelected(s"value = $value and afterOverview = $aftOverview")).numberOfVersions
                         Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version)))
                     }
                   }
@@ -136,5 +136,5 @@ class QuartersController @Inject()(
       schemeName = schemeName
     )
 
-  case object InvalidValueSelected extends Exception("The selected quarter did not match any quarters in the list of options")
+  case class InvalidValueSelected(details:String) extends Exception(s"The selected quarter did not match any quarters in the list of options: $details")
 }
