@@ -70,7 +70,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).
       thenReturn(Future.successful(paymentsCache(schemeFSResponseOverdue)))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
-      ArgumentMatchers.eq(pstr), any(), any(), any())(any())).thenReturn(emptyChargesTable)
+      ArgumentMatchers.eq(pstr), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
@@ -111,6 +111,7 @@ object PaymentsAndChargesControllerSpec {
   private val pstr = "test-pstr"
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(
+      index = 0,
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -122,7 +123,10 @@ object PaymentsAndChargesControllerSpec {
       periodStartDate = Some(LocalDate.parse(startDate)),
       periodEndDate = Some(LocalDate.parse(endDate)),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   }

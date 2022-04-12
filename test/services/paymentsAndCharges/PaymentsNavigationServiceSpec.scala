@@ -42,6 +42,7 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
                        charge1Type: SchemeFSChargeType = PSS_AFT_RETURN,
                        charge2Type: SchemeFSChargeType = PSS_OTC_AFT_RETURN): Seq[SchemeFSDetail] = Seq(
     SchemeFSDetail(
+      index = 0,
       chargeReference = "1",
       chargeType = charge1Type,
       dueDate = Some(LocalDate.parse("2020-05-15")),
@@ -53,10 +54,14 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
       periodStartDate = Some(QUARTER_START_DATE),
       periodEndDate = Some(QUARTER_END_DATE),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     ),
     SchemeFSDetail(
+      index = 0,
       chargeReference = "2",
       chargeType = charge2Type,
       dueDate = Some(LocalDate.parse("2020-05-15")),
@@ -68,7 +73,10 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
       periodStartDate = Some(charge2Start),
       periodEndDate = Some(charge2End),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   )

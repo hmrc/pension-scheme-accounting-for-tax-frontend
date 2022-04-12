@@ -71,7 +71,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
       .thenReturn(schemeFSResponse)
     when(mockPaymentsAndChargesService.getInterestCharges(any()))
       .thenReturn(schemeFSResponse)
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
@@ -108,6 +108,7 @@ object AllPaymentsAndChargesControllerSpec {
   private val srn = "test-srn"
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(
+      index = 0,
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -119,7 +120,10 @@ object AllPaymentsAndChargesControllerSpec {
       periodStartDate = Some(LocalDate.parse(startDate)),
       periodEndDate =  Some(LocalDate.parse(endDate)),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   }

@@ -106,7 +106,7 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
+      psaSourceChargeInfo = None,
       documentLineItemDetails = Nil
     ),
     PsaFSDetail(
@@ -123,7 +123,7 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate = LocalDate.parse("2020-12-31"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
+      psaSourceChargeInfo = None,
       documentLineItemDetails = Nil
     ),
     PsaFSDetail(
@@ -140,7 +140,7 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate = LocalDate.parse("2020-12-31"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
+      psaSourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   )
@@ -164,7 +164,7 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
+      psaSourceChargeInfo = None,
       documentLineItemDetails = Nil
     ),
     PsaFSDetail(
@@ -181,7 +181,7 @@ object PenaltiesNavigationServiceSpec {
       periodEndDate = periodEndDate2,
       pstr = schemeName2,
       sourceChargeRefForInterest = None,
-      sourceChargeInfo = None,
+      psaSourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   )
