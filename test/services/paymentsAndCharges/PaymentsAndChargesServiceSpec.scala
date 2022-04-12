@@ -362,6 +362,7 @@ object PaymentsAndChargesServiceSpec {
                             dueDate: Option[LocalDate] = Some(LocalDate.parse("2020-05-15"))
                           ): SchemeFSDetail = {
     SchemeFSDetail(
+      index = 0,
       chargeReference = "AYU3494534632",
       chargeType = chargeType,
       dueDate = dueDate,
@@ -373,12 +374,16 @@ object PaymentsAndChargesServiceSpec {
       periodStartDate = Some(QUARTER_START_DATE),
       periodEndDate = Some(QUARTER_END_DATE),
       formBundleNumber = None,
+      version = None,
+      receiptDate = None,
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Nil
     )
   }
 
   private def chargeWithCredit = SchemeFSDetail(
+    index = 0,
     chargeReference = "AYU3494534632",
     chargeType = PSS_AFT_RETURN,
     dueDate = Some(LocalDate.parse("2020-05-15")),
@@ -390,7 +395,10 @@ object PaymentsAndChargesServiceSpec {
     periodStartDate = Some(QUARTER_START_DATE),
     periodEndDate = Some(QUARTER_END_DATE),
     formBundleNumber = None,
+    version = None,
+    receiptDate = None,
     sourceChargeRefForInterest = None,
+    sourceChargeInfo = None,
     documentLineItemDetails = Nil
   )
 

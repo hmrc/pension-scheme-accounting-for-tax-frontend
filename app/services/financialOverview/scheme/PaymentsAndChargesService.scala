@@ -21,15 +21,15 @@ import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper._
-import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{DocumentLineItemDetail, PaymentOrChargeType, SchemeFSChargeType, SchemeFSDetail}
+import models.financialStatement._
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
+import models.{ChargeDetailsFilter, SchemeDetails}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
 import services.SchemeService
@@ -58,42 +58,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   def getPaymentsAndCharges(srn: String,
                             pstr: String,
                             schemeFSDetail: Seq[SchemeFSDetail],
-                            mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
                             chargeDetailsFilter: ChargeDetailsFilter
-                              )
-                              (implicit messages: Messages): Table = {
-
-    val chargeRefForAll: Seq[String] = schemeFSDetail.map(_.chargeReference)
+                           )
+                           (implicit messages: Messages): Table = {
 
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFSDetail.flatMap { paymentOrCharge =>
-      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeRefForAll, chargeRefs(schemeFSDetail), mapChargeTypesVersionAndDate, chargeDetailsFilter)
+      paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeDetailsFilter)
     }
-
     mapToTable(seqPayments, chargeDetailsFilter)
-  }
-
-
-  def chargeRefs (schemeFSDetail: Seq[SchemeFSDetail]) : Map[(String,String), Seq[String]] = {
-    val indexRefs: Seq[IndexRef] = schemeFSDetail.map { scheme =>
-      val chargeType = getPaymentOrChargeType(scheme.chargeType).toString
-      val period: String = if (chargeType == AccountingForTaxCharges.toString) {
-        scheme.periodStartDate.map(_.toString).getOrElse("")
-      } else {
-        scheme.periodEndDate.map(_.getYear.toString).getOrElse("")
-      }
-      IndexRef(chargeType, scheme.chargeReference, period)
-    }
-    val ref: Map[(String, String), Seq[IndexRef]] = indexRefs.groupBy {
-      x => (x.chargeType, x.period)
-    }
-    ref.map {
-      item =>
-        val chargeRef = item._2.map {
-          value =>
-            value.chargeReference
-        }
-        Tuple2(item._1, chargeRef)
-    }
   }
 
   val isPaymentOverdue: SchemeFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
@@ -121,7 +93,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   private def setSubmittedDate(submittedDate: Option[String], chargeType: SchemeFSChargeType)
                               (implicit messages: Messages): Option[String] = {
     (chargeType, submittedDate) match {
-      case (PSS_AFT_RETURN  | PSS_OTC_AFT_RETURN, Some(value)) =>
+      case (PSS_AFT_RETURN | PSS_OTC_AFT_RETURN, Some(value)) =>
         Some(messages("returnHistory.submittedOn", formatDateDMYString(value)))
       case _ => None
     }
@@ -135,6 +107,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         s"${journeyType.toString}")
     }
   }
+
   def getReturnUrl(srn: String, pstr: String, psaId: Option[PsaId], pspId: Option[PspId], config: FrontendAppConfig,
                    journeyType: ChargeDetailsFilter): String = {
     journeyType match {
@@ -143,49 +116,22 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  //scalastyle:off parameter.number
   // scalastyle:off method.length
-  //scalastyle:off cyclomatic.complexity
   private def paymentsAndChargesDetails(
                                          details: SchemeFSDetail,
                                          srn: String,
                                          pstr: String,
-                                         chargeRefForAll: Seq[String],
-                                         chargeRefs: Map[(String,String), Seq[String]],
-                                         mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])],
                                          chargeDetailsFilter: ChargeDetailsFilter
-                                          )(implicit messages: Messages): Seq[FinancialPaymentAndChargesDetails] = {
-
-
-
+                                       )(implicit messages: Messages): Seq[FinancialPaymentAndChargesDetails] = {
     val chargeType = getPaymentOrChargeType(details.chargeType)
-    val paymentOrChargeType = details.chargeType
-    val onlyAFTAndOTCChargeTypes: Boolean =
-      paymentOrChargeType == PSS_AFT_RETURN || paymentOrChargeType == PSS_OTC_AFT_RETURN
-    val ifAFTAndOTCChargeTypes: Boolean =
-      onlyAFTAndOTCChargeTypes || paymentOrChargeType == PSS_AFT_RETURN_INTEREST || paymentOrChargeType == PSS_OTC_AFT_RETURN_INTEREST
-
-    val (suffix, version, submittedDate) = (ifAFTAndOTCChargeTypes, mapChargeTypesVersionAndDate.get(paymentOrChargeType)) match {
-      case (true, Some(Tuple2(Some(version), Some(date)))) => (Some(s" submission $version"), Some(version), Some(formatDateYMD(date)))
-      case _ => (None, None, None)
-    }
-
+    val (version, receiptDate) = (details.version, details.receiptDate)
+    val suffix = version.map(v => s" submission $v")
+    val submittedDate = receiptDate.map(formatDateYMD)
+    val index = details.index.toString
     val periodValue: String = if (chargeType.toString == AccountingForTaxCharges.toString) {
       details.periodStartDate.map(_.toString).getOrElse("")
     } else {
       details.periodEndDate.map(_.getYear.toString).getOrElse("")
-    }
-
-    val seqChargeRefs = chargeRefs.find(_._1 == Tuple2(chargeType.toString, periodValue))  match {
-      case Some(found) => found._2
-      case _ => Nil
-    }
-
-    val index : String = {
-      chargeDetailsFilter match {
-        case All => chargeRefForAll.indexOf(details.chargeReference).toString
-        case _ => seqChargeRefs.indexOf(details.chargeReference).toString
-      }
     }
 
     val chargeDetailsItemWithStatus: PaymentAndChargeStatus => FinancialPaymentAndChargesDetails =
@@ -203,10 +149,11 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
         )
 
-    (onlyAFTAndOTCChargeTypes, details.amountDue > 0) match {
+    (isAFTOrOTCNonInterestChargeType(details.chargeType), details.amountDue > 0) match {
       case (true, true) if details.accruedInterestTotal > 0 =>
         val interestChargeType =
           if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
+
         Seq(
           chargeDetailsItemWithStatus(PaymentOverdue),
           FinancialPaymentAndChargesDetails(
@@ -254,7 +201,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
 
   private def htmlStatus(data: FinancialPaymentAndChargesDetails)
-                           (implicit messages: Messages): Html = {
+                        (implicit messages: Messages): Html = {
     val (classes, content) = (data.status, data.paymentDue) match {
       case (InterestIsAccruing, _) =>
         ("govuk-tag govuk-tag--blue", data.status.toString)
@@ -270,7 +217,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
 
   private def mapToTable(allPayments: Seq[FinancialPaymentAndChargesDetails], chargeDetailsFilter: ChargeDetailsFilter)
-                           (implicit messages: Messages): Table = {
+                        (implicit messages: Messages): Table = {
 
     val head = Seq(
       Cell(msg"paymentsAndCharges.chargeType.table", classes = Seq("govuk-!-width-one-half")),
@@ -314,7 +261,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       }
 
 
-
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half")),
         Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-padding-right-7")),
@@ -337,7 +283,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   }
 
   def getChargeDetailsForSelectedCharge(schemeFSDetail: SchemeFSDetail, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
-                                       : Seq[SummaryList.Row] = {
+  : Seq[SummaryList.Row] = {
     dateSubmittedRow(schemeFSDetail.chargeType, submittedDate) ++ chargeReferenceRow(schemeFSDetail) ++ originalAmountChargeDetailsRow(schemeFSDetail) ++
       clearingChargeDetailsRow(schemeFSDetail.documentLineItemDetails) ++
       stoodOverAmountChargeDetailsRow(schemeFSDetail) ++ totalAmountDueChargeDetailsRow(schemeFSDetail, journeyType)
@@ -345,7 +291,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   private def dateSubmittedRow(chargeType: SchemeFSChargeType, submittedDate: Option[String]): Seq[SummaryList.Row] = {
     (chargeType, submittedDate) match {
-      case (PSS_AFT_RETURN | PSS_OTC_AFT_RETURN , Some(date)) =>
+      case (PSS_AFT_RETURN | PSS_OTC_AFT_RETURN, Some(date)) =>
         Seq(
           Row(
             key = Key(
@@ -442,10 +388,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
 
   private def clearingChargeDetailsRow(documentLineItemDetails: Seq[DocumentLineItemDetail]): Seq[SummaryList.Row] = {
-
     documentLineItemDetails.flatMap {
       documentLineItemDetail => {
-        if(documentLineItemDetail.clearedAmountItem > 0) {
+        if (documentLineItemDetail.clearedAmountItem > 0) {
           getClearingDetailLabel(documentLineItemDetail) match {
             case Some(clearingDetailsValue) =>
               Seq(
@@ -461,10 +406,10 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                   actions = Nil
                 ))
             case _ => Nil
-           }
-         }
-          else
-            Nil
+          }
+        } else {
+          Nil
+        }
       }
     }
   }
@@ -511,7 +456,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(msg"financialPaymentsAndCharges.clearingReason.c5".withArgs(formatDateDMY(clearingDate)))
           case OTHER_REASONS => Some(msg"financialPaymentsAndCharges.clearingReason.c6".withArgs(formatDateDMY(clearingDate)))
         }
-      case (Some(clearingReason),None) =>
+      case (Some(clearingReason), None) =>
         clearingReason match {
           case CLEARED_WITH_PAYMENT => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c1")
           case CLEARED_WITH_DELTA_CREDIT => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c2")
@@ -523,10 +468,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       case _ => None
     }
   }
-
 }
-
-import models.SchemeDetails
 
 case class PaymentsCache(loggedInId: String, srn: String, schemeDetails: SchemeDetails, schemeFSDetail: Seq[SchemeFSDetail])
 

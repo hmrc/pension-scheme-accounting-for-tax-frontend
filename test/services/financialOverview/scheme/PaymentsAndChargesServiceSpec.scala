@@ -20,6 +20,7 @@ import base.SpecBase
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
+import controllers.financialOverview.scheme.routes._
 import data.SampleData._
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
@@ -45,7 +46,6 @@ import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatDateDMY}
 import viewmodels.Table
 import viewmodels.Table.Cell
-import controllers.financialOverview.scheme.routes._
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -129,18 +129,18 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
   private val paymentsAndChargesService = new PaymentsAndChargesService(mockSchemeService, mockFSConnector, mockFIConnector)
 
+  // scalastyle:off method.length
   "getPaymentsAndCharges" must {
-
     Seq(PSS_AFT_RETURN, PSS_OTC_AFT_RETURN).foreach {
       chargeType =>
         s"return payments and charges table with two rows for the charge and interest accrued for $chargeType" in {
 
           val chargeLink: ChargeDetailsFilter => String = chargeDetailsFilter =>
-            PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, QUARTER_START_DATE.toString, "0", AccountingForTaxCharges,
+            PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, QUARTER_START_DATE.toString, "1", AccountingForTaxCharges,
               Some(versionInt), Some("2016-12-17"), chargeDetailsFilter).url
 
           val interestLink: ChargeDetailsFilter => String = chargeDetailsFilter =>
-            PaymentsAndChargesInterestController.onPageLoad(srn, pstr, QUARTER_START_DATE.toString, "0", AccountingForTaxCharges,
+            PaymentsAndChargesInterestController.onPageLoad(srn, pstr, QUARTER_START_DATE.toString, "1", AccountingForTaxCharges,
               Some(versionInt), Some("2016-12-17"), chargeDetailsFilter).url
 
           def expectedTable(chargeLink: String, interestLink: String): Table =
@@ -156,10 +156,11 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                 visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")
               ),
               row(
-                chargeType = if (chargeType == PSS_AFT_RETURN)
+                chargeType = if (chargeType == PSS_AFT_RETURN) {
                   PSS_AFT_RETURN_INTEREST.toString + s" submission $versionInt"
-                else
-                  PSS_OTC_AFT_RETURN_INTEREST.toString + s" submission $versionInt",
+                } else {
+                  PSS_OTC_AFT_RETURN_INTEREST.toString + s" submission $versionInt"
+                },
                 chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
                 originalChargeAmount = "",
                 paymentDue = FormatHelper.formatCurrencyAmountAsString(153.00),
@@ -174,7 +175,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
             srn = srn,
             pstr = pstr,
             schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            mapChargeTypesVersionAndDate = mapChargeTypesVersionAndDate,
             chargeDetailsFilter = Overdue
           )
 
@@ -182,7 +182,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
             srn = srn,
             pstr = pstr,
             schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            mapChargeTypesVersionAndDate = mapChargeTypesVersionAndDate,
             chargeDetailsFilter = Upcoming
           )
           result1 mustBe expectedTable(chargeLink(Overdue), interestLink(Overdue))
@@ -199,7 +198,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
         srn,
         pstr,
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00).head._2,
-        mapChargeTypesVersionAndDate,
         Overdue
       )
 
@@ -207,10 +205,11 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
   }
 
+
   "getChargeDetailsForSelectedCharge" must {
     "return the row for original charge amount, payments and credits, stood over amount and total amount due" in {
       val result =
-        paymentsAndChargesService.getChargeDetailsForSelectedCharge(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05), Upcoming, Some(submittedDate))
+        paymentsAndChargesService.getChargeDetailsForSelectedCharge(createCharge(index = 1, PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05), Upcoming, Some(submittedDate))
 
       result mustBe dateSubmittedRow ++ chargeReferenceRow ++ originalAmountChargeDetailsRow ++
         clearingChargeDetailsRow ++ stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
@@ -244,8 +243,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       DateHelper.setDate(Some(LocalDate.of(2020, 6, 1)))
 
       val charges = Seq(
-        createCharge(PSS_AFT_RETURN, 123.00, 456.00),
-        createCharge(PSS_OTC_AFT_RETURN, 123.00, 456.00, Some(LocalDate.parse("2020-08-15")))
+        createCharge(index = 1, PSS_AFT_RETURN, 123.00, 456.00),
+        createCharge(index = 2, PSS_OTC_AFT_RETURN, 123.00, 456.00, Some(LocalDate.parse("2020-08-15")))
       )
 
       val result = paymentsAndChargesService.extractUpcomingCharges(charges)
@@ -259,8 +258,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       DateHelper.setDate(Some(LocalDate.of(2020, 6, 1)))
 
       val charges = Seq(
-        createCharge(PSS_AFT_RETURN, 123.00, 456.00),
-        createCharge(PSS_OTC_AFT_RETURN, 123.00, 456.00, Some(LocalDate.parse("2020-08-15")))
+        createCharge(index = 1, PSS_AFT_RETURN, 123.00, 456.00),
+        createCharge(index = 2, PSS_OTC_AFT_RETURN, 123.00, 456.00, Some(LocalDate.parse("2020-08-15")))
       )
 
       paymentsAndChargesService.getOverdueCharges(charges).size mustBe 1
@@ -273,9 +272,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       DateHelper.setDate(Some(LocalDate.of(2020, 6, 1)))
 
       val charges = Seq(
-        createCharge(PSS_AFT_RETURN, 123.00, 456.00),
-        createCharge(PSS_AFT_RETURN, 123.00, -456.00),
-        createCharge(PSS_OTC_AFT_RETURN, 123.00, 0.00)
+        createCharge(index = 1, PSS_AFT_RETURN, 123.00, 456.00),
+        createCharge(index = 2, PSS_AFT_RETURN, 123.00, -456.00),
+        createCharge(index = 3, PSS_OTC_AFT_RETURN, 123.00, 0.00)
       )
 
       paymentsAndChargesService.getDueCharges(charges).size mustBe 2
@@ -288,9 +287,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       DateHelper.setDate(Some(LocalDate.of(2020, 6, 1)))
 
       val charges = Seq(
-        createCharge(PSS_AFT_RETURN, 123.00, 456.00),
-        createCharge(PSS_AFT_RETURN_INTEREST, 123.00, 456.00, accruedInterestTotal = Some(0.00)),
-        createCharge(PSS_OTC_AFT_RETURN, 123.00, 0.00, accruedInterestTotal = Some(-12.00))
+        createCharge(index = 1, PSS_AFT_RETURN, 123.00, 456.00),
+        createCharge(index = 2, PSS_AFT_RETURN_INTEREST, 123.00, 456.00, accruedInterestTotal = Some(0.00)),
+        createCharge(index = 3, PSS_OTC_AFT_RETURN, 123.00, 0.00, accruedInterestTotal = Some(-12.00))
       )
 
       paymentsAndChargesService.getInterestCharges(charges).size mustBe 2
@@ -316,23 +315,29 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     "return payload from cache is srn and logged in id match the payload" in {
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
+        _ mustBe paymentsCache
+      }
     }
 
     "call FS API and save to cache if srn does not match the retrieved payload from cache" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache.copy(srn = "wrong-srn")))))
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-      when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit))))
+      when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit(index = 1)))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit)) }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
+        _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit(index = 1)))
+      }
     }
 
     "call FS API and save to cache if logged in id does not match the retrieved payload from cache" in {
       when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache.copy(loggedInId = "wrong-id")))))
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-      when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit))))
+      when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit(index = 1)))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit)) }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
+        _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit(index = 1)))
+      }
     }
 
     "call FS API and save to cache if retrieved payload from cache is not in Payments format" in {
@@ -340,7 +345,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
+        _ mustBe paymentsCache
+      }
     }
 
     "call FS API and save to cache if there is no existing payload stored in cache" in {
@@ -348,21 +355,27 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
+        _ mustBe paymentsCache
+      }
     }
 
     "return upcoming charges only for upcoming filter" in {
       DateHelper.setDate(Some(LocalDate.parse("2020-01-31")))
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Upcoming)){ _ mustBe paymentsCache }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Upcoming)) {
+        _ mustBe paymentsCache
+      }
     }
 
     "return overdue charges only for overdue filter" in {
       DateHelper.setDate(Some(LocalDate.parse("2020-12-31")))
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Overdue)){ _ mustBe paymentsCache }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Overdue)) {
+        _ mustBe paymentsCache
+      }
     }
   }
 }
@@ -374,14 +387,15 @@ object PaymentsAndChargesServiceSpec {
   val paymentsCache: PaymentsCache = PaymentsCache(psaId, srn, schemeDetails, schemeFSResponseAftAndOTC.seqSchemeFSDetail)
   val item: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-05-14")), Some(FSClearingReason.CLEARED_WITH_PAYMENT))
 
-  private def createCharge(
-                            chargeType: SchemeFSChargeType,
-                            totalAmount: BigDecimal,
-                            amountDue: BigDecimal,
-                            dueDate: Option[LocalDate] = Some(LocalDate.parse("2020-05-15")),
-                            accruedInterestTotal: Option[BigDecimal] = Some(153.00)
+  private def createCharge(index: Int,
+                           chargeType: SchemeFSChargeType,
+                           totalAmount: BigDecimal,
+                           amountDue: BigDecimal,
+                           dueDate: Option[LocalDate] = Some(LocalDate.parse("2020-05-15")),
+                           accruedInterestTotal: Option[BigDecimal] = Some(153.00)
                           ): SchemeFSDetail = {
     SchemeFSDetail(
+      index = index,
       chargeReference = "AYU3494534632",
       chargeType = chargeType,
       dueDate = dueDate,
@@ -393,12 +407,16 @@ object PaymentsAndChargesServiceSpec {
       periodStartDate = Some(QUARTER_START_DATE),
       periodEndDate = Some(QUARTER_END_DATE),
       formBundleNumber = None,
+      version = Some(1),
+      receiptDate = Some(LocalDate.parse("2016-12-17")),
       sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
       documentLineItemDetails = Seq(item)
     )
   }
 
-  private def chargeWithCredit = SchemeFSDetail(
+  private def chargeWithCredit(index: Int) = SchemeFSDetail(
+    index = index,
     chargeReference = "AYU3494534632",
     chargeType = PSS_AFT_RETURN,
     dueDate = Some(LocalDate.parse("2020-05-15")),
@@ -410,7 +428,10 @@ object PaymentsAndChargesServiceSpec {
     periodStartDate = Some(QUARTER_START_DATE),
     periodEndDate = Some(QUARTER_END_DATE),
     formBundleNumber = None,
+    version = None,
+    receiptDate = None,
     sourceChargeRefForInterest = None,
+    sourceChargeInfo = None,
     documentLineItemDetails = Nil
   )
 
@@ -420,7 +441,7 @@ object PaymentsAndChargesServiceSpec {
     (
       LocalDate.parse(QUARTER_START_DATE.toString),
       Seq(
-        createCharge(chargeType, totalAmount, amountDue)
+        createCharge(index = 1, chargeType, totalAmount, amountDue)
       )
     )
   )
@@ -470,18 +491,18 @@ object PaymentsAndChargesServiceSpec {
   }
 
   private def stoodOverAmountChargeDetailsRow: Seq[SummaryList.Row] = {
-      Seq(
-        Row(
-          key = Key(
-            content = msg"paymentsAndCharges.chargeDetails.stoodOverAmount",
-            classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
-          ),
-          value = Value(
-            content = Literal(s"-${formatCurrencyAmountAsString(25089.08)}"),
-            classes = Seq("govuk-!-width-one-quarter")
-          ),
-          actions = Nil
-        ))
+    Seq(
+      Row(
+        key = Key(
+          content = msg"paymentsAndCharges.chargeDetails.stoodOverAmount",
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+        ),
+        value = Value(
+          content = Literal(s"-${formatCurrencyAmountAsString(25089.08)}"),
+          classes = Seq("govuk-!-width-one-quarter")
+        ),
+        actions = Nil
+      ))
   }
 
   private def totalAmountDueChargeDetailsRow: Seq[SummaryList.Row] = {
@@ -511,15 +532,6 @@ object PaymentsAndChargesServiceSpec {
           classes = Seq("govuk-!-width-one-quarter")
         ),
         actions = Nil
-    ))
-  }
-
-  private def mapChargeTypesVersionAndDate: Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])] = {
-    val localDate = LocalDate.parse(submittedDate)
-    Map(
-      (PSS_AFT_RETURN, (Some(1),Some(localDate))),
-      (PSS_OTC_AFT_RETURN,  (Some(1),Some(localDate))),
-      (PSS_CHARGE, (Some(1),Some(localDate))),
-      (CONTRACT_SETTLEMENT, (Some(1),Some(localDate))))
+      ))
   }
 }

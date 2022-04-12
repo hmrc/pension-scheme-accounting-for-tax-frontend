@@ -20,22 +20,20 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.actions._
 import helpers.FormatHelper
+import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.Upcoming
-import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
-import models.{ChargeDetailsFilter, UserAnswers}
-import pages.{AFTReceiptDateQuery, AFTVersionQuery}
+import models.financialStatement.SchemeFSDetail
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
 import services.financialOverview.scheme.PaymentsAndChargesService
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
 import viewmodels.Table
 
-import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -52,26 +50,7 @@ class PaymentsAndChargesController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
-
-  private def getMapChargeTypeToVersionAndDate(seqSchemeFS: Seq[SchemeFSDetail], pstr: String)(implicit ec: ExecutionContext,
-                                                                                               headerCarrier: HeaderCarrier): Future[Map[SchemeFSChargeType, (Option[Int], Option[LocalDate])]] = {
-    val tuple = Future.sequence {
-      seqSchemeFS.map { scheme =>
-        scheme.formBundleNumber match {
-          case Some(fb) => aftConnector
-            .getAFTDetailsWithFbNumber(pstr, fb)
-            .map { aftDetails =>
-              val ua = UserAnswers(aftDetails.as[JsObject])
-              Seq(Tuple2(scheme.chargeType, (ua.get(AFTVersionQuery), ua.get(AFTReceiptDateQuery))))
-            }
-          case None => Future.successful(Nil)
-        }
-      }
-    }.map(_.flatten)
-    tuple.map(_.toMap)
-  }
-
-    // scalastyle:off method.length
+  private val logger = Logger(classOf[PaymentsAndChargesController])
   def onPageLoad(srn: String, pstr: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
@@ -80,27 +59,26 @@ class PaymentsAndChargesController @Inject()(
         val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
         val totalInterestAccruing: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
         val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(paymentsCache.schemeFSDetail)
-        val totalUpcoming : BigDecimal = upcomingCharges.map(_.amountDue).sum
+        val totalUpcoming: BigDecimal = upcomingCharges.map(_.amountDue).sum
 
         if (paymentsCache.schemeFSDetail.nonEmpty) {
-          getMapChargeTypeToVersionAndDate(paymentsCache.schemeFSDetail, pstr).flatMap { mapChargeTypesVersionsAndDate =>
-            val table = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, paymentsCache.schemeFSDetail, mapChargeTypesVersionsAndDate, journeyType)
+          val table = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, paymentsCache.schemeFSDetail, journeyType)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
               fields =
                 "titleMessage" -> Message(s"financialPaymentsAndCharges.$journeyType.title"),
-                "reflectChargeText" -> Message(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text"),
-                "journeyType" -> journeyType.toString,
-                "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
-                "schemeName" -> paymentsCache.schemeDetails.schemeName,
-                "totalOverdue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
-                "totalInterestAccruing" -> s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
-                "totalUpcoming" -> s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
-                "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+              "reflectChargeText" -> Message(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text"),
+              "journeyType" -> journeyType.toString,
+              "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
+              "schemeName" -> paymentsCache.schemeDetails.schemeName,
+              "totalOverdue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
+              "totalInterestAccruing" -> s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
+              "totalUpcoming" -> s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
+              "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
             )
             renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
-          }
         } else {
+          logger.warn(s"Empty payments cache")
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
       }

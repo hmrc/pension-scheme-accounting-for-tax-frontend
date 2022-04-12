@@ -24,7 +24,7 @@ import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.financialStatement.{PsaFS, PsaFSDetail, SchemeFS, SchemeFSDetail}
+import models.financialStatement._
 import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
@@ -225,6 +225,7 @@ object SampleData {
     SchemeFS(
       seqSchemeFSDetail = Seq(
         SchemeFSDetail(
+          index = 0,
           chargeReference = "XY002610150184",
           chargeType = PSS_AFT_RETURN,
           dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -236,10 +237,14 @@ object SampleData {
           periodStartDate = Some(LocalDate.parse("2020-04-01")),
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
+          version = None,
+          receiptDate = None,
           sourceChargeRefForInterest = None,
+          sourceChargeInfo = None,
           documentLineItemDetails = Nil
         ),
         SchemeFSDetail(
+          index = 0,
           chargeReference = "XY002610150184",
           chargeType = PSS_OTC_AFT_RETURN,
           dueDate = Some(LocalDate.parse("2020-02-15")),
@@ -251,7 +256,58 @@ object SampleData {
           periodStartDate = Some(LocalDate.parse("2020-04-01")),
           periodEndDate = Some(LocalDate.parse("2020-06-30")),
           formBundleNumber = None,
+          version = None,
+          receiptDate = None,
           sourceChargeRefForInterest = None,
+          sourceChargeInfo = None,
+          documentLineItemDetails = Nil
+        )
+      )
+    )
+
+  val schemeFSResponseAftAndOTCWithExtraFieldValues: SchemeFS =
+    SchemeFS(
+      seqSchemeFSDetail = Seq(
+        SchemeFSDetail(
+          index = 1,
+          chargeReference = "XY002610150184",
+          chargeType = PSS_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2020-02-15")),
+          totalAmount = 12345.00,
+          outstandingAmount = 56049.08,
+          stoodOverAmount = 25089.08,
+          amountDue = 1029.05,
+          accruedInterestTotal = 23000.55,
+          periodStartDate = Some(LocalDate.parse("2020-04-01")),
+          periodEndDate = Some(LocalDate.parse("2020-06-30")),
+          formBundleNumber = Some("12345678"),
+          version = None,
+          receiptDate = None,
+          sourceChargeRefForInterest = None,
+          sourceChargeInfo = None,
+          documentLineItemDetails = Nil
+        ),
+        SchemeFSDetail(
+          index = 2,
+          chargeReference = "XY002610150185",
+          chargeType = PSS_OTC_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2020-02-15")),
+          totalAmount = 56432.00,
+          outstandingAmount = 56049.08,
+          stoodOverAmount = 25089.08,
+          amountDue = 129.05,
+          accruedInterestTotal = 24000.41,
+          periodStartDate = Some(LocalDate.parse("2020-06-01")),
+          periodEndDate = Some(LocalDate.parse("2020-09-30")),
+          formBundleNumber = None,
+          version = None,
+          receiptDate = None,
+          sourceChargeRefForInterest = Some("XY002610150184"),
+          sourceChargeInfo = Some(
+            SchemeSourceChargeInfo(
+              index = 1
+            )
+          ),
           documentLineItemDetails = Nil
         )
       )
@@ -291,7 +347,7 @@ object SampleData {
       documentLineItemDetails = Nil
     )
   )
-  val psaFs: PsaFS = PsaFS (false, psaFsSeq)
+  val psaFs: PsaFS = PsaFS(false, psaFsSeq)
   val multiplePenalties: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
       index = 1,

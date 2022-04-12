@@ -181,8 +181,7 @@ class AFTSummaryController @Inject()(
     val submissionNumber = (request.isCompile, request.isAmendment, request.isViewOnly) match {
       case (true, true, _) =>  "Draft"
       case (true, false, _) => schemeName
-      case (_,_,true) => "Submission" + ' ' + (request.aftVersion)
-      case _ => "Submission" + ' ' + (request.aftVersion -1)
+      case _ => "Submission" + ' ' + version
     }
 
     logger.warn("This is your compile ---------------------------"+ request.isCompile)
