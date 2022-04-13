@@ -33,7 +33,7 @@
                                  <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalInterestAccruing }}</p>
                            </div>
                     </div>
-               {% if totalOverdueCharge != "£0.00" and totalInterestAccruing != "£0.00" %}
+               {% if totalOverdueCharge != "£0.00" %}
                 <p class="govuk-body-m">
                     <a id="allOverdue" class=govuk-link href="{{allOverduePenaltiesAndInterestLink}}"> {{ messages("psa.financial.overview.allOverdue.link") }}</a>
                 </p>

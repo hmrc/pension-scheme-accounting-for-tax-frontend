@@ -370,42 +370,36 @@ class PsaSchemePartialService @Inject()(
     else {
       Nil
     }
-
+    if (isChargePresent) {
       Seq(CardViewModel(
         id = "aft-overdue-charges",
         heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
         subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
-        links = viewFinancialOverviewLink(isChargePresent, srn) ++ viewAllPaymentsAndChargesLink(isChargePresent, srn, pstr)
+        links = viewFinancialOverviewLink(srn) ++ viewAllPaymentsAndChargesLink(srn, pstr)
       ))
+    }
+    else {
+      Nil
+    }
+
   }
 
-  private def viewFinancialOverviewLink(isChargePresent: Boolean, srn: String): Seq[Link] = {
-    if (isChargePresent) {
+  private def viewFinancialOverviewLink(srn: String): Seq[Link] =
       Seq(Link(
         id = "view-your-financial-overview",
         url = appConfig.financialOverviewUrl.format(srn),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
         hiddenText = None
       ))
-    }
-    else {
-      Nil
-    }
-  }
 
-  private def viewAllPaymentsAndChargesLink(isChargePresent: Boolean, srn: String, pstr: String): Seq[Link] = {
-    if (isChargePresent) {
-      Seq(Link(
+
+  private def viewAllPaymentsAndChargesLink(srn: String, pstr: String): Seq[Link] =
+          Seq(Link(
         id = "past-payments-and-charges",
         url = appConfig.financialPaymentsAndChargesUrl.format(srn,pstr),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
         hiddenText = None
       ))
-    }
-    else {
-      Nil
-    }
-  }
 
   def getCreditBalanceAmount(schemeFs: Seq[SchemeFSDetail]): BigDecimal = {
     val sumAmountOverdue = paymentsAndChargesService.getDueCharges(schemeFs).map(_.amountDue).sum
