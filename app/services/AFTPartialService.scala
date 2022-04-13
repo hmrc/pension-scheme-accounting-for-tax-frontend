@@ -173,17 +173,16 @@ class AFTPartialService @Inject()(
     )
   }
 
-  def retrievePspDashboardPaymentsAndChargesModel(schemeFs: Seq[SchemeFSDetail], srn: String, pstr: String)
+  def retrievePspDashboardPaymentsAndChargesModel(schemeFsDetail: Seq[SchemeFSDetail], srn: String, pstr: String)
                                                  (implicit messages: Messages): Seq[CardViewModel] = {
-    val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFs)
-    val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFs)
-    val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(schemeFs)
-    val overdueChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFs.filter(_.amountDue > BigDecimal(0.00)))
-    val upcomingChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFs.filter(_.amountDue > BigDecimal(0.00)))
+    val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(schemeFsDetail)
+    val overdueChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFsDetail.filter(_.amountDue > BigDecimal(0.00)))
+    val upcomingChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFsDetail.filter(_.amountDue > BigDecimal(0.00)))
     val totalOverdue: BigDecimal = overdueChargesAbs.map(_.amountDue).sum
     val totalInterestAccruing: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
     val totalUpcomingCharges: BigDecimal = upcomingChargesAbs.map(_.amountDue).sum
     val totalOutstandingPayments: BigDecimal = totalUpcomingCharges + totalOverdue + totalInterestAccruing
+    val isChargePresent: Boolean = schemeFsDetail.nonEmpty
     val subHeadingTotalOutstanding: Seq[CardSubHeading] = Seq(CardSubHeading(
       subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),
       subHeadingClasses = "card-sub-heading",
@@ -212,14 +211,12 @@ class AFTPartialService @Inject()(
       id = "aft-overdue-charges",
       heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
       subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
-      links = viewFinancialOverviewLink(overdueCharges, srn) ++ viewAllPaymentsAndChargesLink(upcomingCharges, srn, pstr)
+      links = viewFinancialOverviewLink(isChargePresent, srn) ++ viewAllPaymentsAndChargesLink(isChargePresent, srn, pstr)
     ))
   }
 
-  private def viewFinancialOverviewLink(pastCharges: Seq[SchemeFSDetail], srn: String): Seq[Link] =
-    if (pastCharges == Seq.empty) {
-      Nil
-    } else {
+  private def viewFinancialOverviewLink(isChargePresent: Boolean, srn: String): Seq[Link] = {
+    if (isChargePresent) {
       Seq(Link(
         id = "view-your-financial-overview",
         url = appConfig.financialOverviewUrl.format(srn),
@@ -227,11 +224,13 @@ class AFTPartialService @Inject()(
         hiddenText = None
       ))
     }
-
-  private def viewAllPaymentsAndChargesLink(pastCharges: Seq[SchemeFSDetail], srn: String, pstr: String): Seq[Link] =
-    if (pastCharges == Seq.empty) {
+    else {
       Nil
-    } else {
+    }
+  }
+
+  private def viewAllPaymentsAndChargesLink(isChargePresent: Boolean, srn: String, pstr: String): Seq[Link] = {
+    if (isChargePresent) {
       Seq(Link(
         id = "past-payments-and-charges",
         url = appConfig.financialPaymentsAndChargesUrl.format(srn, pstr),
@@ -239,6 +238,11 @@ class AFTPartialService @Inject()(
         hiddenText = None
       ))
     }
+    else {
+      Nil
+    }
+  }
+
 
   private def optionSubHeading(
                                 inProgressReturns: Seq[AFTOverviewOnPODS],
@@ -413,14 +417,15 @@ class AFTPartialService @Inject()(
     }
   }
 
-  def penaltiesAndCharges(psaFS: Seq[PsaFSDetail])
+  def penaltiesAndCharges(psaFSDetail: Seq[PsaFSDetail])
                          (implicit messages: Messages): Seq[CardViewModel] = {
-    val overdueCharges: Seq[PsaFSDetail] = psaFS.filter(charge => charge.dueDate.exists(_.isBefore(DateHelper.today)))
-    val upcomingCharges: Seq[PsaFSDetail] = psaFS.filter(_.dueDate.exists(!_.isBefore(DateHelper.today)))
+    val overdueCharges: Seq[PsaFSDetail] = psaFSDetail.filter(charge => charge.dueDate.exists(_.isBefore(DateHelper.today)))
+    val upcomingCharges: Seq[PsaFSDetail] = psaFSDetail.filter(_.dueDate.exists(!_.isBefore(DateHelper.today)))
     val totalOverdue: BigDecimal = overdueCharges.map(_.amountDue).sum
     val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
     val totalUpcomingCharges: BigDecimal = upcomingCharges.map(_.amountDue).sum
     val totalOutstandingPayments: BigDecimal = totalUpcomingCharges + totalOverdue + totalInterestAccruing
+    val isChargesPresent: Boolean = psaFSDetail.nonEmpty
     val subHeadingTotalOutstanding: Seq[CardSubHeading] = Seq(CardSubHeading(
       subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),
       subHeadingClasses = "card-sub-heading",
@@ -448,25 +453,37 @@ class AFTPartialService @Inject()(
       id = "aft-overdue-charges",
       heading = messages("psaPenaltiesCard.h2"),
       subHeadings = subHeadingTotalOutstanding ++ subHeadingPenaltiesOverdue,
-      links = viewFinancialOverviewLink() ++ viewAllPenaltiesAndChargesLink()
+      links = viewFinancialOverviewLink(isChargesPresent) ++ viewAllPenaltiesAndChargesLink(isChargesPresent)
     ))
   }
 
-  private def viewFinancialOverviewLink(): Seq[Link] =
-    Seq(Link(
-      id = "view-your-financial-overview",
-      url = appConfig.psafinancialOverviewUrl,
-      linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
-      hiddenText = None
-    ))
+  private def viewFinancialOverviewLink(isChargesPresent: Boolean): Seq[Link] = {
+    if (isChargesPresent) {
+      Seq(Link(
+        id = "view-your-financial-overview",
+        url = appConfig.psafinancialOverviewUrl,
+        linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+        hiddenText = None
+      ))
+    }
+    else {
+      Nil
+    }
+  }
 
-  private def viewAllPenaltiesAndChargesLink(): Seq[Link] =
-    Seq(Link(
-      id = "past-penalties-id",
-      url = appConfig.viewAllPenaltiesForFinancialOverviewUrl,
-      linkText = msg"psa.financial.overview.pastPenalties.link",
-      hiddenText = None
-    ))
+  private def viewAllPenaltiesAndChargesLink(isChargesPresent: Boolean): Seq[Link] = {
+    if (isChargesPresent) {
+      Seq(Link(
+        id = "past-penalties-id",
+        url = appConfig.viewAllPenaltiesForFinancialOverviewUrl,
+        linkText = msg"psa.financial.overview.pastPenalties.link",
+        hiddenText = None
+      ))
+    }
+    else {
+      Nil
+    }
+  }
 
   def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFSDetail])
                                    (implicit messages: Messages): DashboardAftViewModel = {
