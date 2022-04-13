@@ -21,7 +21,7 @@ import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
+import models.financialStatement.SchemeFSChargeType.getInterestChargeTypeText
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import play.api.Logger
@@ -114,23 +114,18 @@ class PaymentsAndChargesInterestController @Inject()(
           s" ${messages("paymentsAndCharges.interest.chargeReference.linkText")}</a></span>" +
           s" ${messages("paymentsAndCharges.interest.chargeReference.text2")}</p>"
       )
-
+    val interestChargeType= getInterestChargeTypeText(schemeFSDetail.chargeType)
     Json.obj(
       fields = "chargeDetailsList" -> getSummaryListRows(schemeFSDetail),
       "tableHeader" -> tableHeader(schemeFSDetail),
       "schemeName" -> schemeName,
       "accruedInterest" -> schemeFSDetail.accruedInterestTotal,
-      "chargeType" -> (
-        (version, schemeFSDetail.chargeType) match {
-          case (Some(value), PSS_AFT_RETURN) =>
-            PSS_AFT_RETURN_INTEREST.toString + s" submission $value"
-          case (Some(value), _) =>
-            PSS_OTC_AFT_RETURN_INTEREST.toString + s" submission $value"
-          case (None, PSS_AFT_RETURN) =>
-            PSS_AFT_RETURN_INTEREST.toString
-          case (None, _) =>
-            PSS_OTC_AFT_RETURN_INTEREST.toString
-        }
+      "chargeType" -> ((version, interestChargeType) match {
+        case (Some(value), interestChargeTypeText) =>
+          interestChargeTypeText + s" submission $value"
+        case (None, interestChargeTypeText) =>
+          interestChargeTypeText
+          }
         ),
       "insetText" -> htmlInsetText,
       "originalAmountUrl" -> originalAmountUrl,
