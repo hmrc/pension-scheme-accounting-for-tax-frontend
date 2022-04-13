@@ -78,7 +78,8 @@ object SchemeFSChargeType extends Enumerable.Implicits {
       case OTC_MANUAL_ASST => OTC_MANUAL_ASST_INTEREST
       case PSS_CHARGE => PSS_CHARGE_INTEREST
       case CONTRACT_SETTLEMENT => CONTRACT_SETTLEMENT_INTEREST
-      case _ => PSS_OTC_AFT_RETURN_INTEREST
+      case PSS_OTC_AFT_RETURN => PSS_OTC_AFT_RETURN_INTEREST
+      case _ => ""
     }
   interestChargeType.toString
 }
