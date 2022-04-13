@@ -233,8 +233,7 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
 
   private def isPaymentOverdue(schemeFSDetail: SchemeFSDetail): Boolean =
-    (schemeFSDetail.amountDue > 0 && schemeFSDetail.accruedInterestTotal > 0
-      && (schemeFSDetail.chargeType == PSS_AFT_RETURN || schemeFSDetail.chargeType == PSS_OTC_AFT_RETURN))
+    schemeFSDetail.amountDue > 0 && schemeFSDetail.dueDate.exists(_.isBefore(LocalDate.now()))
 
   private def tableHeader(schemeFSDetail: SchemeFSDetail): String =
     paymentsAndChargesService.setPeriod(

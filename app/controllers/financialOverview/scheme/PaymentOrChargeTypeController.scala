@@ -55,7 +55,8 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
       val json = Json.obj(
         "titleMessage" -> s"paymentOrChargeType.all.title",
         "form" -> form(),
-        "radios" -> PaymentOrChargeType.radios(form(), paymentsOrCharges),
+        "radios" -> PaymentOrChargeType.radios(form(), paymentsOrCharges,
+                    Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
         "schemeName" -> cache.schemeDetails.schemeName,
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
       )

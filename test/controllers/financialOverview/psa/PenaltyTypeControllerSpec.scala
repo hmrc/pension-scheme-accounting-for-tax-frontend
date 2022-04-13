@@ -61,7 +61,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
 
   private val displayPenalties: Seq[DisplayPenaltyType] = Seq(
     DisplayPenaltyType(AccountingForTaxPenalties, Some(PaymentOverdue)),
-    DisplayPenaltyType(ContractSettlementCharges, None))
+    DisplayPenaltyType(ContractSettlementCharges, Some(PaymentOverdue)))
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
@@ -76,7 +76,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
 
   private val jsonToPassToTemplate: Form[PenaltyType] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> PenaltyType.radios(form, displayPenalties)
+    "radios" -> PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
   )
 
   private val year = "2020"

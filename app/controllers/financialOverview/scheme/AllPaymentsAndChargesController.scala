@@ -67,17 +67,17 @@ class AllPaymentsAndChargesController @Inject()(
 
         if (filteredPayments.nonEmpty) {
           val tableOfPaymentsAndCharges = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, filteredPayments, journeyType)
-            val json = Json.obj(
-              fields =
-                "titleMessage" -> title,
-              "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
-              "journeyType" -> journeyType.toString,
-              "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
-              "schemeName" -> paymentsCache.schemeDetails.schemeName,
-              "totalDue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
-              "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-            )
-            renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
+          val json = Json.obj(
+            fields =
+              "titleMessage" -> title,
+            "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
+            "journeyType" -> journeyType.toString,
+            "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
+            "schemeName" -> paymentsCache.schemeDetails.schemeName,
+            "totalDue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+          )
+          renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))

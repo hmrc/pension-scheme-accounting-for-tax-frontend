@@ -26,7 +26,7 @@ import play.api.data.FormError
 class SelectSchemeFormProviderSpec extends SpecBase with OptionFieldBehaviours {
 
   implicit val config: FrontendAppConfig = frontendAppConfig
-  val valid: Seq[PenaltySchemes] = Seq(PenaltySchemes(Some("Assoc scheme"), "XY123", Some("SRN123")), PenaltySchemes(None, "XY345", None))
+  val valid: Seq[PenaltySchemes] = Seq(PenaltySchemes(Some("Assoc scheme"), "XY123", Some("SRN123"), None), PenaltySchemes(None, "XY345", None, None))
   val errorMessage: String = messages("selectScheme.error", messages(s"penaltyType.${ContractSettlementCharges.toString}").toLowerCase())
   val form = new SelectSchemeFormProvider()(valid, errorMessage)
 

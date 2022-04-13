@@ -71,7 +71,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
   private val jsonToTemplate: Form[PenaltySchemes] => JsObject = form => Json.obj(
     fields = "form" -> form,
-    "radios" -> PenaltySchemes.radios(form, penaltySchemes)
+    "radios" -> PenaltySchemes.radios(form, penaltySchemes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
   )
 
   override def beforeEach: Unit = {
@@ -122,8 +122,8 @@ object SelectSchemeControllerSpec {
   private val template = "financialOverview/psa/selectScheme.njk"
   private val year = "2020"
   val pstr = "24000040IN"
-  private val ps1 = PenaltySchemes(name = Some("Scheme1"), pstr = "24000040IN", srn = None)
-  private val ps2 = PenaltySchemes(name = None, pstr = "24000041IN", srn = None)
+  private val ps1 = PenaltySchemes(name = Some("Scheme1"), pstr = "24000040IN", srn = None, None)
+  private val ps2 = PenaltySchemes(name = None, pstr = "24000041IN", srn = None, None)
   val penaltySchemes: Seq[PenaltySchemes] = Seq(ps1, ps2)
   val psaFS: JsValue = Json.toJson(psaFSResponse)
   val penaltyType: PenaltyType = ContractSettlementCharges

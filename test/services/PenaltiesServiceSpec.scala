@@ -586,8 +586,8 @@ object PenaltiesServiceSpec {
   )
 
   val penaltySchemes: Seq[PenaltySchemes] = Seq(
-    PenaltySchemes(Some("Assoc scheme"), "24000040IN", Some("SRN123")),
-    PenaltySchemes(None, "24000041IN", None)
+    PenaltySchemes(Some("Assoc scheme"), "24000040IN", Some("SRN123"), None),
+    PenaltySchemes(None, "24000041IN", None, None)
   )
 
   val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(

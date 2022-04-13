@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
 import matchers.JsonMatchers
-import models.Enumerable
+import models.{Enumerable, PaymentOverdue}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
@@ -53,7 +53,7 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
   )
 
   private val displayPaymentOrChargeType: Seq[DisplayPaymentOrChargeType] = Seq(
-    DisplayPaymentOrChargeType(AccountingForTaxCharges, None)
+    DisplayPaymentOrChargeType(AccountingForTaxCharges, Some(PaymentOverdue))
   )
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -69,7 +69,7 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
   private val jsonToPassToTemplate: Form[PaymentOrChargeType] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> PaymentOrChargeType.radios(form, displayPaymentOrChargeType),
+    "radios" -> PaymentOrChargeType.radios(form, displayPaymentOrChargeType, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
     "schemeName" -> schemeName,
     "returnUrl" -> dummyCall.url
   )
