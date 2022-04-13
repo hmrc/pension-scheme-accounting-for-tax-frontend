@@ -21,6 +21,8 @@ import models.financialStatement.SchemeFSChargeType._
 import play.api.data.Form
 import play.api.mvc.PathBindable
 import uk.gov.hmrc.viewmodels._
+import viewmodels.{Hint, LabelClasses, Radios}
+import viewmodels.Radios.Radio
 
 import scala.language.implicitConversions
 
@@ -46,9 +48,20 @@ object PaymentOrChargeType extends Enumerable.Implicits {
   val values: Seq[PaymentOrChargeType] =
     Seq(AccountingForTaxCharges, ContractSettlementCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, PensionsCharges)
 
-  def radios(form: Form[_], chargeTypes: Seq[DisplayPaymentOrChargeType]): Seq[Radios.Item] =
-    Radios(form("value"), chargeTypes.map(value => Radios.Radio(msg"paymentOrChargeType.${value.chargeType.toString}", value.chargeType.toString)))
+  def radios(form: Form[_], chargeTypes: Seq[DisplayPaymentOrChargeType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
+            : Seq[Radios.Item] =
+  {
+    val x: Seq[Radio] = chargeTypes.map { chargeType =>
 
+      Radios.Radio(label = msg"paymentOrChargeType.${chargeType.chargeType.toString}",
+        value = chargeType.chargeType.toString,
+        hint = getHint(chargeType, hintClass),
+        labelClasses = Some(LabelClasses(classes = if(areLabelsBold) Seq("govuk-!-font-weight-bold") else Nil)))
+    }
+
+    Radios(form("value"), x)
+  }
+  
   implicit val enumerable: Enumerable[PaymentOrChargeType] = Enumerable(values.map(v => v.toString -> v): _*)
 
   implicit def paymentOrChargePathBindable(implicit stringBinder: PathBindable[String]): PathBindable[PaymentOrChargeType] = new
@@ -92,4 +105,9 @@ object PaymentOrChargeType extends Enumerable.Implicits {
 
   case class UnknownChargeTypeException() extends Exception
 
+  private def getHint(chargeTypes: DisplayPaymentOrChargeType, hintClass: Seq[String]): Option[Hint] =
+    chargeTypes.hintText match {
+      case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))
+      case _ => None
+    }
 }

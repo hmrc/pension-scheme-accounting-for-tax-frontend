@@ -248,7 +248,7 @@ class PaymentsAndChargeDetailsControllerSpec
       templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
 
       jsonCaptor.getValue must containJson(
-        expectedJson(schemeFSDetail, insetTextForInterestWithQuarter(schemeFSDetail))
+        expectedJson(schemeFSDetail, insetTextForInterestWithQuarter(schemeFSDetail), isPaymentOverdue = true)
       )
     }
 

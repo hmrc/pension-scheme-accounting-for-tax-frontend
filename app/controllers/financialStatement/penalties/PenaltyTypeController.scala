@@ -54,7 +54,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
       val json = Json.obj(
         "psaName" -> penaltiesCache.psaName,
         "form" -> form,
-        "radios" -> PenaltyType.radios(form, penaltyTypes),
+        "radios" -> PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
         "submitUrl" -> routes.PenaltyTypeController.onSubmit(journeyType).url
       )
 

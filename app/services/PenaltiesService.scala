@@ -224,11 +224,11 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
       val associatedSchemes: Seq[PenaltySchemes] = schemesWithPstr
         .filter(scheme => penaltyPstrs.contains(scheme.pstr.get))
-        .map(x => PenaltySchemes(Some(x.name), x.pstr.get, Some(x.referenceNumber)))
+        .map(x => PenaltySchemes(Some(x.name), x.pstr.get, Some(x.referenceNumber), None))
 
       val unassociatedSchemes: Seq[PenaltySchemes] = penaltyPstrs
         .filter(penaltyPstr => !schemesWithPstr.map(_.pstr.get).contains(penaltyPstr))
-        .map(x => PenaltySchemes(None, x, None))
+        .map(x => PenaltySchemes(None, x, None, None))
 
       associatedSchemes ++ unassociatedSchemes
     }
