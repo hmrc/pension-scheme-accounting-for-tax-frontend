@@ -337,17 +337,16 @@ class PsaSchemePartialService @Inject()(
     Seq(Link("overdue-payments-and-charges", appConfig.overdueChargesUrl.format(srn), linkText, None))
   }
 
-  def paymentsAndCharges(schemeFs: Seq[SchemeFSDetail], srn: String, pstr: String)
+  def paymentsAndCharges(schemeFsDetail: Seq[SchemeFSDetail], srn: String, pstr: String)
                         (implicit messages: Messages): Seq[CardViewModel] = {
-    val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFs)
-    val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFs)
-    val overdueChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFs.filter(_.amountDue > BigDecimal(0.00)))
-    val upcomingChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFs.filter(_.amountDue > BigDecimal(0.00)))
-    val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(schemeFs)
+    val overdueChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFsDetail.filter(_.amountDue > BigDecimal(0.00)))
+    val upcomingChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFsDetail.filter(_.amountDue > BigDecimal(0.00)))
+    val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(schemeFsDetail)
     val totalOverdue: BigDecimal = overdueChargesAbs.map(_.amountDue).sum
     val totalInterestAccruing: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
     val totalUpcomingCharges: BigDecimal = upcomingChargesAbs.map(_.amountDue).sum
     val totalOutstandingPayments: BigDecimal = totalUpcomingCharges + totalOverdue + totalInterestAccruing
+    val isChargePresent: Boolean = schemeFsDetail.nonEmpty
     val subHeadingTotalOutstanding: Seq[CardSubHeading] = Seq(CardSubHeading(
       subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),
       subHeadingClasses = "card-sub-heading",
@@ -371,38 +370,36 @@ class PsaSchemePartialService @Inject()(
     else {
       Nil
     }
-
+    if (isChargePresent) {
       Seq(CardViewModel(
         id = "aft-overdue-charges",
         heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
         subHeadings = subHeadingTotalOutstanding ++ subHeadingPaymentsOverdue,
-        links = viewFinancialOverviewLink(overdueCharges, srn) ++ viewAllPaymentsAndChargesLink(upcomingCharges, srn, pstr)
+        links = viewFinancialOverviewLink(srn) ++ viewAllPaymentsAndChargesLink(srn, pstr)
       ))
+    }
+    else {
+      Nil
+    }
+
   }
 
-  private def viewFinancialOverviewLink(pastCharges: Seq[SchemeFSDetail], srn: String): Seq[Link] =
-    if (pastCharges == Seq.empty) {
-      Nil
-    } else {
+  private def viewFinancialOverviewLink(srn: String): Seq[Link] =
       Seq(Link(
         id = "view-your-financial-overview",
         url = appConfig.financialOverviewUrl.format(srn),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
         hiddenText = None
       ))
-    }
 
-  private def viewAllPaymentsAndChargesLink(pastCharges: Seq[SchemeFSDetail], srn: String, pstr: String): Seq[Link] =
-    if (pastCharges == Seq.empty) {
-      Nil
-    } else {
-      Seq(Link(
+
+  private def viewAllPaymentsAndChargesLink(srn: String, pstr: String): Seq[Link] =
+          Seq(Link(
         id = "past-payments-and-charges",
         url = appConfig.financialPaymentsAndChargesUrl.format(srn,pstr),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
         hiddenText = None
       ))
-    }
 
   def getCreditBalanceAmount(schemeFs: Seq[SchemeFSDetail]): BigDecimal = {
     val sumAmountOverdue = paymentsAndChargesService.getDueCharges(schemeFs).map(_.amountDue).sum
