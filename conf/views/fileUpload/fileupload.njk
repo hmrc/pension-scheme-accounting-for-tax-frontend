@@ -31,68 +31,59 @@
               {{ messages("fileupload.fileupload.heading", chargeTypeText) }}
             </h1>
 
-            <form action="{{ viewModel.submitUrl }}" method="post" enctype="multipart/form-data" class="govuk-body">
-
+            <form action="{{ viewModel.submitUrl }}" method="post" enctype="multipart/form-data" class="govuk-body" autocomplete="off" novalidate >
+            {{ csrf() | safe }}
             {% for field in formFields %}
                 <input type="hidden" name="{{field[0]}}" value="{{field[1]}}"/>
             {% endfor %}
 
-            <div class="">
-                <div class="form-group">
+                            {{ govukDetails({
+                              summaryText: messages("fileupload.upload.details.summary"),
+                              html:details
+                            }) }}
 
-                    <div class="form-control-wrapper">
+                            <div class="govuk-inset-text">
+                               <p class="govuk-body govuk-!-margin-bottom-0">{{ messages("fileupload.upload.inset.text1") }}</p>
+                               <p class="govuk-body govuk-!-margin-bottom-0">{{ messages("fileupload.upload.inset.text2") }}</p>
+                            </div>
 
-                        {{ govukDetails({
-                          summaryText: messages("fileupload.upload.details.summary"),
-                          html:details
-                        }) }}
+                            {% if error == null %}
+                                {{ govukFileUpload({
+                                      id: "file-input",
+                                      name: "file",
+                                      attributes: {
+                                        "accept": ".csv,application/csv"
+                                            },
+                                      label: {
+                                        text: messages("inputSelection.radio.fileUploadInput")
+                                      }
+                                }) }}
 
-                        <div class="govuk-inset-text">
-                           <p class="govuk-body govuk-!-margin-bottom-0">{{ messages("fileupload.upload.inset.text1") }}</p>
-                           <p class="govuk-body govuk-!-margin-bottom-0">{{ messages("fileupload.upload.inset.text2") }}</p>
-                        </div>
+                            {% else %}
 
-                        {% if error == null %}
-                        {{ govukFileUpload({
-                              id: "file-input",
-                              name: "file",
-                              attributes: {
-                                "accept": ".csv,application/csv"
-                                    },
-                              label: {
-                                text: messages("inputSelection.radio.fileUploadInput")
-                              }
-                        }) }}
+                                {{ govukFileUpload({
+                                  id: "file-input",
+                                  name: "file",
+                                   attributes: {
+                                                                  "accept": ".csv,application/csv"
+                                                                      },
+                                  label: {
+                                    text: messages("inputSelection.radio.fileUploadInput")
+                                  },
+                                  errorMessage: {
+                                    text: messages(error, maxFileUploadSize)
+                                  }
+                                }) }}
 
-                        {% else %}
+                            {% endif %}
 
-                        {{ govukFileUpload({
-                          id: "file-input",
-                          name: "file",
-                           attributes: {
-                                                          "accept": ".csv,application/csv"
-                                                              },
-                          label: {
-                            text: messages("inputSelection.radio.fileUploadInput")
-                          },
-                          errorMessage: {
-                            text: messages(error, maxFileUploadSize)
-                          }
-                        }) }}
-
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-             {{ govukButton({
-             text: messages("site.continue"),
-             attributes: {id: "submit"}
-           }) }}
+                     {{ govukButton({
+                     text: messages("site.continue"),
+                     attributes: {id: "submit"}
+                   }) }}
+               </form>
           </div>
         </div>
-
-         </form>
 
       <p class="govuk-body"><a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
       </p>
