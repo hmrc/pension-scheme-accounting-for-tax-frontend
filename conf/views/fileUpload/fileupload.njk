@@ -31,7 +31,7 @@
               {{ messages("fileupload.fileupload.heading", chargeTypeText) }}
             </h1>
 
-            <form action="{{ viewModel.submitUrl }}" method="post" enctype="multipart/form-data" class="govuk-body" autocomplete="off" novalidate >
+            <form action="{{ viewModel.submitUrl }}" method="post" enctype="multipart/form-data" autocomplete="off" novalidate >
             {{ csrf() | safe }}
             {% for field in formFields %}
                 <input type="hidden" name="{{field[0]}}" value="{{field[1]}}"/>
