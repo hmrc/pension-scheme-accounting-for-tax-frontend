@@ -32,7 +32,6 @@
             </h1>
 
             <form action="{{ viewModel.submitUrl }}" method="post" enctype="multipart/form-data" autocomplete="off" novalidate >
-            {{ csrf() | safe }}
             {% for field in formFields %}
                 <input type="hidden" name="{{field[0]}}" value="{{field[1]}}"/>
             {% endfor %}
