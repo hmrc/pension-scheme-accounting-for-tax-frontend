@@ -54,15 +54,18 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
   val isPaymentOverdue: PsaFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
-  def retrievePsaChargesAmount(psaFs: Seq[PsaFSDetail]): (String, String, String) = {
+
+  case class chargeAmount(upcomingCharge: String, overdueCharge: String, interestAccruing: String)
+
+  def retrievePsaChargesAmount(psaFs: Seq[PsaFSDetail]): chargeAmount = {
 
     val upcomingCharges: Seq[PsaFSDetail] =
       psaFs.filter(_.dueDate.exists(!_.isBefore(DateHelper.today)))
 
     val overdueCharges: Seq[PsaFSDetail] =
-      psaFs.filter(charge => charge.dueDate.exists(_.isBefore(DateHelper.today)))
+      psaFs.filter(_.dueDate.exists(_.isBefore(DateHelper.today)))
 
-    val totalUpcomingCharge = upcomingCharges.map(_.amountDue).sum
+    val totalUpcomingCharge: BigDecimal = upcomingCharges.map(_.amountDue).sum
     val totalOverdueCharge: BigDecimal = overdueCharges.map(_.amountDue).sum
     val totalInterestAccruing: BigDecimal = overdueCharges.map(_.accruedInterestTotal).sum
 
@@ -70,7 +73,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     val totalOverdueChargeFormatted = s"${FormatHelper.formatCurrencyAmountAsString(totalOverdueCharge)}"
     val totalInterestAccruingFormatted = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}"
 
-    (totalUpcomingChargeFormatted, totalOverdueChargeFormatted, totalInterestAccruingFormatted)
+    chargeAmount(totalUpcomingChargeFormatted, totalOverdueChargeFormatted, totalInterestAccruingFormatted)
   }
 
   //scalastyle:off parameter.number

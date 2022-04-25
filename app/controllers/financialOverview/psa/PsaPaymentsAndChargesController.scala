@@ -80,12 +80,12 @@ class PsaPaymentsAndChargesController @Inject()(
                                                        penaltiesCache: PenaltiesCache)
                                                       (implicit messages: Messages, headerCarrier: HeaderCarrier): Future[Result] = {
 
-    val psaCharges: (String, String, String) = psaPenaltiesAndChargesService.retrievePsaChargesAmount(creditPsaFS)
+    val psaCharges = psaPenaltiesAndChargesService.retrievePsaChargesAmount(creditPsaFS)
 
 
-    logger.debug(s"AFT service returned UpcomingCharge - ${psaCharges._1}")
-    logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
-    logger.debug(s"AFT service returned InterestAccruing - ${psaCharges._3}")
+    logger.debug(s"AFT service returned UpcomingCharge - ${psaCharges.upcomingCharge}")
+    logger.debug(s"AFT service returned OverdueCharge - ${psaCharges.overdueCharge}")
+    logger.debug(s"AFT service returned InterestAccruing - ${psaCharges.interestAccruing}")
 
     psaPenaltiesAndChargesService.getPenaltiesAndCharges(psaId,
       penaltiesCache.penalties, journeyType) flatMap { table =>
@@ -98,9 +98,9 @@ class PsaPaymentsAndChargesController @Inject()(
 
       renderer.render(
         template = "financialOverview/psa/psaPaymentsAndCharges.njk",
-        ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1,
-          "totalOverdueCharge" -> psaCharges._2,
-          "totalInterestAccruing" -> psaCharges._3,
+        ctx = Json.obj("totalUpcomingCharge" -> psaCharges.upcomingCharge,
+          "totalOverdueCharge" -> psaCharges.overdueCharge,
+          "totalInterestAccruing" -> psaCharges.interestAccruing,
           "titleMessage" -> Message(s"psa.financial.overview.$journeyType.title"),
           "reflectChargeText" -> Message(s"psa.financial.overview.$journeyType.text"),
           "journeyType" -> journeyType.toString,
