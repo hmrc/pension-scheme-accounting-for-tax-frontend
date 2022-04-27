@@ -22,7 +22,7 @@
         }) }}
       {% endif %}
 
-        <form method="post" autocomplete="off" novalidate >
+        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
             {{ csrf() | safe }}
 
             {{ govukRadios({

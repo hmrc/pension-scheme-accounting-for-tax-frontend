@@ -89,7 +89,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
         "startDate" -> Some("2020-04-01"),
         "form" -> form ,
         "radios" -> InputSelection.radios(form),
-        "viewModel" -> viewModel(srn, startDate, accessType, versionInt)
+        "viewModel" -> viewModel(srn, startDate, accessType, versionInt, chargeType)
       )
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
@@ -117,7 +117,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
         "startDate" -> Some("2020-04-01"),
         "form" -> boundForm,
         "radios" -> InputSelection.radios(form),
-        "viewModel" -> viewModel(srn, startDate, accessType, versionInt)
+        "viewModel" -> viewModel(srn, startDate, accessType, versionInt, chargeType)
       )
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
@@ -154,8 +154,8 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
     }
   }
 
-  private def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int) = GenericViewModel(
-    submitUrl = "",
+  private def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType) = GenericViewModel(
+    submitUrl = controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, version, chargeType).url,
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
     schemeName = schemeName
   )
