@@ -56,17 +56,18 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   import PaymentsAndChargesServiceSpec._
 
   private def htmlChargeType(
+                              isInterestAccrued: Boolean,
                               chargeType: String,
                               chargeReference: String,
                               redirectUrl: String,
                               period: String,
                               visuallyHiddenText: String,
-                            ):Html = {
-    val linkId =
-      chargeReference match {
-        case "To be assigned" => "interest-1"
-        case _ => "charge-1"
-      }
+                            ): Html = {
+    val linkId = if (isInterestAccrued) {
+      s"$chargeReference-interest"
+    } else {
+      chargeReference
+    }
 
     Html(
       s"<a id=$linkId class=govuk-link href=" +
@@ -90,15 +91,16 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   private def paymentTable(rows: Seq[Seq[Table.Cell]]): Table =
     Table(head = tableHead, rows = rows, attributes = Map("role" -> "table"))
 
-  private def row(chargeType: String,
-                  chargeReference: String,
+  private def row(isInterestAccrued: Boolean,
+                  chargeType: String,
+                  displayChargeReference: String,
                   originalChargeAmount: String,
                   paymentDue: String,
                   status: PaymentAndChargeStatus,
                   redirectUrl: String,
-                  period: String,
                   visuallyHiddenText: String
                  ): Seq[Table.Cell] = {
+    val period = "Quarter: 1 April to 30 June 2020"
     val statusHtml = status match {
       case InterestIsAccruing => Html(s"<span class='govuk-tag govuk-tag--blue'>${status.toString}</span>")
       case PaymentOverdue => Html(s"<span class='govuk-tag govuk-tag--red'>${status.toString}</span>")
@@ -110,8 +112,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
 
     Seq(
-      Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, period, visuallyHiddenText), classes = Seq("govuk-!-width-one-half")),
-      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-padding-right-7")),
+      Cell(htmlChargeType(isInterestAccrued, chargeType, "AYU3494534632", redirectUrl, period, visuallyHiddenText),
+        classes = Seq("govuk-!-width-one-half")),
+      Cell(Literal(s"$displayChargeReference"), classes = Seq("govuk-!-padding-right-7")),
       if (originalChargeAmount.isEmpty) {
         Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
       } else {
@@ -145,27 +148,27 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           def expectedTable(chargeLink: String, interestLink: String): Table =
             paymentTable(Seq(
               row(
+                isInterestAccrued = false,
                 chargeType = chargeType.toString + s" submission $versionInt",
-                chargeReference = "AYU3494534632",
+                displayChargeReference = "AYU3494534632",
                 originalChargeAmount = FormatHelper.formatCurrencyAmountAsString(56432.00),
                 paymentDue = FormatHelper.formatCurrencyAmountAsString(1029.05),
                 status = PaymentAndChargeStatus.PaymentOverdue,
                 redirectUrl = chargeLink,
-                period = "Quarter: 1 April to 30 June 2020",
                 visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")
               ),
               row(
+                isInterestAccrued = true,
                 chargeType = if (chargeType == PSS_AFT_RETURN) {
                   PSS_AFT_RETURN_INTEREST.toString + s" submission $versionInt"
                 } else {
                   PSS_OTC_AFT_RETURN_INTEREST.toString + s" submission $versionInt"
                 },
-                chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
+                displayChargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
                 originalChargeAmount = "",
                 paymentDue = FormatHelper.formatCurrencyAmountAsString(153.00),
                 status = PaymentAndChargeStatus.InterestIsAccruing,
                 redirectUrl = interestLink,
-                period = "Quarter: 1 April to 30 June 2020",
                 visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText")
               )
             ))

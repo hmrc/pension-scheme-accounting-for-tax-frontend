@@ -147,7 +147,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargeDetailsController.onPageLoad(
             srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
           visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference),
-          id = s"charge-${details.index.toString}"
+          id = details.chargeReference
         )
 
     (isDisplayInterestChargeType(details.chargeType), details.amountDue > 0) match {
@@ -167,7 +167,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargesInterestController.onPageLoad(
               srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
             visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText"),
-            id = s"interest-${details.index.toString}"
+            id = s"${details.chargeReference}-interest"
           )
         )
       case (_, true) if details.dueDate.exists(_.isBefore(LocalDate.now())) =>
