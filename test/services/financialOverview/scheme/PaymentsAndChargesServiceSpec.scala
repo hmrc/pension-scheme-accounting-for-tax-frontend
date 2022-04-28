@@ -61,12 +61,11 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                               redirectUrl: String,
                               period: String,
                               visuallyHiddenText: String,
-                            ) = {
+                            ):Html = {
     val linkId =
       chargeReference match {
-        case "To be assigned" => "to-be-assigned"
-        case "None" => "none"
-        case _ => chargeReference
+        case "To be assigned" => "interest-1"
+        case _ => "charge-1"
       }
 
     Html(
@@ -167,7 +166,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                 status = PaymentAndChargeStatus.InterestIsAccruing,
                 redirectUrl = interestLink,
                 period = "Quarter: 1 April to 30 June 2020",
-                visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText"),
+                visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText")
               )
             ))
 
