@@ -26,4 +26,6 @@ case class PaymentsAndChargesDetails(chargeType: String,
                                      redirectUrl: String,
                                      period: String,
                                      submittedDate: Option[String] = None,
-                                     visuallyHiddenText: String)
+                                     visuallyHiddenText: String,
+                                     id: String
+                                    )
