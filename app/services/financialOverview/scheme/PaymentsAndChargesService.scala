@@ -146,7 +146,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           submittedDate = setSubmittedDate(submittedDate, details.chargeType),
           redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargeDetailsController.onPageLoad(
             srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
-          visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference)
+          visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference),
+          id = details.chargeReference
         )
 
     (isDisplayInterestChargeType(details.chargeType), details.amountDue > 0) match {
@@ -165,7 +166,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             period = setPeriod(interestChargeType, details.periodStartDate, details.periodEndDate),
             redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargesInterestController.onPageLoad(
               srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
-            visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
+            visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText"),
+            id = s"${details.chargeReference}-interest"
           )
         )
       case (_, true) if details.dueDate.exists(_.isBefore(LocalDate.now())) =>
@@ -232,29 +234,24 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     )
 
     val rows = allPayments.map { data =>
-      val linkId =
-        data.chargeReference match {
-          case "To be assigned" => "to-be-assigned"
-          case "None" => "none"
-          case _ => data.chargeReference
-        }
+
 
       val htmlChargeType = (chargeDetailsFilter, data.submittedDate) match {
         case (All, Some(dateValue)) => Html(
-          s"<a id=$linkId class=govuk-link href=" +
+          s"<a id=${data.id} class=govuk-link href=" +
             s"${data.redirectUrl}>" +
             s"${data.chargeType} " +
             s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
             s"<p class=govuk-hint>" +
             s"$dateValue</p>")
         case (All, None) => Html(
-          s"<a id=$linkId class=govuk-link href=" +
+          s"<a id=${data.id} class=govuk-link href=" +
             s"${data.redirectUrl}>" +
             s"${data.chargeType} " +
             s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
         case _ =>
           Html(
-            s"<a id=$linkId class=govuk-link href=" +
+            s"<a id=${data.id} class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
               s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
