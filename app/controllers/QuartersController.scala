@@ -111,10 +111,10 @@ class QuartersController @Inject()(
                     selectedDisplayQuarter.hintText match {
                       case None => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate, Draft, version = 1)))
                       case Some(SubmittedHint) => Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
-                      case _ =>
+                      case Some(e) =>
                         val version = aftOverview.find(_.periodStartDate == value.startDate)
                           .filter(_.versionDetails.nonEmpty).map(_.toPodsReport)
-                          .getOrElse(throw InvalidValueSelected(s"value = $value and afterOverview = $aftOverview")).numberOfVersions
+                          .getOrElse(throw InvalidValueSelected(s"value = $value and afterOverview = $aftOverview and display hint is ${e.toString}")).numberOfVersions
                         Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version)))
                     }
                   }
