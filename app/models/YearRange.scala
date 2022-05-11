@@ -39,7 +39,7 @@ object YearRange extends Enumerable.Implicits {
 
   def currentYear = new YearRange(DateHelper.today.getYear.toString)
 
-  def values(minYear:Int): Seq[YearRange] = {
+  def values: Seq[YearRange] = {
     val currentYear = DateHelper.today.getYear
     val newTaxYearStart = LocalDate.of(currentYear, Month.APRIL.getValue, startDayOfNewTaxYear)
 
@@ -58,8 +58,8 @@ object YearRange extends Enumerable.Implicits {
     Literal(msg"yearRangeRadio".withArgs(startYear, (startYear.toInt + 1).toString).resolve)
   }
 
-  def radios(form: Form[_],minYear:Int)(implicit messages: Messages): Seq[Radios.Item] =
-    Radios(form("value"), values(minYear).map(yearRange => Radios.Radio(getLabel(yearRange), yearRange.toString)))
+  def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] =
+    Radios(form("value"), values.map(yearRange => Radios.Radio(getLabel(yearRange), yearRange.toString)))
 
-  implicit def enumerable: Enumerable[YearRange] = Enumerable(values(minYear).map(yearRange => yearRange.toString -> yearRange): _*)
+  implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
 }

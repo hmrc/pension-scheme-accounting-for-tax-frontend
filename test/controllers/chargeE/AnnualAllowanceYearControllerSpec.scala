@@ -22,8 +22,6 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearRangeFormProvider
 import matchers.JsonMatchers
-import models.FeatureToggle.{Disabled, Enabled}
-import models.FeatureToggleName.MigrationTransferAft
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
@@ -38,7 +36,6 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, route, status, _}
 import play.twirl.api.Html
-import services.FeatureToggleService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
@@ -48,13 +45,10 @@ import scala.concurrent.Future
 class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
-  private val mockFeatureToggleService = mock[FeatureToggleService]
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction)
     .overrides(
-      bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector),
-      bind[FeatureToggleService].toInstance(mockFeatureToggleService)
-
+      bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
     )
     .build()
   private val template = "chargeE/annualAllowanceYear.njk"
@@ -70,15 +64,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
   )
   private val jsonToTemplate: Form[YearRange] => JsObject = form => Json.obj(
     fields = "form" -> form,
-    "radios" -> YearRange.radios(form,2011),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      schemeName = schemeName)
-  )
-  private val jsonToTemplateDisabled: Form[YearRange] => JsObject = form => Json.obj(
-    fields = "form" -> form,
-    "radios" -> YearRange.radios(form,2018),
+    "radios" -> YearRange.radios(form),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
@@ -87,9 +73,11 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
   private def form = new YearRangeFormProvider()()
 
-  private def httpPathGET: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url
+  private def httpPathGET: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode,
+    srn, startDate, accessType, versionInt, 0).url
 
-  private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url
+  private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode,
+    srn, startDate, accessType, versionInt, 0).url
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -104,9 +92,8 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
   "AnnualAllowanceYear Controller" must {
 
-    "return OK and the correct view for a GET with Toggle Enabled" in {
+    "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeNamePstrQuarter))
-      when(mockFeatureToggleService.get(any())(any(), any())).thenReturn(Future.successful(Enabled(MigrationTransferAft)))
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -122,31 +109,12 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
       jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
     }
 
-    "return OK and the correct view for a GET when Toggle Disabled" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeNamePstrQuarter))
-      when(mockFeatureToggleService.get(any())(any(), any())).thenReturn(Future.successful(Disabled(MigrationTransferAft)))
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, FakeRequest(GET, httpPathGET)).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual template
-
-      jsonCaptor.getValue must containJson(jsonToTemplateDisabled.apply(form))
-    }
-
     "return OK and the correct view for a GET when the question has previously been answered" in {
       reset(mockSchemeDetailsConnector)
       val ua = userAnswersWithSchemeNamePstrQuarter.set(AnnualAllowanceYearPage(0), YearRange("2019"))(
         writes(YearRange.enumerable)
       ).get
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-      when(mockFeatureToggleService.get(any())(any(), any())).thenReturn(Future.successful(Enabled(MigrationTransferAft)))
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -163,7 +131,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
     }
 
 
-    "Save data to user answers and redirect to next page when valid data is submitted with Toggle Enabled" in {
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
 
       val expectedJson = Json.obj(
         "chargeEDetails" -> Json.obj(
@@ -174,43 +142,14 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
           )
         )
       )
-      when(mockFeatureToggleService.get(any())(any(), any())).thenReturn(Future.successful(Enabled(MigrationTransferAft)))
-      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any(), any(), any(), any())(any())).
+        thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid2)).value
-
-      status(result) mustEqual SEE_OTHER
-
-      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
-
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      redirectLocation(result) mustBe Some(dummyCall.url)
-    }
-
-    "Save data to user answers and redirect to next page when valid data is submitted with Toggle Disabled" in {
-
-      val expectedJson = Json.obj(
-        "chargeEDetails" -> Json.obj(
-          AnnualAllowanceMembersQuery.toString -> Json.arr(
-            Json.obj(
-              AnnualAllowanceYearPage.toString -> Json.toJson("2019")
-            )
-          )
-        )
-      )
-      when(mockFeatureToggleService.get(any())(any(), any())).thenReturn(Future.successful(Disabled(MigrationTransferAft)))
-      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 

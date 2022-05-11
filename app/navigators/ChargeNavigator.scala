@@ -17,11 +17,9 @@
 package navigators
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import helpers.ChargeServiceHelper
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
-import models.FeatureToggleName.AftBulkUpload
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, MemberDetails, NormalMode, UserAnswers}
@@ -29,21 +27,14 @@ import pages._
 import pages.fileUpload.ValidationPage
 import play.api.mvc.{AnyContent, Call}
 import services._
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import java.time.LocalDate
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext}
 
-class ChargeNavigator @Inject()(config: FrontendAppConfig,
+class ChargeNavigator @Inject()(
                                 val dataCacheConnector: UserAnswersCacheConnector,
                                 chargeServiceHelper: ChargeServiceHelper,
-                                chargeEHelper: ChargeEService,
-                                chargeGHelper: ChargeGService,
-                                aftService: AFTService,
-                                featureToggleService: FeatureToggleService
-                               )(implicit ec: ExecutionContext) extends Navigator {
+                                aftService: AFTService
+                               ) extends Navigator {
 
   //scalastyle:off cyclomatic.complexity
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
@@ -73,20 +64,15 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
   private def chargeTypeNavigation(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                   (implicit request: DataRequest[AnyContent])
   : Call = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     val accessMode=request.sessionData.sessionAccessData.accessMode
     ua.get(ChargeTypePage) match {
       case Some(ChargeType.ChargeTypeShortService) => controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
       case Some(ChargeType.ChargeTypeLumpSumDeath) => controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
       case Some(ChargeType.ChargeTypeAuthSurplus)  => controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
       case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua) == 0 =>
-        if (isAftUploadToggleEnabled(hc,implicitly)) {
           controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
-        } else {
-          controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
-        }
       case Some(ChargeType.ChargeTypeAnnualAllowance) =>
-        if (isAftUploadToggleEnabled(hc,implicitly)  && chargeServiceHelper.isShowFileUploadOption(ua,"chargeEDetails",version,accessMode)) {
+        if (chargeServiceHelper.isShowFileUploadOption(ua,"chargeEDetails",version,accessMode)) {
           controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
         } else {
           controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
@@ -94,26 +80,18 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         }
       case Some(ChargeType.ChargeTypeDeRegistration) => controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
       case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua) == 0 =>
-        if (isAftUploadToggleEnabled(hc,implicitly)) {
           controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
-        } else {
-          controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
-        }
       case Some(ChargeType.ChargeTypeLifetimeAllowance) =>
-        if (isAftUploadToggleEnabled(hc,implicitly) && chargeServiceHelper.isShowFileUploadOption(ua,"chargeDDetails",version,accessMode)) {
+        if (chargeServiceHelper.isShowFileUploadOption(ua,"chargeDDetails",version,accessMode)) {
           controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
         } else {
           controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
             nextIndexChargeD(ua))
         }
       case Some(ChargeType.ChargeTypeOverseasTransfer) if nextIndexChargeG(ua) == 0 =>
-        if (isAftUploadToggleEnabled(hc,implicitly)) {
           controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeOverseasTransfer)
-        } else {
-          controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
-        }
       case Some(ChargeType.ChargeTypeOverseasTransfer) =>
-        if (isAftUploadToggleEnabled(hc,implicitly) && chargeServiceHelper.isShowFileUploadOption(ua,"chargeGDetails",version,accessMode)) {
+        if (chargeServiceHelper.isShowFileUploadOption(ua,"chargeGDetails",version,accessMode)) {
           controllers.fileUpload.routes.InputSelectionController.onPageLoad(srn, startDate, accessType, version, ChargeTypeOverseasTransfer)
         } else {
           controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
@@ -175,11 +153,6 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         }
       case _ => sessionExpiredPage
     }
-  }
-
-  private def isAftUploadToggleEnabled(implicit hc: HeaderCarrier, ec: ExecutionContext):Boolean={
-    val toggleResult=Await.result(featureToggleService.get(AftBulkUpload),Duration.Inf)
-    toggleResult.isEnabled
   }
 
   private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad

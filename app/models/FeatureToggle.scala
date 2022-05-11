@@ -35,22 +35,14 @@ sealed trait FeatureToggleName {
 
 object FeatureToggleName {
 
-  case object MigrationTransferAft extends FeatureToggleName {
-    val asString = "migration-transfer-aft"
-  }
-  case object AftBulkUpload extends FeatureToggleName {
-    val asString = "aft-bulk-upload"
+  case object DummyToggle extends FeatureToggleName {
+    val asString = "dummy"
   }
 
-  case object FinancialInformationAFT extends FeatureToggleName{
-    val asString = "financial-information-aft"
-}
-  val toggles = Seq(MigrationTransferAft,AftBulkUpload, FinancialInformationAFT)
+  val toggles = Seq(DummyToggle)
 
   implicit val reads: Reads[FeatureToggleName] = Reads {
-    case JsString(MigrationTransferAft.asString) => JsSuccess(MigrationTransferAft)
-    case JsString(AftBulkUpload.asString) => JsSuccess(AftBulkUpload)
-    case JsString(FinancialInformationAFT.asString) => JsSuccess(FinancialInformationAFT)
+    case JsString(DummyToggle.asString) => JsSuccess(DummyToggle)
     case _ => JsError("Unrecognised feature toggle name")
   }
 

@@ -21,11 +21,8 @@ import controllers.{chargeD, chargeE, chargeG}
 import data.SampleData
 import data.SampleData._
 import models.ChargeType._
-import models.FeatureToggle.{Disabled, Enabled}
-import models.FeatureToggleName.AftBulkUpload
 import models.LocalDateBinder._
 import models.{AFTQuarter, AccessMode, ChargeType, NormalMode, UserAnswers}
-import org.mockito.ArgumentMatchers.any
 import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.prop.{TableFor3, TableFor5}
@@ -38,15 +35,12 @@ import services.FeatureToggleService
 import utils.AFTConstants._
 
 import java.time.LocalDate
-import scala.concurrent.Future
 
 class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with BeforeAndAfterEach {
-  private val mockFeatureToggleService = mock[FeatureToggleService]
 
   override lazy val app: Application = new GuiceApplicationBuilder()
     .overrides(
       Seq[GuiceableModule](
-        bind[FeatureToggleService].toInstance(mockFeatureToggleService)
       ): _*
     ).build()
 
@@ -54,20 +48,13 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockFeatureToggleService.get(any())(any(), any())).thenReturn(Future.successful(Disabled(AftBulkUpload)))
   }
 
   private val srn = "test-srn"
   private val startDate = QUARTER_START_DATE
 
   private def optUA(ct: ChargeType): Option[UserAnswers] = SampleData.userAnswersWithSchemeNamePstrQuarter.set(ChargeTypePage, ct).toOption
-
-  private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
-
-  private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
-
-  private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
-
+  
   private def aftSummaryYes: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, true).toOption
 
   private def aftSummaryNo(quarter: AFTQuarter): Option[UserAnswers] =
@@ -92,13 +79,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
         row(ChargeTypePage)(chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeShortService)),
         row(ChargeTypePage)(chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeLumpSumDeath)),
         row(ChargeTypePage)(chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeAuthSurplus)),
-        row(ChargeTypePage)(chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeAnnualAllowance)),
-        row(ChargeTypePage)(chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 1), chargeEMemberExists),
         row(ChargeTypePage)(chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeDeRegistration)),
-        row(ChargeTypePage)(chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeLifetimeAllowance)),
-        row(ChargeTypePage)(chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 1), chargeDMemberExists),
-        row(ChargeTypePage)(chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeOverseasTransfer)),
-        row(ChargeTypePage)(chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 1), chargeGMemberExists),
         row(ChargeTypePage)(routes.SessionExpiredController.onPageLoad),
         row(ConfirmSubmitAFTReturnPage)(DeclarationController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
         row(ConfirmSubmitAFTReturnPage)(controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt),
@@ -185,7 +166,6 @@ class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar w
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockFeatureToggleService.get(any())(any(), any())).thenReturn(Future.successful(Enabled(AftBulkUpload)))
   }
 
   private val srn = "test-srn"
