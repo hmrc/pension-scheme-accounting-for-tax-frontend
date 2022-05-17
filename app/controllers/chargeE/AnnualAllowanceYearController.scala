@@ -20,8 +20,6 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YearRangeFormProvider
-import models.FeatureToggle.Enabled
-import models.FeatureToggleName.MigrationTransferAft
 import models.LocalDateBinder._
 import models.{YearRange, GenericViewModel, AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
@@ -31,8 +29,7 @@ import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{FeatureToggleService, UserAnswersService}
-import uk.gov.hmrc.http.HeaderCarrier
+import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -50,7 +47,6 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
                                               requireData: DataRequiredAction,
                                               formProvider: YearRangeFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
-                                              featureToggleService: FeatureToggleService,
                                               renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -62,7 +58,6 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        getMinYear.flatMap { minYear =>
           val preparedForm: Form[YearRange] = request.userAnswers.get(AnnualAllowanceYearPage(index)) match {
             case Some(value) => form.fill(value)
             case None => form
@@ -78,28 +73,17 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
             "srn" -> srn,
             "startDate" -> Some(localDateToString(startDate)),
             "form" -> preparedForm,
-            "radios" -> YearRange.radios(preparedForm, minYear),
+            "radios" -> YearRange.radios(preparedForm),
             "viewModel" -> viewModel
           )
 
           renderer.render(template = "chargeE/annualAllowanceYear.njk", json).map(Ok(_))
         }
       }
-    }
 
-  private def getMinYear(implicit hc: HeaderCarrier, ec: ExecutionContext):Future[Int]={
-    val defaultMinYear=2018
-    val minYear=2011
-    featureToggleService.get(MigrationTransferAft)
-      .map {
-        case Enabled(MigrationTransferAft) => minYear
-        case _ => defaultMinYear
-      }
-  }
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        getMinYear.flatMap { minYear =>
           form
             .bindFromRequest()
             .fold(
@@ -114,7 +98,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
                   "srn" -> srn,
                   "startDate" -> Some(localDateToString(startDate)),
                   "form" -> formWithErrors,
-                  "radios" -> YearRange.radios(formWithErrors,minYear),
+                  "radios" -> YearRange.radios(formWithErrors),
                   "viewModel" -> viewModel
                 )
                 renderer.render(template = "chargeE/annualAllowanceYear.njk", json).map(BadRequest(_))
@@ -130,6 +114,5 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
               }
             )
         }
-      }
     }
 }

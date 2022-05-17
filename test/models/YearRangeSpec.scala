@@ -39,13 +39,13 @@ class YearRangeSpec
     with MockitoSugar {
 
   private def genYear: Gen[Int] =
-    Gen.oneOf(Seq(2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028))
+    Gen.oneOf(Seq(2011,2012,2013,2014,2015,2016,2017,2018,2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028))
 
   "YearRange" must {
 
     "must deserialise valid values" in {
 
-      val gen = Gen.oneOf(YearRange.values(2011))
+      val gen = Gen.oneOf(YearRange.values)
 
       forAll(gen) { yearRange =>
         JsString(yearRange.toString)
@@ -57,7 +57,7 @@ class YearRangeSpec
 
     "must fail to deserialise invalid values" in {
 
-      val gen = arbitrary[String] suchThat (!YearRange.values(2011)
+      val gen = arbitrary[String] suchThat (!YearRange.values
         .map(_.toString)
         .contains(_))
 
@@ -70,7 +70,7 @@ class YearRangeSpec
     }
 
     "must serialise" in {
-      val gen = Gen.oneOf(YearRange.values(2011))
+      val gen = Gen.oneOf(YearRange.values)
 
       forAll(gen) { yearRange =>
         Json.toJson(yearRange) mustEqual JsString(yearRange.toString)
@@ -85,7 +85,7 @@ class YearRangeSpec
         DateHelper.setDate(Some(LocalDate.of(year, 4, 5)))
         val expectedResult =
           (2011 until year).reverse.map(yr => YearRange(yr.toString))
-        YearRange.values(2011) mustBe expectedResult
+        YearRange.values mustBe expectedResult
       }
     }
 
@@ -95,7 +95,7 @@ class YearRangeSpec
         DateHelper.setDate(Some(LocalDate.of(year, 4, 6)))
         val expectedResult =
           (2011 to year).reverse.map(yr => YearRange(yr.toString))
-        YearRange.values(2011) mustBe expectedResult
+        YearRange.values mustBe expectedResult
       }
     }
   }

@@ -18,8 +18,6 @@ package controllers.partials
 
 import connectors.FinancialStatementConnector
 import controllers.actions._
-import models.FeatureToggle.{Disabled, Enabled}
-import models.FeatureToggleName.{AftBulkUpload, FinancialInformationAFT, MigrationTransferAft}
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -27,8 +25,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.{Html, HtmlFormat}
 import renderer.Renderer
-import services.paymentsAndCharges.PaymentsAndChargesService
-import services.{AFTPartialService, FeatureToggleService, SchemeService}
+import services.{AFTPartialService, SchemeService}
 import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -42,9 +39,7 @@ class PspSchemeDashboardPartialsController @Inject()(
                                                       val controllerComponents: MessagesControllerComponents,
                                                       schemeService: SchemeService,
                                                       financialStatementConnector: FinancialStatementConnector,
-                                                      paymentsAndChargesService: PaymentsAndChargesService,
                                                       aftPartialService: AFTPartialService,
-                                                      toggleService: FeatureToggleService,
                                                       renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -59,22 +54,6 @@ class PspSchemeDashboardPartialsController @Inject()(
 
       (idNumber, schemeIdType, authorisingPsaId) match {
         case (Some(idNumber), Some(_), Some(psaId)) =>
-          toggleService.get(FinancialInformationAFT).flatMap {
-            case Disabled(FinancialInformationAFT) =>
-              val futureSeqHtml = for {
-                schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
-                schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
-                aftReturnsHtml <- pspDashboardAftReturnsPartial(idNumber, schemeDetails.pstr, psaId)
-                upcomingAftChargesHtml <- pspDashboardUpcomingAftChargesPartial(idNumber, schemeFs.seqSchemeFSDetail)
-                overdueChargesHtml <- pspDashboardOverdueAftChargesPartial(idNumber, schemeFs.seqSchemeFSDetail)
-              } yield {
-                scala.collection.immutable.Seq(aftReturnsHtml, upcomingAftChargesHtml, overdueChargesHtml)
-              }
-
-              futureSeqHtml.map(HtmlFormat.fill).map(Ok(_))
-
-            case Enabled(FinancialInformationAFT) =>
-
               val futureSeqHtml = for {
                 schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
                 schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
@@ -85,12 +64,6 @@ class PspSchemeDashboardPartialsController @Inject()(
                 scala.collection.immutable.Seq(aftReturnsHtml, paymentsAndChargesHtml)
               }
               futureSeqHtml.map(HtmlFormat.fill).map(Ok(_))
-            case Enabled(AftBulkUpload) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
-            case Disabled(AftBulkUpload) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
-            case Disabled(MigrationTransferAft) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
-            case Enabled(MigrationTransferAft) => throw new RuntimeException("toggle service only support FinancialInformationAFT")
-
-          }
         case _ =>
           Future.failed(
             new BadRequestException("Bad Request with missing parameters idNumber, schemeIdType, psaId and/or authorisingPsaId")
@@ -109,20 +82,6 @@ class PspSchemeDashboardPartialsController @Inject()(
     }
   }
 
-  private def pspDashboardUpcomingAftChargesPartial(idNumber: String, schemeFs: Seq[SchemeFSDetail])
-                                                   (implicit request: IdentifierRequest[AnyContent]): Future[Html] = {
-    if (schemeFs.isEmpty) {
-      Future.successful(Html(""))
-    } else {
-      val viewModel =
-        aftPartialService.retrievePspDashboardUpcomingAftChargesModel(schemeFs, idNumber)
-      renderer.render(
-        template = "partials/pspDashboardUpcomingAftChargesCard.njk",
-        ctx = Json.obj("upcomingCharges" -> Json.toJson(viewModel))
-      )
-    }
-  }
-
   private def pspDashboardPaymentsAndChargesPartial(idNumber: String, schemeFs: Seq[SchemeFSDetail], pstr: String)
                                                    (implicit request: IdentifierRequest[AnyContent]): Future[Html] = {
     if (schemeFs.isEmpty) {
@@ -133,21 +92,6 @@ class PspSchemeDashboardPartialsController @Inject()(
       renderer.render(
         template = "partials/pspSchemePaymentsAndChargesPartial.njk",
         ctx = Json.obj("cards" -> Json.toJson(viewModel))
-      )
-    }
-  }
-
-  private def pspDashboardOverdueAftChargesPartial(idNumber: String, schemeFs: Seq[SchemeFSDetail])
-                                                  (implicit request: IdentifierRequest[AnyContent]): Future[Html] = {
-    val overdueCharges = paymentsAndChargesService.getOverdueCharges(schemeFs)
-    if (overdueCharges.isEmpty) {
-      Future.successful(Html(""))
-    } else {
-      val viewModel =
-        aftPartialService.retrievePspDashboardOverdueAftChargesModel(overdueCharges, idNumber)
-      renderer.render(
-        template = "partials/pspDashboardOverdueAftChargesCard.njk",
-        ctx = Json.obj("overdueCharges" -> Json.toJson(viewModel))
       )
     }
   }
