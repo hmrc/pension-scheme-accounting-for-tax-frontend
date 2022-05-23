@@ -24,7 +24,7 @@ import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
-import pages.AFTSummaryPage
+import pages.{AFTSummaryPage, ChargeTypePage}
 import play.api.Logger
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -158,10 +158,12 @@ class AFTSummaryController @Inject()(
               renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
             },
             value => {
-              Future.fromTry(request.userAnswers.set(AFTSummaryPage, value)).flatMap { answers =>
-                userAnswersCacheConnector.save(request.internalId, answers.data).map { updatedAnswers =>
-                  Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate, accessType, version))
-                }
+              for {
+                userAnswers <- Future.fromTry(request.userAnswers.remove(ChargeTypePage))
+                updatedAnswers <- Future.fromTry(userAnswers.set(AFTSummaryPage,value))
+                _ <-  userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield {
+                Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.data.as[JsObject]), srn, startDate, accessType, version))
               }
             }
           )
