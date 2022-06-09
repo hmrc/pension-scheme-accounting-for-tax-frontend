@@ -39,7 +39,7 @@ import services.SchemeService
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, SummaryList}
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.{dateFormatterDMY, formatDateDMY}
 import viewmodels.Radios.MessageInterpolators
 import viewmodels.Table
 import viewmodels.Table.Cell
@@ -235,7 +235,14 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
         val result =
           psaPenaltiesAndChargesService.chargeDetailsRows(psaFS(), Overdue)
 
-        result mustBe chargeReferenceRow ++ penaltyAmountRow ++
+        result mustBe chargeReferenceRow ++ penaltyAmountRow ++ clearingDetailsRow("2020-04-24") ++
+          stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
+      }
+      "return the row for original charge amount, payments and credits, stood over amount and total amount due with paymDateOrCredDueDate None" in {
+        val result =
+          psaPenaltiesAndChargesService.chargeDetailsRows(psaFS2(), Overdue)
+
+        result mustBe chargeReferenceRow ++ penaltyAmountRow ++ clearingDetailsRow("2020-06-30") ++
           stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
       }
     }
@@ -265,7 +272,21 @@ object PsaPenaltiesAndChargesServiceSpec {
         clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
-        clearedAmountItem = BigDecimal(0.00))))
+        clearedAmountItem = BigDecimal(100.00))))
+
+  def psaFS2(
+             amountDue: BigDecimal = BigDecimal(1029.05),
+             dueDate: Option[LocalDate] = Some(LocalDate.parse("2022-03-18")),
+             totalAmount: BigDecimal = BigDecimal(80000.00),
+             outStandingAmount: BigDecimal = BigDecimal(56049.08),
+             stoodOverAmount: BigDecimal = BigDecimal(25089.08)
+           ): PsaFSDetail =
+    PsaFSDetail( 0, "XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
+      accruedInterestTotal = 0.00, dateNow, dateNow, pstr, None, None, Seq(DocumentLineItemDetail(
+        clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingDate = Some(LocalDate.parse("2020-06-30")),
+        paymDateOrCredDueDate = None,
+        clearedAmountItem = BigDecimal(100.00))))
 
 
   def createPsaFSCharge(chargeReference: String): PsaFSDetail =
@@ -416,6 +437,21 @@ object PsaPenaltiesAndChargesServiceSpec {
         ),
         value = Value(
           content = Literal(s"-${formatCurrencyAmountAsString(25089.08)}"),
+          classes = Seq("govuk-!-width-one-quarter")
+        ),
+        actions = Nil
+      ))
+  }
+
+  private def clearingDetailsRow(date:String): Seq[SummaryList.Row] = {
+    Seq(
+      Row(
+        key = Key(
+          content = msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(LocalDate.parse(date))),
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+        ),
+        value = Value(
+          content = Literal(s"-${formatCurrencyAmountAsString(100)}"),
           classes = Seq("govuk-!-width-one-quarter")
         ),
         actions = Nil
