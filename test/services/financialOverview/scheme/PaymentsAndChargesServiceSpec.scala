@@ -216,6 +216,14 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       result mustBe dateSubmittedRow ++ chargeReferenceRow ++ originalAmountChargeDetailsRow ++
         clearingChargeDetailsRow ++ stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
     }
+
+    "return the row for original charge amount, payments and credits, stood over amount and total amount due with payment or credit due date not exist" in {
+      val result =
+        paymentsAndChargesService.getChargeDetailsForSelectedCharge(createCharge(index = 1, PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05, item = item2), Upcoming, Some(submittedDate))
+
+      result mustBe dateSubmittedRow ++ chargeReferenceRow ++ originalAmountChargeDetailsRow ++
+        clearingChargeDetailsWithClearingDateRow ++ stoodOverAmountChargeDetailsRow ++ totalAmountDueChargeDetailsRow
+    }
   }
 
   "isPaymentOverdue" must {
@@ -387,14 +395,16 @@ object PaymentsAndChargesServiceSpec {
   val startDate: String = QUARTER_START_DATE.format(dateFormatterStartDate)
   val endDate: String = QUARTER_END_DATE.format(dateFormatterDMY)
   val paymentsCache: PaymentsCache = PaymentsCache(psaId, srn, schemeDetails, schemeFSResponseAftAndOTC.seqSchemeFSDetail)
-  val item: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-05-14")), Some(FSClearingReason.CLEARED_WITH_PAYMENT))
+  val item: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-05-14")), Some(LocalDate.parse("2020-04-24")), Some(FSClearingReason.CLEARED_WITH_PAYMENT))
+  val item2: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-04-15")), None, Some(FSClearingReason.CLEARED_WITH_PAYMENT))
 
   private def createCharge(index: Int,
                            chargeType: SchemeFSChargeType,
                            totalAmount: BigDecimal,
                            amountDue: BigDecimal,
                            dueDate: Option[LocalDate] = Some(LocalDate.parse("2020-05-15")),
-                           accruedInterestTotal: Option[BigDecimal] = Some(153.00)
+                           accruedInterestTotal: Option[BigDecimal] = Some(153.00),
+                           item: DocumentLineItemDetail = item
                           ): SchemeFSDetail = {
     SchemeFSDetail(
       index = index,
@@ -526,7 +536,22 @@ object PaymentsAndChargesServiceSpec {
     Seq(
       Row(
         key = Key(
-          content = msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(LocalDate.parse("2020-05-14"))),
+          content = msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(LocalDate.parse("2020-04-24"))),
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+        ),
+        value = Value(
+          content = Literal(s"-${formatCurrencyAmountAsString(150)}"),
+          classes = Seq("govuk-!-width-one-quarter")
+        ),
+        actions = Nil
+      ))
+  }
+
+  private def clearingChargeDetailsWithClearingDateRow: Seq[SummaryList.Row] = {
+    Seq(
+      Row(
+        key = Key(
+          content = msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(LocalDate.parse("2020-04-15"))),
           classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
         ),
         value = Value(

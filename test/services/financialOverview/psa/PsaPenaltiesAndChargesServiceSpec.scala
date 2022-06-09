@@ -264,6 +264,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       accruedInterestTotal = 0.00, dateNow, dateNow, pstr, None, None, Seq(DocumentLineItemDetail(
         clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
+        paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
         clearedAmountItem = BigDecimal(0.00))))
 
 
@@ -286,6 +287,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
+        paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
         clearedAmountItem = BigDecimal(0.00)))
     )
 
@@ -308,6 +310,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
+        paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
         clearedAmountItem = BigDecimal(0.00)))
     ),
     PsaFSDetail(
@@ -328,6 +331,7 @@ object PsaPenaltiesAndChargesServiceSpec {
       documentLineItemDetails = Seq(DocumentLineItemDetail(
         clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
+        paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
         clearedAmountItem = BigDecimal(0.00)))
     )
   )
