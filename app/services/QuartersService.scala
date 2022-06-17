@@ -115,7 +115,7 @@ class QuartersService @Inject()(
     aftConnector.getAftOverview(pstr).flatMap { aftOverview =>
       if (aftOverview.nonEmpty) {
 
-        val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] = availableQuarters(year)(config).map { x =>
+        val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] = availableQuarters(year)(config).map { x => // Q1, Q2
           val availableQuarter = getQuarter(x, year)
 
             userAnswersCacheConnector.lockDetail(srn, availableQuarter.startDate).flatMap {

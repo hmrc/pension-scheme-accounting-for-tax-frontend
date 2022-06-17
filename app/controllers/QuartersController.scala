@@ -23,6 +23,7 @@ import forms.QuartersFormProvider
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{AFTQuarter, Draft, GenericViewModel, Quarters, SubmittedHint}
+import play.api.Logger
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -46,8 +47,8 @@ class QuartersController @Inject()(
                                     schemeService: SchemeService,
                                     aftConnector: AFTConnector,
                                     quartersService: QuartersService
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                  )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -81,6 +82,9 @@ class QuartersController @Inject()(
     }
   }
 
+  private val logger = Logger(classOf[QuartersController])
+
+
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
@@ -92,29 +96,35 @@ class QuartersController @Inject()(
               .bindFromRequest()
               .fold(
                 formWithErrors => {
-                    val json = Json.obj(
-                      fields = "srn" -> srn,
-                      "startDate" -> None,
-                      "form" -> formWithErrors,
-                      "radios" -> Quarters.radios(formWithErrors, displayQuarters),
-                      "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-                      "year" -> year
-                    )
-                    renderer.render(template = "quarters.njk", json).map(BadRequest(_))
+                  val json = Json.obj(
+                    fields = "srn" -> srn,
+                    "startDate" -> None,
+                    "form" -> formWithErrors,
+                    "radios" -> Quarters.radios(formWithErrors, displayQuarters),
+                    "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+                    "year" -> year
+                  )
+                  renderer.render(template = "quarters.njk", json).map(BadRequest(_))
                 },
                 value => {
                   val tpssReports = aftOverview.filter(_.periodStartDate == value.startDate).filter(_.tpssReportPresent)
                   if (tpssReports.nonEmpty) {
+                    logger.warn("Quarters controller redirect to cannot submit AFT page")
                     Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn, value.startDate)))
                   } else {
                     val selectedDisplayQuarter = displayQuarters.find(_.quarter == value).getOrElse(throw InvalidValueSelected(s"display quarters = $displayQuarters and value = $value "))
                     selectedDisplayQuarter.hintText match {
-                      case None => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate, Draft, version = 1)))
-                      case Some(SubmittedHint) => Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
+                      case None =>
+                        logger.warn("Quarters controller redirect to charge type page")
+                        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate, Draft, version = 1)))
+                      case Some(SubmittedHint) =>
+                        logger.warn("Quarters controller redirect to return history page")
+                        Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
                       case Some(e) =>
                         val version = aftOverview.find(_.periodStartDate == value.startDate)
                           .filter(_.versionDetails.nonEmpty).map(_.toPodsReport)
                           .getOrElse(throw InvalidValueSelected(s"value = $value and afterOverview = $aftOverview and display hint is ${e.toString}")).numberOfVersions
+                        logger.warn("Quarters controller redirect to AFT summary page")
                         Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version)))
                     }
                   }
@@ -136,5 +146,5 @@ class QuartersController @Inject()(
       schemeName = schemeName
     )
 
-  case class InvalidValueSelected(details:String) extends Exception(s"The selected quarter did not match any quarters in the list of options: $details")
+  case class InvalidValueSelected(details: String) extends Exception(s"The selected quarter did not match any quarters in the list of options: $details")
 }
