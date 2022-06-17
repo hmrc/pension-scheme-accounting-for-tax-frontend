@@ -78,13 +78,13 @@ class AllowAccessAction(
       case (_, _, optionRedirectUrl@Some(_)) => Future.successful(optionRedirectUrl)
       case (false, Some(schemeStatus), _) =>
         if (!validStatuses.contains(schemeStatus)) {
-          errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
+          errorHandler.onClientError(request, NOT_FOUND, message = "Allow access action - Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
         } else {
           schemeDetailsConnector.checkForAssociation(request.idOrException, srn, getIdType(request))(hc, implicitly).flatMap {
             case true =>
               associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
             case _ =>
-              errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
+              errorHandler.onClientError(request, NOT_FOUND, message = "Allow access action - PSA not associated: id is " + request.idOrException + " and srn is " + srn).map(Option(_))
           }
         }
       //todo redirect to new error page for invalid dates once it is created

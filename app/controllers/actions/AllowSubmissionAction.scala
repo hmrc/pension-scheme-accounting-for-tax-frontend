@@ -34,8 +34,11 @@ class AllowSubmissionActionImpl @Inject()(aftService: AFTService, errorHandler: 
     request.userAnswers.get(QuarterPage) match {
       case Some(quarter) if !aftService.isSubmissionDisabled(quarter.endDate) =>
         Future.successful(None)
+      case Some(q) =>
+        errorHandler.onClientError(request, NOT_FOUND, message = "Allow submission - not found - quarter: " + q +
+          " and submission disabled for quarter").map(Some.apply)
       case _ =>
-        errorHandler.onClientError(request, NOT_FOUND).map(Some.apply)
+        errorHandler.onClientError(request, NOT_FOUND, message = "Allow submission - not found - no quarter").map(Some.apply)
     }
 }
 
