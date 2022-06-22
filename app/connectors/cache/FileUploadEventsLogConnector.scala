@@ -19,6 +19,7 @@ package connectors.cache
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import play.api.http.Status._
+import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, NotFoundException}
 
@@ -34,6 +35,19 @@ class FileUploadEventsLogConnector @Inject()(config: FrontendAppConfig, http: Ht
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
     http.GET[HttpResponse](url)(implicitly, hc, implicitly)
+      .recoverWith(mapExceptionsToStatus)
+      .map { response =>
+        response.status
+      }
+  }
+
+  def setStatus(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
+
+    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
+    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
+
+    val jsonData = Json.obj() // Response
+    http.POST[JsValue, HttpResponse](url, jsonData)
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status

@@ -60,10 +60,18 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                 controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version).url
               )
             case _ =>
+
+              /*
+              BAD_REQUEST: validation error
+              ELSE: general error
+               */
+
+              // TODO: Depending on which of general exception or one of 2 validation error pages will go to one of 3 places
+              val call = controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
-                controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version).url
+                call.url
               )
           }
         }

@@ -39,7 +39,8 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class ValidationController @Inject()(
                                       override val messagesApi: MessagesApi,
@@ -80,7 +81,8 @@ class ValidationController @Inject()(
       case _ =>
         if (errors.size <= maximumNumberOfError) {
           val cellErrors: Seq[JsObject] = errorJson(errors, messages)
-          renderer.render(template = "fileUpload/invalid.njk",
+
+          val f = renderer.render(template = "fileUpload/invalid.njk",
             Json.obj(
               "chargeType" -> chargeType,
               "chargeTypeText" -> ChargeType.fileUploadText(chargeType)(messages),
@@ -91,11 +93,18 @@ class ValidationController @Inject()(
               "returnToSchemeDetails" -> returnToSchemeDetails,
               "schemeName" -> schemeName
             )
-          ).map(Ok(_))
+          )
+
+          f.foreach{ k =>
+            println("\nLLLLLLLL:" + k.toString())
+
+          }
+
+          f.map(Ok(_))
         }
         else {
           val genericErrors = generateGenericErrorReport(errors, chargeType)
-          renderer.render(template = "fileUpload/genericErrors.njk",
+          val f = renderer.render(template = "fileUpload/genericErrors.njk",
             Json.obj(
               "chargeType" -> chargeType,
               "chargeTypeText" -> ChargeType.fileUploadText(chargeType)(messages),
@@ -108,7 +117,12 @@ class ValidationController @Inject()(
               "returnToSchemeDetails" -> returnToSchemeDetails,
               "schemeName" -> schemeName
             )
-          ).map(Ok(_))
+          )
+          f.foreach{ k =>
+            println("\nLLLLLLLL:" + k.toString())
+
+          }
+            f.map(Ok(_))
         }
     }
   }
@@ -237,7 +251,7 @@ class ValidationController @Inject()(
       implicit request =>
         val parser = findParser(chargeType)
         val startTime = System.currentTimeMillis
-        uploadProgressTracker.getUploadResult(uploadId).flatMap {
+        val x = uploadProgressTracker.getUploadResult(uploadId).flatMap {
           case Some(uploadStatus) =>
             (parser, uploadStatus.status._type) match {
               case (Some(_), "" | "Failed" | "InProgress") => sessionExpired
@@ -258,6 +272,14 @@ class ValidationController @Inject()(
             }
           case _ => sessionExpired
         }
+
+        x.failed.map{
+          tt => tt.toString
+        }
+
+        val t = Await.result(x, Duration.Inf)
+        println("\n>>>>>>>" + t.body.toString)
+        x
     }
 
   private def sendAuditEventUpscanDownload(chargeType: ChargeType,
