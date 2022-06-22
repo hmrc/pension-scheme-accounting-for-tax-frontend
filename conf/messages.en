@@ -1524,3 +1524,10 @@ requestRefund.psaAlready.p1 = A scheme administrator registered to this scheme m
 
 requestRefund.pspAlready.h1 = Someone else might have already requested a refund
 requestRefund.pspAlready.p1 = A scheme practitioner authorised to this scheme might have recently requested a refund.
+
+messages__processingRequest__h1_processing = We are processing your request
+messages__processingRequest__content_processing = Please wait while your request is processed. Do not close this page or leave the service.
+messages__processingRequest__h1_processed = We have processed your request
+messages__processingRequest__content_processed = Select continue.
+messages__processingRequest__h1_failure = Sorry, there was a problem with the service
+messages__processingRequest__content_failure = We could not process your request. Select continue to try again.

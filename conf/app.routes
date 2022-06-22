@@ -451,3 +451,4 @@ GET         /:srn/:startDate/:accessType/:version/fileupload/overseas-transfer-c
 GET         /:srn/might-already-requested-refund                                                                                                  controllers.financialOverview.scheme.RequestRefundController.onPageLoad(srn: String)
 GET         /might-already-requested-refund                                                                                                       controllers.financialOverview.psa.PsaRequestRefundController.onPageLoad
 
+GET         /:srn/:startDate/:accessType/:version/processing-request-upload                                                                       controllers.fileUpload.ProcessingRequestController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
