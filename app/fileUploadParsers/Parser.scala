@@ -23,7 +23,7 @@ import models.{MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsPath, JsValue}
+import play.api.libs.json.{JsPath, JsValue, Json}
 
 import java.time.LocalDate
 
@@ -173,7 +173,6 @@ trait Parser {
 }
 
 case class ParserValidationError(row: Int, col: Int, error: String, columnName: String = EMPTY,args:Seq[Any]=Nil)
-
 
 protected case class CommitItem(jsPath: JsPath, value: JsValue)
 

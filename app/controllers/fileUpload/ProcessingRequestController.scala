@@ -19,8 +19,10 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.cache.FileUploadEventsLogConnector
 import controllers.actions._
-import models.AccessType
+import handlers.ErrorHandler
+import models.FileUploadOutcomeStatus.{GeneralError, SessionExpired, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.LocalDateBinder._
+import models.{AccessType, ChargeType, FileUploadOutcome}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -32,59 +34,85 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
-                                             override val messagesApi: MessagesApi,
+                                            override val messagesApi: MessagesApi,
                                             identify: IdentifierAction,
                                             val controllerComponents: MessagesControllerComponents,
                                             renderer: Renderer,
-                                            fileUploadEventsLogConnector: FileUploadEventsLogConnector
+                                            fileUploadEventsLogConnector: FileUploadEventsLogConnector,
+                                            errorHandler: ErrorHandler
                                            )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] = {
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] = {
     identify.async {
       implicit request =>
-
-        def headerContentAndRedirect(status: Int): (String, String, String) = {
-          status match {
-            case ACCEPTED =>
+        def headerContentAndRedirect(optionOutcome: Option[FileUploadOutcome]): (String, String, String) = {
+          optionOutcome match {
+            case None =>
+              Tuple3(
+                "messages__processingRequest__h1_processing",
+                "messages__processingRequest__content_processing",
+                controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version, chargeType).url
+              )
+            case Some(FileUploadOutcome(Success, _, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_processed",
                 "messages__processingRequest__content_processed",
                 controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version).url
               )
-            case NOT_FOUND =>
-              Tuple3(
-                "messages__processingRequest__h1_processing",
-                "messages__processingRequest__content_processing",
-                controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version).url
-              )
-            case _ =>
-
-              /*
-              BAD_REQUEST: validation error
-              ELSE: general error
-               */
-
-              // TODO: Depending on which of general exception or one of 2 validation error pages will go to one of 3 places
-              val call = controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
+            case Some(FileUploadOutcome(UpscanInvalidHeaderOrBody, _, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
-                call.url
+                routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType).url
               )
+            case Some(FileUploadOutcome(UpscanUnknownError, _, _)) =>
+              Tuple3(
+                "messages__processingRequest__h1_failure",
+                "messages__processingRequest__content_failure",
+                routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version).url
+              )
+            case Some(FileUploadOutcome(SessionExpired, _, _)) =>
+              Tuple3(
+                "messages__processingRequest__h1_failure",
+                "messages__processingRequest__content_failure",
+                controllers.routes.SessionExpiredController.onPageLoad.url
+              )
+
+            // TODO: All below cases
+
+            case Some(FileUploadOutcome(ValidationErrorsLessThanMax, errors, _)) =>
+              Tuple3(
+                "messages__processingRequest__h1_processed",
+                "messages__processingRequest__content_processed",
+                controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version).url
+              )
+            case Some(FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, _, errors)) =>
+              Tuple3(
+                "messages__processingRequest__h1_processed",
+                "messages__processingRequest__content_processed",
+                controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version).url
+              )
+            case Some(FileUploadOutcome(GeneralError, _, _)) =>
+              Tuple3(
+                "messages__processingRequest__h1_failure",
+                "messages__processingRequest__content_failure",
+                controllers.routes.SessionExpiredController.onPageLoad.url
+              )
+            case Some(outcome) => throw new RuntimeException(s"Unknown outcome: $outcome")
           }
         }
 
-        fileUploadEventsLogConnector.getStatus.flatMap { status =>
-          val (header, content, redirect) = headerContentAndRedirect(status)
+        fileUploadEventsLogConnector.getOutcome.flatMap { optionOutcome =>
+          val (header, content, redirect) = headerContentAndRedirect(optionOutcome)
           val json = Json.obj(
             "pageTitle" -> header,
             "heading" -> header,
             "content" -> content,
             "continueUrl" -> redirect
           )
-          renderer.render("racdac/processingRequest.njk", json).map(Ok(_))
+          renderer.render("fileUpload/processingRequest.njk", json).map(Ok(_))
         }
     }
   }

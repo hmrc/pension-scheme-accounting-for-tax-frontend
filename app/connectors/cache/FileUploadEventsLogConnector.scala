@@ -18,6 +18,7 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import models.FileUploadOutcome
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
@@ -29,7 +30,7 @@ class FileUploadEventsLogConnector @Inject()(config: FrontendAppConfig, http: Ht
 
   private def url = s"${config.fileUploadEventsLogStatusUrl}"
 
-  def getStatus(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
+  def getOutcome(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[FileUploadOutcome]] = {
 
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
@@ -37,17 +38,19 @@ class FileUploadEventsLogConnector @Inject()(config: FrontendAppConfig, http: Ht
     http.GET[HttpResponse](url)(implicitly, hc, implicitly)
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
-        response.status
+        response.status match {
+          case OK =>
+            response.json.asOpt[FileUploadOutcome]
+          case _ => None
+        }
       }
   }
 
-  def setStatus(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
-
+  def setOutcome(outcome: FileUploadOutcome)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    val jsonData = Json.obj() // Response
-    http.POST[JsValue, HttpResponse](url, jsonData)
+    http.POST[JsValue, HttpResponse](url, Json.toJson(outcome))
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status
