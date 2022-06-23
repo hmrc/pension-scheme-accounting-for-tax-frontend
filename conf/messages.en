@@ -1528,10 +1528,12 @@ requestRefund.pspAlready.p1 = A scheme practitioner authorised to this scheme mi
 messages__processingRequest__h1_processing = We are checking your file
 messages__processingRequest__content_processing = Do not close this page or leave the service.
 messages__processingRequest__h1_processed = Your file upload was successful
-messages__processingRequest__content_processed = The file was uploaded successfully and the charge was added to the AFT return. Select continue to view the changes.
+messages__processingRequest__content_processed = {0} was uploaded successfully and the charge was added to the AFT return. Select continue to view the changes.
 messages__processingRequest__h1_failure = There was a problem
 messages__processingRequest__content_failure = Select continue to find out more.
 
 messages__problemWithService__h1 = Sorry, there was a problem with the service
 messages__problemWithService__content_failure = We could not process your file upload.
 messages__problemWithService__try_again = Try uploading your file again.
+
+messages__theFile = the file

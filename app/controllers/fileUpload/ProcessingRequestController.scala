@@ -23,7 +23,7 @@ import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, SessionExpired, 
 import models.LocalDateBinder._
 import models.fileUpload.FileUploadOutcome
 import models.{AccessType, ChargeType}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -54,43 +54,49 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                 "messages__processingRequest__content_processing",
                 controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version, chargeType).url
               )
-            case Some(FileUploadOutcome(Success, _)) =>
+            case Some(FileUploadOutcome(Success, _, Some(fileName))) =>
               Tuple3(
                 "messages__processingRequest__h1_processed",
-                "messages__processingRequest__content_processed",
+                Messages("messages__processingRequest__content_processed", fileName),
                 controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version).url
               )
-            case Some(FileUploadOutcome(UpscanInvalidHeaderOrBody, _)) =>
+            case Some(FileUploadOutcome(Success, _, None)) =>
+              Tuple3(
+                "messages__processingRequest__h1_processed",
+                Messages("messages__processingRequest__content_processed", Messages("messages__theFile")),
+                controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version).url
+              )
+            case Some(FileUploadOutcome(UpscanInvalidHeaderOrBody, _, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
                 routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType).url
               )
-            case Some(FileUploadOutcome(UpscanUnknownError, _)) =>
+            case Some(FileUploadOutcome(UpscanUnknownError, _, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
                 routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version).url
               )
-            case Some(FileUploadOutcome(SessionExpired, _)) =>
+            case Some(FileUploadOutcome(SessionExpired, _, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
                 controllers.routes.SessionExpiredController.onPageLoad.url
               )
-            case Some(FileUploadOutcome(ValidationErrorsLessThanMax, _)) =>
+            case Some(FileUploadOutcome(ValidationErrorsLessThanMax, _, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
                 controllers.fileUpload.routes.ValidationErrorsAllController.onPageLoad(srn, startDate, accessType, version, chargeType).url
               )
-            case Some(FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, _)) =>
+            case Some(FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, _, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
                 controllers.fileUpload.routes.ValidationErrorsSummaryController.onPageLoad(srn, startDate, accessType, version, chargeType).url
               )
-            case Some(FileUploadOutcome(GeneralError, _)) =>
+            case Some(FileUploadOutcome(GeneralError, _, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",

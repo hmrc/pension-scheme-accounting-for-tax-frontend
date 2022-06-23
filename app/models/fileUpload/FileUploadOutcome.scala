@@ -20,7 +20,8 @@ import play.api.libs.json.{JsObject, Json}
 
 case class FileUploadOutcome(
                               status: FileUploadOutcomeStatus,
-                              json: JsObject = Json.obj()
+                              json: JsObject = Json.obj(),
+                              fileName: Option[String] = None
                             )
 
 object FileUploadOutcome {

@@ -26,6 +26,7 @@ import models.{ChargeType, Draft, Enumerable}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
@@ -69,7 +70,29 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
 
   "ProcessingRequestController" must {
 
-    "return OK and the correct view for a GET when outcome is Success" in {
+    "return OK and the correct view for a GET when outcome is Success and can get file name" in {
+      val testFile = "test-file.csv"
+      when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))
+        .thenReturn(Future.successful(Some(FileUploadOutcome(status = Success, fileName = Some(testFile)))))
+      val templateCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(
+        heading = "messages__processingRequest__h1_processed",
+        content = Messages("messages__processingRequest__content_processed", testFile),
+        redirect = controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, versionInt).url
+      ))
+    }
+
+    "return OK and the correct view for a GET when outcome is Success but can't get file name" in {
       when(mockFileUploadOutcomeConnector.getOutcome(any(), any())).thenReturn(Future.successful(Some(FileUploadOutcome(Success))))
       val templateCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
@@ -84,7 +107,7 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(
         heading = "messages__processingRequest__h1_processed",
-        content = "messages__processingRequest__content_processed",
+        content = Messages("messages__processingRequest__content_processed", Messages("messages__theFile")),
         redirect = controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, versionInt).url
       ))
     }

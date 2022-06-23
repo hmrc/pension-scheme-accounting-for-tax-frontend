@@ -69,6 +69,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
   private val mockAuditService = mock[AuditService]
   private val mockFileUploadOutcomeConnector = mock[FileUploadOutcomeConnector]
+  private val fileName = "test.csv"
 
   private def ua: UserAnswers = userAnswersWithSchemeName
 
@@ -266,7 +267,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       eventually {
 
         verify(mockFileUploadOutcomeConnector, times(1))
-          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, Json.obj())))(any(), any())
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(status=Success, fileName = Some(fileName))))(any(), any())
 
         val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
         verify(mockAuditService, times(2)).sendEvent(auditCaptor.capture())(any(), any())
@@ -380,7 +381,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       eventually {
         verify(mockFileUploadOutcomeConnector, times(1))
-          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, Json.obj())))(any(), any())
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, fileName = Some(fileName))))(any(), any())
         retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 0, 2, 1, 2)
       }
     }
@@ -414,7 +415,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       eventually {
         verify(mockFileUploadOutcomeConnector, times(1))
-          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, Json.obj())))(any(), any())
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, fileName = Some(fileName))))(any(), any())
         retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 2, 0, 1, 2)
       }
     }
@@ -450,7 +451,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       eventually {
         verify(mockFileUploadOutcomeConnector, times(1))
-          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, Json.obj())))(any(), any())
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, fileName = Some(fileName))))(any(), any())
         retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 2, 2, 1, 0)
       }
     }
@@ -475,7 +476,7 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
           FileUploadDataCache(
             uploadId = "uploadID",
             reference = "reference",
-            status = FileUploadStatus(_type = "UploadedSuccessfully"),
+            status = FileUploadStatus(_type = "UploadedSuccessfully", name = Some("test.csv")),
             created = LocalDateTime.now,
             lastUpdated = LocalDateTime.now,
             expireAt = LocalDateTime.now

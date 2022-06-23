@@ -56,7 +56,7 @@ class ValidationErrorsAllController @Inject()(appConfig: FrontendAppConfig,
         val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
 
         fileUploadOutcomeConnector.getOutcome.flatMap {
-          case Some(FileUploadOutcome(ValidationErrorsLessThanMax, errorsJson)) =>
+          case Some(FileUploadOutcome(ValidationErrorsLessThanMax, errorsJson, _)) =>
             renderer.render(template = "fileUpload/invalid.njk",
               Json.obj(
                 "chargeType" -> chargeType,

@@ -55,7 +55,7 @@ class ValidationErrorsSummaryController @Inject()(appConfig: FrontendAppConfig,
         val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
         val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
         fileUploadOutcomeConnector.getOutcome.flatMap {
-          case Some(FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, errorsJson)) =>
+          case Some(FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, errorsJson, _)) =>
             renderer.render(template = "fileUpload/genericErrors.njk",
               Json.obj(
                 "chargeType" -> chargeType,

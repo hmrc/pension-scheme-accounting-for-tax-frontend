@@ -111,11 +111,10 @@ class ValidationController @Inject()(
   private def parseAndGetResult(
                                  srn: String,
                                  startDate: LocalDate,
-                                 accessType: AccessType,
-                                 version: Int,
                                  chargeType: ChargeType,
                                  csvContent: Seq[Array[String]],
-                                 parser: Parser)(implicit request: DataRequest[AnyContent]): Future[FileUploadOutcome] = {
+                                 parser: Parser,
+                                 fileName: String)(implicit request: DataRequest[AnyContent]): Future[FileUploadOutcome] = {
 
 
     val pstr = request.userAnswers.get(PSTRQuery).getOrElse(s"No PSTR found in Mongo cache. Srn is $srn")
@@ -130,7 +129,7 @@ class ValidationController @Inject()(
         case Right(updatedUA) =>
           TimeLogger.logOperationTime(
             processSuccessResult(chargeType, updatedUA)
-              .map(_ => FileUploadOutcome(status = Success)),
+              .map(_ => FileUploadOutcome(status = Success, fileName = Some(fileName))),
             "processSuccessResult"
           )
       }
@@ -214,6 +213,15 @@ class ValidationController @Inject()(
     }
   }
 
+  private def getFileName(uploadStatus: FileUploadDataCache): String = {
+      val status = uploadStatus.status
+      status._type match {
+        case "UploadedSuccessfully" => status.name.getOrElse("No File Found")
+        case "InProgress" => "InProgress"
+        case _ => "No File Found"
+      }
+  }
+
   private def downloadAndProcess(
                                   srn: String,
                                   startDate: LocalDate,
@@ -237,7 +245,8 @@ class ValidationController @Inject()(
                 response.status match {
                   case OK =>
                     val linesFromCSV = CsvLineSplitter.split(response.body)
-                    parseAndGetResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                    val fileName = getFileName(uploadStatus)
+                    parseAndGetResult(srn, startDate, chargeType, linesFromCSV, parser, fileName)
                   case _ =>
                     Future.successful(FileUploadOutcome(status = UpscanUnknownError))
                 }
