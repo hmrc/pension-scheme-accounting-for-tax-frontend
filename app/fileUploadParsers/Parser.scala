@@ -23,7 +23,7 @@ import models.{MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsPath, JsValue, Json}
+import play.api.libs.json.{JsPath, JsValue}
 
 import java.time.LocalDate
 

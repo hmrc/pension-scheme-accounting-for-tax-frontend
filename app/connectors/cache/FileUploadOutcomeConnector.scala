@@ -22,8 +22,6 @@ import models.fileUpload.FileUploadOutcome
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.Result
-import play.api.mvc.Results.Ok
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, NotFoundException}
 
@@ -56,7 +54,7 @@ class FileUploadOutcomeConnector @Inject()(config: FrontendAppConfig, http: Http
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.POST[JsValue, HttpResponse](url, Json.toJson(outcome)) andThen {
+    http.POST[JsValue, HttpResponse](url, Json.toJson(outcome))(implicitly, implicitly, hc, implicitly) andThen {
       case Failure(t: Throwable) => logger.warn("Unable to post file upload outcome", t)
     } map{ _ => ()}
   }
@@ -65,7 +63,7 @@ class FileUploadOutcomeConnector @Inject()(config: FrontendAppConfig, http: Http
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.DELETE[HttpResponse](url) andThen {
+    http.DELETE[HttpResponse](url)(implicitly, hc, implicitly) andThen {
       case Failure(t: Throwable) => logger.warn("Unable to delete file upload outcome", t)
     } map { _ =>()}
   }

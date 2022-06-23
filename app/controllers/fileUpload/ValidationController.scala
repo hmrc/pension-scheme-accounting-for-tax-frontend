@@ -17,7 +17,6 @@
 package controllers.fileUpload
 
 import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AuditService}
-import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions._
@@ -32,11 +31,9 @@ import models.requests.DataRequest
 import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.PSTRQuery
-import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import renderer.Renderer
 import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -53,7 +50,6 @@ class ValidationController @Inject()(
                                       allowAccess: AllowAccessActionProvider,
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
-                                      renderer: Renderer,
                                       auditService: AuditService,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
@@ -63,21 +59,14 @@ class ValidationController @Inject()(
                                       aftService: AFTService,
                                       fileUploadAftReturnService: FileUploadAftReturnService,
                                       fileUploadOutcomeConnector: FileUploadOutcomeConnector
-                                    )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
+                                    )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
 
   val maximumNumberOfError = 10
 
-  private val logger = Logger(classOf[ValidationController])
-
-  private def processInvalid(
-                              srn: String,
-                              startDate: LocalDate,
-                              accessType: AccessType,
-                              version: Int,
-                              chargeType: ChargeType,
-                              errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent], messages: Messages): FileUploadOutcome = {
+  private def processInvalid( chargeType: ChargeType,
+                              errors: Seq[ParserValidationError])(implicit messages: Messages): FileUploadOutcome = {
     errors match {
       case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
         FileUploadOutcome(status = UpscanInvalidHeaderOrBody)
@@ -137,7 +126,7 @@ class ValidationController @Inject()(
     val futureResult =
       parserResult match {
         case Left(errors) =>
-          Future.successful(processInvalid(srn, startDate, accessType, version, chargeType, errors))
+          Future.successful(processInvalid(chargeType, errors))
         case Right(updatedUA) =>
           TimeLogger.logOperationTime(
             processSuccessResult(chargeType, updatedUA)

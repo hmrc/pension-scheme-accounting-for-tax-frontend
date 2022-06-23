@@ -19,8 +19,8 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.fileUpload.FileUploadOutcomeStatus.{ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.fileUpload.FileUploadOutcome
+import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsMoreThanOrEqualToMax
 import models.{AccessType, ChargeType}
 import pages.SchemeNameQuery
 import play.api.i18n.{I18nSupport, MessagesApi}
