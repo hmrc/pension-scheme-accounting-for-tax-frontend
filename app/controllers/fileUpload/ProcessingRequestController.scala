@@ -17,7 +17,7 @@
 package controllers.fileUpload
 
 import config.FrontendAppConfig
-import connectors.cache.FileUploadEventsLogConnector
+import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions._
 import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, SessionExpired, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.LocalDateBinder._
@@ -38,7 +38,7 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                                             identify: IdentifierAction,
                                             val controllerComponents: MessagesControllerComponents,
                                             renderer: Renderer,
-                                            fileUploadEventsLogConnector: FileUploadEventsLogConnector
+                                            fileUploadOutcomeConnector: FileUploadOutcomeConnector
                                            )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -100,7 +100,7 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
           }
         }
 
-        fileUploadEventsLogConnector.getOutcome.flatMap { optionOutcome =>
+        fileUploadOutcomeConnector.getOutcome.flatMap { optionOutcome =>
           val (header, content, redirect) = headerContentAndRedirect(optionOutcome)
           val json = Json.obj(
             "pageTitle" -> header,

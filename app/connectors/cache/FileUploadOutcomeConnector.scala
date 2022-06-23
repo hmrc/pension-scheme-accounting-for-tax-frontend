@@ -19,16 +19,22 @@ package connectors.cache
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.fileUpload.FileUploadOutcome
+import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.Result
+import play.api.mvc.Results.Ok
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, NotFoundException}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Failure
 
-class FileUploadEventsLogConnector @Inject()(config: FrontendAppConfig, http: HttpClient) {
+class FileUploadOutcomeConnector @Inject()(config: FrontendAppConfig, http: HttpClient) {
 
-  private def url = s"${config.fileUploadEventsLogStatusUrl}"
+  private val logger = Logger(classOf[FileUploadOutcomeConnector])
+
+  private val url = s"${config.fileUploadOutcomeUrl}"
 
   def getOutcome(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[FileUploadOutcome]] = {
 
@@ -46,15 +52,22 @@ class FileUploadEventsLogConnector @Inject()(config: FrontendAppConfig, http: Ht
       }
   }
 
-  def setOutcome(outcome: FileUploadOutcome)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
+  def setOutcome(outcome: FileUploadOutcome)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.POST[JsValue, HttpResponse](url, Json.toJson(outcome))
-      .recoverWith(mapExceptionsToStatus)
-      .map { response =>
-        response.status
-      }
+    http.POST[JsValue, HttpResponse](url, Json.toJson(outcome)) andThen {
+      case Failure(t: Throwable) => logger.warn("Unable to post file upload outcome", t)
+    } map{ _ => ()}
+  }
+
+  def deleteOutcome(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Unit] = {
+    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"))
+    val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
+
+    http.DELETE[HttpResponse](url) andThen {
+      case Failure(t: Throwable) => logger.warn("Unable to delete file upload outcome", t)
+    } map { _ =>()}
   }
 
   private def mapExceptionsToStatus: PartialFunction[Throwable, Future[HttpResponse]] = {

@@ -17,9 +17,9 @@
 package controllers.fileUpload
 
 import config.FrontendAppConfig
-import connectors.cache.FileUploadEventsLogConnector
+import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsLessThanMax
+import models.fileUpload.FileUploadOutcomeStatus.{ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.fileUpload.FileUploadOutcome
 import models.{AccessType, ChargeType}
 import pages.SchemeNameQuery
@@ -41,7 +41,7 @@ class ValidationErrorsSummaryController @Inject()(appConfig: FrontendAppConfig,
                                                   allowAccess: AllowAccessActionProvider,
                                                   requireData: DataRequiredAction,
                                                   renderer: Renderer,
-                                                  fileUploadEventsLogConnector: FileUploadEventsLogConnector
+                                                  fileUploadOutcomeConnector: FileUploadOutcomeConnector
                                                  )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -54,9 +54,8 @@ class ValidationErrorsSummaryController @Inject()(appConfig: FrontendAppConfig,
         val fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
         val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
         val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
-
-        fileUploadEventsLogConnector.getOutcome.flatMap {
-          case Some(FileUploadOutcome(ValidationErrorsLessThanMax, errorsJson)) =>
+        fileUploadOutcomeConnector.getOutcome.flatMap {
+          case Some(FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, errorsJson)) =>
             renderer.render(template = "fileUpload/genericErrors.njk",
               Json.obj(
                 "chargeType" -> chargeType,

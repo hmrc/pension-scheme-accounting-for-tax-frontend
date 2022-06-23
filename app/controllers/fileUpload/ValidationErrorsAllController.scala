@@ -17,7 +17,7 @@
 package controllers.fileUpload
 
 import config.FrontendAppConfig
-import connectors.cache.FileUploadEventsLogConnector
+import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsLessThanMax
 import models.fileUpload.FileUploadOutcome
@@ -41,7 +41,7 @@ class ValidationErrorsAllController @Inject()(appConfig: FrontendAppConfig,
                                               allowAccess: AllowAccessActionProvider,
                                               requireData: DataRequiredAction,
                                               renderer: Renderer,
-                                              fileUploadEventsLogConnector: FileUploadEventsLogConnector
+                                              fileUploadOutcomeConnector: FileUploadOutcomeConnector
                                              )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -55,7 +55,7 @@ class ValidationErrorsAllController @Inject()(appConfig: FrontendAppConfig,
         val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
         val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
 
-        fileUploadEventsLogConnector.getOutcome.flatMap {
+        fileUploadOutcomeConnector.getOutcome.flatMap {
           case Some(FileUploadOutcome(ValidationErrorsLessThanMax, errorsJson)) =>
             renderer.render(template = "fileUpload/invalid.njk",
               Json.obj(

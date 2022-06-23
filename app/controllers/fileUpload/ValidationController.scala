@@ -19,7 +19,7 @@ package controllers.fileUpload
 import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.UpscanInitiateConnector
-import connectors.cache.FileUploadEventsLogConnector
+import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions._
 import controllers.fileUpload.FileUploadGenericErrorReporter.generateGenericErrorReport
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
@@ -61,7 +61,7 @@ class ValidationController @Inject()(
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService: AFTService,
                                       fileUploadAftReturnService: FileUploadAftReturnService,
-                                      fileUploadEventsLogConnector: FileUploadEventsLogConnector
+                                      fileUploadOutcomeConnector: FileUploadOutcomeConnector
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -231,30 +231,33 @@ class ValidationController @Inject()(
                                   parser: Parser
                                 )(implicit request: DataRequest[AnyContent]): Future[Unit] = {
     val startTime = System.currentTimeMillis
-    val futureOutcome = uploadProgressTracker.getUploadResult(uploadId).flatMap {
-      case Some(uploadStatus) =>
-        uploadStatus.status._type match {
-          case "" | "Failed" | "InProgress" =>
-            Future.successful(FileUploadOutcome(status = SessionExpired))
-          case "UploadedSuccessfully" =>
-            upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap { response =>
-              sendAuditEventUpscanDownload(chargeType, response.status, startTime, uploadStatus)
-              response.status match {
-                case OK =>
-                  val linesFromCSV = CsvLineSplitter.split(response.body)
-                  parseAndGetResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
-                case _ =>
-                  Future.successful(FileUploadOutcome(status = UpscanUnknownError))
+
+    val futureOutcome = fileUploadOutcomeConnector.deleteOutcome.flatMap{ _ =>
+      uploadProgressTracker.getUploadResult(uploadId).flatMap {
+        case Some(uploadStatus) =>
+          uploadStatus.status._type match {
+            case "" | "Failed" | "InProgress" =>
+              Future.successful(FileUploadOutcome(status = SessionExpired))
+            case "UploadedSuccessfully" =>
+              upscanInitiateConnector.download(uploadStatus.status.downloadUrl.getOrElse("")).flatMap { response =>
+                sendAuditEventUpscanDownload(chargeType, response.status, startTime, uploadStatus)
+                response.status match {
+                  case OK =>
+                    val linesFromCSV = CsvLineSplitter.split(response.body)
+                    parseAndGetResult(srn, startDate, accessType, version, chargeType, linesFromCSV, parser)
+                  case _ =>
+                    Future.successful(FileUploadOutcome(status = UpscanUnknownError))
+                }
               }
-            }
-          case _ =>
-            Future.successful(FileUploadOutcome(status = SessionExpired))
-        }
-      case _ =>
-        Future.successful(FileUploadOutcome(status = SessionExpired))
+            case _ =>
+              Future.successful(FileUploadOutcome(status = SessionExpired))
+          }
+        case _ =>
+          Future.successful(FileUploadOutcome(status = SessionExpired))
+      }
     }
-    futureOutcome.flatMap{ outcome =>
-      fileUploadEventsLogConnector.setOutcome(outcome).map{ _ => () }
+    futureOutcome.map{ outcome =>
+      fileUploadOutcomeConnector.setOutcome(outcome)
     }
   }
 
