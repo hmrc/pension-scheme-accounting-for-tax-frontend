@@ -20,9 +20,9 @@ import config.FrontendAppConfig
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions._
 import helpers.ChargeTypeHelper
-import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, SessionExpired, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.LocalDateBinder._
 import models.fileUpload.FileUploadOutcome
+import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, SessionExpired, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.{AccessType, ChargeType, NormalMode}
 import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -69,10 +69,12 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                 url
               )
             case Some(FileUploadOutcome(Success, _, None)) =>
+              val url = navigator.nextPage(ChargeTypeHelper.getCheckYourAnswersPage(chargeType), NormalMode, request.userAnswers, srn,
+                startDate, accessType, version).url
               Tuple3(
                 "messages__processingRequest__h1_processed",
                 Messages("messages__processingRequest__content_processed", Messages("messages__theFile")),
-                controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version).url
+                url
               )
             case Some(FileUploadOutcome(UpscanInvalidHeaderOrBody, _, _)) =>
               Tuple3(

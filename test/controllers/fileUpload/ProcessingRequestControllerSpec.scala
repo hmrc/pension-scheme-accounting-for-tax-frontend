@@ -19,12 +19,15 @@ package controllers.fileUpload
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
+import data.SampleData
+import data.SampleData.userAnswersWithSchemeName
 import matchers.JsonMatchers
 import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
-import models.{ChargeType, Draft, Enumerable}
-import org.mockito.ArgumentCaptor
+import models.{ChargeType, Draft, Enumerable, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import pages.chargeE.CheckYourAnswersPage
 import play.api.Application
 import play.api.i18n.Messages
 import play.api.inject.bind
@@ -62,10 +65,14 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
       "continueUrl" -> redirect
     )
 
+  private def ua: UserAnswers = userAnswersWithSchemeName
+
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockFileUploadOutcomeConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(CheckYourAnswersPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+    mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
   }
 
   "ProcessingRequestController" must {
@@ -88,7 +95,7 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(
         heading = "messages__processingRequest__h1_processed",
         content = Messages("messages__processingRequest__content_processed", testFile),
-        redirect = controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, versionInt).url
+        redirect = SampleData.dummyCall.url
       ))
     }
 
@@ -108,7 +115,7 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(
         heading = "messages__processingRequest__h1_processed",
         content = Messages("messages__processingRequest__content_processed", Messages("messages__theFile")),
-        redirect = controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, versionInt).url
+        redirect = SampleData.dummyCall.url
       ))
     }
 
