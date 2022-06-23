@@ -16,13 +16,11 @@
 
 package models
 
-import controllers.fileUpload.FileUploadGenericErrorReporter.ErrorReport
 import play.api.libs.json.{JsObject, Json}
 
 case class FileUploadOutcome(
                               status: FileUploadOutcomeStatus,
-                              validationErrorsLessThanMax: Seq[JsObject]= Nil,
-                              validationErrorsMoreThanOrEqualToMax: ErrorReport = Nil
+                              json: JsObject = Json.obj()
                             )
 
 object FileUploadOutcome {

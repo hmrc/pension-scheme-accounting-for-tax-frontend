@@ -67,57 +67,6 @@ class ValidationController @Inject()(
 
   val maximumNumberOfError = 10
 
-  //  private def processInvalid(
-  //                              srn: String,
-  //                              startDate: LocalDate,
-  //                              accessType: AccessType,
-  //                              version: Int,
-  //                              chargeType: ChargeType,
-  //                              errors: Seq[ParserValidationError])(implicit request: DataRequest[AnyContent], messages: Messages): Future[Result] = {
-  //    val schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme")
-  //    val fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
-  //    val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
-  //    val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
-  //    errors match {
-  //      case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
-  //        Future.successful(Redirect(routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType)))
-  //      case _ =>
-  //        if (errors.size <= maximumNumberOfError) {
-  //          val cellErrors: Seq[JsObject] = errorJson(errors, messages)
-  //
-  //          renderer.render(template = "fileUpload/invalid.njk",
-  //            Json.obj(
-  //              "chargeType" -> chargeType,
-  //              "chargeTypeText" -> ChargeType.fileUploadText(chargeType)(messages),
-  //              "srn" -> srn, "startDate" -> Some(startDate),
-  //              "errors" -> cellErrors,
-  //              "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
-  //              "returnToFileUploadURL" -> returnToFileUpload,
-  //              "returnToSchemeDetails" -> returnToSchemeDetails,
-  //              "schemeName" -> schemeName
-  //            )
-  //          ).map(Ok(_))
-  //        }
-  //        else {
-  //          val genericErrors = generateGenericErrorReport(errors, chargeType)
-  //          renderer.render(template = "fileUpload/genericErrors.njk",
-  //            Json.obj(
-  //              "chargeType" -> chargeType,
-  //              "chargeTypeText" -> ChargeType.fileUploadText(chargeType)(messages),
-  //              "srn" -> srn,
-  //              "startDate" -> Some(startDate),
-  //              "totalError" -> errors.size,
-  //              "errors" -> genericErrors,
-  //              "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
-  //              "returnToFileUploadURL" -> returnToFileUpload,
-  //              "returnToSchemeDetails" -> returnToSchemeDetails,
-  //              "schemeName" -> schemeName
-  //            )
-  //          ).map(Ok(_))
-  //        }
-  //    }
-  //  }
-
   private def processInvalid(
                               srn: String,
                               startDate: LocalDate,
@@ -133,12 +82,15 @@ class ValidationController @Inject()(
           val cellErrors: Seq[JsObject] = errorJson(errors, messages)
           FileUploadOutcome(
             status = ValidationErrorsLessThanMax,
-            validationErrorsLessThanMax = cellErrors
+            json = Json.obj( "errors" -> cellErrors)
           )
         } else {
           FileUploadOutcome(
             status = ValidationErrorsMoreThanOrEqualToMax,
-            validationErrorsMoreThanOrEqualToMax = generateGenericErrorReport(errors, chargeType)
+            json = Json.obj(
+              "errors" -> generateGenericErrorReport(errors, chargeType),
+              "totalError" -> errors.size
+            )
           )
         }
     }

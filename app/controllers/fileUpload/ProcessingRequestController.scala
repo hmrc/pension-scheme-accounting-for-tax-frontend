@@ -19,7 +19,6 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.cache.FileUploadEventsLogConnector
 import controllers.actions._
-import handlers.ErrorHandler
 import models.FileUploadOutcomeStatus.{GeneralError, SessionExpired, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, FileUploadOutcome}
@@ -38,8 +37,7 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                                             identify: IdentifierAction,
                                             val controllerComponents: MessagesControllerComponents,
                                             renderer: Renderer,
-                                            fileUploadEventsLogConnector: FileUploadEventsLogConnector,
-                                            errorHandler: ErrorHandler
+                                            fileUploadEventsLogConnector: FileUploadEventsLogConnector
                                            )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -55,50 +53,47 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                 "messages__processingRequest__content_processing",
                 controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version, chargeType).url
               )
-            case Some(FileUploadOutcome(Success, _, _)) =>
+            case Some(FileUploadOutcome(Success, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_processed",
                 "messages__processingRequest__content_processed",
                 controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version).url
               )
-            case Some(FileUploadOutcome(UpscanInvalidHeaderOrBody, _, _)) =>
+            case Some(FileUploadOutcome(UpscanInvalidHeaderOrBody, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
                 routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate.toString, accessType, version, chargeType).url
               )
-            case Some(FileUploadOutcome(UpscanUnknownError, _, _)) =>
+            case Some(FileUploadOutcome(UpscanUnknownError, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
                 routes.UpscanErrorController.unknownError(srn, startDate.toString, accessType, version).url
               )
-            case Some(FileUploadOutcome(SessionExpired, _, _)) =>
+            case Some(FileUploadOutcome(SessionExpired, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
                 controllers.routes.SessionExpiredController.onPageLoad.url
               )
-
-            // TODO: All below cases
-
-            case Some(FileUploadOutcome(ValidationErrorsLessThanMax, errors, _)) =>
-              Tuple3(
-                "messages__processingRequest__h1_processed",
-                "messages__processingRequest__content_processed",
-                controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version).url
-              )
-            case Some(FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, _, errors)) =>
-              Tuple3(
-                "messages__processingRequest__h1_processed",
-                "messages__processingRequest__content_processed",
-                controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version).url
-              )
-            case Some(FileUploadOutcome(GeneralError, _, _)) =>
+            case Some(FileUploadOutcome(ValidationErrorsLessThanMax, _)) =>
               Tuple3(
                 "messages__processingRequest__h1_failure",
                 "messages__processingRequest__content_failure",
-                controllers.routes.SessionExpiredController.onPageLoad.url
+                controllers.fileUpload.routes.ValidationErrorsAllController.onPageLoad(srn, startDate, accessType, version, chargeType).url
+              )
+            case Some(FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, _)) =>
+              Tuple3(
+                "messages__processingRequest__h1_failure",
+                "messages__processingRequest__content_failure",
+                controllers.fileUpload.routes.ValidationErrorsSummaryController.onPageLoad(srn, startDate, accessType, version, chargeType).url
+              )
+            case Some(FileUploadOutcome(GeneralError, _)) =>
+              Tuple3(
+                "messages__processingRequest__h1_failure",
+                "messages__processingRequest__content_failure",
+                controllers.fileUpload.routes.ProblemWithServiceController.onPageLoad(srn, startDate, accessType, version).url
               )
             case Some(outcome) => throw new RuntimeException(s"Unknown outcome: $outcome")
           }
