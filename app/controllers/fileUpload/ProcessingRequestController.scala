@@ -19,10 +19,12 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions._
+import helpers.ChargeTypeHelper
 import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, SessionExpired, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.LocalDateBinder._
 import models.fileUpload.FileUploadOutcome
-import models.{AccessType, ChargeType}
+import models.{AccessType, ChargeType, NormalMode}
+import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -36,15 +38,19 @@ import scala.concurrent.ExecutionContext
 class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                                             override val messagesApi: MessagesApi,
                                             identify: IdentifierAction,
+                                            getData: DataRetrievalAction,
+                                            allowAccess: AllowAccessActionProvider,
+                                            requireData: DataRequiredAction,
                                             val controllerComponents: MessagesControllerComponents,
                                             renderer: Renderer,
-                                            fileUploadOutcomeConnector: FileUploadOutcomeConnector
+                                            fileUploadOutcomeConnector: FileUploadOutcomeConnector,
+                                            navigator: CompoundNavigator
                                            )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] = {
-    identify.async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         def headerContentAndRedirect(optionOutcome: Option[FileUploadOutcome]): (String, String, String) = {
           optionOutcome match {
@@ -55,10 +61,12 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                 controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version, chargeType).url
               )
             case Some(FileUploadOutcome(Success, _, Some(fileName))) =>
+              val url = navigator.nextPage(ChargeTypeHelper.getCheckYourAnswersPage(chargeType), NormalMode, request.userAnswers, srn,
+                startDate, accessType, version).url
               Tuple3(
                 "messages__processingRequest__h1_processed",
                 Messages("messages__processingRequest__content_processed", fileName),
-                controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version).url
+                url
               )
             case Some(FileUploadOutcome(Success, _, None)) =>
               Tuple3(
