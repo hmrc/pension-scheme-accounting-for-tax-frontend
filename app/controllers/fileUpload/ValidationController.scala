@@ -25,13 +25,14 @@ import controllers.fileUpload.FileUploadGenericErrorReporter.generateGenericErro
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
-import models.fileUpload.FileUploadOutcomeStatus._
 import models.LocalDateBinder._
 import models.fileUpload.FileUploadOutcome
+import models.fileUpload.FileUploadOutcomeStatus._
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.PSTRQuery
+import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -68,6 +69,8 @@ class ValidationController @Inject()(
 
   val maximumNumberOfError = 10
 
+  private val logger = Logger(classOf[ValidationController])
+
   private def processInvalid(
                               srn: String,
                               startDate: LocalDate,
@@ -83,7 +86,7 @@ class ValidationController @Inject()(
           val cellErrors: Seq[JsObject] = errorJson(errors, messages)
           FileUploadOutcome(
             status = ValidationErrorsLessThanMax,
-            json = Json.obj( "errors" -> cellErrors)
+            json = Json.obj("errors" -> cellErrors)
           )
         } else {
           FileUploadOutcome(
@@ -232,7 +235,7 @@ class ValidationController @Inject()(
                                 )(implicit request: DataRequest[AnyContent]): Future[Unit] = {
     val startTime = System.currentTimeMillis
 
-    val futureOutcome = fileUploadOutcomeConnector.deleteOutcome.flatMap{ _ =>
+    val futureOutcome = fileUploadOutcomeConnector.deleteOutcome.flatMap { _ =>
       uploadProgressTracker.getUploadResult(uploadId).flatMap {
         case Some(uploadStatus) =>
           uploadStatus.status._type match {
@@ -256,7 +259,10 @@ class ValidationController @Inject()(
           Future.successful(FileUploadOutcome(status = SessionExpired))
       }
     }
-    futureOutcome.map{ outcome =>
+
+    futureOutcome recoverWith {
+      case _: Throwable => Future.successful(FileUploadOutcome(GeneralError))
+    } flatMap { outcome =>
       fileUploadOutcomeConnector.setOutcome(outcome)
     }
   }
