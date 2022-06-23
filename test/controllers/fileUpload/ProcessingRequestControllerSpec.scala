@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package controllers.racdac.bulk
+package controllers.fileUpload
 
-import connectors.cache.{BulkMigrationEventsLogConnector, BulkMigrationQueueConnector}
-import controllers.ControllerSpecBase
+import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.base.ControllerSpecBase
 import matchers.JsonMatchers
+import models.fileUpload.FileUploadOutcome
+import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, Success}
+import models.{ChargeType, Draft, Enumerable}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import play.api.Application
@@ -29,23 +32,26 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.nunjucks.NunjucksSupport
-import utils.Enumerable
 
 import scala.concurrent.Future
 
 class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with Enumerable.Implicits {
 
   private val templateToBeRendered = "racdac/processingRequest.njk"
-  private val mockQueueConnector = mock[BulkMigrationQueueConnector]
-  private val mockBulkMigrationEventsLogConnector = mock[BulkMigrationEventsLogConnector]
+  private val mockFileUploadOutcomeConnector = mock[FileUploadOutcomeConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(
-    bind[BulkMigrationQueueConnector].to(mockQueueConnector),
-    bind[BulkMigrationEventsLogConnector].to(mockBulkMigrationEventsLogConnector)
+    bind[FileUploadOutcomeConnector].to(mockFileUploadOutcomeConnector)
   )
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private def httpPathGET: String = controllers.racdac.bulk.routes.ProcessingRequestController.onPageLoad().url
+  private val startDate = "2020-04-01"
+  private val srn = "test-srn"
+  private val accessType = Draft
+  private val versionInt = 1
+
+  private def httpPathGET: String = controllers.fileUpload.routes.ProcessingRequestController
+    .onPageLoad(srn, startDate, accessType, versionInt, ChargeType.ChargeTypeAnnualAllowance).url
 
   private def jsonToPassToTemplate(heading: String, content: String, redirect: String): JsObject =
     Json.obj(
@@ -57,14 +63,14 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockBulkMigrationEventsLogConnector)
+    reset(mockFileUploadOutcomeConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
   "ProcessingRequestController" must {
 
-    "return OK and the correct view for a GET when migration events log is ACCEPTED" in {
-      when(mockBulkMigrationEventsLogConnector.getStatus(any(), any())).thenReturn(Future.successful(ACCEPTED))
+    "return OK and the correct view for a GET when outcome is Success" in {
+      when(mockFileUploadOutcomeConnector.getOutcome(any(), any())).thenReturn(Future.successful(Some(FileUploadOutcome(Success))))
       val templateCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -79,12 +85,12 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(
         heading = "messages__processingRequest__h1_processed",
         content = "messages__processingRequest__content_processed",
-        redirect = routes.ConfirmationController.onPageLoad().url
+        redirect = controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, versionInt).url
       ))
     }
 
-    "return OK and the correct view for a GET when migration events log is NOT_FOUND" in {
-      when(mockBulkMigrationEventsLogConnector.getStatus(any(), any())).thenReturn(Future.successful(NOT_FOUND))
+    "return OK and the correct view for a GET when outcome is None" in {
+      when(mockFileUploadOutcomeConnector.getOutcome(any(), any())).thenReturn(Future.successful(None))
       val templateCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -99,12 +105,13 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(
         heading = "messages__processingRequest__h1_processing",
         content = "messages__processingRequest__content_processing",
-        redirect = routes.ProcessingRequestController.onPageLoad().url
+        redirect = controllers.fileUpload.routes.
+          ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, ChargeType.ChargeTypeAnnualAllowance).url
       ))
     }
 
-    "return OK and the correct view for a GET when migration events log is INTERNAL_SERVER_ERROR" in {
-      when(mockBulkMigrationEventsLogConnector.getStatus(any(), any())).thenReturn(Future.successful(INTERNAL_SERVER_ERROR))
+    "return OK and the correct view for a GET when outcome is GeneralError" in {
+      when(mockFileUploadOutcomeConnector.getOutcome(any(), any())).thenReturn(Future.successful(Some(FileUploadOutcome(GeneralError))))
       val templateCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -119,7 +126,7 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(
         heading = "messages__processingRequest__h1_failure",
         content = "messages__processingRequest__content_failure",
-        redirect = routes.DeclarationController.onPageLoad().url
+        redirect = controllers.fileUpload.routes.ProblemWithServiceController.onPageLoad(srn, startDate, accessType, versionInt).url
       ))
     }
   }
