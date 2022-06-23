@@ -139,10 +139,11 @@ class ValidationController @Inject()(
         case Left(errors) =>
           Future.successful(processInvalid(srn, startDate, accessType, version, chargeType, errors))
         case Right(updatedUA) =>
-          //TimeLogger.logOperationTime(
-          processSuccessResult(chargeType, updatedUA)
-            .map(_ => FileUploadOutcome(status = Success))
-        // )
+          TimeLogger.logOperationTime(
+            processSuccessResult(chargeType, updatedUA)
+              .map(_ => FileUploadOutcome(status = Success)),
+            "processSuccessResult"
+          )
       }
 
     futureResult.map { result =>
