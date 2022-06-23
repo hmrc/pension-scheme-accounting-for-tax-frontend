@@ -21,7 +21,7 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import matchers.JsonMatchers
 import models.fileUpload.FileUploadOutcome
-import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, Success}
+import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.{ChargeType, Draft, Enumerable}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -37,7 +37,7 @@ import scala.concurrent.Future
 
 class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with Enumerable.Implicits {
 
-  private val templateToBeRendered = "racdac/processingRequest.njk"
+  private val templateToBeRendered = "fileUpload/processingRequest.njk"
   private val mockFileUploadOutcomeConnector = mock[FileUploadOutcomeConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(
@@ -129,5 +129,94 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
         redirect = controllers.fileUpload.routes.ProblemWithServiceController.onPageLoad(srn, startDate, accessType, versionInt).url
       ))
     }
+
+    "return OK and the correct view for a GET when outcome is UpscanUnknownError" in {
+      when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))
+        .thenReturn(Future.successful(Some(FileUploadOutcome(UpscanUnknownError))))
+      val templateCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(
+        heading = "messages__processingRequest__h1_failure",
+        content = "messages__processingRequest__content_failure",
+        redirect = controllers.fileUpload.routes.UpscanErrorController
+          .unknownError(srn, startDate, accessType, versionInt).url
+      ))
+    }
+
+    "return OK and the correct view for a GET when outcome is UpscanInvalidHeaderOrBody" in {
+      when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))
+        .thenReturn(Future.successful(Some(FileUploadOutcome(UpscanInvalidHeaderOrBody))))
+      val templateCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(
+        heading = "messages__processingRequest__h1_failure",
+        content = "messages__processingRequest__content_failure",
+        redirect = controllers.fileUpload.routes.UpscanErrorController
+          .invalidHeaderOrBodyError(srn, startDate, accessType, versionInt,  ChargeType.ChargeTypeAnnualAllowance).url
+      ))
+    }
+
+    "return OK and the correct view for a GET when outcome is ValidationErrorsLessThanMax" in {
+      when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))
+        .thenReturn(Future.successful(Some(FileUploadOutcome(ValidationErrorsLessThanMax))))
+      val templateCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(
+        heading = "messages__processingRequest__h1_failure",
+        content = "messages__processingRequest__content_failure",
+        redirect = controllers.fileUpload.routes.ValidationErrorsAllController
+          .onPageLoad(srn, startDate, accessType, versionInt,  ChargeType.ChargeTypeAnnualAllowance).url
+      ))
+    }
+
+    "return OK and the correct view for a GET when outcome is ValidationErrorsMoreThanOrEqualToMax" in {
+      when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))
+        .thenReturn(Future.successful(Some(FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax))))
+      val templateCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(
+        heading = "messages__processingRequest__h1_failure",
+        content = "messages__processingRequest__content_failure",
+        redirect = controllers.fileUpload.routes.ValidationErrorsSummaryController
+          .onPageLoad(srn, startDate, accessType, versionInt,  ChargeType.ChargeTypeAnnualAllowance).url
+      ))
+    }
+
   }
 }
