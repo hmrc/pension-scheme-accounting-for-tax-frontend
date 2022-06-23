@@ -16,7 +16,7 @@
 
 package controllers.fileUpload
 
-import audit.{AFTFileValidationCheckAuditEvent, AuditService}
+import audit.{AFTFileValidationCheckAuditEvent, AuditEvent, AuditService}
 import connectors.cache.FileUploadOutcomeConnector
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
@@ -24,6 +24,7 @@ import controllers.base.ControllerSpecBase
 import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import data.SampleData
 import data.SampleData._
+import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, OverseasTransferParser, ParserValidationError}
 import matchers.JsonMatchers
 import models.AdministratorOrPractitioner.Administrator
@@ -34,7 +35,7 @@ import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.fileUpload.FileUploadOutcome
-import models.fileUpload.FileUploadOutcomeStatus.{Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
+import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.{ChargeType, FileUploadDataCache, FileUploadStatus, UploadId, UploadStatus, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -60,12 +61,11 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.{LocalDate, LocalDateTime}
+import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val templateToBeRendered = "fileUpload/invalid.njk"
-  private val genericTemplateToBeRendered = "fileUpload/genericErrors.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
   private val mockAuditService = mock[AuditService]
   private val mockFileUploadOutcomeConnector = mock[FileUploadOutcomeConnector]
@@ -117,34 +117,36 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   "onPageLoad" must {
-    //    "send correct audit events for failure when header invalid" in {
-    //      status(runValidation(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))) mustEqual SEE_OTHER
-    //      val captorAuditEvents: ArgumentCaptor[AuditEvent] =
-    //        ArgumentCaptor.forClass(classOf[AuditEvent])
-    //
-    //      verify(mockAuditService, times(2))
-    //        .sendEvent(captorAuditEvents.capture())(any(), any())
-    //
-    //      val auditEventsSent = captorAuditEvents.getAllValues.asScala
-    //
-    //      val foundAFTFileValidationCheck = auditEventsSent.find(_.auditType == "AFTFileValidationCheck")
-    //      foundAFTFileValidationCheck.isDefined mustBe true
-    //      foundAFTFileValidationCheck.map { actualAuditEvent =>
-    //        actualAuditEvent.details mustBe Map(
-    //          "failureReason" -> "Header invalid or File is empty",
-    //          "numberOfEntries" -> "2",
-    //          "psaId" -> psaId,
-    //          "pstr" -> pstr,
-    //          "fileValidationTimeInSeconds" -> "0",
-    //          "chargeType" -> "annualAllowance",
-    //          "validationCheckStatus" -> "Failure",
-    //          "numberOfFailures" -> "1"
-    //        )
-    //      }
-    //
-    //      val foundAFTFileUpscanDownloadCheck = auditEventsSent.find(_.auditType == "AFTFileUpscanDownloadCheck")
-    //      foundAFTFileUpscanDownloadCheck.isDefined mustBe true
-    //    }
+    "send correct audit events for failure when header invalid" in {
+      status(runValidation(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))) mustEqual SEE_OTHER
+      val captorAuditEvents: ArgumentCaptor[AuditEvent] =
+        ArgumentCaptor.forClass(classOf[AuditEvent])
+
+      eventually {
+        verify(mockAuditService, times(2))
+          .sendEvent(captorAuditEvents.capture())(any(), any())
+
+        val auditEventsSent = captorAuditEvents.getAllValues.asScala
+
+        val foundAFTFileValidationCheck = auditEventsSent.find(_.auditType == "AFTFileValidationCheck")
+        foundAFTFileValidationCheck.isDefined mustBe true
+        foundAFTFileValidationCheck.map { actualAuditEvent =>
+          actualAuditEvent.details mustBe Map(
+            "failureReason" -> "Header invalid or File is empty",
+            "numberOfEntries" -> "2",
+            "psaId" -> psaId,
+            "pstr" -> pstr,
+            "fileValidationTimeInSeconds" -> "0",
+            "chargeType" -> "annualAllowance",
+            "validationCheckStatus" -> "Failure",
+            "numberOfFailures" -> "1"
+          )
+        }
+
+        val foundAFTFileUpscanDownloadCheck = auditEventsSent.find(_.auditType == "AFTFileUpscanDownloadCheck")
+        foundAFTFileUpscanDownloadCheck.isDefined mustBe true
+      }
+    }
 
     "generate correct response and send correct audit event for failure when less than 10 (non-header) errors" in {
       val response = runValidation(Seq(
@@ -326,6 +328,26 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       eventually {
         verify(mockFileUploadOutcomeConnector, times(1))
           .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(UpscanUnknownError, Json.obj())))(any(), any())
+      }
+    }
+
+    "generate correct outcome when there is a runtime exception thrown : GeneralError" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.failed(new RuntimeException("Test")))
+
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe
+        Some(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
+
+      eventually {
+        verify(mockFileUploadOutcomeConnector, times(1))
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(GeneralError, Json.obj())))(any(), any())
       }
     }
 
