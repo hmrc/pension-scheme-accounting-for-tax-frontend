@@ -16,7 +16,7 @@
 
 package controllers.fileUpload
 
-import audit.{AFTFileValidationCheckAuditEvent, AuditEvent, AuditService}
+import audit.{AFTFileValidationCheckAuditEvent, AuditService}
 import connectors.cache.FileUploadOutcomeConnector
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
@@ -24,7 +24,6 @@ import controllers.base.ControllerSpecBase
 import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import data.SampleData
 import data.SampleData._
-import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, OverseasTransferParser, ParserValidationError}
 import matchers.JsonMatchers
 import models.AdministratorOrPractitioner.Administrator
@@ -37,8 +36,8 @@ import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus.{Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.{ChargeType, FileUploadDataCache, FileUploadStatus, UploadId, UploadStatus, UserAnswers}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.concurrent.Eventually.eventually
 import pages.PSTRQuery
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
@@ -61,7 +60,6 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.{LocalDate, LocalDateTime}
-import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
@@ -209,7 +207,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         val expectedJson = Json.obj(
           "errors" -> Json.arr(
-            "fileUpload.chargeAmount.generic.error","fileUpload.dateNoticeReceived.generic.error","fileUpload.isPayment.generic.error","fileUpload.taxYear.generic.error"
+            "fileUpload.chargeAmount.generic.error", "fileUpload.dateNoticeReceived.generic.error", "fileUpload.isPayment.generic.error", "fileUpload.taxYear.generic.error"
           ),
           "totalError" -> 11
         )
@@ -237,189 +235,203 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       }
     }
 
-        "generate correct response and send correct audit event for when there are no failures" in {
-          val chargeType = ChargeType.ChargeTypeLifetimeAllowance
-          val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
-          when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
-            .thenReturn(Future.successful(JsNull))
-          mutableFakeDataRetrievalAction.setDataToReturn(Some(uaAllChargeTypes))
+    "generate correct response and send correct audit event for when there are no failures" in {
+      val chargeType = ChargeType.ChargeTypeLifetimeAllowance
+      val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
+        .thenReturn(Future.successful(JsNull))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(uaAllChargeTypes))
 
-          val uaUpdatedWithParsedItems = uaAllChargeTypes
+      val uaUpdatedWithParsedItems = uaAllChargeTypes
 
-            .setOrException(MemberDDetailsPage(0).path, Json.toJson(memberDetails3))
-            .setOrException(ChargeDDetailsPage(0).path, Json.toJson(chargeDDetails))
+        .setOrException(MemberDDetailsPage(0).path, Json.toJson(memberDetails3))
+        .setOrException(ChargeDDetailsPage(0).path, Json.toJson(chargeDDetails))
 
-          when(mockLifetimeAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
-          when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
-          when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
-          when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-          val result = route(
-            application,
-            httpGETRequest(
-              controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
-          ).value
+      when(mockLifetimeAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
+      when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
+      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
 
-          status(result) mustEqual SEE_OTHER
-          redirectLocation(result) mustBe
-            Some(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe
+        Some(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
 
-          eventually {
+      eventually {
 
-            verify(mockFileUploadOutcomeConnector, times(1))
-              .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, Json.obj())))(any(), any())
+        verify(mockFileUploadOutcomeConnector, times(1))
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, Json.obj())))(any(), any())
 
-            val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
-            verify(mockAuditService, times(2)).sendEvent(auditCaptor.capture())(any(), any())
-            val auditEventSent = auditCaptor.getValue
+        val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
+        verify(mockAuditService, times(2)).sendEvent(auditCaptor.capture())(any(), any())
+        val auditEventSent = auditCaptor.getValue
 
-            auditEventSent.administratorOrPractitioner mustBe Administrator
-            auditEventSent.id mustBe psaId
-            auditEventSent.pstr mustBe pstr
-            auditEventSent.numberOfEntries mustBe 1
-            auditEventSent.chargeType mustBe ChargeTypeLifetimeAllowance
-            auditEventSent.validationCheckSuccessful mustBe true
-            auditEventSent.failureReason mustBe None
-            auditEventSent.numberOfFailures mustBe 0
-            auditEventSent.validationFailureContent mustBe None
-          }
-        }
+        auditEventSent.administratorOrPractitioner mustBe Administrator
+        auditEventSent.id mustBe psaId
+        auditEventSent.pstr mustBe pstr
+        auditEventSent.numberOfEntries mustBe 1
+        auditEventSent.chargeType mustBe ChargeTypeLifetimeAllowance
+        auditEventSent.validationCheckSuccessful mustBe true
+        auditEventSent.failureReason mustBe None
+        auditEventSent.numberOfFailures mustBe 0
+        auditEventSent.validationFailureContent mustBe None
+      }
+    }
 
 
-        "generate correct outcome when there is a Validation error : Header invalid or File is empty" in {
+    "generate correct outcome when there is a Validation error : Header invalid or File is empty" in {
 
-          mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-          val errors: Seq[ParserValidationError] =
-            Seq(ParserValidationError(0, 0, "Header invalid or File is empty"))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      val errors: Seq[ParserValidationError] =
+        Seq(ParserValidationError(0, 0, "Header invalid or File is empty"))
 
-          when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
+      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
 
-          val result = route(
-            application,
-            httpGETRequest(
-              controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
-          ).value
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
 
-          status(result) mustEqual SEE_OTHER
+      status(result) mustEqual SEE_OTHER
 
-          redirectLocation(result) mustBe
-            Some(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
+      redirectLocation(result) mustBe
+        Some(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
 
-          eventually {
-            verify(mockFileUploadOutcomeConnector, times(1))
-              .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(UpscanInvalidHeaderOrBody, Json.obj())))(any(), any())
-          }
-        }
+      eventually {
+        verify(mockFileUploadOutcomeConnector, times(1))
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(UpscanInvalidHeaderOrBody, Json.obj())))(any(), any())
+      }
+    }
 
-        "generate correct outcome when there is a Download file error : Unknown" in {
-          mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-          when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(INTERNAL_SERVER_ERROR,
-            "Internal Server Error")))
+    "generate correct outcome when there is a Download file error : Unknown" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(INTERNAL_SERVER_ERROR,
+        "Internal Server Error")))
 
-          val result = route(
-            application,
-            httpGETRequest(
-              controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
-          ).value
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
 
-          status(result) mustEqual SEE_OTHER
-          redirectLocation(result) mustBe
-            Some(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe
+        Some(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
 
-          eventually {
-            verify(mockFileUploadOutcomeConnector, times(1))
-              .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(UpscanUnknownError, Json.obj())))(any(), any())
-          }
-        }
-    //
-    //    "for charge type D when there are no validation errors " + "" +
-    //      "redirect to next page, remove existing data for charge type but leave other " +
-    //      "charge types intact then save items to be committed into Mongo" in {
-    //      val chargeType = ChargeType.ChargeTypeLifetimeAllowance
-    //      val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
-    //      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
-    //        .thenReturn(Future.successful(JsNull))
-    //      mutableFakeDataRetrievalAction.setDataToReturn(Some(uaAllChargeTypes))
-    //
-    //      val uaUpdatedWithParsedItems = uaAllChargeTypes
-    //        .setOrException(MemberDDetailsPage(0).path, Json.toJson(memberDetails3))
-    //        .setOrException(ChargeDDetailsPage(0).path, Json.toJson(chargeDDetails))
-    //
-    //      when(mockLifetimeAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
-    //      when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
-    //      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
-    //      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-    //      val result = route(
-    //        application,
-    //        httpGETRequest(
-    //          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
-    //      ).value
-    //
-    //      status(result) mustEqual SEE_OTHER
-    //
-    //      redirectLocation(result) mustBe Some(routes.FileUploadSuccessController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
-    //
-    //      retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 0, 2, 1, 2)
-    //    }
-    //
-    //    "for charge type E when there are no validation errors " + "" +
-    //      "redirect to next page, remove existing data for charge type but leave other " +
-    //      "charge types intact then save items to be committed into Mongo" in {
-    //      val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
-    //      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
-    //        .thenReturn(Future.successful(JsNull))
-    //      mutableFakeDataRetrievalAction.setDataToReturn(Some(uaAllChargeTypes))
-    //
-    //      val uaUpdatedWithParsedItems = uaAllChargeTypes
-    //        .setOrException(MemberEDetailsPage(0).path, Json.toJson(memberDetails3))
-    //        .setOrException(ChargeEDetailsPage(0).path, Json.toJson(chargeEDetails2))
-    //
-    //      when(mockAnnualAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
-    //      when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
-    //      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
-    //      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-    //      val result = route(
-    //        application,
-    //        httpGETRequest(
-    //          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
-    //      ).value
-    //
-    //      status(result) mustEqual SEE_OTHER
-    //
-    //      redirectLocation(result) mustBe Some(routes.FileUploadSuccessController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
-    //
-    //      retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 2, 0, 1, 2)
-    //    }
-    //
-    //    "for charge type G when there are no validation errors " + "" +
-    //      "redirect to next page, remove existing data for charge type but leave other " +
-    //      "charge types intact then save items to be committed into Mongo" in {
-    //      val chargeType = ChargeType.ChargeTypeOverseasTransfer
-    //      val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
-    //      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
-    //        .thenReturn(Future.successful(JsNull))
-    //      mutableFakeDataRetrievalAction.setDataToReturn(Some(uaAllChargeTypes))
-    //
-    //      val uaUpdatedWithParsedItems = uaAllChargeTypes
-    //        .setOrException(MemberGDetailsPage(0).path, Json.toJson(memberGDetails2))
-    //        .setOrException(ChargeGDetailsPage(0).path, Json.toJson(chargeGDetails))
-    //        .setOrException(ChargeAmountsPage(0).path, Json.toJson(chargeAmounts2))
-    //
-    //      when(mockOverseasTransferParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
-    //      when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
-    //      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
-    //      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-    //      val result = route(
-    //        application,
-    //        httpGETRequest(
-    //          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
-    //      ).value
-    //
-    //      status(result) mustEqual SEE_OTHER
-    //
-    //      redirectLocation(result) mustBe Some(routes.FileUploadSuccessController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
-    //
-    //      retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 2, 2, 1, 0)
-    //    }
+      eventually {
+        verify(mockFileUploadOutcomeConnector, times(1))
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(UpscanUnknownError, Json.obj())))(any(), any())
+      }
+    }
+
+    "for charge type D when there are no validation errors " + "" +
+      "redirect to next page, remove existing data for charge type but leave other " +
+      "charge types intact then save items to be committed into Mongo" in {
+      val chargeType = ChargeType.ChargeTypeLifetimeAllowance
+      val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
+        .thenReturn(Future.successful(JsNull))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(uaAllChargeTypes))
+
+      val uaUpdatedWithParsedItems = uaAllChargeTypes
+        .setOrException(MemberDDetailsPage(0).path, Json.toJson(memberDetails3))
+        .setOrException(ChargeDDetailsPage(0).path, Json.toJson(chargeDDetails))
+
+      when(mockLifetimeAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
+      when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
+      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe
+        Some(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
+
+      eventually {
+        verify(mockFileUploadOutcomeConnector, times(1))
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, Json.obj())))(any(), any())
+        retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 0, 2, 1, 2)
+      }
+    }
+
+    "for charge type E when there are no validation errors " + "" +
+      "redirect to next page, remove existing data for charge type but leave other " +
+      "charge types intact then save items to be committed into Mongo" in {
+      val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
+        .thenReturn(Future.successful(JsNull))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(uaAllChargeTypes))
+
+      val uaUpdatedWithParsedItems = uaAllChargeTypes
+        .setOrException(MemberEDetailsPage(0).path, Json.toJson(memberDetails3))
+        .setOrException(ChargeEDetailsPage(0).path, Json.toJson(chargeEDetails2))
+
+      when(mockAnnualAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
+      when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
+      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result) mustBe
+        Some(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
+
+      eventually {
+        verify(mockFileUploadOutcomeConnector, times(1))
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, Json.obj())))(any(), any())
+        retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 2, 0, 1, 2)
+      }
+    }
+
+    "for charge type G when there are no validation errors " + "" +
+      "redirect to next page, remove existing data for charge type but leave other " +
+      "charge types intact then save items to be committed into Mongo" in {
+      val chargeType = ChargeType.ChargeTypeOverseasTransfer
+      val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
+        .thenReturn(Future.successful(JsNull))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(uaAllChargeTypes))
+
+      val uaUpdatedWithParsedItems = uaAllChargeTypes
+        .setOrException(MemberGDetailsPage(0).path, Json.toJson(memberGDetails2))
+        .setOrException(ChargeGDetailsPage(0).path, Json.toJson(chargeGDetails))
+        .setOrException(ChargeAmountsPage(0).path, Json.toJson(chargeAmounts2))
+
+      when(mockOverseasTransferParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
+      when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
+      when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      val result = route(
+        application,
+        httpGETRequest(
+          controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+      ).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result) mustBe
+        Some(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
+
+      eventually {
+        verify(mockFileUploadOutcomeConnector, times(1))
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(Success, Json.obj())))(any(), any())
+        retrieveChargeCount(uaCaptorPassedIntoParse.getValue) mustBe Seq(1, 1, 1, 2, 2, 1, 0)
+      }
+    }
   }
 }
 
