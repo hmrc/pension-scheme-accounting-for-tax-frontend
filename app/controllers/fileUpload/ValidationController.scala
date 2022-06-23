@@ -25,10 +25,11 @@ import controllers.fileUpload.FileUploadGenericErrorReporter.generateGenericErro
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers._
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
-import models.FileUploadOutcomeStatus._
+import models.fileUpload.FileUploadOutcomeStatus._
 import models.LocalDateBinder._
+import models.fileUpload.FileUploadOutcome
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, FileUploadDataCache, FileUploadOutcome, UploadId, UserAnswers}
+import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.PSTRQuery
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}

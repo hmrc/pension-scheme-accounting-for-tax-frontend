@@ -19,9 +19,10 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.cache.FileUploadEventsLogConnector
 import controllers.actions._
-import models.FileUploadOutcomeStatus.{GeneralError, SessionExpired, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
+import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, SessionExpired, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, FileUploadOutcome}
+import models.fileUpload.FileUploadOutcome
+import models.{AccessType, ChargeType}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

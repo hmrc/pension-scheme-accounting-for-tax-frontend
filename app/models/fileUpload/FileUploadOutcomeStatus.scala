@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package models
+package models.fileUpload
+
+import models.{Enumerable, WithName}
 
 sealed trait FileUploadOutcomeStatus
 

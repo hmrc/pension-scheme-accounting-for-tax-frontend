@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package models.fileUpload
 
 import play.api.libs.json.{JsObject, Json}
 

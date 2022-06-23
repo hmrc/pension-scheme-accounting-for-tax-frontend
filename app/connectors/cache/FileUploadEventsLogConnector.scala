@@ -18,7 +18,7 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.FileUploadOutcome
+import models.fileUpload.FileUploadOutcome
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
