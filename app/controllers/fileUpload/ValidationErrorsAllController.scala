@@ -19,8 +19,8 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsLessThanMax
 import models.fileUpload.FileUploadOutcome
+import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsLessThanMax
 import models.{AccessType, ChargeType}
 import pages.SchemeNameQuery
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -61,7 +61,7 @@ class ValidationErrorsAllController @Inject()(appConfig: FrontendAppConfig,
               Json.obj(
                 "chargeType" -> chargeType,
                 "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-                "srn" -> srn, "startDate" -> Some(startDate),
+                "srn" -> srn,
                 "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
                 "returnToFileUploadURL" -> returnToFileUpload,
                 "returnToSchemeDetails" -> returnToSchemeDetails,
