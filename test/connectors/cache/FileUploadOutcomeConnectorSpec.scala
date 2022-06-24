@@ -80,7 +80,7 @@ class FileUploadOutcomeConnectorSpec extends AsyncWordSpec with Matchers with Wi
       )
 
       connector.setOutcome(successOutcome) map {
-        _ mustEqual ()
+        _ mustEqual(():Unit)
       }
     }
   }
@@ -91,7 +91,7 @@ class FileUploadOutcomeConnectorSpec extends AsyncWordSpec with Matchers with Wi
         willReturn(ok)
       )
       connector.deleteOutcome.map {
-        _ mustEqual ()
+        _ mustEqual(():Unit)
       }
     }
   }
