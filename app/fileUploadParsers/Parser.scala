@@ -174,7 +174,6 @@ trait Parser {
 
 case class ParserValidationError(row: Int, col: Int, error: String, columnName: String = EMPTY,args:Seq[Any]=Nil)
 
-
 protected case class CommitItem(jsPath: JsPath, value: JsValue)
 
 protected case class Field(formValidationFieldName: String, fieldValue: String, columnName: String, columnNo: Int)

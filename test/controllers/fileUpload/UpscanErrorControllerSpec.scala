@@ -60,6 +60,7 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport 
 
     "must return OK and the correct view for a GET quarantineError" in {
       val request = FakeRequest(GET, routes.UpscanErrorController.quarantineError(srn, startDate, accessType, versionInt).url)
+
       val result = route(application, request).value
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])

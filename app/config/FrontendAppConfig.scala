@@ -127,6 +127,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val checkAssociationUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.checkPsaAssociation")}"
 
+  lazy val fileUploadOutcomeUrl: String = s"$aftUrl${configuration.get[String](path = "urls.fileUploadOutcome")}"
+
   def schemeDashboardUrl(request: DataRequest[_]): String = schemeDashboardUrl(request.psaId, request.pspId)
 
   def schemeDashboardUrl(request: IdentifierRequest[_]): String = schemeDashboardUrl(request.psaId, request.pspId)

@@ -164,7 +164,8 @@ class FileUploadCheckController @Inject()(
                     _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedUa.data, Some(chargeType))
                   } yield {
                     value match {
-                      case Yes => Redirect(routes.ValidationController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
+                      case Yes =>
+                        Redirect(routes.ValidationController.onPageLoad(srn, startDate, accessType, version, chargeType, uploadId))
                       case No => Redirect(routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, chargeType))
                     }
                   }
