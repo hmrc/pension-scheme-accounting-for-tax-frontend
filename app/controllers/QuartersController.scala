@@ -23,7 +23,6 @@ import forms.QuartersFormProvider
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{AFTQuarter, Draft, GenericViewModel, Quarters, SubmittedHint}
-import play.api.Logger
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -82,15 +81,11 @@ class QuartersController @Inject()(
     }
   }
 
-  private val logger = Logger(classOf[QuartersController])
-
-
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
           if (displayQuarters.nonEmpty) {
-
             val quarters = displayQuarters.map(_.quarter)
             form(year, quarters)
               .bindFromRequest()
@@ -112,8 +107,7 @@ class QuartersController @Inject()(
                     Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn, value.startDate)))
                   } else {
                     displayQuarters.find(_.quarter == value) match {
-                      case None =>
-                        throw InvalidValueSelected(s"display quarters = $displayQuarters and value = $value ")
+                      case None => throw InvalidValueSelected(s"display quarters = $displayQuarters and value = $value ")
                       case Some(selectedDisplayQuarter) =>
                         selectedDisplayQuarter.hintText match {
                           case None =>
