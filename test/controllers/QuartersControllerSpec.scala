@@ -129,7 +129,7 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
       when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(Seq(DisplayQuarter(q12021, displayYear = false, None, Some(LockedHint)))))
       when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
-      
+
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
