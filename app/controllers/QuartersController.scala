@@ -109,23 +109,27 @@ class QuartersController @Inject()(
                 value => {
                   val tpssReports = aftOverview.filter(_.periodStartDate == value.startDate).filter(_.tpssReportPresent)
                   if (tpssReports.nonEmpty) {
-                    logger.warn("Quarters controller redirect to cannot submit AFT page")
                     Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn, value.startDate)))
                   } else {
-                    val selectedDisplayQuarter = displayQuarters.find(_.quarter == value).getOrElse(throw InvalidValueSelected(s"display quarters = $displayQuarters and value = $value "))
-                    selectedDisplayQuarter.hintText match {
+                    displayQuarters.find(_.quarter == value) match {
                       case None =>
-                        logger.warn("Quarters controller redirect to charge type page")
-                        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate, Draft, version = 1)))
-                      case Some(SubmittedHint) =>
-                        logger.warn("Quarters controller redirect to return history page")
-                        Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
-                      case Some(e) =>
-                        val version = aftOverview.find(_.periodStartDate == value.startDate)
-                          .filter(_.versionDetails.nonEmpty).map(_.toPodsReport)
-                          .getOrElse(throw InvalidValueSelected(s"value = $value and afterOverview = $aftOverview and display hint is ${e.toString}")).numberOfVersions
-                        logger.warn("Quarters controller redirect to AFT summary page")
-                        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version)))
+                        throw InvalidValueSelected(s"display quarters = $displayQuarters and value = $value ")
+                      case Some(selectedDisplayQuarter) =>
+                        selectedDisplayQuarter.hintText match {
+                          case None =>
+                            Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate, Draft, version = 1)))
+                          case Some(SubmittedHint) =>
+                            Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
+                          case Some(_) =>
+                            aftOverview.find(_.periodStartDate == value.startDate)
+                              .filter(_.versionDetails.nonEmpty).map(_.toPodsReport) match {
+                              case None =>
+                                Future.successful(Redirect(controllers.routes.AFTReturnLockedController.onPageLoad(srn, value.startDate)))
+                              case Some(o) =>
+                                Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, o.numberOfVersions)))
+                            }
+
+                        }
                     }
                   }
                 }
