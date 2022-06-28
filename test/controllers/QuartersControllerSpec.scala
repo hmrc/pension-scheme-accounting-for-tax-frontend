@@ -25,7 +25,7 @@ import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
+import models.{AFTQuarter, DisplayQuarter, Enumerable, GenericViewModel, LockedHint, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
@@ -123,6 +123,18 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, q12021.startDate, accessType, versionInt).url)
+    }
+
+    "redirect to locked page when AFT return is locked but there is no overview data" in {
+      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(Seq(DisplayQuarter(q12021, displayYear = false, None, Some(LockedHint)))))
+      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result) mustBe Some(controllers.routes.AFTReturnLockedController.onPageLoad(srn, q12021.startDate).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

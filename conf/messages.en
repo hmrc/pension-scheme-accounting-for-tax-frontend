@@ -14,6 +14,7 @@ site.change = Change
 site.save_and_continue = Save and continue
 site.save_charge_and_continue = Save this charge and continue
 site.return_to_summary = Return to AFT summary
+site.select_another_aft_return = Select another AFT return
 site.return_to_scheme_overview = Return to pensions scheme overview
 site.service_name = Managing pension schemes
 site.textarea.char_limit = (Limit is {0} characters)
@@ -995,7 +996,7 @@ quarters.q3.label = 1 July to 30 September
 quarters.q4.label = 1 October to 31 December
 quarters.error.required = Select the quarter of {0} you are submitting an AFT return for
 quarters.lockDetail = - locked by {0}
-quarters.hint.locked = You can view this return but you cannot make changes until it is unlocked
+quarters.hint.locked = You might be able to view this return but you cannot make changes until it is unlocked
 quarters.hint.inProgress = Continue this return. It has already been started.
 quarters.hint.submitted = You have already submitted this return. You can still view or amend it.
 hint.paymentOverdue = PAYMENT OVERDUE
@@ -1537,3 +1538,10 @@ messages__problemWithService__content_failure = We could not process your file u
 messages__problemWithService__try_again = Try uploading your file again.
 
 messages__theFile = the file
+
+aftReturnLocked.title = This AFT return is locked
+aftReturnLocked.heading = This AFT return is locked
+aftReturnLocked.p1 = You cannot view this return. Try again later.
+aftReturnLocked.p2 = You cannot make changes to the return until it is unlocked.
+
+
