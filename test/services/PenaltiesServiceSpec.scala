@@ -266,7 +266,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
     "redirect to PenaltiesController with srn if charges from single scheme is returned and pstr is found in list of schemes" in {
       val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_6_MONTH_LPP))
-      val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1", Some(List(ListSchemeDetails("scheme-name", srn, "", None, Some(pstr), None, None, None))))
+      val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1", Some(List(ListSchemeDetails("scheme-name", srn, "", None, None, Some(pstr), None, None, None))))
 
       when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
 
@@ -278,7 +278,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     "redirect to PenaltiesController with pstr index identifier if charges from single scheme is returned and pstr is not found in list of schemes" in {
       val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_6_MONTH_LPP))
       val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1",
-        Some(List(ListSchemeDetails("scheme-name", srn, "", None, Some("24000041IN"), None, None, None))))
+        Some(List(ListSchemeDetails("scheme-name", srn, "", None, None, Some("24000041IN"), None, None, None))))
 
       when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
 
@@ -298,7 +298,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
     "redirect to PenaltiesController with srn if charges from single scheme is returned and pstr is found in list of schemes" in {
       val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(PSS_PENALTY), customPsaFS(PSS_PENALTY, "2021-04-01", "2021-06-30"))
-      val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1", Some(List(ListSchemeDetails("scheme-name", srn, "", None, Some(pstr), None, None, None))))
+      val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1", Some(List(ListSchemeDetails("scheme-name", srn, "", None, None, Some(pstr), None, None, None))))
 
       when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
 
@@ -310,7 +310,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     "redirect to PenaltiesController with pstr index identifier if charges from single scheme is returned and pstr is not found in list of schemes" in {
       val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(PSS_INFO_NOTICE))
       val listOfSchemes: ListOfSchemes = ListOfSchemes("", "1",
-        Some(List(ListSchemeDetails("scheme-name", srn, "", None, Some("24000041IN"), None, None, None))))
+        Some(List(ListSchemeDetails("scheme-name", srn, "", None, None, Some("24000041IN"), None, None, None))))
 
       when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
 
@@ -592,7 +592,7 @@ object PenaltiesServiceSpec {
   )
 
   val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
-    ListSchemeDetails("Assoc scheme", "SRN123", "", None, Some("24000040IN"), None, None))))
+    ListSchemeDetails("Assoc scheme", "SRN123", "", None, None, Some("24000040IN"), None, None))))
 
   def customPsaFS(chargeType: PsaFSChargeType, startDate: String = "2021-01-01", endDate: String = "2021-03-31", pstr: String = pstr): PsaFSDetail =
     PsaFSDetail(0, "XY002610150184", chargeType, Some(LocalDate.parse("2021-05-15")), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),
