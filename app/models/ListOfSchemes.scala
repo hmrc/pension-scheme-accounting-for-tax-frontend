@@ -34,7 +34,7 @@ object PSPDetails {
   implicit val format: Format[PSPDetails] = Json.format[PSPDetails]
 }
 
-case class ListSchemeDetails(name: String, referenceNumber: String, schemeStatus: String, openDate: Option[String], pstr: Option[String] = None,
+case class ListSchemeDetails(name: String, referenceNumber: String, schemeStatus: String, openDate: Option[String], windUpDate: Option[String], pstr: Option[String] = None,
                          relationship: Option[String], pspDetails: Option[List[PSPDetails]] = None, underAppeal: Option[String] = None)
 
 object ListSchemeDetails {
