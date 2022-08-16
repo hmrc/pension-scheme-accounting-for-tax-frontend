@@ -23,6 +23,7 @@ import models.AdministratorOrPractitioner.Administrator
 import models.CreditAccessType
 import models.CreditAccessType.{AccessedByLoggedInPsaOrPsp, AccessedByOtherPsa, AccessedByOtherPsp}
 import models.requests.IdentifierRequest
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -57,8 +58,10 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
     }
   }
 
+  private val logger = Logger(classOf[RequestRefundController])
+
   private def requestRefundURL(srn: String)(implicit request: IdentifierRequest[AnyContent]): Future[String] = {
-    for {
+    val url = for {
       psaOrPspName <- minimalConnector.getPsaOrPspName
       schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
       creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
@@ -75,6 +78,10 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
         }
       }
     }
+    url.map{ u =>
+      logger.warn(s"Refund URL for srn $srn and administrator ${request.schemeAdministratorType} is $u")
+    }
+    url
   }
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
