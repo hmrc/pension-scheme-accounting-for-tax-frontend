@@ -7,7 +7,7 @@ object AppDependencies {
     play.sbt.PlayImport.ws,
     "uk.gov.hmrc"                   %%  "play-conditional-form-mapping"  % "1.9.0-play-28",
     "uk.gov.hmrc"                   %%  "bootstrap-frontend-play-28"     % "5.16.0",
-    "uk.gov.hmrc"                   %%  "play-nunjucks"                  % "0.33.0-play-28",
+    "uk.gov.hmrc"                   %%  "play-nunjucks"                  % "0.40.0-play-28",
     "uk.gov.hmrc"                   %%  "play-nunjucks-viewmodel"        % "0.15.0-play-28",
     "org.webjars.npm"               %   "govuk-frontend"                 % "3.5.0",
     "org.webjars.npm"               %   "hmrc-frontend"                  % "1.19.0",
