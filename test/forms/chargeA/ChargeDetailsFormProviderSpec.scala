@@ -195,6 +195,12 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       resultForm.value.get.totalAmount mustEqual BigDecimal(6.00)
     }
 
+    "bind correctly calculated total to form when both rates of tax are present and comma is present" in {
+      val resultForm: Form[ChargeDetails] = form.bind(chargeADetails(lowerTax = "4,123.00", higherTax = "3.00"))
+
+      resultForm.value.get.totalAmount mustEqual BigDecimal(4126.00)
+    }
+
     "bind correctly calculated total to form when only lower rate of tax present" in {
       val resultForm: Form[ChargeDetails] = form.bind(chargeADetails(lowerTax = "3.00", higherTax = ""))
 
