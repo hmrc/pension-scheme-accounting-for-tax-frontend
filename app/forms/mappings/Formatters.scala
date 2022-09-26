@@ -229,7 +229,7 @@ trait Formatters extends Transforms with Constraints {
           itemsToTotal.foldLeft[BigDecimal](BigDecimal(0)) { (acc, next) =>
             data.get(next) match {
               case Some(str) =>
-                Try(BigDecimal(str)).getOrElse(BigDecimal(0.00)) + acc
+                Try(BigDecimal(str.replaceAll(",", ""))).getOrElse(BigDecimal(0.00)) + acc
               case None =>
                 acc
             }
