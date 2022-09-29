@@ -117,7 +117,6 @@ class RequestCreationService @Inject()(
       val viewOnly = optionLockDetail.isDefined || versionInt < maxVersion
       val anyVersions = seqAFTOverview.nonEmpty
       val isInCompile = seqAFTOverview.headOption.exists(_.compiledVersionAvailable)
-       logger.warn("aaaaaaaaaaaaaaaaaaaaaaaaaaa"+ seqAFTOverview)
       val areSubmittedVersionsAvailable = seqAFTOverview.headOption.exists(_.submittedVersionAvailable)
 
       val (version, accessMode) =
@@ -165,7 +164,11 @@ class RequestCreationService @Inject()(
       val isCompilable = seqAFTOverview.headOption.map(_.compiledVersionAvailable)
 
       val updatedVersion = (accessType, isCompilable) match {
-        case (Draft, Some(false)) => version - 1
+        case (Draft, Some(false)) =>
+          if (version == 1) {
+            logger.warn("Version is 1 so will derive a zero. seqAFTOverview=" + seqAFTOverview)
+          }
+          version - 1
         case _ => version
       }
       logger.warn(s"seqAFTOverview non empty - getAftDetails will be called for version $updatedVersion")
