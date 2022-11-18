@@ -19,7 +19,7 @@ package fileUploadParsers
 
 import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
 import java.io._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters
 
 
 

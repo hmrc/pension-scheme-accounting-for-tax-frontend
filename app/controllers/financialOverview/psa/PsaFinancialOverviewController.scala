@@ -43,7 +43,7 @@ class PsaFinancialOverviewController @Inject()(
                                                 service: AFTPartialService,
                                                 renderer: Renderer,
                                                 minimalConnector: MinimalConnector
-                                                    )(implicit ec: ExecutionContext)
+                                              )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
@@ -66,9 +66,9 @@ class PsaFinancialOverviewController @Inject()(
   private def renderFinancialOverview(psaName: String, psaFSDetail: Seq[PsaFSDetail],
                                       request: RequestHeader, creditPsaFS: PsaFS): Future[Result] = {
     val creditPsaFSDetails = creditPsaFS.seqPsaFSDetail
-    val psaCharges:(String,String,String) = service.retrievePsaChargesAmount(psaFSDetail)
+    val psaCharges: (String, String, String) = service.retrievePsaChargesAmount(psaFSDetail)
     val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)
-    val creditBalanceFormatted: String =  s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
+    val creditBalanceFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
 
     logger.debug(s"AFT service returned UpcomingCharge - ${psaCharges._1}")
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
@@ -81,14 +81,14 @@ class PsaFinancialOverviewController @Inject()(
 
     renderer.render(
       template = "financialOverview/psa/psaFinancialOverview.njk",
-      ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1 ,
-        "totalOverdueCharge" -> psaCharges._2 ,
-        "totalInterestAccruing" -> psaCharges._3 ,
+      ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1,
+        "totalOverdueCharge" -> psaCharges._2,
+        "totalInterestAccruing" -> psaCharges._3,
         "psaName" -> psaName, "requestRefundUrl" -> requestRefundUrl,
         "allOverduePenaltiesAndInterestLink" -> routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
         "duePaymentLink" -> routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
-        "allPaymentLink" -> psa.routes.PenaltyTypeController.onPageLoad.url,
-        "creditBalanceFormatted" ->  creditBalanceFormatted, "creditBalance" -> creditBalance)
+        "allPaymentLink" -> psa.routes.PenaltyTypeController.onPageLoad().url,
+        "creditBalanceFormatted" -> creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }
 }

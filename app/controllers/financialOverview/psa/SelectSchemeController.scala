@@ -46,9 +46,9 @@ class SelectSchemeController @Inject()(
                                         navService: PenaltiesNavigationService,
                                         renderer: Renderer
                                       )(implicit ec: ExecutionContext)
-                                        extends FrontendBaseController
-                                          with I18nSupport
-                                          with NunjucksSupport {
+  extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(schemes: Seq[PenaltySchemes], typeParam: String)
                   (implicit messages: Messages): Form[PenaltySchemes] = formProvider(schemes, messages("selectScheme.error", typeParam))
@@ -57,10 +57,10 @@ class SelectSchemeController @Inject()(
     implicit request =>
       val (penaltySchemesFunction, _) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id)
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-        penaltySchemesFunction(penaltiesCache.penalties).flatMap { penaltySchemes =>
+        penaltySchemesFunction(penaltiesCache.penalties.toSeq).flatMap { penaltySchemes =>
           if (penaltySchemes.nonEmpty) {
 
-            val diplayPenaltySchemes = getPenaltySchemes(penaltiesCache.penalties, penaltySchemes, penaltyType, period)
+            val diplayPenaltySchemes = getPenaltySchemes(penaltiesCache.penalties.toSeq, penaltySchemes, penaltyType, period)
             val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
             val json = Json.obj(
               "psaName" -> penaltiesCache.psaName,
@@ -83,7 +83,7 @@ class SelectSchemeController @Inject()(
       val (penaltySchemesFunction, redirectUrl) = getSchemesAndUrl(penaltyType, period, request.psaIdOrException.id)
 
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-        penaltySchemesFunction(penaltiesCache.penalties).flatMap { penaltySchemes =>
+        penaltySchemesFunction(penaltiesCache.penalties.toSeq).flatMap { penaltySchemes =>
 
           val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
 
@@ -110,10 +110,10 @@ class SelectSchemeController @Inject()(
                       (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail] => Future[Seq[PenaltySchemes]], String => Call) =
     penaltyType match {
       case AccountingForTaxPenalties =>
-        (penalties => navService.penaltySchemes(LocalDate.parse(period), psaId, penalties),
+        (penalties => navService.penaltySchemes(LocalDate.parse(period), psaId, penalties).map(_.toSeq),
           identifier => AllPenaltiesAndChargesController.onPageLoadAFT(period, identifier))
       case _ =>
-        (penalties => navService.penaltySchemes(period.toInt, psaId, penaltyType, penalties),
+        (penalties => navService.penaltySchemes(period.toInt, psaId, penaltyType, penalties).map(_.toSeq),
           identifier => AllPenaltiesAndChargesController.onPageLoad(period, identifier, penaltyType))
     }
 
@@ -121,8 +121,8 @@ class SelectSchemeController @Inject()(
     penaltySchemes.map(value => {
 
       val filteredPsaFSDetails = psaFSDetails.filter(_.pstr == value.pstr)
-                                .filter(x => getPenaltyType(x.chargeType).equalsIgnoreCase(penaltyType))
-                                .filter(_.periodStartDate.toString == period)
+        .filter(x => getPenaltyType(x.chargeType).equalsIgnoreCase(penaltyType))
+        .filter(_.periodStartDate.toString == period)
 
       val isOverdue: Boolean = filteredPsaFSDetails.exists(psaPenaltiesAndChargesService.isPaymentOverdue)
       val hint: Option[DisplayHint] = if (isOverdue) Some(PaymentOverdue) else None

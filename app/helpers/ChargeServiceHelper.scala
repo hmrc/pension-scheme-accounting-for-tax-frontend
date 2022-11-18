@@ -27,49 +27,53 @@ import play.api.libs.json.{JsArray, JsValue}
 class ChargeServiceHelper {
 
   private case class NodeInfo(
-                              chargeDetailsNode:String,
-                              memberOrEmployerNode: String,
-                              calculateAmount:JsValue => BigDecimal
+                               chargeDetailsNode: String,
+                               memberOrEmployerNode: String,
+                               calculateAmount: JsValue => BigDecimal
                              )
 
   def totalAmount(ua: UserAnswers, chargeType: String): BigDecimal = {
 
-    val nodes : NodeInfo = nodeInfo(chargeType).get
-    val deletedFilter: JsValue => Boolean = memberOrEmployer => !{(memberOrEmployer \ "memberStatus").asOpt[String].contains("Deleted")}
+    val nodes: NodeInfo = nodeInfo(chargeType).get
+    val deletedFilter: JsValue => Boolean = memberOrEmployer => ! {
+      (memberOrEmployer \ "memberStatus").asOpt[String].contains("Deleted")
+    }
     (ua.data \ chargeType \ nodes.memberOrEmployerNode)
       .validate[JsArray]
       .asOpt
       .getOrElse(JsArray()).value
       .filter(deletedFilter)
       .map { nonDeletedMemberOrEmployer =>
-        nodes.calculateAmount(nonDeletedMemberOrEmployer)}.seq.sum
+        nodes.calculateAmount(nonDeletedMemberOrEmployer)
+      }.seq.sum
   }
 
 
-  def isEmployerOrMemberPresent(ua: UserAnswers,  chargeType: String): Boolean = {
-    val nodes : NodeInfo = nodeInfo(chargeType).get
+  def isEmployerOrMemberPresent(ua: UserAnswers, chargeType: String): Boolean = {
+    val nodes: NodeInfo = nodeInfo(chargeType).get
     val nonDeletedMemberOrEmployer =
       (ua.data \ chargeType \ nodes.memberOrEmployerNode)
         .validate[JsArray]
         .asOpt
         .getOrElse(JsArray()).value
-        .find{ memberOrEmployer =>
-          !(memberOrEmployer \ "memberStatus").validate[String].asOpt.contains("Deleted")}
+        .find { memberOrEmployer =>
+          !(memberOrEmployer \ "memberStatus").validate[String].asOpt.contains("Deleted")
+        }
     nonDeletedMemberOrEmployer.nonEmpty
   }
 
-  def isShowFileUploadOption(ua: UserAnswers,  chargeType: String,version: Int, accessMode: AccessMode): Boolean = {
+  def isShowFileUploadOption(ua: UserAnswers, chargeType: String, version: Int, accessMode: AccessMode): Boolean = {
 
     nodeInfo(chargeType) match {
       case Some(nodes) =>
-          val memberSeq =
-            (ua.data \ chargeType \ nodes.memberOrEmployerNode)
-              .validate[JsArray].asOpt
-              .getOrElse(JsArray()).value
+        val memberSeq =
+          (ua.data \ chargeType \ nodes.memberOrEmployerNode)
+            .validate[JsArray].asOpt
+            .getOrElse(JsArray()).value
 
-        (accessMode,version) match{
-          case (PageAccessModePreCompile,v) if v > 1 => memberSeq.isEmpty
-          case (PageAccessModeCompile, v) if v > 1 => validateCompile(memberSeq, v)
+        (accessMode, version) match {
+          case (PageAccessModePreCompile, v) if v > 1 => memberSeq.isEmpty
+          case (PageAccessModeCompile, v) if v > 1 => validateCompile(memberSeq.toIndexedSeq, v)
           case (_, 1) => true
           case _ => false
         }
@@ -82,28 +86,28 @@ class ChargeServiceHelper {
 
     memberSeq.isEmpty || (!memberSeq.exists(member =>
       (member \ "memberAFTVersion").validate[Int].getOrElse(0) < v)
-      || !memberSeq.exists(member =>(member \ "memberStatus").validate[String].asOpt.forall(_ != "New") )
+      || !memberSeq.exists(member => (member \ "memberStatus").validate[String].asOpt.forall(_ != "New"))
       )
   }
 
-  private def nodeInfo(chargeType:String):Option[NodeInfo] = {
+  private def nodeInfo(chargeType: String): Option[NodeInfo] = {
     val bigDecimal_zero = BigDecimal(0.0)
     chargeType match {
       case "chargeEDetails" =>
         Some(NodeInfo(
           chargeDetailsNode = pages.chargeE.ChargeDetailsPage.toString,
           memberOrEmployerNode = AnnualAllowanceMembersQuery.toString,
-          calculateAmount =  rootNode => (rootNode \ pages.chargeE.ChargeDetailsPage.toString \ "chargeAmount").asOpt[BigDecimal].getOrElse(bigDecimal_zero)))
+          calculateAmount = rootNode => (rootNode \ pages.chargeE.ChargeDetailsPage.toString \ "chargeAmount").asOpt[BigDecimal].getOrElse(bigDecimal_zero)))
       case "chargeCDetails" =>
         Some(NodeInfo(
           chargeDetailsNode = pages.chargeC.ChargeCDetailsPage.toString,
           memberOrEmployerNode = SponsoringEmployersQuery.toString,
-          calculateAmount =  rootNode => (rootNode \ pages.chargeC.ChargeCDetailsPage.toString \ "amountTaxDue").asOpt[BigDecimal].getOrElse(bigDecimal_zero)))
+          calculateAmount = rootNode => (rootNode \ pages.chargeC.ChargeCDetailsPage.toString \ "amountTaxDue").asOpt[BigDecimal].getOrElse(bigDecimal_zero)))
       case "chargeDDetails" =>
         Some(NodeInfo(
           chargeDetailsNode = pages.chargeD.ChargeDetailsPage.toString,
           memberOrEmployerNode = LifetimeAllowanceMembersQuery.toString,
-          calculateAmount =  rootNode => {
+          calculateAmount = rootNode => {
             val amount1 = (rootNode \ pages.chargeD.ChargeDetailsPage.toString \ "taxAt25Percent").asOpt[BigDecimal].getOrElse(bigDecimal_zero)
             val amount2 = (rootNode \ pages.chargeD.ChargeDetailsPage.toString \ "taxAt55Percent").asOpt[BigDecimal].getOrElse(bigDecimal_zero)
             amount1 + amount2
@@ -112,7 +116,7 @@ class ChargeServiceHelper {
         Some(NodeInfo(
           chargeDetailsNode = ChargeAmountsPage.toString,
           memberOrEmployerNode = OverseasTransferMembersQuery.toString,
-          calculateAmount =  rootNode => (rootNode \ ChargeAmountsPage.toString \ "amountTaxDue").asOpt[BigDecimal].getOrElse(bigDecimal_zero)))
+          calculateAmount = rootNode => (rootNode \ ChargeAmountsPage.toString \ "amountTaxDue").asOpt[BigDecimal].getOrElse(bigDecimal_zero)))
       case _ => None
     }
   }

@@ -44,9 +44,9 @@ class SelectPenaltiesQuarterController @Inject()(
                                                   psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                                   navService: PenaltiesNavigationService)
                                                 (implicit ec: ExecutionContext)
-                                                  extends FrontendBaseController
-                                                  with I18nSupport
-                                                  with NunjucksSupport {
+  extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("selectPenaltiesQuarter.error"), quarters)
@@ -54,49 +54,49 @@ class SelectPenaltiesQuarterController @Inject()(
   def onPageLoad(year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
 
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-      val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
-        if (quarters.nonEmpty) {
-          val json = Json.obj(
-            "psaName" -> penaltiesCache.psaName,
-            "form" -> form(quarters),
-            "radios" -> Quarters.radios(form(quarters),
-                                        getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
-                                        Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
-                                        areLabelsBold = false),
-            "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
-            "year" -> year
-          )
-          renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(Ok(_))
-        } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-        }
+      val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt))
+      if (quarters.nonEmpty) {
+        val json = Json.obj(
+          "psaName" -> penaltiesCache.psaName,
+          "form" -> form(quarters),
+          "radios" -> Quarters.radios(form(quarters),
+            getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt)),
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
+            areLabelsBold = false),
+          "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
+          "year" -> year
+        )
+        renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(Ok(_))
+      } else {
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      }
     }
   }
 
   def onSubmit(year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
 
-      val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt))
-        if (quarters.nonEmpty) {
-          form(quarters).bindFromRequest().fold(
-              formWithErrors => {
-                  val json = Json.obj(
-                    "psaName" -> penaltiesCache.psaName,
-                    "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors,
-                                                getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
-                                                Seq("govuk-tag govuk-!-display-inline govuk-tag--red"),
-                                                areLabelsBold = false),
-                    "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
-                    "year" -> year
-                  )
-                  renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(BadRequest(_))
-              },
-              value => navService.navFromQuartersPage(penaltiesCache.penalties, value.startDate, journeyType)
+      val quarters: Seq[AFTQuarter] = getQuarters(year, filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt))
+      if (quarters.nonEmpty) {
+        form(quarters).bindFromRequest().fold(
+          formWithErrors => {
+            val json = Json.obj(
+              "psaName" -> penaltiesCache.psaName,
+              "form" -> formWithErrors,
+              "radios" -> Quarters.radios(formWithErrors,
+                getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt)),
+                Seq("govuk-tag govuk-!-display-inline govuk-tag--red"),
+                areLabelsBold = false),
+              "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
+              "year" -> year
             )
-        } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-        }
+            renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(BadRequest(_))
+          },
+          value => navService.navFromQuartersPage(penaltiesCache.penalties, value.startDate, journeyType)
+        )
+      } else {
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      }
     }
   }
 

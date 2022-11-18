@@ -43,8 +43,8 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
                                               psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                               navService: PenaltiesNavigationService)
                                              (implicit ec: ExecutionContext) extends FrontendBaseController
-                                                                      with I18nSupport
-                                                                      with NunjucksSupport {
+  with I18nSupport
+  with NunjucksSupport {
 
   private def form(errorParameter: String)(implicit messages: Messages, ev: Enumerable[Year]): Form[Year] =
     formProvider(messages("selectPenaltiesYear.error", messages(errorParameter)))(implicitly)
@@ -54,7 +54,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
 
       val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
-      val years = getYears(penaltyType, penaltiesCache.penalties)
+      val years = getYears(penaltyType, penaltiesCache.penalties.toSeq)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
       val json = Json.obj(
@@ -76,7 +76,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
     val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
 
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-      val years = getYears(penaltyType, penaltiesCache.penalties)
+      val years = getYears(penaltyType, penaltiesCache.penalties.toSeq)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
       form(typeParam).bindFromRequest().fold(
@@ -85,11 +85,11 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
             "psaName" -> penaltiesCache.psaName,
             "typeParam" -> typeParam,
             "form" -> formWithErrors,
-            "radios" -> FSYears.radios(formWithErrors, getYears(penaltyType, penaltiesCache.penalties))
+            "radios" -> FSYears.radios(formWithErrors, getYears(penaltyType, penaltiesCache.penalties.toSeq))
           )
           renderer.render(template = "financialOverview/psa/selectYear.njk", json).map(BadRequest(_))
         },
-        value => navMethod(penaltiesCache.penalties, value.year)
+        value => navMethod(penaltiesCache.penalties.toSeq, value.year)
       )
     }
   }
@@ -120,7 +120,6 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
                              (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] = {
     (penalties, year) => navService.navFromNonAftYearsPage(penalties, year, request.idOrException, penaltyType)
   }
-
 
 
 }

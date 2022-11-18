@@ -37,7 +37,7 @@ class DeleteChargeHelper {
     if (isLastCharge(ua)) {
       ua.data.transform(zeroOutTransformer) match {
         case JsSuccess(value, _) => UserAnswers(value)
-        case _                   => ua
+        case _ => ua
       }
     } else {
       ua
@@ -47,45 +47,45 @@ class DeleteChargeHelper {
   def zeroOutCharge[A](page: QuestionPage[A], ua: UserAnswers): UserAnswers = {
 
     val zeroOutTransformer: Reads[JsObject] = page match {
-      case ShortServiceRefundQuery   => zeroOutChargeA
+      case ShortServiceRefundQuery => zeroOutChargeA
       case SpecialDeathBenefitsQuery => zeroOutChargeB
-      case DeregistrationQuery       => zeroOutChargeF
-      case _                         => __.json.put(Json.obj())
+      case DeregistrationQuery => zeroOutChargeF
+      case _ => __.json.put(Json.obj())
     }
 
     ua.data.transform(zeroOutTransformer) match {
       case JsSuccess(value, _) => UserAnswers(value)
-      case _                   => ua
+      case _ => ua
     }
   }
 
   private def zeroOutChargeA: Reads[JsObject] =
-    updateJson(__ \ 'chargeADetails \ 'chargeDetails,
-               Json.obj(fields = "totalAmtOfTaxDueAtHigherRate" -> 0, "totalAmtOfTaxDueAtLowerRate" -> 0, "totalAmount" -> 0))
+    updateJson(__ \ Symbol("chargeADetails") \ Symbol("chargeDetails"),
+      Json.obj(fields = "totalAmtOfTaxDueAtHigherRate" -> 0, "totalAmtOfTaxDueAtLowerRate" -> 0, "totalAmount" -> 0))
 
   private def zeroOutChargeB: Reads[JsObject] =
-    updateJson(__ \ 'chargeBDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
+    updateJson(__ \ Symbol("chargeBDetails") \ Symbol("chargeDetails"), Json.obj(fields = "totalAmount" -> 0))
 
   private def zeroOutChargeF: Reads[JsObject] =
-    updateJson(__ \ 'chargeFDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
+    updateJson(__ \ Symbol("chargeFDetails") \ Symbol("chargeDetails"), Json.obj(fields = "totalAmount" -> 0))
 
   private def zeroOutChargeC: Reads[JsObject] =
-    updateArray(__ \ 'chargeCDetails \ 'employers) {
-      updateJson(__ \ 'chargeDetails, Json.obj(fields = "amountTaxDue" -> 0))
+    updateArray(__ \ Symbol("chargeCDetails") \ Symbol("employers")) {
+      updateJson(__ \ Symbol("chargeDetails"), Json.obj(fields = "amountTaxDue" -> 0))
     }
 
   private def zeroOutChargeD: Reads[JsObject] =
-    updateArray(__ \ 'chargeDDetails \ 'members) {
-      updateJson(__ \ 'chargeDetails, Json.obj(fields = "taxAt25Percent" -> 0, "taxAt55Percent" -> 0))
+    updateArray(__ \ Symbol("chargeDDetails") \ Symbol("members")) {
+      updateJson(__ \ Symbol("chargeDetails"), Json.obj(fields = "taxAt25Percent" -> 0, "taxAt55Percent" -> 0))
     }
 
   private def zeroOutChargeE: Reads[JsObject] =
-    updateArray(__ \ 'chargeEDetails \ 'members) {
-      updateJson(__ \ 'chargeDetails, Json.obj(fields = "chargeAmount" -> 0))
+    updateArray(__ \ Symbol("chargeEDetails") \ Symbol("members")) {
+      updateJson(__ \ Symbol("chargeDetails"), Json.obj(fields = "chargeAmount" -> 0))
     }
 
-  private def zeroOutChargeG: Reads[JsObject] = updateArray(__ \ 'chargeGDetails \ 'members) {
-    updateJson(__ \ 'chargeAmounts, Json.obj("amountTransferred" -> 0, "amountTaxDue" -> 0))
+  private def zeroOutChargeG: Reads[JsObject] = updateArray(__ \ Symbol("chargeGDetails") \ Symbol("members")) {
+    updateJson(__ \ Symbol("chargeAmounts"), Json.obj("amountTransferred" -> 0, "amountTaxDue" -> 0))
   }
 
   private def updateJson(path: JsPath, updateJson: JsObject): Reads[JsObject] = {
@@ -97,7 +97,7 @@ class DeleteChargeHelper {
   private def updateArray(path: JsPath)(memberTransformer: Reads[JsObject]): Reads[JsObject] = {
     path.json.update(
       __.read[JsArray].map {
-        case JsArray(arr) => JsArray(transformArrayMember(arr, memberTransformer))
+        case JsArray(arr) => JsArray(transformArrayMember(arr.toIndexedSeq, memberTransformer))
       }
     )
   }
@@ -108,14 +108,14 @@ class DeleteChargeHelper {
       case Some(firstElem) if arr.size == 1 =>
         Seq(firstElem.transform(memberTransformer).asOpt.getOrElse(firstElem))
       case _ if arr.size < 1 => Seq(Json.obj())
-      case _                 => transformArrayMember(arr.tail, memberTransformer)
+      case _ => transformArrayMember(arr.tail, memberTransformer)
     }
 
   private def getTotal(path: JsLookupResult): BigDecimal = {
     if (path.isDefined) {
       path.validate[BigDecimal] match {
         case JsSuccess(value, _) => value
-        case JsError(errors)     => throw JsResultException(errors)
+        case JsError(errors) => throw JsResultException(errors)
       }
     } else {
       BigDecimal(0.00)
@@ -130,8 +130,10 @@ class DeleteChargeHelper {
 
   private def nonZeroSchemeBasedCharges(ua: UserAnswers): Int = {
     val json = ua.data
+
     def nonZero(chargeType: String) =
       (json \ chargeType).isDefined && (json \ chargeType \ "chargeDetails" \ "totalAmount").as[BigDecimal] > BigDecimal(0.00)
+
     Seq("chargeADetails", "chargeBDetails", "chargeFDetails").count(nonZero)
   }
 
@@ -140,7 +142,7 @@ class DeleteChargeHelper {
 
     val members = memberLevelCharges.map {
       case "chargeCDetails" => validEmployers(ua)
-      case chargeType       => validMembers(ua, chargeType)
+      case chargeType => validMembers(ua, chargeType)
     }
 
     val count: Int = members.map(_.count).sum
