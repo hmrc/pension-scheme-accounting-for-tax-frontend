@@ -23,11 +23,13 @@ import data.SampleData
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.requests.DataRequest
 import models.{AdministratorOrPractitioner, Draft, UploadId, UserAnswers}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, MockitoSugar}
+import org.mockito.Mockito.{times, verify}
 import org.scalatest._
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.Status
 import play.api.http.Status.OK
 import play.api.inject.bind
@@ -52,7 +54,7 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
   implicit val appConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val url = "/upscan/v2/initiate"
 
-  private val startDate = LocalDate.of(2020, 1, 1)
+  private val startDate: LocalDate = LocalDate.of(2020, 1, 1)
   private val uploadId = UploadId.generate
   private val mockAuditService = mock[AuditService]
   private val psaId = "A2100000"

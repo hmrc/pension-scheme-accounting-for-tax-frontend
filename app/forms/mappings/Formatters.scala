@@ -92,7 +92,7 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Boolean] =
         baseFormatter
           .bind(key, data)
-          .right.flatMap {
+          .flatMap {
           case "true" => Right(true)
           case "false" => Right(false)
           case "0" => Left(Seq(FormError(key, invalidPaymentTypeBoolean)))
@@ -116,8 +116,8 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Int] =
         baseFormatter
           .bind(key, data)
-          .right.map(_.replace(",", ""))
-          .right.flatMap {
+          .map(_.replace(",", ""))
+          .flatMap {
           case s if s.matches(decimalRegexp) =>
             Left(Seq(FormError(key, wholeNumberKey, args)))
           case s => nonDecimalIntMatcher(s, key)
@@ -147,8 +147,8 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] =
         baseFormatter
           .bind(key, data)
-          .right.map(_.replace(",", ""))
-          .right.flatMap { s =>
+          .map(_.replace(",", ""))
+          .flatMap { s =>
           Try(BigDecimal(s)) match {
             case Success(x) => Right(x)
             case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
@@ -170,8 +170,8 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] =
         baseFormatter
           .bind(key, data)
-          .right.map(_.replace(",", "").replace(" ", ""))
-          .right.flatMap {
+          .map(_.replace(",", "").replace(" ", ""))
+          .flatMap {
           case s if !s.matches(numericRegexp) =>
             Left(Seq(FormError(key, invalidKey, args)))
           case s if !s.matches(decimal2DPRegexp) && !s.matches(intRegexp) =>
@@ -187,6 +187,7 @@ trait Formatters extends Transforms with Constraints {
         baseFormatter.unbind(key, decimalFormat.format(value))
     }
 
+  //scalastyle:off cyclomatic.complexity
   private[mappings] def optionBigDecimal2DPFormatter(requiredKey: String,
                                                      invalidKey: String,
                                                      decimalKey: String,
@@ -198,8 +199,8 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[BigDecimal]] =
         baseFormatter
           .bind(key, data)
-          .right.map(_.replace(",", "").replace(" ", ""))
-          .right.flatMap {
+          .map(_.replace(",", "").replace(" ", ""))
+          .flatMap {
           case s if s.isEmpty =>
             Right(None)
           case s if !s.matches(numericRegexp) =>
@@ -247,7 +248,7 @@ trait Formatters extends Transforms with Constraints {
       private val baseFormatter = stringFormatter(requiredKey)
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], A] =
-        baseFormatter.bind(key, data).right.flatMap {
+        baseFormatter.bind(key, data).flatMap {
           str =>
             ev.withName(str).map(Right.apply).getOrElse(Left(Seq(FormError(key, invalidKey))))
         }

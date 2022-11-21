@@ -26,6 +26,7 @@ import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito.{never, times, verify, when}
 import pages.ConfirmSubmitAFTReturnPage
 import play.api.Application
 import play.api.data.Form
@@ -69,9 +70,10 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
     "radios" -> Radios.yesNo(form("value"))
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    Mockito.reset(mockUserAnswersCacheConnector, mockRenderer)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    Mockito.reset(mockUserAnswersCacheConnector)
+    Mockito.reset(mockRenderer)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }

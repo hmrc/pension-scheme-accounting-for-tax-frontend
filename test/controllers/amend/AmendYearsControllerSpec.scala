@@ -25,6 +25,7 @@ import models.requests.IdentifierRequest
 import models.{AmendYears, Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, Year}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -54,6 +55,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
   val templateToBeRendered = "amend/amendYears.njk"
   val formProvider = new AmendYearsFormProvider()
+
   def form(years: Seq[Int]): Form[Year] = formProvider(years)
 
   lazy val httpPathGET: String = controllers.amend.routes.AmendYearsController.onPageLoad(srn).url
@@ -74,8 +76,8 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
   //scalastyle.off: magic.number
   private val displayYears = Seq(2020, 2022)
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(displayYears))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)

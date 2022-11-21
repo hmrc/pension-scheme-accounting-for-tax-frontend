@@ -27,6 +27,7 @@ import models.requests.IdentifierRequest
 import models.{Enumerable, SchemeDetails, SchemeStatus}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -59,10 +60,13 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
   def application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockSchemeService, mockRenderer, mockAppConfig, mockAuditService)
-    when(mockSchemeService.retrieveSchemeDetails(any(),any(), any())(any(), any()))
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockSchemeService)
+    reset(mockRenderer)
+    reset(mockAppConfig)
+    reset(mockAuditService)
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     mutableFakeDataRetrievalAction.setViewOnly(false)
@@ -72,7 +76,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     "on a GET" must {
 
       "return to AmendYears page if more than 1 years are available to choose from" in {
-       when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
+        when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
         val result = route(application, httpGETRequest(httpPathGET)).value
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAmendAFTAuditEvent])
 

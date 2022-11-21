@@ -30,6 +30,7 @@ import models.requests.IdentifierRequest
 import models.{AFTOverview, AFTOverviewVersion, AFTVersion, AccessType, Draft, Submission, SubmitterDetails, VersionsWithSubmitter}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -86,8 +87,8 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(versions))
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(multipleVersions))

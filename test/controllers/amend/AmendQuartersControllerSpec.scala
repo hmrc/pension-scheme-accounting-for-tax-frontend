@@ -38,6 +38,7 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import org.mockito.Mockito.{times, verify, when}
 
 import scala.concurrent.Future
 
@@ -79,8 +80,8 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q22020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
     when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))

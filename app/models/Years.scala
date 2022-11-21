@@ -19,7 +19,7 @@ package models
 
 import config.FrontendAppConfig
 import play.api.data.Form
-import play.api.libs.json.{JsString, JsValue, Writes}
+import play.api.libs.json.{JsString, Writes}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
@@ -31,13 +31,12 @@ import java.time.{LocalDate, Month}
 
 case class Year(year: Int) {
   def getYear: Int = this.asInstanceOf[Year].year
+
   override def toString: String = year.toString
 }
 
 object Year {
-  implicit val writes: Writes[Year] = new Writes[Year] {
-    def writes(year: Year): JsValue = JsString(year.toString)
-  }
+  implicit val writes: Writes[Year] = (year: Year) => JsString(year.toString)
 }
 
 trait CommonYears extends Enumerable.Implicits {
@@ -48,7 +47,7 @@ trait CommonYears extends Enumerable.Implicits {
 
   def minYear(implicit config: FrontendAppConfig): Int = {
     val earliestYear = currentYear - 6
-    if(earliestYear > config.minimumYear) {
+    if (earliestYear > config.minimumYear) {
       earliestYear
     } else {
       config.minimumYear
@@ -60,7 +59,7 @@ trait CommonYears extends Enumerable.Implicits {
 
 object StartYears extends CommonYears with Enumerable.Implicits {
 
-  def values(implicit config: FrontendAppConfig): Seq[Year] = (minYear to currentYear).reverseMap(Year(_))
+  def values(implicit config: FrontendAppConfig): Seq[Year] = (minYear to currentYear).reverseIterator.map(Year(_)).toSeq
 
   def radios(form: Form[_])(implicit config: FrontendAppConfig): Seq[Radios.Item] = {
     Radios(form("value"), values.map(year => Radios.Radio(Literal(year.toString), year.toString)))
@@ -72,10 +71,10 @@ object StartYears extends CommonYears with Enumerable.Implicits {
 
 object AmendYears extends CommonYears with Enumerable.Implicits {
 
-  def values(years: Seq[Int]): Seq[Year] = years.reverseMap(Year(_))
+  def values(years: Seq[Int]): Seq[Year] = years.reverseIterator.map(Year(_)).toSeq
 
   def radios(form: Form[_], years: Seq[Int]): Seq[Radios.Item] = {
-    Radios(form("value"), years.reverseMap(year => Radios.Radio(Literal(year.toString), year.toString)))
+    Radios(form("value"), years.reverseIterator.map(year => Radios.Radio(Literal(year.toString), year.toString)).toSeq)
   }
 
   implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =
@@ -109,11 +108,11 @@ object FSYears extends CommonYears with Enumerable.Implicits {
 
   //scalastyle:off magic.number
   private def getLabel(year: Int, isFYFormat: Boolean): Text =
-    if(isFYFormat) {
+    if (isFYFormat) {
       msg"yearRangeRadio".withArgs(
-        LocalDate.of(year-1, Month.APRIL, 6).format(dateFormatterDMY),
+        LocalDate.of(year - 1, Month.APRIL, 6).format(dateFormatterDMY),
         LocalDate.of(year, Month.APRIL, 5).format(dateFormatterDMY)
-    )
+      )
     } else {
       Literal(year.toString)
     }

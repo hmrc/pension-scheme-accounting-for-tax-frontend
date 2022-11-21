@@ -45,7 +45,7 @@ class ChargeServiceHelper {
       .filter(deletedFilter)
       .map { nonDeletedMemberOrEmployer =>
         nodes.calculateAmount(nonDeletedMemberOrEmployer)
-      }.seq.sum
+      }.sum
   }
 
 

@@ -27,6 +27,7 @@ import models.requests.{DataRequest, IdentifierRequest}
 import models.{AccessMode, LockDetail, MinimalFlags, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.mvc.Results._
@@ -84,8 +85,10 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     def test(identifierRequest: IdentifierRequest[_]): Future[Option[Result]] = this.filter(identifierRequest)
   }
 
-  override def beforeEach: Unit = {
-    reset(pensionsSchemeConnector, errorHandler, mockMinimalConnector)
+  override def beforeEach(): Unit = {
+    reset(pensionsSchemeConnector)
+    reset(errorHandler)
+    reset(mockMinimalConnector)
     when(aftConnector.aftOverviewStartDate).thenReturn(QUARTER_START_DATE)
   }
 

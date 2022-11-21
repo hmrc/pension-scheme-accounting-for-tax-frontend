@@ -22,6 +22,7 @@ import handlers.ErrorHandler
 import models.requests.DataRequest
 import models.{AFTQuarter, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.QuarterPage
@@ -39,7 +40,7 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
   private val aftService: AFTService = mock[AFTService]
   private val errorHandler: ErrorHandler = mock[ErrorHandler]
 
-  override def beforeEach: Unit = {
+  override def beforeEach(): Unit = {
     reset(aftService)
     when(errorHandler.onClientError(any(), any(), any())).thenReturn(Future.successful(BadRequest))
   }

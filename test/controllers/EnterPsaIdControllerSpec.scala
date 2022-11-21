@@ -30,6 +30,7 @@ import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, UserAn
 import navigators.CompoundNavigator
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.EnterPsaIdPage
@@ -86,9 +87,13 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private def schemeDetails(authorisingPsaId:Option[String]) = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString, authorisingPsaId)
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockSchemeDetailsConnector)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockUserAnswersCacheConnector)
+    reset(mockRenderer)
+    reset(mockAFTService)
+    reset(mockAppConfig)
+    reset(mockSchemeDetailsConnector)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
@@ -141,7 +146,8 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         val expectedJson = Json.obj(EnterPsaIdPage.toString -> psaId)
 
-        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(EnterPsaIdPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(EnterPsaIdPage), any(), any(), any(), any(), any(), any())(any()))
+          .thenReturn(SampleData.dummyCall)
 
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 

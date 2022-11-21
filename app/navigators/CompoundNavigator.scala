@@ -24,7 +24,7 @@ import play.api.Logger
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 trait CompoundNavigator {
   def nextPage(

@@ -25,6 +25,7 @@ import models.AdministratorOrPractitioner
 import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
+import org.mockito.Mockito.when
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{Action, AnyContent, BodyParsers}
@@ -62,8 +63,9 @@ class IdentifierActionSpec
   private def jsonAOP(aop:AdministratorOrPractitioner) =
     Json.obj("administratorOrPractitioner" -> aop.toString)
 
-  override def beforeEach: Unit = {
-    Mockito.reset(authConnector, mockSessionDataCacheConnector)
+  override def beforeEach(): Unit = {
+    Mockito.reset(authConnector)
+    Mockito.reset(mockSessionDataCacheConnector)
     when(mockAppConfig.loginUrl).thenReturn(dummyCall.url)
     when(mockSessionDataCacheConnector.fetch(any())(any(),any()))
       .thenReturn(Future.successful(None))

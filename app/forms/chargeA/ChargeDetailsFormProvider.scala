@@ -61,7 +61,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
           ),
           minimumValueOption[BigDecimal](
             minimumChargeValueAllowed,
-            messages("chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum", minimumChargeValueAllowed.formatted("%s"))
+            messages("chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum", "%s".format(minimumChargeValueAllowed))
           )
         )
       ),
@@ -78,7 +78,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
           ),
           minimumValueOption[BigDecimal](
             minimumChargeValueAllowed,
-            messages("chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum", minimumChargeValueAllowed.formatted("%s"))
+            messages("chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum", "%s".format(minimumChargeValueAllowed))
           )
         )
       ),

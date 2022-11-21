@@ -47,6 +47,7 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
 import utils.DateHelper.formatSubmittedDate
+import org.mockito.Mockito.{times, verify, when}
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
@@ -114,8 +115,10 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-  override def beforeEach: Unit = {
-    Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockAllowAccessActionProvider)
+  override def beforeEach(): Unit = {
+    Mockito.reset(mockRenderer)
+    Mockito.reset(mockUserAnswersCacheConnector)
+    Mockito.reset(mockAllowAccessActionProvider)
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)

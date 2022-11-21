@@ -66,7 +66,7 @@ trait Parser {
       case (acc, Tuple2(row, index)) =>
         row.length match {
           case this.totalFields =>
-            (acc, validateFields(startDate, index, row)) match {
+            (acc, validateFields(startDate, index, row.toIndexedSeq)) match {
               case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ newErrors)
               case (Right(_), newErrors@Left(_)) => newErrors
               case (currentErrors@Left(_), Right(_)) => currentErrors

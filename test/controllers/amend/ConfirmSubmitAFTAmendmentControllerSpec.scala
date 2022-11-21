@@ -29,6 +29,7 @@ import models.ValueChangeType.ChangeTypeSame
 import models.requests.DataRequest
 import models.{AFTOverview, AFTOverviewVersion, AccessMode, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTAmendmentValueChangeTypePage}
 import play.api.Application
@@ -86,9 +87,12 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
     "radios" -> Radios.yesNo(form("value"))
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    Mockito.reset(mockUserAnswersCacheConnector, mockRenderer, mockAmendmentHelper, mockAFTConnector)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    Mockito.reset(mockUserAnswersCacheConnector)
+    Mockito.reset(mockRenderer)
+    Mockito.reset(mockAmendmentHelper)
+    Mockito.reset(mockAFTConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
     when(mockAmendmentHelper.amendmentSummaryRows(any(), any(), any(), any())).thenReturn(Nil)
@@ -97,8 +101,9 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(
       Seq(AFTOverview(QUARTER_START_DATE, QUARTER_END_DATE,
         tpssReportPresent = false,
-        Some(AFTOverviewVersion( 2, submittedVersionAvailable = true, compiledVersionAvailable = true))))))
+        Some(AFTOverviewVersion(2, submittedVersionAvailable = true, compiledVersionAvailable = true))))))
   }
+
   mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData
   (sessionAccessData = sessionAccessData(versionNumber, AccessMode.PageAccessModeCompile)))
 

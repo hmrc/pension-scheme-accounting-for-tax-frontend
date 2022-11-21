@@ -32,7 +32,9 @@ import models.requests.IdentifierRequest
 import models.{AFTQuarter, AccessMode, AdministratorOrPractitioner, Declaration, GenericViewModel, JourneyType, SessionAccessData, UserAnswers}
 import navigators.CompoundNavigator
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito, MockitoSugar}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
+import org.mockito.Mockito.{times, verify, when}
+import org.scalatestplus.mockito.MockitoSugar
 import pages._
 import play.api.Application
 import play.api.inject.bind
@@ -94,9 +96,14 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       schemeName = schemeName)
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    Mockito.reset(mockRenderer, mockEmailConnector, mockAFTService, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAuditService)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    Mockito.reset(mockRenderer)
+    Mockito.reset(mockEmailConnector)
+    Mockito.reset(mockAFTService)
+    Mockito.reset(mockUserAnswersCacheConnector)
+    Mockito.reset(mockCompoundNavigator)
+    Mockito.reset(mockAuditService)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.amendAftReturnDecreaseTemplateIdId).thenReturn(amendAftReturnDecreaseTemplateIdId)

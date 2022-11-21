@@ -28,6 +28,7 @@ import models.{ChargeType, Enumerable, GenericViewModel, UserAnswers}
 import models.requests.IdentifierRequest
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.ChargeTypePage
@@ -72,9 +73,12 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
       schemeName = SampleData.schemeName)
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockUserAnswersCacheConnector)
+    reset(mockRenderer)
+    reset(mockAFTService)
+    reset(mockAppConfig)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
@@ -125,7 +129,8 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         val expectedJson = Json.obj(ChargeTypePage.toString -> ChargeTypeAnnualAllowance.toString)
 
-        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeTypePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeTypePage), any(), any(), any(), any(), any(), any())(any()))
+          .thenReturn(SampleData.dummyCall)
 
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 

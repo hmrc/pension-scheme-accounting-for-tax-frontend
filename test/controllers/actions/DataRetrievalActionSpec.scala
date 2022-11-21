@@ -22,8 +22,9 @@ import data.SampleData._
 import models.SessionData
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
@@ -39,6 +40,7 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutur
   private val sd = SessionData(sessionId, nameLockedBy, sessionAccessDataCompile)
   private val request: IdentifierRequest[AnyContent] = IdentifierRequest("id", fakeRequest, Some(PsaId(psaId)), None)
   val id = s"$srn$startDate"
+
   class Harness extends DataRetrievalImpl(srn, QUARTER_START_DATE, dataCacheConnector) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }

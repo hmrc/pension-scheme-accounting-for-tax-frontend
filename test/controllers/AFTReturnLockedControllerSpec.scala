@@ -22,8 +22,9 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{SchemeDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, MockitoSugar}
+import org.mockito.ArgumentCaptor
 import org.scalatest.{OptionValues, TryValues}
+import org.scalatestplus.mockito.MockitoSugar
 import pages.SchemeNameQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -35,6 +36,7 @@ import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import org.mockito.Mockito.{times, verify, when}
 
 import scala.concurrent.Future
 

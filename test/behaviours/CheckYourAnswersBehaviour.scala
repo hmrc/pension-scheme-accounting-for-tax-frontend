@@ -25,12 +25,13 @@ import models.LocalDateBinder._
 import models.UserAnswers
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, Mockito, ArgumentMatchers}
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
 import pages.Page
 import play.api.Application
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{route, redirectLocation, status, _}
+import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -44,8 +45,8 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     Mockito.reset(mockAftConnector)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))

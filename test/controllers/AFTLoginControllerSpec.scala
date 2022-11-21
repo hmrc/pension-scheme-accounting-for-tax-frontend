@@ -23,10 +23,10 @@ import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -44,6 +44,7 @@ import scala.concurrent.Future
 class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
+  //scalastyle.off: magic.number
   private def httpPathGET: String = controllers.routes.AFTLoginController.onPageLoad(srn).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
@@ -61,54 +62,56 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
   val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockAppConfig, mockAuditService, mockSchemeService)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockAppConfig)
+    reset(mockAuditService)
+    reset(mockSchemeService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.minimumYear).thenReturn(2020)
     mutableFakeDataRetrievalAction.setViewOnly(false)
-    when(mockSchemeService.retrieveSchemeDetails(any(),any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
   }
 
   "AFTLogin Controller on a GET" must {
 
-      "return to Years page if more than 1 years are available to choose from and send audit event" in {
-        DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))
-        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        val eventCaptor = ArgumentCaptor.forClass(classOf[StartNewAFTAuditEvent])
+    "return to Years page if more than 1 years are available to choose from and send audit event" in {
+      DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      val eventCaptor = ArgumentCaptor.forClass(classOf[StartNewAFTAuditEvent])
 
-        val result = route(application, httpGETRequest(httpPathGET)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(controllers.routes.YearsController.onPageLoad(srn).url)
-        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
-        eventCaptor.getValue mustBe expectedAuditEvent
-      }
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(controllers.routes.YearsController.onPageLoad(srn).url)
+      verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+      eventCaptor.getValue mustBe expectedAuditEvent
+    }
 
-      "return to Quarters page if 1 year and more than 1 quarters are available to choose from and send audit event" in {
-        DateHelper.setDate(Some(LocalDate.of(2020, 8, 2)))
-        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        val eventCaptor = ArgumentCaptor.forClass(classOf[StartNewAFTAuditEvent])
+    "return to Quarters page if 1 year and more than 1 quarters are available to choose from and send audit event" in {
+      DateHelper.setDate(Some(LocalDate.of(2020, 8, 2)))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      val eventCaptor = ArgumentCaptor.forClass(classOf[StartNewAFTAuditEvent])
 
-        val result = route(application, httpGETRequest(httpPathGET)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(controllers.routes.QuartersController.onPageLoad(srn, "2020").url)
-        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
-        eventCaptor.getValue mustBe expectedAuditEvent
-      }
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(controllers.routes.QuartersController.onPageLoad(srn, "2020").url)
+      verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+      eventCaptor.getValue mustBe expectedAuditEvent
+    }
 
-      "return to ChargeType page if exactly 1 year and 1 quarter are available to choose from and send audit event" in {
-        DateHelper.setDate(Some(LocalDate.of(2020, 4, 5)))
-        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        val eventCaptor = ArgumentCaptor.forClass(classOf[StartNewAFTAuditEvent])
-        val result = route(application, httpGETRequest(httpPathGET)).value
+    "return to ChargeType page if exactly 1 year and 1 quarter are available to choose from and send audit event" in {
+      DateHelper.setDate(Some(LocalDate.of(2020, 4, 5)))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      val eventCaptor = ArgumentCaptor.forClass(classOf[StartNewAFTAuditEvent])
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url)
-        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
-        eventCaptor.getValue mustBe expectedAuditEvent
-      }
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url)
+      verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+      eventCaptor.getValue mustBe expectedAuditEvent
+    }
 
   }
 }
