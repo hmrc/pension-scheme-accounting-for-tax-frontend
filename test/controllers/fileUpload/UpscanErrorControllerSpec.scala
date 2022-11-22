@@ -21,7 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.requests.IdentifierRequest
+import models.requests.{DataRequest, IdentifierRequest}
 import models.{ChargeType, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -109,6 +109,9 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport 
     }
 
     "must return the correct view for a GET invalidHeaderOrBodyError" in {
+
+      when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn("")
+
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val request = FakeRequest(GET, routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate, accessType, versionInt, chargeType).url)
       val application1 = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
