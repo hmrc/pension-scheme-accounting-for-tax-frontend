@@ -23,9 +23,10 @@ import data.SampleData
 import data.SampleData.userAnswersWithSchemeName
 import matchers.JsonMatchers
 import models.fileUpload.FileUploadOutcome
-import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
+import models.fileUpload.FileUploadOutcomeStatus._
 import models.{ChargeType, Draft, Enumerable, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeE.CheckYourAnswersPage
 import play.api.Application
@@ -67,11 +68,12 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
 
   private def ua: UserAnswers = userAnswersWithSchemeName
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockFileUploadOutcomeConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(CheckYourAnswersPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+    when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(CheckYourAnswersPage), any(), any(), any(), any(), any(), any())(any()))
+      .thenReturn(SampleData.dummyCall)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
   }
 
@@ -200,7 +202,7 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
         heading = "messages__processingRequest__h1_failure",
         content = "messages__processingRequest__content_failure",
         redirect = controllers.fileUpload.routes.UpscanErrorController
-          .invalidHeaderOrBodyError(srn, startDate, accessType, versionInt,  ChargeType.ChargeTypeAnnualAllowance).url
+          .invalidHeaderOrBodyError(srn, startDate, accessType, versionInt, ChargeType.ChargeTypeAnnualAllowance).url
       ))
     }
 
@@ -222,7 +224,7 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
         heading = "messages__processingRequest__h1_failure",
         content = "messages__processingRequest__content_failure",
         redirect = controllers.fileUpload.routes.ValidationErrorsAllController
-          .onPageLoad(srn, startDate, accessType, versionInt,  ChargeType.ChargeTypeAnnualAllowance).url
+          .onPageLoad(srn, startDate, accessType, versionInt, ChargeType.ChargeTypeAnnualAllowance).url
       ))
     }
 
@@ -244,7 +246,7 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
         heading = "messages__processingRequest__h1_failure",
         content = "messages__processingRequest__content_failure",
         redirect = controllers.fileUpload.routes.ValidationErrorsSummaryController
-          .onPageLoad(srn, startDate, accessType, versionInt,  ChargeType.ChargeTypeAnnualAllowance).url
+          .onPageLoad(srn, startDate, accessType, versionInt, ChargeType.ChargeTypeAnnualAllowance).url
       ))
     }
 

@@ -27,6 +27,7 @@ import models.requests.IdentifierRequest
 import models.{GenericViewModel, Member, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.{reset, times, verify, when}
 import pages.chargeG._
 import play.api.Application
 import play.api.data.Form
@@ -146,8 +147,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val dummyPagerNavSeq = Seq(Link(id = s"test-id", url = "test-target", linkText = Literal("test-text"), hiddenText = None))
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockDeleteChargeHelper)
     when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))

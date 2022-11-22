@@ -29,6 +29,7 @@ import models.requests.IdentifierRequest
 import models.{Enumerable, PaymentOverdue}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -77,13 +78,14 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(AccountingForTaxPenalties.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
+    when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any()))
+      .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
   }
 
   "PenaltyTypeController" must {

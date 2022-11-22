@@ -26,6 +26,7 @@ import models.chargeE.ChargeEDetails
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.Application
@@ -42,19 +43,21 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeE/chargeDetails.njk"
-  private val dateNoticeReceived = LocalDate.of(1980,12,1)
+  private val dateNoticeReceived = LocalDate.of(1980, 12, 1)
   private val form = new ChargeDetailsFormProvider().apply(
     minimumChargeValueAllowed = BigDecimal("0.01"),
     minimumDate = dateNoticeReceived
   )
+
   private def httpPathGET: String = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url
+
   private def httpPathPOST: String = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "chargeAmount" -> Seq("33.44"),
-  "dateNoticeReceived.day" -> Seq("3"),
-  "dateNoticeReceived.month" -> Seq("4"),
-  "dateNoticeReceived.year" -> Seq("2019"),
+    "dateNoticeReceived.day" -> Seq("3"),
+    "dateNoticeReceived.month" -> Seq("4"),
+    "dateNoticeReceived.year" -> Seq("2019"),
     "isPaymentMandatory" -> Seq("true")
   )
 
@@ -68,13 +71,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "chargeAmount" -> Seq("33.44"),
-  "dateNoticeReceived.day" -> Seq("32"),
-  "dateNoticeReceived.month" -> Seq("13"),
-  "dateNoticeReceived.year" -> Seq("2003"),
+    "dateNoticeReceived.day" -> Seq("32"),
+    "dateNoticeReceived.month" -> Seq("13"),
+    "dateNoticeReceived.year" -> Seq("2003"),
     "isPaymentMandatory" -> Seq("false")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeEDetails]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[ChargeEDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
@@ -85,8 +88,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "memberName" -> "first last"
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)

@@ -17,10 +17,11 @@
 package models
 
 import config.FrontendAppConfig
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import utils.DateHelper
 
 import java.time.LocalDate
@@ -29,7 +30,7 @@ class QuartersSpec extends AnyWordSpec with Matchers with MockitoSugar with Befo
 
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
 
-  override def beforeEach: Unit = {
+  override def beforeEach(): Unit = {
     when(mockAppConfig.minimumYear).thenReturn(2019)
   }
 

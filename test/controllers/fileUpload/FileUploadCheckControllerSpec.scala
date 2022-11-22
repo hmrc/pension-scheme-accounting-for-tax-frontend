@@ -27,6 +27,7 @@ import models.fileUpload.UploadCheckSelection.Yes
 import models.{ChargeType, FileUploadDataCache, FileUploadStatus, GenericViewModel, UploadId, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import pages.fileUpload.UploadCheckPage
 import play.api.data.Form
 import play.api.inject.guice.GuiceableModule
@@ -47,18 +48,19 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupp
   val extraModules: Seq[GuiceableModule] = Seq(
     inject.bind[UploadProgressTracker].to(fakeUploadProgressTracker)
   )
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction,extraModules).build()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   private val templateToBeRendered = "fileUpload/fileUploadResult.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
   private val form = new UploadCheckSelectionFormProvider
 
   private def httpPathGET: String = controllers.fileUpload.routes.FileUploadCheckController.
-    onPageLoad(srn, startDate, accessType, versionInt,chargeType, UploadId("")).url
+    onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url
+
   private def httpPathPOST: String = controllers.fileUpload.routes.FileUploadCheckController.
-    onSubmit( srn, startDate, accessType, versionInt,chargeType, UploadId("")).url
+    onSubmit(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url
 
 
-  private val jsonToPassToTemplate:Form[UploadCheckSelection]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[UploadCheckSelection] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = routes.FileUploadCheckController.onSubmit(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url,
@@ -68,7 +70,7 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupp
     "radios" -> UploadCheckSelection.radios(form),
     "fileName" -> "name"
   )
-  private val jsonToPassToTemplateFill:Form[UploadCheckSelection]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplateFill: Form[UploadCheckSelection] => JsObject = form => Json.obj(
     "form" -> form.fill(Yes),
     "viewModel" -> GenericViewModel(
       submitUrl = routes.FileUploadCheckController.onSubmit(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url,
@@ -84,15 +86,15 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val fileUploadDataCache: FileUploadDataCache =
     FileUploadDataCache(
       uploadId = "uploadId",
-      reference ="reference",
-      status=  FileUploadStatus("UploadedSuccessfully", name = Some("name")),
-      created= dateTimeNow,
-      lastUpdated= dateTimeNow,
-      expireAt= dateTimeNow
+      reference = "reference",
+      status = FileUploadStatus("UploadedSuccessfully", name = Some("name")),
+      created = dateTimeNow,
+      lastUpdated = dateTimeNow,
+      expireAt = dateTimeNow
     )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }

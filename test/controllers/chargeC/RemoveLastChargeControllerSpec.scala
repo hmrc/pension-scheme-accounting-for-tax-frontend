@@ -24,6 +24,7 @@ import models.LocalDateBinder._
 import models.{CheckMode, GenericViewModel, Index, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
@@ -49,8 +50,8 @@ class RemoveLastChargeControllerSpec extends ControllerSpecBase with NunjucksSup
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName))
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 

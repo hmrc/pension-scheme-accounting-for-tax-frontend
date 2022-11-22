@@ -25,13 +25,14 @@ import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
 import models.{AmendedChargeStatus, Member, MemberDetails, UserAnswers}
-import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import play.api.libs.json.JsArray
 import utils.AFTConstants.QUARTER_START_DATE
 
 import java.time.LocalDate
+
 class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
@@ -59,7 +60,9 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     )
 
   def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+
   def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+
   def expectedMember(memberDetails: MemberDetails, index: Int): Member =
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index))
 

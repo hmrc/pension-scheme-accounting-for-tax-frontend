@@ -31,9 +31,10 @@ import models.financialStatement.{SchemeFS, SchemeFSChargeType, SchemeFSDetail}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import services.{PenaltiesCache, SchemeService}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
@@ -75,7 +76,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
   private val tableHead = Seq(
     Cell(msg"paymentsAndCharges.chargeType.table"),
-    Cell(msg"paymentsAndCharges.totalDue.table", classes = Seq( "govuk-!-font-weight-bold")),
+    Cell(msg"paymentsAndCharges.totalDue.table", classes = Seq("govuk-!-font-weight-bold")),
     Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-font-weight-bold")),
     Cell(Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"))
   )
@@ -299,7 +300,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     "return payload from cache is srn and logged in id match the payload" in {
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
+        _ mustBe paymentsCache
+      }
     }
 
     "call FS API and save to cache if srn does not match the retrieved payload from cache" in {
@@ -307,7 +310,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit)) }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
+        _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit))
+      }
     }
 
     "call FS API and save to cache if logged in id does not match the retrieved payload from cache" in {
@@ -315,7 +320,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit)) }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
+        _ mustBe paymentsCache.copy(schemeFSDetail = Seq(chargeWithCredit))
+      }
     }
 
     "call FS API and save to cache if retrieved payload from cache is not in Payments format" in {
@@ -323,7 +330,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
+        _ mustBe paymentsCache
+      }
     }
 
     "call FS API and save to cache if there is no existing payload stored in cache" in {
@@ -331,21 +340,27 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)){ _ mustBe paymentsCache }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, All)) {
+        _ mustBe paymentsCache
+      }
     }
 
     "return upcoming charges only for upcoming filter" in {
       DateHelper.setDate(Some(LocalDate.parse("2020-01-31")))
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Upcoming)){ _ mustBe paymentsCache }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Upcoming)) {
+        _ mustBe paymentsCache
+      }
     }
 
     "return overdue charges only for overdue filter" in {
       DateHelper.setDate(Some(LocalDate.parse("2020-12-31")))
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Overdue)){ _ mustBe paymentsCache }
+      whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Overdue)) {
+        _ mustBe paymentsCache
+      }
     }
   }
 }
@@ -355,6 +370,7 @@ object PaymentsAndChargesServiceSpec {
   val startDate: String = QUARTER_START_DATE.format(dateFormatterStartDate)
   val endDate: String = QUARTER_END_DATE.format(dateFormatterDMY)
   val paymentsCache: PaymentsCache = PaymentsCache(psaId, srn, schemeDetails, schemeFSResponseAftAndOTC.seqSchemeFSDetail)
+
   private def createCharge(
                             chargeType: SchemeFSChargeType,
                             totalAmount: BigDecimal,

@@ -27,6 +27,7 @@ import models.requests.IdentifierRequest
 import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import pages.chargeE.{AnnualAllowanceMembersQuery, AnnualAllowanceYearPage}
 import play.api.Application
@@ -79,8 +80,8 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
   private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode,
     srn, startDate, accessType, versionInt, 0).url
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)

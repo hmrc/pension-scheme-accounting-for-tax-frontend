@@ -17,9 +17,9 @@
 package fileUploadParsers
 
 import base.SpecBase
-import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 
 class CsvLineSplitterSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
 

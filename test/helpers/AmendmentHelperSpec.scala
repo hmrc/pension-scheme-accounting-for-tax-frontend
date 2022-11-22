@@ -27,8 +27,10 @@ import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.viewModels.ViewAmendmentDetails
 import models.{AmendedChargeStatus, UserAnswers, chargeA}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{Mockito, MockitoSugar}
+import org.mockito.Mockito
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
 import pages.chargeB.ChargeBDetailsPage
 import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, WhichTypeOfSponsoringEmployerPage, MemberAFTVersionPage => MemberCAFTVersionPage, MemberStatusPage => MemberCStatusPage}
@@ -51,9 +53,12 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
   val chargeGHelper: ChargeGService = mock[ChargeGService]
   private val amendmentHelper = new AmendmentHelper(chargeCHelper, chargeDHelper, chargeEHelper, chargeGHelper)
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    Mockito.reset(chargeCHelper, chargeDHelper, chargeEHelper, chargeGHelper)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    Mockito.reset(chargeCHelper)
+    Mockito.reset(chargeDHelper)
+    Mockito.reset(chargeEHelper)
+    Mockito.reset(chargeGHelper)
     when(chargeCHelper.getAllAuthSurplusAmendments(any(), any())).thenReturn(Nil)
     when(chargeDHelper.getAllLifetimeAllowanceAmendments(any(), any())).thenReturn(Nil)
     when(chargeEHelper.getAllAnnualAllowanceAmendments(any(), any())).thenReturn(Nil)
@@ -91,7 +96,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         Row(
           key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(previousVersion), classes = Seq("govuk-!-width-three-quarters")),
           value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(previousTotalAmount)}"),
-                        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
           actions = Nil
         ),
         Row(
@@ -105,7 +110,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         Row(
           key = Key(msg"confirmSubmitAFTReturn.difference", classes = Seq("govuk-!-width-three-quarters")),
           value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(differenceAmount)}"),
-                        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
           actions = Nil
         )
       )
@@ -119,9 +124,9 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         val previousUa = UserAnswers()
         val expectedRows = Seq(
           ViewAmendmentDetails(messages("allAmendments.numberOfMembers", 2),
-                               ChargeTypeShortService.toString,
-                               FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
-                               Added))
+            ChargeTypeShortService.toString,
+            FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
+            Added))
 
         amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
@@ -132,9 +137,9 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         val expectedRows = Seq(
           ViewAmendmentDetails(messages("allAmendments.numberOfMembers", 2),
-                               ChargeTypeShortService.toString,
-                               FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
-                               Deleted))
+            ChargeTypeShortService.toString,
+            FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
+            Deleted))
 
         amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
@@ -145,9 +150,9 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         val expectedRows = Seq(
           ViewAmendmentDetails(messages("allAmendments.numberOfMembers", 2),
-                               ChargeTypeShortService.toString,
-                               FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)),
-                               Updated))
+            ChargeTypeShortService.toString,
+            FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)),
+            Updated))
 
         amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
@@ -160,9 +165,9 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         val previousUa = UserAnswers()
         val expectedRows = Seq(
           ViewAmendmentDetails(messages("allAmendments.numberOfMembers", 2),
-                               ChargeTypeLumpSumDeath.toString,
-                               FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
-                               Added))
+            ChargeTypeLumpSumDeath.toString,
+            FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
+            Added))
 
         amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
@@ -173,9 +178,9 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         val expectedRows = Seq(
           ViewAmendmentDetails(messages("allAmendments.numberOfMembers", 2),
-                               ChargeTypeLumpSumDeath.toString,
-                               FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
-                               Deleted))
+            ChargeTypeLumpSumDeath.toString,
+            FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
+            Deleted))
 
         amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
@@ -186,9 +191,9 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         val expectedRows = Seq(
           ViewAmendmentDetails(messages("allAmendments.numberOfMembers", 2),
-                               ChargeTypeLumpSumDeath.toString,
-                               FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)),
-                               Updated))
+            ChargeTypeLumpSumDeath.toString,
+            FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)),
+            Updated))
 
         amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
@@ -201,9 +206,9 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
         val previousUa = UserAnswers()
         val expectedRows = Seq(
           ViewAmendmentDetails(messages("allAmendments.noMembers"),
-                               ChargeTypeDeRegistration.toString,
-                               FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
-                               Added))
+            ChargeTypeDeRegistration.toString,
+            FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
+            Added))
 
         amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
@@ -214,9 +219,9 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         val expectedRows = Seq(
           ViewAmendmentDetails(messages("allAmendments.noMembers"),
-                               ChargeTypeDeRegistration.toString,
-                               FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
-                               Deleted))
+            ChargeTypeDeRegistration.toString,
+            FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
+            Deleted))
 
         amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
@@ -227,9 +232,9 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
 
         val expectedRows = Seq(
           ViewAmendmentDetails(messages("allAmendments.noMembers"),
-                               ChargeTypeDeRegistration.toString,
-                               FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)),
-                               Updated))
+            ChargeTypeDeRegistration.toString,
+            FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)),
+            Updated))
 
         amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }

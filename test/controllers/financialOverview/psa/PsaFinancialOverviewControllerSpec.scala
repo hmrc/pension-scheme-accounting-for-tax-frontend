@@ -23,6 +23,7 @@ import matchers.JsonMatchers
 import models.Enumerable
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -61,20 +62,23 @@ class PsaFinancialOverviewControllerSpec
 
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-  private val psaName="John Doe"
+  private val psaName = "John Doe"
   val requestRefundUrl = s"test.com?requestType=3&psaName=$psaName&availAmt=1000"
-  private val jsonToPassToTemplate:JsObject =  Json.obj(
+  private val jsonToPassToTemplate: JsObject = Json.obj(
     "totalUpcomingCharge" -> "10",
-      "totalOverdueCharge" -> "10",
-      "totalInterestAccruing" -> "10",
-      "psaName" -> "John Doe",
-      "requestRefundUrl" ->  routes.PsaRequestRefundController.onPageLoad.url,
-      "creditBalanceFormatted" -> "£1,000.00",
-      "creditBalance" -> 1000
+    "totalOverdueCharge" -> "10",
+    "totalInterestAccruing" -> "10",
+    "psaName" -> "John Doe",
+    "requestRefundUrl" -> routes.PsaRequestRefundController.onPageLoad.url,
+    "creditBalanceFormatted" -> "£1,000.00",
+    "creditBalance" -> 1000
   )
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockAFTPartialService, mockRenderer,mockAppConfig)
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockAFTPartialService)
+    reset(mockRenderer)
+    reset(mockAppConfig)
     when(mockAppConfig.creditBalanceRefundLink).thenReturn("test.com")
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
@@ -93,7 +97,7 @@ class PsaFinancialOverviewControllerSpec
           .thenReturn(Future.successful(psaFs))
         when(mockAFTPartialService.getCreditBalanceAmount(any()))
           .thenReturn(BigDecimal("1000"))
-        when(mockMinimalPsaConnector.getPsaOrPspName(any(),any(), any()))
+        when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
           .thenReturn(Future.successful(psaName))
 
         val result = route(application, httpGETRequest(getPartial)).value

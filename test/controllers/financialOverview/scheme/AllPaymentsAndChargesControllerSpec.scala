@@ -26,6 +26,7 @@ import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
@@ -61,9 +62,10 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     )
     .build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockRenderer, mockPaymentsAndChargesService)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRenderer)
+    reset(mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
@@ -106,6 +108,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
 object AllPaymentsAndChargesControllerSpec {
   private val startDate = "2020-04-01"
   private val srn = "test-srn"
+
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(
       index = 0,
@@ -118,7 +121,7 @@ object AllPaymentsAndChargesControllerSpec {
       amountDue = 1029.05,
       accruedInterestTotal = 0.00,
       periodStartDate = Some(LocalDate.parse(startDate)),
-      periodEndDate =  Some(LocalDate.parse(endDate)),
+      periodEndDate = Some(LocalDate.parse(endDate)),
       formBundleNumber = None,
       version = None,
       receiptDate = None,
@@ -127,6 +130,7 @@ object AllPaymentsAndChargesControllerSpec {
       documentLineItemDetails = Nil
     )
   }
+
   private val schemeFSResponse: Seq[SchemeFSDetail] = Seq(
     createCharge(startDate = "2020-04-01", endDate = "2020-06-30", chargeReference = "XY002610150184"),
     createCharge(startDate = "2020-01-01", endDate = "2020-03-31", chargeReference = "AYU3494534632"),

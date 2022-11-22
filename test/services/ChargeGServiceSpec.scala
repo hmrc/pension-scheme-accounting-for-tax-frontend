@@ -26,12 +26,13 @@ import models.LocalDateBinder._
 import models.chargeG.MemberDetails
 import models.viewModels.ViewAmendmentDetails
 import models.{AmendedChargeStatus, Member, UserAnswers}
-import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import utils.AFTConstants.QUARTER_START_DATE
 
 import java.time.LocalDate
+
 class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
@@ -48,7 +49,9 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(ChargeAmountsPage(1), SampleData.chargeAmounts2).toOption.get
 
   def viewLink(index: Int): String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+
   def removeLink(index: Int): String = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+
   def expectedMember(memberDetails: MemberDetails, index: Int): Member =
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount2, viewLink(index), removeLink(index))
 

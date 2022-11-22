@@ -25,6 +25,7 @@ import models.LocalDateBinder._
 import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.{times, verify, when}
 import pages.chargeB.WhatYouWillNeedPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
@@ -44,8 +45,8 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val jsonToPassToTemplate:JsObject = Json.obj(
     fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url)
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 

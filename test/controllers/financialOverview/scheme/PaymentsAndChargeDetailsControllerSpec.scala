@@ -44,6 +44,7 @@ import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RET
 import models.financialStatement._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest._
 import play.api.Application
 import play.api.inject.bind
@@ -66,6 +67,8 @@ class PaymentsAndChargeDetailsControllerSpec
     with BeforeAndAfterEach
     with RecoverMethods {
 
+  //scalastyle.off: magic.number
+
   import PaymentsAndChargeDetailsControllerSpec._
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
@@ -86,9 +89,10 @@ class PaymentsAndChargeDetailsControllerSpec
     )
     .build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockRenderer, mockPaymentsAndChargesService)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRenderer)
+    reset(mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(), any()))
       .thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))

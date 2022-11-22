@@ -17,10 +17,10 @@
 package models
 
 import data.SampleData
-import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 
 class SessionDataSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 

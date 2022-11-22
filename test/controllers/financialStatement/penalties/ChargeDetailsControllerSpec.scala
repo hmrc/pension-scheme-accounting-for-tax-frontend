@@ -27,6 +27,7 @@ import models.financialStatement.PsaFSDetail
 import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -86,12 +87,14 @@ class ChargeDetailsControllerSpec
 
   val isOverdue: PsaFSDetail => Boolean = _ => true
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockPenaltiesService, mockRenderer)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockPenaltiesService)
+    reset(mockRenderer)
     when(mockPenaltiesService.chargeDetailsRows(any())).thenReturn(rows)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(isOverdue)
-    when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
+    when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any()))
+      .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
@@ -102,7 +105,7 @@ class ChargeDetailsControllerSpec
 
       "render the correct view with penalty tables for associated" in {
 
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
+        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -140,7 +143,7 @@ class ChargeDetailsControllerSpec
       }
 
       "catch IndexOutOfBoundsException" in {
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
+        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
         val result = route(application, httpGETRequest(httpPathGETAssociated("3"))).value
 
@@ -162,18 +165,18 @@ object ChargeDetailsControllerSpec {
       key = Key(Literal("Accounting for Tax late filing penalty"), classes = Seq("govuk-!-width-three-quarters")),
       value = Value(Literal("£80000.00"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
     ),
-      Row(
-        key = Key(msg"penalties.chargeDetails.payments", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal("£23950.92"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-      ),
     Row(
-        key = Key(msg"penalties.chargeDetails.amountUnderReview", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal("£25089.08"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-      ),
+      key = Key(msg"penalties.chargeDetails.payments", classes = Seq("govuk-!-width-three-quarters")),
+      value = Value(Literal("£23950.92"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    ),
     Row(
-        key = Key(msg"penalties.chargeDetails.totalDueBy".withArgs("15 July 2020"), classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
-        value = Value(Literal("£1029.05"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-      )
+      key = Key(msg"penalties.chargeDetails.amountUnderReview", classes = Seq("govuk-!-width-three-quarters")),
+      value = Value(Literal("£25089.08"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    ),
+    Row(
+      key = Key(msg"penalties.chargeDetails.totalDueBy".withArgs("15 July 2020"), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
+      value = Value(Literal("£1029.05"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    )
   )
 
 }

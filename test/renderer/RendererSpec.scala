@@ -17,11 +17,13 @@
 package renderer
 
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, Mockito, MockitoSugar}
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.bind

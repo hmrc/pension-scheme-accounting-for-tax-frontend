@@ -23,8 +23,9 @@ import helpers.DeleteChargeHelper
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.{AmendedChargeStatus, ChargeType, Employer, Member, MemberDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import play.api.libs.json.JsArray
 import play.api.mvc.Call
@@ -55,18 +56,19 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
     )
 
-  private def expectedMember(memberDetails: MemberDetails, index: Int, amount:BigDecimal): Member =
+  private def expectedMember(memberDetails: MemberDetails, index: Int, amount: BigDecimal): Member =
     Member(index, memberDetails.fullName, memberDetails.nino, amount, viewUrl(index).url, removeUrl(index).url)
 
-  private def expectedEmployer(memberDetails: MemberDetails, index: Int, amount:BigDecimal): Employer =
+  private def expectedEmployer(memberDetails: MemberDetails, index: Int, amount: BigDecimal): Employer =
     Employer(index, memberDetails.fullName, amount, viewUrl(index).url, removeUrl(index).url)
 
   private val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val chargePaginationService: ChargePaginationService = new ChargePaginationService(mockAppConfig)
 
-  override def beforeEach: Unit = {
-    reset(mockDeleteChargeHelper, mockAppConfig)
+  override def beforeEach(): Unit = {
+    reset(mockDeleteChargeHelper)
+    reset(mockAppConfig)
     when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
     when(mockAppConfig.membersPageSize).thenReturn(2)
   }
@@ -81,13 +83,13 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
 
   private val url: Int => Call = i => Call("GET", s"dummy/$i")
 
-  private def prev(pageNo:Int):Link =
+  private def prev(pageNo: Int): Link =
     Link(id = "nav-prev", url = url(pageNo).url, linkText = Message("paginationPreviousPage"), hiddenText = None)
 
-  private def next(pageNo:Int):Link =
+  private def next(pageNo: Int): Link =
     Link(id = "nav-next", url = url(pageNo).url, linkText = Message("paginationNextPage"), hiddenText = None)
 
-  private def number(pageNo:Int, includeTarget:Boolean = true):Link = {
+  private def number(pageNo: Int, includeTarget: Boolean = true): Link = {
     val u = if (includeTarget) {
       url(pageNo).url
     } else {
@@ -235,18 +237,18 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         removeUrl = removeUrl,
         chargeType = ChargeType.ChargeTypeAnnualAllowance
       ) mustBe Some(
-          PaginatedMembersInfo(
-            itemsForCurrentPage = Left(expectedAllMembersMinusDeleted),
-            paginationStats = PaginationStats(
-              currentPage = 1,
-              startMember = 1,
-              lastMember = 2,
-              totalMembers = 5,
-              totalPages = 3,
-              totalAmount = BigDecimal(167.20)
-            )
+        PaginatedMembersInfo(
+          itemsForCurrentPage = Left(expectedAllMembersMinusDeleted),
+          paginationStats = PaginationStats(
+            currentPage = 1,
+            startMember = 1,
+            lastMember = 2,
+            totalMembers = 5,
+            totalPages = 3,
+            totalAmount = BigDecimal(167.20)
           )
         )
+      )
     }
 
     "return pagination info in reverse order for page two for all the members added, excluding the deleted member" in {

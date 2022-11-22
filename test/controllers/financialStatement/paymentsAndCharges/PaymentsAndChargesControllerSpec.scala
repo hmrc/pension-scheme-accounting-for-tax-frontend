@@ -29,6 +29,7 @@ import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -63,9 +64,10 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     )
     .build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockRenderer, mockPaymentsAndChargesService)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRenderer)
+    reset(mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))

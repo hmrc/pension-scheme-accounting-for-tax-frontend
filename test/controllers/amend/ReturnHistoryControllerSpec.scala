@@ -70,10 +70,10 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       periodEndDate = LocalDate.of(2020, 6, 28),
       tpssReportPresent = false,
       Some(AFTOverviewVersion(
-      numberOfVersions = 3,
-      submittedVersionAvailable = true,
-      compiledVersionAvailable = true
-    )))
+        numberOfVersions = 3,
+        submittedVersionAvailable = true,
+        compiledVersionAvailable = true
+      )))
   )
 
   val mockSchemeService: SchemeService = mock[SchemeService]
@@ -118,17 +118,17 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       val actualColumnTextTitles: Option[IndexedSeq[String]] =
         (actual \ "versions" \ "head").validate[JsArray].asOpt
-          .map(_.value.flatMap(
+          .map(_.value.toIndexedSeq.flatMap(
             jsValue => (jsValue \ "text").validate[String].asOpt.toSeq))
 
       val actualColumnHtmlTitles: Option[IndexedSeq[String]] =
         (actual \ "versions" \ "head").validate[JsArray].asOpt
-          .map(_.value.flatMap(
+          .map(_.value.toIndexedSeq.flatMap(
             jsValue => (jsValue \ "html").validate[String].asOpt.toSeq))
 
       val actualColumnValues: Option[IndexedSeq[String]] =
         (actual \ "versions" \ "rows").validate[JsArray].asOpt
-          .map(_.value.flatMap(_.validate[JsArray].asOpt.toSeq
+          .map(_.value.toIndexedSeq.flatMap(_.validate[JsArray].asOpt.toSeq
             .flatMap(_.value.flatMap { jsValue =>
               ((jsValue \ "text").validate[String].asOpt match {
                 case None => (jsValue \ "html").validate[String].asOpt
@@ -141,9 +141,9 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       actualColumnHtmlTitles mustBe Some(Seq(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
 
       def anchor(startDate: String, version: Int, linkContent: String, accessType: AccessType): String =
-      s"<a id= report-version-$version class=govuk-link href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}>" +
-      s"<span aria-hidden=true>$linkContent</span>" +
-      s"<span class=govuk-visually-hidden> $linkContent ${messages("returnHistory.visuallyHidden", version)}</span></a>"
+        s"<a id= report-version-$version class=govuk-link href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}>" +
+          s"<span aria-hidden=true>$linkContent</span>" +
+          s"<span class=govuk-visually-hidden> $linkContent ${messages("returnHistory.visuallyHidden", version)}</span></a>"
 
       val expectedStartDate = "2020-04-01"
 

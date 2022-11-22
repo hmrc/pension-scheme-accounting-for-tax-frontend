@@ -45,6 +45,7 @@ import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RET
 import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -86,8 +87,8 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     )
     .build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockAppConfig.schemeDashboardUrl(any(), any())).thenReturn(dummyCall.url)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
@@ -101,6 +102,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
         s" ${messages("paymentsAndCharges.interest.chargeReference.text2")}</p>"
     )
   }
+
   private def expectedJson(schemeFSDetail: SchemeFSDetail, chargeType: String, insetText: uk.gov.hmrc.viewmodels.Html, index: String): JsObject = Json.obj(
     fields = "chargeDetailsList" -> Seq(
       Row(
@@ -171,7 +173,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 
       templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeInterest.njk"
 
-     jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, PSS_OTC_AFT_RETURN_INTEREST.toString, insetTextWithAmountDueAndInterest("2"), "2"))
+      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, PSS_OTC_AFT_RETURN_INTEREST.toString, insetTextWithAmountDueAndInterest("2"), "2"))
     }
 
     "redirect to Session Expired page when there is no data for the selected charge reference for a GET" in {
@@ -187,7 +189,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 object PaymentsAndChargesInterestControllerSpec {
   private val srn = "test-srn"
 
-  private def createCharge(index:Int, chargeReference: String, chargeType: SchemeFSChargeType): SchemeFSDetail = {
+  private def createCharge(index: Int, chargeReference: String, chargeType: SchemeFSChargeType): SchemeFSDetail = {
     SchemeFSDetail(
       index = index,
       chargeReference = chargeReference,

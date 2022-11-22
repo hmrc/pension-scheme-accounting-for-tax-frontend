@@ -25,6 +25,7 @@ import matchers.JsonMatchers
 import models.{Enumerable, PenaltiesFilter, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -84,9 +85,10 @@ class InterestControllerSpec
     "list" -> rows
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockPenaltiesService, mockRenderer)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockPenaltiesService)
+    reset(mockRenderer)
     when(mockPenaltiesService.interestRows(any())).thenReturn(rows)
     when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
@@ -99,7 +101,7 @@ class InterestControllerSpec
 
       "render the correct view with penalty tables for associated" in {
 
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
+        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -141,7 +143,7 @@ class InterestControllerSpec
       }
 
       "catch IndexOutOfBoundsException" in {
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
+        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
         val result = route(application, httpGETRequest(httpPathGETAssociated("3"))).value
 

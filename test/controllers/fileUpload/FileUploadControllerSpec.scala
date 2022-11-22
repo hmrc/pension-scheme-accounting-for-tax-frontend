@@ -25,6 +25,7 @@ import models.LocalDateBinder._
 import models.{ChargeType, FileUploadDataCache, FileUploadStatus, GenericViewModel, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -49,11 +50,11 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val fileUploadDataCache: FileUploadDataCache =
     FileUploadDataCache(
       uploadId = "uploadId",
-      reference ="reference",
-      status=  FileUploadStatus("InProgress"),
-      created= dateTimeNow,
-      lastUpdated= dateTimeNow,
-      expireAt= dateTimeNow
+      reference = "reference",
+      status = FileUploadStatus("InProgress"),
+      created = dateTimeNow,
+      lastUpdated = dateTimeNow,
+      expireAt = dateTimeNow
     )
 
   val expectedJson: JsObject = Json.obj()
@@ -79,9 +80,11 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val maxUploadFileSize = 99
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockUpscanInitiateConnector, mockAppConfig, mockRenderer)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockUpscanInitiateConnector)
+    reset(mockAppConfig)
+    reset(mockRenderer)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.maxUploadFileSize).thenReturn(maxUploadFileSize)
   }
@@ -133,14 +136,13 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val fileUploadDataCache: FileUploadDataCache =
         FileUploadDataCache(
           uploadId = "uploadId",
-          reference ="reference",
-          status=  FileUploadStatus("UploadedSuccessfully"),
-          created= dateTimeNow,
-          lastUpdated= dateTimeNow,
-          expireAt= dateTimeNow
+          reference = "reference",
+          status = FileUploadStatus("UploadedSuccessfully"),
+          created = dateTimeNow,
+          lastUpdated = dateTimeNow,
+          expireAt = dateTimeNow
         )
       fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
-
 
 
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
@@ -183,11 +185,11 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
     val fileUploadDataCache: FileUploadDataCache =
       FileUploadDataCache(
         uploadId = "uploadId",
-        reference ="reference",
-        status=  FileUploadStatus("Failed", failureReason = Some("QUARANTINE")),
-        created= dateTimeNow,
-        lastUpdated= dateTimeNow,
-        expireAt= dateTimeNow
+        reference = "reference",
+        status = FileUploadStatus("Failed", failureReason = Some("QUARANTINE")),
+        created = dateTimeNow,
+        lastUpdated = dateTimeNow,
+        expireAt = dateTimeNow
       )
     fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
@@ -206,11 +208,11 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
     val fileUploadDataCache: FileUploadDataCache =
       FileUploadDataCache(
         uploadId = "uploadId",
-        reference ="reference",
-        status=  FileUploadStatus("Failed", failureReason = Some("REJECTED")),
-        created= dateTimeNow,
-        lastUpdated= dateTimeNow,
-        expireAt= dateTimeNow
+        reference = "reference",
+        status = FileUploadStatus("Failed", failureReason = Some("REJECTED")),
+        created = dateTimeNow,
+        lastUpdated = dateTimeNow,
+        expireAt = dateTimeNow
       )
     fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
@@ -229,11 +231,11 @@ class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport w
     val fileUploadDataCache: FileUploadDataCache =
       FileUploadDataCache(
         uploadId = "uploadId",
-        reference ="reference",
-        status=  FileUploadStatus("Failed", failureReason = Some("UNKNOWN")),
-        created= dateTimeNow,
-        lastUpdated= dateTimeNow,
-        expireAt= dateTimeNow
+        reference = "reference",
+        status = FileUploadStatus("Failed", failureReason = Some("UNKNOWN")),
+        created = dateTimeNow,
+        lastUpdated = dateTimeNow,
+        expireAt = dateTimeNow
       )
     fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))

@@ -26,10 +26,12 @@ import data.SampleData._
 import models.requests.IdentifierRequest
 import models.{AFTOverview, AFTOverviewVersion, AccessMode, MinimalFlags, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import pages._
 import play.api.libs.json.JsObject
 import play.api.mvc.AnyContentAsEmpty
@@ -79,7 +81,11 @@ class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSuga
     .setOrException(EmailQuery, email)
 
   override def beforeEach(): Unit = {
-    reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
+    reset(mockAftConnector)
+    reset(mockUserAnswersCacheConnector)
+    reset(mockSchemeService)
+    reset(mockMinimalPsaConnector)
+    reset(mockAppConfig)
 
     when(mockUserAnswersCacheConnector.fetch(any())(any(), any())).thenReturn(Future.successful(Some(userAnswersWithSchemeName.data)))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))

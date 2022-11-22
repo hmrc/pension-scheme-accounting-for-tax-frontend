@@ -25,9 +25,10 @@ import models.financialStatement.PenaltyType.AccountingForTaxPenalties
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.PsaFSDetail
 import org.mockito.ArgumentMatchers.any
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Results.Redirect
 import services.PenaltiesServiceSpec.listOfSchemes
 
@@ -52,19 +53,19 @@ class PenaltiesNavigationServiceSpec extends SpecBase with MockitoSugar with Bef
     when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
 
     "redirect to SelectQuarters page if there are multiple quarters to choose from" in {
-      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(penalties, year, psaId, aftPenalty )) {
+      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(penalties, year, psaId, aftPenalty)) {
         _ mustBe Redirect(SelectPenaltiesQuarterController.onPageLoad(year.toString))
       }
     }
 
     "redirect to Select Scheme page if there is only one quarter for the penalties" in {
-      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties("24000040IN"), year, psaId, aftPenalty )) {
+      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties("24000040IN"), year, psaId, aftPenalty)) {
         _ mustBe Redirect(SelectSchemeController.onPageLoad(aftPenalty, quarterPeriodStartDate.toString))
       }
     }
 
     "redirect to AllPenalties page if there is only one quarter for the penalties and one scheme" in {
-      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties(), year, psaId, aftPenalty )) {
+      whenReady(penaltiesNavigationServiceSpec.navFromAFTYearsPage(getAftPenalties(), year, psaId, aftPenalty)) {
         _ mustBe Redirect(AllPenaltiesAndChargesController.onPageLoadAFT(quarterPeriodStartDate.toString, pstr))
       }
     }
@@ -146,9 +147,9 @@ object PenaltiesNavigationServiceSpec {
   )
 
   def getAftPenalties(
-      schemeName2: String = "24000041IN",
-      periodStartDate2: LocalDate = LocalDate.parse("2020-07-01"),
-      periodEndDate2: LocalDate = LocalDate.parse("2020-09-30")
+                       schemeName2: String = "24000041IN",
+                       periodStartDate2: LocalDate = LocalDate.parse("2020-07-01"),
+                       periodEndDate2: LocalDate = LocalDate.parse("2020-09-30")
                      ): Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
       index = 1,

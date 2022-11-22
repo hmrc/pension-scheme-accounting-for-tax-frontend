@@ -24,6 +24,7 @@ import models.LocalDateBinder._
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.{times, verify, when}
 import pages.chargeC.WhatYouWillNeedPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
@@ -46,8 +47,8 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       schemeName = schemeName)
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 

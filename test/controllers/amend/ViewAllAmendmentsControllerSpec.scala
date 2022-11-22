@@ -31,6 +31,7 @@ import models.viewModels.ViewAmendmentDetails
 import models.{AccessMode, GenericViewModel}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -62,9 +63,11 @@ class ViewAllAmendmentsControllerSpec
   )
   def application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockAmendmentHelper, mockAFTConnector, mockRenderer)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockAmendmentHelper)
+    reset(mockAFTConnector)
+    reset(mockRenderer)
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
     when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockAmendmentHelper.getAllAmendments(any(), any(), any())(any())).thenReturn(allAmendments)

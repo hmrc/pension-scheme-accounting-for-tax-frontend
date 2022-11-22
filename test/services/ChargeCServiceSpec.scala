@@ -26,8 +26,8 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.viewModels.ViewAmendmentDetails
 import models.{AmendedChargeStatus, Employer, MemberDetails, UserAnswers}
-import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC._
 import utils.AFTConstants.QUARTER_START_DATE
 
@@ -57,13 +57,16 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(ChargeCDetailsPage(1), SampleData.chargeCDetails).toOption.get
 
   def viewLink(index: Int): String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+
   def removeLink(index: Int): String = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+
   def lastChargeLink(index: Int): String = controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+
   def expectedEmployer(memberDetails: MemberDetails, index: Int): Employer =
     Employer(index, memberDetails.fullName, SampleData.chargeAmount1, viewLink(index), removeLink(index))
 
   def expectedLastChargeEmployer: Seq[Employer] =
-    ArrayBuffer(Employer(0, "First Last", SampleData.chargeAmount1, viewLink(0), lastChargeLink(0)))
+    ArrayBuffer(Employer(0, "First Last", SampleData.chargeAmount1, viewLink(0), lastChargeLink(0))).toSeq
 
   def expectedAllEmployers: Seq[Employer] = ArrayBuffer(
     expectedEmployer(SampleData.sponsoringIndividualDetails, 0),
@@ -71,7 +74,7 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
       SampleData.sponsoringOrganisationDetails.name,
       SampleData.chargeAmount1,
       viewLink(1), removeLink(1))
-  )
+  ).toSeq
 
   val chargeCHelper: ChargeCService = new ChargeCService()
 

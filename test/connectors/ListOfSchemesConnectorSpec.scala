@@ -51,7 +51,7 @@ class ListOfSchemesConnectorSpec extends AsyncWordSpec with Matchers with WireMo
       val connector = injector.instanceOf[ListOfSchemesConnector]
 
       connector.getListOfSchemes(psaId).map(listOfSchemes =>
-        listOfSchemes.right.get mustBe expectedResponse
+        listOfSchemes.toOption.get mustBe expectedResponse
       )
 
     }
@@ -70,7 +70,7 @@ class ListOfSchemesConnectorSpec extends AsyncWordSpec with Matchers with WireMo
       val connector = injector.instanceOf[ListOfSchemesConnector]
 
       connector.getListOfSchemes(psaId).map(listOfSchemes =>
-        listOfSchemes.left.get.status mustBe BAD_REQUEST
+        listOfSchemes.left.toOption.get.status mustBe BAD_REQUEST
       )
     }
 
@@ -89,7 +89,7 @@ class ListOfSchemesConnectorSpec extends AsyncWordSpec with Matchers with WireMo
       val connector = injector.instanceOf[ListOfSchemesConnector]
 
       connector.getListOfSchemes(psaId).map(listOfSchemes =>
-        listOfSchemes.left.get.status mustBe INTERNAL_SERVER_ERROR
+        listOfSchemes.left.toOption.get.status mustBe INTERNAL_SERVER_ERROR
       )
 
     }

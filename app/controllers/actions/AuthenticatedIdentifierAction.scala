@@ -50,7 +50,7 @@ class AuthenticatedIdentifierAction @Inject()(
 
   private val logger = Logger(classOf[AuthenticatedIdentifierAction])
 
-  private def bothPsaAndPspEnrolmentsPresent(enrolments: Enrolments):Boolean =
+  private def bothPsaAndPspEnrolmentsPresent(enrolments: Enrolments): Boolean =
     enrolments.getEnrolment("HMRC-PODS-ORG").isDefined && enrolments.getEnrolment("HMRC-PODSPP-ORG").isDefined
 
   override def invokeBlock[A](
@@ -65,8 +65,8 @@ class AuthenticatedIdentifierAction @Inject()(
       Retrievals.externalId and Retrievals.allEnrolments
     ) {
       case Some(id) ~ enrolments if bothPsaAndPspEnrolmentsPresent(enrolments) =>
-        administratorOrPractitioner(id).flatMap{
-          case None =>  Future.successful(Redirect(Call("GET",config.administratorOrPractitionerUrl)))
+        administratorOrPractitioner(id).flatMap {
+          case None => Future.successful(Redirect(Call("GET", config.administratorOrPractitionerUrl)))
           case Some(Administrator) => block(IdentifierRequest(id, request, getPsaId(enrolments), None))
           case Some(Practitioner) => block(IdentifierRequest(id, request, None, getPspId(enrolments)))
         }
@@ -94,7 +94,7 @@ class AuthenticatedIdentifierAction @Inject()(
       .map(x => PspId(x.value))
 
 
-  private def administratorOrPractitioner(id:String)(implicit hc:HeaderCarrier):Future[Option[AdministratorOrPractitioner]] = {
+  private def administratorOrPractitioner(id: String)(implicit hc: HeaderCarrier): Future[Option[AdministratorOrPractitioner]] = {
     sessionDataCacheConnector.fetch(id).map { optionJsValue =>
       optionJsValue.flatMap { json =>
         (json \ "administratorOrPractitioner").toOption.flatMap(_.validate[AdministratorOrPractitioner].asOpt)

@@ -23,6 +23,7 @@ import matchers.JsonMatchers
 import models.Enumerable
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -65,9 +66,11 @@ class SchemeFinancialOverviewControllerSpec
 
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockPsaSchemePartialService, mockRenderer)
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockPsaSchemePartialService)
+    reset(mockRenderer)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
@@ -90,7 +93,7 @@ class SchemeFinancialOverviewControllerSpec
           .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
         when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
           .thenReturn(retrieveCreditBalance(1000.00))
-        when(mockMinimalPsaConnector.getPsaOrPspName(any(),any(),any()))
+        when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
           .thenReturn(Future.successful("John Doe"))
 
         val result = route(application, httpGETRequest(getPartial)).value
@@ -104,6 +107,7 @@ class SchemeFinancialOverviewControllerSpec
     }
 
   }
+
   private def aftModel(subHeadings: Seq[CardSubHeading], links: Seq[Link])
                       (implicit messages: Messages): CardViewModel = CardViewModel(
     id = "aft-overview",
@@ -111,6 +115,7 @@ class SchemeFinancialOverviewControllerSpec
     subHeadings = subHeadings,
     links = links
   )
+
   private def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(multipleInProgressSubHead()), Seq(multipleInProgressLink, startLink, pastReturnsLink)))
 
@@ -129,12 +134,20 @@ class SchemeFinancialOverviewControllerSpec
     linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
     hiddenText = Some(msg"aftPartial.view.hidden")
   )
+
   private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
+
   private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
-  private  def retrieveCreditBalance (creditBalance: BigDecimal): String= {
-    if  (creditBalance >= 0) BigDecimal(0.00).toString()
-    else creditBalance.abs.toString()
+
+  private def retrieveCreditBalance(creditBalance: BigDecimal): String = {
+    if (creditBalance >= 0) {
+      BigDecimal(0.00).toString()
+    }
+    else {
+      creditBalance.abs.toString()
+    }
   }
+
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
   private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
   private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"

@@ -28,9 +28,9 @@ import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.requests.DataRequest
 import models.{AccessMode, ChargeType, SessionAccessData, UserAnswers}
-import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.GET
@@ -85,19 +85,26 @@ class AFTSummaryHelperSpec extends SpecBase with Matchers with MockitoSugar with
       val result = aftSummaryHelper.summaryListData(userAnswers, srn, startDate, accessType, versionInt)(messages)
 
       result mustBe Seq(
-        createRow(ChargeTypeAnnualAllowance, BigDecimal(100.00), Some(chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
-        createRow(ChargeTypeAuthSurplus, BigDecimal(200.00), Some(chargeC.routes.AddEmployersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
-        createRow(ChargeTypeDeRegistration, BigDecimal(300.00), Some(chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
-        createRow(ChargeTypeLifetimeAllowance, BigDecimal(400.00), Some(chargeD.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
-        createRow(ChargeTypeShortService, BigDecimal(500.00), Some(chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
-        createRow(ChargeTypeLumpSumDeath, BigDecimal(600.00), Some(chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeAnnualAllowance, BigDecimal(100.00),
+          Some(chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeAuthSurplus, BigDecimal(200.00),
+          Some(chargeC.routes.AddEmployersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeDeRegistration, BigDecimal(300.00),
+          Some(chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeLifetimeAllowance, BigDecimal(400.00),
+          Some(chargeD.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeShortService, BigDecimal(500.00),
+          Some(chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeLumpSumDeath, BigDecimal(600.00),
+          Some(chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
         Row(
           key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
           value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(BigDecimal(2100.00))}"),
             classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
           actions = Nil
         ),
-        createRow(ChargeTypeOverseasTransfer, BigDecimal(700.00), Some(chargeG.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url))
+        createRow(ChargeTypeOverseasTransfer, BigDecimal(700.00),
+          Some(chargeG.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url))
       )
     }
 
@@ -107,7 +114,8 @@ class AFTSummaryHelperSpec extends SpecBase with Matchers with MockitoSugar with
         startDate, accessType, versionInt)
 
       result mustBe Seq(
-        createRow(ChargeTypeAnnualAllowance, BigDecimal(100.00), Some(chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeAnnualAllowance, BigDecimal(100.00),
+          Some(chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
         createRow(ChargeTypeAuthSurplus, BigDecimal(0.00), None),
         createRow(ChargeTypeDeRegistration, BigDecimal(0.00), None),
         createRow(ChargeTypeLifetimeAllowance, BigDecimal(0.00), None),

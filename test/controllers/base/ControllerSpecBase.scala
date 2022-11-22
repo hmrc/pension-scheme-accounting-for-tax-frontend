@@ -53,8 +53,11 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
     override protected def filter[A](request: IdentifierRequest[A]): Future[Option[Result]] = Future.successful(None)
   }
 
-  override def beforeEach: Unit = {
-    Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAllowAccessActionProvider)
+  override def beforeEach(): Unit = {
+    Mockito.reset(mockRenderer)
+    Mockito.reset(mockUserAnswersCacheConnector)
+    Mockito.reset(mockCompoundNavigator)
+    Mockito.reset(mockAllowAccessActionProvider)
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
     when(mockAllowAccessActionProviderForIdentifierRequest.apply()).thenReturn(FakeActionFilterForIdentifierRequest)
   }

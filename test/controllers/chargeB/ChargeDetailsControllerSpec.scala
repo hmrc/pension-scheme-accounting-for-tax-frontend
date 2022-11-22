@@ -25,6 +25,7 @@ import models.LocalDateBinder._
 import models.chargeB.ChargeBDetails
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeB.ChargeBDetailsPage
 import play.api.Application
@@ -43,7 +44,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeB/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
+
   private def httpPathGET: String = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt).url
+
   private def httpPathPOST: String = controllers.chargeB.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
@@ -61,7 +64,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "amountTaxDue" -> Seq("33.44")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeBDetails]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[ChargeBDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeB.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url,
@@ -69,8 +72,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       schemeName = schemeName)
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }

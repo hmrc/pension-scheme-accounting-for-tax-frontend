@@ -24,6 +24,7 @@ import models.PenaltiesFilter.All
 import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -47,6 +48,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 
   private def httpPathGETAssociated: String =
     controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoadAft(startDate, srn, All).url
+
   private def httpPathGETUnassociated(identifier: String): String =
     controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoadAft(startDate, identifier, All).url
 
@@ -77,12 +79,14 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
     "schemeName" -> Json.arr(),
     "table" -> penaltyTables)
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockPenaltiesService, mockRenderer)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockPenaltiesService)
+    reset(mockRenderer)
     when(mockPenaltiesService.getPsaFsJson(any(), any(), any(), any(), any())(any()))
       .thenReturn(penaltyTables)
-    when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
+    when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any()))
+      .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
 
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
@@ -142,12 +146,12 @@ object PenaltiesControllerSpec {
   )
 
   def rows(startDate: String) = Seq(Seq(
-      Cell(link(startDate), classes = Seq("govuk-!-width-one-half")),
-      Cell(Literal("£1029.05"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
-      Cell(msg"penalties.status.paymentOverdue", classes = Seq("govuk-tag govuk-tag--red"))
-    ))
+    Cell(link(startDate), classes = Seq("govuk-!-width-one-half")),
+    Cell(Literal("£1029.05"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
+    Cell(msg"penalties.status.paymentOverdue", classes = Seq("govuk-tag govuk-tag--red"))
+  ))
 
   def link(startDate: String): Html = Html(
-      s"<a id=XY002610150184 class=govuk-link href=${routes.ChargeDetailsController.onPageLoad(srn, "XY002610150184", All).url}>" +
+    s"<a id=XY002610150184 class=govuk-link href=${routes.ChargeDetailsController.onPageLoad(srn, "XY002610150184", All).url}>" +
       s"Accounting for Tax late filing penalty </a>")
 }

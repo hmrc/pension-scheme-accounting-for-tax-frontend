@@ -26,8 +26,10 @@ import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, MockitoSugar}
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}

@@ -23,6 +23,7 @@ import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
+import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any

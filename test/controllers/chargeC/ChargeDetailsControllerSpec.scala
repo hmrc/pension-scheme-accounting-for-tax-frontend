@@ -26,6 +26,7 @@ import models.chargeC.ChargeCDetails
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeC.{ChargeCDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
@@ -45,7 +46,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val templateToBeRendered = "chargeC/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider().apply(QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01"))
   private val index = 0
+
   private def httpPathGET: String = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url
+
   private def httpPathPOST: String = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
@@ -69,7 +72,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "amountTaxDue" -> Seq("33.44")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeCDetails]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[ChargeCDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url,
@@ -77,8 +80,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       schemeName = schemeName)
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
@@ -138,15 +141,16 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
           "employers" -> Json.arr(Json.obj(
-          SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
-          WhichTypeOfSponsoringEmployerPage.toString -> "organisation",
-          ChargeCDetailsPage.toString -> Json.toJson(chargeCDetails)
-            )
+            SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
+            WhichTypeOfSponsoringEmployerPage.toString -> "organisation",
+            ChargeCDetailsPage.toString -> Json.toJson(chargeCDetails)
+          )
           )
         )
       )
 
-      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any(), any(), any())(any()))
+        .thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -183,7 +187,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "Return a redirect when zero amount is submitted and new return flag is NOT set" in {
-      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any(), any(), any())(any()))
+        .thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataCompile))

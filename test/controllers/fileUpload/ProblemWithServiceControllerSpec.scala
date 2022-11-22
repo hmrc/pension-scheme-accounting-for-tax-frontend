@@ -28,6 +28,7 @@ import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsLessThanMax
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -42,6 +43,7 @@ class ProblemWithServiceControllerSpec extends ControllerSpecBase with NunjucksS
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
 
   private val templateToBeRendered = "fileUpload/problemWithService.njk"
+
   private def httpPathGET: String = controllers.fileUpload.routes.ProblemWithServiceController.onPageLoad(srn, startDate, accessType, versionInt).url
 
   private val errorsJson = Json.obj("test" -> "test")
@@ -57,10 +59,10 @@ class ProblemWithServiceControllerSpec extends ControllerSpecBase with NunjucksS
   )
 
 
-
   private def application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  override def beforeEach: Unit = {
-    super.beforeEach
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))

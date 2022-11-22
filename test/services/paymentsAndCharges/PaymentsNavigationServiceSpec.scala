@@ -24,9 +24,9 @@ import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
-import org.mockito.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Results.Redirect
 import utils.AFTConstants._
 
@@ -85,19 +85,19 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
 
   "navFromAFTYearsPage" must {
     "redirect to SelectQuarters page if there are multiple quarters to choose from" in {
-      whenReady(paymentsNavigationService.navFromAFTYearsPage(payments(), year, srn, journeyType)){
+      whenReady(paymentsNavigationService.navFromAFTYearsPage(payments(), year, srn, journeyType)) {
         _ mustBe Redirect(SelectQuarterController.onPageLoad(srn, year.toString, journeyType))
       }
     }
 
     "redirect to PaymentsAndCharges page if there is only one quarter in the given year" in {
-      whenReady(paymentsNavigationService.navFromAFTYearsPage(payments(QUARTER_START_DATE, QUARTER_END_DATE), year, srn, journeyType)){
+      whenReady(paymentsNavigationService.navFromAFTYearsPage(payments(QUARTER_START_DATE, QUARTER_END_DATE), year, srn, journeyType)) {
         _ mustBe Redirect(PaymentsAndChargesController.onPageLoad(srn, QUARTER_START_DATE.toString, AccountingForTaxCharges, journeyType))
       }
     }
 
     "redirect to SessionExpired page if there are no quarters in the given year" in {
-      whenReady(paymentsNavigationService.navFromAFTYearsPage(Nil, year, srn, journeyType)){
+      whenReady(paymentsNavigationService.navFromAFTYearsPage(Nil, year, srn, journeyType)) {
         _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }
@@ -110,25 +110,25 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
         srn,
         PensionsCharges,
         journeyType)
-      ){
+      ) {
         _ mustBe Redirect(SelectYearController.onPageLoad(srn, PensionsCharges, journeyType))
       }
     }
 
     "redirect to navFromAFTYears method if there is only one year in the AFT category" in {
-      whenReady(paymentsNavigationService.navFromPaymentsTypePage(payments(), srn, AccountingForTaxCharges, journeyType)){
+      whenReady(paymentsNavigationService.navFromPaymentsTypePage(payments(), srn, AccountingForTaxCharges, journeyType)) {
         _ mustBe Redirect(SelectQuarterController.onPageLoad(srn, year.toString, journeyType))
       }
     }
 
     "redirect to PaymentsAndCharges page if there is only one year in the selected nonAFT category" in {
-      whenReady(paymentsNavigationService.navFromPaymentsTypePage(payments(charge1Type = EXCESS_RELIEF_PAID), srn, ExcessReliefPaidCharges, journeyType)){
+      whenReady(paymentsNavigationService.navFromPaymentsTypePage(payments(charge1Type = EXCESS_RELIEF_PAID), srn, ExcessReliefPaidCharges, journeyType)) {
         _ mustBe Redirect(PaymentsAndChargesController.onPageLoad(srn, QUARTER_START_DATE.getYear.toString, ExcessReliefPaidCharges, journeyType))
       }
     }
 
     "redirect to SessionExpired page if there are no quarters in the given year" in {
-      whenReady(paymentsNavigationService.navFromPaymentsTypePage(Nil, srn, ContractSettlementCharges, journeyType)){
+      whenReady(paymentsNavigationService.navFromPaymentsTypePage(Nil, srn, ContractSettlementCharges, journeyType)) {
         _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }
@@ -136,19 +136,19 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
 
   "navFromSchemeDashboard" must {
     "redirect to PaymentOrChargeType page if there are multiple payment types to choose from" in {
-      whenReady(paymentsNavigationService.navFromSchemeDashboard(payments(charge2Type = CONTRACT_SETTLEMENT), srn, journeyType)){
+      whenReady(paymentsNavigationService.navFromSchemeDashboard(payments(charge2Type = CONTRACT_SETTLEMENT), srn, journeyType)) {
         _ mustBe Redirect(PaymentOrChargeTypeController.onPageLoad(srn, journeyType))
       }
     }
 
     "redirect to PaymentsAndCharges page if there is only one quarter in the given year" in {
-      whenReady(paymentsNavigationService.navFromSchemeDashboard(payments(QUARTER_START_DATE, QUARTER_END_DATE), srn, journeyType)){
+      whenReady(paymentsNavigationService.navFromSchemeDashboard(payments(QUARTER_START_DATE, QUARTER_END_DATE), srn, journeyType)) {
         _ mustBe Redirect(PaymentsAndChargesController.onPageLoad(srn, QUARTER_START_DATE.toString, AccountingForTaxCharges, journeyType))
       }
     }
 
     "redirect to SessionExpired page if there are no quarters in the given year" in {
-      whenReady(paymentsNavigationService.navFromSchemeDashboard(Nil, srn, journeyType)){
+      whenReady(paymentsNavigationService.navFromSchemeDashboard(Nil, srn, journeyType)) {
         _ mustBe Redirect(controllers.routes.SessionExpiredController.onPageLoad)
       }
     }

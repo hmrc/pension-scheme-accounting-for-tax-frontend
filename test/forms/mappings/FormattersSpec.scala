@@ -38,28 +38,28 @@ class FormattersSpec extends AnyFreeSpec with Matchers with OptionValues with Ma
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
           bind(postCodeFieldName, Map(postCodeFieldName -> " zz11zz ", countryFieldName -> "GB"))
 
-        result.right.get must be(Some("ZZ1 1ZZ"))
+        result.toOption.get must be(Some("ZZ1 1ZZ"))
       }
 
       "when post code is as per the regex and with spaces" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
           bind(postCodeFieldName, Map(postCodeFieldName -> " zz1 1zz ", countryFieldName -> "GB"))
 
-        result.right.get must be(Some("ZZ1 1ZZ"))
+        result.toOption.get must be(Some("ZZ1 1ZZ"))
       }
 
       "when postcode is non UK and length is 10 and country is non UK" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
           bind(postCodeFieldName, Map(postCodeFieldName -> " 1234567890 ", countryFieldName -> "FR"))
 
-        result.right.get must be(Some("1234567890"))
+        result.toOption.get must be(Some("1234567890"))
       }
 
       "when postcode is non UK and country is None" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
           bind(postCodeFieldName, Map(postCodeFieldName -> " 12345 "))
 
-        result.right.get must be(Some("12345"))
+        result.toOption.get must be(Some("12345"))
       }
     }
 
@@ -67,7 +67,7 @@ class FormattersSpec extends AnyFreeSpec with Matchers with OptionValues with Ma
       val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
         bind(postCodeFieldName, Map.empty)
 
-      result.right.get must be(None)
+      result.toOption.get must be(None)
     }
 
     "return form error" - {
@@ -76,21 +76,21 @@ class FormattersSpec extends AnyFreeSpec with Matchers with OptionValues with Ma
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
           bind(postCodeFieldName, Map(countryFieldName -> "GB"))
 
-        result.left.get must be(Seq(FormError(postCodeFieldName, requiredKey)))
+        result.left.toOption.get must be(Seq(FormError(postCodeFieldName, requiredKey)))
       }
 
       "when postcode is not a valid postcode for UK" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
           bind(postCodeFieldName, Map(postCodeFieldName -> " 123456 ", countryFieldName -> "GB"))
 
-        result.left.get must be(Seq(FormError(postCodeFieldName, invalidKey)))
+        result.left.toOption.get must be(Seq(FormError(postCodeFieldName, invalidKey)))
       }
 
       "when postcode is not a valid postcode for NON UK" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
           bind(postCodeFieldName, Map(postCodeFieldName -> " 12345678909 ", countryFieldName -> "FR"))
 
-        result.left.get must be(Seq(FormError(postCodeFieldName, nonUkLengthKey)))
+        result.left.toOption.get must be(Seq(FormError(postCodeFieldName, nonUkLengthKey)))
       }
     }
 
@@ -110,23 +110,23 @@ class FormattersSpec extends AnyFreeSpec with Matchers with OptionValues with Ma
 
       "when separated by ," in {
         val result = bigDecimalFormatter(requiredKey, invalidKey).bind(key, Map(key -> "1,00,000"))
-        result.right.get mustBe BigDecimal(100000)
+        result.toOption.get mustBe BigDecimal(100000)
       }
 
       "when not separated by ," in {
         val result = bigDecimalFormatter(requiredKey, invalidKey).bind(key, Map(key -> "100000"))
-        result.right.get mustBe BigDecimal(100000)
+        result.toOption.get mustBe BigDecimal(100000)
       }
     }
 
     "return FormError when invalid big decimal" in {
       val result = bigDecimalFormatter(requiredKey, invalidKey).bind(key, Map(key -> "invalid"))
-      result.left.get must be(Seq(FormError(key, invalidKey)))
+      result.left.toOption.get must be(Seq(FormError(key, invalidKey)))
     }
 
     "return FormError when no big decimal" in {
       val result = bigDecimalFormatter(requiredKey, invalidKey).bind(key, Map.empty)
-      result.left.get must be(Seq(FormError(key, requiredKey)))
+      result.left.toOption.get must be(Seq(FormError(key, requiredKey)))
     }
 
     "unbind a bigdecimal" in {

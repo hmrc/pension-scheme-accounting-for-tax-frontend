@@ -21,10 +21,12 @@ import data.SampleData.sessionId
 import helpers.DeleteChargeHelper
 import models.requests.DataRequest
 import models.{AccessMode, AmendedChargeStatus, CheckMode, NormalMode, SessionAccessData, SessionData, UserAnswers}
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentMatchers, MockitoSugar}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import pages.QuestionPage
 import play.api.libs.json.{JsPath, Json}
 import play.api.mvc.AnyContent
@@ -37,11 +39,12 @@ import scala.concurrent.Future
 class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
 
   import UserAnswersServiceSpec._
+
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   val mockChargeCService: ChargeCService = mock[ChargeCService]
   val service: UserAnswersService = new UserAnswersService(mockDeleteChargeHelper, mockChargeCService)
 
-  override def beforeEach: Unit = {
+  override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockDeleteChargeHelper)
     when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
@@ -52,7 +55,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
       val result = service.removeSchemeBasedCharge(Page)(dataRequest(ua))
 
-       result mustBe UserAnswers()
+      result mustBe UserAnswers()
     }
 
     "FIRST COMPILE - zero out a scheme level charge being deleted if version is 1 and it is the last charge" in {
@@ -67,7 +70,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       when(mockDeleteChargeHelper.zeroOutCharge(Page, uaVersion2)).thenReturn(uaVersion2)
       val result = service.removeSchemeBasedCharge(Page)(dataRequest(uaVersion2, 2))
 
-       result mustBe UserAnswers(Json.obj(
+      result mustBe UserAnswers(Json.obj(
         Page.toString -> Json.obj("value" -> pageValue)
       ))
     }
@@ -119,17 +122,18 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
     "FOR AMENDMENT - set amended version, member version to null, status to Deleted and the page value" +
       " for a member level charge if version is 2 for a member being deleted and member AFT version is 1" in {
       val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUa(status=AmendedChargeStatus.Deleted.toString), version = 2)))
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUa(status = AmendedChargeStatus.Deleted.toString), version = 2)))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        "chargeType" -> Json.obj(
-          "members" -> Json.arr(
-            Json.obj(
-              MemberPage.toString -> "value",
-              "memberStatus" -> AmendedChargeStatus.Deleted.toString
-            )
-          ))
-      )).setOrException(TotalAmountPage, total(UserAnswers()))
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers(Json.obj(
+          "chargeType" -> Json.obj(
+            "members" -> Json.arr(
+              Json.obj(
+                MemberPage.toString -> "value",
+                "memberStatus" -> AmendedChargeStatus.Deleted.toString
+              )
+            ))
+        )).setOrException(TotalAmountPage, total(UserAnswers()))
       }
     }
 
@@ -140,15 +144,16 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       val resultFuture = Future.fromTry(service
         .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUaTwoMembers(2), version = 2)))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        "chargeType" -> Json.obj(
-          "members" -> Json.arr(Json.obj(
-            MemberPage2.toString -> pageValue,
-            "memberAFTVersion"-> 2,
-            "memberStatus" -> AmendedChargeStatus.Added.toString
-          )),
-          "amendedVersion" -> 2)
-      )).setOrException(TotalAmountPage, total(UserAnswers()))
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers(Json.obj(
+          "chargeType" -> Json.obj(
+            "members" -> Json.arr(Json.obj(
+              MemberPage2.toString -> pageValue,
+              "memberAFTVersion" -> 2,
+              "memberStatus" -> AmendedChargeStatus.Added.toString
+            )),
+            "amendedVersion" -> 2)
+        )).setOrException(TotalAmountPage, total(UserAnswers()))
 
       }
     }
@@ -159,7 +164,8 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       val resultFuture = Future.fromTry(service
         .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUa(2), version = 2)))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers()
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers()
       }
     }
   }
@@ -168,82 +174,95 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
     "AMENDMENT - set amended version to null and the page value for a scheme level charge being added if version is 2" in {
 
-      val resultFuture = Future.fromTry(service.set(Page, pageValue, NormalMode, isMemberBased = false)(dataRequest(version =  2), implicitly))
+      val resultFuture = Future.fromTry(service.set(Page, pageValue, NormalMode, isMemberBased = false)(dataRequest(version = 2), implicitly))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        Page.toString -> pageValue
-      ))}
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers(Json.obj(
+          Page.toString -> pageValue
+        ))
+      }
     }
 
     "FIRST COMPILE - set only the page value for a scheme level charge being added if version is 1" in {
       val resultFuture = Future.fromTry(service.set(Page, pageValue, NormalMode, isMemberBased = false)(dataRequest(), implicitly))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        Page.toString -> pageValue
-      ))}
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers(Json.obj(
+          Page.toString -> pageValue
+        ))
+      }
     }
 
     "FIRST COMPILE - set only the page value for a member level charge being added if version is 1" in {
       val resultFuture = Future.fromTry(service.set(MemberPage, pageValue, NormalMode)(dataRequest(), implicitly))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        "chargeType" -> Json.obj("members" -> Json.arr(Json.obj(MemberPage.toString -> "value")))
-      ))}
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers(Json.obj(
+          "chargeType" -> Json.obj("members" -> Json.arr(Json.obj(MemberPage.toString -> "value")))
+        ))
+      }
     }
 
     "FIRST COMPILE - set only the page value for a member level charge being changed if version is 1" in {
       val resultFuture = Future.fromTry(service.set(MemberPage, pageValue, CheckMode)(dataRequest(), implicitly))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        "chargeType" -> Json.obj("members" -> Json.arr(Json.obj(MemberPage.toString -> "value")))
-      ))}
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers(Json.obj(
+          "chargeType" -> Json.obj("members" -> Json.arr(Json.obj(MemberPage.toString -> "value")))
+        ))
+      }
     }
-
 
 
     "AMENDMENT - set amended version, member version to null, status to New and the page value" +
       " for a scheme level charge if version is 2 for a new member being added" in {
       val resultFuture = Future.fromTry(service.set(MemberPage, pageValue, NormalMode)(dataRequest(version = 2), implicitly))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        "chargeType" -> Json.obj(
-          "members" -> Json.arr(
-                    Json.obj(
-                        MemberPage.toString -> "value",
-                        "memberStatus" -> AmendedChargeStatus.Added.toString
-                    )
-          )
-      )))}
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers(Json.obj(
+          "chargeType" -> Json.obj(
+            "members" -> Json.arr(
+              Json.obj(
+                MemberPage.toString -> "value",
+                "memberStatus" -> AmendedChargeStatus.Added.toString
+              )
+            )
+          )))
+      }
     }
 
     "AMENDMENT - set amended version, member version to null, status to Changed and the page value" +
       " for a scheme level charge if version is 2 for a member being changed after the last submission" in {
       val resultFuture = Future.fromTry(service.set(MemberPage, pageValue, CheckMode)(dataRequest(memberUa(), 2), implicitly))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        "chargeType" -> Json.obj(
-          "members" -> Json.arr(
-            Json.obj(
-              MemberPage.toString -> "value",
-              "memberStatus" -> AmendedChargeStatus.Updated.toString
-            )
-          ))
-      ))}
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers(Json.obj(
+          "chargeType" -> Json.obj(
+            "members" -> Json.arr(
+              Json.obj(
+                MemberPage.toString -> "value",
+                "memberStatus" -> AmendedChargeStatus.Updated.toString
+              )
+            ))
+        ))
+      }
     }
 
     "AMENDMENT - set amended version, member version to null, status to New and the page value" +
       " for a scheme level charge if version is 2 if a member that was added after the last submission is being changed" in {
       val resultFuture = Future.fromTry(service.set(MemberPage, pageValue, CheckMode)(dataRequest(memberUa(2), 2), implicitly))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        "chargeType" -> Json.obj(
-          "members" -> Json.arr(
-            Json.obj(
-              MemberPage.toString -> "value",
-              "memberStatus" -> AmendedChargeStatus.Added.toString
-            )
-          ))
-      ))}
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers(Json.obj(
+          "chargeType" -> Json.obj(
+            "members" -> Json.arr(
+              Json.obj(
+                MemberPage.toString -> "value",
+                "memberStatus" -> AmendedChargeStatus.Added.toString
+              )
+            ))
+        ))
+      }
     }
   }
 }
@@ -292,7 +311,7 @@ object UserAnswersServiceSpec {
       "members" -> Json.arr(
         Json.obj(
           MemberPage.toString -> pageValue,
-          "memberAFTVersion"-> version,
+          "memberAFTVersion" -> version,
           "memberStatus" -> status
         )
       ),
@@ -304,12 +323,12 @@ object UserAnswersServiceSpec {
       "members" -> Json.arr(
         Json.obj(
           MemberPage.toString -> pageValue,
-          "memberAFTVersion"-> version,
+          "memberAFTVersion" -> version,
           "memberStatus" -> status
         ),
         Json.obj(
           MemberPage2.toString -> pageValue,
-          "memberAFTVersion"-> version,
+          "memberAFTVersion" -> version,
           "memberStatus" -> status
         )
       ),

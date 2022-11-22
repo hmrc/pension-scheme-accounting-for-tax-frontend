@@ -25,8 +25,10 @@ import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.{OptionValues, TryValues}
+import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
 import pages.chargeG.{MemberDetailsPage, TotalChargeAmountPage}
 import play.api.Application
@@ -188,7 +190,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
     "redirect to your action was not processed page for a POST if 5XX error is thrown" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any()))
-      .thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
+        .thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value

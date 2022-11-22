@@ -30,6 +30,7 @@ import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{Enumerable, PenaltySchemes}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -54,6 +55,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
   private val mockFICacheConnector = mock[FinancialInfoCacheConnector]
   private val mockFSConnector = mock[FinancialStatementConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
+
   private def form: Form[PenaltySchemes] =
     new SelectSchemeFormProvider()(penaltySchemes,
       messages("selectScheme.error", messages(s"penaltyType.${penaltyType.toString}").toLowerCase()))
@@ -71,9 +73,12 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
     "radios" -> PenaltySchemes.radios(form, penaltySchemes)
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockPenaltyService, mockAppConfig, mockFICacheConnector, mockFSConnector)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockPenaltyService)
+    reset(mockAppConfig)
+    reset(mockFICacheConnector)
+    reset(mockFSConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPenaltyService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).thenReturn(Future.successful(penaltySchemes))
     when(mockPenaltyService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
@@ -110,7 +115,6 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
       }
 
       "redirect to penalties page when valid data with unassociated scheme is submitted" in {
-
 
 
         val pstrIndex: String = psaFS.as[Seq[PsaFSDetail]].map(_.pstr).indexOf(ps2.pstr).toString

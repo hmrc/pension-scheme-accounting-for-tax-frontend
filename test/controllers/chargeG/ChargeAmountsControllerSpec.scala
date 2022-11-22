@@ -24,14 +24,15 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.chargeG.ChargeAmounts
 import models.requests.IdentifierRequest
-import models.{UserAnswers, NormalMode, GenericViewModel}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
-import pages.chargeG.{MemberDetailsPage, ChargeAmountsPage}
+import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{route, redirectLocation, status, _}
+import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -42,7 +43,9 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeG/chargeAmounts.njk"
   private val form = new ChargeAmountsFormProvider()("first last", BigDecimal("0.01"))
+
   private def httpPathGET: String = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url
+
   private def httpPathPOST: String = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
@@ -60,7 +63,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "amountTaxDue" -> Seq.empty
   )
 
-  private val jsonToPassToTemplate:Form[ChargeAmounts]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[ChargeAmounts] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
@@ -69,8 +72,8 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "memberName" -> "first last"
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
