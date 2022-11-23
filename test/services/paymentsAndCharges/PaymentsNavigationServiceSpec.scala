@@ -23,7 +23,7 @@ import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
+import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar

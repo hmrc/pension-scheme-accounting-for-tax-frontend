@@ -45,7 +45,7 @@ import java.time.LocalDate
 import scala.concurrent.Future
 
 class PaymentsAndChargeDetailsControllerSpec
-    extends ControllerSpecBase
+  extends ControllerSpecBase
     with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
@@ -98,15 +98,21 @@ class PaymentsAndChargeDetailsControllerSpec
     uk.gov.hmrc.viewmodels.Html(
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
         s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
-        s" <span class=govuk-!-font-weight-bold>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
-                                                           schemeFSDetail.accruedInterestTotal)}</span>" +
-        s" <span>${messages(
-          "financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3",
-          schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY)
-        )}<span>" +
-        s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=${routes.PaymentsAndChargesInterestController
-          .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
-          .url}>" +
+        s" <span class=govuk-!-font-weight-bold>${
+          messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
+            schemeFSDetail.accruedInterestTotal)
+        }</span>" +
+        s" <span>${
+          messages(
+            "financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3",
+            schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY)
+          )
+        }<span>" +
+        s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=${
+          routes.PaymentsAndChargesInterestController
+            .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+            .url
+        }>" +
         s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
     )
   }
@@ -114,19 +120,21 @@ class PaymentsAndChargeDetailsControllerSpec
   private def insetTextForInterestWithQuarter(schemeFSDetail: SchemeFSDetail): uk.gov.hmrc.viewmodels.Html = {
     uk.gov.hmrc.viewmodels.Html(
       s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2", schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
-        s"<p class=govuk-body><a id='breakdown' class=govuk-link href=${routes.PaymentsAndChargeDetailsController
-          .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), All)
-          .url}>" +
+        s"<p class=govuk-body><a id='breakdown' class=govuk-link href=${
+          routes.PaymentsAndChargeDetailsController
+            .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), All)
+            .url
+        }>" +
         s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
     )
   }
 
   private def expectedJson(
-      schemeFSDetail: SchemeFSDetail,
-      insetText: uk.gov.hmrc.viewmodels.Html,
-      isPaymentOverdue: Boolean = false,
-      optHint: Option[String] = None
-  ): JsObject = {
+                            schemeFSDetail: SchemeFSDetail,
+                            insetText: uk.gov.hmrc.viewmodels.Html,
+                            isPaymentOverdue: Boolean = false,
+                            optHint: Option[String] = None
+                          ): JsObject = {
     val commonJson = Json.obj(
       "chargeDetailsList" -> Nil,
       "tableHeader" -> "",
@@ -142,7 +150,7 @@ class PaymentsAndChargeDetailsControllerSpec
     )
     optHint match {
       case Some(_) => commonJson ++ Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
-      case _       => commonJson
+      case _ => commonJson
     }
   }
 

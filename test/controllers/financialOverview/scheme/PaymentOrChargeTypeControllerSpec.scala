@@ -22,10 +22,10 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, PaymentOverdue}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
+import models.{Enumerable, PaymentOverdue}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}

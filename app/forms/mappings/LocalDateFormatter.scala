@@ -26,7 +26,6 @@ private[mappings] class LocalDateFormatter(
                                             invalidKey: String,
                                             allRequiredKey: String,
                                             twoRequiredKey: String,
-                                            requiredKey: String,
                                             args: Seq[String] = Seq.empty
                                           ) extends Formatter[LocalDate] with Formatters {
 
@@ -50,10 +49,10 @@ private[mappings] class LocalDateFormatter(
     )
 
     for {
-      day   <- int.bind(s"$key.day", data)
+      day <- int.bind(s"$key.day", data)
       month <- int.bind(s"$key.month", data)
-      year  <- int.bind(s"$key.year", data)
-      date  <- toDate(key, day, month, year)
+      year <- int.bind(s"$key.year", data)
+      date <- toDate(key, day, month, year)
     } yield date
   }
 

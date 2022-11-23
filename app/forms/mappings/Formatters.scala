@@ -67,9 +67,9 @@ trait Formatters extends Transforms with Constraints {
       }
     }
 
-      override def unbind(key: String, value: Option[String]): Map[String, String] =
-        Map(key -> value.getOrElse(""))
-    }
+    override def unbind(key: String, value: Option[String]): Map[String, String] =
+      Map(key -> value.getOrElse(""))
+  }
 
   private[mappings] def stringFormatter(errorKey: String): Formatter[String] =
     new Formatter[String] {
@@ -93,12 +93,12 @@ trait Formatters extends Transforms with Constraints {
         baseFormatter
           .bind(key, data)
           .flatMap {
-          case "true" => Right(true)
-          case "false" => Right(false)
-          case "0" => Left(Seq(FormError(key, invalidPaymentTypeBoolean)))
-          case "1" => Left(Seq(FormError(key, invalidPaymentTypeBoolean)))
-          case _ => Left(Seq(FormError(key, invalidKey)))
-        }
+            case "true" => Right(true)
+            case "false" => Right(false)
+            case "0" => Left(Seq(FormError(key, invalidPaymentTypeBoolean)))
+            case "1" => Left(Seq(FormError(key, invalidPaymentTypeBoolean)))
+            case _ => Left(Seq(FormError(key, invalidKey)))
+          }
 
       def unbind(key: String, value: Boolean) = Map(key -> value.toString)
     }
@@ -118,24 +118,24 @@ trait Formatters extends Transforms with Constraints {
           .bind(key, data)
           .map(_.replace(",", ""))
           .flatMap {
-          case s if s.matches(decimalRegexp) =>
-            Left(Seq(FormError(key, wholeNumberKey, args)))
-          case s => nonDecimalIntMatcher(s, key)
+            case s if s.matches(decimalRegexp) =>
+              Left(Seq(FormError(key, wholeNumberKey, args)))
+            case s => nonDecimalIntMatcher(s, key)
 
-        }
+          }
 
       override def unbind(key: String, value: Int): Map[String, String] =
         baseFormatter.unbind(key, value.toString)
 
       private def nonDecimalIntMatcher(s: String, key: String): Either[Seq[FormError], Int] =
         Try(BigInt(s)).toOption match {
-        case Some(l) if min.isDefined && l < min.get._2 => Left(Seq(FormError(key, min.get._1, args)))
-        case Some(l) if max.isDefined && l > max.get._2 => Left(Seq(FormError(key, max.get._1, args)))
-        case _ =>
-          nonFatalCatch
-            .either(s.toInt)
-            .left.map(_ => Seq(FormError(key, nonNumericKey, args)))
-      }
+          case Some(l) if min.isDefined && l < min.get._2 => Left(Seq(FormError(key, min.get._1, args)))
+          case Some(l) if max.isDefined && l > max.get._2 => Left(Seq(FormError(key, max.get._1, args)))
+          case _ =>
+            nonFatalCatch
+              .either(s.toInt)
+              .left.map(_ => Seq(FormError(key, nonNumericKey, args)))
+        }
     }
 
   private[mappings] def bigDecimalFormatter(requiredKey: String,
@@ -149,11 +149,11 @@ trait Formatters extends Transforms with Constraints {
           .bind(key, data)
           .map(_.replace(",", ""))
           .flatMap { s =>
-          Try(BigDecimal(s)) match {
-            case Success(x) => Right(x)
-            case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+            Try(BigDecimal(s)) match {
+              case Success(x) => Right(x)
+              case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+            }
           }
-        }
 
       override def unbind(key: String, value: BigDecimal): Map[String, String] =
         baseFormatter.unbind(key, value.toString)
@@ -172,16 +172,16 @@ trait Formatters extends Transforms with Constraints {
           .bind(key, data)
           .map(_.replace(",", "").replace(" ", ""))
           .flatMap {
-          case s if !s.matches(numericRegexp) =>
-            Left(Seq(FormError(key, invalidKey, args)))
-          case s if !s.matches(decimal2DPRegexp) && !s.matches(intRegexp) =>
-            Left(Seq(FormError(key, decimalKey, args)))
-          case s =>
-            Try(BigDecimal(s)) match {
-              case Success(x) => Right(x)
-              case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
-            }
-        }
+            case s if !s.matches(numericRegexp) =>
+              Left(Seq(FormError(key, invalidKey, args)))
+            case s if !s.matches(decimal2DPRegexp) && !s.matches(intRegexp) =>
+              Left(Seq(FormError(key, decimalKey, args)))
+            case s =>
+              Try(BigDecimal(s)) match {
+                case Success(x) => Right(x)
+                case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+              }
+          }
 
       override def unbind(key: String, value: BigDecimal): Map[String, String] =
         baseFormatter.unbind(key, decimalFormat.format(value))
@@ -201,18 +201,18 @@ trait Formatters extends Transforms with Constraints {
           .bind(key, data)
           .map(_.replace(",", "").replace(" ", ""))
           .flatMap {
-          case s if s.isEmpty =>
-            Right(None)
-          case s if !s.matches(numericRegexp) =>
-            Left(Seq(FormError(key, invalidKey, args)))
-          case s if !s.matches(decimal2DPRegexp) && !s.matches(intRegexp) =>
-            Left(Seq(FormError(key, decimalKey, args)))
-          case s =>
-            Try(Option(BigDecimal(s))) match {
-              case Success(x) => Right(x)
-              case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
-            }
-        }
+            case s if s.isEmpty =>
+              Right(None)
+            case s if !s.matches(numericRegexp) =>
+              Left(Seq(FormError(key, invalidKey, args)))
+            case s if !s.matches(decimal2DPRegexp) && !s.matches(intRegexp) =>
+              Left(Seq(FormError(key, decimalKey, args)))
+            case s =>
+              Try(Option(BigDecimal(s))) match {
+                case Success(x) => Right(x)
+                case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+              }
+          }
 
       override def unbind(key: String, value: Option[BigDecimal]): Map[String, String] =
         value match {

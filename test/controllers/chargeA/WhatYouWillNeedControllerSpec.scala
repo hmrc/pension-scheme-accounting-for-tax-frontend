@@ -23,8 +23,8 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeA.WhatYouWillNeedPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}

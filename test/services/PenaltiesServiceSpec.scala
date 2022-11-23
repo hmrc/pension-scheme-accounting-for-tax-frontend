@@ -28,7 +28,7 @@ import models.LocalDateBinder._
 import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, PensionsPenalties}
 import models.financialStatement.PsaFSChargeType._
-import models.financialStatement._
+import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFS, PsaFSChargeType, PsaFSDetail}
 import models.{ListOfSchemes, ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}

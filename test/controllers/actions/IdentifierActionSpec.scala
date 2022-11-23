@@ -60,14 +60,14 @@ class IdentifierActionSpec
   val authAction = new AuthenticatedIdentifierAction(authConnector,
     frontendAppConfig, mockSessionDataCacheConnector, bodyParsers)
 
-  private def jsonAOP(aop:AdministratorOrPractitioner) =
+  private def jsonAOP(aop: AdministratorOrPractitioner) =
     Json.obj("administratorOrPractitioner" -> aop.toString)
 
   override def beforeEach(): Unit = {
     Mockito.reset(authConnector)
     Mockito.reset(mockSessionDataCacheConnector)
     when(mockAppConfig.loginUrl).thenReturn(dummyCall.url)
-    when(mockSessionDataCacheConnector.fetch(any())(any(),any()))
+    when(mockSessionDataCacheConnector.fetch(any())(any(), any()))
       .thenReturn(Future.successful(None))
   }
 
@@ -138,11 +138,10 @@ class IdentifierActionSpec
     }
 
 
-
     "the user has logged in with HMRC-PODS-ORG and HMRC_PODSPP_ORG enrolments and has chosen the role of administrator" must {
 
       "have the PSAID and no PSPID" in {
-        when(mockSessionDataCacheConnector.fetch(any())(any(),any()))
+        when(mockSessionDataCacheConnector.fetch(any())(any(), any()))
           .thenReturn(Future.successful(Some(jsonAOP(Administrator))))
         val controller = new Harness(authAction)
         val enrolments = Enrolments(Set(
@@ -167,7 +166,7 @@ class IdentifierActionSpec
     "the user has logged in with HMRC-PODS-ORG and HMRC_PODSPP_ORG enrolments and has chosen the role of practitioner" must {
 
       "have the PSPID and no PSAID" in {
-        when(mockSessionDataCacheConnector.fetch(any())(any(),any()))
+        when(mockSessionDataCacheConnector.fetch(any())(any(), any()))
           .thenReturn(Future.successful(Some(jsonAOP(Practitioner))))
         val controller = new Harness(authAction)
         val enrolments = Enrolments(Set(

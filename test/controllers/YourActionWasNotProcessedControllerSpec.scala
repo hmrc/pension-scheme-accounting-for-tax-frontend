@@ -21,8 +21,8 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.UserAnswers
-import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
@@ -38,9 +38,10 @@ import scala.concurrent.Future
 
 class YourActionWasNotProcessedControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
   with JsonMatchers with OptionValues with TryValues {
- private val srn = "test-srn"
+  private val srn = "test-srn"
 
   private val data = UserAnswers().set(SchemeNameQuery, schemeName).toOption
+
   private def getRoute: String = routes.YourActionWasNotProcessedController.onPageLoad(srn, QUARTER_START_DATE).url
 
   "YourActionWasNotProcessedController" must {

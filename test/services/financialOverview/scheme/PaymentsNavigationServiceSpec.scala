@@ -17,6 +17,7 @@
 package services.financialOverview.scheme
 
 import base.SpecBase
+import controllers.financialOverview.scheme.routes._
 import data.SampleData._
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.SchemeFSChargeType._
@@ -26,7 +27,6 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Results.Redirect
 import utils.AFTConstants._
-import controllers.financialOverview.scheme.routes._
 
 import java.time.LocalDate
 

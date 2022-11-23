@@ -26,8 +26,8 @@ import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import pages.chargeE.{AnnualAllowanceMembersQuery, AnnualAllowanceYearPage}
 import play.api.Application

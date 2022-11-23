@@ -27,8 +27,8 @@ import models.chargeC.SponsoringEmployerAddress
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
@@ -105,7 +105,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       Json.obj(
         "value" -> "UK",
         "text" -> "country.UK"
-      ) ++ (if(isSelected) Json.obj("selected" -> true) else Json.obj())
+      ) ++ (if (isSelected) Json.obj("selected" -> true) else Json.obj())
     )
   )
 

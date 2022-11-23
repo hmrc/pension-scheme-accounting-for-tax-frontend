@@ -25,14 +25,12 @@ import utils.DateHelper
 
 import java.time.{LocalDate, Month}
 
-case class YearRange(startYear: String)  {
+case class YearRange(startYear: String) {
   override def toString: String = startYear
 }
 
 object YearRange extends Enumerable.Implicits {
-  implicit val writes: Writes[YearRange] = new Writes[YearRange] {
-    def writes(yr: YearRange): JsValue = JsString(yr.toString)
-  }
+  implicit val writes: Writes[YearRange] = (yr: YearRange) => JsString(yr.toString)
 
   private val startDayOfNewTaxYear: Int = 6
   private val minYear: Int = 2011

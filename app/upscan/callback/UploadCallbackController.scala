@@ -29,7 +29,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 sealed trait CallbackBody {
-  def reference : Reference
+  def reference: Reference
 }
 
 case class ReadyCallbackBody(
@@ -65,18 +65,18 @@ object CallbackBody {
 }
 
 case class UploadDetails(uploadTimestamp: Instant,
-  checksum: String,
-  fileMimeType: String,
-  fileName: String,
-  size: Long)
+                         checksum: String,
+                         fileMimeType: String,
+                         fileName: String,
+                         size: Long)
 
 case class ErrorDetails(failureReason: String, message: String)
 
 @Singleton
 class UploadCallbackController @Inject()(
-  upscanCallbackDispatcher : UpscanCallbackDispatcher,
-  mcc: MessagesControllerComponents)
- (implicit ec : ExecutionContext) extends FrontendController(mcc) {
+                                          upscanCallbackDispatcher: UpscanCallbackDispatcher,
+                                          mcc: MessagesControllerComponents)
+                                        (implicit ec: ExecutionContext) extends FrontendController(mcc) {
 
   def callback: Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CallbackBody] { feedback: CallbackBody =>

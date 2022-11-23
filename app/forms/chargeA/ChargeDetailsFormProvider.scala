@@ -32,10 +32,10 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
       (
         (map(otherField).isEmpty | map(otherField) == "0.00")
           |
-        ((map("totalAmtOfTaxDueAtLowerRate").nonEmpty && map("totalAmtOfTaxDueAtLowerRate") != "0.00")
-          &&
-        (map("totalAmtOfTaxDueAtHigherRate").nonEmpty && map("totalAmtOfTaxDueAtHigherRate") != "0.00"))
-      )
+          ((map("totalAmtOfTaxDueAtLowerRate").nonEmpty && map("totalAmtOfTaxDueAtLowerRate") != "0.00")
+            &&
+            (map("totalAmtOfTaxDueAtHigherRate").nonEmpty && map("totalAmtOfTaxDueAtHigherRate") != "0.00"))
+        )
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 

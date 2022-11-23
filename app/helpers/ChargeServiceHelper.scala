@@ -86,7 +86,7 @@ class ChargeServiceHelper {
 
     memberSeq.isEmpty || (!memberSeq.exists(member =>
       (member \ "memberAFTVersion").validate[Int].getOrElse(0) < v)
-      || !memberSeq.exists(member => (member \ "memberStatus").validate[String].asOpt.forall(_ != "New"))
+      || memberSeq.forall(member => (member \ "memberStatus").validate[String].asOpt.contains("New"))
       )
   }
 

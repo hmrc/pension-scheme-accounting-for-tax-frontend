@@ -87,9 +87,11 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
   private def insetTextWithAmountDueAndInterest(index: String): uk.gov.hmrc.viewmodels.Html = {
     uk.gov.hmrc.viewmodels.Html(
       s"<p class=govuk-body>${messages("paymentsAndCharges.interest.chargeReference.text1")}" +
-        s" <span><a id='breakdown' class=govuk-link href=${routes.PaymentsAndChargeDetailsController
-          .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
-          .url}>" +
+        s" <span><a id='breakdown' class=govuk-link href=${
+          routes.PaymentsAndChargeDetailsController
+            .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+            .url
+        }>" +
         s" ${messages("paymentsAndCharges.interest.chargeReference.linkText")}</a></span>" +
         s" ${messages("paymentsAndCharges.interest.chargeReference.text2")}</p>"
     )

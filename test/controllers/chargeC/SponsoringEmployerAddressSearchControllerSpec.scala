@@ -28,8 +28,8 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, SponsoringEmployerType, TolerantAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
@@ -45,7 +45,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 class SponsoringEmployerAddressSearchControllerSpec
-    extends ControllerSpecBase
+  extends ControllerSpecBase
     with MockitoSugar
     with NunjucksSupport
     with JsonMatchers
@@ -99,7 +99,7 @@ class SponsoringEmployerAddressSearchControllerSpec
         "sponsorName" -> sponsorName,
         "employerType" -> Messages(s"chargeC.employerType.${sponsorType.toString}"),
         "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url
-    )
+      )
 
   override def beforeEach(): Unit = {
     super.beforeEach()

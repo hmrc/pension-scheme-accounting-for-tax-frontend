@@ -26,8 +26,8 @@ import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, Member, UserAnswers, YearRange}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeE._
 import play.api.Application
 import play.api.data.Form
@@ -50,10 +50,13 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val templateToBeRendered = "chargeE/addMembers.njk"
   private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
+
   private def httpPathGET: String = controllers.chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url
-  private def httpPathGETWithPageNo(pageNo:Int): String =
+
+  private def httpPathGETWithPageNo(pageNo: Int): String =
     controllers.chargeE.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, versionInt, pageNo).url
-  private def httpPathPOST(pageNo:Int): String = controllers.chargeE.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt, pageNo).url
+
+  private def httpPathPOST(pageNo: Int): String = controllers.chargeE.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt, pageNo).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -61,6 +64,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val valuesInvalid: Map[String, Seq[String]] = Map.empty
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
+
   private def table = Json.obj(
     "firstCellIsHeader" -> false,
     "head" -> Json.arr(
@@ -72,23 +76,23 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     ),
     "rows" -> Json.arr(
       Json.arr(
-        Json.obj("text" -> "first last","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)),"classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-        Json.obj("html" -> s"<a class= govuk-link id=member-0-view href=viewlink1><span aria-hidden=true>View</span><span class= govuk-visually-hidden>View first last’s annual allowance charge</span> </a>","classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-        Json.obj("html" -> s"<a class= govuk-link id=member-0-remove href=removelink1><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove first last’s annual allowance charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "first last", "classes" -> cssQuarterWidth),
+        Json.obj("text" -> "AB123456C", "classes" -> cssQuarterWidth),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)), "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
+        Json.obj("html" -> s"<a class= govuk-link id=member-0-view href=viewlink1><span aria-hidden=true>View</span><span class= govuk-visually-hidden>View first last’s annual allowance charge</span> </a>", "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
+        Json.obj("html" -> s"<a class= govuk-link id=member-0-remove href=removelink1><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove first last’s annual allowance charge</span> </a>", "classes" -> cssQuarterWidth)
       ),
       Json.arr(
-        Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)),"classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-        Json.obj("html" -> s"<a class= govuk-link id=member-1-view href=viewlink2><span aria-hidden=true>View</span><span class= govuk-visually-hidden>View Joe Bloggs’s annual allowance charge</span> </a>","classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-        Json.obj("html" -> s"<a class= govuk-link id=member-1-remove href=removelink2><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s annual allowance charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "Joe Bloggs", "classes" -> cssQuarterWidth),
+        Json.obj("text" -> "AB123456C", "classes" -> cssQuarterWidth),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)), "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
+        Json.obj("html" -> s"<a class= govuk-link id=member-1-view href=viewlink2><span aria-hidden=true>View</span><span class= govuk-visually-hidden>View Joe Bloggs’s annual allowance charge</span> </a>", "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
+        Json.obj("html" -> s"<a class= govuk-link id=member-1-remove href=removelink2><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s annual allowance charge</span> </a>", "classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> ""),
         Json.obj("text" -> "Total charge amount for this quarter", "classes" -> "govuk-!-font-weight-bold govuk-!-width-one-half"),
-        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> s"govuk-!-font-weight-bold govuk-table__header--numeric"),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)), "classes" -> s"govuk-!-font-weight-bold govuk-table__header--numeric"),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )
@@ -96,7 +100,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "attributes" -> Map("role" -> "table")
   )
 
-  private def jsonToPassToTemplate(pageNo:Int):Form[Boolean]=>JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(pageNo: Int): Form[Boolean] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeE.routes.AddMembersController.onSubmit(srn, startDate, accessType, versionInt, pageNo).url,
@@ -124,7 +128,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     Member(1, "Joe Bloggs", "AB123456C", BigDecimal(33.44), "viewlink2", "removelink2")
   )
 
-  private val expectedPaginatedMembersInfo:Option[PaginatedMembersInfo] =
+  private val expectedPaginatedMembersInfo: Option[PaginatedMembersInfo] =
     Some(PaginatedMembersInfo(
       itemsForCurrentPage = Left(expectedMembers),
       paginationStats = PaginationStats(

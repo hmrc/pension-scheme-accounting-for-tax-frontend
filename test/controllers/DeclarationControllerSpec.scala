@@ -32,8 +32,8 @@ import models.requests.IdentifierRequest
 import models.{AFTQuarter, AccessMode, AdministratorOrPractitioner, Declaration, GenericViewModel, JourneyType, SessionAccessData, UserAnswers}
 import navigators.CompoundNavigator
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
 import org.scalatestplus.mockito.MockitoSugar
 import pages._
 import play.api.Application
@@ -52,6 +52,7 @@ import java.time.{ZoneId, ZonedDateTime}
 import scala.concurrent.Future
 
 class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {
+
   import DeclarationControllerSpec._
 
   private val mockAuditService = mock[AuditService]
@@ -66,14 +67,14 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
   override def modules: Seq[GuiceableModule] =
     Seq(
-    bind[DataRequiredAction].to[DataRequiredActionImpl],
-    bind[NunjucksRenderer].toInstance(mockRenderer),
-    bind[FrontendAppConfig].toInstance(mockAppConfig),
-    bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
-    bind[CompoundNavigator].toInstance(mockCompoundNavigator),
-    bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider),
-    bind[AuditService].toInstance(mockAuditService)
-  )
+      bind[DataRequiredAction].to[DataRequiredActionImpl],
+      bind[NunjucksRenderer].toInstance(mockRenderer),
+      bind[FrontendAppConfig].toInstance(mockAppConfig),
+      bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
+      bind[CompoundNavigator].toInstance(mockCompoundNavigator),
+      bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider),
+      bind[AuditService].toInstance(mockAuditService)
+    )
 
   private val extraModulesPsp: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[AFTService].toInstance(mockAFTService),
@@ -86,7 +87,9 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private val applicationPsp: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModulesPsp).build()
 
   private val templateToBeRendered = "declaration.njk"
+
   private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
+
   private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url
 
   private val jsonToPassToTemplate = Json.obj(
@@ -111,12 +114,13 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     when(mockAppConfig.amendAftReturnIncreaseTemplateIdId).thenReturn(amendAftReturnIncreaseTemplateIdId)
     when(mockAppConfig.fileAFTReturnTemplateId).thenReturn(fileAFTReturnTemplateId)
   }
+
   private def emailParams(isAmendment: Boolean = false): Map[String, String] =
     Map(
       "schemeName" -> schemeName,
       "accountingPeriod" -> messages("confirmation.table.accounting.period.value",
-                                     quarter.startDate.format(dateFormatterStartDate),
-                                     quarter.endDate.format(dateFormatterDMY)),
+        quarter.startDate.format(dateFormatterStartDate),
+        quarter.endDate.format(dateFormatterDMY)),
       "dateSubmitted" -> formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London"))),
       "psaName" -> psaName,
       "hmrcEmail" -> messages("confirmation.whatNext.send.to.email.id")

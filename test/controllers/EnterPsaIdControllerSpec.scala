@@ -29,8 +29,8 @@ import models.LocalDateBinder._
 import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, UserAnswers}
 import navigators.CompoundNavigator
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.EnterPsaIdPage
@@ -85,7 +85,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
       schemeName = SampleData.schemeName)
   )
 
-  private def schemeDetails(authorisingPsaId:Option[String]) = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString, authorisingPsaId)
+  private def schemeDetails(authorisingPsaId: Option[String]) = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString, authorisingPsaId)
 
   override def beforeEach(): Unit = {
     super.beforeEach()

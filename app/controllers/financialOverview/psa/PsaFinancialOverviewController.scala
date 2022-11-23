@@ -16,7 +16,6 @@
 
 package controllers.financialOverview.psa
 
-import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
 import controllers.financialOverview.psa
@@ -35,7 +34,6 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PsaFinancialOverviewController @Inject()(
-                                                appConfig: FrontendAppConfig,
                                                 identify: IdentifierAction,
                                                 override val messagesApi: MessagesApi,
                                                 val controllerComponents: MessagesControllerComponents,
@@ -74,9 +72,10 @@ class PsaFinancialOverviewController @Inject()(
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
     logger.debug(s"AFT service returned InterestAccruing - ${psaCharges._3}")
 
-    val requestRefundUrl = creditPsaFS.inhibitRefundSignal match {
-      case true => controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
-      case false => routes.PsaRequestRefundController.onPageLoad.url
+    val requestRefundUrl = if (creditPsaFS.inhibitRefundSignal) {
+      controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
+    } else {
+      routes.PsaRequestRefundController.onPageLoad.url
     }
 
     renderer.render(

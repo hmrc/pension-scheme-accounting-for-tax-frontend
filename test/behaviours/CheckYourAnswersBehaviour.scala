@@ -123,8 +123,8 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
   }
 
   def redirectToErrorOn5XX[A](httpPath: => String,
-                               page: Page,
-                               userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter): Unit = {
+                              page: Page,
+                              userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter): Unit = {
 
     "redirect to your action was not processed page on a POST when 5XX error is thrown" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))

@@ -25,8 +25,8 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
-import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
@@ -42,7 +42,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 class WhichTypeOfSponsoringEmployerControllerSpec
-    extends ControllerSpecBase
+  extends ControllerSpecBase
     with MockitoSugar
     with NunjucksSupport
     with JsonMatchers

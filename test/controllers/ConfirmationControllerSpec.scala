@@ -26,11 +26,12 @@ import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.{SchemeFS, SchemeFSDetail}
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.financialStatement.{SchemeFS, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import models.{AccessMode, GenericViewModel, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, EmailQuery}
 import play.api.inject.bind
@@ -47,7 +48,6 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
 import utils.DateHelper.formatSubmittedDate
-import org.mockito.Mockito.{times, verify, when}
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZoneId, ZonedDateTime}

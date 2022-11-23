@@ -48,12 +48,13 @@ import viewmodels.Table.Cell
 import scala.concurrent.Future
 
 class ViewAllAmendmentsControllerSpec
-    extends ControllerSpecBase
+  extends ControllerSpecBase
     with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach {
 
   private def httpPathGET: String = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionNumber).url
+
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockAmendmentHelper: AmendmentHelper = mock[AmendmentHelper]
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
@@ -61,6 +62,7 @@ class ViewAllAmendmentsControllerSpec
     bind[AmendmentHelper].toInstance(mockAmendmentHelper),
     bind[AFTConnector].toInstance(mockAFTConnector)
   )
+
   def application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   override def beforeEach(): Unit = {
@@ -94,8 +96,8 @@ class ViewAllAmendmentsControllerSpec
 
     val tableRows = allAmendments.map { data =>
       Seq(
-        Cell(Literal(data.memberDetails), classes = Seq("govuk-!-width-one-quarter"),attributes = Map("role" -> "cell")),
-        Cell(msg"allAmendments.charge.type.${data.chargeType}", classes = Seq("govuk-!-width-one-quarter"),attributes = Map("role" -> "cell")),
+        Cell(Literal(data.memberDetails), classes = Seq("govuk-!-width-one-quarter"), attributes = Map("role" -> "cell")),
+        Cell(msg"allAmendments.charge.type.${data.chargeType}", classes = Seq("govuk-!-width-one-quarter"), attributes = Map("role" -> "cell")),
         Cell(Literal(data.chargeAmount), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"), attributes = Map("role" -> "cell"))
       )
     }
@@ -103,7 +105,7 @@ class ViewAllAmendmentsControllerSpec
     Table(
       head = tableHeadingRows,
       rows = tableRows,
-      attributes = Map("role" -> "table" ,"aria-describedby" -> messages(s"allAmendments.table.caption.$caption").toLowerCase )
+      attributes = Map("role" -> "table", "aria-describedby" -> messages(s"allAmendments.table.caption.$caption").toLowerCase)
     )
   }
 

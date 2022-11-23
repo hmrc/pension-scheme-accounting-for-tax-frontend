@@ -24,12 +24,12 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
-import models.financialStatement.SchemeFSDetail
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -106,6 +106,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 object PaymentsAndChargesControllerSpec {
   private val startDate = "2020-04-01"
   private val srn = "test-srn"
+
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(
       index = 0,
@@ -127,6 +128,7 @@ object PaymentsAndChargesControllerSpec {
       documentLineItemDetails = Nil
     )
   }
+
   private val schemeFSResponse: Seq[SchemeFSDetail] = Seq(
     createCharge(startDate = "2020-04-01", endDate = "2020-06-30", chargeReference = "XY002610150184"),
     createCharge(startDate = "2020-01-01", endDate = "2020-03-31", chargeReference = "AYU3494534632"),
