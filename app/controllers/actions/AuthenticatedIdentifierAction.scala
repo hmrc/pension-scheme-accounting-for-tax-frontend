@@ -72,6 +72,7 @@ class AuthenticatedIdentifierAction @Inject()(
         }
       case Some(id) ~ enrolments =>
         block(IdentifierRequest(id, request, getPsaId(enrolments), getPspId(enrolments)))
+      case _ => Future(Redirect(routes.UnauthorisedController.onPageLoad))
     } recover {
       case _: NoActiveSession =>
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))
