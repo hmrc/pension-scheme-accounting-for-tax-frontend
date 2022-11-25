@@ -35,6 +35,7 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import javax.inject.Inject
+import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 class AllPenaltiesAndChargesController @Inject()(
@@ -60,13 +61,13 @@ class AllPenaltiesAndChargesController @Inject()(
 
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
-        val filteredPenalties: collection.Seq[PsaFSDetail] = penaltiesCache.penalties
+        val filteredPenalties: Seq[PsaFSDetail] = penaltiesCache.penalties
           .filter(_.periodStartDate == startDate)
           .filter(_.pstr == pstr)
           .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
-        val dueCharges: collection.Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getDueCharges(filteredPenalties)
+        val dueCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getDueCharges(filteredPenalties)
         val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
-        val interestCharges: collection.Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getInterestCharges(filteredPenalties)
+        val interestCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getInterestCharges(filteredPenalties)
         val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
         val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
 
@@ -100,14 +101,14 @@ class AllPenaltiesAndChargesController @Inject()(
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
         val title: Message = Message("penalties.nonAft.title", Message(s"penaltyType.${penaltyType.toString}"), year)
-        val filteredPenalties: collection.Seq[PsaFSDetail] = penaltiesCache.penalties
+        val filteredPenalties: Seq[PsaFSDetail] = penaltiesCache.penalties
           .filter(_.periodEndDate.getYear == year.toInt)
           .filter(_.pstr == pstr)
           .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
-        val dueCharges: collection.Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getDueCharges(filteredPenalties)
+        val dueCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getDueCharges(filteredPenalties)
         val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
-        val interestCharges: collection.Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getInterestCharges(filteredPenalties)
+        val interestCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getInterestCharges(filteredPenalties)
         val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
         val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
 
