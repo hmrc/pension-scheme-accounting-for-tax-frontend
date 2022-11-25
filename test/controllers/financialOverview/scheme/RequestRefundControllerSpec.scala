@@ -26,6 +26,7 @@ import models.CreditAccessType.{AccessedByLoggedInPsaOrPsp, AccessedByOtherPsa, 
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -67,11 +68,15 @@ class RequestRefundControllerSpec extends ControllerSpecBase with NunjucksSuppor
     )
     .build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockRenderer, mockAppConfig,
-      mockFinancialStatementConnector, mockPsaSchemePartialService, mockSchemeService,
-      mockMinimalConnector, mockFinancialInfoCreditAccessConnector)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRenderer)
+    reset(mockAppConfig)
+    reset(mockFinancialStatementConnector)
+    reset(mockPsaSchemePartialService)
+    reset(mockSchemeService)
+    reset(mockMinimalConnector)
+    reset(mockFinancialInfoCreditAccessConnector)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))

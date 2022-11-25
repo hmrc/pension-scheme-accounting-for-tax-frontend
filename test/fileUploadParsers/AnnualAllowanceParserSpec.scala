@@ -26,9 +26,11 @@ import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import models.UserAnswers
 import models.chargeE.ChargeEDetails
-import org.mockito.{Mockito, MockitoSugar}
+import org.mockito.Mockito
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 
@@ -39,7 +41,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
 
   import AnnualAllowanceParserSpec._
 
-  override def beforeEach: Unit = {
+  override def beforeEach(): Unit = {
     Mockito.reset(mockFrontendAppConfig)
     when(mockFrontendAppConfig.earliestDateOfNotice).thenReturn(LocalDate.of(1900, 1, 1))
     when(mockFrontendAppConfig.validAnnualAllowanceHeader).thenReturn(header)
@@ -66,14 +68,14 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
 
     "return validation error for incorrect header" in {
       val invalidHeader = CsvLineSplitter.split("""test""")
-      val result = parser.parse(startDate, invalidHeader,UserAnswers())
+      val result = parser.parse(startDate, invalidHeader, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
       ))
     }
 
     "return validation error for empty file" in {
-      val result = parser.parse(startDate, Nil,UserAnswers())
+      val result = parser.parse(startDate, Nil, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
       ))
@@ -84,19 +86,19 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
         s"""$header
     one,two"""
       )
-      val result = parser.parse(startDate, validCsvFile,UserAnswers())
+      val result = parser.parse(startDate, validCsvFile, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, NotEnoughFields)
       ))
     }
 
-   "return validation errors for member details" in {
-    val GivingInvalidMemberDetailsCsv= CsvLineSplitter.split(
-       s"""$header
+    "return validation errors for member details" in {
+      val GivingInvalidMemberDetailsCsv = CsvLineSplitter.split(
+        s"""$header
     ,Bloggs,AB123456C,2020,268.28,01/01/2020,yes
     Ann,,3456C,2020,268.28,01/01/2020,yes"""
-     )
-      val result = parser.parse(startDate, GivingInvalidMemberDetailsCsv,UserAnswers())
+      )
+      val result = parser.parse(startDate, GivingInvalidMemberDetailsCsv, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
@@ -106,20 +108,20 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
 
     "return validation errors for charge details, including missing, invalid, future and past tax years" in {
 
-   val GivingInvalidChargeDetailsCsvFile= CsvLineSplitter.split(
+      val GivingInvalidChargeDetailsCsvFile = CsvLineSplitter.split(
         s"""$header
     Joe,Bloggs,AB123456C,,,01/01,nah
     Ann,Bliggs,AB123457C,22,268.28,01,yes
     Joe,Blaggs,AB123454C,2021,268.28,01/01/2020,yes
     Jim,Bloggs,AB123455C,2010,268.28,01/01/2020,yes"""
       )
-      val result = parser.parse(startDate, GivingInvalidChargeDetailsCsvFile,UserAnswers())
+      val result = parser.parse(startDate, GivingInvalidChargeDetailsCsvFile, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount"),
-        ParserValidationError(1, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived",Seq("year")),
+        ParserValidationError(1, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived", Seq("year")),
         ParserValidationError(1, 6, "error.boolean", "isPaymentMandatory"),
         ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required", AnnualAllowanceFieldNames.taxYear),
-        ParserValidationError(2, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived",Seq("month","year")),
+        ParserValidationError(2, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived", Seq("month", "year")),
         ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear),
         ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future", AnnualAllowanceFieldNames.taxYear),
         ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past", AnnualAllowanceFieldNames.taxYear)
@@ -128,14 +130,14 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     }
 
     "return validation errors for tax year only, including missing, invalid, future and past tax years" in {
-     val GivingInvalidTaxYearCsvFile= CsvLineSplitter.split(
+      val GivingInvalidTaxYearCsvFile = CsvLineSplitter.split(
         s"""$header
                             Joe,Bloggs,AB123456C,,268.28,01/01/2020,yes
                             Ann,Bliggs,AB123457C,22,268.28,01/01/2020,yes
                             Joe,Blaggs,AB123454C,2021,268.28,01/01/2020,yes
                             Jim,Bloggs,AB123455C,2010,268.28,01/01/2020,yes"""
-                           )
-      val result = parser.parse(startDate, GivingInvalidTaxYearCsvFile,UserAnswers())
+      )
+      val result = parser.parse(startDate, GivingInvalidTaxYearCsvFile, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required", AnnualAllowanceFieldNames.taxYear),
         ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear),
@@ -145,13 +147,13 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
     }
 
     "return validation errors for member details AND charge details when both present" in {
-      val GivingInvalidMemberDetailsAndChargeDetailsCsvFile= CsvLineSplitter.split(
+      val GivingInvalidMemberDetailsAndChargeDetailsCsvFile = CsvLineSplitter.split(
         s"""$header
                             ,Bloggs,AB123456C,2020,,01/01/2020,yes
                             Ann,,3456C,2020,268.28,01/13/2020,yes"""
       )
 
-      val result = parser.parse(startDate, GivingInvalidMemberDetailsAndChargeDetailsCsvFile,UserAnswers())
+      val result = parser.parse(startDate, GivingInvalidMemberDetailsAndChargeDetailsCsvFile, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount"),
@@ -168,7 +170,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
                             Joe,Bliggs,AB123457C,2020,268.28,01/01/2020,yes"""
       )
 
-      val result = parser.parse(startDate, GivingInvalidMemberDetailsAndChargeDetailsFirstRowCsvFile,UserAnswers())
+      val result = parser.parse(startDate, GivingInvalidMemberDetailsAndChargeDetailsFirstRowCsvFile, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount")
@@ -180,14 +182,14 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
         s"""$header
                             Bloggs,AB123456C,2020268.28,2020-01-01,true"""
       )
-      val result = parser.parse(startDate, GivingNotEnoughFields,UserAnswers())
+      val result = parser.parse(startDate, GivingNotEnoughFields, UserAnswers())
       result mustBe Left(Seq(ParserValidationError(1, 0, NotEnoughFields)))
     }
   }
 }
 
 object AnnualAllowanceParserSpec extends MockitoSugar {
-  private val header:String = "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory"
+  private val header: String = "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory"
 
   private val mockFrontendAppConfig = mock[FrontendAppConfig]
 

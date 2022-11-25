@@ -19,6 +19,7 @@ package controllers
 import controllers.base.ControllerSpecBase
 import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -29,8 +30,10 @@ import scala.concurrent.Future
 class KeepAliveControllerSpec extends ControllerSpecBase {
   private val srn = Some("srn")
   private val startDate = Some(QUARTER_START_DATE.toString)
+
   private def keepAliveRoute(srn: Option[String], startDate: Option[String]): String =
     controllers.routes.KeepAliveController.keepAlive(srn, startDate).url
+
   private val userAnswers = UserAnswers(Json.obj(
     "test-key" -> "test-value"
   ))

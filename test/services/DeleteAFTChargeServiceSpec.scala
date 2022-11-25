@@ -23,10 +23,12 @@ import data.SampleData._
 import helpers.DeleteChargeHelper
 import models.requests.DataRequest
 import models.{AccessMode, LockDetail, SessionAccessData, SessionData, UserAnswers}
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentMatchers, MockitoSugar}
+import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, Results}
 import uk.gov.hmrc.domain.PsaId
@@ -38,8 +40,11 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
   private val mockAFTService: AFTService = mock[AFTService]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
+
   private def sessionAccessData(version: Int) = SessionAccessData(version, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)
+
   private def sessionData(version: Int) = SessionData(s"id", Some(LockDetail("name", psaId)), sessionAccessData(version))
+
   private val emptyUserAnswers = UserAnswers()
 
   private def dataRequest(ua: UserAnswers, version: Int): DataRequest[AnyContent] =
@@ -48,7 +53,9 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
   private val deleteChargeService = new DeleteAFTChargeService(mockAFTService, mockUserAnswersCacheConnector, mockDeleteChargeHelper)
 
   override def beforeEach(): Unit = {
-    reset(mockAFTService, mockUserAnswersCacheConnector, mockDeleteChargeHelper)
+    reset(mockAFTService)
+    reset(mockUserAnswersCacheConnector)
+    reset(mockDeleteChargeHelper)
     when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
   }
 

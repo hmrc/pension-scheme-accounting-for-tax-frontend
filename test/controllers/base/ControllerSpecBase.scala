@@ -24,8 +24,10 @@ import models.UserAnswers
 import models.requests.{DataRequest, IdentifierRequest}
 import navigators.CompoundNavigator
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{Mockito, MockitoSugar}
+import org.mockito.Mockito
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.HeaderNames
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
@@ -51,8 +53,11 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
     override protected def filter[A](request: IdentifierRequest[A]): Future[Option[Result]] = Future.successful(None)
   }
 
-  override def beforeEach: Unit = {
-    Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAllowAccessActionProvider)
+  override def beforeEach(): Unit = {
+    Mockito.reset(mockRenderer)
+    Mockito.reset(mockUserAnswersCacheConnector)
+    Mockito.reset(mockCompoundNavigator)
+    Mockito.reset(mockAllowAccessActionProvider)
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
     when(mockAllowAccessActionProviderForIdentifierRequest.apply()).thenReturn(FakeActionFilterForIdentifierRequest)
   }

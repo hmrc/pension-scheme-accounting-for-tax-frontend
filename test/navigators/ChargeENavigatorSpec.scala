@@ -24,7 +24,6 @@ import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.{CheckMode, NormalMode, UserAnswers}
-import navigators.ChargeDNavigatorSpec.{fileUploadInput, manualInput, srn, startDate}
 import org.scalatest.prop.TableFor3
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
@@ -35,7 +34,9 @@ import utils.AFTConstants.QUARTER_START_DATE
 class ChargeENavigatorSpec extends NavigatorBehaviour {
 
   import ChargeENavigatorSpec._
+
   private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
+
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
   "NormalMode" must {

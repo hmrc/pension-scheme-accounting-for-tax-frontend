@@ -26,6 +26,7 @@ import models.SchemeDetails
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.http.Status.OK
@@ -35,7 +36,6 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
 import play.twirl.api.Html
 import services.SchemeService
-import services.financialOverview.psa.PenaltiesCache
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -47,6 +47,7 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with Nunju
 
   private val startDate = LocalDate.parse("2020-07-01")
   val pstr = "24000041IN"
+
   private def httpPathGET(startDate: String = startDate.toString): String =
     routes.AllPenaltiesAndChargesController.onPageLoadAFT(startDate, pstr).url
 
@@ -66,9 +67,10 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with Nunju
     )
     .build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockRenderer, mockPsaPenaltiesAndChargesService)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRenderer)
+    reset(mockPsaPenaltiesAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))

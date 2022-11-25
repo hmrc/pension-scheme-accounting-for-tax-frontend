@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-/*
- * Copyright 2022 HM Revenue & Customs
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
@@ -45,6 +29,7 @@ import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RET
 import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -67,8 +52,9 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
   import PaymentsAndChargesInterestControllerSpec._
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
-    routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges,
-      Some(versionInt), Some(submittedDate), Overdue).url
+    routes.PaymentsAndChargesInterestController
+      .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+      .url
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
@@ -86,58 +72,68 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     )
     .build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockAppConfig.schemeDashboardUrl(any(), any())).thenReturn(dummyCall.url)
+    when(mockPaymentsAndChargesService.setPeriod(any(), any(), any()))
+      .thenReturn("")
+    when(mockPaymentsAndChargesService.getReturnLinkBasedOnJourney(any(), any())(any()))
+      .thenReturn("")
+    when(mockPaymentsAndChargesService.getReturnUrl(any(), any(), any(), any(), any(), any()))
+      .thenReturn("")
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
   private def insetTextWithAmountDueAndInterest(index: String): uk.gov.hmrc.viewmodels.Html = {
     uk.gov.hmrc.viewmodels.Html(
       s"<p class=govuk-body>${messages("paymentsAndCharges.interest.chargeReference.text1")}" +
-        s" <span><a id='breakdown' class=govuk-link href=${routes.PaymentsAndChargeDetailsController
-          .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url}>" +
+        s" <span><a id='breakdown' class=govuk-link href=${
+          routes.PaymentsAndChargeDetailsController
+            .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+            .url
+        }>" +
         s" ${messages("paymentsAndCharges.interest.chargeReference.linkText")}</a></span>" +
         s" ${messages("paymentsAndCharges.interest.chargeReference.text2")}</p>"
     )
   }
-  private def expectedJson(schemeFSDetail: SchemeFSDetail, chargeType: String, insetText: uk.gov.hmrc.viewmodels.Html, index: String): JsObject = Json.obj(
-    fields = "chargeDetailsList" -> Seq(
-      Row(
-        key = Key(
-          content = msg"financialPaymentsAndCharges.chargeReference",
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+
+  private def expectedJson(schemeFSDetail: SchemeFSDetail, chargeType: String, insetText: uk.gov.hmrc.viewmodels.Html, index: String): JsObject =
+    Json.obj(
+      fields = "chargeDetailsList" -> Seq(
+        Row(
+          key = Key(
+            content = msg"financialPaymentsAndCharges.chargeReference",
+            classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          ),
+          value = Value(
+            content = msg"paymentsAndCharges.chargeReference.toBeAssigned",
+            classes = Seq("govuk-!-width-one-quarter")
+          ),
+          actions = Nil
         ),
-        value = Value(
-          content = msg"paymentsAndCharges.chargeReference.toBeAssigned",
-          classes =
-            Seq("govuk-!-width-one-quarter")
-        ),
-        actions = Nil
+        Row(
+          key = Key(
+            msg"paymentsAndCharges.interestFrom".withArgs(DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46)))),
+            classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
+          ),
+          value = Value(
+            Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")
+          ),
+          actions = Nil
+        )
       ),
-      Row(
-        key = Key(
-          msg"paymentsAndCharges.interestFrom".withArgs(DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.
-            map(_.plusDays(46)))),
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
-        ),
-        value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")
-        ),
-        actions = Nil
-      )
-    ),
-    "tableHeader" -> "",
-    "schemeName" -> schemeName,
-    "accruedInterest" -> schemeFSDetail.accruedInterestTotal,
-    "chargeType" -> (chargeType + s" submission $version"),
-    "insetText" -> insetText,
-    "originalAmountUrl" -> routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, startDate, index,
-      AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url,
-    "returnLinkBasedOnJourney" -> "",
-    "returnUrl" -> ""
-  )
+      "tableHeader" -> "",
+      "schemeName" -> schemeName,
+      "accruedInterest" -> schemeFSDetail.accruedInterestTotal,
+      "chargeType" -> (chargeType + s" submission $version"),
+      "insetText" -> insetText,
+      "originalAmountUrl" -> routes.PaymentsAndChargeDetailsController
+        .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+        .url,
+      "returnLinkBasedOnJourney" -> "",
+      "returnUrl" -> ""
+    )
 
   "PaymentsAndChargesInterestController" must {
 
@@ -154,7 +150,8 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeInterest.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, PSS_AFT_RETURN_INTEREST.toString, insetTextWithAmountDueAndInterest("1"), "1"))
+      jsonCaptor.getValue must containJson(
+        expectedJson(schemeFSDetail, PSS_AFT_RETURN_INTEREST.toString, insetTextWithAmountDueAndInterest("1"), "1"))
     }
 
     "return OK and the correct view for interest accrued for overseas transfer charge if amount is due and interest is accruing for a GET" in {
@@ -171,7 +168,8 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 
       templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeInterest.njk"
 
-     jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, PSS_OTC_AFT_RETURN_INTEREST.toString, insetTextWithAmountDueAndInterest("2"), "2"))
+      jsonCaptor.getValue must containJson(
+        expectedJson(schemeFSDetail, PSS_OTC_AFT_RETURN_INTEREST.toString, insetTextWithAmountDueAndInterest("2"), "2"))
     }
 
     "redirect to Session Expired page when there is no data for the selected charge reference for a GET" in {
@@ -187,7 +185,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 object PaymentsAndChargesInterestControllerSpec {
   private val srn = "test-srn"
 
-  private def createCharge(index:Int, chargeReference: String, chargeType: SchemeFSChargeType): SchemeFSDetail = {
+  private def createCharge(index: Int, chargeReference: String, chargeType: SchemeFSChargeType): SchemeFSDetail = {
     SchemeFSDetail(
       index = index,
       chargeReference = chargeReference,

@@ -17,11 +17,13 @@
 package audit
 
 import config.FrontendAppConfig
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, MockitoSugar}
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.Inside
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.AnyContentAsEmpty
@@ -57,9 +59,9 @@ class AuditServiceSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
       auditService.sendEvent(aftAuditEvent)
 
-      verify(mockAuditConnector, times(1)).sendEvent(templateCaptor.capture())(any(),any())
+      verify(mockAuditConnector, times(1)).sendEvent(templateCaptor.capture())(any(), any())
       inside(templateCaptor.getValue) {
-        case DataEvent(auditSource, auditType, _, _, detail, _) =>
+        case DataEvent(auditSource, auditType, _, _, detail, _, _, _) =>
           auditSource mustBe config.appName
           auditType mustBe "AftStartNew"
           detail mustBe Map("psaIdentifier" -> "test-psa", "pstr" -> "test-pstr")

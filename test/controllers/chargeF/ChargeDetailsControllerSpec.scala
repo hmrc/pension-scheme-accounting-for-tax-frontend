@@ -26,6 +26,7 @@ import models.chargeF.ChargeDetails
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeF.ChargeDetailsPage
 import play.api.Application
@@ -45,7 +46,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val startDate = QUARTER_START_DATE
   private val endDate = QUARTER_END_DATE
   private val form = new ChargeDetailsFormProvider()(startDate, endDate, BigDecimal("0.01"))
+
   private def httpPathGET: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt).url
+
   private def httpPathPOST: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
@@ -69,7 +72,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "amountTaxDue" -> Seq("33.44")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[ChargeDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url,
@@ -78,8 +81,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "date" -> DateInput.localDate(form("deregistrationDate"))
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)

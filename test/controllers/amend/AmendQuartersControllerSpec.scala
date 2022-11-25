@@ -26,6 +26,7 @@ import models.requests.IdentifierRequest
 import models.{AFTQuarter, DisplayQuarter, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -62,6 +63,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
   val displayQuarters: Seq[DisplayQuarter] = Seq(displayQuarterLocked, displayQuarterContinueAmend, displayQuarterViewPast)
 
   val formProvider = new QuartersFormProvider()
+
   def form(quarters: Seq[AFTQuarter]): Form[AFTQuarter] = formProvider(errorKey, quarters)
 
   lazy val httpPathGET: String = controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year).url
@@ -79,8 +81,8 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q22020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
     when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
@@ -140,7 +142,6 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
-
 
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())

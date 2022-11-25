@@ -23,6 +23,7 @@ import matchers.JsonMatchers
 import models.Enumerable
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -65,9 +66,10 @@ class PsaSchemeDashboardPartialsControllerSpec
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockPsaSchemePartialService, mockRenderer)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockPsaSchemePartialService)
+    reset(mockRenderer)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
@@ -98,6 +100,7 @@ class PsaSchemeDashboardPartialsControllerSpec
 
     }
   }
+
   private def aftModel(subHeadings: Seq[CardSubHeading], links: Seq[Link])
                       (implicit messages: Messages): CardViewModel = CardViewModel(
     id = "aft-overview",
@@ -105,6 +108,7 @@ class PsaSchemeDashboardPartialsControllerSpec
     subHeadings = subHeadings,
     links = links
   )
+
   private def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[CardViewModel] =
     Seq(aftModel(Seq(multipleInProgressSubHead()), Seq(multipleInProgressLink, startLink, pastReturnsLink)))
 
@@ -123,8 +127,11 @@ class PsaSchemeDashboardPartialsControllerSpec
     linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
     hiddenText = Some(msg"aftPartial.view.hidden")
   )
+
   private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
+
   private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
+
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
   private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
   private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"

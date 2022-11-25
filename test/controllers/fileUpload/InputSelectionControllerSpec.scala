@@ -27,6 +27,7 @@ import models.fileUpload.InputSelection
 import models.fileUpload.InputSelection.FileUploadInput
 import models.{AccessType, ChargeType, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.fileUpload.InputSelectionPage
 import play.api.Application
@@ -44,10 +45,11 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   private def ua: UserAnswers = userAnswersWithSchemeName
+
   val expectedJson: JsObject = Json.obj()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
@@ -66,7 +68,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val formProvider = new InputSelectionFormProvider
-  private val form:Form[InputSelection] = formProvider()
+  private val form: Form[InputSelection] = formProvider()
   "onPageLoad" must {
     "return OK and the correct view for a GET" in {
 
@@ -83,11 +85,11 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      val jsonToPassToTemplate= Json.obj(
+      val jsonToPassToTemplate = Json.obj(
         "chargeType" -> ChargeType.fileUploadText(chargeType),
         "srn" -> srn,
         "startDate" -> Some("2020-04-01"),
-        "form" -> form ,
+        "form" -> form,
         "radios" -> InputSelection.radios(form),
         "viewModel" -> viewModel(srn, startDate, accessType, versionInt, chargeType)
       )
@@ -159,5 +161,5 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
     schemeName = schemeName
   )
-  
+
 }

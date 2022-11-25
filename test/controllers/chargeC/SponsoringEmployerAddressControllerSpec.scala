@@ -27,8 +27,10 @@ import models.chargeC.SponsoringEmployerAddress
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.{OptionValues, TryValues}
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
 import play.api.data.Form
@@ -103,12 +105,12 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       Json.obj(
         "value" -> "UK",
         "text" -> "country.UK"
-      ) ++ (if(isSelected) Json.obj("selected" -> true) else Json.obj())
+      ) ++ (if (isSelected) Json.obj("selected" -> true) else Json.obj())
     )
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
@@ -219,7 +221,8 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
         )
       )
 
-      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(SponsoringEmployerAddressPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(SponsoringEmployerAddressPage(index)), any(), any(), any(), any(), any(), any())(any()))
+        .thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
 

@@ -26,9 +26,11 @@ import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import models.UserAnswers
 import models.chargeD.ChargeDDetails
-import org.mockito.{Mockito, MockitoSugar}
+import org.mockito.Mockito
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 
@@ -39,7 +41,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
 
   import LifetimeAllowanceParserSpec._
 
-  override def beforeEach: Unit = {
+  override def beforeEach(): Unit = {
     Mockito.reset(mockFrontendAppConfig)
     when(mockFrontendAppConfig.validLifeTimeAllowanceHeader).thenReturn(header)
   }
@@ -65,14 +67,14 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
 
     "return validation error for incorrect header" in {
       val GivingIncorrectHeader = CsvLineSplitter.split("""test""")
-      val result = parser.parse(startDate, GivingIncorrectHeader,UserAnswers())
+      val result = parser.parse(startDate, GivingIncorrectHeader, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
       ))
     }
 
     "return validation error for empty file" in {
-      val result = parser.parse(startDate, Nil,UserAnswers())
+      val result = parser.parse(startDate, Nil, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
       ))
@@ -83,7 +85,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
         s"""$header
                             one,two"""
       )
-      val result = parser.parse(startDate,GivingNotEnoughFields,UserAnswers())
+      val result = parser.parse(startDate, GivingNotEnoughFields, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, NotEnoughFields)
       ))
@@ -95,7 +97,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
                             ,Bloggs,AB123456C,01/04/2020,268.28,0.00
                             Ann,,3456C,01/04/2020,268.28,0.00"""
       )
-      val result = parser.parse(startDate, GivingIncorrectMemberDetails,UserAnswers())
+      val result = parser.parse(startDate, GivingIncorrectMemberDetails, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
@@ -110,10 +112,10 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
                             Ann,Bliggs,AB123457C,01,268.28,0.00"""
       )
 
-      val result = parser.parse(startDate, GivingMissingYearAndMonth,UserAnswers())
+      val result = parser.parse(startDate, GivingMissingYearAndMonth, UserAnswers())
       result mustBe Left(Seq(
-        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent",Seq("year")),
-        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent",Seq("month","year"))
+        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
+        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("month", "year"))
       ))
     }
 
@@ -123,13 +125,13 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
                             ,Bloggs,AB123456C,01/04,268.28,0.00
                             Ann,,3456C,01,268.28,0.00"""
       )
-      val result = parser.parse(startDate, GivingIncorrectMemberDetailsAndChargeDetails,UserAnswers())
+      val result = parser.parse(startDate, GivingIncorrectMemberDetailsAndChargeDetails, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent",Seq("year")),
+        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),
-        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent",Seq("month","year"))
+        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("month", "year"))
       ))
     }
 
@@ -140,10 +142,10 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
                             Joe,Bliggs,AB123457C,01/04/2020,268.28,0.00"""
       )
 
-      val result = parser.parse(startDate, GivingIncorrectMemberDetailsAndChargeDetailsFirstRow,UserAnswers())
+      val result = parser.parse(startDate, GivingIncorrectMemberDetailsAndChargeDetailsFirstRow, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent",Seq("year")),
+        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
       ))
     }
 
@@ -152,7 +154,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
         s"""$header
                             Bloggs,AB123456C,2020268.28,2020-01-01,true"""
       )
-      val result = parser.parse(startDate, GivingNotEnoughFields,UserAnswers())
+      val result = parser.parse(startDate, GivingNotEnoughFields, UserAnswers())
 
       result mustBe Left(Seq(ParserValidationError(1, 0, "Enter all of the information for this member")))
     }

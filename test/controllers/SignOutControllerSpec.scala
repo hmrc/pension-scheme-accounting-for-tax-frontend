@@ -20,6 +20,7 @@ import connectors.cache.SessionDataCacheConnector
 import controllers.base.ControllerSpecBase
 import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito._
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
@@ -34,7 +35,9 @@ class SignOutControllerSpec extends ControllerSpecBase {
 
   private val srn = "srn"
   private val startDate = Some(QUARTER_START_DATE.toString)
+
   private def signOutRoute(startDate: Option[String] = startDate): String = controllers.routes.SignOutController.signOut(srn, startDate).url
+
   private val userAnswers = UserAnswers(Json.obj(
     "test-key" -> "test-value"
   ))

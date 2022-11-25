@@ -26,6 +26,7 @@ import models.chargeD.ChargeDDetails
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.Application
@@ -43,14 +44,16 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeD/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider().apply(QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01"))
+
   private def httpPathGET: String = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url
+
   private def httpPathPOST: String = controllers.chargeD.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
 
-  "dateOfEvent.day" -> Seq(QUARTER_START_DATE.getDayOfMonth.toString),
-  "dateOfEvent.month" -> Seq(QUARTER_START_DATE.getMonthValue.toString),
-  "dateOfEvent.year" -> Seq(QUARTER_START_DATE.getYear.toString),
+    "dateOfEvent.day" -> Seq(QUARTER_START_DATE.getDayOfMonth.toString),
+    "dateOfEvent.month" -> Seq(QUARTER_START_DATE.getMonthValue.toString),
+    "dateOfEvent.year" -> Seq(QUARTER_START_DATE.getYear.toString),
     "taxAt25Percent" -> Seq("33.44"),
     "taxAt55Percent" -> Seq("50.00")
   )
@@ -64,14 +67,14 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
-  "dateOfEvent.day" -> Seq("32"),
-  "dateOfEvent.month" -> Seq("13"),
-  "dateOfEvent.year" -> Seq("2003"),
+    "dateOfEvent.day" -> Seq("32"),
+    "dateOfEvent.month" -> Seq("13"),
+    "dateOfEvent.year" -> Seq("2003"),
     "taxAt25Percent" -> Seq("33.44"),
     "taxAt55Percent" -> Seq("33.44")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeDDetails]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[ChargeDDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeD.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
@@ -81,8 +84,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "memberName" -> "first last"
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)

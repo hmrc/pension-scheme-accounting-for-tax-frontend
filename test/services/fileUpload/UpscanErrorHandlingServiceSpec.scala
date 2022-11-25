@@ -19,11 +19,11 @@ package services.fileUpload
 import base.SpecBase
 import controllers.fileUpload.routes._
 import data.SampleData._
-import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Results.Redirect
 
-class UpscanErrorHandlingServiceSpec extends SpecBase with MockitoSugar with ScalaFutures{
+class UpscanErrorHandlingServiceSpec extends SpecBase with MockitoSugar with ScalaFutures {
 
   private val upscanErrorHandlingService = new UpscanErrorHandlingService
 

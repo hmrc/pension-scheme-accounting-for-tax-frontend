@@ -21,10 +21,11 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.requests.IdentifierRequest
+import models.requests.{DataRequest, IdentifierRequest}
 import models.{ChargeType, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -35,12 +36,14 @@ import utils.AFTConstants.QUARTER_START_DATE
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers{
+class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
 
   private val startDate = LocalDate.parse(QUARTER_START_DATE)
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
   private val application = applicationBuilder(userAnswers = None).build()
+
   private def ua: UserAnswers = userAnswersWithSchemeName
+
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val viewModel = GenericViewModel(
     submitUrl = routes.FileUploadController.onPageLoad(srn, startDate.toString, accessType, versionInt, chargeType).url,
@@ -48,9 +51,10 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport 
     schemeName = schemeName
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockRenderer, mockAppConfig)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRenderer)
+    reset(mockAppConfig)
     when(mockRenderer.render(any(), any())(any()))
       .thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn("")
@@ -105,6 +109,9 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport 
     }
 
     "must return the correct view for a GET invalidHeaderOrBodyError" in {
+
+      when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn("")
+
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val request = FakeRequest(GET, routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate, accessType, versionInt, chargeType).url)
       val application1 = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()

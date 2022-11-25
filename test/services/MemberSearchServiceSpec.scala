@@ -24,9 +24,11 @@ import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{Mockito, MockitoSugar}
+import org.mockito.Mockito
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
@@ -55,7 +57,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
   private implicit val fakeDataRequest: DataRequest[AnyContent] = request()
 
 
-  override def beforeEach: Unit = {
+  override def beforeEach(): Unit = {
     Mockito.reset(deleteChargeHelper)
     when(deleteChargeHelper.isLastCharge(any())).thenReturn(false)
   }

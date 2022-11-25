@@ -27,6 +27,7 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.requests.IdentifierRequest
 import models.{Employer, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeC._
 import play.api.Application
@@ -50,10 +51,13 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val templateToBeRendered = "chargeC/addEmployers.njk"
   private val form = new AddMembersFormProvider()("chargeC.addEmployers.error")
+
   private def httpPathGET: String = controllers.chargeC.routes.AddEmployersController.onPageLoad(srn, startDate, accessType, versionInt).url
-  private def httpPathGETWithPageNo(pageNo:Int): String =
+
+  private def httpPathGETWithPageNo(pageNo: Int): String =
     controllers.chargeC.routes.AddEmployersController.onPageLoadWithPageNo(srn, startDate, accessType, versionInt, pageNo).url
-  private def httpPathPOST(pageNo:Int): String = controllers.chargeC.routes.AddEmployersController.onSubmit(srn, startDate, accessType, versionInt, pageNo).url
+
+  private def httpPathPOST(pageNo: Int): String = controllers.chargeC.routes.AddEmployersController.onSubmit(srn, startDate, accessType, versionInt, pageNo).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -62,6 +66,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
   private val valuesInvalid: Map[String, Seq[String]] = Map.empty
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
   private val cssHalfWidth = "govuk-!-width-one-half"
+
   private def table = Json.obj(
     "firstCellIsHeader" -> false,
     "head" -> Json.arr(
@@ -72,20 +77,20 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     ),
     "rows" -> Json.arr(
       Json.arr(
-        Json.obj("text" -> "first last","classes" -> cssHalfWidth),
-        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)),"classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-        Json.obj("html" -> s"<a class=govuk-link id=employer-0-view href=viewlink1><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View first last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a class=govuk-link id=employer-0-remove href=removelink1><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove first last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "first last", "classes" -> cssHalfWidth),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)), "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
+        Json.obj("html" -> s"<a class=govuk-link id=employer-0-view href=viewlink1><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View first last’s authorised surplus payments charge</span> </a>", "classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a class=govuk-link id=employer-0-remove href=removelink1><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove first last’s authorised surplus payments charge</span> </a>", "classes" -> cssQuarterWidth)
       ),
       Json.arr(
-        Json.obj("text" -> "Joe Bloggs","classes" -> cssHalfWidth),
-        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)),"classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-        Json.obj("html" -> s"<a class=govuk-link id=employer-1-view href=viewlink2><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View Joe Bloggs’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a class=govuk-link id=employer-1-remove href=removelink2><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "Joe Bloggs", "classes" -> cssHalfWidth),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)), "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
+        Json.obj("html" -> s"<a class=govuk-link id=employer-1-view href=viewlink2><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View Joe Bloggs’s authorised surplus payments charge</span> </a>", "classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a class=govuk-link id=employer-1-remove href=removelink2><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s authorised surplus payments charge</span> </a>", "classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Total charge amount for this quarter", "classes" -> "govuk-!-font-weight-bold govuk-table__header--numeric"),
-        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> s"govuk-!-font-weight-bold govuk-table__header--numeric"),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)), "classes" -> s"govuk-!-font-weight-bold govuk-table__header--numeric"),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )
@@ -94,7 +99,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
   )
 
 
-  private def jsonToPassToTemplate(pageNo:Int):Form[Boolean]=>JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(pageNo: Int): Form[Boolean] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeC.routes.AddEmployersController.onSubmit(srn, startDate, accessType, versionInt, pageNo).url,
@@ -123,7 +128,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     Employer(1, "Joe Bloggs", BigDecimal(33.44), "viewlink2", "removelink2")
   )
 
-  private val expectedPaginatedEmployersInfo:Option[PaginatedMembersInfo] =
+  private val expectedPaginatedEmployersInfo: Option[PaginatedMembersInfo] =
     Some(PaginatedMembersInfo(
       itemsForCurrentPage = Right(expectedMembers),
       paginationStats = PaginationStats(
@@ -147,8 +152,8 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
 
   private val dummyPagerNavSeq = Seq(Link(id = s"test-id", url = "test-target", linkText = Literal("test-text"), hiddenText = None))
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockDeleteChargeHelper)
     when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))

@@ -26,6 +26,7 @@ import models.CreditAccessType.AccessedByLoggedInPsaOrPsp
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -48,6 +49,7 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with NunjucksSup
   private val mockMinimalConnector = mock[MinimalConnector]
   private val mockFinancialInfoCreditAccessConnector = mock[FinancialInfoCreditAccessConnector]
   private val dummyURL = "/DUMMY"
+
   private def application: Application = new GuiceApplicationBuilder()
     .overrides(
       Seq[GuiceableModule](
@@ -63,11 +65,14 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with NunjucksSup
     )
     .build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockRenderer, mockAppConfig,
-      mockFinancialStatementConnector, mockService,
-      mockMinimalConnector, mockFinancialInfoCreditAccessConnector)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRenderer)
+    reset(mockAppConfig)
+    reset(mockFinancialStatementConnector)
+    reset(mockService)
+    reset(mockMinimalConnector)
+    reset(mockFinancialInfoCreditAccessConnector)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))

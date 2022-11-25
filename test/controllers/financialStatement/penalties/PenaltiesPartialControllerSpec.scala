@@ -26,6 +26,7 @@ import models.Enumerable
 import models.PenaltiesFilter.All
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -82,9 +83,10 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
     DashboardAftViewModel(subHeadings = subheadings, links = links)
   }
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockFSConnector, mockRenderer)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockFSConnector)
+    reset(mockRenderer)
     when(mockFSConnector.getPsaFS(any())(any(), any()))
       .thenReturn(Future.successful(psaFs))
     when(mockAppConfig.viewPenaltiesUrl).thenReturn(frontendAppConfig.viewPenaltiesUrl)
@@ -114,11 +116,12 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[CardViewModel] =
     Seq(CardViewModel(
-    id = "aft-overdue-charges",
-    heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
-    subHeadings = Seq(subHeadingTotalOutstanding, subHeadingPaymentsOverdue),
-    links = Seq(viewFinancialOverviewLink(), viewAllPaymentsAndChargesLink())
-  ))
+      id = "aft-overdue-charges",
+      heading = messages("pspDashboardOverdueAndUpcomingAftChargesCard.h2"),
+      subHeadings = Seq(subHeadingTotalOutstanding, subHeadingPaymentsOverdue),
+      links = Seq(viewFinancialOverviewLink(), viewAllPaymentsAndChargesLink())
+    ))
+
   private def subHeadingTotalOutstanding: CardSubHeading = CardSubHeading(
     subHeading = messages("pspDashboardOverdueAftChargesCard.outstanding.span"),
     subHeadingClasses = "card-sub-heading",
@@ -127,6 +130,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
       subHeadingParamClasses = "font-large bold"
     ))
   )
+
   private def subHeadingPaymentsOverdue: CardSubHeading = CardSubHeading(
     subHeading = "",
     subHeadingClasses = "govuk-tag govuk-tag--red",
@@ -151,6 +155,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
       linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
       hiddenText = None
     )
+
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
   private val overviewurl: String = s"$aftUrl/financial-overview"
   private val chargesurl: String = s"$aftUrl/view-penalties"

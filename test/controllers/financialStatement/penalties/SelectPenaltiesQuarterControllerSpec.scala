@@ -27,6 +27,7 @@ import models.requests.IdentifierRequest
 import models.{AFTQuarter, DisplayQuarter, Enumerable, PaymentOverdue, Quarters}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -77,8 +78,8 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q32020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)

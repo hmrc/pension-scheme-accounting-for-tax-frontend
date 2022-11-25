@@ -22,12 +22,13 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, PaymentOverdue}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
+import models.{Enumerable, PaymentOverdue}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -77,8 +78,8 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(AccountingForTaxCharges.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("value" -> Seq("false"))
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)

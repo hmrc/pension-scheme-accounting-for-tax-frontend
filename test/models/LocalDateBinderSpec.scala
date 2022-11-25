@@ -17,10 +17,11 @@
 package models
 
 import org.mockito.ArgumentMatchers.any
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.PathBindable
 
 import java.time.LocalDate
@@ -46,7 +47,7 @@ class LocalDateBinderSpec extends AnyWordSpec with Matchers with MockitoSugar wi
     }
 
     "on unbind" must {
-      "unbind a valid date to string" in{
+      "unbind a valid date to string" in {
         when(mockStringBinder.unbind(any(), any())).thenReturn("2020-01-12")
         localDateBinder.unbind("date", localDate) mustBe "2020-01-12"
       }

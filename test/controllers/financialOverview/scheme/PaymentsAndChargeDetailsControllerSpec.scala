@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-/*
- * Copyright 2022 HM Revenue & Customs
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package controllers.financialOverview.scheme
 
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
@@ -44,6 +28,7 @@ import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RET
 import models.financialStatement._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest._
 import play.api.Application
 import play.api.inject.bind
@@ -66,13 +51,16 @@ class PaymentsAndChargeDetailsControllerSpec
     with BeforeAndAfterEach
     with RecoverMethods {
 
+  //scalastyle.off: magic.number
+
   import PaymentsAndChargeDetailsControllerSpec._
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
-    routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges,
-      Some(versionInt), Some(submittedDate), Overdue).url
+    routes.PaymentsAndChargeDetailsController
+      .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+      .url
 
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
@@ -86,15 +74,22 @@ class PaymentsAndChargeDetailsControllerSpec
     )
     .build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockRenderer, mockPaymentsAndChargesService)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRenderer)
+    reset(mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(), any()))
       .thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
     when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any(), any(), any()))
       .thenReturn(Nil)
+    when(mockPaymentsAndChargesService.setPeriod(any(), any(), any()))
+      .thenReturn("")
+    when(mockPaymentsAndChargesService.getReturnLinkBasedOnJourney(any(), any())(any()))
+      .thenReturn("")
+    when(mockPaymentsAndChargesService.getReturnUrl(any(), any(), any(), any(), any(), any()))
+      .thenReturn("")
     when(mockRenderer.render(any(), any())(any()))
       .thenReturn(Future.successful(play.twirl.api.Html("")))
   }
@@ -102,23 +97,23 @@ class PaymentsAndChargeDetailsControllerSpec
   private def insetTextWithAmountDueAndInterest(schemeFSDetail: SchemeFSDetail): uk.gov.hmrc.viewmodels.Html = {
     uk.gov.hmrc.viewmodels.Html(
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
-        s"<p class=govuk-body>${
-          messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")
-        }" +
+        s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
         s" <span class=govuk-!-font-weight-bold>${
           messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
             schemeFSDetail.accruedInterestTotal)
         }</span>" +
         s" <span>${
-          messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3",
-            schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))
+          messages(
+            "financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3",
+            schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY)
+          )
         }<span>" +
         s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=${
-          routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get,
-            "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue).url
+          routes.PaymentsAndChargesInterestController
+            .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+            .url
         }>" +
         s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
-
     )
   }
 
@@ -127,7 +122,8 @@ class PaymentsAndChargeDetailsControllerSpec
       s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2", schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
         s"<p class=govuk-body><a id='breakdown' class=govuk-link href=${
           routes.PaymentsAndChargeDetailsController
-            .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), All).url
+            .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), All)
+            .url
         }>" +
         s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
     )
@@ -165,8 +161,7 @@ class PaymentsAndChargeDetailsControllerSpec
         .thenReturn(Future.successful(paymentsCache(Seq(
           createChargeWithAmountDueAndInterest(index = 1, "XY002610150183", amountDue = 1234.00),
           createChargeWithAmountDueAndInterest(index = 2, "XY002610150184", amountDue = 1234.00)
-        ))
-        ))
+        ))))
 
       val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150184", amountDue = 1234.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -189,9 +184,7 @@ class PaymentsAndChargeDetailsControllerSpec
         .thenReturn(Future.successful(paymentsCache(Seq(
           createChargeWithAmountDueAndInterestPayment(index = 1, "XY002610150188", interest = BigDecimal(0.00)),
           createChargeWithAmountDueAndInterestPayment(index = 2, "XY002610150189", interest = BigDecimal(0.00))
-        )
-        )
-        ))
+        ))))
 
       val schemeFSDetail = createChargeWithAmountDueAndInterestPayment(
         index = 1,
@@ -230,12 +223,13 @@ class PaymentsAndChargeDetailsControllerSpec
       )
 
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(paymentsCache(Seq(
-          createChargeWithAmountDueAndInterest(index = 1, "XY002610150183", amountDue = 1234.00),
-          schemeFSDetail
-        ))
-        ))
-
+        .thenReturn(
+          Future.successful(
+            paymentsCache(
+              Seq(
+                createChargeWithAmountDueAndInterest(index = 1, "XY002610150183", amountDue = 1234.00),
+                schemeFSDetail
+              ))))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -254,11 +248,7 @@ class PaymentsAndChargeDetailsControllerSpec
 
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest(
-          index = 1,
-          "XY002610150187", interest = 0.00))
-        )
-        ))
+        .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest(index = 1, "XY002610150187", interest = 0.00)))))
       val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150187", interest = 0.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -274,9 +264,7 @@ class PaymentsAndChargeDetailsControllerSpec
 
     "catch IndexOutOfBoundsException" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest(index = 1, "XY002610150185"))
-        )
-        ))
+        .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest(index = 1, "XY002610150185")))))
 
       val result = route(application, httpGETRequest(httpPathGET(index = "2"))).value
 
@@ -312,8 +300,7 @@ object PaymentsAndChargeDetailsControllerSpec {
                                                    chargeReference: String,
                                                    chargeType: SchemeFSChargeType = PSS_AFT_RETURN,
                                                    amountDue: BigDecimal = 0.00,
-                                                   interest: BigDecimal = 123.00
-                                                  ): SchemeFSDetail = {
+                                                   interest: BigDecimal = 123.00): SchemeFSDetail = {
     SchemeFSDetail(
       index = index,
       chargeReference = chargeReference,
@@ -341,8 +328,7 @@ object PaymentsAndChargeDetailsControllerSpec {
                                                     sourceChargeInfo: Option[SchemeSourceChargeInfo],
                                                     chargeType: SchemeFSChargeType = PSS_AFT_RETURN_INTEREST,
                                                     amountDue: BigDecimal,
-                                                    interest: BigDecimal = 123.00
-                                                   ): SchemeFSDetail = {
+                                                    interest: BigDecimal = 123.00): SchemeFSDetail = {
     SchemeFSDetail(
       index = index,
       chargeReference = chargeReference,
@@ -367,8 +353,7 @@ object PaymentsAndChargeDetailsControllerSpec {
   private def createChargeWithAmountDueAndInterestPayment(index: Int,
                                                           chargeReference: String,
                                                           amountDue: BigDecimal = 0.00,
-                                                          interest: BigDecimal
-                                                         ): SchemeFSDetail = {
+                                                          interest: BigDecimal): SchemeFSDetail = {
     SchemeFSDetail(
       index = index,
       chargeReference = chargeReference,
@@ -386,11 +371,13 @@ object PaymentsAndChargeDetailsControllerSpec {
       receiptDate = None,
       sourceChargeRefForInterest = None,
       sourceChargeInfo = None,
-      documentLineItemDetails = Seq(DocumentLineItemDetail(
-        clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
-        clearingDate = Some(LocalDate.parse("2020-06-30")),
-        paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
-        clearedAmountItem = BigDecimal(0.00)))
+      documentLineItemDetails = Seq(
+        DocumentLineItemDetail(
+          clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+          clearingDate = Some(LocalDate.parse("2020-06-30")),
+          paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
+          clearedAmountItem = BigDecimal(0.00)
+        ))
     )
   }
 

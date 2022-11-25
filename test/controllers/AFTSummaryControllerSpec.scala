@@ -27,6 +27,7 @@ import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{AFTQuarter, AccessMode, GenericViewModel, MemberDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import pages._
@@ -73,9 +74,13 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-  override def beforeEach: Unit = {
+  override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockMemberSearchService)
+    reset(mockUserAnswersCacheConnector)
+    reset(mockRenderer)
+    reset(mockAFTService)
+    reset(mockAppConfig)
+    reset(mockMemberSearchService)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(TwirlHtml("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
@@ -84,7 +89,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(emptyHtml)
   }
 
-  private def jsonToPassToTemplate(version: Option[String], includeReturnHistoryLink: Boolean, isAmendment:Boolean): Form[Boolean] => JsObject = { form =>
+  private def jsonToPassToTemplate(version: Option[String], includeReturnHistoryLink: Boolean, isAmendment: Boolean): Form[Boolean] => JsObject = { form =>
     val returnHistoryJson = if (includeReturnHistoryLink) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
     } else {
@@ -195,7 +200,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "calling onSubmit" when {
       "redirect to next page when user selects yes" in {
-        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any()))
+          .thenReturn(SampleData.dummyCall)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
         fakeDataSetupAction.setDataToReturn(userAnswers)
@@ -212,7 +218,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       "redirect to next page when user selects no" in {
         when(mockAFTService.isSubmissionDisabled(any())).thenReturn(false)
-        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any()))
+          .thenReturn(SampleData.dummyCall)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
         fakeDataSetupAction.setDataToReturn(userAnswers)
@@ -296,7 +303,7 @@ object AFTSummaryControllerSpec {
 
   private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url
 
-  private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount: BigDecimal, index: Int = 0)(implicit messages:Messages) = Seq(
+  private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount: BigDecimal, index: Int = 0)(implicit messages: Messages) = Seq(
     MemberRow(
       memberDetails.fullName,
       Seq(
@@ -311,7 +318,7 @@ object AFTSummaryControllerSpec {
         Row(
           Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
           Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-                classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         )
       ),
       Seq(

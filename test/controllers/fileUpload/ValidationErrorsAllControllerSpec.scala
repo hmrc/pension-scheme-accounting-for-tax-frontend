@@ -28,6 +28,7 @@ import models.requests.IdentifierRequest
 import models.{ChargeType, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -43,9 +44,11 @@ class ValidationErrorsAllControllerSpec extends ControllerSpecBase with Nunjucks
 
   private val templateToBeRendered = "fileUpload/invalid.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
+
   private def httpPathGET: String = controllers.fileUpload.routes.ValidationErrorsAllController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
 
   private def fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
+
   private def returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, versionInt).url
 
   private val errorsJson = Json.obj("test" -> "test")
@@ -67,10 +70,10 @@ class ValidationErrorsAllControllerSpec extends ControllerSpecBase with Nunjucks
   )
 
 
-
   private def application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  override def beforeEach: Unit = {
-    super.beforeEach
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))

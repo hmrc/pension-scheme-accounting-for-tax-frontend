@@ -25,9 +25,11 @@ import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{OptionValues, TryValues}
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeD.MemberDetailsPage
 import pages.chargeF.DeleteChargePage
 import play.api.Application
@@ -55,7 +57,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private def onwardRoute: Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt)
 
   private val formProvider = new DeleteFormProvider()
-  private val form: Form[Boolean] = formProvider(messages("deleteCharge.error.required",  messages("chargeF").toLowerCase()))
+  private val form: Form[Boolean] = formProvider(messages("deleteCharge.error.required", messages("chargeF").toLowerCase()))
 
   private def httpPathGET: String = routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, versionInt).url
 

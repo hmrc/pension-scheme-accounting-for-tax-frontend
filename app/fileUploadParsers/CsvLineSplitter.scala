@@ -16,13 +16,10 @@
 
 package fileUploadParsers
 
-
 import com.univocity.parsers.csv.{CsvParser, CsvParserSettings}
+
 import java.io._
-import scala.collection.JavaConverters._
-
-
-
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 object CsvLineSplitter {
 
@@ -31,7 +28,7 @@ object CsvLineSplitter {
     settings.setNullValue("")
     settings.setEmptyValue("")
     val parser = new CsvParser(settings)
-    removeNonPrintableChars( parser.parseAll(new StringReader(content)).asScala)
+    removeNonPrintableChars(parser.parseAll(new StringReader(content)).asScala.toSeq)
   }
 
   //removes non-printable characters like ^M$
@@ -43,4 +40,3 @@ object CsvLineSplitter {
     }
   }
 }
-

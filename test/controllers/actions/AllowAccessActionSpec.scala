@@ -27,6 +27,7 @@ import models.requests.{DataRequest, IdentifierRequest}
 import models.{AccessMode, LockDetail, MinimalFlags, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.mvc.Results._
@@ -48,28 +49,30 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
   private val pensionsSchemeConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
   private val sessionId = "1"
   private val optionLockedByName = Some(LockDetail("bob", psaId))
-  private def sessionData(sad:SessionAccessData) = SessionData(sessionId, optionLockedByName, sad)
+
+  private def sessionData(sad: SessionAccessData) = SessionData(sessionId, optionLockedByName, sad)
+
   private val sessionAccessDataViewOnly: SessionAccessData =
     SessionAccessData(version = version, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = false)
   private val email = "a@a.c"
 
-  private def dataRequest(ua:UserAnswers, viewOnly:Boolean = false, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {
-    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
+  private def dataRequest(ua: UserAnswers, viewOnly: Boolean = false, headers: Seq[(String, String)] = Seq.empty): DataRequest[AnyContent] = {
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers: _*)
     DataRequest(request, "", Some(PsaId(psaId)), None, ua, sessionData(sessionAccessDataViewOnly))
   }
 
-  private def identifierRequest(headers: Seq[(String,String)] = Seq.empty): IdentifierRequest[AnyContent] = {
-    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
+  private def identifierRequest(headers: Seq[(String, String)] = Seq.empty): IdentifierRequest[AnyContent] = {
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers: _*)
     IdentifierRequest("id", request, Some(PsaId(psaId)), None)
   }
 
-  private def identifierRequestPsp(headers: Seq[(String,String)] = Seq.empty): IdentifierRequest[AnyContent] = {
-    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
+  private def identifierRequestPsp(headers: Seq[(String, String)] = Seq.empty): IdentifierRequest[AnyContent] = {
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers: _*)
     IdentifierRequest("id", request, None, Some(PspId(pspId)))
   }
 
-  private def dataRequestPsp(ua:UserAnswers, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {
-    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
+  private def dataRequestPsp(ua: UserAnswers, headers: Seq[(String, String)] = Seq.empty): DataRequest[AnyContent] = {
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers: _*)
     DataRequest(request, "", None, Some(PspId(pspId)), ua, sessionData(sessionAccessDataViewOnly))
   }
 
@@ -84,8 +87,10 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     def test(identifierRequest: IdentifierRequest[_]): Future[Option[Result]] = this.filter(identifierRequest)
   }
 
-  override def beforeEach: Unit = {
-    reset(pensionsSchemeConnector, errorHandler, mockMinimalConnector)
+  override def beforeEach(): Unit = {
+    reset(pensionsSchemeConnector)
+    reset(errorHandler)
+    reset(mockMinimalConnector)
     when(aftConnector.aftOverviewStartDate).thenReturn(QUARTER_START_DATE)
   }
 

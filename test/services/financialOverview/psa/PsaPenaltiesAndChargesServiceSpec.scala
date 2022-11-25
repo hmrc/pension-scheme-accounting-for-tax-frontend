@@ -30,9 +30,10 @@ import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
 import models.{ChargeDetailsFilter, SchemeDetails}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import services.PenaltiesServiceSpec.dateNow
 import services.SchemeService
@@ -63,12 +64,12 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
   private val psaPenaltiesAndChargesService = new PsaPenaltiesAndChargesService(fsConnector = mockFSConnector,
     financialInfoCacheConnector = mockFinancialInfoCacheConnector, schemeService = mockSchemeService, minimalConnector = mockMinimalConnector)
 
-  private def htmlChargeType( penaltyType: String,
-                              chargeReference: String,
-                              redirectUrl: String,
-                              visuallyHiddenText: String,
-                              schemeName: String,
-                              pstr: String
+  private def htmlChargeType(penaltyType: String,
+                             chargeReference: String,
+                             redirectUrl: String,
+                             visuallyHiddenText: String,
+                             schemeName: String,
+                             pstr: String
                             ) = {
     val linkId =
       chargeReference match {
@@ -89,14 +90,14 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
   }
 
   private val tableHead = Seq(
-      Cell(msg"psa.financial.overview.penalty", classes = Seq("govuk-!-width-one-half")),
-      Cell(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-font-weight-bold")),
-      Cell(msg"psa.financial.overview.payment.amount", classes = Seq("govuk-!-font-weight-bold")),
-      Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold")),
-      Cell(Html(
-        s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
-      ))
-    )
+    Cell(msg"psa.financial.overview.penalty", classes = Seq("govuk-!-width-one-half").toSeq),
+    Cell(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-font-weight-bold").toSeq),
+    Cell(msg"psa.financial.overview.payment.amount", classes = Seq("govuk-!-font-weight-bold").toSeq),
+    Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold").toSeq),
+    Cell(Html(
+      s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
+    ))
+  )
 
   private def row(penaltyType: String,
                   chargeReference: String,
@@ -119,20 +120,20 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
     }
 
     Seq(
-      Cell(htmlChargeType(penaltyType, chargeReference, redirectUrl, visuallyHiddenText, schemeName, pstr), classes = Seq("govuk-!-width-one-half")),
-      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(Literal(penaltyAmount), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(Literal(paymentDue), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(htmlChargeType(penaltyType, chargeReference, redirectUrl, visuallyHiddenText, schemeName, pstr), classes = Seq("govuk-!-width-one-half").toSeq),
+      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter").toSeq),
+      Cell(Literal(penaltyAmount), classes = Seq("govuk-!-width-one-quarter").toSeq),
+      Cell(Literal(paymentDue), classes = Seq("govuk-!-width-one-quarter").toSeq),
       Cell(statusHtml)
     )
   }
 
 
   private def penaltiesTable(rows: Seq[Seq[Table.Cell]]): Table =
-    Table(head = tableHead, rows = rows)
+    Table(head = tableHead.toSeq, rows = rows.map(_.toSeq).toSeq)
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
 
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
@@ -253,7 +254,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
 object PsaPenaltiesAndChargesServiceSpec {
 
-  private val psaSourceChargeInfo : PsaSourceChargeInfo = PsaSourceChargeInfo(
+  private val psaSourceChargeInfo: PsaSourceChargeInfo = PsaSourceChargeInfo(
     index = 1,
     chargeType = CONTRACT_SETTLEMENT,
     periodStartDate = LocalDate.parse("2020-04-01"),
@@ -267,26 +268,26 @@ object PsaPenaltiesAndChargesServiceSpec {
              outStandingAmount: BigDecimal = BigDecimal(56049.08),
              stoodOverAmount: BigDecimal = BigDecimal(25089.08)
            ): PsaFSDetail =
-    PsaFSDetail( 0, "XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
+    PsaFSDetail(0, "XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
       accruedInterestTotal = 0.00, dateNow, dateNow, pstr, None, None, Seq(DocumentLineItemDetail(
         clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
-        clearedAmountItem = BigDecimal(100.00))))
+        clearedAmountItem = BigDecimal(100.00))).toSeq)
 
   def psaFS2(
-             amountDue: BigDecimal = BigDecimal(1029.05),
-             dueDate: Option[LocalDate] = Some(LocalDate.parse("2022-03-18")),
-             totalAmount: BigDecimal = BigDecimal(80000.00),
-             outStandingAmount: BigDecimal = BigDecimal(56049.08),
-             stoodOverAmount: BigDecimal = BigDecimal(25089.08)
-           ): PsaFSDetail =
-    PsaFSDetail( 0, "XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
+              amountDue: BigDecimal = BigDecimal(1029.05),
+              dueDate: Option[LocalDate] = Some(LocalDate.parse("2022-03-18")),
+              totalAmount: BigDecimal = BigDecimal(80000.00),
+              outStandingAmount: BigDecimal = BigDecimal(56049.08),
+              stoodOverAmount: BigDecimal = BigDecimal(25089.08)
+            ): PsaFSDetail =
+    PsaFSDetail(0, "XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount,
       accruedInterestTotal = 0.00, dateNow, dateNow, pstr, None, None, Seq(DocumentLineItemDetail(
         clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         paymDateOrCredDueDate = None,
-        clearedAmountItem = BigDecimal(100.00))))
+        clearedAmountItem = BigDecimal(100.00))).toSeq)
 
 
   def createPsaFSCharge(chargeReference: String): PsaFSDetail =
@@ -309,7 +310,7 @@ object PsaPenaltiesAndChargesServiceSpec {
         clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
-        clearedAmountItem = BigDecimal(0.00)))
+        clearedAmountItem = BigDecimal(0.00))).toSeq
     )
 
   def psaFSResponse(amountDue: BigDecimal = BigDecimal(0.01), dueDate: LocalDate = dateNow): Seq[PsaFSDetail] = Seq(
@@ -329,10 +330,10 @@ object PsaPenaltiesAndChargesServiceSpec {
       sourceChargeRefForInterest = None,
       psaSourceChargeInfo = None,
       documentLineItemDetails = Seq(DocumentLineItemDetail(
-        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
-        clearedAmountItem = BigDecimal(0.00)))
+        clearedAmountItem = BigDecimal(0.00))).toSeq
     ),
     PsaFSDetail(
       index = 2,
@@ -350,10 +351,10 @@ object PsaPenaltiesAndChargesServiceSpec {
       sourceChargeRefForInterest = None,
       psaSourceChargeInfo = Some(psaSourceChargeInfo),
       documentLineItemDetails = Seq(DocumentLineItemDetail(
-        clearingReason= Some(FSClearingReason.CLEARED_WITH_PAYMENT),
+        clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT),
         clearingDate = Some(LocalDate.parse("2020-06-30")),
         paymDateOrCredDueDate = Some(LocalDate.parse("2020-04-24")),
-        clearedAmountItem = BigDecimal(0.00)))
+        clearedAmountItem = BigDecimal(0.00))).toSeq
     )
   )
 
@@ -379,19 +380,19 @@ object PsaPenaltiesAndChargesServiceSpec {
       documentLineItemDetails = Nil
     )
   )
-  val psaFs: PsaFS = PsaFS (inhibitRefundSignal = false, psaFsSeq)
+  val psaFs: PsaFS = PsaFS(inhibitRefundSignal = false, psaFsSeq.toSeq)
 
   private def chargeReferenceRow: Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(
           content = msg"psa.financial.overview.charge.reference",
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
         ),
         value = Value(
           content = Literal("XY002610150184"),
           classes =
-            Seq("govuk-!-width-one-quarter")
+            Seq("govuk-!-width-one-quarter").toSeq
         ),
         actions = Nil
       ))
@@ -402,12 +403,12 @@ object PsaPenaltiesAndChargesServiceSpec {
       Row(
         key = Key(
           content = msg"psa.financial.overview.penaltyAmount",
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
         ),
         value = Value(
           content = Literal(s"${formatCurrencyAmountAsString(80000.00)}"),
           classes =
-            Seq("govuk-!-width-one-quarter")
+            Seq("govuk-!-width-one-quarter").toSeq
         ),
         actions = Nil
       ))
@@ -418,11 +419,11 @@ object PsaPenaltiesAndChargesServiceSpec {
       Row(
         key = Key(
           content = msg"financialPaymentsAndCharges.paymentDue.overdue.dueDate".withArgs(LocalDate.parse("2022-03-18").format(dateFormatterDMY)),
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
         ),
         value = Value(
           Literal(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"),
-          classes = Seq("govuk-!-width-one-quarter","govuk-!-font-weight-bold")
+          classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold").toSeq
         ),
         actions = Nil
       ))
@@ -433,26 +434,26 @@ object PsaPenaltiesAndChargesServiceSpec {
       Row(
         key = Key(
           content = msg"paymentsAndCharges.chargeDetails.stoodOverAmount",
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
         ),
         value = Value(
           content = Literal(s"-${formatCurrencyAmountAsString(25089.08)}"),
-          classes = Seq("govuk-!-width-one-quarter")
+          classes = Seq("govuk-!-width-one-quarter").toSeq
         ),
         actions = Nil
       ))
   }
 
-  private def clearingDetailsRow(date:String): Seq[SummaryList.Row] = {
+  private def clearingDetailsRow(date: String): Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(
           content = msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(LocalDate.parse(date))),
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
         ),
         value = Value(
           content = Literal(s"-${formatCurrencyAmountAsString(100)}"),
-          classes = Seq("govuk-!-width-one-quarter")
+          classes = Seq("govuk-!-width-one-quarter").toSeq
         ),
         actions = Nil
       ))

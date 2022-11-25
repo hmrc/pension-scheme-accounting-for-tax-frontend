@@ -28,8 +28,10 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, SponsoringEmployerType, TolerantAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.{OptionValues, TryValues}
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
 import play.api.data.Form
@@ -43,7 +45,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 class SponsoringEmployerAddressSearchControllerSpec
-    extends ControllerSpecBase
+  extends ControllerSpecBase
     with MockitoSugar
     with NunjucksSupport
     with JsonMatchers
@@ -89,17 +91,18 @@ class SponsoringEmployerAddressSearchControllerSpec
       Json.obj(
         "form" -> form,
         "viewModel" -> GenericViewModel(
-          submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url,
+          submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressSearchController
+            .onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
           schemeName = schemeName
         ),
         "sponsorName" -> sponsorName,
         "employerType" -> Messages(s"chargeC.employerType.${sponsorType.toString}"),
         "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url
-    )
+      )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockAuditService)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
@@ -167,7 +170,8 @@ class SponsoringEmployerAddressSearchControllerSpec
         SponsoringEmployerAddressSearchPage.toString -> seqAddresses
       )
 
-      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(SponsoringEmployerAddressSearchPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(SponsoringEmployerAddressSearchPage(index)), any(), any(), any(), any(), any(), any())(any()))
+        .thenReturn(dummyCall)
       when(mockAddressLookupConnector.addressLookupByPostCode(any())(any(), any())).thenReturn(Future.successful(seqAddresses))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)

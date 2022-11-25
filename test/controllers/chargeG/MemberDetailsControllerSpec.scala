@@ -26,6 +26,7 @@ import models.chargeG.MemberDetails
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeG.MemberDetailsPage
 import play.api.Application
@@ -50,7 +51,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private lazy val httpPathPOST: String =
     controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url
 
-  private val jsonToPassToTemplate: Form[MemberDetails]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
@@ -71,16 +72,16 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val expectedJson: JsObject = Json.obj(
     "pstr" -> "pstr",
     "chargeGDetails" -> Json.obj(
-    "members" -> Json.arr(
-      Json.obj(
-        "memberDetails" -> Json.obj(
-          "firstName" -> "first",
-          "lastName" -> "last",
-          "dob" -> "2019-04-03",
-          "nino" -> "AB123456C"
+      "members" -> Json.arr(
+        Json.obj(
+          "memberDetails" -> Json.obj(
+            "firstName" -> "first",
+            "lastName" -> "last",
+            "dob" -> "2019-04-03",
+            "nino" -> "AB123456C"
+          )
         )
-      )
-    )),
+      )),
     "schemeName" -> "Big Scheme"
   )
 
@@ -93,8 +94,8 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "nino" -> Seq("***")
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)

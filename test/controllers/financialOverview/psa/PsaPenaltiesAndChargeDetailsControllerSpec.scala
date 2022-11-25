@@ -28,6 +28,7 @@ import models.financialStatement.PsaFSDetail
 import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -37,7 +38,6 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
-import services.financialOverview.psa.PenaltiesCache
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
@@ -87,10 +87,11 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
   val isOverdue: PsaFSDetail => Boolean = _ => true
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockPsaPenaltiesAndChargesService, mockRenderer)
-    when(mockPsaPenaltiesAndChargesService.chargeDetailsRows(any(),any())).thenReturn(rows)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockPsaPenaltiesAndChargesService)
+    reset(mockRenderer)
+    when(mockPsaPenaltiesAndChargesService.chargeDetailsRows(any(), any())).thenReturn(rows)
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
@@ -105,7 +106,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
       "render the correct view with penalty details for associated" in {
 
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
+        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -125,7 +126,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
       }
 
       "catch IndexOutOfBoundsException" in {
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
+        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
         val result = route(application, httpGETRequest(httpPathGETAssociated("5"))).value
 
@@ -157,7 +158,7 @@ object PsaPenaltiesAndChargeDetailsControllerSpec {
     ),
     Row(
       key = Key(msg"financialPaymentsAndCharges.paymentDue.overdue.dueDate".withArgs("15 July 2020"),
-        classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
+        classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
       value = Value(Literal("£1029.05"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
     )
   )

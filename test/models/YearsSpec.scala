@@ -18,9 +18,10 @@ package models
 
 import config.FrontendAppConfig
 import forms.mappings.Mappings
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.data.Form
 import play.api.libs.json.{JsString, Json}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -45,7 +46,7 @@ class YearsSpec extends AnyFreeSpec with Matchers with MockitoSugar {
   private val minYear = 2018
 
   //scalastyle.off: magic.number
-  private def setDate():Unit =
+  private def setDate(): Unit =
     DateHelper.setDate(Some(LocalDate.of(2020, 12, 12)))
 
   "writes" - {
@@ -82,7 +83,7 @@ class YearsSpec extends AnyFreeSpec with Matchers with MockitoSugar {
 
   "AmendYears.values" - {
     "must return Seq of years in reverse order" in {
-      val years = Seq(1,2,3)
+      val years = Seq(1, 2, 3)
       val expectedResult = Seq(Year(3), Year(2), Year(1))
       AmendYears.values(years) mustBe expectedResult
     }
@@ -90,7 +91,7 @@ class YearsSpec extends AnyFreeSpec with Matchers with MockitoSugar {
 
   "AmendYears.radios" - {
     "must return Seq of radio items" in {
-      val years = Seq(1,2)
+      val years = Seq(1, 2)
       val expectedResult = Seq(Radios.Item("value", Literal("2"), "2", false), Radios.Item("value_1", Literal("1"), "1", false))
       AmendYears.radios(form, years) mustBe expectedResult
     }

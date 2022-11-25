@@ -23,9 +23,11 @@ import data.SampleData._
 import models.requests.{DataRequest, OptionalDataRequest}
 import models.{AccessMode, JourneyType, LockDetail, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, ArgumentMatchers, MockitoSugar}
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import pages.AFTStatusQuery
 import play.api.mvc.{AnyContentAsEmpty, Results}
 import uk.gov.hmrc.domain.PsaId
@@ -53,8 +55,8 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private def dataRequest(ua: UserAnswers): DataRequest[AnyContentAsEmpty.type] =
     DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, ua, sessionData)
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockAFTConnector)
   }
 

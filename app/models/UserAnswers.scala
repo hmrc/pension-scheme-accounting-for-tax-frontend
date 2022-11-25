@@ -37,7 +37,7 @@ final case class UserAnswers(
   def getAllMembersInCharge[A](charge: String)(implicit rds: Reads[A]): Seq[A] =
     (data \ charge \ "members" \\ "memberDetails").map { member =>
       validate[A](member)
-    }
+    }.toSeq
 
   private def validate[A](jsValue: JsValue)(implicit rds: Reads[A]): A = {
     jsValue.validate[A].fold(

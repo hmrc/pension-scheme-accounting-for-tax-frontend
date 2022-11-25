@@ -29,7 +29,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 sealed trait CallbackBody {
-  def reference : Reference
+  def reference: Reference
 }
 
 case class ReadyCallbackBody(
@@ -47,39 +47,38 @@ object CallbackBody {
   // must be in scope to create Reads for ReadyCallbackBody
   private implicit val urlFormat: Format[URL] = HttpUrlFormat.format
 
-  implicit val uploadDetailsReads = Json.reads[UploadDetails]
+  implicit val uploadDetailsReads: Reads[UploadDetails] = Json.reads[UploadDetails]
 
-  implicit val errorDetailsReads = Json.reads[ErrorDetails]
+  implicit val errorDetailsReads: Reads[ErrorDetails] = Json.reads[ErrorDetails]
 
-  implicit val readyCallbackBodyReads = Json.reads[ReadyCallbackBody]
+  implicit val readyCallbackBodyReads: Reads[ReadyCallbackBody] = Json.reads[ReadyCallbackBody]
 
-  implicit val failedCallbackBodyReads = Json.reads[FailedCallbackBody]
+  implicit val failedCallbackBodyReads: Reads[FailedCallbackBody] = Json.reads[FailedCallbackBody]
 
-  implicit val reads = new Reads[CallbackBody] {
-    override def reads(json: JsValue): JsResult[CallbackBody] = json \ "fileStatus" match {
-      case JsDefined(JsString("READY")) => implicitly[Reads[ReadyCallbackBody]].reads(json)
-      case JsDefined(JsString("FAILED")) => implicitly[Reads[FailedCallbackBody]].reads(json)
-      case JsDefined(value) => JsError(s"Invalid type distriminator: $value")
-      case JsUndefined() => JsError(s"Missing type distriminator")
-    }
+  implicit val reads: Reads[CallbackBody] = (json: JsValue) => json \ "fileStatus" match {
+    case JsDefined(JsString("READY")) => implicitly[Reads[ReadyCallbackBody]].reads(json)
+    case JsDefined(JsString("FAILED")) => implicitly[Reads[FailedCallbackBody]].reads(json)
+    case JsDefined(value) => JsError(s"Invalid type distriminator: $value")
+    case JsUndefined() => JsError(s"Missing type distriminator")
+    case _ => JsError(s"Missing type distriminator")
   }
 }
 
 case class UploadDetails(uploadTimestamp: Instant,
-  checksum: String,
-  fileMimeType: String,
-  fileName: String,
-  size: Long)
+                         checksum: String,
+                         fileMimeType: String,
+                         fileName: String,
+                         size: Long)
 
 case class ErrorDetails(failureReason: String, message: String)
 
 @Singleton
 class UploadCallbackController @Inject()(
-  upscanCallbackDispatcher : UpscanCallbackDispatcher,
-  mcc: MessagesControllerComponents)
- (implicit ec : ExecutionContext) extends FrontendController(mcc) {
+                                          upscanCallbackDispatcher: UpscanCallbackDispatcher,
+                                          mcc: MessagesControllerComponents)
+                                        (implicit ec: ExecutionContext) extends FrontendController(mcc) {
 
-  def callback = Action.async(parse.json) { implicit request =>
+  def callback: Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[CallbackBody] { feedback: CallbackBody =>
       upscanCallbackDispatcher.handleCallback(feedback).map(_ => Ok)
     }

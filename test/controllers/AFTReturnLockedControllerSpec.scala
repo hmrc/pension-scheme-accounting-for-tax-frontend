@@ -21,9 +21,11 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{SchemeDetails, UserAnswers}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentCaptor, MockitoSugar}
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
+import org.scalatestplus.mockito.MockitoSugar
 import pages.SchemeNameQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -40,7 +42,7 @@ import scala.concurrent.Future
 
 class AFTReturnLockedControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
   with JsonMatchers with OptionValues with TryValues {
- private val srn = "test-srn"
+  private val srn = "test-srn"
   val startDate = QUARTER_START_DATE
 
   private val mockSchemeService = mock[SchemeService]
@@ -52,7 +54,9 @@ class AFTReturnLockedControllerSpec extends ControllerSpecBase with MockitoSugar
 
 
   private val data = UserAnswers().set(SchemeNameQuery, schemeName).toOption
+
   private def getRoute: String = routes.AFTReturnLockedController.onPageLoad(srn, startDate).url
+
   private def onClickRoute: String = routes.AFTReturnLockedController.onClick(srn, startDate).url
 
   "AFT return locked controller" must {

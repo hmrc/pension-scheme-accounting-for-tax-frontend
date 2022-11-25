@@ -28,6 +28,7 @@ import models.financialStatement.PsaFSDetail
 import models.{Enumerable, SchemeDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -37,7 +38,6 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
-import services.financialOverview.psa.PenaltiesCache
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
@@ -85,9 +85,10 @@ class PsaPaymentsAndChargesInterestControllerSpec
 
   val isOverdue: PsaFSDetail => Boolean = _ => true
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockPsaPenaltiesAndChargesService, mockRenderer)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockPsaPenaltiesAndChargesService)
+    reset(mockRenderer)
     when(mockPsaPenaltiesAndChargesService.interestRows(any())).thenReturn(rows)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesFromCache(any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", interestPsaFSResponse)))
@@ -106,7 +107,7 @@ class PsaPaymentsAndChargesInterestControllerSpec
 
       "render the correct view with details for associated interest charge type" in {
 
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(interestPsaFSResponse))))
+        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(interestPsaFSResponse))))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -126,7 +127,7 @@ class PsaPaymentsAndChargesInterestControllerSpec
       }
 
       "catch IndexOutOfBoundsException" in {
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
+        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
         val result = route(application, httpGETRequest(httpPathGETAssociated("3"))).value
 

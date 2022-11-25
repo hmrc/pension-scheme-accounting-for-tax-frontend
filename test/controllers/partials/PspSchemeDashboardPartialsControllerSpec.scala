@@ -23,6 +23,7 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -67,8 +68,6 @@ class PspSchemeDashboardPartialsControllerSpec
     Json.obj("aft" -> Json.toJson(pspDashboardAftReturnsViewModel))
   private val pspDashboardPaymentsAndChargesPartialJson: JsObject =
     Json.obj("cards" -> Json.toJson(pspDashboardSchemePaymentsAndChargesViewModel))
-  
-
 
 
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -103,9 +102,10 @@ class PspSchemeDashboardPartialsControllerSpec
     allTypesMultipleReturnsModel
 
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockAftPartialService, mockRenderer)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockAftPartialService)
+    reset(mockRenderer)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.paymentsAndChargesUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))

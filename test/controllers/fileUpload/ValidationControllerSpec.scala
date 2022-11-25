@@ -35,9 +35,10 @@ import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.fileUpload.FileUploadOutcome
-import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
+import models.fileUpload.FileUploadOutcomeStatus._
 import models.{ChargeType, FileUploadDataCache, FileUploadStatus, UploadId, UploadStatus, UserAnswers}
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.concurrent.Eventually.eventually
 import pages.PSTRQuery
@@ -61,8 +62,8 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.{LocalDate, LocalDateTime}
-import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -89,11 +90,16 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     bind[FileUploadOutcomeConnector].toInstance(mockFileUploadOutcomeConnector)
   )
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockFileUploadOutcomeConnector)
-    reset(mockUpscanInitiateConnector, mockAppConfig, mockRenderer, mockAnnualAllowanceParser, mockLifetimeAllowanceParser,
-      mockOverseasTransferParser, mockAuditService)
+    reset(mockUpscanInitiateConnector)
+    reset(mockAppConfig)
+    reset(mockRenderer)
+    reset(mockAnnualAllowanceParser)
+    reset(mockLifetimeAllowanceParser)
+    reset(mockOverseasTransferParser)
+    reset(mockAuditService)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK,
       "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory\nJoy,Smith,9717C,2020,268.28,2020-01-01,true")))
@@ -210,7 +216,8 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         val expectedJson = Json.obj(
           "errors" -> Json.arr(
-            "fileUpload.chargeAmount.generic.error", "fileUpload.dateNoticeReceived.generic.error", "fileUpload.isPayment.generic.error", "fileUpload.taxYear.generic.error"
+            "fileUpload.chargeAmount.generic.error", "fileUpload.dateNoticeReceived.generic.error",
+            "fileUpload.isPayment.generic.error", "fileUpload.taxYear.generic.error"
           ),
           "totalError" -> 11
         )
@@ -267,7 +274,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       eventually {
 
         verify(mockFileUploadOutcomeConnector, times(1))
-          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(status=Success, fileName = Some(fileName))))(any(), any())
+          .setOutcome(ArgumentMatchers.eq(FileUploadOutcome(status = Success, fileName = Some(fileName))))(any(), any())
 
         val auditCaptor: ArgumentCaptor[AFTFileValidationCheckAuditEvent] = ArgumentCaptor.forClass(classOf[AFTFileValidationCheckAuditEvent])
         verify(mockAuditService, times(2)).sendEvent(auditCaptor.capture())(any(), any())

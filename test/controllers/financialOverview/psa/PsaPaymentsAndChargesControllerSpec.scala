@@ -29,6 +29,7 @@ import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.PsaFSDetail
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.http.Status.OK
@@ -75,9 +76,10 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     "totalInterestAccruing" -> "100",
     "titleMessage" -> "Overdue penalties and interest charges")
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockRenderer, mockPsaPenaltiesAndChargesService)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRenderer)
+    reset(mockPsaPenaltiesAndChargesService)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesAndCharges(any(), any(), any())(any(), any(), any())).
       thenReturn(Future.successful(penaltiesTable))
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
@@ -87,7 +89,7 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     when(mockPsaPenaltiesAndChargesService.extractUpcomingCharges(any())).thenReturn(responseUpcoming)
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
     when(mockFSConnector.getPsaFSWithPaymentOnAccount(any())(any(), any())).thenReturn(Future.successful(psaFs))
-    when(mockPsaPenaltiesAndChargesService.retrievePsaChargesAmount(any())).thenReturn(mockPsaPenaltiesAndChargesService.chargeAmount("100","100", "100"))
+    when(mockPsaPenaltiesAndChargesService.retrievePsaChargesAmount(any())).thenReturn(mockPsaPenaltiesAndChargesService.chargeAmount("100", "100", "100"))
 
   }
 

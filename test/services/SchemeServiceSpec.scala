@@ -19,10 +19,12 @@ package services
 import base.SpecBase
 import connectors.SchemeDetailsConnector
 import data.SampleData
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentMatchers, MockitoSugar}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -30,8 +32,8 @@ import scala.concurrent.Future
 class SchemeServiceSpec extends SpecBase with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
   private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockSchemeDetailsConnector)
   }
 

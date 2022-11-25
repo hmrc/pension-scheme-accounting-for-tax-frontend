@@ -17,12 +17,12 @@
 package models
 
 import generators.Generators
-import org.mockito.MockitoSugar
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalatest.OptionValues
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json.{JsString, Json}
 import utils.DateHelper
@@ -30,7 +30,7 @@ import utils.DateHelper
 import java.time.LocalDate
 
 class YearRangeSpec
-    extends AsyncWordSpec
+  extends AsyncWordSpec
     with Matchers
     with ScalaCheckPropertyChecks
     with Generators
@@ -39,7 +39,7 @@ class YearRangeSpec
     with MockitoSugar {
 
   private def genYear: Gen[Int] =
-    Gen.oneOf(Seq(2011,2012,2013,2014,2015,2016,2017,2018,2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028))
+    Gen.oneOf(Seq(2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028))
 
   "YearRange" must {
 

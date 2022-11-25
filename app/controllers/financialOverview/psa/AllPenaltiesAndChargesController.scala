@@ -35,16 +35,17 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import javax.inject.Inject
+import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 class AllPenaltiesAndChargesController @Inject()(
-                                              override val messagesApi: MessagesApi,
-                                              identify: IdentifierAction,
-                                              allowAccess: AllowAccessActionProviderForIdentifierRequest,
-                                              val controllerComponents: MessagesControllerComponents,
-                                              psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                              renderer: Renderer
-                                            )(implicit ec: ExecutionContext)
+                                                  override val messagesApi: MessagesApi,
+                                                  identify: IdentifierAction,
+                                                  allowAccess: AllowAccessActionProviderForIdentifierRequest,
+                                                  val controllerComponents: MessagesControllerComponents,
+                                                  psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
+                                                  renderer: Renderer
+                                                )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
@@ -88,8 +89,8 @@ class AllPenaltiesAndChargesController @Inject()(
             renderer.render(template = "financialOverview/psa/psaPaymentsAndCharges.njk", json).map(Ok(_))
           }
         } else {
-            logger.warn(s"No Scheme Payments and Charges returned for the selected period $startDate")
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+          logger.warn(s"No Scheme Payments and Charges returned for the selected period $startDate")
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
       }
     }

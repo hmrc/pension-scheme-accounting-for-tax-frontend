@@ -33,12 +33,12 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class DeleteDataTestController @Inject()(
-    override val messagesApi: MessagesApi,
-    renderer: Renderer,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    val controllerComponents: MessagesControllerComponents
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                          override val messagesApi: MessagesApi,
+                                          renderer: Renderer,
+                                          userAnswersCacheConnector: UserAnswersCacheConnector,
+                                          val controllerComponents: MessagesControllerComponents
+                                        )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport
     with Mappings {
@@ -65,7 +65,7 @@ class DeleteDataTestController @Inject()(
   }
 
   def delete: Action[AnyContent] = Action.async { implicit request =>
-    form.bindFromRequest.fold(
+    form.bindFromRequest().fold(
       invalidForm => {
         val json = Json.obj(
           "form" -> invalidForm,

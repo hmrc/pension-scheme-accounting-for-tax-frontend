@@ -32,10 +32,10 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
       (
         (map(otherField).isEmpty | map(otherField) == "0.00")
           |
-        ((map("totalAmtOfTaxDueAtLowerRate").nonEmpty && map("totalAmtOfTaxDueAtLowerRate") != "0.00")
-          &&
-        (map("totalAmtOfTaxDueAtHigherRate").nonEmpty && map("totalAmtOfTaxDueAtHigherRate") != "0.00"))
-      )
+          ((map("totalAmtOfTaxDueAtLowerRate").nonEmpty && map("totalAmtOfTaxDueAtLowerRate") != "0.00")
+            &&
+            (map("totalAmtOfTaxDueAtHigherRate").nonEmpty && map("totalAmtOfTaxDueAtHigherRate") != "0.00"))
+        )
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 
@@ -61,7 +61,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
           ),
           minimumValueOption[BigDecimal](
             minimumChargeValueAllowed,
-            messages("chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum", minimumChargeValueAllowed.formatted("%s"))
+            messages("chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum", "%s".format(minimumChargeValueAllowed))
           )
         )
       ),
@@ -78,7 +78,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
           ),
           minimumValueOption[BigDecimal](
             minimumChargeValueAllowed,
-            messages("chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum", minimumChargeValueAllowed.formatted("%s"))
+            messages("chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum", "%s".format(minimumChargeValueAllowed))
           )
         )
       ),

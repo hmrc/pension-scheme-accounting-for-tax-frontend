@@ -28,6 +28,7 @@ import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -57,9 +58,11 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
   def application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
-    reset(mockPenaltiesService, mockRenderer, mockAppConfig)
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockPenaltiesService)
+    reset(mockRenderer)
+    reset(mockAppConfig)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     mutableFakeDataRetrievalAction.setViewOnly(false)
   }
