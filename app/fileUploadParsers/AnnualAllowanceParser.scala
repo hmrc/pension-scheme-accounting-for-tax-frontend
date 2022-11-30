@@ -68,7 +68,8 @@ class AnnualAllowanceParser @Inject()(
     )
     val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
       minimumChargeValueAllowed = minChargeValueAllowed,
-      minimumDate = config.earliestDateOfNotice
+      minimumDate = config.earliestDateOfNotice,
+      maximumDate = config.earliestDateOfNotice // TODO 7477
     )
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
