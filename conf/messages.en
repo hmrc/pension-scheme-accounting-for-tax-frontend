@@ -384,7 +384,7 @@ dateNoticeReceived.error.required = Enter the date you received notice to pay th
 dateNoticeReceived.error.date = The date you received notice to pay the charge must be between {0} and {1}
 dateNoticeReceived.error.incomplete = The date you received notice to pay the charge must include a day, month and year
 dateNoticeReceived.error.invalid = Enter a real date for the date you received notice to pay the charge
-dateNoticeReceived.error.future = The date you received notice to pay the charge must be today or in the past
+dateNoticeReceived.error.future = The date you received notice to pay the charge must be before the end of the quarter to which this annual allowance relates
 dateNoticeReceived.error.minDate = The Date you received notice to pay the charge must be after {0}
 isPaymentMandatory.error = Select yes if the payment type is mandatory
 

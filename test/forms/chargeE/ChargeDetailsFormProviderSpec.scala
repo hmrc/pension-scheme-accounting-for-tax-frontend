@@ -26,7 +26,8 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
 
   val form = new ChargeDetailsFormProvider().apply(
     minimumChargeValueAllowed = BigDecimal("0.01"),
-    minimumDate = MIN_DATE
+    minimumDate = MIN_DATE,
+    maximumDate = QUARTER_START_DATE
   )
   val dateKey = "dateNoticeReceived"
   val chargeAmountKey = "chargeAmount"
