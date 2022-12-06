@@ -338,6 +338,7 @@ chargeE.whatYouWillNeed.li3 = the date the scheme administrator received the not
 chargeE.whatYouWillNeed.li4 = the amount of the annual allowance charge
 chargeE.whatYouWillNeed.li5 = the tax year to which the annual allowance charge relates
 chargeE.whatYouWillNeed.li6 = whether the annual allowance payment type was mandatory or voluntary
+chargeE.whatYouWillNeed.li7 = whether the annual allowance charge is being paid as a result of the Public Service Pensions Remedy and, if applicable, the details of the previously reported charge
 
 chargeF = De-registration charge
 chargeF.whatYouWillNeed.title = De-registration charge
@@ -503,6 +504,7 @@ chargeD.whatYouWillNeed.li2 = their National Insurance number
 chargeD.whatYouWillNeed.li3 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
 chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
 chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
+chargeD.whatYouWillNeed.li6 = whether the lifetime allowance charge is being paid as a result of the Public Service Pensions Remedy and, if applicable, the details of the previously reported charge
 
 chargeD.amountTaxDue.error.required = Enter the amount of tax due at {0}%
 chargeD.amountTaxDue.error.invalid = The amount of tax due at {0}% must be an amount of money, like 123 or 123.45
