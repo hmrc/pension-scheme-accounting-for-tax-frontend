@@ -1554,4 +1554,11 @@ isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being p
 isPublicServicePensionsRemedy.chargeType.lifeTimeAllowance = lifetime allowance charge
 isPublicServicePensionsRemedy.chargeType.annualAllowance = annual allowance charge
 
+isChargeInAdditionReported.title = Is this {0} in addition to a previously reported {0} for this member?
+isChargeInAdditionReported.heading = Is this {0} in addition to a previously reported {0} for this member?
+isChargeInAdditionReported.error.required = Select yes if this {0} is in addition to a previously reported {0}
+isChargeInAdditionReported.error.required = Select yes if this {0} is in addition to a previously reported {0}
+
+isChargeInAdditionReported.chargeType.lifeTimeAllowance = lifetime allowance charge
+isChargeInAdditionReported.chargeType.annualAllowance = annual allowance charge
 
