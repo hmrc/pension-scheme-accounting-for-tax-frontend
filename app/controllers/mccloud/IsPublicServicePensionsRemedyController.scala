@@ -135,7 +135,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             for {
               updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
               _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
+                chargeType = Some(chargeType), memberNo = Some(index.id))
               _ <- Future{
                 println( "\n>>UPDATED>" + updatedAnswers)
               }
