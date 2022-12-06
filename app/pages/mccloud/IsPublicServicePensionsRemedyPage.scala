@@ -21,13 +21,8 @@ import pages.QuestionPage
 import play.api.libs.json.JsPath
 
 case class IsPublicServicePensionsRemedyPage(chargeType: ChargeType, index: Int) extends QuestionPage[Boolean] {
-  override def path: JsPath = JsPath \ detailsNode \ "members" \ index \ IsPublicServicePensionsRemedyPage.toString
-
-  private def detailsNode: String = chargeType match {
-    case ChargeType.ChargeTypeAnnualAllowance => "chargeEDetails"
-    case ChargeType.ChargeTypeLifetimeAllowance => "chargeDDetails"
-    case _ => throw new RuntimeException(s"McCloud Remedy not available for charge type $chargeType")
-  }
+  override def path: JsPath =
+    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ IsPublicServicePensionsRemedyPage.toString
 }
 
 object IsPublicServicePensionsRemedyPage {

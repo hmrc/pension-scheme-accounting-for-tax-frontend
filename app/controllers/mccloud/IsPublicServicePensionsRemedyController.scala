@@ -23,7 +23,7 @@ import controllers.actions._
 import forms.YesNoFormProvider
 import helpers.ChargeServiceHelper
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, UserAnswers}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.IsPublicServicePensionsRemedyPage
 import play.api.data.Form
@@ -77,15 +77,9 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
           schemeName = schemeName
         )
 
-        println( "\n>>UA=" + request.userAnswers)
-
         val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
-          case None =>
-          println("\nOOO")
-            form(chargeTypeDescription)
-          case Some(value) =>
-          println("\n><>>DSDS")
-            form(chargeTypeDescription).fill(value)
+          case None => form(chargeTypeDescription)
+          case Some(value) => form(chargeTypeDescription).fill(value)
         }
 
         val json = Json.obj(
@@ -136,16 +130,9 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
               updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
               _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
                 chargeType = Some(chargeType), memberNo = Some(index.id))
-              _ <- Future{
-                println( "\n>>UPDATED>" + updatedAnswers)
-              }
             } yield Redirect(navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
         )
 
       }
     }
-
-  private def totalAmount(chargeType: ChargeType): UserAnswers => BigDecimal =
-  //"chargeEDetails"
-    chargeServiceHelper.totalAmount(_, chargeType.toString)
 }
