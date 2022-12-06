@@ -22,7 +22,7 @@ import play.api.libs.json.JsPath
 
 case class IsPublicServicePensionsRemedyPage(chargeType: ChargeType, index: Int) extends QuestionPage[Boolean] {
   override def path: JsPath =
-    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ IsPublicServicePensionsRemedyPage.toString
+    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ IsPublicServicePensionsRemedyPage.toString
 }
 
 object IsPublicServicePensionsRemedyPage {
