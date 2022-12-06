@@ -19,7 +19,7 @@ package controllers.chargeC
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.DeleteFormProvider
+import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
@@ -84,7 +84,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
   private val employerNameIndividual = "First Last"
   private val employerNameOrg = "Big Company"
-  private val formProvider = new DeleteFormProvider()
+  private val formProvider = new YesNoFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteEmployer.chargeC.error.required", employerNameIndividual))
 
   private def httpPathGET: String = routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, versionInt, 0).url

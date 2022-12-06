@@ -19,12 +19,12 @@ package forms
 import forms.behaviours.BooleanFieldBehaviours
 import play.api.data.FormError
 
-class DeleteFormProviderSpec extends BooleanFieldBehaviours {
+class YesNoFormProviderSpec extends BooleanFieldBehaviours {
 
   val requiredKey = "Select yes if you want to remove the annual allowance charge for first last"
   val invalidKey = "error.boolean"
 
-  val form = new DeleteFormProvider()(requiredKey)
+  val form = new YesNoFormProvider()(requiredKey)
 
   ".value" must {
 

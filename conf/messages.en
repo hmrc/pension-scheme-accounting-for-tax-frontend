@@ -1546,4 +1546,7 @@ aftReturnLocked.heading = This AFT return is locked
 aftReturnLocked.p1 = You cannot view this return. Try again later.
 aftReturnLocked.p2 = You cannot make changes to the return until it is unlocked.
 
-
+isPublicServicePensionsRemedy.title = Is this annual allowance charge being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedy.heading = Is this annual allowance charge being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedy.error.required = Select yes if this annual allowance charge is being paid as a result of the Public Service Pensions Remedy
+isPublicServicePensionsRemedy.error.required = Select yes if this annual allowance charge is being paid as a result of the Public Service Pension Remedy

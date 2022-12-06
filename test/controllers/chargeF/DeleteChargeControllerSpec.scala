@@ -19,7 +19,7 @@ package controllers.chargeF
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.DeleteFormProvider
+import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
@@ -56,7 +56,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   private def onwardRoute: Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt)
 
-  private val formProvider = new DeleteFormProvider()
+  private val formProvider = new YesNoFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteCharge.error.required", messages("chargeF").toLowerCase()))
 
   private def httpPathGET: String = routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, versionInt).url

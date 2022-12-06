@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.mccloud
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -22,17 +22,17 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import helpers.ChargeServiceHelper
-import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
+import pages.mccloud.IsPublicServicePensionsRemedyPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{DeleteAFTChargeService, UserAnswersService}
+import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -40,34 +40,39 @@ import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
-                                       userAnswersCacheConnector: UserAnswersCacheConnector,
-                                       userAnswersService: UserAnswersService,
-                                       navigator: CompoundNavigator,
-                                       identify: IdentifierAction,
-                                       getData: DataRetrievalAction,
-                                       allowAccess: AllowAccessActionProvider,
-                                       requireData: DataRequiredAction,
-                                       deleteAFTChargeService: DeleteAFTChargeService,
-                                       formProvider: YesNoFormProvider,
-                                       val controllerComponents: MessagesControllerComponents,
-                                       chargeServiceHelper: ChargeServiceHelper,
-                                       config: FrontendAppConfig,
-                                       renderer: Renderer)(implicit ec: ExecutionContext)
+class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi: MessagesApi,
+                                                        userAnswersCacheConnector: UserAnswersCacheConnector,
+                                                        userAnswersService: UserAnswersService,
+                                                        navigator: CompoundNavigator,
+                                                        identify: IdentifierAction,
+                                                        getData: DataRetrievalAction,
+                                                        allowAccess: AllowAccessActionProvider,
+                                                        requireData: DataRequiredAction,
+                                                        formProvider: YesNoFormProvider,
+                                                        val controllerComponents: MessagesControllerComponents,
+                                                        chargeServiceHelper: ChargeServiceHelper,
+                                                        config: FrontendAppConfig,
+                                                        renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
-    formProvider(messages("deleteMember.error.required", memberName))
+    formProvider(messages("isPublicServicePensionsRemedy.error.required", memberName))
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onPageLoad(chargeType: ChargeType,
+                 mode: Mode,
+                 srn: String,
+                 startDate: LocalDate,
+                 accessType: AccessType,
+                 version: Int,
+                 index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
           case Some(memberDetails) =>
             val viewModel = GenericViewModel(
-              submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, accessType, version, index).url,
+              submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )
@@ -81,13 +86,19 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               "memberName" -> memberDetails.fullName
             )
 
-            renderer.render("chargeE/deleteMember.njk", json).map(Ok(_))
+            renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(Ok(_))
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onSubmit(chargeType: ChargeType,
+               mode: Mode,
+               srn: String,
+               startDate: LocalDate,
+               accessType: AccessType,
+               version: Int,
+               index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
@@ -96,7 +107,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                 formWithErrors => {
 
                   val viewModel = GenericViewModel(
-                    submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, accessType, version, index).url,
+                    submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
                     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                     schemeName = schemeName
                   )
@@ -108,20 +119,16 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                     "radios" -> Radios.yesNo(formWithErrors("value")),
                     "memberName" -> memberDetails.fullName
                   )
-                  renderer.render("chargeE/deleteMember.njk", json).map(BadRequest(_))
+                  renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
 
                 },
                 value =>
                   if (value) {
-                    DataRetrievals.retrievePSTR { pstr =>
-                      (for {
-                          updatedAnswers <- Future.fromTry(userAnswersService
-                            .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount))
-                          _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
-                        } yield {
-                          Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
-                        }) recoverWith recoverFrom5XX(srn, startDate)
-                    }
+                    for {
+                      updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
+                      _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                        chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
+                    } yield Redirect(navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
                   } else {
                     Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate, accessType, version)))
                   }
@@ -131,6 +138,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  private def totalAmount: UserAnswers => BigDecimal =
-    chargeServiceHelper.totalAmount(_, "chargeEDetails")
+  private def totalAmount(chargeType: ChargeType): UserAnswers => BigDecimal =
+    //"chargeEDetails"
+    chargeServiceHelper.totalAmount(_, chargeType.toString)
 }
