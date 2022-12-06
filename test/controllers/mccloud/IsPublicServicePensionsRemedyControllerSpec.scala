@@ -30,8 +30,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.PSTRQuery
-import pages.chargeE.{MemberDetailsPage, TotalChargeAmountPage}
+import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -53,7 +52,6 @@ class IsPublicServicePensionsRemedyControllerSpec extends ControllerSpecBase
 
   private def onwardRoute = Call("GET", "/foo")
 
-  private val memberName = "first last"
   private val formProvider = new YesNoFormProvider()
   private val chargeTypeDescription = Messages(s"isPublicServicePensionsRemedy.chargeType.${ChargeTypeAnnualAllowance.toString}")
   private val form: Form[Boolean] = formProvider(messages("isPublicServicePensionsRemedy.error.required", chargeTypeDescription))
@@ -117,12 +115,6 @@ class IsPublicServicePensionsRemedyControllerSpec extends ControllerSpecBase
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual onwardRoute.url
-
-      val expectedUA = userAnswersWithSchemeNamePstrQuarter
-        .set(MemberDetailsPage(0), memberDetails).success.value
-        .set(PSTRQuery, pstr).success.value
-        .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
-
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
