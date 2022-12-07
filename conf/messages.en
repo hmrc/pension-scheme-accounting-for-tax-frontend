@@ -1563,5 +1563,6 @@ isChargeInAdditionReported.chargeType.annualAllowance = annual allowance charge
 
 wasAnotherPensionScheme.title = Was the previously reported {0} paid by another pension scheme?
 wasAnotherPensionScheme.heading = Was the previously reported {0} paid by another pension scheme?
-wasAnotherPensionScheme.error.required = Select yes if the previously reported {0} paid by another pension scheme
+wasAnotherPensionScheme.hint = If you answer yes, you will be able to add up to five pension schemes.
+wasAnotherPensionScheme.error.required = Select yes if the previously reported {0} was paid by another pension scheme
 

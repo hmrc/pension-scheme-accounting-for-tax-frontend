@@ -468,7 +468,7 @@ GET         /:srn/:startDate/:accessType/:version/overseas-transfer-charge/uploa
 GET         /:srn/:startDate/return-locked-error                                                                                                    controllers.AFTReturnLockedController.onPageLoad(srn: String, startDate: String)
 GET         /:srn/:startDate/on-click-return-locked-error                                                                                           controllers.AFTReturnLockedController.onClick(srn: String, startDate: String)
 
-# MCCLOUD REMEDY
+
 
 GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/public-service-pension-remedy                                                       controllers.mccloud.IsPublicServicePensionsRemedyController.onPageLoad(chargeType: ChargeType = ChargeTypeAnnualAllowance, mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
 POST        /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/public-service-pension-remedy                                                       controllers.mccloud.IsPublicServicePensionsRemedyController.onSubmit(chargeType: ChargeType = ChargeTypeAnnualAllowance, mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)

@@ -29,7 +29,7 @@ import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeD._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
-import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage}
+import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
@@ -83,6 +83,18 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       }
     case IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+
+    case IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index) =>
+
+      ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index)) match {
+        case Some(true) => controllers.mccloud.routes.WasAnotherPensionSchemeController
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
+        case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      }
+
+    case WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index) =>
+      CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
     case AddMembersPage => addMembers(ua, srn, startDate, accessType, version)
     case DeleteMemberPage  => deleteMemberRoutes(ua, srn, startDate, accessType, version)
