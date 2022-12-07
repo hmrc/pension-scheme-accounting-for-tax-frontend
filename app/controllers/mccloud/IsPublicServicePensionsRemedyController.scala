@@ -88,7 +88,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo(preparedForm("value")),
-          "chargeTypeDescription" -> Messages(s"isPublicServicePensionsRemedy.chargeType.${chargeType.toString}")
+          "chargeTypeDescription" -> chargeTypeDescription
         )
 
         renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(Ok(_))
@@ -120,7 +120,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
               "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(formWithErrors("value")),
-              "chargeTypeDescription" -> Messages(s"isPublicServicePensionsRemedy.chargeType.${chargeType.toString}")
+              "chargeTypeDescription" -> chargeTypeDescription
             )
             renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
 
