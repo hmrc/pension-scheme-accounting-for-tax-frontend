@@ -27,7 +27,7 @@ import javax.inject.Inject
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(minimumChargeValueAllowed:BigDecimal, minimumDate: LocalDate): Form[ChargeEDetails] =
+  def apply(minimumChargeValueAllowed:BigDecimal, minimumDate: LocalDate, maximumDate: LocalDate): Form[ChargeEDetails] =
     Form(mapping(
 
       "chargeAmount" -> bigDecimal2DP(
@@ -45,7 +45,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         requiredKey = "dateNoticeReceived.error.required"
       ).verifying(
         minDate(minimumDate, "dateNoticeReceived.error.minDate", formatDateDMY(minimumDate)),
-        futureDate("dateNoticeReceived.error.future"),
+        maxDate(maximumDate, "dateNoticeReceived.error.future"),
         yearHas4Digits("dateNoticeReceived.error.invalid")
       ),
       "isPaymentMandatory" -> boolean("isPaymentMandatory.error")
