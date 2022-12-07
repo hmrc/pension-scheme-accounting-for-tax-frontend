@@ -21,7 +21,7 @@ import play.api.data.Form
 
 import javax.inject.Inject
 
-class DeleteFormProvider @Inject() extends Mappings {
+class YesNoFormProvider @Inject() extends Mappings {
 
   def apply(errorKey: String): Form[Boolean] =
     Form(
