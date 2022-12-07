@@ -46,7 +46,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val dateNoticeReceived = LocalDate.of(1980, 12, 1)
   private val form = new ChargeDetailsFormProvider().apply(
     minimumChargeValueAllowed = BigDecimal("0.01"),
-    minimumDate = dateNoticeReceived
+    minimumDate = dateNoticeReceived,
+    maximumDate = LocalDate.of(2022, 1, 21)
   )
 
   private def httpPathGET: String = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url

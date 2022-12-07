@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
-import models.MemberDetails
+import models.{CommonQuarters, MemberDetails}
 import models.chargeE.ChargeEDetails
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
@@ -36,7 +36,7 @@ class AnnualAllowanceParser @Inject()(
                                        memberDetailsFormProvider: MemberDetailsFormProvider,
                                        chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                        config: FrontendAppConfig
-                                     ) extends Parser with Constraints {
+                                     ) extends Parser with Constraints with CommonQuarters {
   override protected val totalFields: Int = 7
 
   override protected def validHeader: String = config.validAnnualAllowanceHeader
@@ -54,6 +54,7 @@ class AnnualAllowanceParser @Inject()(
   }
 
   private def processChargeDetailsValidation(index: Int,
+                                             startDate: LocalDate,
                                              chargeFields: Seq[String],
                                              parsedDate: ParsedDate,
                                              taxYearsErrors: Seq[ParserValidationError]): Either[Seq[ParserValidationError], ChargeEDetails] = {
@@ -66,9 +67,11 @@ class AnnualAllowanceParser @Inject()(
         AnnualAllowanceFieldNames.isPaymentMandatory, FieldNoIsPaymentMandatory)
 
     )
+
     val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
       minimumChargeValueAllowed = minChargeValueAllowed,
-      minimumDate = config.earliestDateOfNotice
+      minimumDate = config.earliestDateOfNotice,
+      maximumDate = getQuarter(startDate).endDate
     )
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
@@ -92,6 +95,7 @@ class AnnualAllowanceParser @Inject()(
   private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Either[Seq[ParserValidationError], ChargeEDetails] =
     processChargeDetailsValidation(
       index,
+      startDate,
       chargeFields,
       splitDayMonthYear(chargeFields(FieldNoDateNoticeReceived)),
       validateTaxYear(startDate, index, chargeFields(3))
