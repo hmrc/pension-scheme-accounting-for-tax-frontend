@@ -88,7 +88,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo(preparedForm("value")),
-          "chargeTypeDescription" -> Messages(s"isChargeInAdditionReported.chargeType.${chargeType.toString}")
+          "chargeTypeDescription" -> chargeTypeDescription
         )
 
         renderer.render("mccloud/isChargeInAdditionReported.njk", json).map(Ok(_))
@@ -120,7 +120,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
               "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(formWithErrors("value")),
-              "chargeTypeDescription" -> Messages(s"isChargeInAdditionReported.chargeType.${chargeType.toString}")
+              "chargeTypeDescription" -> chargeTypeDescription
             )
             renderer.render("mccloud/isChargeInAdditionReported.njk", json).map(BadRequest(_))
 
