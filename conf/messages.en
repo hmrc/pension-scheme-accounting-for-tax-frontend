@@ -1557,8 +1557,11 @@ isPublicServicePensionsRemedy.chargeType.annualAllowance = annual allowance char
 isChargeInAdditionReported.title = Is this {0} in addition to a previously reported {0} for this member?
 isChargeInAdditionReported.heading = Is this {0} in addition to a previously reported {0} for this member?
 isChargeInAdditionReported.error.required = Select yes if this {0} is in addition to a previously reported {0}
-isChargeInAdditionReported.error.required = Select yes if this {0} is in addition to a previously reported {0}
 
 isChargeInAdditionReported.chargeType.lifeTimeAllowance = lifetime allowance charge
 isChargeInAdditionReported.chargeType.annualAllowance = annual allowance charge
+
+wasAnotherPensionScheme.title = Was the previously reported {0} paid by another pension scheme?
+wasAnotherPensionScheme.heading = Was the previously reported {0} paid by another pension scheme?
+wasAnotherPensionScheme.error.required = Select yes if the previously reported {0} paid by another pension scheme
 
