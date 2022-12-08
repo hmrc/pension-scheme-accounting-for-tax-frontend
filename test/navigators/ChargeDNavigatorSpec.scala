@@ -31,8 +31,7 @@ import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 import controllers.mccloud.routes._
-import pages.mccloud.WasAnotherPensionSchemePage
-import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage}
+import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 
 class ChargeDNavigatorSpec extends NavigatorBehaviour {
 
@@ -49,12 +48,12 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index)),
         row(ChargeDetailsPage(index))(IsPublicServicePensionsRemedyController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index)),
-        row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
-          .onPageLoad(srn, startDate, accessType, versionInt, index)),
         row(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index))(IsChargeInAdditionReportedController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index), Some(publicPensionRemedyYes)),
         row(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index), Some(chargeInAdditionReportedNo)),
+        row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index)),
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),

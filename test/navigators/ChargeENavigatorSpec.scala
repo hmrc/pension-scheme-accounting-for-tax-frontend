@@ -28,11 +28,10 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
-import pages.mccloud.WasAnotherPensionSchemePage
 import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
-import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage}
+import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 
 class ChargeENavigatorSpec extends NavigatorBehaviour {
 
