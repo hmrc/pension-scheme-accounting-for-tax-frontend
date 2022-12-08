@@ -82,16 +82,11 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       }
     case IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index) =>
-      CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-
-    case IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index) =>
-
       ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index)) match {
         case Some(true) => controllers.mccloud.routes.WasAnotherPensionSchemeController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
         case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       }
-
     case WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 

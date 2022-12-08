@@ -18,6 +18,7 @@ package navigators
 
 import config.FrontendAppConfig
 import controllers.chargeE.routes._
+import controllers.mccloud.routes._
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
@@ -27,10 +28,10 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
+import pages.mccloud.WasAnotherPensionSchemePage
 import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
-import controllers.mccloud.routes._
 
 class ChargeENavigatorSpec extends NavigatorBehaviour {
 
@@ -49,6 +50,8 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(AnnualAllowanceYearPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(ChargeDetailsPage(index))(IsPublicServicePensionsRemedyController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index)),
+        row(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index)),
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),
