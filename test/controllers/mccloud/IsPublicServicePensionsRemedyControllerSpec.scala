@@ -53,7 +53,7 @@ class IsPublicServicePensionsRemedyControllerSpec extends ControllerSpecBase
   private def onwardRoute = Call("GET", "/foo")
 
   private val formProvider = new YesNoFormProvider()
-  private val chargeTypeDescription = Messages(s"isPublicServicePensionsRemedy.chargeType.${ChargeTypeAnnualAllowance.toString}")
+  private val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
   private val form: Form[Boolean] = formProvider(messages("isPublicServicePensionsRemedy.error.required", chargeTypeDescription))
 
   private def httpPathGET: String = routes.IsPublicServicePensionsRemedyController
@@ -92,7 +92,7 @@ class IsPublicServicePensionsRemedyControllerSpec extends ControllerSpecBase
         "form" -> form,
         "viewModel" -> viewModel,
         "radios" -> Radios.yesNo(form("value")),
-        "chargeTypeDescription" -> Messages(s"isPublicServicePensionsRemedy.chargeType.${ChargeTypeAnnualAllowance.toString}")
+        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
       )
 
       templateCaptor.getValue mustEqual "mccloud/isPublicServicePensionsRemedy.njk"

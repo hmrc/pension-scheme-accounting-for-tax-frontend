@@ -69,7 +69,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
-        val chargeTypeDescription = Messages(s"isPublicServicePensionsRemedy.chargeType.${chargeType.toString}")
+        val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
         val viewModel = GenericViewModel(
           submitUrl = routes.WasAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
@@ -105,7 +105,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
                index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        val chargeTypeDescription = Messages(s"isPublicServicePensionsRemedy.chargeType.${chargeType.toString}")
+        val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
         form(chargeTypeDescription).bindFromRequest().fold(
           formWithErrors => {
 

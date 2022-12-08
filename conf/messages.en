@@ -1546,20 +1546,17 @@ aftReturnLocked.heading = This AFT return is locked
 aftReturnLocked.p1 = You cannot view this return. Try again later.
 aftReturnLocked.p2 = You cannot make changes to the return until it is unlocked.
 
+chargeType.description.lifeTimeAllowance = lifetime allowance charge
+chargeType.description.annualAllowance = annual allowance charge
+
 isPublicServicePensionsRemedy.title = Is this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedy.heading = Is this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pensions Remedy
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pension Remedy
 
-isPublicServicePensionsRemedy.chargeType.lifeTimeAllowance = lifetime allowance charge
-isPublicServicePensionsRemedy.chargeType.annualAllowance = annual allowance charge
-
 isChargeInAdditionReported.title = Is this {0} in addition to a previously reported {0} for this member?
 isChargeInAdditionReported.heading = Is this {0} in addition to a previously reported {0} for this member?
 isChargeInAdditionReported.error.required = Select yes if this {0} is in addition to a previously reported {0}
-
-isChargeInAdditionReported.chargeType.lifeTimeAllowance = lifetime allowance charge
-isChargeInAdditionReported.chargeType.annualAllowance = annual allowance charge
 
 wasAnotherPensionScheme.title = Was the previously reported {0} paid by another pension scheme?
 wasAnotherPensionScheme.heading = Was the previously reported {0} paid by another pension scheme?
