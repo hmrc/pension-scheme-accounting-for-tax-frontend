@@ -84,12 +84,13 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         case Some(true) => controllers.mccloud.routes.IsChargeInAdditionReportedController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
         case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+        case _ => sessionExpiredPage
       }
     case IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index) =>
       ua.get(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index)) match {
-        // TODO: case Some(true) needs to be replaced with next page controller which not yet developed
         case Some(true) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
         case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+        case _ => sessionExpiredPage
       }
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
     case AddMembersPage => addMembers(ua, srn, startDate, accessType, version)
