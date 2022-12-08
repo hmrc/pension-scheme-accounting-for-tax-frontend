@@ -32,6 +32,7 @@ import pages.mccloud.WasAnotherPensionSchemePage
 import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
+import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage}
 
 class ChargeENavigatorSpec extends NavigatorBehaviour {
 
@@ -50,6 +51,10 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(AnnualAllowanceYearPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(ChargeDetailsPage(index))(IsPublicServicePensionsRemedyController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index)),
+        row(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index))(IsChargeInAdditionReportedController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index), Some(publicPensionRemedyYes)),
+        row(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index), Some(chargeInAdditionReportedNo)),
         row(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index)),
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
@@ -93,4 +98,6 @@ object ChargeENavigatorSpec {
     .flatMap(_.set(chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)).toOption
   private val manualInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), ManualInput)
   private val fileUploadInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), FileUploadInput)
+  private val publicPensionRemedyYes = UserAnswers().setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, 0), true)
+  private val chargeInAdditionReportedNo = UserAnswers().setOrException(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, 0), false)
 }
