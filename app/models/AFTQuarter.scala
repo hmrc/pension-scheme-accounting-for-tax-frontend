@@ -21,6 +21,9 @@ import play.api.libs.json.{Format, Json}
 import java.time.LocalDate
 
 case class AFTQuarter(startDate: LocalDate, endDate: LocalDate)
+//{
+//  override def toString: String = startDate.toString
+//}
 
 object AFTQuarter {
 

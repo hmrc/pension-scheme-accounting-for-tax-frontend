@@ -1567,6 +1567,6 @@ taxYearReportedAndPaid.title = Select the tax year in which the original annual 
 taxYearReportedAndPaid.heading = Select the tax year in which the original annual allowance charge was reported and paid
 taxYearReportedAndPaid.error.required = Select the tax year in which the original annual allowance charge was reported and paid
 
-taxQuarterReportedAndPaid.title = Which quarter of [year] was the original annual allowance charge reported and paid?
-taxQuarterReportedAndPaid.heading = Which quarter of [year] was the original annual allowance charge reported and paid?
+taxQuarterReportedAndPaid.title = Which quarter of {0} was the original annual allowance charge reported and paid?
+taxQuarterReportedAndPaid.heading = Which quarter of {0} was the original annual allowance charge reported and paid?
 

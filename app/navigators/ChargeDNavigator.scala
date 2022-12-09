@@ -29,7 +29,7 @@ import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeD._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
-import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
+import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage, WasAnotherPensionSchemePage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
@@ -92,6 +92,13 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       }
 
     case WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index) =>
+      CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+
+    case TaxYearReportedAndPaidPage(ChargeTypeLifetimeAllowance, index) =>
+      controllers.mccloud.routes.TaxQuarterReportedAndPaidController
+        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
+
+    case TaxQuarterReportedAndPaidPage(ChargeTypeLifetimeAllowance, index) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)

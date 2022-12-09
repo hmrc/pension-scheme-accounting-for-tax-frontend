@@ -88,10 +88,14 @@ class TaxQuarterReportedAndPaidController @Inject()(
                 schemeName = schemeDetails.schemeName
               )
 
+              val preparedForm: Form[AFTQuarter] = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index)) match {
+                case Some(value) => form(year, quarters).fill(value)
+                case None => form(year, quarters)
+              }
               val json = Json.obj(
                 "srn" -> srn,
                 "startDate" -> Some(localDateToString(startDate)),
-                "form" -> form(year, quarters),
+                "form" -> preparedForm,
                 "radios" -> Quarters.radios(form(year, quarters), displayQuarters),
                 "viewModel" -> vm,
                 "year" -> year
@@ -133,6 +137,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                       returnUrl = config.schemeDashboardUrl(request).format(srn),
                       schemeName = schemeDetails.schemeName
                     )
+
                     val json = Json.obj(
                       fields = "srn" -> srn,
                       "startDate" -> None,
@@ -144,6 +149,12 @@ class TaxQuarterReportedAndPaidController @Inject()(
                     renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
                   },
                   value => {
+
+                    val xx = form(year, quarters)
+                      .bindFromRequest()
+
+                    println( "\n>>>SAVED FM:" + xx)
+                    println( "\n>>>SAVED VAL:" + value)
                     for {
                       updatedAnswers <- Future.fromTry(userAnswersService.set(TaxQuarterReportedAndPaidPage(chargeType, index), value, mode))
                       _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,

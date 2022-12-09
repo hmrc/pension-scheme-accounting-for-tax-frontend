@@ -20,10 +20,18 @@ case class DisplayQuarter(quarter: AFTQuarter,
                           displayYear: Boolean,
                           lockedBy: Option[String],
                           hintText: Option[DisplayHint])
+//{
+//  override def toString: String = quarter.toString
+//}
 
 sealed trait DisplayHint
+
 object LockedHint extends WithName("quarters.hint.locked") with DisplayHint
+
 object InProgressHint extends WithName("quarters.hint.inProgress") with DisplayHint
+
 object SubmittedHint extends WithName("quarters.hint.submitted") with DisplayHint
+
 object PaymentOverdue extends WithName("hint.paymentOverdue") with DisplayHint
+
 object TpssReportPresentHint extends WithName("hint.tpssReportPresent") with DisplayHint
