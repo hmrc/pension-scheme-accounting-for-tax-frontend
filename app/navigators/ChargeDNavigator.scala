@@ -92,11 +92,11 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index) =>
       ua.get(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index)) match {
         case Some(true) => controllers.mccloud.routes.EnterPstrController
-          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, 0)
         case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       }
 
-    case EnterPstrPage(ChargeTypeLifetimeAllowance, index) =>
+    case EnterPstrPage(ChargeTypeLifetimeAllowance, index, _) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)

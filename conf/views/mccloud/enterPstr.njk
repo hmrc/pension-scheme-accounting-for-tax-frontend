@@ -7,7 +7,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("enterPstr.title", chargeTypeDescription), form.errors) }}
+  {{ title(messages("enterPstr.title", ordinal), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -29,7 +29,7 @@
 
         {{ govukInput({
                     label: {
-                      text: messages("enterPstr.title"),
+                      text: messages("enterPstr.title", ordinal),
                       isPageHeading: true,
                       classes: "govuk-label--xl govuk-!-margin-bottom-8"
                     },

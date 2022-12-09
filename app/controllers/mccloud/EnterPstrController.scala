@@ -16,14 +16,12 @@
 
 package controllers.mccloud
 
-import config.FrontendAppConfig
-import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.EnterPstrFormProvider
-import helpers.ChargeServiceHelper
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.EnterPstrPage
@@ -49,10 +47,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                                     allowAccess: AllowAccessActionProvider,
                                     requireData: DataRequiredAction,
                                     formProvider: EnterPstrFormProvider,
-                                    schemeDetailsConnector: SchemeDetailsConnector,
                                     val controllerComponents: MessagesControllerComponents,
-                                    chargeServiceHelper: ChargeServiceHelper,
-                                    config: FrontendAppConfig,
                                     renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -60,79 +55,97 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
 
   private def form(): Form[String] = formProvider()
 
+  private def ordinal(index: Int)(implicit request: DataRequest[AnyContent]) = {
+    if (index < 0 | index > 4) {
+      None
+    } else {
+      Some(Messages(s"mccloud.scheme.ref$index"))
+    }
+  }
+
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
-                 index: Index): Action[AnyContent] =
+                 index: Index,
+                 schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
-      val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
-
         val viewModel = GenericViewModel(
-          submitUrl = routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+          submitUrl = routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
 
-        val preparedForm = request.userAnswers.get(EnterPstrPage(chargeType, index )) match {
+        val preparedForm = request.userAnswers.get(EnterPstrPage(chargeType, index, schemeIndex)) match {
           case Some(value) => form().fill(value)
           case None => form()
         }
 
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "chargeTypeDescription" -> chargeTypeDescription
-        )
+        ordinal(schemeIndex) match {
+          case Some(value) =>
+            val json = Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(localDateToString(startDate)),
+              "form" -> preparedForm,
+              "viewModel" -> viewModel,
+              "ordinal" -> value
+            )
 
-        renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
+            renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
+          case _ =>
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+        }
       }
     }
 
-    def onSubmit(chargeType: ChargeType,
-                 mode: Mode,
-                 srn: String,
-                 startDate: LocalDate,
-                 accessType: AccessType,
-                 version: Int,
-                 index: Index): Action[AnyContent] =
-      (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-        DataRetrievals.retrieveSchemeName{ schemeName =>
+  def onSubmit(chargeType: ChargeType,
+               mode: Mode,
+               srn: String,
+               startDate: LocalDate,
+               accessType: AccessType,
+               version: Int,
+               index: Index,
+               schemeIndex: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
 
-          form()
-            .bindFromRequest()
-            .fold(
-              formWithErrors => {
+        form()
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
 
-                val viewModel = GenericViewModel(
-                  submitUrl = routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
-                  returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                  schemeName = schemeName
-                )
+              val viewModel = GenericViewModel(
+                submitUrl = routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName = schemeName
+              )
 
-                val json = Json.obj(
-                  "srn" -> srn,
-                  "startDate" -> Some(localDateToString(startDate)),
-                  "form" -> formWithErrors,
-                  "viewModel" -> viewModel
-                )
+              ordinal(schemeIndex) match {
+                case Some(value) =>
+                  val json = Json.obj(
+                    "srn" -> srn,
+                    "startDate" -> Some(localDateToString(startDate)),
+                    "form" -> formWithErrors,
+                    "viewModel" -> viewModel,
+                    "ordinal" -> value
+                  )
+                  renderer.render("mccloud/enterPstr.njk", json).map(BadRequest(_))
+                case _ =>
+                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+              }
+            },
+            value =>
+              for {
+                updatedAnswers <- Future.fromTry(userAnswersService.set(EnterPstrPage(chargeType, index, schemeIndex), value, mode))
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                  chargeType = Some(chargeType), memberNo = Some(index.id))
+              } yield Redirect(navigator.nextPage(EnterPstrPage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
+          )
 
-                renderer.render("mccloud/enterPstr.njk", json).map(BadRequest(_))
-              },
-              value =>
-                for {
-                  updatedAnswers <- Future.fromTry(userAnswersService.set(EnterPstrPage(chargeType, index), value, mode))
-                  _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                    chargeType = Some(chargeType), memberNo = Some(index.id))
-                } yield Redirect(navigator.nextPage(EnterPstrPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
-            )
-
-        }
       }
+    }
 }

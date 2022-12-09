@@ -49,8 +49,8 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(ChargeDetailsPage(index))(IsPublicServicePensionsRemedyController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index)),
         row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(EnterPstrController
-          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index), wasAnother),
-        row(EnterPstrPage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex), wasAnother),
+        row(EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index)),
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index), addMembersYes),
@@ -84,6 +84,7 @@ object ChargeDNavigatorSpec {
   private val srn = "test-srn"
   private val startDate = QUARTER_START_DATE
   private val index = 0
+  private val schemeIndex = 0
   private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
   private val wasAnother = UserAnswers().set(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, 0), true).toOption

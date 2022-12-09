@@ -56,10 +56,10 @@ class EnterPstrControllerSpec extends ControllerSpecBase
   private val form: Form[String] = formProvider()
 
   private def httpPathGET: String = routes.EnterPstrController
-    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0).url
+    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
 
   private def httpPathPOST: String = routes.EnterPstrController
-    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0).url
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
@@ -90,7 +90,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
       val expectedJson = Json.obj(
         "form" -> form,
         "viewModel" -> viewModel,
-        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
+        "ordinal" -> Messages("mccloud.scheme.ref0")
       )
 
       templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"

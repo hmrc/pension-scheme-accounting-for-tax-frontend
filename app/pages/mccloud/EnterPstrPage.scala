@@ -20,9 +20,9 @@ import models.ChargeType
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class EnterPstrPage(chargeType: ChargeType, index: Int) extends QuestionPage[String] {
+case class EnterPstrPage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[String] {
   override def path: JsPath =
-    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ EnterPstrPage.toString
+    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes" \ schemeIndex \ EnterPstrPage.toString
 }
 
 object EnterPstrPage {
