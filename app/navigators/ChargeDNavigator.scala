@@ -29,31 +29,32 @@ import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeD._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
-import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage, WasAnotherPensionSchemePage}
+import pages.mccloud.{ChargeAmountReportedPage, IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage, WasAnotherPensionSchemePage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
+
 class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
                                  chargeServiceHelper: ChargeServiceHelper,
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers) : Int =
+  def nextIndex(ua: UserAnswers): Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails").size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
-                : Call = ua.get(AddMembersPage) match {
+  : Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua))
-    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
+    case _ => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
   }
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                         (implicit request: DataRequest[AnyContent]): Call =
-    if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
+    if (deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
-    } else if(chargeServiceHelper.isEmployerOrMemberPresent(ua, "chargeDDetails")) {
+    } else if (chargeServiceHelper.isEmployerOrMemberPresent(ua, "chargeDDetails")) {
       AddMembersController.onPageLoad(srn, startDate, accessType, version)
     } else {
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
@@ -99,14 +100,18 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
 
     case TaxQuarterReportedAndPaidPage(ChargeTypeLifetimeAllowance, index) =>
+      controllers.mccloud.routes.ChargeAmountReportedController
+        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
+
+    case ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, index) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
     case AddMembersPage => addMembers(ua, srn, startDate, accessType, version)
-    case DeleteMemberPage  => deleteMemberRoutes(ua, srn, startDate, accessType, version)
+    case DeleteMemberPage => deleteMemberRoutes(ua, srn, startDate, accessType, version)
   }
 
-  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int):Call = {
+  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
     ua.get(InputSelectionPage(ChargeTypeLifetimeAllowance)) match {
       case Some(ManualInput) =>
         controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
