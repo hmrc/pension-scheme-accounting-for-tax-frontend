@@ -56,16 +56,22 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
     formProvider("taxYearReportedAndPaid.error.required")
 
   def onPageLoad(chargeType: ChargeType,
-                 mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+                 mode: Mode,
+                 srn: String,
+                 startDate: LocalDate,
+                 accessType: AccessType,
+                 version: Int,
+                 index: Index,
+                 schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-          val preparedForm: Form[YearRange] = request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index)) match {
+          val preparedForm: Form[YearRange] = request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex)) match {
             case Some(value) => form.fill(value)
             case None => form
           }
 
           val viewModel = GenericViewModel(
-            submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+            submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = schemeName
           )
@@ -82,7 +88,14 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
         }
       }
 
-  def onSubmit(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onSubmit(chargeType: ChargeType,
+               mode: Mode,
+               srn: String,
+               startDate: LocalDate,
+               accessType: AccessType,
+               version: Int,
+               index: Index,
+               schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
           form
@@ -90,7 +103,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
             .fold(
               formWithErrors => {
                 val viewModel = GenericViewModel(
-                  submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+                  submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
                   returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                   schemeName = schemeName
                 )
@@ -106,11 +119,11 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
               },
               value => {
                 for {
-                  updatedAnswers <- Future.fromTry(userAnswersService.set(TaxYearReportedAndPaidPage(chargeType, index), value, mode))
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex), value, mode))
                   _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
                     chargeType = Some(chargeType), memberNo = Some(index.id))
                 } yield {
-                    Redirect(navigator.nextPage(TaxYearReportedAndPaidPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                    Redirect(navigator.nextPage(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
                 }
               }
             )

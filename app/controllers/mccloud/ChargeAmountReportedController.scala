@@ -22,10 +22,8 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.ChargeAmountReportedFormProvider
 import models.LocalDateBinder._
-import models.chargeE.ChargeEDetails
 import models.{AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.chargeE.MemberDetailsPage
 import pages.mccloud.ChargeAmountReportedPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -34,7 +32,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -63,19 +61,25 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
   }
 
   def onPageLoad(chargeType: ChargeType,
-                 mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+                 mode: Mode,
+                 srn: String,
+                 startDate: LocalDate,
+                 accessType: AccessType,
+                 version: Int,
+                 index: Index,
+                 schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
+      DataRetrievals.retrieveSchemeName{ schemeName =>
 
         val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
-        val preparedForm: Form[BigDecimal] = request.userAnswers.get(ChargeAmountReportedPage(chargeType, index)) match {
+        val preparedForm: Form[BigDecimal] = request.userAnswers.get(ChargeAmountReportedPage(chargeType, index, schemeIndex)) match {
           case Some(value) => form(mininimumChargeValue).fill(value)
           case None => form(mininimumChargeValue)
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+          submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
@@ -85,7 +89,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
           "startDate" -> Some(localDateToString(startDate)),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
-          "memberName" -> memberName
+          "periodDescription" -> "bla"
         )
 
         renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(Ok(_))
@@ -93,9 +97,15 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
     }
 
   def onSubmit(chargeType: ChargeType,
-               mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+               mode: Mode,
+               srn: String,
+               startDate: LocalDate,
+               accessType: AccessType,
+               version: Int,
+               index: Index,
+               schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
+      DataRetrievals.retrieveSchemeName{ schemeName =>
 
         val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
@@ -104,7 +114,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
           .fold(
             formWithErrors => {
               val viewModel = GenericViewModel(
-                submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+                submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
@@ -114,16 +124,16 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                 "startDate" -> Some(localDateToString(startDate)),
                 "form" -> formWithErrors,
                 "viewModel" -> viewModel,
-                "memberName" -> memberName
+                "periodDescription" -> "bla"
               )
               renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(BadRequest(_))
             },
             value => {
               for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeAmountReportedPage(chargeType, index), value, mode))
+                updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeAmountReportedPage(chargeType, index, schemeIndex), value, mode))
                 _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                  chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
-              } yield Redirect(navigator.nextPage(ChargeAmountReportedPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                  chargeType = Some(chargeType), memberNo = Some(index.id))
+              } yield Redirect(navigator.nextPage(ChargeAmountReportedPage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
             }
           )
       }

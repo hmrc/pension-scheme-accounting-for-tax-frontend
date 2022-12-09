@@ -55,7 +55,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
 
   private def form(): Form[String] = formProvider()
 
-  private def ordinal(index: Int)(implicit request: DataRequest[AnyContent]) = {
+  private def ordinal(index: Int)(implicit request: DataRequest[AnyContent]): Option[String] = {
     if (index < 0 | index > 4) {
       None
     } else {

@@ -1580,8 +1580,8 @@ mccloud.scheme.ref2 = third
 mccloud.scheme.ref3 = fourth
 mccloud.scheme.ref4 = fifth
 
-chargeAmountReported.title = What was the original annual allowance charge amount reported for [selected period]?
-chargeAmountReported.heading = What was the original annual allowance charge amount reported for [selected period]?
+chargeAmountReported.title = What was the original annual allowance charge amount reported for {0}?
+chargeAmountReported.heading = What was the original annual allowance charge amount reported for {0}?
 
 chargeAmountReported.error.required = Enter the charge amount
 chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00

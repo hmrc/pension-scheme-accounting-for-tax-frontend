@@ -20,9 +20,9 @@ import models.{AFTQuarter, ChargeType}
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class TaxQuarterReportedAndPaidPage(chargeType: ChargeType, index: Int) extends QuestionPage[AFTQuarter] {
+case class TaxQuarterReportedAndPaidPage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[AFTQuarter] {
   override def path: JsPath =
-    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ TaxQuarterReportedAndPaidPage.toString
+    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes" \ schemeIndex \ TaxQuarterReportedAndPaidPage.toString
 
 }
 

@@ -30,7 +30,6 @@ import pages.Page
 import pages.chargeE._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import pages.mccloud._
-import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
@@ -104,18 +103,19 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       }
 
-    case EnterPstrPage(ChargeTypeAnnualAllowance, index, _) =>
-      CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+    case EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
+      controllers.mccloud.routes.TaxYearReportedAndPaidController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
 
-    case TaxYearReportedAndPaidPage(ChargeTypeAnnualAllowance, index) =>
+    case TaxYearReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
       controllers.mccloud.routes.TaxQuarterReportedAndPaidController
-        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
 
-    case TaxQuarterReportedAndPaidPage(ChargeTypeAnnualAllowance, index) =>
+    case TaxQuarterReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
       controllers.mccloud.routes.ChargeAmountReportedController
-        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
 
-    case ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index) =>
+    case ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, _) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)

@@ -67,11 +67,12 @@ class TaxQuarterReportedAndPaidController @Inject()(
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
-                 index: Index
+                 index: Index,
+                 schemeIndex: Index
                 ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
     allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
-    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index)).map(_.startYear) match {
+    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex)).map(_.startYear) match {
       case Some(year) =>
         schemeService.retrieveSchemeDetails(
           psaId = request.idOrException,
@@ -83,12 +84,13 @@ class TaxQuarterReportedAndPaidController @Inject()(
               val quarters = displayQuarters.map(_.quarter)
 
               val vm = GenericViewModel(
-                submitUrl = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+                submitUrl = routes.TaxQuarterReportedAndPaidController
+                  .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
                 returnUrl = config.schemeDashboardUrl(request).format(srn),
                 schemeName = schemeDetails.schemeName
               )
 
-              val preparedForm: Form[AFTQuarter] = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index)) match {
+              val preparedForm: Form[AFTQuarter] = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex)) match {
                 case Some(value) => form(year, quarters).fill(value)
                 case None => form(year, quarters)
               }
@@ -119,10 +121,11 @@ class TaxQuarterReportedAndPaidController @Inject()(
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,
-               index: Index
+               index: Index,
+               schemeIndex: Index
               ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
     allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index)).map(_.startYear) match {
+    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex)).map(_.startYear) match {
       case Some(year) =>
         schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
           quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
@@ -133,7 +136,8 @@ class TaxQuarterReportedAndPaidController @Inject()(
                 .fold(
                   formWithErrors => {
                     val vm = GenericViewModel(
-                      submitUrl = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+                      submitUrl = routes.TaxQuarterReportedAndPaidController
+                        .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
                       returnUrl = config.schemeDashboardUrl(request).format(srn),
                       schemeName = schemeDetails.schemeName
                     )
@@ -149,18 +153,15 @@ class TaxQuarterReportedAndPaidController @Inject()(
                     renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
                   },
                   value => {
-
-                    val xx = form(year, quarters)
-                      .bindFromRequest()
-
-                    println( "\n>>>SAVED FM:" + xx)
-                    println( "\n>>>SAVED VAL:" + value)
                     for {
-                      updatedAnswers <- Future.fromTry(userAnswersService.set(TaxQuarterReportedAndPaidPage(chargeType, index), value, mode))
+                      updatedAnswers <- Future.fromTry(userAnswersService
+                        .set(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex), value, mode))
                       _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
                         chargeType = Some(chargeType), memberNo = Some(index.id))
                     } yield {
-                      Redirect(navigator.nextPage(TaxQuarterReportedAndPaidPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                      Redirect(navigator
+                        .nextPage(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex), mode, updatedAnswers,
+                          srn, startDate, accessType, version))
                     }
                   }
                 )

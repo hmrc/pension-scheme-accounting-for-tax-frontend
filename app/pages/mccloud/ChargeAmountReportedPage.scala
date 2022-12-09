@@ -20,10 +20,9 @@ import models.ChargeType
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class ChargeAmountReportedPage(chargeType: ChargeType, index: Int) extends QuestionPage[BigDecimal] {
-
+case class ChargeAmountReportedPage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[BigDecimal] {
   override def path: JsPath =
-    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ ChargeAmountReportedPage.toString
+    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes" \ schemeIndex \ ChargeAmountReportedPage.toString
 
 }
 
