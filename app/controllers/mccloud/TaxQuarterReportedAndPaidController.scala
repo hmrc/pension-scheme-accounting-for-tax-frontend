@@ -68,8 +68,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                  accessType: AccessType,
                  version: Int,
                  index: Index,
-                 schemeIndex: Index
-                ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
+                 schemeIndex: Option[Index]): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
     allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
     request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex)).map(_.startYear) match {
@@ -122,8 +121,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                accessType: AccessType,
                version: Int,
                index: Index,
-               schemeIndex: Index
-              ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
+               schemeIndex: Option[Index]): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
     allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
     request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex)).map(_.startYear) match {
       case Some(year) =>

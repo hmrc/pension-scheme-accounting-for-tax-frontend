@@ -31,6 +31,7 @@ import pages.chargeD._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import pages.mccloud._
 import play.api.mvc.{AnyContent, Call}
+import models.Index._
 
 import java.time.LocalDate
 
@@ -102,7 +103,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
     case EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex) =>
       controllers.mccloud.routes.TaxYearReportedAndPaidController
-        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
+        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, Some(schemeIndex))
 
     case TaxYearReportedAndPaidPage(ChargeTypeLifetimeAllowance, index, schemeIndex) =>
       controllers.mccloud.routes.TaxQuarterReportedAndPaidController
