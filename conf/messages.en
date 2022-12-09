@@ -1569,6 +1569,16 @@ taxYearReportedAndPaid.error.required = Select the tax year in which the origina
 
 taxQuarterReportedAndPaid.title = Which quarter of {0} was the original annual allowance charge reported and paid?
 taxQuarterReportedAndPaid.heading = Which quarter of {0} was the original annual allowance charge reported and paid?
+enterPstr.title = Enter the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported annual allowance charge
+enterPstr.hint = For example, 20123456RQ
+enterPstr.error.required = Enter a Pension Scheme Tax Reference (PSTR)
+enterPstr.error.invalid = Enter a Pension Scheme Tax Reference (PSTR) that is 8 numbers, followed by R, followed by a character, like 12345678RA
+
+mccloud.scheme.ref0 = first
+mccloud.scheme.ref1 = second
+mccloud.scheme.ref2 = third
+mccloud.scheme.ref3 = fourth
+mccloud.scheme.ref4 = fifth
 
 chargeAmountReported.title = What was the original annual allowance charge amount reported for [selected period]?
 chargeAmountReported.heading = What was the original annual allowance charge amount reported for [selected period]?

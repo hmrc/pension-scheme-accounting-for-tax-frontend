@@ -549,3 +549,19 @@ GET         /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:ind
 POST        /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:index/charge-amount                                                       controllers.mccloud.ChargeAmountReportedController.onSubmit(chargeType: ChargeType = ChargeTypeLifetimeAllowance, mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
 
 
+
+
+GET        /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/pension-scheme-tax-reference-pstr/:schemeIndex                                       controllers.mccloud.EnterPstrController.onPageLoad(chargeType: ChargeType = ChargeTypeAnnualAllowance, mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index, schemeIndex: Index)
+POST       /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/pension-scheme-tax-reference-pstr/:schemeIndex                                      controllers.mccloud.EnterPstrController.onSubmit(chargeType: ChargeType = ChargeTypeAnnualAllowance, mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index, schemeIndex: Index)
+
+GET        /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/pension-scheme-tax-reference-pstr/:schemeIndex                                       controllers.mccloud.EnterPstrController.onPageLoad(chargeType: ChargeType = ChargeTypeAnnualAllowance, mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index, schemeIndex: Index)
+POST       /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/pension-scheme-tax-reference-pstr/:schemeIndex                                      controllers.mccloud.EnterPstrController.onSubmit(chargeType: ChargeType = ChargeTypeAnnualAllowance, mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index, schemeIndex: Index)
+
+GET        /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:index/pension-scheme-tax-reference-pstr/:schemeIndex                                       controllers.mccloud.EnterPstrController.onPageLoad(chargeType: ChargeType = ChargeTypeLifetimeAllowance, mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index, schemeIndex: Index)
+POST       /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:index/pension-scheme-tax-reference-pstr/:schemeIndex                                       controllers.mccloud.EnterPstrController.onSubmit(chargeType: ChargeType = ChargeTypeLifetimeAllowance, mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index, schemeIndex: Index)
+
+GET        /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:index/pension-scheme-tax-reference-pstr/:schemeIndex                                       controllers.mccloud.EnterPstrController.onPageLoad(chargeType: ChargeType = ChargeTypeLifetimeAllowance, mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index, schemeIndex: Index)
+POST       /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:index/pension-scheme-tax-reference-pstr/:schemeIndex                                       controllers.mccloud.EnterPstrController.onSubmit(chargeType: ChargeType = ChargeTypeLifetimeAllowance, mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index, schemeIndex: Index)
+
+
+

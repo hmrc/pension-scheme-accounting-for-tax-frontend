@@ -28,6 +28,7 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
+import pages.mccloud.{EnterPstrPage, WasAnotherPensionSchemePage}
 import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
@@ -54,8 +55,13 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index), Some(publicPensionRemedyYes)),
         row(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index), Some(chargeInAdditionReportedNo)),
-        row(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index))(CheckYourAnswersController
+
+        row(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index))(EnterPstrController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex), wasAnother),
+
+        row(EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index)),
+
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),
@@ -89,8 +95,10 @@ object ChargeENavigatorSpec {
   private val srn = "test-srn"
   private val startDate = QUARTER_START_DATE
   private val index = 0
+  private val schemeIndex = 0
   private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
+  private val wasAnother = UserAnswers().set(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0), true).toOption
   private val zeroedCharge = UserAnswers().set(chargeA.ChargeDetailsPage,
     SampleData.chargeAChargeDetails.copy(totalAmount = BigDecimal(0.00))).toOption
   private val multipleCharges = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails)

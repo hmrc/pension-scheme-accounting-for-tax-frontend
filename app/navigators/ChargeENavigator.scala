@@ -30,6 +30,7 @@ import pages.Page
 import pages.chargeE._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import pages.mccloud._
+import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
@@ -60,6 +61,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
     }
 
+  //scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
@@ -96,6 +98,13 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       }
 
     case WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index) =>
+      ua.get(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index)) match {
+        case Some(true) => controllers.mccloud.routes.EnterPstrController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, 0)
+        case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      }
+
+    case EnterPstrPage(ChargeTypeAnnualAllowance, index, _) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
     case TaxYearReportedAndPaidPage(ChargeTypeAnnualAllowance, index) =>
