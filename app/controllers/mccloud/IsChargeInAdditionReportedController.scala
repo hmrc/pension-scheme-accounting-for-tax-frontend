@@ -23,7 +23,7 @@ import forms.YesNoFormProvider
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.mccloud.IsPublicServicePensionsRemedyPage
+import pages.mccloud.IsChargeInAdditionReportedPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -37,23 +37,23 @@ import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi: MessagesApi,
-                                                        userAnswersCacheConnector: UserAnswersCacheConnector,
-                                                        userAnswersService: UserAnswersService,
-                                                        navigator: CompoundNavigator,
-                                                        identify: IdentifierAction,
-                                                        getData: DataRetrievalAction,
-                                                        allowAccess: AllowAccessActionProvider,
-                                                        requireData: DataRequiredAction,
-                                                        formProvider: YesNoFormProvider,
-                                                        val controllerComponents: MessagesControllerComponents,
-                                                        renderer: Renderer)(implicit ec: ExecutionContext)
+class IsChargeInAdditionReportedController @Inject()(override val messagesApi: MessagesApi,
+                                                     userAnswersCacheConnector: UserAnswersCacheConnector,
+                                                     userAnswersService: UserAnswersService,
+                                                     navigator: CompoundNavigator,
+                                                     identify: IdentifierAction,
+                                                     getData: DataRetrievalAction,
+                                                     allowAccess: AllowAccessActionProvider,
+                                                     requireData: DataRequiredAction,
+                                                     formProvider: YesNoFormProvider,
+                                                     val controllerComponents: MessagesControllerComponents,
+                                                     renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
-    formProvider(messages("isPublicServicePensionsRemedy.error.required", memberName))
+    formProvider(messages("isChargeInAdditionReported.error.required", memberName))
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
@@ -68,12 +68,12 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
           val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
           val viewModel = GenericViewModel(
-            submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+            submitUrl = routes.IsChargeInAdditionReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = schemeName
           )
 
-          val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
+          val preparedForm = request.userAnswers.get(IsChargeInAdditionReportedPage(chargeType, index)) match {
             case None        => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
@@ -84,11 +84,10 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             "form" -> preparedForm,
             "viewModel" -> viewModel,
             "radios" -> Radios.yesNo(preparedForm("value")),
-            "chargeTypeDescription" -> chargeTypeDescription
+            "chargeTypeDescription" -> Messages(s"chargeType.description.${chargeType.toString}")
           )
 
-          renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(Ok(_))
-
+          renderer.render("mccloud/isChargeInAdditionReported.njk", json).map(Ok(_))
         }
     }
 
@@ -108,7 +107,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+                submitUrl = routes.IsChargeInAdditionReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
@@ -118,21 +117,19 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                 "form" -> formWithErrors,
                 "viewModel" -> viewModel,
                 "radios" -> Radios.yesNo(formWithErrors("value")),
-                "chargeTypeDescription" -> chargeTypeDescription
+                "chargeTypeDescription" -> Messages(s"chargeType.description.${chargeType.toString}")
               )
-              renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
-
+              renderer.render("mccloud/isChargeInAdditionReported.njk", json).map(BadRequest(_))
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
+                updatedAnswers <- Future.fromTry(userAnswersService.set(IsChargeInAdditionReportedPage(chargeType, index), value, mode))
                 _ <- userAnswersCacheConnector
                   .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
               } yield
                 Redirect(
-                  navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                  navigator.nextPage(IsChargeInAdditionReportedPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
-
       }
     }
 }

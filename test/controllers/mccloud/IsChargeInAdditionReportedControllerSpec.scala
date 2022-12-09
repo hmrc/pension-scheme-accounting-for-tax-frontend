@@ -42,7 +42,7 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
 
-class IsPublicServicePensionsRemedyControllerSpec
+class IsChargeInAdditionReportedControllerSpec
     extends ControllerSpecBase
     with MockitoSugar
     with NunjucksSupport
@@ -57,15 +57,15 @@ class IsPublicServicePensionsRemedyControllerSpec
 
   private val formProvider = new YesNoFormProvider()
   private val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
-  private val form: Form[Boolean] = formProvider(messages("isPublicServicePensionsRemedy.error.required", chargeTypeDescription))
+  private val form: Form[Boolean] = formProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription))
 
   private def httpPathGET: String =
-    routes.IsPublicServicePensionsRemedyController
+    routes.IsChargeInAdditionReportedController
       .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
       .url
 
   private def httpPathPOST: String =
-    routes.IsPublicServicePensionsRemedyController
+    routes.IsChargeInAdditionReportedController
       .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
       .url
 
@@ -84,7 +84,7 @@ class IsPublicServicePensionsRemedyControllerSpec
       .success
       .value
 
-  "IsPublicServicePensionsRemedy Controller" must {
+  "IsChargeInAdditionReported Controller" must {
 
     "return OK and the correct view for a GET" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
@@ -107,7 +107,7 @@ class IsPublicServicePensionsRemedyControllerSpec
         "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
       )
 
-      templateCaptor.getValue mustEqual "mccloud/isPublicServicePensionsRemedy.njk"
+      templateCaptor.getValue mustEqual "mccloud/isChargeInAdditionReported.njk"
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
@@ -150,7 +150,7 @@ class IsPublicServicePensionsRemedyControllerSpec
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
-      templateCaptor.getValue mustEqual "mccloud/isPublicServicePensionsRemedy.njk"
+      templateCaptor.getValue mustEqual "mccloud/isChargeInAdditionReported.njk"
 
       jsonCaptor.getValue must containJson(expectedJson)
     }
