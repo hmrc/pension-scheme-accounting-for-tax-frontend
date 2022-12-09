@@ -26,5 +26,5 @@ case class EnterPstrPage(chargeType: ChargeType, index: Int) extends QuestionPag
 }
 
 object EnterPstrPage {
-  override def toString: String = "enterPstr"
+  override def toString: String = "pstr"
 }
