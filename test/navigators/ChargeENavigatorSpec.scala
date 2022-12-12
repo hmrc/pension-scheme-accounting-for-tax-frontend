@@ -48,10 +48,14 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(MemberDetailsPage(index))(AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(AnnualAllowanceYearPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
-        row(ChargeDetailsPage(index))(IsPublicServicePensionsRemedyController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index)),
-        row(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index))(IsChargeInAdditionReportedController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index), Some(publicPensionRemedyYes)),
+        row(ChargeDetailsPage(index))(
+          IsPublicServicePensionsRemedyController
+            .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index)),
+        row(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index))(
+          IsChargeInAdditionReportedController
+            .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index),
+          Some(publicPensionRemedyYes)
+        ),
         row(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index), Some(chargeInAdditionReportedNo)),
 
@@ -68,9 +72,13 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeEMember)),
         row(InputSelectionPage(ChargeTypeAnnualAllowance))(controllers.chargeE.routes.WhatYouWillNeedController
-          .onPageLoad(srn, startDate, accessType, versionInt), Some(manualInput)),
-        row(InputSelectionPage(ChargeTypeAnnualAllowance))(controllers.fileUpload.routes.WhatYouWillNeedController
-          .onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance), Some(fileUploadInput))
+                                                             .onPageLoad(srn, startDate, accessType, versionInt),
+                                                           Some(manualInput)),
+        row(InputSelectionPage(ChargeTypeAnnualAllowance))(
+          controllers.fileUpload.routes.WhatYouWillNeedController
+            .onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance),
+          Some(fileUploadInput)
+        )
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate, accessType, versionInt)

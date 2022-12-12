@@ -39,17 +39,20 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
   private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
-
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index)),
-        row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index)),
-        row(ChargeDetailsPage(index))(IsPublicServicePensionsRemedyController
-          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index)),
-        row(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index))(IsChargeInAdditionReportedController
-          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index), Some(publicPensionRemedyYes)),
+        row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
+        row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
+        row(ChargeDetailsPage(index))(
+          IsPublicServicePensionsRemedyController
+            .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index)),
+        row(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index))(
+          IsChargeInAdditionReportedController
+            .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index),
+          Some(publicPensionRemedyYes)
+        ),
         row(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index), Some(chargeInAdditionReportedNo)),
 
@@ -59,18 +62,22 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
           .onPageLoadWithIndex(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),
 
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
-        row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index), addMembersYes),
+        row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),
         row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeDMember)),
         row(InputSelectionPage(ChargeTypeLifetimeAllowance))(controllers.chargeD.routes.WhatYouWillNeedController
-          .onPageLoad(srn, startDate, accessType, versionInt), Some(manualInput)),
-        row(InputSelectionPage(ChargeTypeLifetimeAllowance))(controllers.fileUpload.routes.WhatYouWillNeedController
-          .onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance), Some(fileUploadInput))
+                                                               .onPageLoad(srn, startDate, accessType, versionInt),
+                                                             Some(manualInput)),
+        row(InputSelectionPage(ChargeTypeLifetimeAllowance))(
+          controllers.fileUpload.routes.WhatYouWillNeedController
+            .onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance),
+          Some(fileUploadInput)
+        )
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate, accessType, versionInt)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate, accessType, versionInt)
   }
 
   "CheckMode" must {
@@ -81,7 +88,7 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index))
       )
 
-    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate, accessType, versionInt)
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn, startDate, accessType, versionInt)
   }
 
 }

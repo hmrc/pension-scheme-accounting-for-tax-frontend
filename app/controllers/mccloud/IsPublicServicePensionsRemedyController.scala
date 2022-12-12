@@ -16,12 +16,10 @@
 
 package controllers.mccloud
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
-import helpers.ChargeServiceHelper
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
@@ -49,10 +47,8 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                                                         requireData: DataRequiredAction,
                                                         formProvider: YesNoFormProvider,
                                                         val controllerComponents: MessagesControllerComponents,
-                                                        chargeServiceHelper: ChargeServiceHelper,
-                                                        config: FrontendAppConfig,
                                                         renderer: Renderer)(implicit ec: ExecutionContext)
-  extends FrontendBaseController
+    extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -66,34 +62,34 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                  accessType: AccessType,
                  version: Int,
                  index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
+      implicit request =>
+        DataRetrievals.retrieveSchemeName { schemeName =>
+          val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
-        val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
+          val viewModel = GenericViewModel(
+            submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName = schemeName
+          )
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
+          val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
+            case None        => form(chargeTypeDescription)
+            case Some(value) => form(chargeTypeDescription).fill(value)
+          }
 
-        val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
-          case None => form(chargeTypeDescription)
-          case Some(value) => form(chargeTypeDescription).fill(value)
+          val json = Json.obj(
+            "srn" -> srn,
+            "startDate" -> Some(localDateToString(startDate)),
+            "form" -> preparedForm,
+            "viewModel" -> viewModel,
+            "radios" -> Radios.yesNo(preparedForm("value")),
+            "chargeTypeDescription" -> chargeTypeDescription
+          )
+
+          renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(Ok(_))
+
         }
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "radios" -> Radios.yesNo(preparedForm("value")),
-          "chargeTypeDescription" -> chargeTypeDescription
-        )
-
-        renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(Ok(_))
-
-      }
     }
 
   def onSubmit(chargeType: ChargeType,
@@ -106,32 +102,36 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
-        form(chargeTypeDescription).bindFromRequest().fold(
-          formWithErrors => {
+        form(chargeTypeDescription)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
 
-            val viewModel = GenericViewModel(
-              submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-              schemeName = schemeName
-            )
-            val json = Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(localDateToString(startDate)),
-              "form" -> formWithErrors,
-              "viewModel" -> viewModel,
-              "radios" -> Radios.yesNo(formWithErrors("value")),
-              "chargeTypeDescription" -> chargeTypeDescription
-            )
-            renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
+              val viewModel = GenericViewModel(
+                submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName = schemeName
+              )
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(localDateToString(startDate)),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel,
+                "radios" -> Radios.yesNo(formWithErrors("value")),
+                "chargeTypeDescription" -> chargeTypeDescription
+              )
+              renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
 
-          },
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
-              _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                chargeType = Some(chargeType), memberNo = Some(index.id))
-            } yield Redirect(navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
-        )
+            },
+            value =>
+              for {
+                updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
+                _ <- userAnswersCacheConnector
+                  .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
+              } yield
+                Redirect(
+                  navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+          )
 
       }
     }
