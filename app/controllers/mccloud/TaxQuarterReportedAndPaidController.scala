@@ -65,6 +65,17 @@ class TaxQuarterReportedAndPaidController @Inject()(
   private def form(year: String, quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("quarters.error.required", year), quarters)
 
+  def onPageLoad(chargeType: ChargeType,
+                          mode: Mode, srn: String,
+                          startDate: LocalDate,
+                          accessType: AccessType,
+                          version: Int,
+                          index: Index
+                         ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
+    allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+    get(chargeType, mode, srn, startDate, accessType, version, index, None)
+  }
+
   def onPageLoadWithIndex(chargeType: ChargeType,
                  mode: Mode, srn: String,
                  startDate: LocalDate,
@@ -127,6 +138,17 @@ class TaxQuarterReportedAndPaidController @Inject()(
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
 
+  }
+
+  def onSubmit(chargeType: ChargeType,
+                        mode: Mode, srn: String,
+                        startDate: LocalDate,
+                        accessType: AccessType,
+                        version: Int,
+                        index: Index
+                       ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
+    allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+    post(chargeType, mode, srn, startDate, accessType, version, index, None)
   }
 
   // scalastyle:off method.length

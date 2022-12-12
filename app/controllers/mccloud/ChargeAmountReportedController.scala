@@ -62,6 +62,17 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
     )
   }
 
+  def onPageLoad(chargeType: ChargeType,
+                          mode: Mode,
+                          srn: String,
+                          startDate: LocalDate,
+                          accessType: AccessType,
+                          version: Int,
+                          index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+      get(chargeType, mode, srn, startDate, accessType, version, index, None)
+    }
+
   def onPageLoadWithIndex(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
@@ -109,6 +120,17 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
       renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(Ok(_))
     }
   }
+
+  def onSubmit(chargeType: ChargeType,
+                        mode: Mode,
+                        srn: String,
+                        startDate: LocalDate,
+                        accessType: AccessType,
+                        version: Int,
+                        index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      post(chargeType, mode, srn, startDate, accessType, version, index, None)
+    }
 
   def onSubmitWithIndex(chargeType: ChargeType,
                mode: Mode,

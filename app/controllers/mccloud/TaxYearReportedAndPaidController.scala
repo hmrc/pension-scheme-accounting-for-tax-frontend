@@ -50,24 +50,35 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                                                  formProvider: YearRangeFormProvider,
                                                  val controllerComponents: MessagesControllerComponents,
                                                  renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   def form: Form[YearRange] =
     formProvider("taxYearReportedAndPaid.error.required")
 
+  def onPageLoad(chargeType: ChargeType,
+                          mode: Mode,
+                          srn: String,
+                          startDate: LocalDate,
+                          accessType: AccessType,
+                          version: Int,
+                          index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+      get(chargeType, mode, srn, startDate, accessType, version, index, None)
+    }
+
   def onPageLoadWithIndex(chargeType: ChargeType,
-                 mode: Mode,
-                 srn: String,
-                 startDate: LocalDate,
-                 accessType: AccessType,
-                 version: Int,
-                 index: Index,
-                 schemeIndex: Index): Action[AnyContent] =
+                          mode: Mode,
+                          srn: String,
+                          startDate: LocalDate,
+                          accessType: AccessType,
+                          version: Int,
+                          index: Index,
+                          schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
-      }
+    }
 
   //scalastyle:off parameter.number
   private def get(chargeType: ChargeType,
@@ -103,27 +114,38 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
     }
   }
 
+  def onSubmit(chargeType: ChargeType,
+                        mode: Mode,
+                        srn: String,
+                        startDate: LocalDate,
+                        accessType: AccessType,
+                        version: Int,
+                        index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      post(chargeType, mode, srn, startDate, accessType, version, index, None)
+    }
+
   def onSubmitWithIndex(chargeType: ChargeType,
-               mode: Mode,
-               srn: String,
-               startDate: LocalDate,
-               accessType: AccessType,
-               version: Int,
-               index: Index,
-               schemeIndex: Index): Action[AnyContent] =
+                        mode: Mode,
+                        srn: String,
+                        startDate: LocalDate,
+                        accessType: AccessType,
+                        version: Int,
+                        index: Index,
+                        schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       post(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
     }
 
   //scalastyle:off parameter.number
   private def post(chargeType: ChargeType,
-                       mode: Mode,
-                       srn: String,
-                       startDate: LocalDate,
-                       accessType: AccessType,
-                       version: Int,
-                       index: Index,
-                       schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+                   mode: Mode,
+                   srn: String,
+                   startDate: LocalDate,
+                   accessType: AccessType,
+                   version: Int,
+                   index: Index,
+                   schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     DataRetrievals.retrieveSchemeName { schemeName =>
       form
         .bindFromRequest()
