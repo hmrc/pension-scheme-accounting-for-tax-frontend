@@ -21,7 +21,7 @@ import play.api.data.FormError
 
 class EnterPstrFormProviderSpec extends StringFieldBehaviours {
 
-  val pstrRegx = """^[0-9]{8}[A-Z]{2}$"""
+  val pstrRegx = """^[0-9]{8}[Rr][A-Za-z]{1}$"""
 
   private val form = new EnterPstrFormProvider().apply()
 

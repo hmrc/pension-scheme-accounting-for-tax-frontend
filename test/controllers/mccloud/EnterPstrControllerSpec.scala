@@ -23,7 +23,6 @@ import forms.mccloud.EnterPstrFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -73,7 +72,6 @@ class EnterPstrControllerSpec extends ControllerSpecBase
   "EnterPstrController Controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
@@ -90,7 +88,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
       val expectedJson = Json.obj(
         "form" -> form,
         "viewModel" -> viewModel,
-        "ordinal" -> Messages("mccloud.scheme.ref0")
+        "chargeTitle" -> Messages("enterPstr.title.annual", "")
       )
 
       templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
@@ -98,7 +96,6 @@ class EnterPstrControllerSpec extends ControllerSpecBase
     }
 
     "redirect to the next page when valid data is submitted" in {
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
@@ -116,8 +113,6 @@ class EnterPstrControllerSpec extends ControllerSpecBase
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
-
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
@@ -135,7 +130,8 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
       val expectedJson = Json.obj(
         "form" -> boundForm,
-        "viewModel" -> viewModel
+        "viewModel" -> viewModel,
+        "chargeTitle" -> Messages("enterPstr.title.annual", "")
       )
 
       templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
