@@ -21,11 +21,10 @@ import pages.QuestionPage
 import play.api.libs.json.JsPath
 
 case class TaxQuarterReportedAndPaidPage(chargeType: ChargeType, index: Int, schemeIndex: Option[Int]) extends QuestionPage[AFTQuarter] {
+  private def basePath = JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy"
   override def path: JsPath = schemeIndex match {
-    case Some(i) =>
-      JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes" \ i \ TaxQuarterReportedAndPaidPage.toString
-    case None =>
-      JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ TaxQuarterReportedAndPaidPage.toString
+    case Some(i) => basePath \ "schemes" \ i \ TaxQuarterReportedAndPaidPage.toString
+    case None => basePath \ TaxQuarterReportedAndPaidPage.toString
   }
 }
 

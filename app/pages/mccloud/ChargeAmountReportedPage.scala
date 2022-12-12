@@ -21,18 +21,14 @@ import pages.QuestionPage
 import play.api.libs.json.JsPath
 
 case class ChargeAmountReportedPage(chargeType: ChargeType, index: Int, schemeIndex: Option[Int]) extends QuestionPage[BigDecimal] {
+  private def basePath = JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy"
   override def path: JsPath =
     schemeIndex match {
-      case Some(i) =>
-        JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes" \ i \ ChargeAmountReportedPage.toString
-      case None =>
-        JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ ChargeAmountReportedPage.toString
+      case Some(i) => basePath \ "schemes" \ i \ ChargeAmountReportedPage.toString
+      case None => basePath \ ChargeAmountReportedPage.toString
     }
-
-
 }
 
 object ChargeAmountReportedPage {
-
   override def toString: String = "chargeAmountReported"
 }

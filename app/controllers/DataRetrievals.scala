@@ -85,8 +85,7 @@ object DataRetrievals {
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case (x, y)                                       =>
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 

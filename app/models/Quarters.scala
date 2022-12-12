@@ -118,7 +118,7 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
         labelClasses = Some(LabelClasses(classes = if(areLabelsBold) Seq("govuk-!-font-weight-bold") else Nil)))
     }
 
-    Radios.apply(form("value"), x)
+    Radios(form("value"), x)
   }
 
   implicit def enumerable(quarters: Seq[AFTQuarter]): Enumerable[AFTQuarter] =
