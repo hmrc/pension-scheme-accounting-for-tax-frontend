@@ -30,7 +30,7 @@ import pages.mccloud.ChargeAmountReportedPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -60,6 +60,11 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
     formProvider(
       minimumChargeValueAllowed = minimumChargeValue
     )
+  }
+
+  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call = schemeIndex match {
+    case Some(i) => routes.ChargeAmountReportedController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
+    case None => routes.ChargeAmountReportedController.onSubmit
   }
 
   def onPageLoad(chargeType: ChargeType,
@@ -104,7 +109,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
       }
 
       val viewModel = GenericViewModel(
-        submitUrl = routes.ChargeAmountReportedController.onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+        submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = schemeName
       )
@@ -162,8 +167,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
         .fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeAmountReportedController
-                .onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+              submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )

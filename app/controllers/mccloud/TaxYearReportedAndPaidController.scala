@@ -29,7 +29,7 @@ import pages.mccloud.TaxYearReportedAndPaidPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -54,8 +54,13 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
     with I18nSupport
     with NunjucksSupport {
 
-  def form: Form[YearRange] =
+  private def form: Form[YearRange] =
     formProvider("taxYearReportedAndPaid.error.required")
+
+  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call = schemeIndex match {
+    case Some(i) => routes.TaxYearReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
+    case None => routes.TaxYearReportedAndPaidController.onSubmit
+  }
 
   def onPageLoad(chargeType: ChargeType,
                           mode: Mode,
@@ -96,8 +101,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
       }
 
       val viewModel = GenericViewModel(
-        submitUrl = routes.TaxYearReportedAndPaidController
-          .onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+        submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = schemeName
       )
@@ -146,13 +150,14 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                    version: Int,
                    index: Index,
                    schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+
     DataRetrievals.retrieveSchemeName { schemeName =>
       form
         .bindFromRequest()
         .fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.TaxYearReportedAndPaidController.onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+              submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )

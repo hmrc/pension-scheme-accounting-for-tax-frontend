@@ -31,7 +31,7 @@ import pages.mccloud.{TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.{QuartersService, SchemeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -64,6 +64,11 @@ class TaxQuarterReportedAndPaidController @Inject()(
 
   private def form(year: String, quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("quarters.error.required", year), quarters)
+
+  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call = schemeIndex match {
+    case Some(i) => routes.TaxQuarterReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
+    case None => routes.TaxQuarterReportedAndPaidController.onSubmit
+  }
 
   def onPageLoad(chargeType: ChargeType,
                           mode: Mode, srn: String,
@@ -109,8 +114,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
               val quarters = displayQuarters.map(_.quarter)
 
               val vm = GenericViewModel(
-                submitUrl = routes.TaxQuarterReportedAndPaidController
-                  .onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+                submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
                 returnUrl = config.schemeDashboardUrl(request).format(srn),
                 schemeName = schemeDetails.schemeName
               )
@@ -184,8 +188,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                 .fold(
                   formWithErrors => {
                     val vm = GenericViewModel(
-                      submitUrl = routes.TaxQuarterReportedAndPaidController
-                        .onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+                      submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
                       returnUrl = config.schemeDashboardUrl(request).format(srn),
                       schemeName = schemeDetails.schemeName
                     )
