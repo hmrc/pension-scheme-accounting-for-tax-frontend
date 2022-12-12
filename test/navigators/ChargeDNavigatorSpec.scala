@@ -18,6 +18,7 @@ package navigators
 
 import config.FrontendAppConfig
 import controllers.chargeD.routes._
+import controllers.mccloud.routes._
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import models.ChargeType.ChargeTypeLifetimeAllowance
@@ -27,12 +28,10 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeD._
 import pages.fileUpload.InputSelectionPage
+import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
-import controllers.mccloud.routes._
-import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
-import pages.mccloud.{EnterPstrPage, WasAnotherPensionSchemePage}
 
 class ChargeDNavigatorSpec extends NavigatorBehaviour {
 
@@ -56,8 +55,8 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
 
         row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(EnterPstrController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex), wasAnother),
-        row(EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex))(CheckYourAnswersController
-          .onPageLoad(srn, startDate, accessType, versionInt, index)),
+        row(EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex))(TaxYearReportedAndPaidController
+          .onPageLoadWithIndex(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),
 
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index), addMembersYes),

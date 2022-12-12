@@ -28,11 +28,10 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
-import pages.mccloud.{EnterPstrPage, WasAnotherPensionSchemePage}
+import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
-import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 
 class ChargeENavigatorSpec extends NavigatorBehaviour {
 
@@ -59,8 +58,8 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index))(EnterPstrController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex), wasAnother),
 
-        row(EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController
-          .onPageLoad(srn, startDate, accessType, versionInt, index)),
+        row(EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex))(TaxYearReportedAndPaidController
+          .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),
 
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), addMembersYes),
