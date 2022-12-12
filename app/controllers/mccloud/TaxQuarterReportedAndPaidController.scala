@@ -123,11 +123,12 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   case Some(value) => form(year, quarters).fill(value)
                   case None => form(year, quarters)
                 }
+
               val json = Json.obj(
                 "srn" -> srn,
                 "startDate" -> Some(localDateToString(startDate)),
                 "form" -> preparedForm,
-                "radios" -> Quarters.radios(form(year, quarters), displayQuarters),
+                "radios" -> Quarters.radios(preparedForm, displayQuarters),
                 "viewModel" -> vm,
                 "year" -> year
               )
@@ -203,6 +204,14 @@ class TaxQuarterReportedAndPaidController @Inject()(
                     renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
                   },
                   value => {
+                    //>>>AFTQuarter(2022-04-01,2022-06-30)
+                    /*
+                    Stores:
+                    "taxQuarterReportedAndPaid" : {
+                                        "startDate" : "2022-04-01",
+                                        "endDate" : "2022-06-30"
+                                    }
+                     */
                     for {
                       updatedAnswers <- Future.fromTry(userAnswersService
                         .set(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))

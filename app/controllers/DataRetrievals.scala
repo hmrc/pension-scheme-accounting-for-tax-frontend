@@ -86,8 +86,6 @@ object DataRetrievals {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
       case (x, y)                                       =>
-        println("\nK=" + memberPage)
-        println("\nL=" + y)
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }

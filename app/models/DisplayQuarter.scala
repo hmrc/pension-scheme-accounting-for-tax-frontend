@@ -20,9 +20,7 @@ case class DisplayQuarter(quarter: AFTQuarter,
                           displayYear: Boolean,
                           lockedBy: Option[String],
                           hintText: Option[DisplayHint])
-//{
-//  override def toString: String = quarter.toString
-//}
+
 
 sealed trait DisplayHint
 
