@@ -23,7 +23,6 @@ import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -43,12 +42,16 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
 
-class IsPublicServicePensionsRemedyControllerSpec extends ControllerSpecBase
-  with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class IsPublicServicePensionsRemedyControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application =
-    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction,
-      Seq()).build()
+    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq()).build()
 
   private def onwardRoute = Call("GET", "/foo")
 
@@ -56,25 +59,34 @@ class IsPublicServicePensionsRemedyControllerSpec extends ControllerSpecBase
   private val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
   private val form: Form[Boolean] = formProvider(messages("isPublicServicePensionsRemedy.error.required", chargeTypeDescription))
 
-  private def httpPathGET: String = routes.IsPublicServicePensionsRemedyController
-    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0).url
+  private def httpPathGET: String =
+    routes.IsPublicServicePensionsRemedyController
+      .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+      .url
 
-  private def httpPathPOST: String = routes.IsPublicServicePensionsRemedyController
-    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0).url
+  private def httpPathPOST: String =
+    routes.IsPublicServicePensionsRemedyController
+      .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+      .url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName)
+    schemeName = schemeName
+  )
 
-  private def userAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(MemberDetailsPage(0), memberDetails).success.value
-    .set(MemberDetailsPage(1), memberDetails).success.value
+  private def userAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(MemberDetailsPage(0), memberDetails)
+      .success
+      .value
+      .set(MemberDetailsPage(1), memberDetails)
+      .success
+      .value
 
   "IsPublicServicePensionsRemedy Controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
@@ -100,7 +112,6 @@ class IsPublicServicePensionsRemedyControllerSpec extends ControllerSpecBase
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted" in {
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
@@ -118,8 +129,6 @@ class IsPublicServicePensionsRemedyControllerSpec extends ControllerSpecBase
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
-
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))

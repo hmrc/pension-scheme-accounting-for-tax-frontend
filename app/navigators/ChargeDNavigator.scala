@@ -80,6 +80,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         case Some(true) => controllers.mccloud.routes.IsChargeInAdditionReportedController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
         case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+        case _ => sessionExpiredPage
       }
 
     case IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index) =>
@@ -87,6 +88,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         case Some(true) => controllers.mccloud.routes.WasAnotherPensionSchemeController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
         case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+        case _ => sessionExpiredPage
       }
 
     case WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index) =>
