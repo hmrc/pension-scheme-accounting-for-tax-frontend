@@ -22,7 +22,6 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeD.routes._
 import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.ChargeType.ChargeTypeLifetimeAllowance
-import models.Index.indexToInt
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
@@ -98,7 +97,9 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       ua.get(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index)) match {
         case Some(true) => controllers.mccloud.routes.EnterPstrController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, 0)
-        case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+        case Some(false) =>
+          controllers.mccloud.routes.TaxYearReportedAndPaidController
+            .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
       }
 
     case EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex) =>
