@@ -26,7 +26,7 @@ import models.Index.indexToInt
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
-import models.{AccessType, Index, MemberDetails, NormalMode, UploadId, UserAnswers}
+import models.{AccessType, ChargeType, Index, MemberDetails, Mode, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeD._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
@@ -106,19 +106,30 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         .onPageLoadWithIndex(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
 
     case TaxYearReportedAndPaidPage(ChargeTypeLifetimeAllowance, index, schemeIndex) =>
-      controllers.mccloud.routes.TaxQuarterReportedAndPaidController
-        .onPageLoadWithIndex(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex.get)
-
+      schemeIndex match {
+        case Some(i) => controllers.mccloud.routes.TaxQuarterReportedAndPaidController
+          .onPageLoadWithIndex(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, i)
+        case None => controllers.mccloud.routes.TaxQuarterReportedAndPaidController
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
+      }
     case TaxQuarterReportedAndPaidPage(ChargeTypeLifetimeAllowance, index, schemeIndex) =>
-      controllers.mccloud.routes.ChargeAmountReportedController
-        .onPageLoadWithIndex(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex.get)
-
+      schemeIndex match {
+        case Some(i) => controllers.mccloud.routes.ChargeAmountReportedController
+          .onPageLoadWithIndex(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, i)
+        case None => controllers.mccloud.routes.ChargeAmountReportedController
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
+      }
     case ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, index, _) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
     case AddMembersPage => addMembers(ua, srn, startDate, accessType, version)
     case DeleteMemberPage => deleteMemberRoutes(ua, srn, startDate, accessType, version)
+  }
+
+  private def route(schemeIndex: Option[Int]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call = schemeIndex match {
+    case Some(i) => controllers.mccloud.routes.TaxYearReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
+    case None => controllers.mccloud.routes.TaxYearReportedAndPaidController.onSubmit
   }
 
   private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {

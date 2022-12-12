@@ -108,13 +108,19 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
 
     case TaxYearReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      controllers.mccloud.routes.TaxQuarterReportedAndPaidController
-        .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex.get)
-
+      schemeIndex match {
+        case Some(i) => controllers.mccloud.routes.TaxQuarterReportedAndPaidController
+          .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, i)
+        case None => controllers.mccloud.routes.TaxQuarterReportedAndPaidController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
+      }
     case TaxQuarterReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      controllers.mccloud.routes.ChargeAmountReportedController
-        .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex.get)
-
+      schemeIndex match {
+        case Some(i) => controllers.mccloud.routes.ChargeAmountReportedController
+          .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, i)
+        case None => controllers.mccloud.routes.ChargeAmountReportedController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
+      }
     case ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, _) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
