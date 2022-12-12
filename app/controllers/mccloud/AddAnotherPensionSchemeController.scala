@@ -21,6 +21,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.AddAnotherPensionSchemePage
@@ -53,38 +54,53 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("addAnotherPensionScheme.error.required", memberName))
 
+  private def ordinal(index: Int)(implicit request: DataRequest[AnyContent]): Option[String] = {
+    if (index < 0 | index > 4) {
+      None
+    } else {
+      Some(Messages(s"mccloud.scheme.ref$index"))
+    }
+  }
+
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
-                 index: Index): Action[AnyContent] =
+                 index: Index,
+                 schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
           val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
           val viewModel = GenericViewModel(
-            submitUrl = routes.AddAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+            submitUrl = routes.AddAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = schemeName
           )
 
-          val preparedForm = request.userAnswers.get(AddAnotherPensionSchemePage(chargeType, index)) match {
+          val preparedForm = request.userAnswers.get(AddAnotherPensionSchemePage(chargeType, index, schemeIndex)) match {
             case None => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel,
-            "radios" -> Radios.yesNo(preparedForm("value"))
-          )
+          ordinal(schemeIndex) match {
+            case Some(value) =>
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(localDateToString(startDate)),
+                "form" -> preparedForm,
+                "viewModel" -> viewModel,
+                "ordinal" -> value,
+                "radios" -> Radios.yesNo(preparedForm("value"))
+              )
 
-          renderer.render("mccloud/addAnotherPensionScheme.njk", json).map(Ok(_))
+              renderer.render ("mccloud/addAnotherPensionScheme.njk", json).map (Ok (_) )
+            case _ =>
+              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+          }
         }
     }
 
@@ -94,7 +110,8 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,
-               index: Index): Action[AnyContent] =
+               index: Index,
+               schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
@@ -102,29 +119,35 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
           .bindFromRequest()
           .fold(
             formWithErrors => {
-
               val viewModel = GenericViewModel(
                 submitUrl = routes.IsChargeInAdditionReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel,
-                "radios" -> Radios.yesNo(formWithErrors("value"))
-              )
-              renderer.render("mccloud/addAnotherPensionScheme.njk", json).map(BadRequest(_))
+
+              ordinal(schemeIndex) match {
+                case Some(value) =>
+                  val json = Json.obj(
+                    "srn" -> srn,
+                    "startDate" -> Some(localDateToString(startDate)),
+                    "form" -> formWithErrors,
+                    "viewModel" -> viewModel,
+                    "ordinal" -> value,
+                    "radios" -> Radios.yesNo(formWithErrors("value"))
+                  )
+                  renderer.render("mccloud/addAnotherPensionScheme.njk", json).map(BadRequest(_))
+                case _ =>
+                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+              }
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(AddAnotherPensionSchemePage(chargeType, index), value, mode))
+                updatedAnswers <- Future.fromTry(userAnswersService.set(AddAnotherPensionSchemePage(chargeType, index, schemeIndex), value, mode))
                 _ <- userAnswersCacheConnector
                   .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
               } yield
                 Redirect(
-                  navigator.nextPage(AddAnotherPensionSchemePage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                  navigator.nextPage(AddAnotherPensionSchemePage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
     }

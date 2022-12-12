@@ -20,9 +20,9 @@ import models.ChargeType
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class AddAnotherPensionSchemePage(chargeType: ChargeType, index: Int) extends QuestionPage[Boolean] {
+case class AddAnotherPensionSchemePage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[Boolean] {
   override def path: JsPath =
-    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ AddAnotherPensionSchemePage.toString
+    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes" \ schemeIndex \ AddAnotherPensionSchemePage.toString
 }
 
 object AddAnotherPensionSchemePage {
