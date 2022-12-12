@@ -20,14 +20,16 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YearRangeFormProvider
+import models.Index.indexToInt
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, YearRange}
 import navigators.CompoundNavigator
 import pages.mccloud.TaxYearReportedAndPaidPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -64,29 +66,41 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                  index: Index,
                  schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
-          val preparedForm: Form[YearRange] = request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex)) match {
-            case Some(value) => form.fill(value)
-            case None => form
-          }
-
-          val viewModel = GenericViewModel(
-            submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )
-
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "form" -> preparedForm,
-            "radios" -> YearRange.radios(preparedForm),
-            "viewModel" -> viewModel
-          )
-
-          renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
-        }
+      get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
       }
+
+  //scalastyle:off parameter.number
+  private def get(chargeType: ChargeType,
+                  mode: Mode,
+                  srn: String,
+                  startDate: LocalDate,
+                  accessType: AccessType,
+                  version: Int,
+                  index: Index,
+                  schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    DataRetrievals.retrieveSchemeName { schemeName =>
+      val preparedForm: Form[YearRange] = request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
+        case Some(value) => form.fill(value)
+        case None => form
+      }
+
+      val viewModel = GenericViewModel(
+        submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+        schemeName = schemeName
+      )
+
+      val json = Json.obj(
+        "srn" -> srn,
+        "startDate" -> Some(localDateToString(startDate)),
+        "form" -> preparedForm,
+        "radios" -> YearRange.radios(preparedForm),
+        "viewModel" -> viewModel
+      )
+
+      renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
+    }
+  }
 
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
@@ -97,36 +111,50 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                index: Index,
                schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
-          form
-            .bindFromRequest()
-            .fold(
-              formWithErrors => {
-                val viewModel = GenericViewModel(
-                  submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-                  returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                  schemeName = schemeName
-                )
-
-                val json = Json.obj(
-                  "srn" -> srn,
-                  "startDate" -> Some(localDateToString(startDate)),
-                  "form" -> formWithErrors,
-                  "radios" -> YearRange.radios(formWithErrors),
-                  "viewModel" -> viewModel
-                )
-                renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
-              },
-              value => {
-                for {
-                  updatedAnswers <- Future.fromTry(userAnswersService.set(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex), value, mode))
-                  _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                    chargeType = Some(chargeType), memberNo = Some(index.id))
-                } yield {
-                    Redirect(navigator.nextPage(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
-                }
-              }
-            )
-        }
+      post(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
     }
+
+  //scalastyle:off parameter.number
+  private def post(chargeType: ChargeType,
+                       mode: Mode,
+                       srn: String,
+                       startDate: LocalDate,
+                       accessType: AccessType,
+                       version: Int,
+                       index: Index,
+                       schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    DataRetrievals.retrieveSchemeName { schemeName =>
+      form
+        .bindFromRequest()
+        .fold(
+          formWithErrors => {
+            val viewModel = GenericViewModel(
+              submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              schemeName = schemeName
+            )
+
+            val json = Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(localDateToString(startDate)),
+              "form" -> formWithErrors,
+              "radios" -> YearRange.radios(formWithErrors),
+              "viewModel" -> viewModel
+            )
+            renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
+          },
+          value => {
+            for {
+              updatedAnswers <- Future.fromTry(userAnswersService.set(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
+              _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                chargeType = Some(chargeType), memberNo = Some(index.id))
+            } yield {
+              Redirect(navigator
+                .nextPage(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), mode, updatedAnswers, srn, startDate, accessType, version))
+            }
+          }
+        )
+    }
+  }
+
 }

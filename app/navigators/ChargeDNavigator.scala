@@ -22,10 +22,11 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeD.routes._
 import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.ChargeType.ChargeTypeLifetimeAllowance
+import models.Index.indexToInt
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
-import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
+import models.{AccessType, Index, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeD._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
@@ -106,11 +107,11 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
     case TaxYearReportedAndPaidPage(ChargeTypeLifetimeAllowance, index, schemeIndex) =>
       controllers.mccloud.routes.TaxQuarterReportedAndPaidController
-        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
+        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex.get)
 
     case TaxQuarterReportedAndPaidPage(ChargeTypeLifetimeAllowance, index, schemeIndex) =>
       controllers.mccloud.routes.ChargeAmountReportedController
-        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
+        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex.get)
 
     case ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, index, _) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)

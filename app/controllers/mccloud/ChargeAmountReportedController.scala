@@ -21,14 +21,16 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.ChargeAmountReportedFormProvider
+import models.Index.indexToInt
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.ChargeAmountReportedPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -69,32 +71,44 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                  index: Index,
                  schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      DataRetrievals.retrieveSchemeName{ schemeName =>
-
-        val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
-
-        val preparedForm: Form[BigDecimal] = request.userAnswers.get(ChargeAmountReportedPage(chargeType, index, schemeIndex)) match {
-          case Some(value) => form(mininimumChargeValue).fill(value)
-          case None => form(mininimumChargeValue)
-        }
-
-        val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "periodDescription" -> "bla"
-        )
-
-        renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(Ok(_))
-      }
+      get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
     }
+
+  //scalastyle:off parameter.number
+  private def get(chargeType: ChargeType,
+                  mode: Mode,
+                  srn: String,
+                  startDate: LocalDate,
+                  accessType: AccessType,
+                  version: Int,
+                  index: Index,
+                  schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    DataRetrievals.retrieveSchemeName { schemeName =>
+
+      val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
+
+      val preparedForm: Form[BigDecimal] = request.userAnswers.get(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt))) match {
+        case Some(value) => form(mininimumChargeValue).fill(value)
+        case None => form(mininimumChargeValue)
+      }
+
+      val viewModel = GenericViewModel(
+        submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+        schemeName = schemeName
+      )
+
+      val json = Json.obj(
+        "srn" -> srn,
+        "startDate" -> Some(localDateToString(startDate)),
+        "form" -> preparedForm,
+        "viewModel" -> viewModel,
+        "periodDescription" -> "bla"
+      )
+
+      renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(Ok(_))
+    }
+  }
 
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
@@ -105,37 +119,49 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                index: Index,
                schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      DataRetrievals.retrieveSchemeName{ schemeName =>
-
-        val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
-
-        form(mininimumChargeValue)
-          .bindFromRequest()
-          .fold(
-            formWithErrors => {
-              val viewModel = GenericViewModel(
-                submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel,
-                "periodDescription" -> "bla"
-              )
-              renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(BadRequest(_))
-            },
-            value => {
-              for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeAmountReportedPage(chargeType, index, schemeIndex), value, mode))
-                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                  chargeType = Some(chargeType), memberNo = Some(index.id))
-              } yield Redirect(navigator.nextPage(ChargeAmountReportedPage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
-            }
-          )
-      }
+      post(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
     }
+
+  //scalastyle:off parameter.number
+  private def post(chargeType: ChargeType,
+                   mode: Mode,
+                   srn: String,
+                   startDate: LocalDate,
+                   accessType: AccessType,
+                   version: Int,
+                   index: Index,
+                   schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    DataRetrievals.retrieveSchemeName { schemeName =>
+
+      val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
+
+      form(mininimumChargeValue)
+        .bindFromRequest()
+        .fold(
+          formWithErrors => {
+            val viewModel = GenericViewModel(
+              submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              schemeName = schemeName
+            )
+
+            val json = Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(localDateToString(startDate)),
+              "form" -> formWithErrors,
+              "viewModel" -> viewModel,
+              "periodDescription" -> "bla"
+            )
+            renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(BadRequest(_))
+          },
+          value => {
+            for {
+              updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
+              _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                chargeType = Some(chargeType), memberNo = Some(index.id))
+            } yield Redirect(navigator.nextPage(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt)), mode, updatedAnswers, srn, startDate, accessType, version))
+          }
+        )
+    }
+  }
 }

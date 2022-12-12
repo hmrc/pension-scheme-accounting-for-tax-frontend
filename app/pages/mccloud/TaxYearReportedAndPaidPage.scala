@@ -20,9 +20,14 @@ import models.{ChargeType, YearRange}
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class TaxYearReportedAndPaidPage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[YearRange] {
+case class TaxYearReportedAndPaidPage(chargeType: ChargeType, index: Int, schemeIndex: Option[Int]) extends QuestionPage[YearRange] {
   override def path: JsPath =
-    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes" \ schemeIndex \ TaxYearReportedAndPaidPage.toString
+    schemeIndex match {
+      case Some(i) =>
+        JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes" \ i \ TaxYearReportedAndPaidPage.toString
+      case None =>
+        JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ TaxYearReportedAndPaidPage.toString
+    }
 }
 
 object TaxYearReportedAndPaidPage {

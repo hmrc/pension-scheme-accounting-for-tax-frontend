@@ -19,16 +19,19 @@ package controllers.mccloud
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
+import controllers.DataRetrievals
 import controllers.actions._
 import forms.QuartersFormProvider
+import models.Index.indexToInt
 import models.LocalDateBinder._
-import models.{AFTQuarter, AccessType, ChargeType, GenericViewModel, Index, Mode, Quarters}
+import models.requests.DataRequest
+import models.{AFTQuarter, AccessType, ChargeType, GenericViewModel, Index, Mode, Quarters, YearRange}
 import navigators.CompoundNavigator
 import pages.mccloud.{TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.{QuartersService, SchemeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -71,8 +74,19 @@ class TaxQuarterReportedAndPaidController @Inject()(
                  schemeIndex: Index
                 ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
     allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+    get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
+  }
 
-    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex)).map(_.startYear) match {
+  //scalastyle:off parameter.number
+  private def get(chargeType: ChargeType,
+                  mode: Mode,
+                  srn: String,
+                  startDate: LocalDate,
+                  accessType: AccessType,
+                  version: Int,
+                  index: Index,
+                  schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(_.startYear) match {
       case Some(year) =>
         schemeService.retrieveSchemeDetails(
           psaId = request.idOrException,
@@ -85,12 +99,13 @@ class TaxQuarterReportedAndPaidController @Inject()(
 
               val vm = GenericViewModel(
                 submitUrl = routes.TaxQuarterReportedAndPaidController
-                  .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+                  .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
                 returnUrl = config.schemeDashboardUrl(request).format(srn),
                 schemeName = schemeDetails.schemeName
               )
 
-              val preparedForm: Form[AFTQuarter] = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex)) match {
+              val preparedForm: Form[AFTQuarter] =
+                request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
                 case Some(value) => form(year, quarters).fill(value)
                 case None => form(year, quarters)
               }
@@ -112,7 +127,6 @@ class TaxQuarterReportedAndPaidController @Inject()(
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
 
-
   }
 
   // scalastyle:off method.length
@@ -125,7 +139,19 @@ class TaxQuarterReportedAndPaidController @Inject()(
                schemeIndex: Index
               ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
     allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex)).map(_.startYear) match {
+    post(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
+  }
+
+  //scalastyle:off parameter.number
+  private def post(chargeType: ChargeType,
+                   mode: Mode,
+                   srn: String,
+                   startDate: LocalDate,
+                   accessType: AccessType,
+                   version: Int,
+                   index: Index,
+                   schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(_.startYear) match {
       case Some(year) =>
         schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
           quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
@@ -137,7 +163,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   formWithErrors => {
                     val vm = GenericViewModel(
                       submitUrl = routes.TaxQuarterReportedAndPaidController
-                        .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+                        .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
                       returnUrl = config.schemeDashboardUrl(request).format(srn),
                       schemeName = schemeDetails.schemeName
                     )
@@ -155,12 +181,12 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   value => {
                     for {
                       updatedAnswers <- Future.fromTry(userAnswersService
-                        .set(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex), value, mode))
+                        .set(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
                       _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
                         chargeType = Some(chargeType), memberNo = Some(index.id))
                     } yield {
                       Redirect(navigator
-                        .nextPage(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex), mode, updatedAnswers,
+                        .nextPage(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), mode, updatedAnswers,
                           srn, startDate, accessType, version))
                     }
                   }
@@ -172,7 +198,6 @@ class TaxQuarterReportedAndPaidController @Inject()(
         }
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
-
   }
 
   case class InvalidValueSelected(details: String) extends Exception(s"The selected quarter did not match any quarters in the list of options: $details")
