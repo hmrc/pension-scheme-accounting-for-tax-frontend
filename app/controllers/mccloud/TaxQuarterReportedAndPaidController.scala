@@ -65,7 +65,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
   private def form(year: String, quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("quarters.error.required", year), quarters)
 
-  def onPageLoad(chargeType: ChargeType,
+  def onPageLoadWithIndex(chargeType: ChargeType,
                  mode: Mode, srn: String,
                  startDate: LocalDate,
                  accessType: AccessType,
@@ -99,7 +99,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
 
               val vm = GenericViewModel(
                 submitUrl = routes.TaxQuarterReportedAndPaidController
-                  .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+                  .onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
                 returnUrl = config.schemeDashboardUrl(request).format(srn),
                 schemeName = schemeDetails.schemeName
               )
@@ -130,7 +130,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
   }
 
   // scalastyle:off method.length
-  def onSubmit(chargeType: ChargeType,
+  def onSubmitWithIndex(chargeType: ChargeType,
                mode: Mode, srn: String,
                startDate: LocalDate,
                accessType: AccessType,
@@ -163,7 +163,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   formWithErrors => {
                     val vm = GenericViewModel(
                       submitUrl = routes.TaxQuarterReportedAndPaidController
-                        .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+                        .onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
                       returnUrl = config.schemeDashboardUrl(request).format(srn),
                       schemeName = schemeDetails.schemeName
                     )

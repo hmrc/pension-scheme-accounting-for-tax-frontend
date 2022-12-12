@@ -62,7 +62,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
     )
   }
 
-  def onPageLoad(chargeType: ChargeType,
+  def onPageLoadWithIndex(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
                  startDate: LocalDate,
@@ -93,7 +93,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
       }
 
       val viewModel = GenericViewModel(
-        submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+        submitUrl = routes.ChargeAmountReportedController.onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = schemeName
       )
@@ -110,7 +110,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
     }
   }
 
-  def onSubmit(chargeType: ChargeType,
+  def onSubmitWithIndex(chargeType: ChargeType,
                mode: Mode,
                srn: String,
                startDate: LocalDate,
@@ -140,7 +140,8 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
         .fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+              submitUrl = routes.ChargeAmountReportedController
+                .onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )

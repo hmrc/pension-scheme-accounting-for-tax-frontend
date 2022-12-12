@@ -57,7 +57,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
   def form: Form[YearRange] =
     formProvider("taxYearReportedAndPaid.error.required")
 
-  def onPageLoad(chargeType: ChargeType,
+  def onPageLoadWithIndex(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
                  startDate: LocalDate,
@@ -85,7 +85,8 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
       }
 
       val viewModel = GenericViewModel(
-        submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+        submitUrl = routes.TaxYearReportedAndPaidController
+          .onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = schemeName
       )
@@ -102,7 +103,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
     }
   }
 
-  def onSubmit(chargeType: ChargeType,
+  def onSubmitWithIndex(chargeType: ChargeType,
                mode: Mode,
                srn: String,
                startDate: LocalDate,
@@ -129,7 +130,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
         .fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
+              submitUrl = routes.TaxYearReportedAndPaidController.onSubmitWithIndex(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex.get).url,
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )
