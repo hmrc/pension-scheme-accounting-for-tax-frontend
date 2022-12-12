@@ -19,19 +19,18 @@ package controllers.mccloud
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
-import controllers.DataRetrievals
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, ChargeType, GenericViewModel, Index, Mode, Quarters, YearRange}
+import models.{AFTQuarter, AccessType, ChargeType, GenericViewModel, Index, Mode, Quarters}
 import navigators.CompoundNavigator
 import pages.mccloud.{TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents, Result}
+import play.api.mvc._
 import renderer.Renderer
 import services.{QuartersService, SchemeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -42,28 +41,28 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class TaxQuarterReportedAndPaidController @Inject()(
-                                    override val messagesApi: MessagesApi,
-                                    identify: IdentifierAction,
-                                    getData: DataRetrievalAction,
-                                    allowAccess: AllowAccessActionProvider,
-                                    requireData: DataRequiredAction,
-                                    navigator: CompoundNavigator,
-                                    formProvider: QuartersFormProvider,
-                                    val controllerComponents: MessagesControllerComponents,
-                                    renderer: Renderer,
-                                    config: FrontendAppConfig,
-                                    schemeService: SchemeService,
-                                    aftConnector: AFTConnector,
-                                    quartersService: QuartersService,
-                                    userAnswersCacheConnector: UserAnswersCacheConnector,
-                                    userAnswersService: UserAnswersService
-                                  )(implicit ec: ExecutionContext)
+                                                     override val messagesApi: MessagesApi,
+                                                     identify: IdentifierAction,
+                                                     getData: DataRetrievalAction,
+                                                     allowAccess: AllowAccessActionProvider,
+                                                     requireData: DataRequiredAction,
+                                                     navigator: CompoundNavigator,
+                                                     formProvider: QuartersFormProvider,
+                                                     val controllerComponents: MessagesControllerComponents,
+                                                     renderer: Renderer,
+                                                     config: FrontendAppConfig,
+                                                     schemeService: SchemeService,
+                                                     aftConnector: AFTConnector,
+                                                     quartersService: QuartersService,
+                                                     userAnswersCacheConnector: UserAnswersCacheConnector,
+                                                     userAnswersService: UserAnswersService
+                                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   private def form(year: String, quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
-    formProvider(messages("quarters.error.required", year), quarters)
+    formProvider(messages("taxQuarterReportedAndPaid.error.required"), quarters)
 
   private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call = schemeIndex match {
     case Some(i) => routes.TaxQuarterReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
@@ -71,24 +70,24 @@ class TaxQuarterReportedAndPaidController @Inject()(
   }
 
   def onPageLoad(chargeType: ChargeType,
-                          mode: Mode, srn: String,
-                          startDate: LocalDate,
-                          accessType: AccessType,
-                          version: Int,
-                          index: Index
-                         ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
+                 mode: Mode, srn: String,
+                 startDate: LocalDate,
+                 accessType: AccessType,
+                 version: Int,
+                 index: Index
+                ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
     allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
     get(chargeType, mode, srn, startDate, accessType, version, index, None)
   }
 
   def onPageLoadWithIndex(chargeType: ChargeType,
-                 mode: Mode, srn: String,
-                 startDate: LocalDate,
-                 accessType: AccessType,
-                 version: Int,
-                 index: Index,
-                 schemeIndex: Index
-                ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
+                          mode: Mode, srn: String,
+                          startDate: LocalDate,
+                          accessType: AccessType,
+                          version: Int,
+                          index: Index,
+                          schemeIndex: Index
+                         ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
     allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
     get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
   }
@@ -121,9 +120,9 @@ class TaxQuarterReportedAndPaidController @Inject()(
 
               val preparedForm: Form[AFTQuarter] =
                 request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
-                case Some(value) => form(year, quarters).fill(value)
-                case None => form(year, quarters)
-              }
+                  case Some(value) => form(year, quarters).fill(value)
+                  case None => form(year, quarters)
+                }
               val json = Json.obj(
                 "srn" -> srn,
                 "startDate" -> Some(localDateToString(startDate)),
@@ -145,25 +144,25 @@ class TaxQuarterReportedAndPaidController @Inject()(
   }
 
   def onSubmit(chargeType: ChargeType,
-                        mode: Mode, srn: String,
-                        startDate: LocalDate,
-                        accessType: AccessType,
-                        version: Int,
-                        index: Index
-                       ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
+               mode: Mode, srn: String,
+               startDate: LocalDate,
+               accessType: AccessType,
+               version: Int,
+               index: Index
+              ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
     allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
     post(chargeType, mode, srn, startDate, accessType, version, index, None)
   }
 
   // scalastyle:off method.length
   def onSubmitWithIndex(chargeType: ChargeType,
-               mode: Mode, srn: String,
-               startDate: LocalDate,
-               accessType: AccessType,
-               version: Int,
-               index: Index,
-               schemeIndex: Index
-              ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
+                        mode: Mode, srn: String,
+                        startDate: LocalDate,
+                        accessType: AccessType,
+                        version: Int,
+                        index: Index,
+                        schemeIndex: Index
+                       ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
     allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
     post(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
   }
