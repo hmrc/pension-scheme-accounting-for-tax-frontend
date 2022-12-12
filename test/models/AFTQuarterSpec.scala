@@ -16,21 +16,26 @@
 
 package models
 
-import play.api.libs.json.{Format, Json}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
-case class AFTQuarter(startDate: LocalDate, endDate: LocalDate)
+class AFTQuarterSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
-object AFTQuarter {
+  private val quarters = new CommonQuarters {}
 
-  implicit lazy val formats: Format[AFTQuarter] =
-    Json.format[AFTQuarter]
-
-  def formatForDisplay(aftQuarter: AFTQuarter): String = {
-    val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")
-    s"${aftQuarter.startDate.format(dateFormatterDMY)} to ${aftQuarter.endDate.format(dateFormatterDMY)} " +
-      s"${aftQuarter.startDate.getYear} to ${aftQuarter.startDate.getYear + 1}"
+  "formatForDisplay" when {
+    "calling with a valid date" must {
+      "return formatted correctly" in {
+        val result = AFTQuarter.formatForDisplay(AFTQuarter(
+          LocalDate.of(2022, 1, 1),
+          LocalDate.of(2022, 2, 28)
+        ))
+        result mustBe "1 January to 28 February 2022 to 2023"
+      }
+    }
   }
 }

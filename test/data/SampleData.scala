@@ -49,6 +49,7 @@ object SampleData {
   val accessType = Draft
   val pstr = "pstr"
   val schemeName = "Big Scheme"
+  val schemeIndex = 0
   val companyName = "Big Company"
   val crn = "AB121212"
   val dummyCall: Call = Call("GET", "/foo")

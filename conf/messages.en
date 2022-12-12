@@ -1563,6 +1563,34 @@ wasAnotherPensionScheme.heading = Was the previously reported {0} paid by anothe
 wasAnotherPensionScheme.hint = If you answer yes, you will be able to add up to five pension schemes.
 wasAnotherPensionScheme.error.required = Select yes if the previously reported {0} was paid by another pension scheme
 
+taxYearReportedAndPaid.title = Select the tax year in which the original annual allowance charge was reported and paid
+taxYearReportedAndPaid.heading = Select the tax year in which the original annual allowance charge was reported and paid
+taxYearReportedAndPaid.error.required = Select a tax year
+
+taxQuarterReportedAndPaid.title = Which quarter of {0} was the original annual allowance charge reported and paid?
+taxQuarterReportedAndPaid.heading = Which quarter of {0} was the original annual allowance charge reported and paid?
+taxQuarterReportedAndPaid.error.required = Select a quarter
+
+enterPstr.title = Enter the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported annual allowance charge
+enterPstr.hint = For example, 20123456RQ
+enterPstr.error.required = Enter a Pension Scheme Tax Reference (PSTR)
+enterPstr.error.invalid = Enter a Pension Scheme Tax Reference (PSTR) that is 8 numbers, followed by R, followed by a character, like 12345678RA
+
+mccloud.scheme.ref0 = first
+mccloud.scheme.ref1 = second
+mccloud.scheme.ref2 = third
+mccloud.scheme.ref3 = fourth
+mccloud.scheme.ref4 = fifth
+
 addAnotherPensionScheme.title = Do you want to add another pension scheme?
 addAnotherPensionScheme.heading = Do you want to add another pension scheme?
 addAnotherPensionScheme.error.required = Select yes if you want to add another pension scheme
+
+chargeAmountReported.title = What was the original annual allowance charge amount reported for {0}?
+chargeAmountReported.heading = What was the original annual allowance charge amount reported for {0}?
+
+chargeAmountReported.error.required = Enter the charge amount
+chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
+chargeAmountReported.error.decimal = The charge amount must include pence, like 123.45 or 156.00
+chargeAmountReported.error.maximum = The total pension input amounts must be £999999999.99 or less
+chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
