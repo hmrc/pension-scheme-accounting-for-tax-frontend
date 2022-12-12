@@ -38,30 +38,9 @@ object Index {
     }
   }
 
-  implicit def optionIndexPathBindable(implicit intBinder: PathBindable[Option[Int]]): PathBindable[Option[Index]] = new PathBindable[Option[Index]] {
-
-    override def bind(key: String, value: String): Either[String, Option[Index]] = {
-      intBinder.bind(key, value) match {
-        case Right(Some(x)) if x > 0 => Right(Some(Index(x - 1)))
-        case Right(None) => Right(None)
-        case _ => Left("Option index binding failed")
-      }
-    }
-
-    override def unbind(key: String, value: Option[Index]): String = {
-      intBinder.unbind(key, value.map(_.id + 1))
-    }
-  }
-
   implicit def indexToInt(index: Index): Int =
     index.id
 
-  implicit def indexToInt(index: Option[Index]): Option[Int] =
-    index.map(_.id)
-
   implicit def intToIndex(index: Int): Index =
     Index(index)
-
-  implicit def intToIndex(index: Option[Int]): Option[Index] =
-    index.map(Index(_))
 }

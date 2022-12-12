@@ -21,7 +21,7 @@ lazy val root = (project in file("."))
   .settings(
     name := appName,
     RoutesKeys.routesImport ++= Seq("models._", "models.OptionBinder._", "models.LocalDateBinder._", "java.time.LocalDate",
-      "models.financialStatement.PsaFSChargeType", "models.financialStatement.PenaltyType._", "models.ChargeType._", "models.Index._"),
+      "models.financialStatement.PsaFSChargeType", "models.financialStatement.PenaltyType._", "models.ChargeType._"),
     TwirlKeys.templateImports ++= Seq(
       "play.twirl.api.HtmlFormat",
       "play.twirl.api.HtmlFormat._",

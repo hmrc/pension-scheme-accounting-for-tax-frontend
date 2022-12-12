@@ -67,7 +67,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                  accessType: AccessType,
                  version: Int,
                  index: Index,
-                 schemeIndex: Option[Index]): Action[AnyContent] =
+                 schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName{ schemeName =>
 
@@ -103,7 +103,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                accessType: AccessType,
                version: Int,
                index: Index,
-               schemeIndex: Option[Index]): Action[AnyContent] =
+               schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName{ schemeName =>
 
