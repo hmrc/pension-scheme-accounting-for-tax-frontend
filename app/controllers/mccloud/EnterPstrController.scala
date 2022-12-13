@@ -51,17 +51,10 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                                     renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport {
+    with NunjucksSupport
+    with CommonMcCloud {
 
   private def form(): Form[String] = formProvider()
-
-  private def ordinal(index: Int)(implicit request: DataRequest[AnyContent]): Option[String] = {
-    if (index < 0 | index > 4) {
-      None
-    } else {
-      Some(Messages(s"mccloud.scheme.ref$index"))
-    }
-  }
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,

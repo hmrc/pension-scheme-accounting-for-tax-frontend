@@ -30,6 +30,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
+import pages.SchemeNameQuery
 import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
@@ -69,6 +70,7 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
   private def userAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value
     .set(MemberDetailsPage(1), memberDetails).success.value
+    .setOrException(SchemeNameQuery, schemeName)
 
   "TaxYearReportedAndPaidController Controller" must {
 

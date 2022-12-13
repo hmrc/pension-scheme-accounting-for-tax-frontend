@@ -52,7 +52,8 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                                                  renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport {
+    with NunjucksSupport
+    with CommonMcCloud {
 
   private def form: Form[YearRange] =
     formProvider("taxYearReportedAndPaid.error.required")

@@ -55,7 +55,8 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                                                renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport with CommonQuarters {
+    with NunjucksSupport
+    with CommonQuarters {
 
   private def form(minimumChargeValue: BigDecimal): Form[BigDecimal] = {
     formProvider(

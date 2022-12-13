@@ -59,7 +59,8 @@ class TaxQuarterReportedAndPaidController @Inject()(
                                                    )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport {
+    with NunjucksSupport
+    with CommonMcCloud {
 
   private def form(year: String, quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("taxQuarterReportedAndPaid.error.required"), quarters)
@@ -204,14 +205,6 @@ class TaxQuarterReportedAndPaidController @Inject()(
                     renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
                   },
                   value => {
-                    //>>>AFTQuarter(2022-04-01,2022-06-30)
-                    /*
-                    Stores:
-                    "taxQuarterReportedAndPaid" : {
-                                        "startDate" : "2022-04-01",
-                                        "endDate" : "2022-06-30"
-                                    }
-                     */
                     for {
                       updatedAnswers <- Future.fromTry(userAnswersService
                         .set(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
