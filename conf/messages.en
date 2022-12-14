@@ -1574,7 +1574,8 @@ taxQuarterReportedAndPaid.error.required = Select a quarter
 chargeAmountReported.title = What was the {2} amount reported for {0} in the {1} pension scheme?
 chargeAmountReported.heading = What was the {2} amount reported for {0} in the {1} pension scheme?
 
-enterPstr.title = Enter the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported annual allowance charge
+enterPstr.title = Enter the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported {1}
+enterPstr.heading = Enter the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported {1}
 enterPstr.hint = For example, 20123456RQ
 enterPstr.error.required = Enter a Pension Scheme Tax Reference (PSTR)
 enterPstr.error.invalid = Enter a Pension Scheme Tax Reference (PSTR) that is 8 numbers, followed by R, followed by a character, like 12345678RA
