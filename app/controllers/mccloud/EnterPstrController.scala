@@ -20,6 +20,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.EnterPstrFormProvider
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
@@ -55,11 +56,26 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
 
   private def form(): Form[String] = formProvider()
 
-  private def ordinal(index: Int)(implicit request: DataRequest[AnyContent]): Option[String] = {
-    if (index < 0 | index > 4) {
+  private def ordinal(schemeIndex: Int)(implicit request: DataRequest[AnyContent]) = {
+    if (schemeIndex < 0 | schemeIndex > 4) {
       None
     } else {
-      Some(Messages(s"mccloud.scheme.ref$index"))
+      Some(Messages(s"mccloud.scheme.ref$schemeIndex"))
+    }
+  }
+
+  private def chargeTitle(chargeType: ChargeType, schemeIndex: Int)(implicit request: DataRequest[AnyContent]) = {
+
+    ordinal(schemeIndex) match {
+      case Some(value) =>
+        if (chargeType == ChargeTypeAnnualAllowance) {
+          Some(Messages("enterPstr.title.annual", value))
+        } else if (chargeType == ChargeTypeLifetimeAllowance) {
+          Some(Messages("enterPstr.title.lifetime", value))
+        } else {
+          None
+        }
+      case None => None
     }
   }
 
@@ -85,19 +101,18 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
           case None => form()
         }
 
-        ordinal(schemeIndex) match {
-          case Some(value) =>
+        chargeTitle(chargeType, schemeIndex) match {
+          case Some(title) =>
             val json = Json.obj(
               "srn" -> srn,
               "startDate" -> Some(localDateToString(startDate)),
               "form" -> preparedForm,
               "viewModel" -> viewModel,
-              "ordinal" -> value
+              "chargeTitle" -> title
             )
-
             renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
           case _ =>
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+            renderer.render("badRequest.njk").map(BadRequest(_))
         }
       }
     }
@@ -124,18 +139,18 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                 schemeName = schemeName
               )
 
-              ordinal(schemeIndex) match {
-                case Some(value) =>
+              chargeTitle(chargeType, schemeIndex) match {
+                case Some(title) =>
                   val json = Json.obj(
                     "srn" -> srn,
                     "startDate" -> Some(localDateToString(startDate)),
                     "form" -> formWithErrors,
                     "viewModel" -> viewModel,
-                    "ordinal" -> value
+                    "chargeTitle" -> title
                   )
                   renderer.render("mccloud/enterPstr.njk", json).map(BadRequest(_))
                 case _ =>
-                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+                  renderer.render("badRequest.njk").map(BadRequest(_))
               }
             },
             value =>

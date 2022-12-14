@@ -39,7 +39,6 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
   private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
-
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(

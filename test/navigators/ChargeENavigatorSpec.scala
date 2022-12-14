@@ -28,7 +28,7 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
-import pages.mccloud.{AddAnotherPensionSchemePage, ChargeAmountReportedPage, EnterPstrPage, IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
+import pages.mccloud._
 import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE

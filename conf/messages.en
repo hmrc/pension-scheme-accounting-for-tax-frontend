@@ -1563,6 +1563,8 @@ wasAnotherPensionScheme.heading = Was the previously reported {0} paid by anothe
 wasAnotherPensionScheme.hint = If you answer yes, you will be able to add up to five pension schemes.
 wasAnotherPensionScheme.error.required = Select yes if the previously reported {0} was paid by another pension scheme
 
+enterPstr.title.annual = Enter the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported annual allowance charge
+enterPstr.title.lifetime = Enter the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported lifetime allowance charge
 taxYearReportedAndPaid.title = Select the tax year in which the original annual allowance charge was reported and paid
 taxYearReportedAndPaid.heading = Select the tax year in which the original annual allowance charge was reported and paid
 taxYearReportedAndPaid.error.required = Select a tax year
@@ -1576,7 +1578,7 @@ enterPstr.hint = For example, 20123456RQ
 enterPstr.error.required = Enter a Pension Scheme Tax Reference (PSTR)
 enterPstr.error.invalid = Enter a Pension Scheme Tax Reference (PSTR) that is 8 numbers, followed by R, followed by a character, like 12345678RA
 
-mccloud.scheme.ref0 = first
+mccloud.scheme.ref0 =
 mccloud.scheme.ref1 = second
 mccloud.scheme.ref2 = third
 mccloud.scheme.ref3 = fourth
