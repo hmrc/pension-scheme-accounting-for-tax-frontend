@@ -21,12 +21,11 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.EnterPstrFormProvider
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.EnterPstrPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -78,7 +77,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
           case None => form()
         }
 
-        ordinal(schemeIndex) match {
+        ordinal(Some(schemeIndex)) match {
           case Some(value) =>
             val json = Json.obj(
               "srn" -> srn,
@@ -117,7 +116,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                 schemeName = schemeName
               )
 
-              ordinal(schemeIndex) match {
+              ordinal(Some(schemeIndex)) match {
                 case Some(value) =>
                   val json = Json.obj(
                     "srn" -> srn,

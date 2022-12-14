@@ -21,7 +21,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.ChargeAmountReportedFormProvider
-import models.Index.indexToInt
+import models.Index._
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode}
@@ -30,8 +30,7 @@ import pages.mccloud.{ChargeAmountReportedPage, TaxQuarterReportedAndPaidPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Results.Redirect
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents, Result}
+import play.api.mvc._
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -56,7 +55,8 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport
-    with CommonQuarters {
+    with CommonQuarters
+    with CommonMcCloud {
 
   private def form(minimumChargeValue: BigDecimal): Form[BigDecimal] = {
     formProvider(
@@ -116,22 +116,23 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
         schemeName = schemeName
       )
 
-      request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
-        case Some(aftQuarter) =>
+      val taxQuarterSelection = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
+
+      (taxQuarterSelection, schemeIndex) match {
+        case (Some(aftQuarter), intSchemeIndex@Some(_)) =>
+          val ordinalVal = ordinal(intSchemeIndex)
           val json = Json.obj(
             "srn" -> srn,
             "startDate" -> Some(localDateToString(startDate)),
             "form" -> preparedForm,
             "viewModel" -> viewModel,
-            "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter)
+            "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
+            "ordinal" -> ordinalVal
           )
-
           renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(Ok(_))
         case _ =>
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
       }
-
-
     }
   }
 
@@ -180,7 +181,6 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )
-
 
 
             val json = Json.obj(

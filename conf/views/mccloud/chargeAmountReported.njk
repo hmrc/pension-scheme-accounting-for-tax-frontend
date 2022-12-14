@@ -22,7 +22,7 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeAmountReported.heading', periodDescription)}}</h1>
+        <h1 class="govuk-heading-xl">{{messages('chargeAmountReported.heading', periodDescription, ordinal)}}</h1>
 
         <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
 

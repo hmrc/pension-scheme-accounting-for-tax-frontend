@@ -41,6 +41,9 @@ object Index {
   implicit def indexToInt(index: Index): Int =
     index.id
 
+  implicit def indexToOptionInt(index: Option[Index]): Option[Int] =
+    index.map(_.id)
+
   implicit def intToIndex(index: Int): Index =
     Index(index)
 }

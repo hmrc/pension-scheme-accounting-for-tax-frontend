@@ -17,7 +17,6 @@
 package forms.mccloud
 
 import forms.mappings.{Constraints, Mappings}
-import models.chargeE.ChargeEDetails
 import play.api.data.Form
 
 import javax.inject.Inject

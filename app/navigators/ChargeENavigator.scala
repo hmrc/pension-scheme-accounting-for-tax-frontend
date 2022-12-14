@@ -25,7 +25,7 @@ import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
-import models.{AccessType, Index, MemberDetails, NormalMode, UploadId, UserAnswers}
+import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeE._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
