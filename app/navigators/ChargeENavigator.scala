@@ -29,7 +29,7 @@ import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeE._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
-import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
+import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
@@ -96,7 +96,15 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       }
 
     case WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index) =>
+      ua.get(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index)) match {
+        case Some(true) => controllers.mccloud.routes.EnterPstrController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, 0)
+        case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      }
+
+    case EnterPstrPage(ChargeTypeAnnualAllowance, index, _) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
     case AddMembersPage => addMembers(ua, srn, startDate, accessType, version)
     case DeleteMemberPage => deleteMemberRoutes(ua, srn, startDate, accessType, version)
