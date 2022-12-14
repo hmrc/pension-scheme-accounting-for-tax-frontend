@@ -118,8 +118,8 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
       val taxQuarterSelection = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
 
-      taxQuarterSelection match {
-        case Some(aftQuarter) =>
+      (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
+        case (Some(aftQuarter), Some(chargeTypeDesc) ) =>
           val ordinalVal = ordinal(schemeIndex)
           val json = Json.obj(
             "srn" -> srn,
@@ -127,7 +127,8 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
             "form" -> preparedForm,
             "viewModel" -> viewModel,
             "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
-            "ordinal" -> ordinalVal
+            "ordinal" -> ordinalVal,
+            "chargeTypeDesc" -> chargeTypeDesc
           )
           renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(Ok(_))
         case _ =>
@@ -184,8 +185,8 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
             val taxQuarterSelection = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
 
-            taxQuarterSelection match {
-              case Some(aftQuarter) =>
+            (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
+              case (Some(aftQuarter), Some(chargeTypeDesc)) =>
                 val ordinalVal = ordinal(schemeIndex)
                 val json = Json.obj(
                   "srn" -> srn,
@@ -193,7 +194,8 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                   "form" -> formWithErrors,
                   "viewModel" -> viewModel,
                   "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
-                  "ordinal" -> ordinalVal
+                  "ordinal" -> ordinalVal,
+                  "chargeTypeDesc" -> chargeTypeDesc
                 )
                 renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(BadRequest(_))
               case _ =>

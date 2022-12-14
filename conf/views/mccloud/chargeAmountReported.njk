@@ -7,7 +7,7 @@
 
 {% from "hmrc/components/currency-input/macro.njk" import hmrcCurrencyInput with context %}
 {% block pageTitle %}
-  {{ title(messages("chargeAmountReported.title", periodDescription, ordinal), form.errors) }}
+  {{ title(messages("chargeAmountReported.title", periodDescription, ordinal, chargeTypeDesc), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -22,7 +22,7 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeAmountReported.heading', periodDescription, ordinal)}}</h1>
+        <h1 class="govuk-heading-xl">{{messages('chargeAmountReported.heading', periodDescription, ordinal, chargeTypeDesc)}}</h1>
 
         <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
 

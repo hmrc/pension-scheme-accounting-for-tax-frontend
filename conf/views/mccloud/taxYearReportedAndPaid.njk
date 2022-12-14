@@ -7,7 +7,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("taxYearReportedAndPaid.title", ordinal), form.errors) }}
+  {{ title(messages("taxYearReportedAndPaid.title", ordinal, chargeTypeDesc), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -31,7 +31,7 @@
             name: 'value',
             fieldset: {
               legend: {
-                text: messages('taxYearReportedAndPaid.heading', ordinal),
+                text: messages('taxYearReportedAndPaid.heading', ordinal, chargeTypeDesc),
                 isPageHeading: true,
                 classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8"
               }

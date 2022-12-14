@@ -125,18 +125,22 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   case None => form(year, quarters)
                 }
 
-              val ordinalVal = ordinal(schemeIndex)
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> preparedForm,
-                "radios" -> Quarters.radios(preparedForm, displayQuarters),
-                "viewModel" -> vm,
-                "year" -> year,
-                "ordinal" -> ordinalVal
-              )
-
-              renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(Ok(_))
+              lifetimeOrAnnual(chargeType) match {
+                case Some(chargeTypeDesc) =>
+                  val ordinalVal = ordinal(schemeIndex)
+                  val json = Json.obj(
+                    "srn" -> srn,
+                    "startDate" -> Some(localDateToString(startDate)),
+                    "form" -> preparedForm,
+                    "radios" -> Quarters.radios(preparedForm, displayQuarters),
+                    "viewModel" -> vm,
+                    "year" -> year,
+                    "ordinal" -> ordinalVal,
+                    "chargeTypeDesc" -> chargeTypeDesc
+                  )
+                  renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(Ok(_))
+                case _ => sessionExpired
+              }
             } else {
               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
             }
@@ -144,7 +148,6 @@ class TaxQuarterReportedAndPaidController @Inject()(
         }
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
-
   }
 
   def onSubmit(chargeType: ChargeType,
@@ -196,17 +199,22 @@ class TaxQuarterReportedAndPaidController @Inject()(
                       schemeName = schemeDetails.schemeName
                     )
 
-                    val ordinalVal = ordinal(schemeIndex)
-                    val json = Json.obj(
-                      fields = "srn" -> srn,
-                      "startDate" -> None,
-                      "form" -> formWithErrors,
-                      "radios" -> Quarters.radios(formWithErrors, displayQuarters),
-                      "viewModel" -> vm,
-                      "year" -> year,
-                      "ordinal" -> ordinalVal
-                    )
-                    renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
+                    lifetimeOrAnnual(chargeType) match {
+                      case  Some(chargeTypeDesc) =>
+                        val ordinalVal = ordinal(schemeIndex)
+                        val json = Json.obj(
+                          fields = "srn" -> srn,
+                          "startDate" -> None,
+                          "form" -> formWithErrors,
+                          "radios" -> Quarters.radios(formWithErrors, displayQuarters),
+                          "viewModel" -> vm,
+                          "year" -> year,
+                          "ordinal" -> ordinalVal,
+                          "chargeTypeDesc" -> chargeTypeDesc
+                        )
+                        renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
+                      case _ => sessionExpired
+                    }
                   },
                   value => {
                     for {
@@ -222,11 +230,11 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   }
                 )
             } else {
-              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+              sessionExpired
             }
           }
         }
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => sessionExpired
     }
   }
 

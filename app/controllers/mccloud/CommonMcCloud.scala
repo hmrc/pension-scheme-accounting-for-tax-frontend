@@ -16,9 +16,14 @@
 
 package controllers.mccloud
 
+import models.ChargeType
+import models.ChargeType._
 import models.requests.DataRequest
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.AnyContent
+import play.api.mvc.Results.Redirect
+
+import scala.concurrent.Future
 
 trait CommonMcCloud extends I18nSupport {
   protected def ordinal(index: Option[Int])(implicit request: DataRequest[AnyContent]): Option[String] = {
@@ -28,4 +33,15 @@ trait CommonMcCloud extends I18nSupport {
       case _ => None
     }
   }
+
+  protected def lifetimeOrAnnual(chargeType: ChargeType)(implicit request: DataRequest[AnyContent]): Option[String] = {
+    chargeType match {
+      case ChargeTypeAnnualAllowance => Some(Messages("chargeType.description.annualAllowance"))
+      case ChargeTypeLifetimeAllowance => Some(Messages("chargeType.description.lifeTimeAllowance"))
+      case _ => None
+    }
+  }
+
+  protected def sessionExpired = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+
 }

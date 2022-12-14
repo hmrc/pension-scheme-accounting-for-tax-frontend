@@ -106,6 +106,9 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = schemeName
       )
+
+      lifetimeOrAnnual(chargeType) match {
+        case Some(chargeTypeDesc) =>
           val ordinalVal = ordinal(schemeIndex)
           val json = Json.obj(
             "srn" -> srn,
@@ -113,9 +116,12 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
             "form" -> preparedForm,
             "radios" -> YearRange.radios(preparedForm),
             "viewModel" -> viewModel,
-            "ordinal" -> ordinalVal
+            "ordinal" -> ordinalVal,
+            "chargeTypeDesc" -> chargeTypeDesc
           )
           renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
+        case _ => sessionExpired
+      }
     }
   }
 
@@ -163,6 +169,8 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
               schemeName = schemeName
             )
 
+            lifetimeOrAnnual(chargeType) match {
+              case Some(chargeTypeDesc) =>
                 val ordinalVal = ordinal(schemeIndex)
                 val json = Json.obj(
                   "srn" -> srn,
@@ -170,9 +178,12 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                   "form" -> formWithErrors,
                   "radios" -> YearRange.radios(formWithErrors),
                   "viewModel" -> viewModel,
-                  "ordinal" -> ordinalVal
+                  "ordinal" -> ordinalVal,
+                  "chargeTypeDesc" -> chargeTypeDesc
                 )
                 renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
+              case _ => sessionExpired
+            }
           },
           value => {
             for {
