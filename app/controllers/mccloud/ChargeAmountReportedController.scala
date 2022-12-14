@@ -118,9 +118,9 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
       val taxQuarterSelection = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
 
-      (taxQuarterSelection, schemeIndex) match {
-        case (Some(aftQuarter), intSchemeIndex) =>
-          val ordinalVal = ordinal(intSchemeIndex)
+      taxQuarterSelection match {
+        case Some(aftQuarter) =>
+          val ordinalVal = ordinal(schemeIndex)
           val json = Json.obj(
             "srn" -> srn,
             "startDate" -> Some(localDateToString(startDate)),
@@ -182,15 +182,23 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
               schemeName = schemeName
             )
 
+            val taxQuarterSelection = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
 
-            val json = Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(localDateToString(startDate)),
-              "form" -> formWithErrors,
-              "viewModel" -> viewModel,
-              "periodDescription" -> "bla"
-            )
-            renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(BadRequest(_))
+            taxQuarterSelection match {
+              case Some(aftQuarter) =>
+                val ordinalVal = ordinal(schemeIndex)
+                val json = Json.obj(
+                  "srn" -> srn,
+                  "startDate" -> Some(localDateToString(startDate)),
+                  "form" -> formWithErrors,
+                  "viewModel" -> viewModel,
+                  "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
+                  "ordinal" -> ordinalVal
+                )
+                renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(BadRequest(_))
+              case _ =>
+                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+            }
           },
           value => {
             for {

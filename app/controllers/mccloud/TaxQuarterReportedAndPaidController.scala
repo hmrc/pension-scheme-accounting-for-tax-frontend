@@ -125,13 +125,15 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   case None => form(year, quarters)
                 }
 
+              val ordinalVal = ordinal(schemeIndex)
               val json = Json.obj(
                 "srn" -> srn,
                 "startDate" -> Some(localDateToString(startDate)),
                 "form" -> preparedForm,
                 "radios" -> Quarters.radios(preparedForm, displayQuarters),
                 "viewModel" -> vm,
-                "year" -> year
+                "year" -> year,
+                "ordinal" -> ordinalVal
               )
 
               renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(Ok(_))
@@ -194,13 +196,15 @@ class TaxQuarterReportedAndPaidController @Inject()(
                       schemeName = schemeDetails.schemeName
                     )
 
+                    val ordinalVal = ordinal(schemeIndex)
                     val json = Json.obj(
                       fields = "srn" -> srn,
                       "startDate" -> None,
                       "form" -> formWithErrors,
                       "radios" -> Quarters.radios(formWithErrors, displayQuarters),
                       "viewModel" -> vm,
-                      "year" -> year
+                      "year" -> year,
+                      "ordinal" -> ordinalVal
                     )
                     renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
                   },

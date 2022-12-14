@@ -106,16 +106,16 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = schemeName
       )
-
-      val json = Json.obj(
-        "srn" -> srn,
-        "startDate" -> Some(localDateToString(startDate)),
-        "form" -> preparedForm,
-        "radios" -> YearRange.radios(preparedForm),
-        "viewModel" -> viewModel
-      )
-
-      renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
+          val ordinalVal = ordinal(schemeIndex)
+          val json = Json.obj(
+            "srn" -> srn,
+            "startDate" -> Some(localDateToString(startDate)),
+            "form" -> preparedForm,
+            "radios" -> YearRange.radios(preparedForm),
+            "viewModel" -> viewModel,
+            "ordinal" -> ordinalVal
+          )
+          renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
     }
   }
 
@@ -163,14 +163,16 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
               schemeName = schemeName
             )
 
-            val json = Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(localDateToString(startDate)),
-              "form" -> formWithErrors,
-              "radios" -> YearRange.radios(formWithErrors),
-              "viewModel" -> viewModel
-            )
-            renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
+                val ordinalVal = ordinal(schemeIndex)
+                val json = Json.obj(
+                  "srn" -> srn,
+                  "startDate" -> Some(localDateToString(startDate)),
+                  "form" -> formWithErrors,
+                  "radios" -> YearRange.radios(formWithErrors),
+                  "viewModel" -> viewModel,
+                  "ordinal" -> ordinalVal
+                )
+                renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
           },
           value => {
             for {
