@@ -106,7 +106,7 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
           .fold(
             formWithErrors => {
               val viewModel = GenericViewModel(
-                submitUrl = routes.IsChargeInAdditionReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+                submitUrl = routes.AddAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )

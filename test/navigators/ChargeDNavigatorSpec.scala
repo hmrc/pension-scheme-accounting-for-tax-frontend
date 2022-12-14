@@ -28,7 +28,7 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeD._
 import pages.fileUpload.InputSelectionPage
-import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
+import pages.mccloud._
 import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
@@ -57,6 +57,14 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex), wasAnother),
         row(EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex))(TaxYearReportedAndPaidController
           .onPageLoadWithIndex(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),
+
+        row(ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, index, Some(schemeIndex)))(AddAnotherPensionSchemeController
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),
+
+        row(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index, schemeIndex))(EnterPstrController
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, 1), isAnotherSchemeYes),
+        row(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index, schemeIndex))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index), isAnotherSchemeNo),
 
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index), addMembersYes),
@@ -102,4 +110,6 @@ object ChargeDNavigatorSpec {
   private val fileUploadInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), FileUploadInput)
   private val publicPensionRemedyYes = UserAnswers().setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, 0), true)
   private val chargeInAdditionReportedNo = UserAnswers().setOrException(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, 0), false)
+  private val isAnotherSchemeYes = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, 0, 0), true).toOption
+  private val isAnotherSchemeNo = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, 0, 0), false).toOption
 }

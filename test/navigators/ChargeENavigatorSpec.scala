@@ -28,7 +28,7 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
-import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
+import pages.mccloud.{AddAnotherPensionSchemePage, ChargeAmountReportedPage, EnterPstrPage, IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
@@ -60,6 +60,14 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
 
         row(EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex))(TaxYearReportedAndPaidController
           .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),
+
+        row(ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, Some(schemeIndex)))(AddAnotherPensionSchemeController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),
+
+        row(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(EnterPstrController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, 1), isAnotherSchemeYes),
+        row(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index), isAnotherSchemeNo),
 
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), addMembersYes),
@@ -106,4 +114,7 @@ object ChargeENavigatorSpec {
   private val fileUploadInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), FileUploadInput)
   private val publicPensionRemedyYes = UserAnswers().setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, 0), true)
   private val chargeInAdditionReportedNo = UserAnswers().setOrException(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, 0), false)
+
+  private val isAnotherSchemeYes = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), true).toOption
+  private val isAnotherSchemeNo = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), false).toOption
 }
