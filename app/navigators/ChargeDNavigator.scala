@@ -25,11 +25,12 @@ import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
-import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
+import models.{AccessType, ChargeType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeD._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import pages.mccloud._
+import play.api.libs.json.{JsArray, JsPath}
 import play.api.mvc.{AnyContent, Call}
 
 import java.time.LocalDate
@@ -96,7 +97,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index) =>
       ua.get(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index)) match {
         case Some(true) => controllers.mccloud.routes.EnterPstrController
-          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, 0)
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, countSchemeSize(ua, index))
         case Some(false) =>
           controllers.mccloud.routes.TaxYearReportedAndPaidController
             .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
@@ -123,22 +124,28 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       }
 
     case ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, index, schemeIndex) =>
-      schemeIndex match {
-        case Some(i) => controllers.mccloud.routes.AddAnotherPensionSchemeController
+      val schemeSizeLessThan5 = countSchemeSize(ua, index) < 5
+      (schemeIndex, schemeSizeLessThan5) match {
+        case (Some(i), true) => controllers.mccloud.routes.AddAnotherPensionSchemeController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, i)
-        case None => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+        case (_, false)  => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       }
 
     case AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index, schemeIndex) =>
       ua.get(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index, schemeIndex)) match {
         case Some(true) => controllers.mccloud.routes.EnterPstrController
-          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, countSchemeSize(ua, index))
         case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       }
 
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
     case AddMembersPage => addMembers(ua, srn, startDate, accessType, version)
     case DeleteMemberPage => deleteMemberRoutes(ua, srn, startDate, accessType, version)
+  }
+
+  private def countSchemeSize(userAnswers: UserAnswers, index :Int): Int = {
+    val schemeJSPath = JsPath \ ChargeType.chargeBaseNode(ChargeTypeLifetimeAllowance) \ "members" \ index \ "mccloudRemedy" \ "schemes"
+    schemeJSPath.readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 
   private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
