@@ -119,7 +119,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
       val taxQuarterSelection = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
 
       (taxQuarterSelection, schemeIndex) match {
-        case (Some(aftQuarter), intSchemeIndex@Some(_)) =>
+        case (Some(aftQuarter), intSchemeIndex) =>
           val ordinalVal = ordinal(intSchemeIndex)
           val json = Json.obj(
             "srn" -> srn,
