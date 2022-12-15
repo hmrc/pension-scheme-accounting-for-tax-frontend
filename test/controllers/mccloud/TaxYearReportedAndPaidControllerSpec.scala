@@ -40,7 +40,9 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
@@ -98,6 +100,7 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
     }
 
     "redirect to the next page when valid data is submitted" in {
+      DateHelper.setDate(Some(LocalDate.now()))
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
