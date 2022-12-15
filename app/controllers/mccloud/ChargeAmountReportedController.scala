@@ -102,7 +102,6 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                   index: Index,
                   schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     DataRetrievals.retrieveSchemeName { schemeName =>
-
       val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
       val preparedForm: Form[BigDecimal] = request.userAnswers.get(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt))) match {
@@ -120,7 +119,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
       (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
         case (Some(aftQuarter), Some(chargeTypeDesc) ) =>
-          val ordinalVal = ordinal(schemeIndex)
+          val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
           val json = Json.obj(
             "srn" -> srn,
             "startDate" -> Some(localDateToString(startDate)),
@@ -187,7 +186,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
             (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
               case (Some(aftQuarter), Some(chargeTypeDesc)) =>
-                val ordinalVal = ordinal(schemeIndex)
+                val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
                 val json = Json.obj(
                   "srn" -> srn,
                   "startDate" -> Some(localDateToString(startDate)),

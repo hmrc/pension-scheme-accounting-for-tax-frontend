@@ -77,8 +77,8 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
           case None => form()
         }
 
-        (ordinal(Some(schemeIndex)), lifetimeOrAnnual(chargeType)) match {
-          case (Some(value), Some(chargeTypeDesc)) =>
+        (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
+          case (value, Some(chargeTypeDesc)) =>
             val json = Json.obj(
               "srn" -> srn,
               "startDate" -> Some(localDateToString(startDate)),
@@ -116,8 +116,8 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                 schemeName = schemeName
               )
 
-              (ordinal(Some(schemeIndex)), lifetimeOrAnnual(chargeType)) match {
-                case (Some(value), Some(chargeTypeDesc)) =>
+              (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
+                case (value, Some(chargeTypeDesc)) =>
                   val json = Json.obj(
                     "srn" -> srn,
                     "startDate" -> Some(localDateToString(startDate)),

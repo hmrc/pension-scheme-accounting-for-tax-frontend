@@ -18,30 +18,27 @@ package controllers.mccloud
 
 import models.ChargeType
 import models.ChargeType._
-import models.requests.DataRequest
-import play.api.i18n.{I18nSupport, Messages}
-import play.api.mvc.AnyContent
+import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
+import uk.gov.hmrc.viewmodels.Text.Message
 
 import scala.concurrent.Future
 
-trait CommonMcCloud extends I18nSupport {
-  protected def ordinal(index: Option[Int])(implicit request: DataRequest[AnyContent]): Option[String] = {
+trait CommonMcCloud {
+  def ordinal(index: Option[Int]): Option[Message] = {
     index match {
-      case Some(0) | None => Some("")
-      case Some(i) if i > 0 && i < 5 => Some(Messages(s"mccloud.scheme.ref$i"))
+      case Some(i) if i > 0 && i < 5 => Some(Message(s"mccloud.scheme.ref$i"))
       case _ => None
     }
   }
 
-  protected def lifetimeOrAnnual(chargeType: ChargeType)(implicit request: DataRequest[AnyContent]): Option[String] = {
+  def lifetimeOrAnnual(chargeType: ChargeType): Option[Message] = {
     chargeType match {
-      case ChargeTypeAnnualAllowance => Some(Messages("chargeType.description.annualAllowance"))
-      case ChargeTypeLifetimeAllowance => Some(Messages("chargeType.description.lifeTimeAllowance"))
+      case ChargeTypeAnnualAllowance => Some(Message("chargeType.description.annualAllowance"))
+      case ChargeTypeLifetimeAllowance => Some(Message("chargeType.description.lifeTimeAllowance"))
       case _ => None
     }
   }
 
-  protected def sessionExpired = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-
+  protected def sessionExpired: Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 }

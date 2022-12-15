@@ -46,4 +46,5 @@ object Index {
 
   implicit def intToIndex(index: Int): Index =
     Index(index)
+
 }

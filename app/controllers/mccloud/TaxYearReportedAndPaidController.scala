@@ -110,7 +110,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
       lifetimeOrAnnual(chargeType) match {
         case Some(chargeTypeDesc) =>
-          val ordinalVal = ordinal(schemeIndex)
+          val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
           val json = Json.obj(
             "srn" -> srn,
             "startDate" -> Some(localDateToString(startDate)),
@@ -172,7 +172,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
             lifetimeOrAnnual(chargeType) match {
               case Some(chargeTypeDesc) =>
-                val ordinalVal = ordinal(schemeIndex)
+                val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
                 val json = Json.obj(
                   "srn" -> srn,
                   "startDate" -> Some(localDateToString(startDate)),
