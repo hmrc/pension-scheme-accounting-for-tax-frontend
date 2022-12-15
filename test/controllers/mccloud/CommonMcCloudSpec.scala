@@ -34,6 +34,15 @@ class CommonMcCloudSpec extends ControllerSpecBase
       commonMcCloud.ordinal(Some(0)) mustBe None
     }
 
+    "return correct value for invalid index < min" in {
+      commonMcCloud.ordinal(Some(-1)) mustBe None
+    }
+
+
+    "return correct value for invalid index > max" in {
+      commonMcCloud.ordinal(Some(5)) mustBe None
+    }
+
     "return correct value for indexes 1..4" in {
       (1 to 4).foreach { index =>
         commonMcCloud.ordinal(Some(index)) mustBe Some(Message(s"mccloud.scheme.ref$index"))
@@ -47,6 +56,10 @@ class CommonMcCloudSpec extends ControllerSpecBase
     }
     "return correct value for lifetime allowance" in {
       commonMcCloud.lifetimeOrAnnual(ChargeType.ChargeTypeLifetimeAllowance) mustBe Some(Message("chargeType.description.lifeTimeAllowance"))
+    }
+
+    "return correct value for invalid charge type" in {
+      commonMcCloud.lifetimeOrAnnual(ChargeType.ChargeTypeDeRegistration) mustBe None
     }
   }
 }
