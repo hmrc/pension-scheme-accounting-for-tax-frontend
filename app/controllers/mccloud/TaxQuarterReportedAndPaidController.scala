@@ -24,7 +24,7 @@ import forms.QuartersFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, ChargeType, GenericViewModel, Index, Mode, Quarters}
+import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode, Quarters}
 import navigators.CompoundNavigator
 import pages.mccloud.{TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage}
 import play.api.data.Form
@@ -60,7 +60,10 @@ class TaxQuarterReportedAndPaidController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport
-    with CommonMcCloud {
+    with CommonMcCloud
+    with CommonQuarters {
+
+  import TaxQuarterReportedAndPaidController._
 
   private def form(year: String, quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("taxQuarterReportedAndPaid.error.required"), quarters)
@@ -93,6 +96,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
     get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
   }
 
+  //scalastyle:off method.length
   //scalastyle:off parameter.number
   private def get(chargeType: ChargeType,
                   mode: Mode,
@@ -109,7 +113,8 @@ class TaxQuarterReportedAndPaidController @Inject()(
           srn = srn,
           schemeIdType = "srn"
         ) flatMap { schemeDetails =>
-          quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
+          quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { allQuarters =>
+            val displayQuarters = allQuarters.filter(_.quarter.startDate.isAfter(quartersAfter))
             if (displayQuarters.nonEmpty) {
               val quarters = displayQuarters.map(_.quarter)
 
@@ -186,7 +191,8 @@ class TaxQuarterReportedAndPaidController @Inject()(
     request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(_.startYear) match {
       case Some(year) =>
         schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
-          quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
+          quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { allQuarters =>
+            val displayQuarters = allQuarters.filter(_.quarter.startDate.isAfter(quartersAfter))
             if (displayQuarters.nonEmpty) {
               val quarters = displayQuarters.map(_.quarter)
               form(year, quarters)
@@ -238,5 +244,12 @@ class TaxQuarterReportedAndPaidController @Inject()(
     }
   }
 
-  case class InvalidValueSelected(details: String) extends Exception(s"The selected quarter did not match any quarters in the list of options: $details")
+
+}
+
+object TaxQuarterReportedAndPaidController extends CommonQuarters {
+  private final val quartersAfter = {
+    val earliestYear = 2015
+    getQuarter(Q1, earliestYear).endDate
+  }
 }

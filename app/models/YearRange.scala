@@ -61,3 +61,4 @@ object YearRange extends Enumerable.Implicits {
 
   implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
 }
+

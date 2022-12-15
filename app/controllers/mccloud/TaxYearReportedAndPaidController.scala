@@ -107,6 +107,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
         schemeName = schemeName
       )
 
+
       lifetimeOrAnnual(chargeType) match {
         case Some(chargeTypeDesc) =>
           val ordinalVal = ordinal(schemeIndex)
