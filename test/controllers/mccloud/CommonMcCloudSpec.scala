@@ -18,6 +18,7 @@ package controllers.mccloud
 
 import controllers.base.ControllerSpecBase
 import matchers.JsonMatchers
+import models.ChargeType
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -29,16 +30,23 @@ class CommonMcCloudSpec extends ControllerSpecBase
   private val commonMcCloud = new CommonMcCloud {}
 
   "ordinal" must {
-
     "return correct value for index zero" in {
       commonMcCloud.ordinal(Some(0)) mustBe None
     }
 
     "return correct value for indexes 1..4" in {
-      (1 to 4).foreach{ index =>
+      (1 to 4).foreach { index =>
         commonMcCloud.ordinal(Some(index)) mustBe Some(Message(s"mccloud.scheme.ref$index"))
       }
     }
+  }
 
+  "lifetimeOrAnnual" must {
+    "return correct value for annual allowance" in {
+      commonMcCloud.lifetimeOrAnnual(ChargeType.ChargeTypeAnnualAllowance) mustBe Some(Message("chargeType.description.annualAllowance"))
+    }
+    "return correct value for lifetime allowance" in {
+      commonMcCloud.lifetimeOrAnnual(ChargeType.ChargeTypeLifetimeAllowance) mustBe Some(Message("chargeType.description.lifeTimeAllowance"))
+    }
   }
 }
