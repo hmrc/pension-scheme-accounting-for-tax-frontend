@@ -117,7 +117,6 @@ class TaxQuarterReportedAndPaidController @Inject()(
             val displayQuarters = allQuarters.filter(filterQuarters)
             if (displayQuarters.nonEmpty) {
               val quarters = displayQuarters.map(_.quarter)
-
               val vm = GenericViewModel(
                 submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
                 returnUrl = config.schemeDashboardUrl(request).format(srn),
