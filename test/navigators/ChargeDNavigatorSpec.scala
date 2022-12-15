@@ -60,7 +60,6 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex), wasAnother),
         row(EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex))(TaxYearReportedAndPaidController
           .onPageLoadWithIndex(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),
-
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),

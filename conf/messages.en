@@ -1580,7 +1580,7 @@ enterPstr.hint = For example, 20123456RQ
 enterPstr.error.required = Enter a Pension Scheme Tax Reference (PSTR)
 enterPstr.error.invalid = Enter a Pension Scheme Tax Reference (PSTR) that is 8 numbers, followed by R, followed by a character, like 12345678RA
 
-mccloud.scheme.ref0 = first
+mccloud.scheme.ref0 =
 mccloud.scheme.ref1 = second
 mccloud.scheme.ref2 = third
 mccloud.scheme.ref3 = fourth

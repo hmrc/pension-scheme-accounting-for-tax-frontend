@@ -89,7 +89,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
             )
             renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
           case _ =>
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+            renderer.render("badRequest.njk").map(BadRequest(_))
         }
       }
     }
@@ -128,7 +128,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                   )
                   renderer.render("mccloud/enterPstr.njk", json).map(BadRequest(_))
                 case _ =>
-                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+                  renderer.render("badRequest.njk").map(BadRequest(_))
               }
             },
             value =>
