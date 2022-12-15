@@ -118,14 +118,14 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
       (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
         case (Some(aftQuarter), Some(chargeTypeDesc) ) =>
-          val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+          val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
           val json = Json.obj(
             "srn" -> srn,
             "startDate" -> Some(localDateToString(startDate)),
             "form" -> preparedForm,
             "viewModel" -> viewModel,
             "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
-            "ordinal" -> ordinalVal,
+            "ordinal" -> ordinalValue,
             "chargeTypeDesc" -> chargeTypeDesc
           )
           renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(Ok(_))
@@ -167,14 +167,14 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
             (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
               case (Some(aftQuarter), Some(chargeTypeDesc)) =>
-                val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
                 val json = Json.obj(
                   "srn" -> srn,
                   "startDate" -> Some(localDateToString(startDate)),
                   "form" -> formWithErrors,
                   "viewModel" -> viewModel,
                   "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
-                  "ordinal" -> ordinalVal,
+                  "ordinal" -> ordinalValue,
                   "chargeTypeDesc" -> chargeTypeDesc
                 )
                 renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(BadRequest(_))

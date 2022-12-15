@@ -126,7 +126,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
 
               lifetimeOrAnnual(chargeType) match {
                 case Some(chargeTypeDesc) =>
-                  val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                  val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
                   val json = Json.obj(
                     "srn" -> srn,
                     "startDate" -> Some(localDateToString(startDate)),
@@ -134,7 +134,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                     "radios" -> Quarters.radios(preparedForm, displayQuarters),
                     "viewModel" -> vm,
                     "year" -> yearRange.toString,
-                    "ordinal" -> ordinalVal,
+                    "ordinal" -> ordinalValue,
                     "chargeTypeDesc" -> chargeTypeDesc
                   )
                   renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(Ok(_))
@@ -199,7 +199,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
 
                     lifetimeOrAnnual(chargeType) match {
                       case Some(chargeTypeDesc) =>
-                        val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                        val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
                         val json = Json.obj(
                           fields = "srn" -> srn,
                           "startDate" -> None,
@@ -207,7 +207,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                           "radios" -> Quarters.radios(formWithErrors, displayQuarters),
                           "viewModel" -> vm,
                           "year" -> yearRange.toString,
-                          "ordinal" -> ordinalVal,
+                          "ordinal" -> ordinalValue,
                           "chargeTypeDesc" -> chargeTypeDesc
                         )
                         renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
@@ -245,8 +245,8 @@ object TaxQuarterReportedAndPaidController extends CommonQuarters {
     override def toString: String = startYear.toString + "-" + endYear.toString
   }
   private val fullYearRange: YearRange => FullYearRange = yr => {
-    val yrString = yr.toString.toInt
-    val yrEnd = yrString + 1
-    FullYearRange(yrString, yrEnd)
+    val yrStart = yr.toString.toInt
+    val yrEnd = yrStart + 1
+    FullYearRange(yrStart, yrEnd)
   }
 }

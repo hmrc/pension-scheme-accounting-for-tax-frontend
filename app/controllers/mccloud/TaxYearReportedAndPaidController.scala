@@ -113,14 +113,14 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
       lifetimeOrAnnual(chargeType) match {
         case Some(chargeTypeDesc) =>
-          val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+          val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
           val json = Json.obj(
             "srn" -> srn,
             "startDate" -> Some(localDateToString(startDate)),
             "form" -> preparedForm,
             "radios" -> YearRangeMcCloud.radios(preparedForm),
             "viewModel" -> viewModel,
-            "ordinal" -> ordinalVal,
+            "ordinal" -> ordinalValue,
             "chargeTypeDesc" -> chargeTypeDesc
           )
           renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
@@ -176,14 +176,14 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
             lifetimeOrAnnual(chargeType) match {
               case Some(chargeTypeDesc) =>
-                val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
                 val json = Json.obj(
                   "srn" -> srn,
                   "startDate" -> Some(localDateToString(startDate)),
                   "form" -> formWithErrors,
                   "radios" -> YearRangeMcCloud.radios(formWithErrors),
                   "viewModel" -> viewModel,
-                  "ordinal" -> ordinalVal,
+                  "ordinal" -> ordinalValue,
                   "chargeTypeDesc" -> chargeTypeDesc
                 )
                 renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
