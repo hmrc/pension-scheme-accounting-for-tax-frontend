@@ -55,7 +55,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
   private val formProvider = new EnterPstrFormProvider()
   private val form: Form[String] = formProvider()
 
-  private def httpPathGET: String = routes.EnterPstrController
+  private def httpPathGET(schemeIndex: Int): String = routes.EnterPstrController
     .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
 
   private def httpPathPOST: String = routes.EnterPstrController
@@ -72,12 +72,12 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
   "EnterPstrController Controller" must {
 
-    "return OK and the correct view for a GET" in {
+    "return OK and the correct view for a GET for scheme index zero" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET)
+      val request = FakeRequest(GET, httpPathGET(schemeIndex = 0))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -90,7 +90,30 @@ class EnterPstrControllerSpec extends ControllerSpecBase
       val expectedJson = Json.obj(
         "form" -> form,
         "viewModel" -> viewModel,
-        "ordinal" -> Messages("mccloud.scheme.ref0")
+        "ordinal" -> ""
+      )
+
+      templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
+
+    "return OK and the correct view for a GET and correct ordinal for scheme index one" in {
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+      val request = FakeRequest(GET, httpPathGET(schemeIndex = 1))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "ordinal" -> "second"
       )
 
       templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
@@ -105,7 +128,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathGET(0))
           .withFormUrlEncodedBody(("value", "12345678RA"))
 
       val result = route(application, request).value
@@ -122,7 +145,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
-      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathGET(0)).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -147,7 +170,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
-      val request = FakeRequest(GET, httpPathGET)
+      val request = FakeRequest(GET, httpPathGET(0))
 
       val result = route(application, request).value
 
@@ -161,7 +184,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathGET(0))
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
