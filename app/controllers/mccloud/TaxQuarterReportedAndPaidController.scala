@@ -68,7 +68,8 @@ class TaxQuarterReportedAndPaidController @Inject()(
   private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("taxQuarterReportedAndPaid.error.required"), quarters)
 
-  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call = schemeIndex match {
+  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call =
+    schemeIndex match {
     case Some(i) => routes.TaxQuarterReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
     case None => routes.TaxQuarterReportedAndPaidController.onSubmit
   }
@@ -96,16 +97,10 @@ class TaxQuarterReportedAndPaidController @Inject()(
     get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
   }
 
-  //scalastyle:off method.length
   //scalastyle:off parameter.number
-  private def get(chargeType: ChargeType,
-                  mode: Mode,
-                  srn: String,
-                  startDate: LocalDate,
-                  accessType: AccessType,
-                  version: Int,
-                  index: Index,
-                  schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+  private def get(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
+                  accessType: AccessType, version: Int,
+                  index: Index, schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(fullYearRange) match {
       case Some(yearRange) =>
         schemeService.retrieveSchemeDetails(
@@ -117,7 +112,6 @@ class TaxQuarterReportedAndPaidController @Inject()(
             val displayQuarters = allQuarters.filter(filterQuarters)
             if (displayQuarters.nonEmpty) {
               val quarters = displayQuarters.map(_.quarter)
-
               val vm = GenericViewModel(
                 submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
                 returnUrl = config.schemeDashboardUrl(request).format(srn),
@@ -146,12 +140,10 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(Ok(_))
                 case _ => sessionExpired
               }
-            } else {
-              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-            }
+            } else { sessionExpired }
           }
         }
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => sessionExpired
     }
   }
 
@@ -235,9 +227,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                     }
                   }
                 )
-            } else {
-              sessionExpired
-            }
+            } else { sessionExpired }
           }
         }
       case _ => sessionExpired
@@ -246,7 +236,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
 }
 
 object TaxQuarterReportedAndPaidController extends CommonQuarters {
-  private final val filterQuarters: DisplayQuarter => Boolean = {
+  private val filterQuarters: DisplayQuarter => Boolean = {
     val earliestYear = 2015
     val quartersAfter = getQuarter(Q1, earliestYear).endDate
     dq => dq.quarter.startDate.isAfter(quartersAfter) && dq.quarter.endDate.isBefore(DateHelper.today)
@@ -254,7 +244,7 @@ object TaxQuarterReportedAndPaidController extends CommonQuarters {
   private case class FullYearRange(startYear: Int, endYear: Int) {
     override def toString: String = startYear.toString + "-" + endYear.toString
   }
-  private final val fullYearRange: YearRange => FullYearRange = yr => {
+  private val fullYearRange: YearRange => FullYearRange = yr => {
     val yrString = yr.toString.toInt
     val yrEnd = yrString + 1
     FullYearRange(yrString, yrEnd)

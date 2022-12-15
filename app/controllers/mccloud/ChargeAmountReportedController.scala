@@ -64,7 +64,8 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
     )
   }
 
-  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call = schemeIndex match {
+  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call =
+    schemeIndex match {
     case Some(i) => routes.ChargeAmountReportedController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
     case None => routes.ChargeAmountReportedController.onSubmit
   }
@@ -76,7 +77,8 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                           accessType: AccessType,
                           version: Int,
                           index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       get(chargeType, mode, srn, startDate, accessType, version, index, None)
     }
 
@@ -88,23 +90,20 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                  version: Int,
                  index: Index,
                  schemeIndex: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
     }
 
   //scalastyle:off parameter.number
-  private def get(chargeType: ChargeType,
-                  mode: Mode,
-                  srn: String,
-                  startDate: LocalDate,
-                  accessType: AccessType,
-                  version: Int,
-                  index: Index,
+  private def get(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
+                  accessType: AccessType, version: Int, index: Index,
                   schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     DataRetrievals.retrieveSchemeName { schemeName =>
       val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
-      val preparedForm: Form[BigDecimal] = request.userAnswers.get(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt))) match {
+      val preparedForm: Form[BigDecimal] = request.userAnswers
+        .get(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt))) match {
         case Some(value) => form(mininimumChargeValue).fill(value)
         case None => form(mininimumChargeValue)
       }
@@ -136,42 +135,24 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
     }
   }
 
-  def onSubmit(chargeType: ChargeType,
-                        mode: Mode,
-                        srn: String,
-                        startDate: LocalDate,
-                        accessType: AccessType,
-                        version: Int,
-                        index: Index): Action[AnyContent] =
+  def onSubmit(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
+                        accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       post(chargeType, mode, srn, startDate, accessType, version, index, None)
     }
 
-  def onSubmitWithIndex(chargeType: ChargeType,
-               mode: Mode,
-               srn: String,
-               startDate: LocalDate,
-               accessType: AccessType,
-               version: Int,
-               index: Index,
-               schemeIndex: Index): Action[AnyContent] =
+  def onSubmitWithIndex(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
+               accessType: AccessType, version: Int, index: Index, schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       post(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
     }
 
   //scalastyle:off parameter.number
-  private def post(chargeType: ChargeType,
-                   mode: Mode,
-                   srn: String,
-                   startDate: LocalDate,
-                   accessType: AccessType,
-                   version: Int,
-                   index: Index,
+  private def post(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
+                   accessType: AccessType, version: Int, index: Index,
                    schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     DataRetrievals.retrieveSchemeName { schemeName =>
-
       val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
-
       form(mininimumChargeValue)
         .bindFromRequest()
         .fold(
@@ -181,8 +162,8 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )
-
-            val taxQuarterSelection = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
+            val taxQuarterSelection = request.userAnswers
+              .get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
 
             (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
               case (Some(aftQuarter), Some(chargeTypeDesc)) =>
@@ -203,10 +184,12 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
           },
           value => {
             for {
-              updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
+              updatedAnswers <- Future.fromTry(userAnswersService
+                .set(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
               _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
                 chargeType = Some(chargeType), memberNo = Some(index.id))
-            } yield Redirect(navigator.nextPage(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt)), mode, updatedAnswers, srn, startDate, accessType, version))
+            } yield Redirect(navigator.nextPage(ChargeAmountReportedPage(chargeType, index,
+              schemeIndex.map(indexToInt)), mode, updatedAnswers, srn, startDate, accessType, version))
           }
         )
     }

@@ -58,7 +58,8 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
   private def form: Form[YearRange] =
     formProvider("taxYearReportedAndPaid.error.required")
 
-  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call = schemeIndex match {
+  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call =
+    schemeIndex match {
     case Some(i) => routes.TaxYearReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
     case None => routes.TaxYearReportedAndPaidController.onSubmit
   }
@@ -70,7 +71,8 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                  accessType: AccessType,
                  version: Int,
                  index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       get(chargeType, mode, srn, startDate, accessType, version, index, None)
     }
 
@@ -82,7 +84,8 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                           version: Int,
                           index: Index,
                           schemeIndex: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
     }
 
@@ -166,7 +169,8 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
           formWithErrors => {
             val viewModel = GenericViewModel(
               submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController
+                .returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )
 
@@ -188,12 +192,14 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
           },
           value => {
             for {
-              updatedAnswers <- Future.fromTry(userAnswersService.set(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
+              updatedAnswers <- Future.fromTry(userAnswersService
+                .set(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
               _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
                 chargeType = Some(chargeType), memberNo = Some(index.id))
             } yield {
               Redirect(navigator
-                .nextPage(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), mode, updatedAnswers, srn, startDate, accessType, version))
+                .nextPage(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)),
+                  mode, updatedAnswers, srn, startDate, accessType, version))
             }
           }
         )
