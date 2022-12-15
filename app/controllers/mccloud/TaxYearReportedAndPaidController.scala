@@ -23,13 +23,13 @@ import forms.YearRangeFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, YearRange}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, YearRange, YearRangeMcCloud}
 import navigators.CompoundNavigator
 import pages.mccloud.TaxYearReportedAndPaidPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents, Result}
+import play.api.mvc._
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -64,12 +64,12 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
   }
 
   def onPageLoad(chargeType: ChargeType,
-                          mode: Mode,
-                          srn: String,
-                          startDate: LocalDate,
-                          accessType: AccessType,
-                          version: Int,
-                          index: Index): Action[AnyContent] =
+                 mode: Mode,
+                 srn: String,
+                 startDate: LocalDate,
+                 accessType: AccessType,
+                 version: Int,
+                 index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       get(chargeType, mode, srn, startDate, accessType, version, index, None)
     }
@@ -115,7 +115,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
             "srn" -> srn,
             "startDate" -> Some(localDateToString(startDate)),
             "form" -> preparedForm,
-            "radios" -> YearRange.radios(preparedForm),
+            "radios" -> YearRangeMcCloud.radios(preparedForm),
             "viewModel" -> viewModel,
             "ordinal" -> ordinalVal,
             "chargeTypeDesc" -> chargeTypeDesc
@@ -127,12 +127,12 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
   }
 
   def onSubmit(chargeType: ChargeType,
-                        mode: Mode,
-                        srn: String,
-                        startDate: LocalDate,
-                        accessType: AccessType,
-                        version: Int,
-                        index: Index): Action[AnyContent] =
+               mode: Mode,
+               srn: String,
+               startDate: LocalDate,
+               accessType: AccessType,
+               version: Int,
+               index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       post(chargeType, mode, srn, startDate, accessType, version, index, None)
     }
@@ -177,7 +177,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                   "srn" -> srn,
                   "startDate" -> Some(localDateToString(startDate)),
                   "form" -> formWithErrors,
-                  "radios" -> YearRange.radios(formWithErrors),
+                  "radios" -> YearRangeMcCloud.radios(formWithErrors),
                   "viewModel" -> viewModel,
                   "ordinal" -> ordinalVal,
                   "chargeTypeDesc" -> chargeTypeDesc

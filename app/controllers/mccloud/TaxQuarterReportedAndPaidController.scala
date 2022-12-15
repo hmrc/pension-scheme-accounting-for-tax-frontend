@@ -20,11 +20,12 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
+import controllers.mccloud.TaxQuarterReportedAndPaidController.{filterQuarters, fullYearRange}
 import forms.QuartersFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode, Quarters}
+import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, DisplayQuarter, GenericViewModel, Index, Mode, Quarters, YearRange}
 import navigators.CompoundNavigator
 import pages.mccloud.{TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage}
 import play.api.data.Form
@@ -35,6 +36,7 @@ import renderer.Renderer
 import services.{QuartersService, SchemeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -63,9 +65,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
     with CommonMcCloud
     with CommonQuarters {
 
-  import TaxQuarterReportedAndPaidController._
-
-  private def form(year: String, quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
+  private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("taxQuarterReportedAndPaid.error.required"), quarters)
 
   private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call = schemeIndex match {
@@ -106,15 +106,15 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   version: Int,
                   index: Index,
                   schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(_.startYear) match {
-      case Some(year) =>
+    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(fullYearRange) match {
+      case Some(yearRange) =>
         schemeService.retrieveSchemeDetails(
           psaId = request.idOrException,
           srn = srn,
           schemeIdType = "srn"
         ) flatMap { schemeDetails =>
-          quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { allQuarters =>
-            val displayQuarters = allQuarters.filter(_.quarter.startDate.isAfter(quartersAfter))
+          quartersService.getStartQuarters(srn, schemeDetails.pstr, yearRange.startYear).flatMap { allQuarters =>
+            val displayQuarters = allQuarters.filter(filterQuarters)
             if (displayQuarters.nonEmpty) {
               val quarters = displayQuarters.map(_.quarter)
 
@@ -126,8 +126,8 @@ class TaxQuarterReportedAndPaidController @Inject()(
 
               val preparedForm: Form[AFTQuarter] =
                 request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
-                  case Some(value) => form(year, quarters).fill(value)
-                  case None => form(year, quarters)
+                  case Some(value) => form(quarters).fill(value)
+                  case None => form(quarters)
                 }
 
               lifetimeOrAnnual(chargeType) match {
@@ -139,7 +139,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                     "form" -> preparedForm,
                     "radios" -> Quarters.radios(preparedForm, displayQuarters),
                     "viewModel" -> vm,
-                    "year" -> year,
+                    "year" -> yearRange.toString,
                     "ordinal" -> ordinalVal,
                     "chargeTypeDesc" -> chargeTypeDesc
                   )
@@ -188,14 +188,14 @@ class TaxQuarterReportedAndPaidController @Inject()(
                    version: Int,
                    index: Index,
                    schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(_.startYear) match {
-      case Some(year) =>
+    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(fullYearRange) match {
+      case Some(yearRange) =>
         schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
-          quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { allQuarters =>
-            val displayQuarters = allQuarters.filter(_.quarter.startDate.isAfter(quartersAfter))
+          quartersService.getStartQuarters(srn, schemeDetails.pstr, yearRange.startYear).flatMap { allQuarters =>
+            val displayQuarters = allQuarters.filter(filterQuarters)
             if (displayQuarters.nonEmpty) {
               val quarters = displayQuarters.map(_.quarter)
-              form(year, quarters)
+              form(quarters)
                 .bindFromRequest()
                 .fold(
                   formWithErrors => {
@@ -206,7 +206,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                     )
 
                     lifetimeOrAnnual(chargeType) match {
-                      case  Some(chargeTypeDesc) =>
+                      case Some(chargeTypeDesc) =>
                         val ordinalVal = ordinal(schemeIndex)
                         val json = Json.obj(
                           fields = "srn" -> srn,
@@ -214,7 +214,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                           "form" -> formWithErrors,
                           "radios" -> Quarters.radios(formWithErrors, displayQuarters),
                           "viewModel" -> vm,
-                          "year" -> year,
+                          "year" -> yearRange.toString,
                           "ordinal" -> ordinalVal,
                           "chargeTypeDesc" -> chargeTypeDesc
                         )
@@ -243,13 +243,20 @@ class TaxQuarterReportedAndPaidController @Inject()(
       case _ => sessionExpired
     }
   }
-
-
 }
 
 object TaxQuarterReportedAndPaidController extends CommonQuarters {
-  private final val quartersAfter = {
+  private final val filterQuarters: DisplayQuarter => Boolean = {
     val earliestYear = 2015
-    getQuarter(Q1, earliestYear).endDate
+    val quartersAfter = getQuarter(Q1, earliestYear).endDate
+    dq => dq.quarter.startDate.isAfter(quartersAfter) && dq.quarter.endDate.isBefore(DateHelper.today)
+  }
+  private case class FullYearRange(startYear: Int, endYear: Int) {
+    override def toString: String = startYear.toString + "-" + endYear.toString
+  }
+  private final val fullYearRange: YearRange => FullYearRange = yr => {
+    val yrString = yr.toString.toInt
+    val yrEnd = yrString + 1
+    FullYearRange(yrString, yrEnd)
   }
 }

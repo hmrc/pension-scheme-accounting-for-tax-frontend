@@ -29,11 +29,11 @@ case class YearRange(startYear: String) {
   override def toString: String = startYear
 }
 
-object YearRange extends Enumerable.Implicits {
+trait YearRangeCommon extends Enumerable.Implicits {
   implicit val writes: Writes[YearRange] = (yr: YearRange) => JsString(yr.toString)
 
   private val startDayOfNewTaxYear: Int = 6
-  private val minYear: Int = 2011
+  protected val minYear: Int
 
   def currentYear = new YearRange(DateHelper.today.getYear.toString)
 
@@ -62,3 +62,10 @@ object YearRange extends Enumerable.Implicits {
   implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
 }
 
+object YearRange extends YearRangeCommon with Enumerable.Implicits {
+  override protected val minYear: Int = 2011
+}
+
+object YearRangeMcCloud extends YearRangeCommon with Enumerable.Implicits {
+  override protected val minYear: Int = 2015
+}
