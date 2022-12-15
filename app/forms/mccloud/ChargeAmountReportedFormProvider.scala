@@ -17,7 +17,6 @@
 package forms.mccloud
 
 import forms.mappings.{Constraints, Mappings}
-import models.chargeE.ChargeEDetails
 import play.api.data.Form
 
 import javax.inject.Inject
@@ -31,7 +30,7 @@ class ChargeAmountReportedFormProvider @Inject() extends Mappings with Constrain
         invalidKey = "chargeAmountReported.error.invalid",
         decimalKey = "chargeAmountReported.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeAmountReported.error.maximum"),
+        maximumValue[BigDecimal](BigDecimal("999999999.99"), "chargeAmountReported.error.maximum"),
         minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeAmountReported.error.invalid")
       )
     )

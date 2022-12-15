@@ -21,10 +21,11 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeE.routes._
 import helpers.{ChargeServiceHelper, DeleteChargeHelper}
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
+import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
 import models.{AccessType, ChargeType, Index, MemberDetails, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeE._

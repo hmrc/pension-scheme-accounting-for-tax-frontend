@@ -30,17 +30,19 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
+import pages.SchemeNameQuery
 import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
@@ -53,7 +55,7 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
   private def onwardRoute = Call("GET", "/foo")
 
   private val formProvider = new YearRangeFormProvider
-  private val form: Form[YearRange] = formProvider()
+  private val form: Form[YearRange] = formProvider("taxYearReportedAndPaid.error.required")
 
   private def httpPathGET: String = routes.TaxYearReportedAndPaidController
     .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
@@ -69,6 +71,7 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
   private def userAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value
     .set(MemberDetailsPage(1), memberDetails).success.value
+    .setOrException(SchemeNameQuery, schemeName)
 
   "TaxYearReportedAndPaidController Controller" must {
 
@@ -97,6 +100,7 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
     }
 
     "redirect to the next page when valid data is submitted" in {
+      DateHelper.setDate(Some(LocalDate.now()))
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
@@ -104,8 +108,8 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =
-        FakeRequest(POST, httpPathGET)
-          .withFormUrlEncodedBody(("value", "12345678RA"))
+        FakeRequest(POST, httpPathPOST)
+          .withFormUrlEncodedBody(("value", "2021"))
 
       val result = route(application, request).value
 
@@ -114,33 +118,31 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
       redirectLocation(result).value mustEqual onwardRoute.url
     }
 
-//    "return a Bad Request and errors when invalid data is submitted" in {
-//
-//      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-//      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-//
-//      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-//
-//      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
-//      val boundForm = form.bind(Map("value" -> ""))
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-//
-//      val result = route(application, request).value
-//
-//      status(result) mustEqual BAD_REQUEST
-//
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-//
-//      val expectedJson = Json.obj(
-//        "form" -> boundForm,
-//        "viewModel" -> viewModel
-//      )
-//
-//      templateCaptor.getValue mustEqual "mccloud/taxYearReportedAndPaid.njk"
-//
-//      jsonCaptor.getValue must containJson(expectedJson)
-//    }
+    "return a Bad Request and errors when invalid data is submitted" in {
+
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+
+      val request = FakeRequest(POST, httpPathPOST).withFormUrlEncodedBody(("value", ""))
+      val boundForm = form.bind(Map("value" -> ""))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, request).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "form" -> boundForm,
+        "viewModel" -> viewModel
+      )
+      templateCaptor.getValue mustEqual "mccloud/taxYearReportedAndPaid.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
 
     "redirect to Session Expired for a GET if no existing data is found" in {
 

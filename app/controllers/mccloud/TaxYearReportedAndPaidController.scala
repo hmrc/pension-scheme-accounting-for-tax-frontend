@@ -23,13 +23,13 @@ import forms.YearRangeFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, YearRange}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, YearRange, YearRangeMcCloud}
 import navigators.CompoundNavigator
 import pages.mccloud.TaxYearReportedAndPaidPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents, Result}
+import play.api.mvc._
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -52,7 +52,8 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                                                  renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport {
+    with NunjucksSupport
+    with CommonMcCloud {
 
   private def form: Form[YearRange] =
     formProvider("taxYearReportedAndPaid.error.required")
@@ -63,12 +64,12 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
   }
 
   def onPageLoad(chargeType: ChargeType,
-                          mode: Mode,
-                          srn: String,
-                          startDate: LocalDate,
-                          accessType: AccessType,
-                          version: Int,
-                          index: Index): Action[AnyContent] =
+                 mode: Mode,
+                 srn: String,
+                 startDate: LocalDate,
+                 accessType: AccessType,
+                 version: Int,
+                 index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       get(chargeType, mode, srn, startDate, accessType, version, index, None)
     }
@@ -106,25 +107,32 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
         schemeName = schemeName
       )
 
-      val json = Json.obj(
-        "srn" -> srn,
-        "startDate" -> Some(localDateToString(startDate)),
-        "form" -> preparedForm,
-        "radios" -> YearRange.radios(preparedForm),
-        "viewModel" -> viewModel
-      )
 
-      renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
+      lifetimeOrAnnual(chargeType) match {
+        case Some(chargeTypeDesc) =>
+          val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+          val json = Json.obj(
+            "srn" -> srn,
+            "startDate" -> Some(localDateToString(startDate)),
+            "form" -> preparedForm,
+            "radios" -> YearRangeMcCloud.radios(preparedForm),
+            "viewModel" -> viewModel,
+            "ordinal" -> ordinalVal,
+            "chargeTypeDesc" -> chargeTypeDesc
+          )
+          renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
+        case _ => sessionExpired
+      }
     }
   }
 
   def onSubmit(chargeType: ChargeType,
-                        mode: Mode,
-                        srn: String,
-                        startDate: LocalDate,
-                        accessType: AccessType,
-                        version: Int,
-                        index: Index): Action[AnyContent] =
+               mode: Mode,
+               srn: String,
+               startDate: LocalDate,
+               accessType: AccessType,
+               version: Int,
+               index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       post(chargeType, mode, srn, startDate, accessType, version, index, None)
     }
@@ -162,14 +170,21 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
               schemeName = schemeName
             )
 
-            val json = Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(localDateToString(startDate)),
-              "form" -> formWithErrors,
-              "radios" -> YearRange.radios(formWithErrors),
-              "viewModel" -> viewModel
-            )
-            renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
+            lifetimeOrAnnual(chargeType) match {
+              case Some(chargeTypeDesc) =>
+                val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                val json = Json.obj(
+                  "srn" -> srn,
+                  "startDate" -> Some(localDateToString(startDate)),
+                  "form" -> formWithErrors,
+                  "radios" -> YearRangeMcCloud.radios(formWithErrors),
+                  "viewModel" -> viewModel,
+                  "ordinal" -> ordinalVal,
+                  "chargeTypeDesc" -> chargeTypeDesc
+                )
+                renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
+              case _ => sessionExpired
+            }
           },
           value => {
             for {

@@ -21,19 +21,18 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.mccloud.EnterPstrFormProvider
 import matchers.JsonMatchers
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{ChargeType, GenericViewModel, NormalMode}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import models.requests.IdentifierRequest
+import models.{GenericViewModel, NormalMode}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.MemberDetailsPage
-import pages.mccloud.EnterPstrPage
 import play.api.Application
 import play.api.data.Form
-import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
@@ -55,19 +54,14 @@ class EnterPstrControllerSpec extends ControllerSpecBase
   private val formProvider = new EnterPstrFormProvider()
   private val form: Form[String] = formProvider()
 
-  private def httpPathGET(chargeType: ChargeType, schemeIndex: Int): String = routes.EnterPstrController
-    .onPageLoad(chargeType, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
+  private def httpPathGET(schemeIndex: Int): String = routes.EnterPstrController
+    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
 
-  private def httpPathPOST(chargeType: ChargeType, schemeIndex: Int): String = routes.EnterPstrController
-    .onSubmit(chargeType, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
+  private def httpPathPOST: String = routes.EnterPstrController
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
 
-  private val viewModelAnnual = GenericViewModel(
-    submitUrl = httpPathPOST(ChargeTypeAnnualAllowance, 0),
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName)
-
-  private val viewModelLifetime = GenericViewModel(
-    submitUrl = httpPathPOST(ChargeTypeLifetimeAllowance, 1),
+  private val viewModel = GenericViewModel(
+    submitUrl = httpPathPOST,
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
     schemeName = schemeName)
 
@@ -77,11 +71,12 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
   "EnterPstrController Controller" must {
 
-    "return OK and the correct view for a GET (Annual first scheme)" in {
+    "return OK and the correct view for a GET for scheme index zero" in {
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET(ChargeTypeAnnualAllowance, 0))
+      val request = FakeRequest(GET, httpPathGET(schemeIndex = 0))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -93,19 +88,20 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
       val expectedJson = Json.obj(
         "form" -> form,
-        "viewModel" -> viewModelAnnual,
-        "chargeTitle" -> Messages("enterPstr.title.annual", "")
+        "viewModel" -> viewModel,
+        "ordinal" -> ""
       )
 
       templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "return OK and the correct view for a GET (Lifetime second scheme)" in {
+    "return OK and the correct view for a GET and correct ordinal for scheme index one" in {
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET(ChargeTypeLifetimeAllowance, 1))
+      val request = FakeRequest(GET, httpPathGET(schemeIndex = 1))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -116,103 +112,22 @@ class EnterPstrControllerSpec extends ControllerSpecBase
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModelLifetime,
-        "chargeTitle" -> Messages("enterPstr.title.lifetime", "second")
+        "ordinal" -> "second"
       )
 
       templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "return Bad Request and the correct view for a GET (Lifetime schemeIndex 5)" in {
-      when(mockRenderer.render(ArgumentMatchers.eq("badRequest.njk"), any())(any())).thenReturn(Future.successful(Html("")))
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET(ChargeTypeLifetimeAllowance, 5))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(ArgumentMatchers.eq("badRequest.njk"), any())(any())
-    }
-
-    "return Bad Request and the correct view for a GET (Lifetime schemeIndex -1)" in {
-      when(mockRenderer.render(ArgumentMatchers.eq("badRequest.njk"), any())(any())).thenReturn(Future.successful(Html("")))
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET(ChargeTypeLifetimeAllowance, -1))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(ArgumentMatchers.eq("badRequest.njk"), any())(any())
-
-    }
-
-    "return Bad Request and the correct view for a GET (Annual schemeIndex 5)" in {
-      when(mockRenderer.render(ArgumentMatchers.eq("badRequest.njk"), any())(any())).thenReturn(Future.successful(Html("")))
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET(ChargeTypeAnnualAllowance, 5))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(ArgumentMatchers.eq("badRequest.njk"), any())(any())
-    }
-
-    "return Bad Request and the correct view for a GET (Annual schemeIndex -1)" in {
-      when(mockRenderer.render(ArgumentMatchers.eq("badRequest.njk"), any())(any())).thenReturn(Future.successful(Html("")))
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET(ChargeTypeAnnualAllowance, -1))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(ArgumentMatchers.eq("badRequest.njk"), any())(any())
-
-    }
-
-    "redirect to Session Expired for a GET if no existing data is found (Annual first scheme)" in {
-
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
-
-      val request = FakeRequest(GET, httpPathGET(ChargeTypeAnnualAllowance, 0))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
-    }
-
-    "redirect to Session Expired for a GET if no existing data is found (Lifetime first scheme)" in {
-
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
-
-      val request = FakeRequest(GET, httpPathGET(ChargeTypeLifetimeAllowance, 0))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
-    }
-
-    "redirect to the next page when valid data is submitted (Annual first scheme)" in {
+    "redirect to the next page when valid data is submitted" in {
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =
-        FakeRequest(POST, httpPathPOST(ChargeTypeAnnualAllowance, 0))
+        FakeRequest(POST, httpPathGET(0))
           .withFormUrlEncodedBody(("value", "12345678RA"))
 
       val result = route(application, request).value
@@ -222,30 +137,14 @@ class EnterPstrControllerSpec extends ControllerSpecBase
       redirectLocation(result).value mustEqual onwardRoute.url
     }
 
-    "redirect to the next page when valid data is submitted (Lifetime second scheme)" in {
-      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+    "return a Bad Request and errors when invalid data is submitted" in {
 
-      val updatedUa = userAnswers.set(EnterPstrPage(ChargeTypeLifetimeAllowance, 0, 0), "12345678RL").success.value
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(updatedUa))
-
-      val request =
-        FakeRequest(POST, httpPathPOST(ChargeTypeLifetimeAllowance, 1))
-          .withFormUrlEncodedBody(("value", "12345678RA"))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual onwardRoute.url
-    }
-
-    "return a Bad Request and errors when invalid data is submitted (Annual first scheme)" in {
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
-      val request = FakeRequest(POST, httpPathPOST(ChargeTypeAnnualAllowance, 0)).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathGET(0)).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -258,8 +157,7 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
       val expectedJson = Json.obj(
         "form" -> boundForm,
-        "viewModel" -> viewModelAnnual,
-        "chargeTitle" -> Messages("enterPstr.title.annual", "")
+        "viewModel" -> viewModel
       )
 
       templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
@@ -267,40 +165,11 @@ class EnterPstrControllerSpec extends ControllerSpecBase
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "return a Bad Request and errors when invalid data is submitted (Lifetime second schemeIndex)" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-
-      val request = FakeRequest(POST, httpPathPOST(ChargeTypeLifetimeAllowance, 1)).withFormUrlEncodedBody(("value", ""))
-      val boundForm = form.bind(Map("value" -> ""))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "viewModel" -> viewModelLifetime,
-        "chargeTitle" -> Messages("enterPstr.title.lifetime", "second")
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
-
-      jsonCaptor.getValue must containJson(expectedJson)
-    }
-
-    "redirect to Session Expired for a POST if no existing data is found (Annual first scheme)" in {
+    "redirect to Session Expired for a GET if no existing data is found" in {
 
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
-      val request =
-        FakeRequest(POST, httpPathPOST(ChargeTypeAnnualAllowance, 0))
-          .withFormUrlEncodedBody(("value", "true"))
+      val request = FakeRequest(GET, httpPathGET(0))
 
       val result = route(application, request).value
 
@@ -309,12 +178,12 @@ class EnterPstrControllerSpec extends ControllerSpecBase
       redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
     }
 
-    "redirect to Session Expired for a POST if no existing data is found (Lifetime first scheme)" in {
+    "redirect to Session Expired for a POST if no existing data is found" in {
 
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
-        FakeRequest(POST, httpPathPOST(ChargeTypeLifetimeAllowance, 0))
+        FakeRequest(POST, httpPathGET(0))
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
@@ -322,62 +191,6 @@ class EnterPstrControllerSpec extends ControllerSpecBase
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad.url
-    }
-
-    "return a Bad Request and errors when invalid data is submitted (Annual with schemeIndex -1)" in {
-      when(mockRenderer.render(ArgumentMatchers.eq("badRequest.njk"), any())(any())).thenReturn(Future.successful(Html("")))
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-
-      val request = FakeRequest(POST, httpPathPOST(ChargeTypeAnnualAllowance, -1)).withFormUrlEncodedBody(("value", ""))
-      val boundForm = form.bind(Map("value" -> ""))
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(ArgumentMatchers.eq("badRequest.njk"), any())(any())
-    }
-
-    "return a Bad Request and errors when invalid data is submitted (Annual with schemeIndex 5)" in {
-      when(mockRenderer.render(ArgumentMatchers.eq("badRequest.njk"), any())(any())).thenReturn(Future.successful(Html("")))
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-
-      val request = FakeRequest(POST, httpPathPOST(ChargeTypeAnnualAllowance, 5)).withFormUrlEncodedBody(("value", ""))
-      val boundForm = form.bind(Map("value" -> ""))
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(ArgumentMatchers.eq("badRequest.njk"), any())(any())
-    }
-
-    "return a Bad Request and errors when invalid data is submitted (Lifetime with schemeIndex -1)" in {
-      when(mockRenderer.render(ArgumentMatchers.eq("badRequest.njk"), any())(any())).thenReturn(Future.successful(Html("")))
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-
-      val request = FakeRequest(POST, httpPathPOST(ChargeTypeLifetimeAllowance, -1)).withFormUrlEncodedBody(("value", ""))
-      val boundForm = form.bind(Map("value" -> ""))
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(ArgumentMatchers.eq("badRequest.njk"), any())(any())
-    }
-
-    "return a Bad Request and errors when invalid data is submitted (Lifetime with schemeIndex 5)" in {
-      when(mockRenderer.render(ArgumentMatchers.eq("badRequest.njk"), any())(any())).thenReturn(Future.successful(Html("")))
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-
-      val request = FakeRequest(POST, httpPathPOST(ChargeTypeLifetimeAllowance, 5)).withFormUrlEncodedBody(("value", ""))
-      val boundForm = form.bind(Map("value" -> ""))
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(ArgumentMatchers.eq("badRequest.njk"), any())(any())
     }
   }
 }
