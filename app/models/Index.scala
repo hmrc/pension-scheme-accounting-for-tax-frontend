@@ -25,7 +25,7 @@ case class Index(id: Int)
 object Index {
 
   implicit val jsLiteral: JavascriptLiteral[Index] = new JavascriptLiteral[Index] {
-    override def to(value: Index): String = value.toString
+    override def to(value: Index): String = value.id.toString
   }
 
   implicit def indexPathBindable(implicit intBinder: PathBindable[Int]): PathBindable[Index] = new PathBindable[Index] {
@@ -38,7 +38,27 @@ object Index {
     }
 
     override def unbind(key: String, value: Index): String = {
-      intBinder.unbind(key, value.id + 1)
+
+      val tt = intBinder.unbind(key, value.id + 1)
+      println( "\n>>>" +key + "/" + value + "==="+ tt)
+      tt
+    }
+  }
+
+  implicit def optionIndexPathBindable(implicit intBinder: PathBindable[Int]): PathBindable[Option[Index]] = new PathBindable[Option[Index]] {
+
+    override def bind(key: String, value: String): Either[String, Option[Index]] = {
+      intBinder.bind(key, value) match {
+        case Right(x) if x > 0 => Right(Some(Index(x - 1)))
+        case _ => Left("Index binding failed")
+      }
+    }
+
+    override def unbind(key: String, value: Option[Index]): String = {
+
+      val tt = intBinder.unbind(key, value.map(_.id + 1).getOrElse(-1))
+      println("\n>>dsdsdsds>" + key + "/" + value + "===" + tt)
+      tt
     }
   }
 
