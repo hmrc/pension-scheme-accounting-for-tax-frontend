@@ -60,9 +60,10 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
   private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call =
     schemeIndex match {
-    case Some(i) => routes.TaxYearReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
-    case None => routes.TaxYearReportedAndPaidController.onSubmit
-  }
+      case Some(i) => routes.TaxYearReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
+      case None => routes.TaxYearReportedAndPaidController.onSubmit
+    }
+
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
