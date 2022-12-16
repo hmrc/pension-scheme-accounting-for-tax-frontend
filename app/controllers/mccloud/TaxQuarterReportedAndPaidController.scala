@@ -65,34 +65,18 @@ class TaxQuarterReportedAndPaidController @Inject()(
   private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("taxQuarterReportedAndPaid.error.required"), quarters)
 
-  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call =
-    schemeIndex match {
-      case Some(i) => routes.TaxQuarterReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
-      case None => routes.TaxQuarterReportedAndPaidController.onSubmit
-    }
-
   def onPageLoad(chargeType: ChargeType,
-                 mode: Mode, srn: String,
+                 mode: Mode,
+                 srn: String,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
-                 index: Index
-                ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
-    allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-    get(chargeType, mode, srn, startDate, accessType, version, index, None)
-  }
-
-  def onPageLoadWithIndex(chargeType: ChargeType,
-                          mode: Mode, srn: String,
-                          startDate: LocalDate,
-                          accessType: AccessType,
-                          version: Int,
-                          index: Index,
-                          schemeIndex: Index
-                         ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
-    allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-    get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
-  }
+                 index: Index,
+                 schemeIndex: Option[Index]): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+      get(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
+    }
 
   //scalastyle:off parameter.number
   private def get(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
@@ -107,7 +91,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
         ) flatMap { schemeDetails =>
           val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
           val vm = GenericViewModel(
-            submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
+            submitUrl = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
             returnUrl = config.schemeDashboardUrl(request).format(srn),
             schemeName = schemeDetails.schemeName
           )
@@ -140,29 +124,18 @@ class TaxQuarterReportedAndPaidController @Inject()(
   }
 
   def onSubmit(chargeType: ChargeType,
-               mode: Mode, srn: String,
+               mode: Mode,
+               srn: String,
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,
-               index: Index
-              ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
-    allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-    post(chargeType, mode, srn, startDate, accessType, version, index, None)
-  }
+               index: Index,
+               schemeIndex: Option[Index]): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      post(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
+    }
 
   // scalastyle:off method.length
-  def onSubmitWithIndex(chargeType: ChargeType,
-                        mode: Mode, srn: String,
-                        startDate: LocalDate,
-                        accessType: AccessType,
-                        version: Int,
-                        index: Index,
-                        schemeIndex: Index
-                       ): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen
-    allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-    post(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
-  }
-
   //scalastyle:off parameter.number
   private def post(chargeType: ChargeType,
                    mode: Mode,
@@ -181,7 +154,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
             .fold(
               formWithErrors => {
                 val vm = GenericViewModel(
-                  submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
+                  submitUrl = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
                   returnUrl = config.schemeDashboardUrl(request).format(srn),
                   schemeName = schemeDetails.schemeName
                 )

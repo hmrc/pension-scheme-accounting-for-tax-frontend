@@ -64,35 +64,17 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
     )
   }
 
-  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call =
-    schemeIndex match {
-    case Some(i) => routes.ChargeAmountReportedController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
-    case None => routes.ChargeAmountReportedController.onSubmit
-  }
-
   def onPageLoad(chargeType: ChargeType,
-                          mode: Mode,
-                          srn: String,
-                          startDate: LocalDate,
-                          accessType: AccessType,
-                          version: Int,
-                          index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen
-      allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      get(chargeType, mode, srn, startDate, accessType, version, index, None)
-    }
-
-  def onPageLoadWithIndex(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
                  index: Index,
-                 schemeIndex: Index): Action[AnyContent] =
+                 schemeIndex: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
+      get(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
     }
 
   //scalastyle:off parameter.number
@@ -109,7 +91,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
       }
 
       val viewModel = GenericViewModel(
-        submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
+        submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = schemeName
       )
@@ -135,16 +117,16 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
     }
   }
 
-  def onSubmit(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
-                        accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onSubmit(chargeType: ChargeType,
+               mode: Mode,
+               srn: String,
+               startDate: LocalDate,
+               accessType: AccessType,
+               version: Int,
+               index: Index,
+               schemeIndex: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      post(chargeType, mode, srn, startDate, accessType, version, index, None)
-    }
-
-  def onSubmitWithIndex(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
-               accessType: AccessType, version: Int, index: Index, schemeIndex: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      post(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
+      post(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
     }
 
   //scalastyle:off parameter.number
@@ -158,7 +140,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
         .fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
+              submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )

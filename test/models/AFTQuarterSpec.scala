@@ -25,8 +25,6 @@ import java.time.LocalDate
 
 class AFTQuarterSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
-  private val quarters = new CommonQuarters {}
-
   "formatForDisplay" when {
     "calling with a valid date" must {
       "return formatted correctly" in {

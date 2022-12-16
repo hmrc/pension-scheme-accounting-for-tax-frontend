@@ -58,36 +58,17 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
   private def form: Form[YearRange] =
     formProvider("taxYearReportedAndPaid.error.required")
 
-  private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call =
-    schemeIndex match {
-      case Some(i) => routes.TaxYearReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
-      case None => routes.TaxYearReportedAndPaidController.onSubmit
-    }
-
-
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
-                 index: Index): Action[AnyContent] =
+                 index: Index,
+                 schemeIndex: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      get(chargeType, mode, srn, startDate, accessType, version, index, None)
-    }
-
-  def onPageLoadWithIndex(chargeType: ChargeType,
-                          mode: Mode,
-                          srn: String,
-                          startDate: LocalDate,
-                          accessType: AccessType,
-                          version: Int,
-                          index: Index,
-                          schemeIndex: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen
-      allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      get(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
+      get(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
     }
 
   //scalastyle:off parameter.number
@@ -106,7 +87,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
       }
 
       val viewModel = GenericViewModel(
-        submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
+        submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
         schemeName = schemeName
       )
@@ -136,21 +117,10 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,
-               index: Index): Action[AnyContent] =
+               index: Index,
+               schemeIndex: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      post(chargeType, mode, srn, startDate, accessType, version, index, None)
-    }
-
-  def onSubmitWithIndex(chargeType: ChargeType,
-                        mode: Mode,
-                        srn: String,
-                        startDate: LocalDate,
-                        accessType: AccessType,
-                        version: Int,
-                        index: Index,
-                        schemeIndex: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      post(chargeType, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
+      post(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
     }
 
   //scalastyle:off parameter.number
@@ -169,7 +139,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
         .fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
+              submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
               returnUrl = controllers.routes.ReturnToSchemeDetailsController
                 .returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName

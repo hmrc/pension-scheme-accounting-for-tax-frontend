@@ -31,7 +31,7 @@ import pages.chargeE._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import pages.mccloud._
 import play.api.mvc.{AnyContent, Call}
-
+import models.Index._
 import java.time.LocalDate
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
@@ -102,27 +102,19 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, 0)
         case Some(false) =>
           controllers.mccloud.routes.TaxYearReportedAndPaidController
-            .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
+            .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, None)
       }
 
     case EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
       controllers.mccloud.routes.TaxYearReportedAndPaidController
-        .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, Some(schemeIndex))
 
     case TaxYearReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      schemeIndex match {
-        case Some(i) => controllers.mccloud.routes.TaxQuarterReportedAndPaidController
-          .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, i)
-        case None => controllers.mccloud.routes.TaxQuarterReportedAndPaidController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
-      }
+      controllers.mccloud.routes.TaxQuarterReportedAndPaidController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
     case TaxQuarterReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      schemeIndex match {
-        case Some(i) => controllers.mccloud.routes.ChargeAmountReportedController
-          .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, i)
-        case None => controllers.mccloud.routes.ChargeAmountReportedController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
-      }
+      controllers.mccloud.routes.ChargeAmountReportedController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
     case ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, _) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
