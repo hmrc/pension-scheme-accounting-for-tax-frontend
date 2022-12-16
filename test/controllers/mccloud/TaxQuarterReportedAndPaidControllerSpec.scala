@@ -107,7 +107,6 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
   )
 
   "TaxQuarterReportedAndPaid Controller" must {
-
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

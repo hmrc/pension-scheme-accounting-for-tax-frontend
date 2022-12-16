@@ -106,40 +106,34 @@ class TaxQuarterReportedAndPaidController @Inject()(
           schemeIdType = "srn"
         ) flatMap { schemeDetails =>
           val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
-          if (displayQuarters.nonEmpty) {
+          val vm = GenericViewModel(
+            submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
+            returnUrl = config.schemeDashboardUrl(request).format(srn),
+            schemeName = schemeDetails.schemeName
+          )
+          val preparedForm: Form[AFTQuarter] = {
             val quarters = displayQuarters.map(_.quarter)
-            val vm = GenericViewModel(
-              submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
-              returnUrl = config.schemeDashboardUrl(request).format(srn),
-              schemeName = schemeDetails.schemeName
-            )
-
-            val preparedForm: Form[AFTQuarter] =
-              request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
-                case Some(value) => form(quarters).fill(value)
-                case None => form(quarters)
-              }
-
-            lifetimeOrAnnual(chargeType) match {
-              case Some(chargeTypeDesc) =>
-                val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                val json = Json.obj(
-                  "srn" -> srn,
-                  "startDate" -> Some(localDateToString(startDate)),
-                  "form" -> preparedForm,
-                  "radios" -> Quarters.radios(preparedForm, displayQuarters),
-                  "viewModel" -> vm,
-                  "year" -> yearRange.toString,
-                  "ordinal" -> ordinalValue,
-                  "chargeTypeDesc" -> chargeTypeDesc
-                )
-                renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(Ok(_))
-              case _ => sessionExpired
+            request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
+              case Some(value) => form(quarters).fill(value)
+              case None => form(quarters)
             }
-          } else {
-            sessionExpired
           }
-
+          lifetimeOrAnnual(chargeType) match {
+            case Some(chargeTypeDesc) =>
+              val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(localDateToString(startDate)),
+                "form" -> preparedForm,
+                "radios" -> Quarters.radios(preparedForm, displayQuarters),
+                "viewModel" -> vm,
+                "year" -> yearRange.toString,
+                "ordinal" -> ordinalValue,
+                "chargeTypeDesc" -> chargeTypeDesc
+              )
+              renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(Ok(_))
+            case _ => sessionExpired
+          }
         }
       case _ => sessionExpired
     }
@@ -182,52 +176,45 @@ class TaxQuarterReportedAndPaidController @Inject()(
       case Some(yearRange) =>
         schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
           val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
-          if (displayQuarters.nonEmpty) {
-            val quarters = displayQuarters.map(_.quarter)
-            form(quarters)
-              .bindFromRequest()
-              .fold(
-                formWithErrors => {
-                  val vm = GenericViewModel(
-                    submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
-                    returnUrl = config.schemeDashboardUrl(request).format(srn),
-                    schemeName = schemeDetails.schemeName
-                  )
-
-                  lifetimeOrAnnual(chargeType) match {
-                    case Some(chargeTypeDesc) =>
-                      val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                      val json = Json.obj(
-                        fields = "srn" -> srn,
-                        "startDate" -> None,
-                        "form" -> formWithErrors,
-                        "radios" -> Quarters.radios(formWithErrors, displayQuarters),
-                        "viewModel" -> vm,
-                        "year" -> yearRange.toString,
-                        "ordinal" -> ordinalValue,
-                        "chargeTypeDesc" -> chargeTypeDesc
-                      )
-                      renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
-                    case _ => sessionExpired
-                  }
-                },
-                value => {
-                  for {
-                    updatedAnswers <- Future.fromTry(userAnswersService
-                      .set(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
-                    _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                      chargeType = Some(chargeType), memberNo = Some(index.id))
-                  } yield {
-                    Redirect(navigator
-                      .nextPage(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), mode, updatedAnswers,
-                        srn, startDate, accessType, version))
-                  }
+          form(displayQuarters.map(_.quarter))
+            .bindFromRequest()
+            .fold(
+              formWithErrors => {
+                val vm = GenericViewModel(
+                  submitUrl = submitRoute(schemeIndex)(chargeType, mode, srn, startDate, accessType, version, index).url,
+                  returnUrl = config.schemeDashboardUrl(request).format(srn),
+                  schemeName = schemeDetails.schemeName
+                )
+                lifetimeOrAnnual(chargeType) match {
+                  case Some(chargeTypeDesc) =>
+                    val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                    val json = Json.obj(
+                      fields = "srn" -> srn,
+                      "startDate" -> None,
+                      "form" -> formWithErrors,
+                      "radios" -> Quarters.radios(formWithErrors, displayQuarters),
+                      "viewModel" -> vm,
+                      "year" -> yearRange.toString,
+                      "ordinal" -> ordinalValue,
+                      "chargeTypeDesc" -> chargeTypeDesc
+                    )
+                    renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
+                  case _ => sessionExpired
                 }
-              )
-          } else {
-            sessionExpired
-          }
-
+              },
+              value => {
+                for {
+                  updatedAnswers <- Future.fromTry(userAnswersService
+                    .set(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
+                  _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                    chargeType = Some(chargeType), memberNo = Some(index.id))
+                } yield {
+                  Redirect(navigator
+                    .nextPage(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), mode, updatedAnswers,
+                      srn, startDate, accessType, version))
+                }
+              }
+            )
         }
       case _ => sessionExpired
     }
