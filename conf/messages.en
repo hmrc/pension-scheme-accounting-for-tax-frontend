@@ -1586,9 +1586,8 @@ mccloud.scheme.ref2 = third
 mccloud.scheme.ref3 = fourth
 mccloud.scheme.ref4 = fifth
 
-
 chargeAmountReported.error.required = Enter the charge amount
 chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
 chargeAmountReported.error.decimal = The charge amount must include pence, like 123.45 or 156.00
-chargeAmountReported.error.maximum = The total pension input amounts must be £999999999.99 or less
+chargeAmountReported.error.maximum = The charge amount must be £999999999.99 or less
 chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00

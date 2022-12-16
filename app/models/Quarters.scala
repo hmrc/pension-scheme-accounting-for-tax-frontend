@@ -78,6 +78,22 @@ trait CommonQuarters {
     }
   }
 
+  def getAllQuartersForYear(year: Int): Seq[DisplayQuarter] = {
+    Seq(
+      getQuarter(Q1, year),
+      getQuarter(Q2, year),
+      getQuarter(Q3, year),
+      getQuarter(Q4, year)
+    ).map { aftQuarter =>
+      DisplayQuarter(
+        quarter = aftQuarter,
+        displayYear = false,
+        lockedBy = None,
+        hintText = None
+      )
+    }
+  }
+
   def getQuarter(quarter: QuarterType, year: Int): AFTQuarter = {
     AFTQuarter(LocalDate.of(year, quarter.startMonth, quarter.startDay),
       LocalDate.of(year, quarter.endMonth, quarter.endDay))
