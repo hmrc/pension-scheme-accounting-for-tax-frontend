@@ -56,10 +56,10 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
   private val form: Form[BigDecimal] = formProvider(minimumChargeValueAllowed = BigDecimal("0.01"))
 
   private def httpPathGET(schemeIndex: Int): String = routes.ChargeAmountReportedController
-    .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
+    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
 
   private def httpPathPOST: String = routes.ChargeAmountReportedController
-    .onSubmitWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
