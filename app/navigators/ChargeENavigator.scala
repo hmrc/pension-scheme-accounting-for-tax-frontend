@@ -103,6 +103,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         case Some(false) =>
           controllers.mccloud.routes.TaxYearReportedAndPaidController
             .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, None)
+        case _ => sessionExpiredPage
       }
 
     case EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
