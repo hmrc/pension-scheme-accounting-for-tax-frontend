@@ -17,7 +17,6 @@
 package controllers.mccloud
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -41,7 +40,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.{QuartersService, SchemeService}
+import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
@@ -53,12 +52,8 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
 
   implicit val config: FrontendAppConfig = mockAppConfig
   val mockSchemeService: SchemeService = mock[SchemeService]
-  val mockAFTConnector: AFTConnector = mock[AFTConnector]
-  val mockQuartersService: QuartersService = mock[QuartersService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[SchemeService].toInstance(mockSchemeService),
-    bind[QuartersService].toInstance(mockQuartersService),
-    bind[AFTConnector].toInstance(mockAFTConnector)
+    bind[SchemeService].toInstance(mockSchemeService)
   )
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -78,7 +73,7 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
 
   private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> Quarters.radios(form, Seq(displayQuarterStart)),
+    "radios" -> Quarters.radios(form, xx),
     "viewModel" -> GenericViewModel(
       submitUrl = routes.TaxQuarterReportedAndPaidController
         .onSubmitWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url,
@@ -88,7 +83,7 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
   )
 
 
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q12021.toString))
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q12020.toString))
 
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("q5"))
   private def onwardRoute = Call("GET", "/foo")
@@ -98,12 +93,10 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
     reset(mockRenderer)
     reset(mockAppConfig)
     reset(mockSchemeService)
-    reset(mockQuartersService)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
-    when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     DateHelper.setDate(Some(LocalDate.of(2022, 1, 1)))
   }
@@ -133,7 +126,6 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
 
     "redirect to next page when valid data is submitted" in {
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
@@ -142,7 +134,6 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 

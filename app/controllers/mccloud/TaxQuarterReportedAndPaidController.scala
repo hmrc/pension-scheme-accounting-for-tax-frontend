@@ -17,7 +17,6 @@
 package controllers.mccloud
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import controllers.mccloud.TaxQuarterReportedAndPaidController.{filterQuarters, fullYearRange}
@@ -33,7 +32,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.{QuartersService, SchemeService, UserAnswersService}
+import services.{SchemeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
@@ -54,8 +53,6 @@ class TaxQuarterReportedAndPaidController @Inject()(
                                                      renderer: Renderer,
                                                      config: FrontendAppConfig,
                                                      schemeService: SchemeService,
-                                                     aftConnector: AFTConnector,
-                                                     quartersService: QuartersService,
                                                      userAnswersCacheConnector: UserAnswersCacheConnector,
                                                      userAnswersService: UserAnswersService
                                                    )(implicit ec: ExecutionContext)
