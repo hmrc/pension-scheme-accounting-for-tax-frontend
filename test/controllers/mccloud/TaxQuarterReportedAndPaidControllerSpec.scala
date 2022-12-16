@@ -66,17 +66,17 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
   val form: Form[AFTQuarter] = formProvider(messages(errorKey, testYear), availableQuarters)
 
   private def httpPathGET: String = routes.TaxQuarterReportedAndPaidController
-    .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
+    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
 
   private def httpPathPOST: String = routes.TaxQuarterReportedAndPaidController
-    .onSubmitWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
 
   private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
     "form" -> form,
     "radios" -> Quarters.radios(form, xx),
     "viewModel" -> GenericViewModel(
       submitUrl = routes.TaxQuarterReportedAndPaidController
-        .onSubmitWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url,
+        .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName),
     "year" -> (testYear.toString + "-" + (testYear + 1).toString)

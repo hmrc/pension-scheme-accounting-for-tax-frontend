@@ -33,7 +33,7 @@ import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import pages.mccloud._
 import play.api.libs.json.{JsArray, JsPath}
 import play.api.mvc.{AnyContent, Call}
-
+import models.Index._
 import java.time.LocalDate
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
@@ -104,28 +104,19 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, countSchemeSize(ua, index))
         case Some(false) =>
           controllers.mccloud.routes.TaxYearReportedAndPaidController
-            .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
+            .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, None)
       }
 
     case EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
       controllers.mccloud.routes.TaxYearReportedAndPaidController
-        .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, Some(schemeIndex))
 
     case TaxYearReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      schemeIndex match {
-        case Some(i) => controllers.mccloud.routes.TaxQuarterReportedAndPaidController
-          .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, i)
-        case None => controllers.mccloud.routes.TaxQuarterReportedAndPaidController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
-      }
+      controllers.mccloud.routes.TaxQuarterReportedAndPaidController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
     case TaxQuarterReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      schemeIndex match {
-        case Some(i) => controllers.mccloud.routes.ChargeAmountReportedController
-          .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, i)
-        case None => controllers.mccloud.routes.ChargeAmountReportedController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
-      }
-
+      controllers.mccloud.routes.ChargeAmountReportedController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
     case ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
       val schemeSizeLessThan5 = countSchemeSize(ua, index) < 5
       (schemeIndex, schemeSizeLessThan5) match {
@@ -140,7 +131,6 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, countSchemeSize(ua, index))
         case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       }
-
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
     case AddMembersPage => addMembers(ua, srn, startDate, accessType, version)
     case DeleteMemberPage => deleteMemberRoutes(ua, srn, startDate, accessType, version)

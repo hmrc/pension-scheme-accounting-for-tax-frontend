@@ -16,13 +16,17 @@
 
 package models
 
-import play.api.mvc.PathBindable
+import play.api.mvc.{JavascriptLiteral, PathBindable}
 
 import scala.language.implicitConversions
 
 case class Index(id: Int)
 
 object Index {
+
+  implicit val jsLiteral: JavascriptLiteral[Index] = new JavascriptLiteral[Index] {
+    override def to(value: Index): String = value.toString
+  }
 
   implicit def indexPathBindable(implicit intBinder: PathBindable[Int]): PathBindable[Index] = new PathBindable[Index] {
 
@@ -46,5 +50,8 @@ object Index {
 
   implicit def intToIndex(index: Int): Index =
     Index(index)
+
+  implicit def optionIntToOptionIndex(index: Option[Int]): Option[Index] =
+    index.map(Index(_))
 
 }

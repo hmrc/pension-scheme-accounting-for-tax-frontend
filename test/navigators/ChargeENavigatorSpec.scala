@@ -59,7 +59,7 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex), wasAnother),
 
         row(EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex))(TaxYearReportedAndPaidController
-          .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, Some(schemeIndex))),
 
         row(ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, Some(schemeIndex)))(AddAnotherPensionSchemeController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),

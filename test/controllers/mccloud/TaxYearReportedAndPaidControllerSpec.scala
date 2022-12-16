@@ -58,10 +58,10 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
   private val form: Form[YearRange] = formProvider("taxYearReportedAndPaid.error.required")
 
   private def httpPathGET: String = routes.TaxYearReportedAndPaidController
-    .onPageLoadWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
+    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
 
   private def httpPathPOST: String = routes.TaxYearReportedAndPaidController
-    .onSubmitWithIndex(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
