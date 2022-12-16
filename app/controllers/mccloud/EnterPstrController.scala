@@ -78,13 +78,13 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
         }
 
         (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
-          case (value, Some(chargeTypeDesc)) =>
+          case (ordinalValue, Some(chargeTypeDesc)) =>
             val json = Json.obj(
               "srn" -> srn,
               "startDate" -> Some(localDateToString(startDate)),
               "form" -> preparedForm,
               "viewModel" -> viewModel,
-              "ordinal" -> value,
+              "ordinal" -> ordinalValue,
               "chargeTypeDesc" -> chargeTypeDesc
             )
             renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
@@ -117,13 +117,13 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
               )
 
               (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
-                case (value, Some(chargeTypeDesc)) =>
+                case (ordinalValue, Some(chargeTypeDesc)) =>
                   val json = Json.obj(
                     "srn" -> srn,
                     "startDate" -> Some(localDateToString(startDate)),
                     "form" -> formWithErrors,
                     "viewModel" -> viewModel,
-                    "ordinal" -> value,
+                    "ordinal" -> ordinalValue,
                     "chargeTypeDesc" -> chargeTypeDesc
                   )
                   renderer.render("mccloud/enterPstr.njk", json).map(BadRequest(_))

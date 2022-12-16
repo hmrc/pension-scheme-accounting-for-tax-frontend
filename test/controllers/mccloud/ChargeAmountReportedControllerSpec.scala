@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, ChargeType, CommonQuarters, GenericViewModel, NormalMode}
+import models.{ChargeType, CommonQuarters, GenericViewModel, NormalMode}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}

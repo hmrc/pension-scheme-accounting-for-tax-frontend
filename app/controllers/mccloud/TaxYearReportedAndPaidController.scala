@@ -60,9 +60,10 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
   private def submitRoute(schemeIndex: Option[Index]): (ChargeType, Mode, String, String, AccessType, Int, Index) => Call =
     schemeIndex match {
-    case Some(i) => routes.TaxYearReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
-    case None => routes.TaxYearReportedAndPaidController.onSubmit
-  }
+      case Some(i) => routes.TaxYearReportedAndPaidController.onSubmitWithIndex(_, _, _, _, _, _, _, i)
+      case None => routes.TaxYearReportedAndPaidController.onSubmit
+    }
+
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
@@ -113,14 +114,14 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
       lifetimeOrAnnual(chargeType) match {
         case Some(chargeTypeDesc) =>
-          val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+          val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
           val json = Json.obj(
             "srn" -> srn,
             "startDate" -> Some(localDateToString(startDate)),
             "form" -> preparedForm,
             "radios" -> YearRangeMcCloud.radios(preparedForm),
             "viewModel" -> viewModel,
-            "ordinal" -> ordinalVal,
+            "ordinal" -> ordinalValue,
             "chargeTypeDesc" -> chargeTypeDesc
           )
           renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
@@ -176,14 +177,14 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
             lifetimeOrAnnual(chargeType) match {
               case Some(chargeTypeDesc) =>
-                val ordinalVal = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
                 val json = Json.obj(
                   "srn" -> srn,
                   "startDate" -> Some(localDateToString(startDate)),
                   "form" -> formWithErrors,
                   "radios" -> YearRangeMcCloud.radios(formWithErrors),
                   "viewModel" -> viewModel,
-                  "ordinal" -> ordinalVal,
+                  "ordinal" -> ordinalValue,
                   "chargeTypeDesc" -> chargeTypeDesc
                 )
                 renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
