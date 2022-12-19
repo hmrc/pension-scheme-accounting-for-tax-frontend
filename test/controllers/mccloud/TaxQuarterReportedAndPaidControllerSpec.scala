@@ -79,7 +79,7 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
         .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName),
-    "year" -> (testYear.toString + "-" + (testYear + 1).toString)
+    "year" -> (testYear.toString + " to " + (testYear + 1).toString)
   )
 
 
