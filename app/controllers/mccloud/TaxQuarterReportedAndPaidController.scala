@@ -23,7 +23,6 @@ import controllers.mccloud.TaxQuarterReportedAndPaidController.{filterQuarters, 
 import forms.QuartersFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, DisplayQuarter, GenericViewModel, Index, Mode, Quarters, YearRange}
 import navigators.CompoundNavigator
 import pages.mccloud.{TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage}
@@ -65,6 +64,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
   private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("taxQuarterReportedAndPaid.error.required"), quarters)
 
+  //scalastyle:off parameter.number
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
@@ -75,54 +75,48 @@ class TaxQuarterReportedAndPaidController @Inject()(
                  schemeIndex: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      get(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
-    }
-
-  //scalastyle:off parameter.number
-  private def get(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
-                  accessType: AccessType, version: Int,
-                  index: Index, schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(fullYearRange) match {
-      case Some(yearRange) =>
-        schemeService.retrieveSchemeDetails(
-          psaId = request.idOrException,
-          srn = srn,
-          schemeIdType = "srn"
-        ) flatMap { schemeDetails =>
-          val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
-          val vm = GenericViewModel(
-            submitUrl = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-            returnUrl = config.schemeDashboardUrl(request).format(srn),
-            schemeName = schemeDetails.schemeName
-          )
-          val preparedForm: Form[AFTQuarter] = {
-            val quarters = displayQuarters.map(_.quarter)
-            request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
-              case Some(value) => form(quarters).fill(value)
-              case None => form(quarters)
+      request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(fullYearRange) match {
+        case Some(yearRange) =>
+          schemeService.retrieveSchemeDetails(
+            psaId = request.idOrException,
+            srn = srn,
+            schemeIdType = "srn"
+          ) flatMap { schemeDetails =>
+            val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
+            val vm = GenericViewModel(
+              submitUrl = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+              returnUrl = config.schemeDashboardUrl(request).format(srn),
+              schemeName = schemeDetails.schemeName
+            )
+            val preparedForm: Form[AFTQuarter] = {
+              val quarters = displayQuarters.map(_.quarter)
+              request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
+                case Some(value) => form(quarters).fill(value)
+                case None => form(quarters)
+              }
+            }
+            lifetimeOrAnnual(chargeType) match {
+              case Some(chargeTypeDesc) =>
+                val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                val json = Json.obj(
+                  "srn" -> srn,
+                  "startDate" -> Some(localDateToString(startDate)),
+                  "form" -> preparedForm,
+                  "radios" -> Quarters.radios(preparedForm, displayQuarters),
+                  "viewModel" -> vm,
+                  "year" -> yearRange.toString,
+                  "ordinal" -> ordinalValue,
+                  "chargeTypeDesc" -> chargeTypeDesc
+                )
+                renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(Ok(_))
+              case _ => sessionExpired
             }
           }
-          lifetimeOrAnnual(chargeType) match {
-            case Some(chargeTypeDesc) =>
-              val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> preparedForm,
-                "radios" -> Quarters.radios(preparedForm, displayQuarters),
-                "viewModel" -> vm,
-                "year" -> yearRange.toString,
-                "ordinal" -> ordinalValue,
-                "chargeTypeDesc" -> chargeTypeDesc
-              )
-              renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(Ok(_))
-            case _ => sessionExpired
-          }
-        }
-      case _ => sessionExpired
+        case _ => sessionExpired
+      }
     }
-  }
 
+  // scalastyle:off method.length
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
                srn: String,
@@ -132,66 +126,55 @@ class TaxQuarterReportedAndPaidController @Inject()(
                index: Index,
                schemeIndex: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      post(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
+      request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(fullYearRange) match {
+        case Some(yearRange) =>
+          schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
+            val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
+            form(displayQuarters.map(_.quarter))
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
+                  val vm = GenericViewModel(
+                    submitUrl = routes.TaxQuarterReportedAndPaidController
+                      .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+                    returnUrl = config.schemeDashboardUrl(request).format(srn),
+                    schemeName = schemeDetails.schemeName
+                  )
+                  lifetimeOrAnnual(chargeType) match {
+                    case Some(chargeTypeDesc) =>
+                      val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                      val json = Json.obj(
+                        fields = "srn" -> srn,
+                        "startDate" -> None,
+                        "form" -> formWithErrors,
+                        "radios" -> Quarters.radios(formWithErrors, displayQuarters),
+                        "viewModel" -> vm,
+                        "year" -> yearRange.toString,
+                        "ordinal" -> ordinalValue,
+                        "chargeTypeDesc" -> chargeTypeDesc
+                      )
+                      renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
+                    case _ => sessionExpired
+                  }
+                },
+                value => {
+                  for {
+                    updatedAnswers <- Future.fromTry(userAnswersService
+                      .set(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
+                    _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                      chargeType = Some(chargeType), memberNo = Some(index.id))
+                  } yield {
+                    Redirect(navigator
+                      .nextPage(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), mode, updatedAnswers,
+                        srn, startDate, accessType, version))
+                  }
+                }
+              )
+          }
+        case _ => sessionExpired
+      }
     }
 
-  // scalastyle:off method.length
-  //scalastyle:off parameter.number
-  private def post(chargeType: ChargeType,
-                   mode: Mode,
-                   srn: String,
-                   startDate: LocalDate,
-                   accessType: AccessType,
-                   version: Int,
-                   index: Index,
-                   schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(fullYearRange) match {
-      case Some(yearRange) =>
-        schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
-          val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
-          form(displayQuarters.map(_.quarter))
-            .bindFromRequest()
-            .fold(
-              formWithErrors => {
-                val vm = GenericViewModel(
-                  submitUrl = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-                  returnUrl = config.schemeDashboardUrl(request).format(srn),
-                  schemeName = schemeDetails.schemeName
-                )
-                lifetimeOrAnnual(chargeType) match {
-                  case Some(chargeTypeDesc) =>
-                    val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                    val json = Json.obj(
-                      fields = "srn" -> srn,
-                      "startDate" -> None,
-                      "form" -> formWithErrors,
-                      "radios" -> Quarters.radios(formWithErrors, displayQuarters),
-                      "viewModel" -> vm,
-                      "year" -> yearRange.toString,
-                      "ordinal" -> ordinalValue,
-                      "chargeTypeDesc" -> chargeTypeDesc
-                    )
-                    renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
-                  case _ => sessionExpired
-                }
-              },
-              value => {
-                for {
-                  updatedAnswers <- Future.fromTry(userAnswersService
-                    .set(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
-                  _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                    chargeType = Some(chargeType), memberNo = Some(index.id))
-                } yield {
-                  Redirect(navigator
-                    .nextPage(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), mode, updatedAnswers,
-                      srn, startDate, accessType, version))
-                }
-              }
-            )
-        }
-      case _ => sessionExpired
-    }
-  }
 }
 
 object TaxQuarterReportedAndPaidController extends CommonQuarters {

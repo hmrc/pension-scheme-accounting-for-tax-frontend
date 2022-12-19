@@ -23,7 +23,6 @@ import controllers.actions._
 import forms.mccloud.ChargeAmountReportedFormProvider
 import models.Index._
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.{ChargeAmountReportedPage, TaxQuarterReportedAndPaidPage}
@@ -74,48 +73,42 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                  schemeIndex: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      get(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
-    }
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
-  //scalastyle:off parameter.number
-  private def get(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
-                  accessType: AccessType, version: Int, index: Index,
-                  schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    DataRetrievals.retrieveSchemeName { schemeName =>
-      val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
+        val preparedForm: Form[BigDecimal] = request.userAnswers
+          .get(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt))) match {
+          case Some(value) => form(mininimumChargeValue).fill(value)
+          case None => form(mininimumChargeValue)
+        }
 
-      val preparedForm: Form[BigDecimal] = request.userAnswers
-        .get(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt))) match {
-        case Some(value) => form(mininimumChargeValue).fill(value)
-        case None => form(mininimumChargeValue)
-      }
+        val viewModel = GenericViewModel(
+          submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName = schemeName
+        )
 
-      val viewModel = GenericViewModel(
-        submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-        schemeName = schemeName
-      )
+        val taxQuarterSelection = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
 
-      val taxQuarterSelection = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
-
-      (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
-        case (Some(aftQuarter), Some(chargeTypeDesc) ) =>
-          val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel,
-            "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
-            "ordinal" -> ordinalValue,
-            "chargeTypeDesc" -> chargeTypeDesc
-          )
-          renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(Ok(_))
-        case _ =>
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+        (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
+          case (Some(aftQuarter), Some(chargeTypeDesc)) =>
+            val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+            val json = Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(localDateToString(startDate)),
+              "form" -> preparedForm,
+              "viewModel" -> viewModel,
+              "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
+              "ordinal" -> ordinalValue,
+              "chargeTypeDesc" -> chargeTypeDesc
+            )
+            renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(Ok(_))
+          case _ =>
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+        }
       }
     }
-  }
+
 
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
@@ -126,54 +119,49 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                index: Index,
                schemeIndex: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      post(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
-    }
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
+        form(mininimumChargeValue)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              val viewModel = GenericViewModel(
+                submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName = schemeName
+              )
+              val taxQuarterSelection = request.userAnswers
+                .get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
 
-  //scalastyle:off parameter.number
-  private def post(chargeType: ChargeType, mode: Mode, srn: String, startDate: LocalDate,
-                   accessType: AccessType, version: Int, index: Index,
-                   schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    DataRetrievals.retrieveSchemeName { schemeName =>
-      val mininimumChargeValue: BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
-      form(mininimumChargeValue)
-        .bindFromRequest()
-        .fold(
-          formWithErrors => {
-            val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-              schemeName = schemeName
-            )
-            val taxQuarterSelection = request.userAnswers
-              .get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
-
-            (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
-              case (Some(aftQuarter), Some(chargeTypeDesc)) =>
-                val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                val json = Json.obj(
-                  "srn" -> srn,
-                  "startDate" -> Some(localDateToString(startDate)),
-                  "form" -> formWithErrors,
-                  "viewModel" -> viewModel,
-                  "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
-                  "ordinal" -> ordinalValue,
-                  "chargeTypeDesc" -> chargeTypeDesc
-                )
-                renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(BadRequest(_))
-              case _ =>
-                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+              (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
+                case (Some(aftQuarter), Some(chargeTypeDesc)) =>
+                  val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                  val json = Json.obj(
+                    "srn" -> srn,
+                    "startDate" -> Some(localDateToString(startDate)),
+                    "form" -> formWithErrors,
+                    "viewModel" -> viewModel,
+                    "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
+                    "ordinal" -> ordinalValue,
+                    "chargeTypeDesc" -> chargeTypeDesc
+                  )
+                  renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(BadRequest(_))
+                case _ =>
+                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+              }
+            },
+            value => {
+              for {
+                updatedAnswers <- Future.fromTry(userAnswersService
+                  .set(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                  chargeType = Some(chargeType), memberNo = Some(index.id))
+              } yield Redirect(navigator.nextPage(ChargeAmountReportedPage(chargeType, index,
+                schemeIndex.map(indexToInt)), mode, updatedAnswers, srn, startDate, accessType, version))
             }
-          },
-          value => {
-            for {
-              updatedAnswers <- Future.fromTry(userAnswersService
-                .set(ChargeAmountReportedPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
-              _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                chargeType = Some(chargeType), memberNo = Some(index.id))
-            } yield Redirect(navigator.nextPage(ChargeAmountReportedPage(chargeType, index,
-              schemeIndex.map(indexToInt)), mode, updatedAnswers, srn, startDate, accessType, version))
-          }
-        )
+          )
+      }
     }
-  }
+
+
 }
