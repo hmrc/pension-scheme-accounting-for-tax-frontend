@@ -23,7 +23,7 @@ import controllers.mccloud.TaxQuarterReportedAndPaidController.{filterQuarters, 
 import forms.QuartersFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
-import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, DisplayQuarter, GenericViewModel, Index, Mode, Quarters, YearRange}
+import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, DisplayQuarter, GenericViewModel, Index, Mode, Quarters, YearRange, YearRangeMcCloud}
 import navigators.CompoundNavigator
 import pages.mccloud.{TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage}
 import play.api.data.Form
@@ -179,7 +179,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
 
 object TaxQuarterReportedAndPaidController extends CommonQuarters {
   private val filterQuarters: DisplayQuarter => Boolean = {
-    val earliestYear = 2015
+    val earliestYear = YearRangeMcCloud.minYear
     val quartersAfter = getQuarter(Q1, earliestYear).endDate
     dq => dq.quarter.startDate.isAfter(quartersAfter) && dq.quarter.endDate.isBefore(DateHelper.today)
   }

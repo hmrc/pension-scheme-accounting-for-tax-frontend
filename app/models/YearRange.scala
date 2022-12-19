@@ -33,7 +33,7 @@ trait YearRangeCommon extends Enumerable.Implicits {
   implicit val writes: Writes[YearRange] = (yr: YearRange) => JsString(yr.toString)
 
   private val startDayOfNewTaxYear: Int = 6
-  protected val minYear: Int
+  val minYear: Int
 
   def currentYear = new YearRange(DateHelper.today.getYear.toString)
 
@@ -63,9 +63,9 @@ trait YearRangeCommon extends Enumerable.Implicits {
 }
 
 object YearRange extends YearRangeCommon with Enumerable.Implicits {
-  override protected val minYear: Int = 2011
+  override val minYear: Int = 2011
 }
 
 object YearRangeMcCloud extends YearRangeCommon with Enumerable.Implicits {
-  override protected val minYear: Int = 2015
+  override val minYear: Int = 2015
 }
