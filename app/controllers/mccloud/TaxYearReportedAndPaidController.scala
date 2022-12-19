@@ -22,7 +22,6 @@ import controllers.actions._
 import forms.YearRangeFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, YearRange, YearRangeMcCloud}
 import navigators.CompoundNavigator
 import pages.mccloud.TaxYearReportedAndPaidPage
@@ -68,48 +67,36 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                  schemeIndex: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      get(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
-    }
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        val preparedForm: Form[YearRange] = request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
+          case Some(value) => form.fill(value)
+          case None => form
+        }
 
-  //scalastyle:off parameter.number
-  private def get(chargeType: ChargeType,
-                  mode: Mode,
-                  srn: String,
-                  startDate: LocalDate,
-                  accessType: AccessType,
-                  version: Int,
-                  index: Index,
-                  schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    DataRetrievals.retrieveSchemeName { schemeName =>
-      val preparedForm: Form[YearRange] = request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
-        case Some(value) => form.fill(value)
-        case None => form
-      }
-
-      val viewModel = GenericViewModel(
-        submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-        schemeName = schemeName
-      )
+        val viewModel = GenericViewModel(
+          submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName = schemeName
+        )
 
 
-      lifetimeOrAnnual(chargeType) match {
-        case Some(chargeTypeDesc) =>
-          val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "form" -> preparedForm,
-            "radios" -> YearRangeMcCloud.radios(preparedForm),
-            "viewModel" -> viewModel,
-            "ordinal" -> ordinalValue,
-            "chargeTypeDesc" -> chargeTypeDesc
-          )
-          renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
-        case _ => sessionExpired
+        lifetimeOrAnnual(chargeType) match {
+          case Some(chargeTypeDesc) =>
+            val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+            val json = Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(localDateToString(startDate)),
+              "form" -> preparedForm,
+              "radios" -> YearRangeMcCloud.radios(preparedForm),
+              "viewModel" -> viewModel,
+              "ordinal" -> ordinalValue,
+              "chargeTypeDesc" -> chargeTypeDesc
+            )
+            renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
+          case _ => sessionExpired
+        }
       }
     }
-  }
 
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
@@ -120,61 +107,49 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                index: Index,
                schemeIndex: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      post(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex)
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        form
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              val viewModel = GenericViewModel(
+                submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController
+                  .returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName = schemeName
+              )
+
+              lifetimeOrAnnual(chargeType) match {
+                case Some(chargeTypeDesc) =>
+                  val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                  val json = Json.obj(
+                    "srn" -> srn,
+                    "startDate" -> Some(localDateToString(startDate)),
+                    "form" -> formWithErrors,
+                    "radios" -> YearRangeMcCloud.radios(formWithErrors),
+                    "viewModel" -> viewModel,
+                    "ordinal" -> ordinalValue,
+                    "chargeTypeDesc" -> chargeTypeDesc
+                  )
+                  renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
+                case _ => sessionExpired
+              }
+            },
+            value => {
+              for {
+                updatedAnswers <- Future.fromTry(userAnswersService
+                  .set(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
+                _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+                  chargeType = Some(chargeType), memberNo = Some(index.id))
+              } yield {
+                Redirect(navigator
+                  .nextPage(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)),
+                    mode, updatedAnswers, srn, startDate, accessType, version))
+              }
+            }
+          )
+      }
     }
 
-  //scalastyle:off parameter.number
-  private def post(chargeType: ChargeType,
-                   mode: Mode,
-                   srn: String,
-                   startDate: LocalDate,
-                   accessType: AccessType,
-                   version: Int,
-                   index: Index,
-                   schemeIndex: Option[Index])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-
-    DataRetrievals.retrieveSchemeName { schemeName =>
-      form
-        .bindFromRequest()
-        .fold(
-          formWithErrors => {
-            val viewModel = GenericViewModel(
-              submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController
-                .returnToSchemeDetails(srn, startDate, accessType, version).url,
-              schemeName = schemeName
-            )
-
-            lifetimeOrAnnual(chargeType) match {
-              case Some(chargeTypeDesc) =>
-                val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                val json = Json.obj(
-                  "srn" -> srn,
-                  "startDate" -> Some(localDateToString(startDate)),
-                  "form" -> formWithErrors,
-                  "radios" -> YearRangeMcCloud.radios(formWithErrors),
-                  "viewModel" -> viewModel,
-                  "ordinal" -> ordinalValue,
-                  "chargeTypeDesc" -> chargeTypeDesc
-                )
-                renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
-              case _ => sessionExpired
-            }
-          },
-          value => {
-            for {
-              updatedAnswers <- Future.fromTry(userAnswersService
-                .set(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)), value, mode))
-              _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
-                chargeType = Some(chargeType), memberNo = Some(index.id))
-            } yield {
-              Redirect(navigator
-                .nextPage(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)),
-                  mode, updatedAnswers, srn, startDate, accessType, version))
-            }
-          }
-        )
-    }
-  }
 
 }
