@@ -16,23 +16,24 @@
 
 package models
 
-import play.api.mvc._
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 
-object OptionBinder {
+import java.time.LocalDate
 
-  implicit def optionBindable[T: PathBindable]: PathBindable[Option[T]] = new PathBindable[Option[T]] {
-    def bind(key: String, value: String): Either[String, Option[T]] =
-      implicitly[PathBindable[T]].
-        bind(key, value).
-        fold(
-          left => Left(left),
-          right => Right(Some(right))
-        )
+class AFTQuarterSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
-    def unbind(key: String, value: Option[T]): String =
-      value match {
-        case None => ""
-        case Some(v) => implicitly[PathBindable[T]].unbind(key, v)
+  "formatForDisplay" when {
+    "calling with a valid date" must {
+      "return formatted correctly" in {
+        val result = AFTQuarter.formatForDisplay(AFTQuarter(
+          LocalDate.of(2022, 1, 1),
+          LocalDate.of(2022, 2, 28)
+        ))
+        result mustBe "1 January to 28 February 2022 to 2023"
       }
+    }
   }
 }

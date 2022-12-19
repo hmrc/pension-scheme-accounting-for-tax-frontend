@@ -53,7 +53,6 @@ object Radios extends NunjucksSupport {
   }
 
   def apply(field: Field, items: Seq[Radio]): Seq[Item] = {
-
     val head = items.headOption.map {
       item =>
         Item(

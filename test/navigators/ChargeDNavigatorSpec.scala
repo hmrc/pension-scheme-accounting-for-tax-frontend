@@ -54,15 +54,12 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
           Some(publicPensionRemedyYes)
         ),
         row(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
-                                                                                  .onPageLoad(srn, startDate, accessType, versionInt, index),
-                                                                                Some(chargeInAdditionReportedNo)),
-        row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(
-          EnterPstrController
-            .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex),
-          wasAnother),
-        row(EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex))(
-          CheckYourAnswersController
-            .onPageLoad(srn, startDate, accessType, versionInt, index)),
+          .onPageLoad(srn, startDate, accessType, versionInt, index), Some(chargeInAdditionReportedNo)),
+
+        row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(EnterPstrController
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex), wasAnother),
+        row(EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex))(TaxYearReportedAndPaidController
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, Some(schemeIndex))),
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),
@@ -103,12 +100,10 @@ object ChargeDNavigatorSpec {
   private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
   private val wasAnother = UserAnswers().set(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, 0), true).toOption
-  private val zeroedCharge =
-    UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails.copy(totalAmount = BigDecimal(0.00))).toOption
-  private val multipleCharges = UserAnswers()
-    .set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails)
-    .flatMap(_.set(chargeB.ChargeBDetailsPage, SampleData.chargeBDetails))
-    .toOption
+  private val zeroedCharge = UserAnswers().set(chargeA.ChargeDetailsPage,
+    SampleData.chargeAChargeDetails.copy(totalAmount = BigDecimal(0.00))).toOption
+  private val multipleCharges = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails)
+    .flatMap(_.set(chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)).toOption
   private val manualInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), ManualInput)
   private val fileUploadInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), FileUploadInput)
   private val publicPensionRemedyYes = UserAnswers().setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, 0), true)

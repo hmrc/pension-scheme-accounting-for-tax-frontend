@@ -20,14 +20,12 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.EnterPstrFormProvider
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.EnterPstrPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -52,32 +50,10 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                                     renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport {
+    with NunjucksSupport
+    with CommonMcCloud {
 
   private def form(): Form[String] = formProvider()
-
-  private def ordinal(schemeIndex: Int)(implicit request: DataRequest[AnyContent]) = {
-    if (schemeIndex < 0 | schemeIndex > 4) {
-      None
-    } else {
-      Some(Messages(s"mccloud.scheme.ref$schemeIndex"))
-    }
-  }
-
-  private def chargeTitle(chargeType: ChargeType, schemeIndex: Int)(implicit request: DataRequest[AnyContent]) = {
-
-    ordinal(schemeIndex) match {
-      case Some(value) =>
-        if (chargeType == ChargeTypeAnnualAllowance) {
-          Some(Messages("enterPstr.title.annual", value))
-        } else if (chargeType == ChargeTypeLifetimeAllowance) {
-          Some(Messages("enterPstr.title.lifetime", value))
-        } else {
-          None
-        }
-      case None => None
-    }
-  }
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
@@ -101,14 +77,15 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
           case None => form()
         }
 
-        chargeTitle(chargeType, schemeIndex) match {
-          case Some(title) =>
+        (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
+          case (ordinalValue, Some(chargeTypeDesc)) =>
             val json = Json.obj(
               "srn" -> srn,
               "startDate" -> Some(localDateToString(startDate)),
               "form" -> preparedForm,
               "viewModel" -> viewModel,
-              "chargeTitle" -> title
+              "ordinal" -> ordinalValue,
+              "chargeTypeDesc" -> chargeTypeDesc
             )
             renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
           case _ =>
@@ -139,14 +116,15 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                 schemeName = schemeName
               )
 
-              chargeTitle(chargeType, schemeIndex) match {
-                case Some(title) =>
+              (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
+                case (ordinalValue, Some(chargeTypeDesc)) =>
                   val json = Json.obj(
                     "srn" -> srn,
                     "startDate" -> Some(localDateToString(startDate)),
                     "form" -> formWithErrors,
                     "viewModel" -> viewModel,
-                    "chargeTitle" -> title
+                    "ordinal" -> ordinalValue,
+                    "chargeTypeDesc" -> chargeTypeDesc
                   )
                   renderer.render("mccloud/enterPstr.njk", json).map(BadRequest(_))
                 case _ =>

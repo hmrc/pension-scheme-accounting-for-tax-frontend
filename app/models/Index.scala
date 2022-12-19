@@ -16,13 +16,17 @@
 
 package models
 
-import play.api.mvc.PathBindable
+import play.api.mvc.{JavascriptLiteral, PathBindable}
 
 import scala.language.implicitConversions
 
 case class Index(id: Int)
 
 object Index {
+
+  implicit val jsLiteral: JavascriptLiteral[Index] = new JavascriptLiteral[Index] {
+    override def to(value: Index): String = value.id.toString
+  }
 
   implicit def indexPathBindable(implicit intBinder: PathBindable[Int]): PathBindable[Index] = new PathBindable[Index] {
 
@@ -34,13 +38,32 @@ object Index {
     }
 
     override def unbind(key: String, value: Index): String = {
-      intBinder.unbind(key, value.id + 1)
+      (value.id + 1).toString
     }
+  }
+
+  implicit def optionIndexPathBindable(implicit intBinder: PathBindable[Int]): PathBindable[Option[Index]] =
+    new PathBindable[Option[Index]] {
+    override def bind(key: String, value: String): Either[String, Option[Index]] = {
+      intBinder.bind(key, value) match {
+        case Right(x) if x > 0 => Right(Some(Index(x - 1)))
+        case _ => Left("Index binding failed")
+      }
+    }
+
+    override def unbind(key: String, value: Option[Index]): String = intBinder.unbind(key, value.map(_.id + 1).getOrElse(-1))
   }
 
   implicit def indexToInt(index: Index): Int =
     index.id
 
+  implicit def indexToOptionInt(index: Option[Index]): Option[Int] =
+    index.map(_.id)
+
   implicit def intToIndex(index: Int): Index =
     Index(index)
+
+  implicit def optionIntToOptionIndex(index: Option[Int]): Option[Index] =
+    index.map(Index(_))
+
 }
