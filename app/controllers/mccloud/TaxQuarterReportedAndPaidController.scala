@@ -202,7 +202,7 @@ object TaxQuarterReportedAndPaidController extends CommonQuarters {
   }
 
   private case class FullYearRange(startYear: Int, endYear: Int) {
-    override def toString: String = startYear.toString + "-" + endYear.toString
+    override def toString: String = startYear.toString + " to " + endYear.toString
   }
 
   private val fullYearRange: YearRange => FullYearRange = yr => {
