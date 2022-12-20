@@ -119,7 +119,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       controllers.mccloud.routes.ChargeAmountReportedController
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
     case ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      val schemeSizeLessThan5 = countSchemeSize(ua, index) < 5
+      val schemeSize = countSchemeSize(ua, index)
+      val schemeSizeLessThan5 = schemeSize > 0 && schemeSize < 5
       (schemeIndex, schemeSizeLessThan5) match {
         case (Some(i), true) => controllers.mccloud.routes.AddAnotherPensionSchemeController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, i)
