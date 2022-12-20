@@ -58,13 +58,15 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
-      DataRetrievals.cyaChargeE(index, srn, startDate, accessType, version) { (memberDetails, taxYear, chargeEDetails, schemeName) =>
+      DataRetrievals.cyaChargeE(index, srn, startDate, accessType, version) {
+        (memberDetails, taxYear, chargeEDetails, isPublicServicePensionsRemedy, isChargeInAdditionReported, wasAnotherPensionScheme, schemeName) =>
         val helper = new CYAChargeEHelper(srn, startDate, accessType, version)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeEMemberDetails(index, memberDetails),
           helper.chargeETaxYear(index, taxYear),
-          helper.chargeEDetails(index, chargeEDetails)
+          helper.chargeEDetails(index, chargeEDetails),
+          helper.publicServicePensionsRemedyEDetails(index, isPublicServicePensionsRemedy, isChargeInAdditionReported, wasAnotherPensionScheme)
         ).flatten
 
         renderer

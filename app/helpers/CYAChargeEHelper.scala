@@ -16,6 +16,7 @@
 
 package helpers
 
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
 import models.{AccessType, CheckMode, YearRange}
@@ -122,4 +123,52 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     )
   }
 
+  def publicServicePensionsRemedyEDetails(index: Int, isPublicServicePensionsRemedy: Boolean
+                                         , isChargeInAdditionReported: Boolean, wasAnotherPensionScheme: Boolean): Seq[Row] = {
+    val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance}")
+    Seq(
+      Row(
+        key = Key(msg"${messages("isPublicServicePensionsRemedy.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        value = Value(yesOrNo(isPublicServicePensionsRemedy), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("isPublicServicePensionsRemedy.label")
+            ))
+          )
+        )
+      ),
+      Row(
+        key = Key(msg"${messages("isChargeInAdditionReported.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        value = Value(yesOrNo(isChargeInAdditionReported), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.mccloud.routes.IsChargeInAdditionReportedController
+              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("isChargeInAdditionReported.label")
+            ))
+          )
+        )
+      ),
+      Row(
+        key = Key(msg"${messages("wasAnotherPensionScheme.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        value = Value(yesOrNo(wasAnotherPensionScheme), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.mccloud.routes.WasAnotherPensionSchemeController
+              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("wasAnotherPensionScheme.label")
+            ))
+          )
+        )
+      )
+    )
+  }
 }

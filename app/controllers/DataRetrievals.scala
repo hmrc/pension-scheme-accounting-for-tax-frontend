@@ -20,7 +20,7 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, Index, MemberDetails, SponsoringEmployerType, YearRange}
+import models.{AFTQuarter, AccessType, ChargeType, Index, MemberDetails, SponsoringEmployerType, YearRange}
 import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
@@ -188,16 +188,20 @@ object DataRetrievals {
   }
 
   def cyaChargeE(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])(
+      block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, Boolean, Boolean, Boolean, String) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
       request.userAnswers.get(pages.chargeE.MemberDetailsPage(index)),
       request.userAnswers.get(AnnualAllowanceYearPage(index)),
       request.userAnswers.get(pages.chargeE.ChargeDetailsPage(index)),
+      request.userAnswers.get(pages.mccloud.IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance ,index)),
+      request.userAnswers.get(pages.mccloud.IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance ,index)),
+      request.userAnswers.get(pages.mccloud.WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance ,index)),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
-      case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), Some(schemeName)) =>
-        block(memberDetails, taxYear, chargeEDetails, schemeName)
+      case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), Some(isPublicServicePensionsRemedy)
+      , Some(isChargeInAdditionReported), Some(wasAnotherPensionSchemePage), Some(schemeName)) =>
+        block(memberDetails, taxYear, chargeEDetails, isPublicServicePensionsRemedy, isChargeInAdditionReported, wasAnotherPensionSchemePage, schemeName)
       case _ =>
         Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))
     }

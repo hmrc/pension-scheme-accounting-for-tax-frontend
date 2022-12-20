@@ -1553,6 +1553,7 @@ isPublicServicePensionsRemedy.title = Is this {0} being paid as a result of the 
 isPublicServicePensionsRemedy.heading = Is this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pensions Remedy
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pension Remedy
+isPublicServicePensionsRemedy.label = Change whether this payment is as of a result of the Public Service Pensions Remedy
 
 isChargeInAdditionReported.title = Is this {0} in addition to a previously reported {0} for this member?
 isChargeInAdditionReported.heading = Is this {0} in addition to a previously reported {0} for this member?
