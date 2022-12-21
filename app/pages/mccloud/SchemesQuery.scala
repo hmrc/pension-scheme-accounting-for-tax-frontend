@@ -17,7 +17,6 @@
 package pages.mccloud
 
 import models.ChargeType
-import models.ChargeType.ChargeTypeLifetimeAllowance
 import play.api.libs.json.{JsArray, JsPath}
 import queries.Gettable
 
