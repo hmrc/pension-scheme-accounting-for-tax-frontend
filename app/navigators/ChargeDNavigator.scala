@@ -137,8 +137,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   private def countSchemeSize(userAnswers: UserAnswers, index :Int): Int = {
-    val schemeJSPath = JsPath \ ChargeType.chargeBaseNode(ChargeTypeLifetimeAllowance) \ "members" \ index \ "mccloudRemedy" \ "schemes"
-    schemeJSPath.readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+    SchemesQuery(index).path.readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 
   private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {

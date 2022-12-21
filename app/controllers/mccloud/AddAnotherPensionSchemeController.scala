@@ -123,8 +123,6 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
             value =>
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(AddAnotherPensionSchemePage(chargeType, index, schemeIndex), value, mode))
-                _ <- userAnswersCacheConnector
-                  .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
               } yield
                 Redirect(
                   navigator
