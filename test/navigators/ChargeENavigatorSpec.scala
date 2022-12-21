@@ -62,7 +62,10 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, Some(schemeIndex))),
 
         row(ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, Some(schemeIndex)))(AddAnotherPensionSchemeController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex)),
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex), enterPSTRValue),
+
+        row(ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, Some(schemeIndex)))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index), Some(chargeInAdditionReportedNo)),
 
         row(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(EnterPstrController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, 1), isAnotherSchemeYes),
@@ -117,4 +120,6 @@ object ChargeENavigatorSpec {
 
   private val isAnotherSchemeYes = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), true).toOption
   private val isAnotherSchemeNo = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), false).toOption
+  private val enterPSTRValue = UserAnswers().set(EnterPstrPage(ChargeTypeAnnualAllowance, 0,0), "20123456RQ").toOption
+
 }
