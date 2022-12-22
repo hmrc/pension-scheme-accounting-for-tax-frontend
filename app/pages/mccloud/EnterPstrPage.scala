@@ -21,7 +21,7 @@ import pages.QuestionPage
 import play.api.libs.json.JsPath
 
 case class EnterPstrPage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[String] {
-  override def path: JsPath = SchemesQuery(chargeType, index).path \ schemeIndex \ EnterPstrPage.toString
+  override def path: JsPath = SchemePathHelper.path(chargeType, index) \ schemeIndex \ EnterPstrPage.toString
 }
 
 object EnterPstrPage {

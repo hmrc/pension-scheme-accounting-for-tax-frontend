@@ -17,10 +17,10 @@
 package pages.mccloud
 
 import models.ChargeType
-import play.api.libs.json.{JsArray, JsPath}
-import queries.Gettable
+import play.api.libs.json.JsPath
 
-case class SchemesQuery(chargeType: ChargeType, index: Int) extends Gettable[JsArray] {
-  override def path: JsPath = JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes"
-
+object SchemePathHelper {
+  def path(chargeType: ChargeType, index: Int): JsPath = {
+    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes"
+  }
 }

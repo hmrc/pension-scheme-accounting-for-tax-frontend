@@ -21,7 +21,7 @@ import pages.QuestionPage
 import play.api.libs.json.JsPath
 
 case class AddAnotherPensionSchemePage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[Boolean] {
-  override def path: JsPath = SchemesQuery(chargeType, index).path \ schemeIndex \ AddAnotherPensionSchemePage.toString
+  override def path: JsPath = SchemePathHelper.path(chargeType, index)  \ schemeIndex \ AddAnotherPensionSchemePage.toString
 }
 
 object AddAnotherPensionSchemePage {

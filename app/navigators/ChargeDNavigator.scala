@@ -108,7 +108,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
-    SchemesQuery(ChargeTypeLifetimeAllowance, index).path.readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+    SchemePathHelper.path(ChargeTypeLifetimeAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 
   private def routeFromIsPublicServicePensionsRemedyPage(userAnswers: UserAnswers,

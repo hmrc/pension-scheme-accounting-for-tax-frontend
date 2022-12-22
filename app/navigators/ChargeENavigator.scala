@@ -186,10 +186,11 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         controllers.mccloud.routes.EnterPstrController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, countSchemeSize(userAnswers, index))
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case _ => sessionExpiredPage
     }
   }
   private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
-    SchemesQuery(ChargeTypeAnnualAllowance, index).path.readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+    SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 
   private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
