@@ -20,10 +20,10 @@ import models.ChargeType
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class EnterPstrPage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[String] {
-  override def path: JsPath = SchemePathHelper.path(chargeType, index) \ schemeIndex \ EnterPstrPage.toString
+case class AddAnotherPensionSchemePage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[Boolean] {
+  override def path: JsPath = SchemePathHelper.path(chargeType, index)  \ schemeIndex \ AddAnotherPensionSchemePage.toString
 }
 
-object EnterPstrPage {
-  override def toString: String = "pstr"
+object AddAnotherPensionSchemePage {
+  override def toString: String = "addAnotherPensionScheme"
 }
