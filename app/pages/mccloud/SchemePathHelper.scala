@@ -17,13 +17,10 @@
 package pages.mccloud
 
 import models.ChargeType
-import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class EnterPstrPage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[String] {
-  override def path: JsPath = SchemePathHelper.path(chargeType, index) \ schemeIndex \ EnterPstrPage.toString
-}
-
-object EnterPstrPage {
-  override def toString: String = "pstr"
+object SchemePathHelper {
+  def path(chargeType: ChargeType, index: Int): JsPath = {
+    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes"
+  }
 }
