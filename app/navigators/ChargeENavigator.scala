@@ -101,12 +101,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       routeFromChargeAmountReportedPage(ua, srn, startDate, accessType, version, index, schemeIndex)
 
     case AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      ua.get(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex)) match {
-        case Some(true) =>
-          controllers.mccloud.routes.EnterPstrController
-            .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, countSchemeSize(ua, index))
-        case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      }
+      routeFromAddAnotherPensionSchemePage(ua, srn, startDate, accessType, version, index, schemeIndex)
+
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
     case AddMembersPage       => addMembers(ua, srn, startDate, accessType, version)
     case DeleteMemberPage     => deleteMemberRoutes(ua, srn, startDate, accessType, version)
@@ -172,10 +168,26 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case (Some(i), true) =>
         controllers.mccloud.routes.AddAnotherPensionSchemeController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, i)
-      case (_, false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (Some(i), false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (None, true | false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (_, _) => sessionExpiredPage
     }
   }
 
+  private def routeFromAddAnotherPensionSchemePage(userAnswers: UserAnswers,
+                                                   srn: String,
+                                                   startDate: LocalDate,
+                                                   accessType: AccessType,
+                                                   version: Int,
+                                                   index: Int,
+                                                   schemeIndex: Int): Call = {
+    userAnswers.get(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex)) match {
+      case Some(true) =>
+        controllers.mccloud.routes.EnterPstrController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, countSchemeSize(userAnswers, index))
+      case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+    }
+  }
   private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
     SchemesQuery(ChargeTypeAnnualAllowance, index).path.readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }

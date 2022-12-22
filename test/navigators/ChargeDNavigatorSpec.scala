@@ -68,10 +68,10 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
             .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex),
           enterPSTRValue
         ),
-        row(ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, index, Some(schemeIndex)))(
+        row(ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, index, None))(
           CheckYourAnswersController
-            .onPageLoad(srn, startDate, accessType, versionInt, index),
-          Some(chargeInAdditionReportedNo)),
+            .onPageLoad(srn, startDate, accessType, versionInt, index)),
+
         row(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index, schemeIndex))(
           EnterPstrController
             .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, 1),
