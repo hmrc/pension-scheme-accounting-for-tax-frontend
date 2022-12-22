@@ -16,7 +16,6 @@
 
 package controllers.mccloud
 
-import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
@@ -32,12 +31,12 @@ import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AddAnotherPensionSchemeController @Inject()(override val messagesApi: MessagesApi,
-                                                  userAnswersCacheConnector: UserAnswersCacheConnector,
                                                   userAnswersService: UserAnswersService,
                                                   navigator: CompoundNavigator,
                                                   identify: IdentifierAction,
@@ -106,7 +105,8 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
           .fold(
             formWithErrors => {
               val viewModel = GenericViewModel(
-                submitUrl = routes.AddAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+                submitUrl =
+                  routes.AddAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )

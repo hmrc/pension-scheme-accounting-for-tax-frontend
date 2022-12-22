@@ -20,7 +20,7 @@ import models.ChargeType
 import play.api.libs.json.{JsArray, JsPath}
 import queries.Gettable
 
-case class SchemesQuery(chargeType: ChargeType, index :Int) extends Gettable[JsArray]{
+case class SchemesQuery(chargeType: ChargeType, index: Int) extends Gettable[JsArray] {
   override def path: JsPath = JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes"
 
 }
