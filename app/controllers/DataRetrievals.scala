@@ -27,7 +27,7 @@ import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
-import pages.mccloud.SchemePathHelper
+import pages.mccloud.{EnterPstrPage, SchemePathHelper, TaxYearReportedAndPaidPage}
 import play.api.libs.json.{JsArray, Reads}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
@@ -191,7 +191,15 @@ object DataRetrievals {
   }
 
   def getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index): List[PensionsRemedySchemeSummary] = {
-  val jsArr =  SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray](ua.data)
+    val totalSchemes = countSchemeSize(ua, index)
+    (0 until totalSchemes).map{ i =>
+      (
+        ua.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, index, i)),
+        ua.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, i))
+      ) match {
+        case (Some(pstr), Some(year)) => PensionsRemedySchemeSummary()
+      }
+    }
 
   }
 
