@@ -27,7 +27,7 @@ import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
-import pages.mccloud.{EnterPstrPage, SchemePathHelper, TaxYearReportedAndPaidPage}
+import pages.mccloud.{ChargeAmountReportedPage, EnterPstrPage, SchemePathHelper, TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage}
 import play.api.libs.json.{JsArray, Reads}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
@@ -190,23 +190,22 @@ object DataRetrievals {
     }
   }
 
-  def getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index): List[PensionsRemedySchemeSummary] = {
+  private def getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index): List[PensionsRemedySchemeSummary] = {
     val totalSchemes = countSchemeSize(ua, index)
-    (0 until totalSchemes).map{ i =>
-      (
-        ua.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, index, i)),
-        ua.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, i))
-      ) match {
-        case (Some(pstr), Some(year)) => PensionsRemedySchemeSummary()
-      }
-    }
-
+    (0 until totalSchemes).map { schemeIndex =>
+      PensionsRemedySchemeSummary(
+        ua.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, index, schemeIndex)),
+        ua.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex))),
+        ua.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex))),
+        ua.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex)))
+      )
+    }.toList
   }
 
-  def getPensionsRemedySummary(ua: UserAnswers, index: Index): PensionsRemedySummary = {
-    val isPublicServicePensionsRemedy = ua.get(pages.mccloud.IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, index)).getOrElse("")
-    val isChargeInAdditionReported = ua.get(pages.mccloud.IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, index)).getOrElse("")
-    val wasAnotherPensionScheme = ua.get(pages.mccloud.WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, index)).getOrElse("")
+  private def getPensionsRemedySummary(ua: UserAnswers, index: Index): PensionsRemedySummary = {
+    val isPublicServicePensionsRemedy = ua.get(pages.mccloud.IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, index))
+    val isChargeInAdditionReported = ua.get(pages.mccloud.IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, index))
+    val wasAnotherPensionScheme = ua.get(pages.mccloud.WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, index))
     val pensionsRemedySchemeSummary = getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index)
 
     PensionsRemedySummary(isPublicServicePensionsRemedy, isChargeInAdditionReported, wasAnotherPensionScheme
@@ -227,7 +226,7 @@ object DataRetrievals {
       getPensionsRemedySummary(request.userAnswers, index),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
-      case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), Some(pensionsRemedySummary), Some(schemeName)) =>
+      case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), pensionsRemedySummary, Some(schemeName)) =>
         block(memberDetails, taxYear, chargeEDetails, pensionsRemedySummary, schemeName)
       case _ =>
         Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))

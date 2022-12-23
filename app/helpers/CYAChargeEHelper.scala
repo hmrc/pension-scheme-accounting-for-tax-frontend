@@ -19,7 +19,8 @@ package helpers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
-import models.{AccessType, CheckMode, YearRange}
+import models.mccloud.{PensionsRemedySchemeSummary, PensionsRemedySummary}
+import models.{AFTQuarter, AccessType, CheckMode, YearRange}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -123,27 +124,97 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     )
   }
 
-  def publicServicePensionsRemedyEDetails(index: Int, isPublicServicePensionsRemedy: Boolean
-                                         , isChargeInAdditionReported: Boolean, wasAnotherPensionScheme: Boolean): Seq[Row] = {
+  private def getOptionalValue(v: Option[Boolean]): Content = {
+    v match {
+      case None => msg"mccloud.not.entered"
+      case Some(b) => yesOrNo(b)
+    }
+  }
+
+  def publicServicePensionsRemedyEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary): Seq[Row] = {
     val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance}")
-    Seq(
-      Row(
-        key = Key(msg"${messages("isPublicServicePensionsRemedy.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
-        value = Value(yesOrNo(isPublicServicePensionsRemedy), classes = Seq("govuk-!-width-one-third")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.mccloud.routes.IsPublicServicePensionsRemedyController
-              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("isPublicServicePensionsRemedy.label")
-            ))
+
+    val pensionsRemedySeq =
+      Seq(
+        Row(
+          key = Key(msg"${messages("isPublicServicePensionsRemedy.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+          value = Value(getOptionalValue(pensionsRemedySummary.isPublicServicePensionsRemedy), classes = Seq("govuk-!-width-one-third")),
+          actions = List(
+            Action(
+              content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+                .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(Literal(
+                messages("site.edit") + " " + messages("isPublicServicePensionsRemedy.label")
+              ))
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"${messages("isChargeInAdditionReported.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+          value = Value(getOptionalValue(pensionsRemedySummary.isChargeInAdditionReported), classes = Seq("govuk-!-width-one-third")),
+          actions = List(
+            Action(
+              content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.mccloud.routes.IsChargeInAdditionReportedController
+                .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(Literal(
+                messages("site.edit") + " " + messages("isChargeInAdditionReported.label")
+              ))
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"${messages("wasAnotherPensionScheme.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+          value = Value(getOptionalValue(pensionsRemedySummary.wasAnotherPensionScheme), classes = Seq("govuk-!-width-one-third")),
+          actions = List(
+            Action(
+              content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.mccloud.routes.WasAnotherPensionSchemeController
+                .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(Literal(
+                messages("site.edit") + " " + messages("wasAnotherPensionScheme.label")
+              ))
+            )
           )
         )
-      ),
+      )
+
+    val pensionSchemeRows = for(pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
+      yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
+
+    Seq(pensionsRemedySeq, pensionSchemeRows.flatten).flatten
+  }
+
+  private def getOptionalYearValue(v: Option[YearRange]): Content = {
+    v match {
+      case None => msg"mccloud.not.entered"
+      case Some(b) =>  YearRange.getLabel(b)
+    }
+  }
+
+  private def getOptionalLiteralValue(v: Option[String]): Content = {
+    v match {
+      case None => msg"mccloud.not.entered"
+      case Some(b) => Literal(b)
+    }
+  }
+
+  private def getOptionalLiteralQQQValue(v: Option[AFTQuarter]): Content = {
+    v match {
+      case None => msg"mccloud.not.entered"
+      case Some(b) => Literal(AFTQuarter.formatForDisplay(b))
+    }
+  }
+
+
+  def pensionsRemedySchemeSummaryDetails(index: Int, pensionsRemedySchemeSummary: PensionsRemedySchemeSummary): Seq[Row] = {
+    val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance}")
+
+    Seq(
       Row(
-        key = Key(msg"${messages("isChargeInAdditionReported.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
-        value = Value(yesOrNo(isChargeInAdditionReported), classes = Seq("govuk-!-width-one-third")),
+        key = Key(msg"${messages("pensionsRemedySchemeSummary.pstrNumber.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        value = Value(getOptionalLiteralValue(pensionsRemedySchemeSummary.pstrNumber), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
@@ -156,8 +227,39 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
         )
       ),
       Row(
+        key = Key(msg"${messages("pensionsRemedySchemeSummary.taxYear", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        value = Value(getOptionalYearValue(pensionsRemedySchemeSummary.taxYear), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("pensionsRemedySchemeSummary.taxYear.label")
+            ))
+          )
+        )
+      ),
+      Row(
         key = Key(msg"${messages("wasAnotherPensionScheme.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
-        value = Value(yesOrNo(wasAnotherPensionScheme), classes = Seq("govuk-!-width-one-third")),
+        value = Value(getOptionalLiteralQQQValue(pensionsRemedySchemeSummary.taxQuarter), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.mccloud.routes.WasAnotherPensionSchemeController
+              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("wasAnotherPensionScheme.label")
+            ))
+          )
+        )
+      ),
+      Row(
+        key = Key(msg"${messages("wasAnotherPensionScheme.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(s"${
+          FormatHelper.formatCurrencyAmountAsString(
+            pensionsRemedySchemeSummary.chargeAmountReported.getOrElse(BigDecimal(0.00)))
+        }"), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
@@ -171,4 +273,5 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
       )
     )
   }
+
 }

@@ -1596,3 +1596,5 @@ chargeAmountReported.error.invalid = The charge amount must be an amount of mone
 chargeAmountReported.error.decimal = The charge amount must include pence, like 123.45 or 156.00
 chargeAmountReported.error.maximum = The charge amount must be £999999999.99 or less
 chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
+
+mccloud.not.entered = Not entered
