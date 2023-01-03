@@ -26,7 +26,7 @@ import models.Index._
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
-import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
+import models.{AccessType, CheckMode, MemberDetails, Mode, NormalMode, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeE._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
@@ -80,12 +80,12 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       controllers.mccloud.routes.IsPublicServicePensionsRemedyController
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
     case IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index) =>
-      routeFromIsPublicServicePensionsRemedyPage(ua, srn, startDate, accessType, version, index)
+      routeFromIsPublicServicePensionsRemedyPage(ua, NormalMode, srn, startDate, accessType, version, index)
 
     case IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index) =>
-      routeFromIsChargeInAdditionReportedPage(ua, srn, startDate, accessType, version, index)
+      routeFromIsChargeInAdditionReportedPage(ua, NormalMode, srn, startDate, accessType, version, index)
     case WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index) =>
-      routeFromWasAnotherPensionSchemePage(ua, srn, startDate, accessType, version, index)
+      routeFromWasAnotherPensionSchemePage(ua, NormalMode, srn, startDate, accessType, version, index)
 
     case EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
       controllers.mccloud.routes.TaxYearReportedAndPaidController
@@ -98,10 +98,10 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       controllers.mccloud.routes.ChargeAmountReportedController
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
     case ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      routeFromChargeAmountReportedPage(ua, srn, startDate, accessType, version, index, schemeIndex)
+      routeFromChargeAmountReportedPage(ua, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
 
     case AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      routeFromAddAnotherPensionSchemePage(ua, srn, startDate, accessType, version, index, schemeIndex)
+      routeFromAddAnotherPensionSchemePage(ua, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
 
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
     case AddMembersPage       => addMembers(ua, srn, startDate, accessType, version)
@@ -109,6 +109,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   private def routeFromIsPublicServicePensionsRemedyPage(userAnswers: UserAnswers,
+                                                         mode: Mode,
                                                          srn: String,
                                                          startDate: LocalDate,
                                                          accessType: AccessType,
@@ -117,13 +118,14 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     userAnswers.get(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index)) match {
       case Some(true) =>
         controllers.mccloud.routes.IsChargeInAdditionReportedController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
+          .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index)
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       case _           => sessionExpiredPage
     }
   }
 
   private def routeFromIsChargeInAdditionReportedPage(userAnswers: UserAnswers,
+                                                      mode: Mode,
                                                       srn: String,
                                                       startDate: LocalDate,
                                                       accessType: AccessType,
@@ -132,13 +134,14 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     userAnswers.get(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index)) match {
       case Some(true) =>
         controllers.mccloud.routes.WasAnotherPensionSchemeController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
+          .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index)
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       case _           => sessionExpiredPage
     }
   }
 
   private def routeFromWasAnotherPensionSchemePage(userAnswers: UserAnswers,
+                                                   mode: Mode,
                                                    srn: String,
                                                    startDate: LocalDate,
                                                    accessType: AccessType,
@@ -147,15 +150,16 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     userAnswers.get(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index)) match {
       case Some(true) =>
         controllers.mccloud.routes.EnterPstrController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, countSchemeSize(userAnswers, index))
+          .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, countSchemeSize(userAnswers, index))
       case Some(false) =>
         controllers.mccloud.routes.TaxYearReportedAndPaidController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, None)
+          .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, None)
       case _ => sessionExpiredPage
     }
   }
 
   private def routeFromChargeAmountReportedPage(userAnswers: UserAnswers,
+                                                mode: Mode,
                                                 srn: String,
                                                 startDate: LocalDate,
                                                 accessType: AccessType,
@@ -167,7 +171,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     (schemeIndex, schemeSizeLessThan5) match {
       case (Some(i), true) =>
         controllers.mccloud.routes.AddAnotherPensionSchemeController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, i)
+          .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, i)
       case (Some(i), false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       case (None, true | false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       case (_, _) => sessionExpiredPage
@@ -175,6 +179,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   private def routeFromAddAnotherPensionSchemePage(userAnswers: UserAnswers,
+                                                   mode: Mode,
                                                    srn: String,
                                                    startDate: LocalDate,
                                                    accessType: AccessType,
@@ -184,7 +189,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     userAnswers.get(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex)) match {
       case Some(true) =>
         controllers.mccloud.routes.EnterPstrController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index, countSchemeSize(userAnswers, index))
+          .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, countSchemeSize(userAnswers, index))
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       case _ => sessionExpiredPage
     }
@@ -208,6 +213,27 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case MemberDetailsPage(index)       => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index)       => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+    case IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index) =>
+      routeFromIsPublicServicePensionsRemedyPage(ua, CheckMode, srn, startDate, accessType, version, index)
+    case IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index) =>
+      routeFromIsChargeInAdditionReportedPage(ua, CheckMode, srn, startDate, accessType, version, index)
+    case WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index) =>
+      routeFromWasAnotherPensionSchemePage(ua, CheckMode, srn, startDate, accessType, version, index)
+    case EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
+      controllers.mccloud.routes.TaxYearReportedAndPaidController
+        .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, Some(schemeIndex))
+    case TaxYearReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
+      controllers.mccloud.routes.TaxQuarterReportedAndPaidController
+        .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
+    case TaxQuarterReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
+      controllers.mccloud.routes.ChargeAmountReportedController
+        .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
+    case ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
+      routeFromChargeAmountReportedPage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
+
+    case AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
+      routeFromAddAnotherPensionSchemePage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
+
   }
 
   private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad
