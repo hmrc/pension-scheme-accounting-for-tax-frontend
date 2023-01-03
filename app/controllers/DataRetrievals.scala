@@ -194,6 +194,7 @@ object DataRetrievals {
     val totalSchemes = countSchemeSize(ua, index)
     (0 until totalSchemes).map { schemeIndex =>
       PensionsRemedySchemeSummary(
+        schemeIndex,
         ua.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, index, schemeIndex)),
         ua.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex))),
         ua.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex))),

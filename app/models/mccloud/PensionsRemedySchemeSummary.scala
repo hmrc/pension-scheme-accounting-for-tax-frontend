@@ -17,7 +17,8 @@
 package models.mccloud
 
 import models.{AFTQuarter, YearRange}
-case class PensionsRemedySchemeSummary(pstrNumber: Option[String],
+case class PensionsRemedySchemeSummary(schemeIndex: Int,
+                                       pstrNumber: Option[String],
                                        taxYear: Option[YearRange],
                                        taxQuarter: Option[AFTQuarter],
                                        chargeAmountReported: Option[BigDecimal]) {

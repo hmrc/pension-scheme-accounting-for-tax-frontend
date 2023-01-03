@@ -133,8 +133,6 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
 
   def publicServicePensionsRemedyEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary): Seq[Row] = {
     val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance}")
-
-    val pensionsRemedySeq =
       Seq(
         Row(
           key = Key(msg"${messages("isPublicServicePensionsRemedy.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
@@ -179,11 +177,6 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
           )
         )
       )
-
-    val pensionSchemeRows = for(pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
-      yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
-
-    Seq(pensionsRemedySeq, pensionSchemeRows.flatten).flatten
   }
 
   private def getOptionalYearValue(v: Option[YearRange]): Content = {
@@ -207,55 +200,58 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     }
   }
 
+  def publicServicePensionsRemedySchemesEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary): Seq[Row] = {
+    val pensionSchemeRows = for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
+      yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
+    pensionSchemeRows.flatten
+  }
 
   def pensionsRemedySchemeSummaryDetails(index: Int, pensionsRemedySchemeSummary: PensionsRemedySchemeSummary): Seq[Row] = {
     val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance}")
-
     Seq(
       Row(
-        key = Key(msg"${messages("pensionsRemedySchemeSummary.pstrNumber.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"${messages("enterPstr.cya.label", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
         value = Value(getOptionalLiteralValue(pensionsRemedySchemeSummary.pstrNumber), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.mccloud.routes.IsChargeInAdditionReportedController
-              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+            href = controllers.mccloud.routes.EnterPstrController
+              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsRemedySchemeSummary.schemeIndex).url,
             visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("isChargeInAdditionReported.label")
+              messages("site.edit") + " " + messages("enterPstr.cya.visuallyHidden.text", chargeTypeDescription)
             ))
           )
         )
       ),
       Row(
-        key = Key(msg"${messages("pensionsRemedySchemeSummary.taxYear", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"${messages("taxYearReportedAndPaid.cya.label", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
         value = Value(getOptionalYearValue(pensionsRemedySchemeSummary.taxYear), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.mccloud.routes.IsPublicServicePensionsRemedyController
-              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+            href = controllers.mccloud.routes.TaxYearReportedAndPaidController
+              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, Some(pensionsRemedySchemeSummary.schemeIndex)).url,
             visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("pensionsRemedySchemeSummary.taxYear.label")
+              messages("site.edit") + " " + messages("taxYearReportedAndPaid.cya.visuallyHidden.text", chargeTypeDescription)
             ))
           )
         )
       ),
       Row(
-        key = Key(msg"${messages("wasAnotherPensionScheme.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"${messages("taxQuarterReportedAndPaid.cya.label", getOptionalYearValue(pensionsRemedySchemeSummary.taxYear), chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
         value = Value(getOptionalLiteralQQQValue(pensionsRemedySchemeSummary.taxQuarter), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.mccloud.routes.WasAnotherPensionSchemeController
-              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+            href = controllers.mccloud.routes.TaxQuarterReportedAndPaidController
+              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, Some(pensionsRemedySchemeSummary.schemeIndex)).url,
             visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("wasAnotherPensionScheme.label")
+              messages("site.edit") + " " + messages("taxQuarterReportedAndPaid.cya.visuallyHidden.text", chargeTypeDescription))
             ))
           )
-        )
-      ),
+        ),
       Row(
-        key = Key(msg"${messages("wasAnotherPensionScheme.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"${messages("chargeAmountReported.cya.label", chargeTypeDescription, getOptionalLiteralQQQValue(pensionsRemedySchemeSummary.taxQuarter))}", classes = Seq("govuk-!-width-one-half")),
         value = Value(Literal(s"${
           FormatHelper.formatCurrencyAmountAsString(
             pensionsRemedySchemeSummary.chargeAmountReported.getOrElse(BigDecimal(0.00)))
@@ -263,10 +259,10 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.mccloud.routes.WasAnotherPensionSchemeController
-              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
+            href = controllers.mccloud.routes.ChargeAmountReportedController
+              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, Some(pensionsRemedySchemeSummary.schemeIndex)).url,
             visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("wasAnotherPensionScheme.label")
+              messages("site.edit") + " " + messages("chargeAmountReported.cya.visuallyHidden.text")
             ))
           )
         )

@@ -66,7 +66,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           helper.chargeEMemberDetails(index, memberDetails),
           helper.chargeETaxYear(index, taxYear),
           helper.chargeEDetails(index, chargeEDetails),
-          helper.publicServicePensionsRemedyEDetails(index, pensionsRemedySummary)
+          helper.publicServicePensionsRemedyEDetails(index, pensionsRemedySummary),
+          helper.publicServicePensionsRemedySchemesEDetails(index, pensionsRemedySummary)
         ).flatten
 
         renderer
