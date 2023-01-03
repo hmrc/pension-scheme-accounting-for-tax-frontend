@@ -1586,7 +1586,6 @@ enterPstr.heading = Enter the Pension Scheme Tax Reference (PSTR) of the {0} pen
 enterPstr.hint = For example, 20123456RQ
 enterPstr.error.required = Enter a Pension Scheme Tax Reference (PSTR)
 enterPstr.error.invalid = Enter a Pension Scheme Tax Reference (PSTR) that is 8 numbers, followed by R, followed by a character, like 12345678RA
-enterPstr.cya.label = Enter the Pension Scheme Tax Reference (PSTR) of the pension scheme that paid the previously reported {0}
 enterPstr.cya.visuallyHidden.text = Enter the Pension Scheme Tax Reference (PSTR) of the pension scheme that paid the previously reported {0}
 
 mccloud.scheme.ref0 =
@@ -1606,3 +1605,9 @@ chargeAmountReported.error.maximum = The charge amount must be £999999999.99 or
 chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
 
 mccloud.not.entered = Not entered
+
+mccloud.scheme.cya.ref0 = First scheme details
+mccloud.scheme.cya.ref1 = Second scheme details
+mccloud.scheme.cya.ref2 = Third scheme details
+mccloud.scheme.cya.ref3 = Fourth scheme details
+mccloud.scheme.cya.ref4 = Fifth scheme details

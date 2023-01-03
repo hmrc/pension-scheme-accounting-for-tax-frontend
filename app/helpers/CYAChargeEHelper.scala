@@ -179,6 +179,15 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
       )
   }
 
+  private def getOptionalYearForKey(year: Option[YearRange]): String = {
+    year match {
+      case None => msg"mccloud.not.entered".resolve
+      case Some(taxYr) =>
+        val startYear = taxYr.toString
+        msg"yearRangeRadio".withArgs(startYear, (startYear.toInt + 1).toString).resolve
+    }
+  }
+
   private def getOptionalYearValue(v: Option[YearRange]): Content = {
     v match {
       case None => msg"mccloud.not.entered"
@@ -210,7 +219,21 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance}")
     Seq(
       Row(
-        key = Key(msg"${messages("enterPstr.cya.label", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"${messages(s"mccloud.scheme.cya.ref${pensionsRemedySchemeSummary.schemeIndex}")}"
+          , classes = Seq("govuk-!-width-one-half govuk-heading-m govuk-!-margin-top-7 govuk-!-margin-bottom-7")),
+        value = Value(Html(""), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = Html(s"<span  aria-hidden=true >${messages("site.remove")}</span>"),
+            href = "#",
+            visuallyHiddenText = Some(Literal(
+              messages("site.remove") + " " + messages("remove.cya.visuallyHidden.text")
+            ))
+          )
+        )
+      ),
+      Row(
+        key = Key(msg"${messages("enterPstr.title", messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
         value = Value(getOptionalLiteralValue(pensionsRemedySchemeSummary.pstrNumber), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
@@ -238,7 +261,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
         )
       ),
       Row(
-        key = Key(msg"${messages("taxQuarterReportedAndPaid.cya.label", getOptionalYearValue(pensionsRemedySchemeSummary.taxYear), chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"${messages("taxQuarterReportedAndPaid.cya.label", getOptionalYearForKey(pensionsRemedySchemeSummary.taxYear), chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
         value = Value(getOptionalLiteralQQQValue(pensionsRemedySchemeSummary.taxQuarter), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
