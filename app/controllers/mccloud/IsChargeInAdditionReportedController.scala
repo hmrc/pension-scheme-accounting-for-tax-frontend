@@ -23,7 +23,7 @@ import forms.YesNoFormProvider
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.mccloud.IsChargeInAdditionReportedPage
+import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, SchemePathHelper}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -122,13 +122,26 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
               renderer.render("mccloud/isChargeInAdditionReported.njk", json).map(BadRequest(_))
             },
             value =>
-              for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(IsChargeInAdditionReportedPage(chargeType, index), value, mode))
-                _ <- userAnswersCacheConnector
-                  .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
-              } yield
-                Redirect(
-                  navigator.nextPage(IsChargeInAdditionReportedPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+              if(value) {
+                for {
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(IsChargeInAdditionReportedPage(chargeType, index), value, mode))
+                  _ <- userAnswersCacheConnector
+                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
+                } yield
+                  Redirect(
+                    navigator.nextPage(IsChargeInAdditionReportedPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+              } else {
+                for {
+                  updatedAnswers <- Future.fromTry(request.userAnswers.removeWithPath(SchemePathHelper.basePath(chargeType, index))
+                    .setOrException(IsPublicServicePensionsRemedyPage(chargeType, index), true)
+                    .set(IsChargeInAdditionReportedPage(chargeType, index), value))
+                  _ <- userAnswersCacheConnector
+                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
+                } yield
+                  Redirect(
+                    navigator.nextPage(IsChargeInAdditionReportedPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+              }
+
           )
       }
     }
