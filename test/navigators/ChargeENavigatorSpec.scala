@@ -88,7 +88,7 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeEMember)),
         row(InputSelectionPage(ChargeTypeAnnualAllowance))(controllers.chargeE.routes.WhatYouWillNeedController
-                                                             .onPageLoad(srn, startDate, accessType, versionInt),
+                                                             .onPageLoad(srn, startDate, accessType, versionInt, index),
                                                            Some(manualInput)),
         row(InputSelectionPage(ChargeTypeAnnualAllowance))(
           controllers.fileUpload.routes.WhatYouWillNeedController

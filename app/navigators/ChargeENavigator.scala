@@ -117,7 +117,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     userAnswers.get(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index)) match {
       case Some(true) =>
         controllers.chargeE.routes.WhatYouWillNeedController
-          .onPageLoad(srn, startDate, accessType, version)
+          .onPageLoad(srn, startDate, accessType, version, index)
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       case _           => sessionExpiredPage
     }

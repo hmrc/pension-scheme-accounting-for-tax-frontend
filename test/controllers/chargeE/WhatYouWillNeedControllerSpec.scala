@@ -39,8 +39,9 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeE/whatYouWillNeed.njk"
+  private val index = 0
 
-  private def httpPathGET: String = controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt).url
+  private def httpPathGET: String = controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, index).url
 
   private val jsonToPassToTemplate = Json.obj(
     "viewModel" -> GenericViewModel(
