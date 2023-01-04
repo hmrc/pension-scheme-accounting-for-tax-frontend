@@ -20,22 +20,24 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{IdentifierAction, AllowAccessActionProvider, DataRetrievalAction, DataRequiredAction}
+import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeEHelper, ChargeServiceHelper}
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{GenericViewModel, AccessType, NormalMode, ChargeType, Index}
+import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeE.{CheckYourAnswersPage, TotalChargeAmountPage}
-import play.api.i18n.{MessagesApi, I18nSupport}
+import pages.mccloud.SchemePathHelper
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{SummaryList, NunjucksSupport}
-
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import play.api.libs.json.JsArray
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -80,6 +82,9 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               ),
+              "selectAnotherSchemeUrl" -> controllers.mccloud.routes.AddAnotherPensionSchemeController
+                .onPageLoad(ChargeType.ChargeTypeAnnualAllowance, CheckMode, srn, startDate,
+                  accessType, version, index, countSchemeSize(request.userAnswers,index)-1).url,
               "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
               "chargeName" -> "chargeE",
               "canChange" -> !request.isViewOnly
@@ -88,6 +93,10 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           .map(Ok(_))
       }
     }
+
+  private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
+    SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+  }
 
   def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>

@@ -31,6 +31,14 @@
             {% endif %}
 
             {{ govukButton({
+                text: messages("add.another_scheme"),
+                href: selectAnotherSchemeUrl,
+                attributes: {id: "select-another-scheme"},
+                classes: "govuk-button--secondary govuk-!-margin-top-3"
+              }) }}
+              <br>
+
+            {{ govukButton({
                 text: messages("site.save_charge_and_continue"),
                 href: viewModel.submitUrl,
                 attributes: {id: "submit"}
