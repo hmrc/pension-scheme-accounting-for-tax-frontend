@@ -77,7 +77,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case MemberDetailsPage(index)       => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) =>
-      controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+      controllers.mccloud.routes.IsChargeInAdditionReportedController
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
     case IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index) =>
       routeFromIsPublicServicePensionsRemedyPage(ua, srn, startDate, accessType, version, index)
@@ -116,8 +116,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                          index: Int): Call = {
     userAnswers.get(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index)) match {
       case Some(true) =>
-        controllers.mccloud.routes.IsChargeInAdditionReportedController
-          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
+        controllers.chargeE.routes.WhatYouWillNeedController
+          .onPageLoad(srn, startDate, accessType, version)
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       case _           => sessionExpiredPage
     }
@@ -196,7 +196,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
     ua.get(InputSelectionPage(ChargeTypeAnnualAllowance)) match {
       case Some(ManualInput) =>
-        controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
+        controllers.mccloud.routes.IsPublicServicePensionsRemedyController.onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
       case Some(FileUploadInput) =>
         controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
       case _ => sessionExpiredPage
