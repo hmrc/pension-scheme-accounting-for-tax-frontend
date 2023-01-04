@@ -34,7 +34,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     Seq(
       Row(
         key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(answer.fullName), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
@@ -132,7 +132,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
   }
 
   def publicServicePensionsRemedyEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary): Seq[Row] = {
-    val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance}")
+    val chargeTypeDescription = Messages(s"chargeType.description.$ChargeTypeAnnualAllowance")
       Seq(
         Row(
           key = Key(msg"${messages("isPublicServicePensionsRemedy.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
@@ -202,10 +202,17 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     }
   }
 
-  private def getOptionalLiteralQQQValue(v: Option[AFTQuarter]): Content = {
+  private def getOptionalLiteralQuarterValue(v: Option[AFTQuarter]): Content = {
     v match {
       case None => msg"mccloud.not.entered"
       case Some(b) => Literal(AFTQuarter.formatForDisplay(b))
+    }
+  }
+
+  private def getOptionalQuarterValue(v: Option[AFTQuarter]): String = {
+    v match {
+      case None => msg"mccloud.not.entered".resolve
+      case Some(b) => AFTQuarter.formatForDisplay(b)
     }
   }
 
@@ -215,8 +222,10 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     pensionSchemeRows.flatten
   }
 
+  //scalastyle:off method.length
+  //scalastyle:off cyclomatic.complexity
   def pensionsRemedySchemeSummaryDetails(index: Int, pensionsRemedySchemeSummary: PensionsRemedySchemeSummary): Seq[Row] = {
-    val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance}")
+    val chargeTypeDescription = Messages(s"chargeType.description.$ChargeTypeAnnualAllowance")
     Seq(
       Row(
         key = Key(msg"${messages(s"mccloud.scheme.cya.ref${pensionsRemedySchemeSummary.schemeIndex}")}"
@@ -233,7 +242,8 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
         )
       ),
       Row(
-        key = Key(msg"${messages("enterPstr.title", messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"${messages("enterPstr.title", messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)}"
+          , classes = Seq("govuk-!-width-one-half")),
         value = Value(getOptionalLiteralValue(pensionsRemedySchemeSummary.pstrNumber), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
@@ -261,8 +271,9 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
         )
       ),
       Row(
-        key = Key(msg"${messages("taxQuarterReportedAndPaid.cya.label", getOptionalYearForKey(pensionsRemedySchemeSummary.taxYear), chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
-        value = Value(getOptionalLiteralQQQValue(pensionsRemedySchemeSummary.taxQuarter), classes = Seq("govuk-!-width-one-third")),
+        key = Key(msg"${messages("taxQuarterReportedAndPaid.cya.label", getOptionalYearForKey(pensionsRemedySchemeSummary.taxYear), chargeTypeDescription)}"
+          , classes = Seq("govuk-!-width-one-half")),
+        value = Value(getOptionalLiteralQuarterValue(pensionsRemedySchemeSummary.taxQuarter), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
@@ -274,7 +285,8 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
           )
         ),
       Row(
-        key = Key(msg"${messages("chargeAmountReported.cya.label", chargeTypeDescription, getOptionalLiteralQQQValue(pensionsRemedySchemeSummary.taxQuarter))}", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"${messages("chargeAmountReported.cya.label", chargeTypeDescription, getOptionalQuarterValue(pensionsRemedySchemeSummary.taxQuarter))}"
+          , classes = Seq("govuk-!-width-one-half")),
         value = Value(Literal(s"${
           FormatHelper.formatCurrencyAmountAsString(
             pensionsRemedySchemeSummary.chargeAmountReported.getOrElse(BigDecimal(0.00)))

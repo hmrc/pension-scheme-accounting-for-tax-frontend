@@ -21,6 +21,10 @@ import play.api.libs.json.JsPath
 
 object SchemePathHelper {
   def path(chargeType: ChargeType, index: Int): JsPath = {
-    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ "schemes"
+    basePath(chargeType, index) \ "schemes"
+  }
+
+  def basePath(chargeType: ChargeType, index: Int): JsPath = {
+    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy"
   }
 }
