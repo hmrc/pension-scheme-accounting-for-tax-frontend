@@ -118,7 +118,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case Some(true) =>
         controllers.chargeE.routes.WhatYouWillNeedController
           .onPageLoad(srn, startDate, accessType, version, index)
-      case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case Some(false) => controllers.chargeE.routes.WhatYouWillNeedController
+        .onPageLoad(srn, startDate, accessType, version, index)
       case _           => sessionExpiredPage
     }
   }
