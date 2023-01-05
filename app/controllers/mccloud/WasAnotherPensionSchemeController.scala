@@ -23,7 +23,7 @@ import forms.YesNoFormProvider
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.mccloud.WasAnotherPensionSchemePage
+import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, SchemePathHelper, WasAnotherPensionSchemePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -91,6 +91,8 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
         }
     }
 
+  //scalastyle:off method.length
+  //scalastyle:off cyclomatic.complexity
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
                srn: String,
@@ -122,13 +124,27 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
               renderer.render("mccloud/wasAnotherPensionScheme.njk", json).map(BadRequest(_))
             },
             value =>
-              for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(WasAnotherPensionSchemePage(chargeType, index), value, mode))
-                _ <- userAnswersCacheConnector
-                  .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
-              } yield
-                Redirect(
-                  navigator.nextPage(WasAnotherPensionSchemePage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+              if(value) {
+                for {
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(WasAnotherPensionSchemePage(chargeType, index), value, mode))
+                  _ <- userAnswersCacheConnector
+                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
+                } yield
+                  Redirect(
+                    navigator.nextPage(WasAnotherPensionSchemePage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+              } else {
+                for {
+                  updatedAnswers <- Future.fromTry(request.userAnswers.removeWithPath(SchemePathHelper.basePath(chargeType, index))
+                    .setOrException(IsPublicServicePensionsRemedyPage(chargeType, index), true)
+                    .setOrException(IsChargeInAdditionReportedPage(chargeType, index), true)
+                    .set(WasAnotherPensionSchemePage(chargeType, index), value))
+                  _ <- userAnswersCacheConnector
+                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
+                } yield
+                  Redirect(
+                    navigator.nextPage(WasAnotherPensionSchemePage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+              }
+
           )
       }
     }

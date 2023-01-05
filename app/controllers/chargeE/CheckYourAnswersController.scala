@@ -63,16 +63,16 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       DataRetrievals.cyaChargeE(index, srn, startDate, accessType, version) {
         (memberDetails, taxYear, chargeEDetails, pensionsRemedySummary, schemeName) =>
         val helper = new CYAChargeEHelper(srn, startDate, accessType, version)
+          val schemeCount = countSchemeSize(request.userAnswers, index)
+          val wasAnotherPensionSchemeVal = getWasAnotherPensionScheme(pensionsRemedySummary.wasAnotherPensionScheme)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeEMemberDetails(index, memberDetails),
           helper.chargeETaxYear(index, taxYear),
           helper.chargeEDetails(index, chargeEDetails),
           helper.publicServicePensionsRemedyEDetails(index, pensionsRemedySummary),
-          helper.publicServicePensionsRemedySchemesEDetails(index, pensionsRemedySummary)
+          helper.publicServicePensionsRemedySchemesEDetails(index, pensionsRemedySummary, wasAnotherPensionSchemeVal)
         ).flatten
-        val schemeCount = countSchemeSize(request.userAnswers,index)
-        val wasAnotherPensionSchemeVal = getWasAnotherPensionScheme(pensionsRemedySummary.wasAnotherPensionScheme)
 
         renderer
           .render(

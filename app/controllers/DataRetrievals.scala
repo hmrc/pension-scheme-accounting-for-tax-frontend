@@ -192,15 +192,27 @@ object DataRetrievals {
 
   private def getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index): List[PensionsRemedySchemeSummary] = {
     val totalSchemes = countSchemeSize(ua, index)
-    (0 until totalSchemes).map { schemeIndex =>
-      PensionsRemedySchemeSummary(
-        schemeIndex,
-        ua.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, index, schemeIndex)),
-        ua.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex))),
-        ua.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex))),
-        ua.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex)))
-      )
-    }.toList
+    val pensionsRemedySchemeSummaryList =  totalSchemes match {
+      case 0 =>
+        List(PensionsRemedySchemeSummary(
+          0,
+          None,
+          ua.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, None)),
+          ua.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, None)),
+          ua.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, index, None))
+        ))
+      case _ =>
+        (0 until totalSchemes).map { schemeIndex =>
+          PensionsRemedySchemeSummary(
+            schemeIndex,
+            ua.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, index, schemeIndex)),
+            ua.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex))),
+            ua.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex))),
+            ua.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex)))
+          )
+        }.toList
+    }
+    pensionsRemedySchemeSummaryList
   }
 
   private def getPensionsRemedySummary(ua: UserAnswers, index: Index): PensionsRemedySummary = {

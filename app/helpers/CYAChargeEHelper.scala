@@ -216,9 +216,20 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     }
   }
 
-  def publicServicePensionsRemedySchemesEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary): Seq[Row] = {
-    val pensionSchemeRows = for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
-      yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
+  def publicServicePensionsRemedySchemesEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary, wasAnotherPensionSchemeVal: Boolean): Seq[Row] = {
+    val pensionSchemeRows = {
+      wasAnotherPensionSchemeVal match {
+        case true => {
+          for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
+            yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
+        }
+        case _ => {
+          for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
+            yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
+
+        }
+      }
+    }
     pensionSchemeRows.flatten
   }
 
