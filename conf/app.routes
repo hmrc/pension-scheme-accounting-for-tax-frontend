@@ -93,7 +93,7 @@ POST        /:srn/:startDate/:accessType/:version/short-service-refund-lump-sum-
 
 GET         /:srn/:startDate/:accessType/:version/short-service-refund-lump-sum-charge/remove-last-charge                                            controllers.chargeA.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 
-GET         /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/what-you-will-need                                                       controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
+GET         /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:index/what-you-will-need                                                controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
 
 GET         /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:index/members-details                                                   controllers.chargeD.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
 POST        /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:index/members-details                                                   controllers.chargeD.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
