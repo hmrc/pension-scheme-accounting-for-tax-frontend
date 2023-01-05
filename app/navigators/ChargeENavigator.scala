@@ -168,13 +168,14 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                 schemeIndex: Option[Int]): Call = {
     val schemeSize = countSchemeSize(userAnswers, index)
     val schemeSizeLessThan5 = schemeSize > 0 && schemeSize < 5
-    (schemeIndex, schemeSizeLessThan5) match {
-      case (Some(i), true) =>
+    (schemeIndex, schemeSizeLessThan5, mode) match {
+      case (Some(i), true, NormalMode) =>
         controllers.mccloud.routes.AddAnotherPensionSchemeController
           .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, i)
-      case (Some(i), false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (None, true | false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (_, _) => sessionExpiredPage
+      case (Some(i), true, CheckMode) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (Some(i), false, _) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (None, true | false, _) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (_, _, _) => sessionExpiredPage
     }
   }
 

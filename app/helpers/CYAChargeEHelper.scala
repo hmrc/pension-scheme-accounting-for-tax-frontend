@@ -222,7 +222,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
         case true =>
           for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
             yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
-        case _ =>
+        case false =>
           for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
             yield pensionsRemedySummaryDetails(index, pensionsRemedySchemeSummary)
       }

@@ -190,10 +190,14 @@ object DataRetrievals {
     }
   }
 
-  private def getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index): List[PensionsRemedySchemeSummary] = {
+  private def getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index, wasAnotherPensionScheme: Option[Boolean]): List[PensionsRemedySchemeSummary] = {
     val pensionsSchemeSize = pensionsSchemeCount(ua, index)
-    val pensionsRemedySchemeSummaryList =  pensionsSchemeSize match {
-      case 0 =>
+    val wasAnotherPensionSchemeVal = wasAnotherPensionScheme match {
+      case Some(booleanValue) => booleanValue
+      case None => None
+    }
+    val pensionsRemedySchemeSummaryList =  (pensionsSchemeSize, wasAnotherPensionSchemeVal) match {
+      case (0 , false) =>
         List(PensionsRemedySchemeSummary(
           0,
           None,
@@ -201,7 +205,7 @@ object DataRetrievals {
           ua.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, None)),
           ua.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, index, None))
         ))
-      case _ =>
+      case (_ , _) =>
         (0 until pensionsSchemeSize).map { schemeIndex =>
           PensionsRemedySchemeSummary(
             schemeIndex,
@@ -219,7 +223,7 @@ object DataRetrievals {
     val isPublicServicePensionsRemedy = ua.get(pages.mccloud.IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, index))
     val isChargeInAdditionReported = ua.get(pages.mccloud.IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, index))
     val wasAnotherPensionScheme = ua.get(pages.mccloud.WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, index))
-    val pensionsRemedySchemeSummary = getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index)
+    val pensionsRemedySchemeSummary = getPensionsRemedySchemeSummary(ua, index, wasAnotherPensionScheme)
 
     PensionsRemedySummary(isPublicServicePensionsRemedy, isChargeInAdditionReported, wasAnotherPensionScheme
       , pensionsRemedySchemeSummary)
