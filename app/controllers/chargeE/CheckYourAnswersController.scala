@@ -63,7 +63,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       DataRetrievals.cyaChargeE(index, srn, startDate, accessType, version) {
         (memberDetails, taxYear, chargeEDetails, pensionsRemedySummary, schemeName) =>
         val helper = new CYAChargeEHelper(srn, startDate, accessType, version)
-          val schemeCount = countSchemeSize(request.userAnswers, index)
+          val pensionsSchemeSize = pensionsSchemeCount(request.userAnswers, index)
           val wasAnotherPensionSchemeVal = getWasAnotherPensionScheme(pensionsRemedySummary.wasAnotherPensionScheme)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
@@ -86,10 +86,10 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
               ),
               "selectAnotherSchemeUrl" -> controllers.mccloud.routes.AddAnotherPensionSchemeController
                 .onPageLoad(ChargeType.ChargeTypeAnnualAllowance, CheckMode, srn, startDate,
-                  accessType, version, index, schemeCount-1).url,
+                  accessType, version, index, pensionsSchemeSize-1).url,
               "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
               "chargeName" -> "chargeE",
-              "showAnotherSchemeBtn" -> (schemeCount < 5 && wasAnotherPensionSchemeVal),
+              "showAnotherSchemeBtn" -> (pensionsSchemeSize < 5 && wasAnotherPensionSchemeVal),
               "canChange" -> !request.isViewOnly
             )
           )
@@ -97,7 +97,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
     }
 
-  private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
+  private def pensionsSchemeCount(userAnswers: UserAnswers, index: Int): Int = {
     SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 

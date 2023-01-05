@@ -191,8 +191,8 @@ object DataRetrievals {
   }
 
   private def getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index): List[PensionsRemedySchemeSummary] = {
-    val totalSchemes = countSchemeSize(ua, index)
-    val pensionsRemedySchemeSummaryList =  totalSchemes match {
+    val pensionsSchemeSize = pensionsSchemeCount(ua, index)
+    val pensionsRemedySchemeSummaryList =  pensionsSchemeSize match {
       case 0 =>
         List(PensionsRemedySchemeSummary(
           0,
@@ -202,7 +202,7 @@ object DataRetrievals {
           ua.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, index, None))
         ))
       case _ =>
-        (0 until totalSchemes).map { schemeIndex =>
+        (0 until pensionsSchemeSize).map { schemeIndex =>
           PensionsRemedySchemeSummary(
             schemeIndex,
             ua.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, index, schemeIndex)),
@@ -225,7 +225,7 @@ object DataRetrievals {
       , pensionsRemedySchemeSummary)
   }
 
-  private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
+  private def pensionsSchemeCount(userAnswers: UserAnswers, index: Int): Int = {
     SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 

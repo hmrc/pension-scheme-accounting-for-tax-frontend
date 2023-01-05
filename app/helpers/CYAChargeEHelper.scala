@@ -217,27 +217,23 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
   }
 
   def publicServicePensionsRemedySchemesEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary, wasAnotherPensionSchemeVal: Boolean): Seq[Row] = {
-    val pensionSchemeRows = {
+    {
       wasAnotherPensionSchemeVal match {
-        case true => {
+        case true =>
           for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
             yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
-        }
-        case _ => {
+        case _ =>
           for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
-            yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
-
-        }
+            yield pensionsRemedySummaryDetails(index, pensionsRemedySchemeSummary)
       }
-    }
-    pensionSchemeRows.flatten
+    }.flatten
   }
 
   //scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
   def pensionsRemedySchemeSummaryDetails(index: Int, pensionsRemedySchemeSummary: PensionsRemedySchemeSummary): Seq[Row] = {
     val chargeTypeDescription = Messages(s"chargeType.description.$ChargeTypeAnnualAllowance")
-    Seq(
+    val basicSchemeRows = Seq(
       Row(
         key = Key(msg"${messages(s"mccloud.scheme.cya.ref${pensionsRemedySchemeSummary.schemeIndex}")}"
           , classes = Seq("govuk-!-width-one-half govuk-heading-m govuk-!-margin-top-7 govuk-!-margin-bottom-7")),
@@ -266,7 +262,15 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
             ))
           )
         )
-      ),
+      )
+    )
+    val taxPeriodAmtRows = pensionsRemedySummaryDetails(index, pensionsRemedySchemeSummary)
+    basicSchemeRows ++ taxPeriodAmtRows
+  }
+
+  def pensionsRemedySummaryDetails(index: Int, pensionsRemedySchemeSummary: PensionsRemedySchemeSummary): Seq[Row] = {
+    val chargeTypeDescription = Messages(s"chargeType.description.$ChargeTypeAnnualAllowance")
+    Seq(
       Row(
         key = Key(msg"${messages("taxYearReportedAndPaid.cya.label", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
         value = Value(getOptionalYearValue(pensionsRemedySchemeSummary.taxYear), classes = Seq("govuk-!-width-one-third")),
@@ -293,8 +297,8 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
             visuallyHiddenText = Some(Literal(
               messages("site.edit") + " " + messages("taxQuarterReportedAndPaid.cya.visuallyHidden.text", chargeTypeDescription))
             ))
-          )
-        ),
+        )
+      ),
       Row(
         key = Key(msg"${messages("chargeAmountReported.cya.label", chargeTypeDescription, getOptionalQuarterValue(pensionsRemedySchemeSummary.taxQuarter))}"
           , classes = Seq("govuk-!-width-one-half")),
