@@ -30,13 +30,15 @@
                 <p class="govuk-body"><a href="{{ removeChargeUrl }}" class="govuk-link">{{ messages("removeCharge.linkText") }}</a></p>
             {% endif %}
 
-            {{ govukButton({
-                text: messages("add.another_scheme"),
-                href: selectAnotherSchemeUrl,
-                attributes: {id: "select-another-scheme"},
-                classes: "govuk-button--secondary govuk-!-margin-top-3"
-              }) }}
-              <br>
+            {% if showAnotherSchemeBtn %}
+                {{ govukButton({
+                    text: messages("add.another_scheme"),
+                    href: selectAnotherSchemeUrl,
+                    attributes: {id: "select-another-scheme"},
+                    classes: "govuk-button--secondary govuk-!-margin-top-3"
+                  }) }}
+                  <br>
+            {% endif %}
 
             {{ govukButton({
                 text: messages("site.save_charge_and_continue"),

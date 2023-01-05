@@ -71,6 +71,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           helper.publicServicePensionsRemedyEDetails(index, pensionsRemedySummary),
           helper.publicServicePensionsRemedySchemesEDetails(index, pensionsRemedySummary)
         ).flatten
+        val schemeCount = countSchemeSize(request.userAnswers,index)
+        val wasAnotherPensionSchemeVal = getWasAnotherPensionScheme(pensionsRemedySummary.wasAnotherPensionScheme)
 
         renderer
           .render(
@@ -84,9 +86,10 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
               ),
               "selectAnotherSchemeUrl" -> controllers.mccloud.routes.AddAnotherPensionSchemeController
                 .onPageLoad(ChargeType.ChargeTypeAnnualAllowance, CheckMode, srn, startDate,
-                  accessType, version, index, countSchemeSize(request.userAnswers,index)-1).url,
+                  accessType, version, index, schemeCount-1).url,
               "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
               "chargeName" -> "chargeE",
+              "showAnotherSchemeBtn" -> (schemeCount < 5 && wasAnotherPensionSchemeVal),
               "canChange" -> !request.isViewOnly
             )
           )
@@ -98,6 +101,13 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 
+
+  private def getWasAnotherPensionScheme(v: Option[Boolean]): Boolean = {
+    v match {
+      case Some(booleanVal) => booleanVal
+      case _ => false
+    }
+  }
   def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
