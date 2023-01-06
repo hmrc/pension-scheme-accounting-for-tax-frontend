@@ -66,7 +66,9 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
-    case InputSelectionPage(ChargeTypeLifetimeAllowance) => inputSelectionNav(ua, srn, startDate, accessType, version)
+    case InputSelectionPage(ChargeTypeLifetimeAllowance) =>
+      controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
     case pages.fileUpload.WhatYouWillNeedPage(ChargeTypeLifetimeAllowance) =>
       controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
@@ -123,12 +125,12 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                          accessType: AccessType,
                                                          version: Int,
                                                          index: Int): Call = {
-    userAnswers.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index)) match {
-      case Some(true) =>
+    userAnswers.get(InputSelectionPage(ChargeTypeLifetimeAllowance)) match {
+      case Some(ManualInput) =>
         controllers.chargeD.routes.WhatYouWillNeedController
           .onPageLoad(srn, startDate, accessType, version, index)
-      case Some(false) => controllers.chargeD.routes.WhatYouWillNeedController
-        .onPageLoad(srn, startDate, accessType, version, index)
+      case Some(FileUploadInput) => controllers.fileUpload.routes.WhatYouWillNeedController
+        .onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
       case _           => sessionExpiredPage
     }
   }
@@ -196,16 +198,6 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         controllers.mccloud.routes.EnterPstrController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index, countSchemeSize(userAnswers, index))
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case _ => sessionExpiredPage
-    }
-  }
-
-  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
-    ua.get(InputSelectionPage(ChargeTypeLifetimeAllowance)) match {
-      case Some(ManualInput) =>
-        controllers.mccloud.routes.IsPublicServicePensionsRemedyController.onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
-      case Some(FileUploadInput) =>
-        controllers.mccloud.routes.IsPublicServicePensionsRemedyController.onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
       case _ => sessionExpiredPage
     }
   }

@@ -66,7 +66,10 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
-    case InputSelectionPage(ChargeTypeAnnualAllowance) => inputSelectionNav(ua, srn, startDate, accessType, version)
+    case InputSelectionPage(ChargeTypeAnnualAllowance) =>
+      controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
+
 
     // TODO: Refactor magic strings
     case pages.fileUpload.WhatYouWillNeedPage(ChargeTypeAnnualAllowance) =>
@@ -119,12 +122,13 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                          accessType: AccessType,
                                                          version: Int,
                                                          index: Int): Call = {
-    userAnswers.get(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index)) match {
-      case Some(true) =>
+      userAnswers.get(InputSelectionPage(ChargeTypeAnnualAllowance)) match {
+      case Some(ManualInput)=>
         controllers.chargeE.routes.WhatYouWillNeedController
           .onPageLoad(srn, startDate, accessType, version, index)
-      case Some(false) => controllers.chargeE.routes.WhatYouWillNeedController
-        .onPageLoad(srn, startDate, accessType, version, index)
+      case Some(FileUploadInput)=>
+        controllers.fileUpload.routes.WhatYouWillNeedController
+          .onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
       case _           => sessionExpiredPage
     }
   }
@@ -197,16 +201,6 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
   private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
     SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
-  }
-
-  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
-    ua.get(InputSelectionPage(ChargeTypeAnnualAllowance)) match {
-      case Some(ManualInput) =>
-        controllers.mccloud.routes.IsPublicServicePensionsRemedyController.onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
-      case Some(FileUploadInput) =>
-        controllers.mccloud.routes.IsPublicServicePensionsRemedyController.onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
-      case _ => sessionExpiredPage
-    }
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
