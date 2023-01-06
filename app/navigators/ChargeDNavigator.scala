@@ -205,7 +205,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case Some(ManualInput) =>
         controllers.mccloud.routes.IsPublicServicePensionsRemedyController.onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
       case Some(FileUploadInput) =>
-        controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
+        controllers.mccloud.routes.IsPublicServicePensionsRemedyController.onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
       case _ => sessionExpiredPage
     }
   }

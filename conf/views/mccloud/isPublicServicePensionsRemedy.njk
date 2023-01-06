@@ -6,7 +6,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 
-{% set headerTitle = ('isPublicServicePensionsRemedy' if manualOrfileUploadPSRQuestion == "manual" else 'isPublicServicePensionsRemedyBulk') %}
+{% set headerTitle = ('isPublicServicePensionsRemedy' if manualOrfileUploadPSRQuestion == "manualInput" else 'isPublicServicePensionsRemedyBulk') %}
 
 {% block pageTitle %}
   {{ title(messages(headerTitle+".title", chargeTypeDescription), form.errors) }}
