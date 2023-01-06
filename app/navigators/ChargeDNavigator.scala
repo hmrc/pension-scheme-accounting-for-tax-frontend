@@ -74,9 +74,15 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance, UploadId(""))
 
     case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
-    case ChargeDetailsPage(index) =>
-      controllers.mccloud.routes.IsPublicServicePensionsRemedyController
-        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
+
+    case ChargeDetailsPage(index) => ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index)) match {
+      case Some(true) =>
+        controllers.mccloud.routes.IsChargeInAdditionReportedController
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
+      case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case _ => sessionExpiredPage
+    }
+
     case IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index) =>
       routeFromIsPublicServicePensionsRemedyPage(ua, srn, startDate, accessType, version, index)
 
@@ -121,7 +127,8 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case Some(true) =>
         controllers.chargeD.routes.WhatYouWillNeedController
           .onPageLoad(srn, startDate, accessType, version, index)
-      case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case Some(false) => controllers.chargeD.routes.WhatYouWillNeedController
+        .onPageLoad(srn, startDate, accessType, version, index)
       case _           => sessionExpiredPage
     }
   }
