@@ -23,6 +23,7 @@ import forms.YesNoFormProvider
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
+import pages.fileUpload.InputSelectionPage
 import pages.mccloud.IsPublicServicePensionsRemedyPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -73,6 +74,8 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             schemeName = schemeName
           )
 
+          val manualOrfileUploadPSRQuestion = request.userAnswers.get(InputSelectionPage(chargeType))
+
           val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
             case None        => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
@@ -84,7 +87,8 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             "form" -> preparedForm,
             "viewModel" -> viewModel,
             "radios" -> Radios.yesNo(preparedForm("value")),
-            "chargeTypeDescription" -> chargeTypeDescription
+            "chargeTypeDescription" -> chargeTypeDescription,
+            "manualOrfileUploadPSRQuestion" -> manualOrfileUploadPSRQuestion
           )
 
           renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(Ok(_))

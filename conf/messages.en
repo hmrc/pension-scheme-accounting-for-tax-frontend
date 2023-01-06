@@ -1550,7 +1550,9 @@ chargeType.description.lifeTimeAllowance = lifetime allowance charge
 chargeType.description.annualAllowance = annual allowance charge
 
 isPublicServicePensionsRemedy.title = Is this {0} being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedyBulk.title = Are any entries for this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedy.heading = Is this {0} being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedyBulk.heading = Are any entries for this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pensions Remedy
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pension Remedy
 
