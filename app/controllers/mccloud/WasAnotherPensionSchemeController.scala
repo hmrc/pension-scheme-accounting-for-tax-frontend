@@ -124,15 +124,6 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
               renderer.render("mccloud/wasAnotherPensionScheme.njk", json).map(BadRequest(_))
             },
             value =>
-              if(value) {
-                for {
-                  updatedAnswers <- Future.fromTry(userAnswersService.set(WasAnotherPensionSchemePage(chargeType, index), value, mode))
-                  _ <- userAnswersCacheConnector
-                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
-                } yield
-                  Redirect(
-                    navigator.nextPage(WasAnotherPensionSchemePage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
-              } else {
                 for {
                   updatedAnswers <- Future.fromTry(request.userAnswers.removeWithPath(SchemePathHelper.basePath(chargeType, index))
                     .setOrException(IsPublicServicePensionsRemedyPage(chargeType, index), true)
@@ -143,8 +134,6 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
                 } yield
                   Redirect(
                     navigator.nextPage(WasAnotherPensionSchemePage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
-              }
-
           )
       }
     }
