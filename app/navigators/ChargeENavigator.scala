@@ -158,6 +158,41 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     }
   }
 
+  private def routeFromEnterPstrPage(userAnswers: UserAnswers,
+                                     mode: Mode,
+                                     srn: String,
+                                     startDate: LocalDate,
+                                     accessType: AccessType,
+                                     version: Int,
+                                     index: Int,
+                                     schemeIndex: Int): Call = {
+
+    val taxYearReported = userAnswers.get(TaxYearReportedAndPaidPage(ChargeTypeAnnualAllowance, index, Some(schemeIndex)))
+    taxYearReported match {
+      case Some(_) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case _ =>
+        controllers.mccloud.routes.TaxYearReportedAndPaidController
+          .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, Some(schemeIndex))
+    }
+  }
+
+  private def routeFromTaxQuarterReportedAndPaidPage(userAnswers: UserAnswers,
+                                                     mode: Mode,
+                                                     srn: String,
+                                                     startDate: LocalDate,
+                                                     accessType: AccessType,
+                                                     version: Int,
+                                                     index: Int,
+                                                     schemeIndex: Option[Int]): Call = {
+    val chargeAmount = userAnswers.get(ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, schemeIndex))
+    chargeAmount match {
+      case Some(_) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case _ =>
+        controllers.mccloud.routes.ChargeAmountReportedController
+          .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, schemeIndex)
+    }
+  }
+
   private def routeFromChargeAmountReportedPage(userAnswers: UserAnswers,
                                                 mode: Mode,
                                                 srn: String,
@@ -221,14 +256,12 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index) =>
       routeFromWasAnotherPensionSchemePage(ua, CheckMode, srn, startDate, accessType, version, index)
     case EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      controllers.mccloud.routes.TaxYearReportedAndPaidController
-        .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, Some(schemeIndex))
+      routeFromEnterPstrPage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
     case TaxYearReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
       controllers.mccloud.routes.TaxQuarterReportedAndPaidController
         .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
     case TaxQuarterReportedAndPaidPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
-      controllers.mccloud.routes.ChargeAmountReportedController
-        .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
+      routeFromTaxQuarterReportedAndPaidPage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
     case ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
       routeFromChargeAmountReportedPage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
 

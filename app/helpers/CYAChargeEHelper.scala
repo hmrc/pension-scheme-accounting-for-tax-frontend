@@ -279,7 +279,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.mccloud.routes.TaxQuarterReportedAndPaidController
+            href = controllers.mccloud.routes.TaxYearReportedAndPaidController
               .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, Some(pensionsRemedySchemeSummary.schemeIndex)).url,
             visuallyHiddenText = Some(Literal(
               messages("site.edit") + " " + messages("taxQuarterReportedAndPaid.cya.visuallyHidden.text",
