@@ -176,61 +176,62 @@ object DataRetrievals {
   }
 
   def cyaChargeD(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])(
+      block: (models.MemberDetails, models.chargeD.ChargeDDetails, PensionsRemedySummary, String) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
       request.userAnswers.get(pages.chargeD.MemberDetailsPage(index)),
       request.userAnswers.get(ChargeDetailsPage(index)),
+      getPensionsRemedySummary(request.userAnswers, index, ChargeType.ChargeTypeLifetimeAllowance),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
-      case (Some(memberDetails), Some(chargeDetails), Some(schemeName)) =>
-        block(memberDetails, chargeDetails, schemeName)
+      case (Some(memberDetails), Some(chargeDetails), pensionsRemedySummary, Some(schemeName)) =>
+        block(memberDetails, chargeDetails, pensionsRemedySummary, schemeName)
       case _ =>
         Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))
     }
   }
 
-  private def getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index, wasAnotherPensionScheme: Option[Boolean]): List[PensionsRemedySchemeSummary] = {
-    val pensionsSchemeSize = pensionsSchemeCount(ua, index)
+  private def getPensionsRemedySchemeSummary(ua: UserAnswers, index: Index, chargeType: ChargeType, wasAnotherPensionScheme: Option[Boolean]): List[PensionsRemedySchemeSummary] = {
+    val pensionsSchemeSize = pensionsSchemeCount(ua, index, chargeType)
     val wasAnotherPensionSchemeVal = wasAnotherPensionScheme match {
       case Some(booleanValue) => booleanValue
       case None => None
     }
-    val pensionsRemedySchemeSummaryList =  (pensionsSchemeSize, wasAnotherPensionSchemeVal) match {
+    val pensionsRemedySchemeSummaryList = (pensionsSchemeSize, wasAnotherPensionSchemeVal) match {
       case (0 , false) =>
         List(PensionsRemedySchemeSummary(
           0,
           None,
-          ua.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, None)),
-          ua.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, None)),
-          ua.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, index, None))
+          ua.get(TaxYearReportedAndPaidPage(chargeType, index, None)),
+          ua.get(TaxQuarterReportedAndPaidPage(chargeType, index, None)),
+          ua.get(ChargeAmountReportedPage(chargeType, index, None))
         ))
       case (_ , _) =>
         (0 until pensionsSchemeSize).map { schemeIndex =>
           PensionsRemedySchemeSummary(
             schemeIndex,
-            ua.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, index, schemeIndex)),
-            ua.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex))),
-            ua.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex))),
-            ua.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, index, Some(schemeIndex)))
+            ua.get(EnterPstrPage(chargeType, index, schemeIndex)),
+            ua.get(TaxYearReportedAndPaidPage(chargeType, index, Some(schemeIndex))),
+            ua.get(TaxQuarterReportedAndPaidPage(chargeType, index, Some(schemeIndex))),
+            ua.get(ChargeAmountReportedPage(chargeType, index, Some(schemeIndex)))
           )
         }.toList
     }
     pensionsRemedySchemeSummaryList
   }
 
-  private def getPensionsRemedySummary(ua: UserAnswers, index: Index): PensionsRemedySummary = {
-    val isPublicServicePensionsRemedy = ua.get(pages.mccloud.IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, index))
-    val isChargeInAdditionReported = ua.get(pages.mccloud.IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, index))
-    val wasAnotherPensionScheme = ua.get(pages.mccloud.WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, index))
-    val pensionsRemedySchemeSummary = getPensionsRemedySchemeSummary(ua, index, wasAnotherPensionScheme)
+  private def getPensionsRemedySummary(ua: UserAnswers, index: Index, chargeType: ChargeType): PensionsRemedySummary = {
+    val isPublicServicePensionsRemedy = ua.get(pages.mccloud.IsPublicServicePensionsRemedyPage(chargeType, index))
+    val isChargeInAdditionReported = ua.get(pages.mccloud.IsChargeInAdditionReportedPage(chargeType, index))
+    val wasAnotherPensionScheme = ua.get(pages.mccloud.WasAnotherPensionSchemePage(chargeType, index))
+    val pensionsRemedySchemeSummary = getPensionsRemedySchemeSummary(ua, index, chargeType, wasAnotherPensionScheme)
 
     PensionsRemedySummary(isPublicServicePensionsRemedy, isChargeInAdditionReported, wasAnotherPensionScheme
       , pensionsRemedySchemeSummary)
   }
 
-  private def pensionsSchemeCount(userAnswers: UserAnswers, index: Int): Int = {
-    SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+  private def pensionsSchemeCount(userAnswers: UserAnswers, index: Int, chargeType: ChargeType): Int = {
+    SchemePathHelper.path(chargeType, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 
   def cyaChargeE(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
@@ -240,7 +241,7 @@ object DataRetrievals {
       request.userAnswers.get(pages.chargeE.MemberDetailsPage(index)),
       request.userAnswers.get(AnnualAllowanceYearPage(index)),
       request.userAnswers.get(pages.chargeE.ChargeDetailsPage(index)),
-      getPensionsRemedySummary(request.userAnswers, index),
+      getPensionsRemedySummary(request.userAnswers, index, ChargeType.ChargeTypeAnnualAllowance),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
       case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), pensionsRemedySummary, Some(schemeName)) =>
