@@ -18,6 +18,7 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames._
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import models.chargeD.ChargeDDetails
@@ -25,10 +26,8 @@ import models.{MemberDetails, Quarters}
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.Json
 
 import java.time.LocalDate
-import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames._
 
 class LifetimeAllowanceParser @Inject()(
                                          memberDetailsFormProvider: MemberDetailsFormProvider,
@@ -79,12 +78,8 @@ class LifetimeAllowanceParser @Inject()(
                                         index: Int,
                                         chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     combineValidationResults[MemberDetails, ChargeDDetails](
-      memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
-      chargeDetailsValidation(startDate, index, chargeFields),
-      MemberDetailsPage(index - 1).path,
-      Json.toJson(_),
-      ChargeDetailsPage(index - 1).path,
-      Json.toJson(_)
+      Result(memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
+      Result(chargeDetailsValidation(startDate, index, chargeFields), createCommitItem(index, ChargeDetailsPage.apply))
     )
   }
 }

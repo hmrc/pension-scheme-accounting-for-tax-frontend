@@ -23,17 +23,18 @@ import models.{MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsPath, JsValue}
+import play.api.libs.json.{JsPath, JsValue, Json, Writes}
+import queries.Gettable
 
 import java.time.LocalDate
 
-object ParserErrorMessages{
+object ParserErrorMessages {
   val HeaderInvalidOrFileIsEmpty = "Header invalid or File is empty"
   val NotEnoughFields = "Enter all of the information for this member"
 }
 
 object Parser {
-  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty:ParserValidationError = ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty, EMPTY)
+  val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty: ParserValidationError = ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty, EMPTY)
 }
 
 trait Parser {
@@ -50,7 +51,7 @@ trait Parser {
     rows.headOption match {
       case Some(row) if row.mkString(",").equalsIgnoreCase(validHeader) =>
         rows.size match {
-          case n if n >= 2 => parseDataRows(startDate, rows).map{ commitItems =>
+          case n if n >= 2 => parseDataRows(startDate, rows).map { commitItems =>
             commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
           }
           case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
@@ -89,71 +90,54 @@ trait Parser {
       Field(MemberDetailsFieldNames.lastName, columns(FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
       Field(MemberDetailsFieldNames.nino, columns(FieldNoNino), MemberDetailsFieldNames.nino, 2)
     )
-   val toMap = Field.seqToMap(fields)
+    val toMap = Field.seqToMap(fields)
 
-   val bind =  memberDetailsForm.bind(toMap)
+    val bind = memberDetailsForm.bind(toMap)
     bind.fold(
-        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-        value => Right(value)
-      )
+      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+      value => Right(value)
+    )
   }
 
   protected final def errorsFromForm[A](formWithErrors: Form[A], fields: Seq[Field], index: Int): Seq[ParserValidationError] = {
-    for{
+    for {
       formError <- formWithErrors.errors
       field <- fields.find(_.columnName == formError.key)
     }
     yield {
-      ParserValidationError(index, field.columnNo, formError.message, field.columnName,formError.args)
+      ParserValidationError(index, field.columnNo, formError.message, field.columnName, formError.args)
     }
   }
 
-  protected final def addToValidationResults[A](
-                                                 resultA: Either[Seq[ParserValidationError], A],
-                                                 resultB: Either[Seq[ParserValidationError], Seq[CommitItem]],
-                                                 resultAJsPath: => JsPath,
-                                                 resultAJsValue: A => JsValue
-                                               ): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    resultA match {
+  protected case class Result[A](result: Either[Seq[ParserValidationError], A], generateCommitItem: A => CommitItem)
+
+  protected final def createCommitItem[A](index: Int, page: Int => Gettable[_])(implicit writes: Writes[A]): A => CommitItem =
+    a => CommitItem(page(index - 1).path, Json.toJson(a))
+
+  protected final def addToValidationResults[A](resultToBeAdded: Result[A],
+                                                validationResults: Either[Seq[ParserValidationError], Seq[CommitItem]]):
+  Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+    resultToBeAdded.result match {
       case Left(resultAErrors) =>
-        resultB match {
+        validationResults match {
           case Left(existingErrors) => Left(existingErrors ++ resultAErrors)
           case Right(_) => Left(resultAErrors)
         }
       case Right(resultAObject) =>
-        resultB match {
+        validationResults match {
           case Left(existingErrors) => Left(existingErrors)
           case Right(existingCommits) =>
             Right(
-              existingCommits ++ Seq(CommitItem(resultAJsPath, resultAJsValue(resultAObject)))
+              existingCommits ++ Seq(resultToBeAdded.generateCommitItem(resultAObject))
             )
         }
     }
   }
 
-  protected final def combineValidationResults[A, B](
-                                                      resultA: Either[Seq[ParserValidationError], A],
-                                                      resultB: Either[Seq[ParserValidationError], B],
-                                                      resultAJsPath: => JsPath,
-                                                      resultAJsValue: A => JsValue,
-                                                      resultBJsPath: => JsPath,
-                                                      resultBJsValue: => B => JsValue
-                                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] =
-    addToValidationResults(
-      resultB,
-      addToValidationResults(
-        resultA,
-        Right(Nil),
-        resultAJsPath,
-        resultAJsValue
-      ),
-      resultBJsPath,
-      resultBJsValue
-    )
+  protected final def combineValidationResults[A, B](a: Result[A], b: Result[B]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
+    addToValidationResults(b, addToValidationResults(a, Right(Nil)))
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
-
-
 
   protected final def splitDayMonthYear(date: String): ParsedDate = {
     date.split("/").toSeq match {
@@ -172,7 +156,7 @@ trait Parser {
     }
 }
 
-case class ParserValidationError(row: Int, col: Int, error: String, columnName: String = EMPTY,args:Seq[Any]=Nil)
+case class ParserValidationError(row: Int, col: Int, error: String, columnName: String = EMPTY, args: Seq[Any] = Nil)
 
 protected case class CommitItem(jsPath: JsPath, value: JsValue)
 

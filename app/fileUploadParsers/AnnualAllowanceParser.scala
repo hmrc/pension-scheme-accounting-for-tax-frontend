@@ -18,19 +18,18 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
-import models.{CommonQuarters, MemberDetails}
 import models.chargeE.ChargeEDetails
+import models.{CommonQuarters, MemberDetails, YearRange}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.data.validation.{Invalid, Valid}
 import play.api.i18n.Messages
-import play.api.libs.json.Json
 
 import java.time.LocalDate
-import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 
 class AnnualAllowanceParser @Inject()(
                                        memberDetailsFormProvider: MemberDetailsFormProvider,
@@ -120,14 +119,10 @@ class AnnualAllowanceParser @Inject()(
                                         index: Int,
                                         chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     val validationResults = combineValidationResults[MemberDetails, ChargeEDetails](
-      memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
-      chargeDetailsValidation(startDate, index, chargeFields),
-      MemberDetailsPage(index - 1).path,
-      Json.toJson(_),
-      ChargeDetailsPage(index - 1).path,
-      Json.toJson(_)
+      Result(memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
+      Result(chargeDetailsValidation(startDate, index, chargeFields), createCommitItem(index, ChargeDetailsPage.apply))
     )
-
-    addToValidationResults[String](Right(chargeFields(FieldNoTaxYear)), validationResults, AnnualAllowanceYearPage(index - 1).path, Json.toJson(_))
+    addToValidationResults[String](
+      Result(Right(chargeFields(FieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)), validationResults)
   }
 }
