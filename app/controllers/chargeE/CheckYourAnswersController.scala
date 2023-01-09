@@ -67,7 +67,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           val wasAnotherPensionSchemeVal = getWasAnotherPensionScheme(pensionsRemedySummary.wasAnotherPensionScheme)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
-          helper.isPsprForChargeE(index, pensionsRemedySummary),
+          helper.isPsprForChargeE(index, pensionsRemedySummary.isPublicServicePensionsRemedy),
           helper.chargeEMemberDetails(index, memberDetails),
           helper.chargeETaxYear(index, taxYear),
           helper.chargeEDetails(index, chargeEDetails),

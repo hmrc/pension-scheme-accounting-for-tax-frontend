@@ -75,15 +75,6 @@ object SampleData {
   val taxYear = new YearRange("2020")
   val taxQuarter: AFTQuarter = AFTQuarter(LocalDate.of(2020, 1, 1), LocalDate.of(2020, 3, 31))
   val chargeAmountReported = BigDecimal(83.44)
-  val wasAnotherPensionSchemeVal = false
-
-  val pensionsRemedySchemeSummaryEmpty = List()
-  val pensionsRemedySummaryEmpty = PensionsRemedySummary(Some(false),
-    Some(false), Some(false), pensionsRemedySchemeSummaryEmpty)
-
-  val pensionsRemedySchemeSummary = List(PensionsRemedySchemeSummary(
-    schemeIndex, Some(pstrNumber), Some(taxYear), Some(taxQuarter), Some(chargeAmountReported)))
-
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)

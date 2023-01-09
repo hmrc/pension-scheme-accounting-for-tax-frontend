@@ -125,11 +125,11 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     )
   }
 
-  def isPsprForChargeE(index: Int, pensionsRemedySummary: PensionsRemedySummary): Seq[Row] = {
+  def isPsprForChargeE(index: Int, isPSR: Option[Boolean]): Seq[Row] = {
     Seq(
       Row(
         key = Key(msg"${messages("isPublicServicePensionsRemedy.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
-        value = Value(getOptionalValue(pensionsRemedySummary.isPublicServicePensionsRemedy), classes = Seq("govuk-!-width-one-third")),
+        value = Value(getOptionalValue(isPSR), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
