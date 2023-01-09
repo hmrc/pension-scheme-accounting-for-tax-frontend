@@ -69,9 +69,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case InputSelectionPage(ChargeTypeAnnualAllowance) => ua.get(InputSelectionPage(ChargeTypeAnnualAllowance)) match {
       case Some(ManualInput) => controllers.mccloud.routes.IsPublicServicePensionsRemedyController
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
-      case Some(FileUploadInput) =>
-        println("\n\n\n\nTEST")
-        controllers.mccloud.routes.IsPublicServicePensionsRemedyController.onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, None)
+      case Some(FileUploadInput) => controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, None)
     }
 
 

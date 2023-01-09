@@ -65,7 +65,6 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                  index: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
-        println("\n\n\nINDEX "+ index)
         DataRetrievals.retrieveSchemeName { schemeName =>
           val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
