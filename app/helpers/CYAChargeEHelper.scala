@@ -30,7 +30,7 @@ import java.time.LocalDate
 
 class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
-  val chargeTypeDescription = Messages(s"chargeType.description.$ChargeTypeAnnualAllowance")
+  val chargeTypeDescription: String = Messages(s"chargeType.description.$ChargeTypeAnnualAllowance")
 
   def chargeEMemberDetails(index: Int, answer: models.MemberDetails): Seq[Row] = {
     Seq(
@@ -125,12 +125,8 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     )
   }
 
-  def publicServicePensionsRemedyEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary): Seq[Row] = {
-
-    val isPublicServiceRemedy = getValueFromOptionBoolean(pensionsRemedySummary.isPublicServicePensionsRemedy)
-    val isChargeInAdditionReported = getValueFromOptionBoolean(pensionsRemedySummary.isChargeInAdditionReported)
-
-    val isPublicServicePensionsRemedyRow = Seq(
+  def isPsprForChargeE(index: Int, pensionsRemedySummary: PensionsRemedySummary): Seq[Row] = {
+    Seq(
       Row(
         key = Key(msg"${messages("isPublicServicePensionsRemedy.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
         value = Value(getOptionalValue(pensionsRemedySummary.isPublicServicePensionsRemedy), classes = Seq("govuk-!-width-one-third")),
@@ -146,15 +142,18 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
         )
       )
     )
+  }
 
+  def psprChargeEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary): Option[Seq[Row]] = {
+    val isPublicServiceRemedy = getValueFromOptionBoolean(pensionsRemedySummary.isPublicServicePensionsRemedy)
+    val isChargeInAdditionReported = getValueFromOptionBoolean(pensionsRemedySummary.isChargeInAdditionReported)
     (isPublicServiceRemedy, isChargeInAdditionReported) match {
       case (true, true) =>
-        isPublicServicePensionsRemedyRow ++ getIsChargeInAdditionReportedRow(index, pensionsRemedySummary) ++
-          getWasAnotherPensionSchemeRow(index, pensionsRemedySummary)
+        Some(getIsChargeInAdditionReportedRow(index, pensionsRemedySummary) ++
+          getWasAnotherPensionSchemeRow(index, pensionsRemedySummary))
       case (true, false) =>
-        isPublicServicePensionsRemedyRow ++ getIsChargeInAdditionReportedRow(index, pensionsRemedySummary)
-      case (false, _) =>
-        isPublicServicePensionsRemedyRow
+        Some(getIsChargeInAdditionReportedRow(index, pensionsRemedySummary))
+      case (false, _) => None
     }
   }
 
@@ -196,15 +195,14 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
     )
   }
 
-  def publicServicePensionsRemedySchemesEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary, wasAnotherPensionSchemeVal: Boolean): Seq[Row] = {
+  def psprSchemesChargeEDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary, wasAnotherPensionSchemeVal: Boolean): Seq[Row] = {
     {
-      wasAnotherPensionSchemeVal match {
-        case true =>
-          for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
-            yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
-        case false =>
-          for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
-            yield pensionsRemedySummaryDetails(index, pensionsRemedySchemeSummary)
+      if (wasAnotherPensionSchemeVal) {
+        for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
+          yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
+      } else {
+        for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
+          yield pensionsRemedySummaryDetails(index, pensionsRemedySchemeSummary)
       }
     }.flatten
   }

@@ -67,11 +67,12 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           val wasAnotherPensionSchemeVal = getWasAnotherPensionScheme(pensionsRemedySummary.wasAnotherPensionScheme)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
+          helper.isPsprForChargeE(index, pensionsRemedySummary),
           helper.chargeEMemberDetails(index, memberDetails),
           helper.chargeETaxYear(index, taxYear),
           helper.chargeEDetails(index, chargeEDetails),
-          helper.publicServicePensionsRemedyEDetails(index, pensionsRemedySummary),
-          helper.publicServicePensionsRemedySchemesEDetails(index, pensionsRemedySummary, wasAnotherPensionSchemeVal)
+          helper.psprChargeEDetails(index, pensionsRemedySummary).getOrElse(None),
+          helper.psprSchemesChargeEDetails(index, pensionsRemedySummary, wasAnotherPensionSchemeVal)
         ).flatten
 
         renderer
