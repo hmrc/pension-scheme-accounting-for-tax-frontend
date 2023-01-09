@@ -4,5 +4,7 @@
        <li>{{ messages("fileupload.whatYouWillNeed.lifeTimeAllowance.item3") }}</li>
        <li>{{ messages("fileupload.whatYouWillNeed.lifeTimeAllowance.item4") }}</li>
        <li>{{ messages("fileupload.whatYouWillNeed.lifeTimeAllowance.item5") }}</li>
-
+       {% if psr == true %}
+          <li>{{ messages("fileupload.whatYouWillNeed.lifeTimeAllowance.item6") }}</li>
+       {% endif %}
 </ul>

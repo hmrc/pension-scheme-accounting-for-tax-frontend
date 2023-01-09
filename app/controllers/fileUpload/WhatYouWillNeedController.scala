@@ -22,6 +22,7 @@ import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.fileUpload.WhatYouWillNeedPage
+import pages.mccloud.IsPublicServicePensionsRemedyPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -47,7 +48,7 @@ class WhatYouWillNeedController @Inject()(
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
-
+      val psr = ua.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
       val viewModel = GenericViewModel(
         submitUrl = navigator.nextPage(WhatYouWillNeedPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
@@ -61,7 +62,8 @@ class WhatYouWillNeedController @Inject()(
           "srn" -> srn, "startDate" -> Some(startDate),
           "fileDownloadTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType).url,
           "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType).url,
-          "viewModel" -> viewModel))
+          "viewModel" -> viewModel,
+          "psr" -> psr))
         .map(Ok(_))
     }
 }
