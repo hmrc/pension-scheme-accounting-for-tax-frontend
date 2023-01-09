@@ -116,20 +116,10 @@ class OverseasTransferParser @Inject()(
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    val memberName = getMemberName(chargeFields)
-
-    val validatedMemberDetails =
-        addToValidationResults[MemberDetails](
-          Result(chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
-            createCommitItem(index, MemberDetailsPage.apply)), Right(Nil))
-
-    val validatedMemberDetailsPlusChargeDetails =
-      addToValidationResults[ChargeDetails](
-        Result(chargeDetailsValidation(startDate, index, chargeFields),
-          createCommitItem(index, ChargeDetailsPage.apply)), validatedMemberDetails)
-
-    addToValidationResults[ChargeAmounts](
-      Result(chargeAmountsValidation(memberName, index, chargeFields),
-        createCommitItem(index, ChargeAmountsPage.apply)), validatedMemberDetailsPlusChargeDetails)
+    combineValidationResults[MemberDetails, ChargeDetails, ChargeAmounts](
+      Result(chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
+      Result(chargeDetailsValidation(startDate, index, chargeFields), createCommitItem(index, ChargeDetailsPage.apply)),
+      Result(chargeAmountsValidation(getMemberName(chargeFields), index, chargeFields), createCommitItem(index, ChargeAmountsPage.apply))
+    )
   }
 }

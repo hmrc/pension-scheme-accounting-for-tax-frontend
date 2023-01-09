@@ -114,7 +114,7 @@ trait Parser {
   protected final def createCommitItem[A](index: Int, page: Int => Gettable[_])(implicit writes: Writes[A]): A => CommitItem =
     a => CommitItem(page(index - 1).path, Json.toJson(a))
 
-  protected final def addToValidationResults[A](resultToBeAdded: Result[A],
+  private def addToValidationResults[A](resultToBeAdded: Result[A],
                                                 validationResults: Either[Seq[ParserValidationError], Seq[CommitItem]]):
   Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     resultToBeAdded.result match {
@@ -136,6 +136,9 @@ trait Parser {
 
   protected final def combineValidationResults[A, B](a: Result[A], b: Result[B]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
     addToValidationResults(b, addToValidationResults(a, Right(Nil)))
+
+  protected final def combineValidationResults[A, B, C](a: Result[A], b: Result[B], c: Result[C]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
+    addToValidationResults(c, addToValidationResults(b, addToValidationResults(a, Right(Nil))))
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 

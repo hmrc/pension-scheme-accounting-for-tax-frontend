@@ -23,7 +23,7 @@ import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
 import models.chargeE.ChargeEDetails
-import models.{CommonQuarters, MemberDetails, YearRange}
+import models.{CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.data.validation.{Invalid, Valid}
@@ -118,11 +118,10 @@ class AnnualAllowanceParser @Inject()(
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    val validationResults = combineValidationResults[MemberDetails, ChargeEDetails](
+    combineValidationResults[MemberDetails, ChargeEDetails, String](
       Result(memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
-      Result(chargeDetailsValidation(startDate, index, chargeFields), createCommitItem(index, ChargeDetailsPage.apply))
+      Result(chargeDetailsValidation(startDate, index, chargeFields), createCommitItem(index, ChargeDetailsPage.apply)),
+      Result(Right(chargeFields(FieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply))
     )
-    addToValidationResults[String](
-      Result(Right(chargeFields(FieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)), validationResults)
   }
 }
