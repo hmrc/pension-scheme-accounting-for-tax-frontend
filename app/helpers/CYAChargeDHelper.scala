@@ -197,7 +197,7 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
     val basicSchemeRows = Seq(
       Row(
         key = Key(msg"${messages(s"mccloud.scheme.cya.ref${pensionsRemedySchemeSummary.schemeIndex}")}"
-          , classes = Seq("govuk-!-width-one-half govuk-heading-m govuk-!-margin-top-7 govuk-!-margin-bottom-7")),
+          , classes = Seq("govuk-!-width-full govuk-heading-m govuk-!-display-block govuk-!-margin-top-7")),
         value = Value(Html(""), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
