@@ -45,11 +45,7 @@ class WhatYouWillNeedController @Inject()(
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
-    schemeDetailsConnector: SchemeDetailsConnector,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    navigator: CompoundNavigator,
-    config: FrontendAppConfig
-)(implicit ec: ExecutionContext)
+    navigator: CompoundNavigator)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
