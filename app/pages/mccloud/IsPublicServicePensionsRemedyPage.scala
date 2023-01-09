@@ -20,9 +20,11 @@ import models.ChargeType
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class IsPublicServicePensionsRemedyPage(chargeType: ChargeType, index: Int) extends QuestionPage[Boolean] {
-  override def path: JsPath =
-    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ IsPublicServicePensionsRemedyPage.toString
+case class IsPublicServicePensionsRemedyPage(chargeType: ChargeType, optIndex: Option[Int]) extends QuestionPage[Boolean] {
+  override def path: JsPath = optIndex match {
+    case Some(index) => JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ IsPublicServicePensionsRemedyPage.toString
+    case None => JsPath \ ChargeType.chargeBaseNode(chargeType) \ "mccloudRemedy" \ IsPublicServicePensionsRemedyPage.toString
+  }
 }
 
 object IsPublicServicePensionsRemedyPage {

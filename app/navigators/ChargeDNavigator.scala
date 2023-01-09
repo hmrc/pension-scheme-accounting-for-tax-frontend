@@ -68,7 +68,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
     case InputSelectionPage(ChargeTypeLifetimeAllowance) =>
       controllers.mccloud.routes.IsPublicServicePensionsRemedyController
-        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
+        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
 
     case pages.fileUpload.WhatYouWillNeedPage(ChargeTypeLifetimeAllowance) =>
       controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
@@ -77,7 +77,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
     case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
 
-    case ChargeDetailsPage(index) => ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index)) match {
+    case ChargeDetailsPage(index) => ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(index))) match {
       case Some(true) =>
         controllers.mccloud.routes.IsChargeInAdditionReportedController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, index)
@@ -124,12 +124,12 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                          startDate: LocalDate,
                                                          accessType: AccessType,
                                                          version: Int,
-                                                         index: Int): Call = {
-    userAnswers.get(InputSelectionPage(ChargeTypeLifetimeAllowance)) match {
-      case Some(ManualInput) =>
+                                                         optIndex: Option[Int]): Call = {
+    (userAnswers.get(InputSelectionPage(ChargeTypeLifetimeAllowance)), optIndex) match {
+      case (Some(ManualInput), Some(index)) =>
         controllers.chargeD.routes.WhatYouWillNeedController
           .onPageLoad(srn, startDate, accessType, version, index)
-      case Some(FileUploadInput) => controllers.fileUpload.routes.WhatYouWillNeedController
+      case (Some(FileUploadInput), None) => controllers.fileUpload.routes.WhatYouWillNeedController
         .onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
       case _           => sessionExpiredPage
     }

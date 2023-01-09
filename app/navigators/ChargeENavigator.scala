@@ -66,9 +66,14 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
-    case InputSelectionPage(ChargeTypeAnnualAllowance) =>
-      controllers.mccloud.routes.IsPublicServicePensionsRemedyController
-        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, nextIndex(ua))
+    case InputSelectionPage(ChargeTypeAnnualAllowance) => ua.get(InputSelectionPage(ChargeTypeAnnualAllowance)) match {
+      case Some(ManualInput) => controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
+      case Some(FileUploadInput) =>
+        println("\n\n\n\nTEST")
+        controllers.mccloud.routes.IsPublicServicePensionsRemedyController.onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, None)
+    }
+
 
 
     // TODO: Refactor magic strings
@@ -79,7 +84,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
     case MemberDetailsPage(index)       => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
-    case ChargeDetailsPage(index) => ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index)) match {
+    case ChargeDetailsPage(index) => ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, Some(index))) match {
       case Some(true) =>
         controllers.mccloud.routes.IsChargeInAdditionReportedController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
@@ -121,12 +126,12 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                          startDate: LocalDate,
                                                          accessType: AccessType,
                                                          version: Int,
-                                                         index: Int): Call = {
-      userAnswers.get(InputSelectionPage(ChargeTypeAnnualAllowance)) match {
-      case Some(ManualInput)=>
+                                                         optIndex: Option[Int]): Call = {
+      (userAnswers.get(InputSelectionPage(ChargeTypeAnnualAllowance)), optIndex) match {
+      case (Some(ManualInput), Some(index))=>
         controllers.chargeE.routes.WhatYouWillNeedController
           .onPageLoad(srn, startDate, accessType, version, index)
-      case Some(FileUploadInput)=>
+      case (Some(FileUploadInput), None)=>
         controllers.fileUpload.routes.WhatYouWillNeedController
           .onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
       case _           => sessionExpiredPage

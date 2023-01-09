@@ -49,7 +49,7 @@ class WhatYouWillNeedController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
-      val psr = ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index))
+      val psr = ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, Some(index)))
       val viewModel = GenericViewModel(
         submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,

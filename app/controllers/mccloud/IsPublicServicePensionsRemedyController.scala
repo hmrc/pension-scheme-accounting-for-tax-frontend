@@ -62,9 +62,10 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
-                 index: Index): Action[AnyContent] =
+                 index: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
+        println("\n\n\nINDEX "+ index)
         DataRetrievals.retrieveSchemeName { schemeName =>
           val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
@@ -102,7 +103,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,
-               index: Index): Action[AnyContent] =
+               index: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
@@ -131,7 +132,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
                 _ <- userAnswersCacheConnector
-                  .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
+                  .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
               } yield
                 Redirect(
                   navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
