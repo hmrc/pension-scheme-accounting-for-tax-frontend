@@ -47,10 +47,10 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   val pensionsRemedySchemeSummaryEmpty = List()
 
-  val pensionsRemedySchemeSummaryWithPstr = List(PensionsRemedySchemeSummary(schemeIndex, Some(pstrNumber), Some(taxYear), Some(taxQuarter)
+  val pensionsRemedySchemeSummaryWithPstr = List(PensionsRemedySchemeSummary(schemeIndex, Some(pstrNumber), Some(dynamicYearRange), Some(taxQuarter)
     , Some(chargeAmountReported)))
 
-  val pensionsRemedySchemeSummary = List(PensionsRemedySchemeSummary(schemeIndex, None, Some(taxYear), Some(taxQuarter)
+  val pensionsRemedySchemeSummary = List(PensionsRemedySchemeSummary(schemeIndex, None, Some(dynamicYearRange), Some(taxQuarter)
     , Some(chargeAmountReported)))
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
@@ -60,7 +60,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val helper = new CYAChargeEHelper(srn, startDate, accessType, versionInt)
 
-  def pensionsRemedySummaryEmpty(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) = {
+  def pstrSummary(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) = {
 
     (isPSR, isChargeInAddition, wasAnotherPensionScheme) match {
       case (false, false, false) =>
@@ -89,7 +89,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
         ua.setOrException(IsPublicServicePensionsRemedyPage(annualAllowanceCharge, 0), isPSR)
           .setOrException(IsChargeInAdditionReportedPage(annualAllowanceCharge, 0), isChargeInAddition)
           .setOrException(WasAnotherPensionSchemePage(annualAllowanceCharge, 0), wasAnotherPensionScheme)
-          .setOrException(TaxYearReportedAndPaidPage(annualAllowanceCharge, 0, None), taxYear)
+          .setOrException(TaxYearReportedAndPaidPage(annualAllowanceCharge, 0, None), dynamicYearRange)
           .setOrException(TaxQuarterReportedAndPaidPage(annualAllowanceCharge, 0, None), taxQuarter)
           .setOrException(ChargeAmountReportedPage(annualAllowanceCharge, 0, None), chargeAmountReported)
       case (true, true, true) =>
@@ -97,7 +97,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
           .setOrException(IsChargeInAdditionReportedPage(annualAllowanceCharge, 0), isChargeInAddition)
           .setOrException(WasAnotherPensionSchemePage(annualAllowanceCharge, 0), wasAnotherPensionScheme)
           .setOrException(EnterPstrPage(annualAllowanceCharge, 0, 0), pstrNumber)
-          .setOrException(TaxYearReportedAndPaidPage(annualAllowanceCharge, 0, Some(0)), taxYear)
+          .setOrException(TaxYearReportedAndPaidPage(annualAllowanceCharge, 0, Some(0)), dynamicYearRange)
           .setOrException(TaxQuarterReportedAndPaidPage(annualAllowanceCharge, 0, Some(0)), taxQuarter)
           .setOrException(ChargeAmountReportedPage(annualAllowanceCharge, 0, Some(0)), chargeAmountReported)
     }
@@ -111,8 +111,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.chargeEMemberDetails(0, memberDetails),
       helper.chargeETaxYear(0, dynamicYearRange),
       helper.chargeEDetails(0, chargeEDetails),
-      helper.psprChargeEDetails(0, pensionsRemedySummaryEmpty(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
-      helper.psprSchemesChargeEDetails(0, pensionsRemedySummaryEmpty(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
+      helper.psprChargeEDetails(0, pstrSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
+      helper.psprSchemesChargeEDetails(0, pstrSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
     ).flatten
   }
 
@@ -164,13 +164,13 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     )
   }
 
-//  "CheckYourAnswers Controller for PSR (true, true, true)" must {
-//
-//    behave like cyaController(
-//      httpPath = httpGETRoute,
-//      templateToBeRendered = templateToBeRendered,
-//      jsonToPassToTemplate = jsonToPassToTemplate(true, true, true),
-//      userAnswers = updateUserAnswers(ua, true, true, true)
-//    )
-//  }
+  "CheckYourAnswers Controller for PSR (true, true, true)" must {
+
+    behave like cyaController(
+      httpPath = httpGETRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate(true, true, true),
+      userAnswers = updateUserAnswers(ua, true, true, true)
+    )
+  }
 }
