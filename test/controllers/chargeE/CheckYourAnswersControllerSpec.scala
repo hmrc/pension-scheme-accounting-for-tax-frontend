@@ -21,9 +21,11 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import helpers.CYAChargeEHelper
 import matchers.JsonMatchers
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.{UserAnswers, YearRange}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
+import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, WasAnotherPensionSchemePage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
@@ -31,10 +33,12 @@ import utils.DateHelper
 import java.time.LocalDate
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
+  //scalastyle:off magic.number
 
   private val dynamicYearRange = YearRange("2019")
 
   private val templateToBeRendered = "check-your-answers.njk"
+  private val annualAllowanceCharge = ChargeTypeAnnualAllowance
 
   private def httpGETRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
   private def httpOnClickRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt, 0).url
@@ -46,9 +50,12 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val helper = new CYAChargeEHelper(srn, startDate, accessType, versionInt)
   private val rows = Seq(
+    helper.isPsprForChargeE(0, pensionsRemedySummaryEmpty),
     helper.chargeEMemberDetails(0, memberDetails),
     helper.chargeETaxYear(0, dynamicYearRange),
-    helper.chargeEDetails(0, chargeEDetails)
+    helper.chargeEDetails(0, chargeEDetails),
+    helper.psprChargeEDetails(0, pensionsRemedySummaryEmpty).getOrElse(None),
+    helper.psprSchemesChargeEDetails(0, pensionsRemedySummaryEmpty, wasAnotherPensionSchemeVal)
   ).flatten
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
@@ -62,7 +69,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate,
-      userAnswers = ua
+      userAnswers = ua.set(IsPublicServicePensionsRemedyPage(annualAllowanceCharge, 0), false).toOption.get
     )
 
     behave like controllerWithOnClick(

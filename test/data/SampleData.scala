@@ -25,7 +25,8 @@ import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement._
-import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.mccloud.{PensionsRemedySchemeSummary, PensionsRemedySummary}
+import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers, YearRange}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -69,6 +70,20 @@ object SampleData {
   val version = "1"
   val versionInt = 1
   val version2Int = 2
+
+  val pstrNumber = "12345678RA"
+  val taxYear = new YearRange("2020")
+  val taxQuarter: AFTQuarter = AFTQuarter(LocalDate.of(2020, 1, 1), LocalDate.of(2020, 3, 31))
+  val chargeAmountReported = BigDecimal(83.44)
+  val wasAnotherPensionSchemeVal = false
+
+  val pensionsRemedySchemeSummaryEmpty = List()
+  val pensionsRemedySummaryEmpty = PensionsRemedySummary(Some(false),
+    Some(false), Some(false), pensionsRemedySchemeSummaryEmpty)
+
+  val pensionsRemedySchemeSummary = List(PensionsRemedySchemeSummary(
+    schemeIndex, Some(pstrNumber), Some(taxYear), Some(taxQuarter), Some(chargeAmountReported)))
+
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)
