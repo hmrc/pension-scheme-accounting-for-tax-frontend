@@ -20,9 +20,9 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeE.routes._
+import controllers.mccloud.routes
 import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.ChargeType.ChargeTypeAnnualAllowance
-import models.Index._
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
@@ -46,7 +46,9 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = ua.get(AddMembersPage) match {
-    case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
+    case Some(true) =>
+      routes.IsPublicServicePensionsRemedyController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
   }
 
@@ -71,6 +73,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
       case Some(FileUploadInput) => controllers.mccloud.routes.IsPublicServicePensionsRemedyController
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, None)
+      case _ => sessionExpiredPage
     }
 
 
@@ -126,13 +129,15 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                          accessType: AccessType,
                                                          version: Int,
                                                          optIndex: Option[Int]): Call = {
-      (userAnswers.get(InputSelectionPage(ChargeTypeAnnualAllowance)), optIndex) match {
-      case (Some(ManualInput), Some(index))=>
+      (userAnswers.get(InputSelectionPage(ChargeTypeAnnualAllowance)), userAnswers.get(AddMembersPage), optIndex) match {
+      case (Some(ManualInput), None, Some(index))=>
         controllers.chargeE.routes.WhatYouWillNeedController
           .onPageLoad(srn, startDate, accessType, version, index)
-      case (Some(FileUploadInput), None)=>
+      case (Some(FileUploadInput), None, None)=>
         controllers.fileUpload.routes.WhatYouWillNeedController
           .onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
+      case (Some(FileUploadInput) | Some(ManualInput), Some(true), Some(index))=>
+        MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
       case _           => sessionExpiredPage
     }
   }

@@ -74,7 +74,10 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             schemeName = schemeName
           )
 
-          val manualOrfileUploadPSRQuestion = request.userAnswers.get(InputSelectionPage(chargeType))
+          val( heading, title ) = index match {
+            case Some(_) => Tuple2("isPublicServicePensionsRemedy.heading", "isPublicServicePensionsRemedy.title")
+            case None => Tuple2("isPublicServicePensionsRemedyBulk.heading", "isPublicServicePensionsRemedyBulk.title")
+          }
 
           val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
             case None        => form(chargeTypeDescription)
@@ -88,7 +91,8 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             "viewModel" -> viewModel,
             "radios" -> Radios.yesNo(preparedForm("value")),
             "chargeTypeDescription" -> chargeTypeDescription,
-            "manualOrfileUploadPSRQuestion" -> manualOrfileUploadPSRQuestion
+            "heading" -> heading,
+            "title" -> title
           )
 
           renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(Ok(_))
@@ -116,13 +120,21 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
+
+              val( heading, title ) = index match {
+                case Some(_) => Tuple2("isPublicServicePensionsRemedy.heading", "isPublicServicePensionsRemedy.title")
+                case None => Tuple2("isPublicServicePensionsRemedyBulk.heading", "isPublicServicePensionsRemedyBulk.title")
+              }
+
               val json = Json.obj(
                 "srn" -> srn,
                 "startDate" -> Some(localDateToString(startDate)),
                 "form" -> formWithErrors,
                 "viewModel" -> viewModel,
                 "radios" -> Radios.yesNo(formWithErrors("value")),
-                "chargeTypeDescription" -> chargeTypeDescription
+                "chargeTypeDescription" -> chargeTypeDescription,
+                "heading" -> heading,
+                "title" -> title
               )
               renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
 

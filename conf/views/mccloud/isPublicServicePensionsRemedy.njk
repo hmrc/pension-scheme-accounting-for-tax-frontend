@@ -6,10 +6,8 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 
-{% set headerTitle = ('isPublicServicePensionsRemedy' if manualOrfileUploadPSRQuestion == "manualInput" else 'isPublicServicePensionsRemedyBulk') %}
-
 {% block pageTitle %}
-  {{ title(messages(headerTitle+".title", chargeTypeDescription), form.errors) }}
+  {{ title(messages(title, chargeTypeDescription), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -34,7 +32,7 @@
             name: 'value',
             fieldset: {
               legend: {
-                text: messages(headerTitle+'.heading', chargeTypeDescription),
+                text: messages(heading, chargeTypeDescription),
                 isPageHeading: true,
                 classes: "govuk-fieldset__legend--xl"
               }
