@@ -26,7 +26,6 @@ import models.chargeG.{ChargeAmounts, ChargeDetails, MemberDetails}
 import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.Json
 
 import java.time.LocalDate
 
@@ -117,27 +116,10 @@ class OverseasTransferParser @Inject()(
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    val memberName = getMemberName(chargeFields)
-
-    val validatedMemberDetails = addToValidationResults[MemberDetails](
-      chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
-      Right(Nil),
-      MemberDetailsPage(index - 1).path,
-      Json.toJson(_)
-    )
-
-    val validatedMemberDetailsPlusChargeDetails = addToValidationResults[ChargeDetails](
-      chargeDetailsValidation(startDate, index, chargeFields),
-      validatedMemberDetails,
-      ChargeDetailsPage(index - 1).path,
-      Json.toJson(_)
-    )
-
-    addToValidationResults[ChargeAmounts](
-      chargeAmountsValidation(memberName, index, chargeFields),
-      validatedMemberDetailsPlusChargeDetails,
-      ChargeAmountsPage(index - 1).path,
-      Json.toJson(_)
+    combineValidationResults[MemberDetails, ChargeDetails, ChargeAmounts](
+      Result(chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
+      Result(chargeDetailsValidation(startDate, index, chargeFields), createCommitItem(index, ChargeDetailsPage.apply)),
+      Result(chargeAmountsValidation(getMemberName(chargeFields), index, chargeFields), createCommitItem(index, ChargeAmountsPage.apply))
     )
   }
 }
