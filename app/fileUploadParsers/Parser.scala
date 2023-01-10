@@ -115,7 +115,7 @@ trait Parser {
     a => CommitItem(page(index - 1).path, Json.toJson(a))
 
   private def addToValidationResults[A](resultToBeAdded: Result[A],
-                                                validationResults: Either[Seq[ParserValidationError], Seq[CommitItem]]):
+                                        validationResults: Either[Seq[ParserValidationError], Seq[CommitItem]]):
   Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     resultToBeAdded.result match {
       case Left(resultAErrors) =>
@@ -139,6 +139,15 @@ trait Parser {
 
   protected final def combineValidationResults[A, B, C](a: Result[A], b: Result[B], c: Result[C]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
     addToValidationResults(c, addToValidationResults(b, addToValidationResults(a, Right(Nil))))
+
+  protected final def combineValidationResults[A, B, C, D](a: Result[A], b: Result[B], c: Result[C], d: Result[D])
+  : Either[Seq[ParserValidationError], Seq[CommitItem]] =
+    addToValidationResults(d, addToValidationResults(c, addToValidationResults(b, addToValidationResults(a, Right(Nil)))))
+
+  protected final def combineValidationResults[A, B, C, D, E](a: Result[A], b: Result[B], c: Result[C], d: Result[D], e: Result[E])
+  : Either[Seq[ParserValidationError], Seq[CommitItem]] =
+    addToValidationResults(e, addToValidationResults(d, addToValidationResults(c,
+      addToValidationResults(b, addToValidationResults(a, Right(Nil))))))
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 
