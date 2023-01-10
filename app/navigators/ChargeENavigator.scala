@@ -130,14 +130,14 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                          version: Int,
                                                          optIndex: Option[Int]): Call = {
       (userAnswers.get(InputSelectionPage(ChargeTypeAnnualAllowance)), userAnswers.get(AddMembersPage), optIndex) match {
-      case (Some(ManualInput), None, Some(index))=>
-        controllers.chargeE.routes.WhatYouWillNeedController
-          .onPageLoad(srn, startDate, accessType, version, index)
-      case (Some(FileUploadInput), None, None)=>
-        controllers.fileUpload.routes.WhatYouWillNeedController
-          .onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
       case (Some(FileUploadInput) | Some(ManualInput), Some(true), Some(index))=>
         MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
+      case (Some(FileUploadInput), _, None)=>
+        controllers.fileUpload.routes.WhatYouWillNeedController
+          .onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
+      case (Some(ManualInput), _, Some(index))=>
+        controllers.chargeE.routes.WhatYouWillNeedController
+          .onPageLoad(srn, startDate, accessType, version, index)
       case _           => sessionExpiredPage
     }
   }
