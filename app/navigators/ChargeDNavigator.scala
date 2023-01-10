@@ -31,6 +31,7 @@ import pages.Page
 import pages.chargeD._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import pages.mccloud._
+import controllers.mccloud.routes
 import play.api.libs.json.JsArray
 import play.api.mvc.{AnyContent, Call}
 
@@ -46,7 +47,9 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails").size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = ua.get(AddMembersPage) match {
-    case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
+    case Some(true) =>
+      routes.IsPublicServicePensionsRemedyController
+        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
   }
 
@@ -129,16 +132,16 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                          accessType: AccessType,
                                                          version: Int,
                                                          optIndex: Option[Int]): Call = {
-    (userAnswers.get(InputSelectionPage(ChargeTypeLifetimeAllowance)), optIndex) match {
-      case (Some(ManualInput), Some(index)) =>
+    (userAnswers.get(InputSelectionPage(ChargeTypeLifetimeAllowance)), userAnswers.get(AddMembersPage), optIndex) match {
+      case (Some(ManualInput), None, Some(index)) =>
         controllers.chargeD.routes.WhatYouWillNeedController
           .onPageLoad(srn, startDate, accessType, version, index)
-      case (Some(FileUploadInput), None) =>
+      case (Some(FileUploadInput), None, None) =>
         controllers.fileUpload.routes.WhatYouWillNeedController
         .onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
-      case _           =>
-        println("\n\n\n = "+ userAnswers.get(InputSelectionPage(ChargeTypeLifetimeAllowance)), optIndex )
-        sessionExpiredPage
+      case (Some(FileUploadInput)| Some(ManualInput), Some(true), Some(index)) =>
+        MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
+      case _           => sessionExpiredPage
     }
   }
 
