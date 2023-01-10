@@ -25,8 +25,7 @@ import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement._
-import models.mccloud.{PensionsRemedySchemeSummary, PensionsRemedySummary}
-import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers, YearRange}
+import models._
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}

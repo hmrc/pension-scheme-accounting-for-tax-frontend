@@ -45,13 +45,13 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private def httpOnClickRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt, 0).url
 
-  val pensionsRemedySchemeSummaryEmpty = List()
+  val pensionsRemedySchemeSummaryEmpty: List[Nothing] = List()
 
-  val pensionsRemedySchemeSummaryWithPstr = List(PensionsRemedySchemeSummary(schemeIndex, Some(pstrNumber), Some(dynamicYearRange), Some(taxQuarter)
-    , Some(chargeAmountReported)))
+  val pensionsRemedySchemeSummaryWithPstr: List[PensionsRemedySchemeSummary] =
+    List(PensionsRemedySchemeSummary(schemeIndex, Some(pstrNumber), Some(dynamicYearRange), Some(taxQuarter), Some(chargeAmountReported)))
 
-  val pensionsRemedySchemeSummary = List(PensionsRemedySchemeSummary(schemeIndex, None, Some(dynamicYearRange), Some(taxQuarter)
-    , Some(chargeAmountReported)))
+  val pensionsRemedySchemeSummary: List[PensionsRemedySchemeSummary] =
+    List(PensionsRemedySchemeSummary(schemeIndex, None, Some(dynamicYearRange), Some(taxQuarter), Some(chargeAmountReported)))
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).toOption.get
@@ -60,13 +60,13 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val helper = new CYAChargeEHelper(srn, startDate, accessType, versionInt)
 
-  def pstrSummary(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) = {
+  def psprSummary(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean): PensionsRemedySummary = {
 
     (isPSR, isChargeInAddition, wasAnotherPensionScheme) match {
-      case (false, false, false) =>
+      case (false, _, _) =>
         PensionsRemedySummary(Some(isPSR),
           Some(isChargeInAddition), Some(wasAnotherPensionScheme), pensionsRemedySchemeSummaryEmpty)
-      case (true, false, false) =>
+      case (true, false, _) =>
         PensionsRemedySummary(Some(isPSR),
           Some(isChargeInAddition), Some(wasAnotherPensionScheme), pensionsRemedySchemeSummaryEmpty)
       case (true, true, false) =>
@@ -81,8 +81,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def updateUserAnswers(ua: UserAnswers, isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean): UserAnswers = {
 
     (isPSR, isChargeInAddition, wasAnotherPensionScheme) match {
-      case (false, false, false) => ua.setOrException(IsPublicServicePensionsRemedyPage(annualAllowanceCharge, 0), isPSR)
-      case (true, false, false) =>
+      case (false, _, _) => ua.setOrException(IsPublicServicePensionsRemedyPage(annualAllowanceCharge, 0), isPSR)
+      case (true, false, _) =>
         ua.setOrException(IsPublicServicePensionsRemedyPage(annualAllowanceCharge, 0), isPSR)
           .setOrException(IsChargeInAdditionReportedPage(annualAllowanceCharge, 0), isChargeInAddition)
       case (true, true, false) =>
@@ -101,7 +101,6 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
           .setOrException(TaxQuarterReportedAndPaidPage(annualAllowanceCharge, 0, Some(0)), taxQuarter)
           .setOrException(ChargeAmountReportedPage(annualAllowanceCharge, 0, Some(0)), chargeAmountReported)
     }
-
   }
 
   private def rows(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) = {
@@ -111,8 +110,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.chargeEMemberDetails(0, memberDetails),
       helper.chargeETaxYear(0, dynamicYearRange),
       helper.chargeEDetails(0, chargeEDetails),
-      helper.psprChargeEDetails(0, pstrSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
-      helper.psprSchemesChargeEDetails(0, pstrSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
+      helper.psprChargeEDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
+      helper.psprSchemesChargeEDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
     ).flatten
   }
 
@@ -127,8 +126,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(false, false, false),
-      userAnswers = updateUserAnswers(ua, false, false, false)
+      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false),
+      userAnswers = updateUserAnswers(ua, isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false)
     )
 
     behave like controllerWithOnClick(
@@ -149,8 +148,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(true, false, false),
-      userAnswers = updateUserAnswers(ua, true, false, false)
+      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false),
+      userAnswers = updateUserAnswers(ua, isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false)
     )
   }
 
@@ -159,8 +158,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(true, true, false),
-      userAnswers = updateUserAnswers(ua, true, true, false)
+      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false),
+      userAnswers = updateUserAnswers(ua, isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false)
     )
   }
 
@@ -169,8 +168,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(true, true, true),
-      userAnswers = updateUserAnswers(ua, true, true, true)
+      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true),
+      userAnswers = updateUserAnswers(ua, isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true)
     )
   }
 }
