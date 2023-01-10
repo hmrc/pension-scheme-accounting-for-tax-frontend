@@ -14,32 +14,40 @@
  * limitations under the License.
  */
 
-package forms
+package forms.mccloud
 
-import forms.behaviours.BooleanFieldBehaviours
+import forms.behaviours.StringFieldBehaviours
 import play.api.data.FormError
 
-class DeleteFormProviderSpec extends BooleanFieldBehaviours {
+class EnterPstrFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "Select yes if you want to remove the annual allowance charge for first last"
-  val invalidKey = "error.boolean"
+  val pstrRegx = """^[0-9]{8}[Rr][A-Za-z]{1}$"""
 
-  val form = new DeleteFormProvider()(requiredKey)
+  private val form = new EnterPstrFormProvider().apply()
 
   ".value" must {
 
     val fieldName = "value"
+    val requiredKey = "enterPstr.error.required"
+    val invalidKey = "enterPstr.error.invalid"
 
-    behave like booleanField(
-      form,
-      fieldName,
-      invalidError = FormError(fieldName, invalidKey)
-    )
+    "bind valid data" in {
+      val validValue = "12345678RA"
+      val result = form.bind(Map(fieldName -> validValue)).apply(fieldName)
+      result.value.value mustBe validValue
+    }
 
     behave like mandatoryField(
       form,
       fieldName,
       requiredError = FormError(fieldName, requiredKey)
+    )
+
+    behave like fieldWithRegex(
+      form,
+      fieldName,
+      invalidValues = Seq("11111111", "$5%d122s"),
+      invalidError = FormError(fieldName, invalidKey, Seq(pstrRegx))
     )
   }
 }

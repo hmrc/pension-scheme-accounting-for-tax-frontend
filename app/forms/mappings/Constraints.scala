@@ -28,6 +28,7 @@ trait Constraints {
   private val regexCrn = "^[A-Za-z0-9 -]{8}$"
   val addressLineRegex = """^[A-Za-z0-9 \-,.&'\/]{1,35}$"""
   val psaIdRegex = "^A[0-9]{7}$"
+  val pstrRegx = """^[0-9]{8}[Rr][A-Za-z]{1}$"""
 
 
   protected def year(minYear: Int,
@@ -187,9 +188,8 @@ trait Constraints {
 
   protected def futureDate(invalidKey: String): Constraint[LocalDate] =
     Constraint {
-      case date if date.isAfter(DateHelper.today) => {
+      case date if date.isAfter(DateHelper.today) =>
         Invalid(invalidKey)
-      }
       case _ => Valid
     }
 

@@ -49,6 +49,7 @@ object SampleData {
   val accessType = Draft
   val pstr = "pstr"
   val schemeName = "Big Scheme"
+  val schemeIndex = 0
   val companyName = "Big Company"
   val crn = "AB121212"
   val dummyCall: Call = Call("GET", "/foo")
@@ -191,6 +192,7 @@ object SampleData {
         compiledVersionAvailable = false
       )))
 
+  val q12020: AFTQuarter = AFTQuarter(LocalDate.of(2020, 1, 1), LocalDate.of(2020, 3, 31))
   val q22020: AFTQuarter = AFTQuarter(LocalDate.of(2020, 4, 1), LocalDate.of(2020, 6, 30))
   val q32020: AFTQuarter = AFTQuarter(LocalDate.of(2020, 7, 1), LocalDate.of(2020, 9, 30))
   val q42020: AFTQuarter = AFTQuarter(LocalDate.of(2020, 10, 1), LocalDate.of(2020, 12, 31))
@@ -199,7 +201,17 @@ object SampleData {
   val displayQuarterLocked: DisplayQuarter = DisplayQuarter(q32020, displayYear = false, Some(psaId), Some(LockedHint))
   val displayQuarterContinueAmend: DisplayQuarter = DisplayQuarter(q42020, displayYear = true, None, Some(InProgressHint))
   val displayQuarterViewPast: DisplayQuarter = DisplayQuarter(q22020, displayYear = false, None, Some(SubmittedHint))
-  val displayQuarterStart: DisplayQuarter = DisplayQuarter(q12021, displayYear = false, None, None)
+  val displayQuarterStart: DisplayQuarter =
+    DisplayQuarter(q12021, displayYear = false, None, None)
+
+
+  val xx: Seq[DisplayQuarter] =
+    Seq(
+      DisplayQuarter(q12020, displayYear = false, None, None),
+      DisplayQuarter(q22020, displayYear = false, None, None),
+      DisplayQuarter(q32020, displayYear = false, None, None),
+      DisplayQuarter(q42020, displayYear = false, None, None)
+    )
 
   val aftOverviewQ22020: AFTOverview =
     AFTOverview(q22020.startDate, q22020.endDate,

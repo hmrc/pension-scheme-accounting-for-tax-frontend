@@ -42,11 +42,17 @@ object ChargeType extends Enumerable.Implicits {
   }
 
   case object ChargeTypeAnnualAllowance extends WithName("annualAllowance") with ChargeType
+
   case object ChargeTypeAuthSurplus extends WithName("authSurplus") with ChargeType
+
   case object ChargeTypeDeRegistration extends WithName("deRegistration") with ChargeType
+
   case object ChargeTypeLifetimeAllowance extends WithName("lifeTimeAllowance") with ChargeType
+
   case object ChargeTypeOverseasTransfer extends WithName("overseasTransfer") with ChargeType
+
   case object ChargeTypeShortService extends WithName("shortService") with ChargeType
+
   case object ChargeTypeLumpSumDeath extends WithName("lumpSumDeath") with ChargeType
 
   val values: Seq[ChargeType] = Seq(
@@ -77,17 +83,24 @@ object ChargeType extends Enumerable.Implicits {
 
   def fileUploadText(chargeType: ChargeType)(implicit messages: Messages): String = {
     chargeType match {
-      case ChargeTypeAnnualAllowance   => messages("fileupload.annualAllowance")
+      case ChargeTypeAnnualAllowance => messages("fileupload.annualAllowance")
       case ChargeTypeLifetimeAllowance => messages("fileupload.lifeTimeAllowance")
-      case ChargeTypeOverseasTransfer  => messages("fileupload.overseasTransfer")
-      case ChargeTypeAuthSurplus  => messages("fileupload.authSurplus")
-      case ChargeTypeDeRegistration  => messages("fileupload.deRegistration")
-      case ChargeTypeShortService  => messages("fileupload.shortService")
-      case ChargeTypeLumpSumDeath  => messages("fileupload.lumpSumDeath")
-      case _                           => chargeType.toString
+      case ChargeTypeOverseasTransfer => messages("fileupload.overseasTransfer")
+      case ChargeTypeAuthSurplus => messages("fileupload.authSurplus")
+      case ChargeTypeDeRegistration => messages("fileupload.deRegistration")
+      case ChargeTypeShortService => messages("fileupload.shortService")
+      case ChargeTypeLumpSumDeath => messages("fileupload.lumpSumDeath")
+      case _ => chargeType.toString
     }
   }
 
   implicit val enumerable: Enumerable[ChargeType] =
     Enumerable(values.map(v => v.toString -> v): _*)
+
+  def chargeBaseNode(chargeType: ChargeType): String =
+    chargeType match {
+      case ChargeTypeAnnualAllowance => "chargeEDetails"
+      case ChargeTypeLifetimeAllowance => "chargeDDetails"
+      case _ => throw new RuntimeException(s"Invalid charge type $chargeType")
+    }
 }

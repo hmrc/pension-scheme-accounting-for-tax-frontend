@@ -78,6 +78,22 @@ trait CommonQuarters {
     }
   }
 
+  def getAllQuartersForYear(year: Int): Seq[DisplayQuarter] = {
+    Seq(
+      getQuarter(Q1, year),
+      getQuarter(Q2, year),
+      getQuarter(Q3, year),
+      getQuarter(Q4, year)
+    ).map { aftQuarter =>
+      DisplayQuarter(
+        quarter = aftQuarter,
+        displayYear = false,
+        lockedBy = None,
+        hintText = None
+      )
+    }
+  }
+
   def getQuarter(quarter: QuarterType, year: Int): AFTQuarter = {
     AFTQuarter(LocalDate.of(year, quarter.startMonth, quarter.startDay),
       LocalDate.of(year, quarter.endMonth, quarter.endDay))
@@ -112,7 +128,6 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
   def radios(form: Form[_], displayQuarters: Seq[DisplayQuarter], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
             (implicit messages: Messages): Seq[Radios.Item] = {
     val x: Seq[Radio] = displayQuarters.map { displayQuarter =>
-
       Radios.Radio(label = getLabel(displayQuarter),
         value = displayQuarter.quarter.toString,
         hint = getHint(displayQuarter, hintClass),

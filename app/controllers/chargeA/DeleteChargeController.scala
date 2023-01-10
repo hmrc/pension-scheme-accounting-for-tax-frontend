@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.DeleteFormProvider
+import forms.YesNoFormProvider
 import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
 import models.{AccessType, GenericViewModel, NormalMode, UserAnswers}
@@ -48,7 +48,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
                                        deleteAFTChargeService: DeleteAFTChargeService,
-                                       formProvider: DeleteFormProvider,
+                                       formProvider: YesNoFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
