@@ -24,7 +24,7 @@ import data.SampleData.{accessType, versionInt}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.{CheckMode, NormalMode, UserAnswers, YearRange}
 import org.scalatest.prop.TableFor3
 import pages.chargeD._
 import pages.fileUpload.InputSelectionPage
@@ -36,9 +36,12 @@ import utils.AFTConstants.QUARTER_START_DATE
 class ChargeDNavigatorSpec extends NavigatorBehaviour {
 
   import ChargeDNavigatorSpec._
+
   private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
+
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
+  //scalastyle:off method.length
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
@@ -54,8 +57,8 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
           Some(publicPensionRemedyYes)
         ),
         row(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
-                                                                                  .onPageLoad(srn, startDate, accessType, versionInt, index),
-                                                                                Some(chargeInAdditionReportedNo)),
+          .onPageLoad(srn, startDate, accessType, versionInt, index),
+          Some(chargeInAdditionReportedNo)),
         row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(
           EnterPstrController
             .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex),
@@ -87,8 +90,8 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeDMember)),
         row(InputSelectionPage(ChargeTypeLifetimeAllowance))(controllers.chargeD.routes.WhatYouWillNeedController
-                                                               .onPageLoad(srn, startDate, accessType, versionInt),
-                                                             Some(manualInput)),
+          .onPageLoad(srn, startDate, accessType, versionInt),
+          Some(manualInput)),
         row(InputSelectionPage(ChargeTypeLifetimeAllowance))(
           controllers.fileUpload.routes.WhatYouWillNeedController
             .onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance),
@@ -104,9 +107,51 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
       Table(
         ("Id", "UserAnswers", "Next Page"),
         row(MemberDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index)),
-        row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index))
+        row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index)),
+        row(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index))(
+          IsChargeInAdditionReportedController
+            .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, index),
+          Some(publicPensionRemedyYes)),
+        row(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index),
+          Some(publicPensionRemedyNo)),
+        row(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index))(
+          WasAnotherPensionSchemeController
+            .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, index),
+          Some(chargeInAdditionReportedYes)),
+        row(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index),
+          Some(chargeInAdditionReportedNo)),
+        row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(
+          EnterPstrController
+            .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, index, schemeIndex),
+          Some(wasAnotherPensionSchemeYes)),
+        row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(TaxYearReportedAndPaidController
+          .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, index, None),
+          Some(wasAnotherPensionSchemeNo)),
+        row(EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex))(
+          CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index), Some(taxYearReported)),
+        row(EnterPstrPage(ChargeTypeLifetimeAllowance, index, schemeIndex))(TaxYearReportedAndPaidController
+          .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, index, Some(schemeIndex))),
+        row(TaxYearReportedAndPaidPage(ChargeTypeLifetimeAllowance, index, Some(schemeIndex)))(
+          TaxQuarterReportedAndPaidController
+            .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, index, Some(schemeIndex))),
+        row(TaxQuarterReportedAndPaidPage(ChargeTypeLifetimeAllowance, index, Some(schemeIndex)))(
+          CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index), Some(chargeAmount)),
+        row(TaxQuarterReportedAndPaidPage(ChargeTypeLifetimeAllowance, index, Some(schemeIndex)))(ChargeAmountReportedController
+          .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, index, Some(schemeIndex))),
+        row(ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, index, Some(schemeIndex)))(
+          CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index)),
+        row(ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, index, None))(
+          CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index)),
+        row(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index, schemeIndex))(
+          EnterPstrController
+            .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, index, schemeIndex = 1),
+          isAnotherSchemeYes),
+        row(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index, schemeIndex))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index),
+          isAnotherSchemeNo)
       )
-
     behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn, startDate, accessType, versionInt)
   }
 
@@ -129,8 +174,13 @@ object ChargeDNavigatorSpec {
   private val manualInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), ManualInput)
   private val fileUploadInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), FileUploadInput)
   private val publicPensionRemedyYes = UserAnswers().setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, 0), true)
+  private val publicPensionRemedyNo = UserAnswers().setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, 0), false)
+  private val chargeInAdditionReportedYes = UserAnswers().setOrException(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, 0), true)
   private val chargeInAdditionReportedNo = UserAnswers().setOrException(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, 0), false)
-
+  private val wasAnotherPensionSchemeYes = UserAnswers().setOrException(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, 0), true)
+  private val wasAnotherPensionSchemeNo = UserAnswers().setOrException(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, 0), false)
+  private val taxYearReported = UserAnswers().setOrException(TaxYearReportedAndPaidPage(ChargeTypeLifetimeAllowance, 0, Some(0)), YearRange("2019"))
+  private val chargeAmount = UserAnswers().setOrException(ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, 0, Some(0)), SampleData.chargeAmountReported)
   private val isAnotherSchemeYes = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, 0, 0), true).toOption
   private val isAnotherSchemeNo = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, 0, 0), false).toOption
   private val enterPSTRValue = UserAnswers().set(EnterPstrPage(ChargeTypeLifetimeAllowance, 0, 0), "20123456RQ").toOption
