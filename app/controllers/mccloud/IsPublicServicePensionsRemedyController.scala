@@ -53,8 +53,12 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
-    formProvider(messages("isPublicServicePensionsRemedy.error.required", memberName))
+  private def form(memberName: String, optIndex: Option[Index])(implicit messages: Messages): Form[Boolean] = {
+    optIndex match {
+      case Some(_) => formProvider(messages("isPublicServicePensionsRemedy.error.required", memberName))
+      case None => formProvider(messages("isPublicServicePensionsRemedyBulk.error.required", memberName))
+    }
+  }
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
@@ -80,8 +84,8 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
           }
 
           val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
-            case None        => form(chargeTypeDescription)
-            case Some(value) => form(chargeTypeDescription).fill(value)
+            case None        => form(chargeTypeDescription, index)
+            case Some(value) => form(chargeTypeDescription, index).fill(value)
           }
 
           val json = Json.obj(
@@ -91,8 +95,8 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             "viewModel" -> viewModel,
             "radios" -> Radios.yesNo(preparedForm("value")),
             "chargeTypeDescription" -> chargeTypeDescription,
-            "heading" -> heading,
-            "title" -> title
+            "manOrBulkHeading" -> heading,
+            "manOrBulkTitle" -> title
           )
 
           renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(Ok(_))
@@ -110,7 +114,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
-        form(chargeTypeDescription)
+        form(chargeTypeDescription, index)
           .bindFromRequest()
           .fold(
             formWithErrors => {
@@ -133,8 +137,8 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                 "viewModel" -> viewModel,
                 "radios" -> Radios.yesNo(formWithErrors("value")),
                 "chargeTypeDescription" -> chargeTypeDescription,
-                "heading" -> heading,
-                "title" -> title
+                "manOrBulkHeading" -> heading,
+                "manOrBulkTitle" -> title
               )
               renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
 
