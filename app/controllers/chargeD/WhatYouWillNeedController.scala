@@ -16,9 +16,6 @@
 
 package controllers.chargeD
 
-import config.FrontendAppConfig
-import connectors.SchemeDetailsConnector
-import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
@@ -53,7 +50,10 @@ class WhatYouWillNeedController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
 
-      val psr = ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(index)))
+      val psr = ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(index))) match {
+      case Some(true) => Some("chargeD.whatYouWillNeed.li6")
+      case _ => None
+    }
       val viewModel = GenericViewModel(
         submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,

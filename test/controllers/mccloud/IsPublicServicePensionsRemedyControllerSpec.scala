@@ -61,12 +61,12 @@ class IsPublicServicePensionsRemedyControllerSpec
 
   private def httpPathGET: String =
     routes.IsPublicServicePensionsRemedyController
-      .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+      .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(0))
       .url
 
   private def httpPathPOST: String =
     routes.IsPublicServicePensionsRemedyController
-      .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+      .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(0))
       .url
 
   private val viewModel = GenericViewModel(

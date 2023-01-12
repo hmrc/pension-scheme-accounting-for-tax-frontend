@@ -18,6 +18,7 @@ package navigators
 
 import config.FrontendAppConfig
 import controllers.chargeE.routes._
+import controllers.mccloud.routes
 import controllers.mccloud.routes._
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
@@ -45,20 +46,17 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
+        row(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, Some(index)))(controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, index),
+        Some(publicPensionRemedyYes)),
         row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(MemberDetailsPage(index))(AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(AnnualAllowanceYearPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
-        row(ChargeDetailsPage(index))(
-          IsPublicServicePensionsRemedyController
-            .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index)),
-        row(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index))(
-          IsChargeInAdditionReportedController
-            .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index),
-          Some(publicPensionRemedyYes)
-        ),
-        row(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index))(CheckYourAnswersController
-                                                                                .onPageLoad(srn, startDate, accessType, versionInt, index),
-                                                                              Some(chargeInAdditionReportedNo)),
+        row(ChargeDetailsPage(index))(controllers.mccloud.routes.IsChargeInAdditionReportedController.onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index),
+        Some(publicPensionRemedyYes)),
+        row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index),
+        Some(publicPensionRemedyNo)),
+        row(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index))(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index),
+        Some(chargeInAdditionReportedNo)),
         row(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index))(
           EnterPstrController
             .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex),
@@ -82,17 +80,18 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
                                                                                           .onPageLoad(srn, startDate, accessType, versionInt, index),
                                                                                         isAnotherSchemeNo),
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
-        row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), addMembersYes),
+        row(AddMembersPage)(routes.IsPublicServicePensionsRemedyController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(index)), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),
         row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeEMember)),
-        row(InputSelectionPage(ChargeTypeAnnualAllowance))(controllers.chargeE.routes.WhatYouWillNeedController
-                                                             .onPageLoad(srn, startDate, accessType, versionInt, index),
+        row(InputSelectionPage(ChargeTypeAnnualAllowance))(routes.IsPublicServicePensionsRemedyController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(index)),
                                                            Some(manualInput)),
         row(InputSelectionPage(ChargeTypeAnnualAllowance))(
-          controllers.fileUpload.routes.WhatYouWillNeedController
-            .onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance),
+          controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+            .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, None),
           Some(fileUploadInput)
         )
       )
@@ -130,7 +129,12 @@ object ChargeENavigatorSpec {
     .toOption
   private val manualInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), ManualInput)
   private val fileUploadInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), FileUploadInput)
-  private val publicPensionRemedyYes = UserAnswers().setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, 0), true)
+  private val publicPensionRemedyYes = UserAnswers()
+    .setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), ManualInput)
+    .setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance,Some(0)), true)
+  private val publicPensionRemedyNo = UserAnswers()
+    .setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), ManualInput)
+    .setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance,Some(0)), false)
   private val chargeInAdditionReportedNo = UserAnswers().setOrException(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, 0), false)
 
   private val isAnotherSchemeYes = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), true).toOption

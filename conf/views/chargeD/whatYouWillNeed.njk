@@ -27,8 +27,8 @@
           <li>{{ messages("chargeD.whatYouWillNeed.li3") }}</li>
           <li>{{ messages("chargeD.whatYouWillNeed.li4") }}</li>
           <li>{{ messages("chargeD.whatYouWillNeed.li5") }}</li>
-           {% if psr == true %}
-                <li>{{ messages("chargeD.whatYouWillNeed.li6") }}</li>
+           {% if psr %}
+                <li>{{ messages(psr) }}</li>
            {% endif %}
         </ul>
 

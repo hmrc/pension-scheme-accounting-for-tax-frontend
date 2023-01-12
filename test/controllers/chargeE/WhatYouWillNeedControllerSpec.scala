@@ -20,6 +20,7 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
@@ -27,6 +28,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeE.WhatYouWillNeedPage
+import pages.mccloud.IsPublicServicePensionsRemedyPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
@@ -40,14 +42,19 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeE/whatYouWillNeed.njk"
   private val index = 0
+  private val uaPsrTrue: UserAnswers = userAnswersWithSchemeNamePstrQuarter
+    .setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance,Some(0)), true)
+  private val uaPsrFalse: UserAnswers = userAnswersWithSchemeNamePstrQuarter
+    .setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance,Some(0)), false)
 
   private def httpPathGET: String = controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, index).url
 
-  private val jsonToPassToTemplate = Json.obj(
+  private def jsonToPassToTemplate(optMessage: Option[String]) = Json.obj(
     "viewModel" -> GenericViewModel(
       submitUrl = dummyCall.url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      schemeName = schemeName)
+      schemeName = schemeName),
+    "psr" -> optMessage
   )
 
   override def beforeEach(): Unit = {
@@ -56,11 +63,9 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
-
   "whatYouWillNeed Controller" must {
-    "return OK and the correct view for a GET" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+    "return OK and the correct view for a GET without extra paragraph for PSR" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(uaPsrFalse))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -74,7 +79,24 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(None))
+    }
+    "return OK and the correct view for a GET with extra paragraph for PSR" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(uaPsrTrue))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(Some("chargeE.whatYouWillNeed.li7")))
     }
   }
 }
