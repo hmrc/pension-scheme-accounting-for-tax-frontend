@@ -334,7 +334,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
   private def getOptionalLiteralValue(optionalString: Option[String]): Content = {
     optionalString match {
       case None => msg"mccloud.not.entered"
-      case Some(stringVal) => Literal(stringVal)
+      case Some(stringVal) => Literal(stringVal.toUpperCase)
     }
   }
 
