@@ -1591,6 +1591,10 @@ addAnotherPensionScheme.title = Do you want to add another pension scheme?
 addAnotherPensionScheme.heading = Do you want to add another pension scheme?
 addAnotherPensionScheme.error.required = Select yes if you want to add another pension scheme
 
+removePensionScheme.title = Are you sure you want to remove this scheme?
+removePensionScheme.heading = Are you sure you want to remove this scheme?
+removePensionScheme.error.required = Select yes if you want to remove the pension scheme
+
 chargeAmountReported.error.required = Enter the charge amount
 chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
 chargeAmountReported.error.decimal = The charge amount must include pence, like 123.45 or 156.00

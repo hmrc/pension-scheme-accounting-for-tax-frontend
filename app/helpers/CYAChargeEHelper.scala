@@ -216,7 +216,8 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.remove")}</span>"),
-            href = "#",
+            href = controllers.mccloud.routes.RemovePensionSchemeController
+              .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsRemedySchemeSummary.schemeIndex).url,
             visuallyHiddenText = Some(Literal(
               messages("site.remove") + " " + messages("remove.cya.visuallyHidden.text")
             ))
