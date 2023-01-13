@@ -18,7 +18,6 @@ package navigators
 
 import config.FrontendAppConfig
 import controllers.chargeE.routes._
-import controllers.mccloud.routes
 import controllers.mccloud.routes._
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
@@ -80,17 +79,17 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
                                                                                           .onPageLoad(srn, startDate, accessType, versionInt, index),
                                                                                         isAnotherSchemeNo),
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
-        row(AddMembersPage)(routes.IsPublicServicePensionsRemedyController
+        row(AddMembersPage)(controllers.routes.IsPublicServicePensionsRemedyController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(index)), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),
         row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeEMember)),
-        row(InputSelectionPage(ChargeTypeAnnualAllowance))(routes.IsPublicServicePensionsRemedyController
+        row(InputSelectionPage(ChargeTypeAnnualAllowance))(controllers.routes.IsPublicServicePensionsRemedyController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(index)),
                                                            Some(manualInput)),
         row(InputSelectionPage(ChargeTypeAnnualAllowance))(
-          controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+          controllers.routes.IsPublicServicePensionsRemedyController
             .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, None),
           Some(fileUploadInput)
         )

@@ -20,6 +20,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeD.routes._
+import controllers.routes
 import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.Index._
@@ -31,7 +32,6 @@ import pages.Page
 import pages.chargeD._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import pages.mccloud._
-import controllers.mccloud.routes
 import play.api.libs.json.JsArray
 import play.api.mvc.{AnyContent, Call}
 
@@ -70,9 +70,9 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
     case InputSelectionPage(ChargeTypeLifetimeAllowance) => ua.get(InputSelectionPage(ChargeTypeLifetimeAllowance)) match {
-      case Some(ManualInput) => controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+      case Some(ManualInput) => controllers.routes.IsPublicServicePensionsRemedyController
         .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
-      case Some(FileUploadInput) => controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+      case Some(FileUploadInput) => controllers.routes.IsPublicServicePensionsRemedyController
         .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, None)
       case _ => sessionExpiredPage
     }

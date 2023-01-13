@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeE.routes._
-import controllers.mccloud.routes
+import controllers.routes
 import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
@@ -69,9 +69,9 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
     case InputSelectionPage(ChargeTypeAnnualAllowance) => ua.get(InputSelectionPage(ChargeTypeAnnualAllowance)) match {
-      case Some(ManualInput) => controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+      case Some(ManualInput) => controllers.routes.IsPublicServicePensionsRemedyController
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
-      case Some(FileUploadInput) => controllers.mccloud.routes.IsPublicServicePensionsRemedyController
+      case Some(FileUploadInput) => controllers.routes.IsPublicServicePensionsRemedyController
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, None)
       case _ => sessionExpiredPage
     }
