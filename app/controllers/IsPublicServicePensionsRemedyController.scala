@@ -23,7 +23,7 @@ import forms.YesNoFormProvider
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.mccloud.IsPublicServicePensionsRemedyPage
+import pages.IsPublicServicePensionsRemedyPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -98,7 +98,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             "manOrBulkTitle" -> title
           )
 
-          renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(Ok(_))
+          renderer.render("isPublicServicePensionsRemedy.njk", json).map(Ok(_))
 
         }
     }
@@ -139,7 +139,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                 "manOrBulkHeading" -> heading,
                 "manOrBulkTitle" -> title
               )
-              renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
+              renderer.render("isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
 
             },
             value =>

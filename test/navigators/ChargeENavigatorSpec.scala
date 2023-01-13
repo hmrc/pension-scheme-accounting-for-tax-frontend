@@ -17,19 +17,16 @@
 package navigators
 
 import config.FrontendAppConfig
-import controllers.chargeE.routes._
-import controllers.mccloud.routes._
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
-import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
-import pages.mccloud._
-import pages.{Page, chargeA, chargeB}
+import pages._
+import pages.{IsPublicServicePensionsRemedyPage, Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 

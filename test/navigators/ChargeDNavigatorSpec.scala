@@ -29,7 +29,7 @@ import org.scalatest.prop.TableFor3
 import pages.chargeD._
 import pages.fileUpload.InputSelectionPage
 import pages.mccloud._
-import pages.{Page, chargeA, chargeB}
+import pages.{IsPublicServicePensionsRemedyPage, Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 

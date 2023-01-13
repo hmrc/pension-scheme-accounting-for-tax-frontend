@@ -21,9 +21,8 @@ import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.SchemeNameQuery
+import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}
 import pages.fileUpload.WhatYouWillNeedPage
-import pages.mccloud.IsPublicServicePensionsRemedyPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

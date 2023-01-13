@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package pages.mccloud
+package pages
 
 import models.ChargeType
-import pages.QuestionPage
 import play.api.libs.json.JsPath
 
 case class IsPublicServicePensionsRemedyPage(chargeType: ChargeType, optIndex: Option[Int]) extends QuestionPage[Boolean] {

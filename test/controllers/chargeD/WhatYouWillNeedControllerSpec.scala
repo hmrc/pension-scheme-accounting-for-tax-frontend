@@ -27,8 +27,8 @@ import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeD.WhatYouWillNeedPage
-import pages.mccloud.IsPublicServicePensionsRemedyPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
