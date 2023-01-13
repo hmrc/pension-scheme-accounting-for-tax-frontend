@@ -92,6 +92,8 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("removePensionScheme.error.required", memberName))
 
+  //scalastyle:off method.length
+  //scalastyle:off cyclomatic.complexity
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
                srn: String,
