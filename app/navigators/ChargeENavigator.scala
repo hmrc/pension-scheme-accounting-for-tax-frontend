@@ -230,6 +230,25 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case _ => sessionExpiredPage
     }
   }
+
+  private def routeFromRemovePensionSchemePage(userAnswers: UserAnswers,
+                                                   mode: Mode,
+                                                   srn: String,
+                                                   startDate: LocalDate,
+                                                   accessType: AccessType,
+                                                   version: Int,
+                                                   index: Int,
+                                                   schemeIndex: Int): Call = {
+    val schemeSize = countSchemeSize(userAnswers, index)
+    val schemeSizeLessThan5 = schemeSize > 1 && schemeSize < 5
+    (userAnswers.get(RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex)), schemeSizeLessThan5) match {
+      case (Some(true), false) => controllers.mccloud.routes.WasAnotherPensionSchemeController
+        .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index)
+      case (Some(true|false), true) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (_, _) => sessionExpiredPage
+    }
+  }
+
   private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
     SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
@@ -266,6 +285,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       routeFromChargeAmountReportedPage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
     case AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
       routeFromAddAnotherPensionSchemePage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
+    case RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
+      routeFromRemovePensionSchemePage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
   }
 
   private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad

@@ -16,16 +16,17 @@
 
 package controllers.mccloud
 
+import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.mccloud.RemovePensionSchemePage
+import pages.mccloud.{RemovePensionSchemePage, SchemePathHelper, WasAnotherPensionSchemePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
@@ -35,8 +36,10 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 class RemovePensionSchemeController @Inject()(override val messagesApi: MessagesApi,
+                                              userAnswersCacheConnector: UserAnswersCacheConnector,
                                               userAnswersService: UserAnswersService,
                                               navigator: CompoundNavigator,
                                               identify: IdentifierAction,
@@ -121,13 +124,34 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
               renderer.render("mccloud/removePensionScheme.njk", json).map(BadRequest(_))
             },
             value =>
-              for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(RemovePensionSchemePage(chargeType, index, schemeIndex), value, mode))
-              } yield
-                Redirect(
-                  navigator
-                    .nextPage(RemovePensionSchemePage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
+              if (value) {
+                for {
+                  updatedAnswers <- if (pensionsSchemeCount(request.userAnswers, chargeType, index) > 1) {
+                    Future.fromTry(Success(request.userAnswers.removeWithPath(SchemePathHelper.schemePath(chargeType, index, schemeIndex))))
+                  } else {
+                    Future.fromTry(request.userAnswers.removeWithPath(SchemePathHelper.path(chargeType, index))
+                      .remove(WasAnotherPensionSchemePage(chargeType, index)))
+                  }
+                  _ <- userAnswersCacheConnector
+                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(RemovePensionSchemePage(chargeType, index, schemeIndex), value, mode))
+                } yield
+                  Redirect(
+                    navigator
+                      .nextPage(RemovePensionSchemePage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
+              } else {
+                for {
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(RemovePensionSchemePage(chargeType, index, schemeIndex), value, mode))
+                } yield
+                  Redirect(
+                    navigator
+                      .nextPage(RemovePensionSchemePage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
+              }
           )
       }
     }
+
+  private def pensionsSchemeCount(userAnswers: UserAnswers, chargeType: ChargeType, index: Int): Int = {
+    SchemePathHelper.path(chargeType, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+  }
 }

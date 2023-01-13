@@ -27,4 +27,9 @@ object SchemePathHelper {
   def basePath(chargeType: ChargeType, index: Int): JsPath = {
     JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy"
   }
+
+  def schemePath(chargeType: ChargeType, index: Int, schemeIndex: Int): JsPath = {
+    basePath(chargeType, index) \ "schemes" \ schemeIndex
+  }
+
 }
