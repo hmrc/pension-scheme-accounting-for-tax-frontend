@@ -17,6 +17,7 @@
 package navigators
 
 import config.FrontendAppConfig
+import controllers.chargeE.routes._
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
@@ -25,10 +26,12 @@ import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
-import pages._
 import pages.{IsPublicServicePensionsRemedyPage, Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
+import models.LocalDateBinder._
+import pages.mccloud._
+
 
 class ChargeENavigatorSpec extends NavigatorBehaviour {
 
@@ -39,29 +42,32 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
   "NormalMode" must {
+    //scalastyle:off method.length
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, Some(index)))(controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, index),
-        Some(publicPensionRemedyYes)),
+        row(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, Some(index)))(
+          controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, index), Some(publicPensionRemedyYes)),
         row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(MemberDetailsPage(index))(AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(AnnualAllowanceYearPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
-        row(ChargeDetailsPage(index))(controllers.mccloud.routes.IsChargeInAdditionReportedController.onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index),
+        row(ChargeDetailsPage(index))(controllers.mccloud.routes.IsChargeInAdditionReportedController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index),
         Some(publicPensionRemedyYes)),
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index),
         Some(publicPensionRemedyNo)),
-        row(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index))(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index),
+        row(IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index),
         Some(chargeInAdditionReportedNo)),
         row(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index))(
-          EnterPstrController
+          controllers.mccloud.routes.EnterPstrController
             .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex),
           wasAnother),
         row(EnterPstrPage(ChargeTypeAnnualAllowance, index, schemeIndex))(
-          TaxYearReportedAndPaidController
+          controllers.mccloud.routes.TaxYearReportedAndPaidController
             .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, Some(schemeIndex))),
         row(ChargeAmountReportedPage(ChargeTypeAnnualAllowance, index, Some(schemeIndex)))(
-          AddAnotherPensionSchemeController
+          controllers.mccloud.routes.AddAnotherPensionSchemeController
             .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex),
           enterPSTRValue
         ),
@@ -69,7 +75,7 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
           CheckYourAnswersController
             .onPageLoad(srn, startDate, accessType, versionInt, index)),
         row(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(
-          EnterPstrController
+          controllers.mccloud.routes.EnterPstrController
             .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index, 1),
           isAnotherSchemeYes),
         row(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController

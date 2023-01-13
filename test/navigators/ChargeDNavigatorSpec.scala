@@ -40,16 +40,20 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
   "NormalMode" must {
+    //scalastyle:off method.length
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(index)))(controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, index),
+        row(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(index)))(
+          controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, index),
         Some(publicPensionRemedyYes)),
         row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
-        row(ChargeDetailsPage(index))(controllers.mccloud.routes.IsChargeInAdditionReportedController.onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index),
+        row(ChargeDetailsPage(index))(controllers.mccloud.routes.IsChargeInAdditionReportedController
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index),
         Some(publicPensionRemedyYes)),
-        row(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index),
+        row(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index),
         Some(chargeInAdditionReportedNo)),
         row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(
           EnterPstrController
@@ -66,7 +70,6 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(ChargeAmountReportedPage(ChargeTypeLifetimeAllowance, index, None))(
           CheckYourAnswersController
             .onPageLoad(srn, startDate, accessType, versionInt, index)),
-
         row(AddAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index, schemeIndex))(
           EnterPstrController
             .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, 1),
