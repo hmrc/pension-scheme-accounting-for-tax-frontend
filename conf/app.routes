@@ -1,5 +1,5 @@
 # microservice specific routes
-->          /mccloud                                                                                                                                 mccloud.Routes
+->          /public-service-pensions-remedy                                                                                                          mccloudJourney.Routes
 
 GET         /                                                                                                                                        controllers.IndexController.onPageLoad
 GET         /keep-alive                                                                                                                              controllers.KeepAliveController.keepAlive(srn: Option[String] = None, startDate: Option[String] = None)

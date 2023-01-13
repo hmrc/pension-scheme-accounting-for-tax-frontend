@@ -111,7 +111,7 @@ class IsPublicServicePensionsRemedyControllerSpec
         "manOrBulkTitle" -> s"isPublicServicePensionsRemedy$title"
       )
 
-      templateCaptor.getValue mustEqual "mccloud/isPublicServicePensionsRemedy.njk"
+      templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
       jsonCaptor.getValue must containJson(expectedJson("Bulk.heading", "Bulk.title"))
     }
     "return OK and the correct view for a GET (for ManualInput PSR question)" in {
@@ -137,7 +137,7 @@ class IsPublicServicePensionsRemedyControllerSpec
         "manOrBulkTitle" -> s"isPublicServicePensionsRemedy$title"
       )
 
-      templateCaptor.getValue mustEqual "mccloud/isPublicServicePensionsRemedy.njk"
+      templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
       jsonCaptor.getValue must containJson(expectedJson(".heading", ".title"))
     }
 
@@ -180,7 +180,7 @@ class IsPublicServicePensionsRemedyControllerSpec
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
-      templateCaptor.getValue mustEqual "mccloud/isPublicServicePensionsRemedy.njk"
+      templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
 
       jsonCaptor.getValue must containJson(expectedJson)
     }
@@ -206,7 +206,7 @@ class IsPublicServicePensionsRemedyControllerSpec
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
-      templateCaptor.getValue mustEqual "mccloud/isPublicServicePensionsRemedy.njk"
+      templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
 
       jsonCaptor.getValue must containJson(expectedJson)
     }
