@@ -69,14 +69,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
-    case InputSelectionPage(ChargeTypeLifetimeAllowance) => ua.get(InputSelectionPage(ChargeTypeLifetimeAllowance)) match {
-      case Some(ManualInput) => controllers.routes.IsPublicServicePensionsRemedyController
-        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
-      case Some(FileUploadInput) => controllers.routes.IsPublicServicePensionsRemedyController
-        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, None)
-      case _ => sessionExpiredPage
-    }
-
+    case InputSelectionPage(ChargeTypeLifetimeAllowance) => inputSelectionNav(ua, srn, startDate, accessType, version)
 
     case pages.fileUpload.WhatYouWillNeedPage(ChargeTypeLifetimeAllowance) =>
       controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance)
@@ -125,6 +118,16 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
     SchemePathHelper.path(ChargeTypeLifetimeAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+  }
+
+  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
+    ua.get(InputSelectionPage(ChargeTypeLifetimeAllowance)) match {
+      case Some(ManualInput) => controllers.routes.IsPublicServicePensionsRemedyController
+        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
+      case Some(FileUploadInput) => controllers.routes.IsPublicServicePensionsRemedyController
+        .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, version, None)
+      case _ => sessionExpiredPage
+    }
   }
 
   private def routeFromIsPublicServicePensionsRemedyPage(userAnswers: UserAnswers,
