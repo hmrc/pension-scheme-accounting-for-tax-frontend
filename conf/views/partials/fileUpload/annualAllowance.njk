@@ -9,3 +9,8 @@
        <li>{{ messages("fileupload.whatYouWillNeed.annualAllowance.item7") }}</li>
     {% endif %}
 </ul>
+<p class="govuk-body">{{ messages("fileupload.whatYouWillNeed.ltaAa.p3", chargeTypeText) }}</p>
+<ul class="govuk-list govuk-list--bullet">
+        <li><a href="{{viewModel.returnUrl}}" class="govuk-link">{{ messages("fileupload.download.template.ltaAa.link") }}</a> {{ messages("fileupload.download.template.ltaAa.linkText") }}</li>
+        <li><a href="{{viewModel.returnUrl}}" class="govuk-link">{{ messages("fileupload.download.instructions.ltaAa.link") }}</a></li>
+</ul>

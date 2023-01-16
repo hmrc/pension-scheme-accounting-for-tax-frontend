@@ -1304,6 +1304,11 @@ fileupload.whatYouWillNeed.p2 = and use this to enter the information. Do not ch
 fileupload.download.instructions.link = Download the instructions for the format of your file
 fileupload.download.template.link = Download the template file
 
+fileupload.whatYouWillNeed.ltaAa.p3 = The previous {0} file (last updated XX/XX/XXXX) is out of date and cannot be used. For the correct document and information on how to complete it, download the:
+fileupload.download.instructions.ltaAa.link = instructions which explain the format that should be used
+fileupload.download.template.ltaAa.link = latest template file
+fileupload.download.template.ltaAa.linkText = – do not change or delete the header (row 1) or change the order of the columns
+
 fileupload.whatYouWillNeed.annualAllowance.item1 = their name
 fileupload.whatYouWillNeed.annualAllowance.item2 = their National Insurance number
 fileupload.whatYouWillNeed.annualAllowance.item3 = the date the scheme administrator received the notice from the member requiring them to pay the annual allowance charge
