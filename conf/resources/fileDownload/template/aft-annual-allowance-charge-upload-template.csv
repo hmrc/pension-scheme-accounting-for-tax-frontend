@@ -1,2 +1,1 @@
-First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory
-Flo,Narton,QQ123456C,2020,100.56,01/01/2020,yes
+First name,Last name,National Insurance number,Tax year to which the annual allowance charge relates,Charge amount,Date you received notice to pay the charge,Payment type mandatory (YES/NO)
