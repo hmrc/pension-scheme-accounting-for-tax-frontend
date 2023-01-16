@@ -68,15 +68,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
-    case InputSelectionPage(ChargeTypeAnnualAllowance) => ua.get(InputSelectionPage(ChargeTypeAnnualAllowance)) match {
-      case Some(ManualInput) => controllers.routes.IsPublicServicePensionsRemedyController
-        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
-      case Some(FileUploadInput) => controllers.routes.IsPublicServicePensionsRemedyController
-        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, None)
-      case _ => sessionExpiredPage
-    }
-
-
+    case InputSelectionPage(ChargeTypeAnnualAllowance) => inputSelectionNav(ua, srn, startDate, accessType, version)
 
     // TODO: Refactor magic strings
     case pages.fileUpload.WhatYouWillNeedPage(ChargeTypeAnnualAllowance) =>
@@ -121,6 +113,16 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
     case AddMembersPage       => addMembers(ua, srn, startDate, accessType, version)
     case DeleteMemberPage     => deleteMemberRoutes(ua, srn, startDate, accessType, version)
+  }
+
+  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
+    ua.get(InputSelectionPage(ChargeTypeAnnualAllowance)) match {
+      case Some(ManualInput) => controllers.routes.IsPublicServicePensionsRemedyController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
+      case Some(FileUploadInput) => controllers.routes.IsPublicServicePensionsRemedyController
+        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, None)
+      case _ => sessionExpiredPage
+    }
   }
 
   private def routeFromIsPublicServicePensionsRemedyPage(userAnswers: UserAnswers,
