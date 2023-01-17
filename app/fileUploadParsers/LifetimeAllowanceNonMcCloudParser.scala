@@ -35,7 +35,7 @@ class LifetimeAllowanceNonMcCloudParser @Inject()(
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
-                                        chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    validateMinimumFields(startDate, index, chargeFields)
+                                        columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+    validateMinimumFields(startDate, index, columns)
   }
 }
