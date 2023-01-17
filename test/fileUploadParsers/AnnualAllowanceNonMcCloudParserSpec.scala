@@ -18,12 +18,11 @@ package fileUploadParsers
 
 import base.SpecBase
 import config.FrontendAppConfig
-import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import data.SampleData
 import data.SampleData.startDate
-import fileUploadParsers.ParserErrorMessages.{HeaderInvalidOrFileIsEmpty, NotEnoughFields}
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
+import helpers.ParserHelper
 import models.UserAnswers
 import models.chargeE.ChargeEDetails
 import org.mockito.Mockito
@@ -36,7 +35,8 @@ import play.api.libs.json.Json
 
 import java.time.LocalDate
 
-class AnnualAllowanceNonMcCloudParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
+class AnnualAllowanceNonMcCloudParserSpec extends SpecBase
+  with Matchers with MockitoSugar with BeforeAndAfterEach with ParserHelper {
   //scalastyle:off magic.number
 
   import AnnualAllowanceNonMcCloudParserSpec._
@@ -66,125 +66,8 @@ class AnnualAllowanceNonMcCloudParserSpec extends SpecBase with Matchers with Mo
       )
     }
 
-    "return validation error for incorrect header" in {
-      val invalidHeader = CsvLineSplitter.split("""test""")
-      val result = parser.parse(startDate, invalidHeader, UserAnswers())
-      result mustBe Left(Seq(
-        ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
-      ))
-    }
+    behave like annualAllowanceParserWithMinimalFields(header, parser)
 
-    "return validation error for empty file" in {
-      val result = parser.parse(startDate, Nil, UserAnswers())
-      result mustBe Left(Seq(
-        ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
-      ))
-    }
-
-    "return validation error for not enough fields" in {
-      val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
-        s"""$header
-    one,two"""
-      )
-      val result = parser.parse(startDate, validCsvFile, UserAnswers())
-      result mustBe Left(Seq(
-        ParserValidationError(1, 0, NotEnoughFields)
-      ))
-    }
-
-    "return validation errors for member details" in {
-      val GivingInvalidMemberDetailsCsv = CsvLineSplitter.split(
-        s"""$header
-    ,Bloggs,AB123456C,2020,268.28,01/01/2020,yes
-    Ann,,3456C,2020,268.28,01/01/2020,yes"""
-      )
-      val result = parser.parse(startDate, GivingInvalidMemberDetailsCsv, UserAnswers())
-      result mustBe Left(Seq(
-        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
-        ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino")
-      ))
-    }
-
-    "return validation errors for charge details, including missing, invalid, future and past tax years" in {
-
-      val GivingInvalidChargeDetailsCsvFile = CsvLineSplitter.split(
-        s"""$header
-    Joe,Bloggs,AB123456C,,,01/01,nah
-    Ann,Bliggs,AB123457C,22,268.28,01,yes
-    Joe,Blaggs,AB123454C,2021,268.28,01/01/2020,yes
-    Jim,Bloggs,AB123455C,2010,268.28,01/01/2020,yes"""
-      )
-      val result = parser.parse(startDate, GivingInvalidChargeDetailsCsvFile, UserAnswers())
-      result mustBe Left(Seq(
-        ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount"),
-        ParserValidationError(1, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived", Seq("year")),
-        ParserValidationError(1, 6, "error.boolean", "isPaymentMandatory"),
-        ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required", AnnualAllowanceFieldNames.taxYear),
-        ParserValidationError(2, 5, "dateNoticeReceived.error.incomplete", "dateNoticeReceived", Seq("month", "year")),
-        ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear),
-        ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future", AnnualAllowanceFieldNames.taxYear),
-        ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past", AnnualAllowanceFieldNames.taxYear)
-      )
-      )
-    }
-
-    "return validation errors for tax year only, including missing, invalid, future and past tax years" in {
-      val GivingInvalidTaxYearCsvFile = CsvLineSplitter.split(
-        s"""$header
-                            Joe,Bloggs,AB123456C,,268.28,01/01/2020,yes
-                            Ann,Bliggs,AB123457C,22,268.28,01/01/2020,yes
-                            Joe,Blaggs,AB123454C,2021,268.28,01/01/2020,yes
-                            Jim,Bloggs,AB123455C,2010,268.28,01/01/2020,yes"""
-      )
-      val result = parser.parse(startDate, GivingInvalidTaxYearCsvFile, UserAnswers())
-      result mustBe Left(Seq(
-        ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.required", AnnualAllowanceFieldNames.taxYear),
-        ParserValidationError(2, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear),
-        ParserValidationError(3, 3, "annualAllowanceYear.fileUpload.error.future", AnnualAllowanceFieldNames.taxYear),
-        ParserValidationError(4, 3, "annualAllowanceYear.fileUpload.error.past", AnnualAllowanceFieldNames.taxYear)
-      ))
-    }
-
-    "return validation errors for member details AND charge details when both present" in {
-      val GivingInvalidMemberDetailsAndChargeDetailsCsvFile = CsvLineSplitter.split(
-        s"""$header
-                            ,Bloggs,AB123456C,2020,,01/01/2020,yes
-                            Ann,,3456C,2020,268.28,01/13/2020,yes"""
-      )
-
-      val result = parser.parse(startDate, GivingInvalidMemberDetailsAndChargeDetailsCsvFile, UserAnswers())
-      result mustBe Left(Seq(
-        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount"),
-        ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
-        ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),
-        ParserValidationError(2, 5, "dateNoticeReceived.error.invalid", "dateNoticeReceived")
-      ))
-    }
-
-    "return validation errors for member details AND charge details when errors present in first row but not in second" in {
-      val GivingInvalidMemberDetailsAndChargeDetailsFirstRowCsvFile = CsvLineSplitter.split(
-        s"""$header
-                            ,Bloggs,AB123456C,2020,,01/01/2020,yes
-                            Joe,Bliggs,AB123457C,2020,268.28,01/01/2020,yes"""
-      )
-
-      val result = parser.parse(startDate, GivingInvalidMemberDetailsAndChargeDetailsFirstRowCsvFile, UserAnswers())
-      result mustBe Left(Seq(
-        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
-        ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount")
-      ))
-    }
-
-    "return validation errors when not enough fields" in {
-      val GivingNotEnoughFields = CsvLineSplitter.split(
-        s"""$header
-                            Bloggs,AB123456C,2020268.28,2020-01-01,true"""
-      )
-      val result = parser.parse(startDate, GivingNotEnoughFields, UserAnswers())
-      result mustBe Left(Seq(ParserValidationError(1, 0, NotEnoughFields)))
-    }
   }
 }
 
