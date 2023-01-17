@@ -240,13 +240,13 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                index: Int,
                                                schemeIndex: Int): Call = {
     val schemeSize = countSchemeSize(userAnswers, index)
-    val schemeSizeLessThan5 = schemeSize > 1 && schemeSize < 5
+    val schemeSizeLessThan5 = schemeSize > 1 && schemeSize <= 5
 
     (userAnswers.get(RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex)), schemeSizeLessThan5) match {
       case (Some(true), false) => controllers.mccloud.routes.WasAnotherPensionSchemeController
         .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index)
       case (Some(true), true) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (Some(false), (true | false)) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (Some(false), true | false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
       case (_, _) => sessionExpiredPage
     }
   }
