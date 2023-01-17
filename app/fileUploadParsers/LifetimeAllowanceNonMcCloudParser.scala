@@ -29,7 +29,7 @@ import play.api.i18n.Messages
 
 import java.time.LocalDate
 
-class LifetimeAllowanceParser @Inject()(
+class LifetimeAllowanceNonMcCloudParser @Inject()(
                                          memberDetailsFormProvider: MemberDetailsFormProvider,
                                          chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                          config: FrontendAppConfig

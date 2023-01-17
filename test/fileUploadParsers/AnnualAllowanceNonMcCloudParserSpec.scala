@@ -36,10 +36,10 @@ import play.api.libs.json.Json
 
 import java.time.LocalDate
 
-class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
+class AnnualAllowanceNonMcCloudParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
   //scalastyle:off magic.number
 
-  import AnnualAllowanceParserSpec._
+  import AnnualAllowanceNonMcCloudParserSpec._
 
   override def beforeEach(): Unit = {
     Mockito.reset(mockFrontendAppConfig)
@@ -188,7 +188,7 @@ class AnnualAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar
   }
 }
 
-object AnnualAllowanceParserSpec extends MockitoSugar {
+object AnnualAllowanceNonMcCloudParserSpec extends MockitoSugar {
   private val header: String = "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory"
 
   private val mockFrontendAppConfig = mock[FrontendAppConfig]
@@ -196,5 +196,5 @@ object AnnualAllowanceParserSpec extends MockitoSugar {
   private val formProviderMemberDetails = new MemberDetailsFormProvider
   private val formProviderChargeDetails = new ChargeDetailsFormProvider
 
-  private val parser = new AnnualAllowanceParser(formProviderMemberDetails, formProviderChargeDetails, mockFrontendAppConfig)
+  private val parser = new AnnualAllowanceNonMcCloudParser(formProviderMemberDetails, formProviderChargeDetails, mockFrontendAppConfig)
 }

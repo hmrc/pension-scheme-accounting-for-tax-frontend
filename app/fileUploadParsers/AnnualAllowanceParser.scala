@@ -16,7 +16,6 @@
 
 package fileUploadParsers
 
-import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import forms.MemberDetailsFormProvider
@@ -31,14 +30,13 @@ import play.api.i18n.Messages
 
 import java.time.LocalDate
 
-class AnnualAllowanceParser @Inject()(
-                                       memberDetailsFormProvider: MemberDetailsFormProvider,
-                                       chargeDetailsFormProvider: ChargeDetailsFormProvider,
-                                       config: FrontendAppConfig
-                                     ) extends Parser with Constraints with CommonQuarters {
-  override protected val totalFields: Int = 7
+trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters {
 
-  override protected def validHeader: String = config.validAnnualAllowanceHeader
+  protected val memberDetailsFormProvider: MemberDetailsFormProvider
+
+  protected val chargeDetailsFormProvider: ChargeDetailsFormProvider
+
+  protected val config: FrontendAppConfig
 
   private final val FieldNoTaxYear = 3
   private final val FieldNoChargeAmount = 4
@@ -81,16 +79,20 @@ class AnnualAllowanceParser @Inject()(
   }
 
 
-  private def errors[A](fieldIndex: Int, formWithErrors: Form[A], fields: Seq[Field], taxYearsErrors: Seq[ParserValidationError]) =
+  private def errors[A](fieldIndex: Int,
+                        formWithErrors: Form[A],
+                        fields: Seq[Field],
+                        taxYearsErrors: Seq[ParserValidationError]): Left[Seq[ParserValidationError], A] =
     Left(errorsFromForm(formWithErrors, fields, fieldIndex) ++ taxYearsErrors)
 
   private def checkIfTaxYearHasAnErrorsOrReturnChargeEDetails(chargeEDetails: ChargeEDetails, taxYearsErrors: Seq[ParserValidationError])
-                                         :Either[Seq[ParserValidationError], ChargeEDetails] =
+  : Either[Seq[ParserValidationError], ChargeEDetails] =
     if (taxYearsErrors.nonEmpty) {
       Left(taxYearsErrors)
     } else {
       Right(chargeEDetails)
     }
+
   private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Either[Seq[ParserValidationError], ChargeEDetails] =
     processChargeDetailsValidation(
       index,
@@ -115,9 +117,9 @@ class AnnualAllowanceParser @Inject()(
     }
   }
 
-  override protected def validateFields(startDate: LocalDate,
-                                        index: Int,
-                                        chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+  protected def validateMinimumFields(startDate: LocalDate,
+                                      index: Int,
+                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     combineValidationResults[MemberDetails, ChargeEDetails, String](
       Result(memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
       Result(chargeDetailsValidation(startDate, index, chargeFields), createCommitItem(index, ChargeDetailsPage.apply)),

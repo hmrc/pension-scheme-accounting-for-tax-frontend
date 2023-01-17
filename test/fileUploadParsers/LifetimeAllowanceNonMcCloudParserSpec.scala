@@ -20,7 +20,7 @@ import base.SpecBase
 import config.FrontendAppConfig
 import data.SampleData
 import data.SampleData.startDate
-import fileUploadParsers.AnnualAllowanceParserSpec.mock
+import fileUploadParsers.AnnualAllowanceNonMcCloudParserSpec.mock
 import fileUploadParsers.ParserErrorMessages.{HeaderInvalidOrFileIsEmpty, NotEnoughFields}
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
@@ -36,10 +36,10 @@ import play.api.libs.json.Json
 
 import java.time.LocalDate
 
-class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
+class LifetimeAllowanceNonMcCloudParserSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
   //scalastyle:off magic.number
 
-  import LifetimeAllowanceParserSpec._
+  import LifetimeAllowanceNonMcCloudParserSpec._
 
   override def beforeEach(): Unit = {
     Mockito.reset(mockFrontendAppConfig)
@@ -162,7 +162,7 @@ class LifetimeAllowanceParserSpec extends SpecBase with Matchers with MockitoSug
 
 }
 
-object LifetimeAllowanceParserSpec {
+object LifetimeAllowanceNonMcCloudParserSpec {
   private val header = "First name,Last name,National Insurance number,Date,Tax due 25%,Tax due 55%"
 
   private val mockFrontendAppConfig = mock[FrontendAppConfig]
@@ -170,5 +170,5 @@ object LifetimeAllowanceParserSpec {
   private val memberDetailsFormProvider = new MemberDetailsFormProvider
   private val chargeDetailsFormProvider = new ChargeDetailsFormProvider
 
-  private val parser = new LifetimeAllowanceParser(memberDetailsFormProvider, chargeDetailsFormProvider, mockFrontendAppConfig)
+  private val parser = new LifetimeAllowanceNonMcCloudParser(memberDetailsFormProvider, chargeDetailsFormProvider, mockFrontendAppConfig)
 }

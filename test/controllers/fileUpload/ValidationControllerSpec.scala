@@ -25,7 +25,7 @@ import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import data.SampleData
 import data.SampleData._
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
-import fileUploadParsers.{AnnualAllowanceParser, LifetimeAllowanceParser, OverseasTransferParser, ParserValidationError}
+import fileUploadParsers.{AnnualAllowanceNonMcCloudParser, LifetimeAllowanceNonMcCloudParser, OverseasTransferParser, ParserValidationError}
 import matchers.JsonMatchers
 import models.AdministratorOrPractitioner.Administrator
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
@@ -54,7 +54,7 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json._
 import play.api.mvc.Result
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
@@ -80,8 +80,8 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[UpscanInitiateConnector].toInstance(mockUpscanInitiateConnector),
-    bind[AnnualAllowanceParser].toInstance(mockAnnualAllowanceParser),
-    bind[LifetimeAllowanceParser].toInstance(mockLifetimeAllowanceParser),
+    bind[AnnualAllowanceNonMcCloudParser].toInstance(mockAnnualAllowanceParser),
+    bind[LifetimeAllowanceNonMcCloudParser].toInstance(mockLifetimeAllowanceParser),
     bind[OverseasTransferParser].toInstance(mockOverseasTransferParser),
     bind[UploadProgressTracker].toInstance(fakeUploadProgressTracker),
     bind[AFTService].toInstance(mockAFTService),
@@ -491,8 +491,8 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
     }
   }
 
-  private val mockAnnualAllowanceParser = mock[AnnualAllowanceParser]
-  private val mockLifetimeAllowanceParser = mock[LifetimeAllowanceParser]
+  private val mockAnnualAllowanceParser = mock[AnnualAllowanceNonMcCloudParser]
+  private val mockLifetimeAllowanceParser = mock[LifetimeAllowanceNonMcCloudParser]
   private val mockOverseasTransferParser = mock[OverseasTransferParser]
 
   val uaAllChargeTypes: UserAnswers = UserAnswers()
