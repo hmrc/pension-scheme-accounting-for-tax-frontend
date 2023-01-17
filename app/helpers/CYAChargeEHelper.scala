@@ -168,7 +168,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
             href = controllers.mccloud.routes.IsChargeInAdditionReportedController
               .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("isChargeInAdditionReported.label")
+              messages("site.edit") + " " + messages("isChargeInAdditionReported.label", chargeTypeDescription)
             ))
           )
         )
@@ -187,7 +187,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
             href = controllers.mccloud.routes.WasAnotherPensionSchemeController
               .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("wasAnotherPensionScheme.label")
+              messages("site.edit") + " " + messages("wasAnotherPensionScheme.label", chargeTypeDescription)
             ))
           )
         )
@@ -218,7 +218,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
             content = Html(s"<span  aria-hidden=true >${messages("site.remove")}</span>"),
             href = "#",
             visuallyHiddenText = Some(Literal(
-              messages("site.remove") + " " + messages("remove.cya.visuallyHidden.text")
+              messages("site.remove") + " " + messages(s"mccloud.scheme.cya.ref${pensionsRemedySchemeSummary.schemeIndex}").toLowerCase
             ))
           )
         )
