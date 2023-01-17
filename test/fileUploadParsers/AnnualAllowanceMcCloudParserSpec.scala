@@ -35,24 +35,23 @@ import play.api.libs.json.Json
 
 import java.time.LocalDate
 
-class AnnualAllowanceNonMcCloudParserSpec extends SpecBase
+class AnnualAllowanceMcCloudParserSpec extends SpecBase
   with Matchers with MockitoSugar with BeforeAndAfterEach with ParserHelper {
   //scalastyle:off magic.number
 
-  import AnnualAllowanceNonMcCloudParserSpec._
+  import AnnualAllowanceMcCloudParserSpec._
 
   override def beforeEach(): Unit = {
     Mockito.reset(mockFrontendAppConfig)
     when(mockFrontendAppConfig.earliestDateOfNotice).thenReturn(LocalDate.of(1900, 1, 1))
-    when(mockFrontendAppConfig.validAnnualAllowanceNonMcCloudHeader).thenReturn(header)
+    when(mockFrontendAppConfig.validAnnualAllowanceMcCloudHeader).thenReturn(header)
   }
-
-  "Annual allowance parser" must {
+  "Annual allowance McCloud parser" must {
     "return charges in user answers when there are no validation errors" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-    Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,yes
-    Joe,Bliggs,AB123457C,2020,268.28,01/01/2020,yes"""
+    Joe,Bloggs,AB123456C,2020,268.28,02/02/2020,YES,YES,YES,NO,,2022,1,45,,,,,,,,,,,,,,,,,,,,
+    Joe,Bliggs,AB123457C,2020,268.28,02/02/2020,YES,YES,YES,NO,,2022,1,45,,,,,,,,,,,,,,,,,,,,"""
       )
       val chargeDetails = ChargeEDetails(BigDecimal(268.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
@@ -71,13 +70,13 @@ class AnnualAllowanceNonMcCloudParserSpec extends SpecBase
   }
 }
 
-object AnnualAllowanceNonMcCloudParserSpec extends MockitoSugar {
-  private val header: String = "Test header"
+object AnnualAllowanceMcCloudParserSpec extends MockitoSugar {
+  private val header: String = "Test McCloud header"
 
   private val mockFrontendAppConfig = mock[FrontendAppConfig]
 
   private val formProviderMemberDetails = new MemberDetailsFormProvider
   private val formProviderChargeDetails = new ChargeDetailsFormProvider
 
-  private val parser = new AnnualAllowanceNonMcCloudParser(formProviderMemberDetails, formProviderChargeDetails, mockFrontendAppConfig)
+  private val parser = new AnnualAllowanceMcCloudParser(formProviderMemberDetails, formProviderChargeDetails, mockFrontendAppConfig)
 }

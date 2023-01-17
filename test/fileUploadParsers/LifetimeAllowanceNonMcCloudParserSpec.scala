@@ -71,7 +71,7 @@ class LifetimeAllowanceNonMcCloudParserSpec extends SpecBase
 }
 
 object LifetimeAllowanceNonMcCloudParserSpec {
-  private val header = "First name,Last name,National Insurance number,Date,Tax due 25%,Tax due 55%"
+  private val header = "Test header"
 
   private val mockFrontendAppConfig = mock[FrontendAppConfig]
 

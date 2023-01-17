@@ -26,14 +26,14 @@ import play.api.i18n.Messages
 
 import java.time.LocalDate
 
-class AnnualAllowanceNonMcCloudParser @Inject()(
+class AnnualAllowanceMcCloudParser @Inject()(
                                                  override val memberDetailsFormProvider: MemberDetailsFormProvider,
                                                  override val chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                                  override val config: FrontendAppConfig
                                                ) extends AnnualAllowanceParser with Constraints with CommonQuarters {
-  override protected val totalFields: Int = 7
+  override protected val totalFields: Int = 7 // TODO This will vary
 
-  override protected def validHeader: String = config.validAnnualAllowanceNonMcCloudHeader
+  override protected def validHeader: String = config.validAnnualAllowanceMcCloudHeader
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
