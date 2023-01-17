@@ -20,7 +20,7 @@ import base.SpecBase
 import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import data.SampleData.startDate
 import fileUploadParsers.ParserErrorMessages.{HeaderInvalidOrFileIsEmpty, NotEnoughFields}
-import fileUploadParsers.{AnnualAllowanceParser, CsvLineSplitter, ParserValidationError}
+import fileUploadParsers.{AnnualAllowanceParser, CsvLineSplitter, LifetimeAllowanceParser, ParserValidationError}
 import models.UserAnswers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
@@ -159,4 +159,107 @@ one,two"""
       result.swap.toSeq.flatten.take(1) mustBe Seq(ParserValidationError(1, 0, NotEnoughFields))
     }
   }
+
+  def lifetimeAllowanceParserWithMinimalFields(header: String, parser: LifetimeAllowanceParser): Unit = {
+    "return validation error for incorrect header" in {
+      val GivingIncorrectHeader = CsvLineSplitter.split("""test""")
+      val result = parser.parse(startDate, GivingIncorrectHeader, UserAnswers())
+      result.swap.toSeq.flatten.take(1) mustBe Seq(
+        ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
+      )
+    }
+
+    "return validation error for empty file" in {
+      val result = parser.parse(startDate, Nil, UserAnswers())
+      result.isLeft mustBe true
+      result.swap.toSeq.flatten.take(1) mustBe Seq(
+        ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
+      )
+    }
+
+    "return validation error for not enough fields" in {
+      val GivingNotEnoughFields = CsvLineSplitter.split(
+        s"""$header
+                          one,two"""
+      )
+      val result = parser.parse(startDate, GivingNotEnoughFields, UserAnswers())
+      result.isLeft mustBe true
+      result.swap.toSeq.flatten.take(1) mustBe Seq(
+        ParserValidationError(1, 0, NotEnoughFields)
+      )
+    }
+
+    "return validation errors for member details when present" in {
+      val GivingIncorrectMemberDetails = CsvLineSplitter.split(
+        s"""$header
+                          ,Bloggs,AB123456C,01/04/2020,268.28,0.00
+                          Ann,,3456C,01/04/2020,268.28,0.00"""
+      )
+      val result = parser.parse(startDate, GivingIncorrectMemberDetails, UserAnswers())
+      result.isLeft mustBe true
+      result.swap.toSeq.flatten.take(3) mustBe Seq(
+        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
+        ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
+        ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino")
+      )
+    }
+
+    "return validation errors for charge details when present, including missing year and missing month" in {
+      val GivingMissingYearAndMonth = CsvLineSplitter.split(
+        s"""$header
+                          Joe,Bloggs,AB123456C,01/04,268.28,0.00
+                          Ann,Bliggs,AB123457C,01,268.28,0.00"""
+      )
+
+      val result = parser.parse(startDate, GivingMissingYearAndMonth, UserAnswers())
+      result.isLeft mustBe true
+      result.swap.toSeq.flatten.take(2) mustBe Seq(
+        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
+        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("month", "year"))
+      )
+    }
+
+    "return validation errors for member details AND charge details when both present" in {
+      val GivingIncorrectMemberDetailsAndChargeDetails = CsvLineSplitter.split(
+        s"""$header
+                          ,Bloggs,AB123456C,01/04,268.28,0.00
+                          Ann,,3456C,01,268.28,0.00"""
+      )
+      val result = parser.parse(startDate, GivingIncorrectMemberDetailsAndChargeDetails, UserAnswers())
+      result.isLeft mustBe true
+      result.swap.toSeq.flatten.take(5) mustBe Seq(
+        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
+        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
+        ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
+        ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),
+        ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("month", "year"))
+      )
+    }
+
+    "return validation errors for member details AND charge details when errors present in first row but not in second" in {
+      val GivingIncorrectMemberDetailsAndChargeDetailsFirstRow = CsvLineSplitter.split(
+        s"""$header
+                          ,Bloggs,AB123456C,01/04,268.28,0.00
+                          Joe,Bliggs,AB123457C,01/04/2020,268.28,0.00"""
+      )
+
+      val result = parser.parse(startDate, GivingIncorrectMemberDetailsAndChargeDetailsFirstRow, UserAnswers())
+      result.isLeft mustBe true
+      result.swap.toSeq.flatten.take(2) mustBe Seq(
+        ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
+        ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
+      )
+    }
+
+    "return validation errors when not enough fields" in {
+      val GivingNotEnoughFields = CsvLineSplitter.split(
+        s"""$header
+                          Bloggs,AB123456C,2020268.28,2020-01-01,true"""
+      )
+      val result = parser.parse(startDate, GivingNotEnoughFields, UserAnswers())
+      result.isLeft mustBe true
+      result.swap.toSeq.flatten.take(1) mustBe Seq(ParserValidationError(1, 0, "Enter all of the information for this member"))
+    }
+  }
+
 }
