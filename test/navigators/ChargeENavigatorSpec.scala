@@ -150,7 +150,13 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
           isAnotherSchemeYes),
         row(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index),
-          isAnotherSchemeNo)
+          isAnotherSchemeNo),
+        row (RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(WasAnotherPensionSchemeController
+          .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, versionInt, index), Some(SampleData.uaWithPSPRAndOneSchemeAnnualNav)),
+        row (RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index), Some(SampleData.uaWithPSPRAndTwoSchemesAnnualNav)),
+        row(RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController
+          .onPageLoad(srn, startDate, accessType, versionInt, index), removeSchemeNo)
       )
 
     behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn, startDate, accessType, versionInt)
@@ -184,4 +190,5 @@ object ChargeENavigatorSpec {
   private val isAnotherSchemeYes = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), true).toOption
   private val isAnotherSchemeNo = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), false).toOption
   private val enterPSTRValue = UserAnswers().set(EnterPstrPage(ChargeTypeAnnualAllowance, 0, 0), "20123456RQ").toOption
+  private val removeSchemeNo = UserAnswers().set(RemovePensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), false).toOption
 }

@@ -89,13 +89,9 @@ class RemovePensionSchemeControllerSpec
     schemeName = schemeName
   )
 
-  private def userAnswersNoSchemeAnnual: UserAnswers = uaWithPSPRAndNoSchemesAnnual
-
   private def userAnswersOneSchemeAnnual: UserAnswers = uaWithPSPRAndOneSchemeAnnual
 
   private def userAnswersTwoSchemesAnnual: UserAnswers = uaWithPSPRAndTwoSchemesAnnual
-
-  private def userAnswersNoSchemeLifetime: UserAnswers = uaWithPSPRAndNoSchemesLifetime
 
   private def userAnswersOneSchemeLifetime: UserAnswers = uaWithPSPRAndOneSchemeLifetime
 
@@ -106,7 +102,7 @@ class RemovePensionSchemeControllerSpec
     "return OK and the correct view for a GET for ChargeTypeAnnualAllowance" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersNoSchemeAnnual))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersOneSchemeAnnual))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -130,7 +126,7 @@ class RemovePensionSchemeControllerSpec
     "return OK and the correct view for a GET for ChargeTypeLifetimeAllowance" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersNoSchemeLifetime))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersOneSchemeLifetime))
       val request = FakeRequest(GET, httpPathGETLifetimeAllowance)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
