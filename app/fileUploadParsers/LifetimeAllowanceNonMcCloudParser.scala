@@ -18,68 +18,24 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames._
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
-import models.chargeD.ChargeDDetails
-import models.{MemberDetails, Quarters}
-import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
-import play.api.data.Form
 import play.api.i18n.Messages
 
 import java.time.LocalDate
 
 class LifetimeAllowanceNonMcCloudParser @Inject()(
-                                         memberDetailsFormProvider: MemberDetailsFormProvider,
-                                         chargeDetailsFormProvider: ChargeDetailsFormProvider,
-                                         config: FrontendAppConfig
-                                       ) extends Parser {
+                                         override val memberDetailsFormProvider: MemberDetailsFormProvider,
+                                         override val chargeDetailsFormProvider: ChargeDetailsFormProvider,
+                                         override val config: FrontendAppConfig
+                                       ) extends LifetimeAllowanceParser {
   override protected def validHeader: String = config.validLifeTimeAllowanceHeader
 
   override protected val totalFields: Int = 6
 
-  private final val FieldNoDateOfEvent = 3
-  private final val FieldNoTaxAt25Percent = 4
-  private final val FieldNoTaxAt55Percent = 5
-
-  private def chargeDetailsValidation(startDate: LocalDate,
-                                      index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDDetails] = {
-
-    val parsedDate = splitDayMonthYear(chargeFields(FieldNoDateOfEvent))
-    val fields = Seq(
-      Field(dateOfEventDay, parsedDate.day, dateOfEvent, FieldNoDateOfEvent),
-      Field(dateOfEventMonth, parsedDate.month, dateOfEvent, FieldNoDateOfEvent),
-      Field(dateOfEventYear, parsedDate.year, dateOfEvent, FieldNoDateOfEvent),
-      Field(taxAt25Percent, chargeFields(FieldNoTaxAt25Percent), taxAt25Percent, FieldNoTaxAt25Percent),
-      Field(taxAt55Percent, chargeFields(FieldNoTaxAt55Percent), taxAt55Percent, FieldNoTaxAt55Percent)
-    )
-    val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
-      min = startDate,
-      max = Quarters.getQuarter(startDate).endDate,
-      minimumChargeValueAllowed = minChargeValueAllowed
-    )
-    chargeDetailsForm.bind(
-      Field.seqToMap(fields)
-    ).fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-      value => {
-        val updatedChargeDetails: ChargeDDetails = value.copy(
-          taxAt25Percent = Option(value.taxAt25Percent.getOrElse(BigDecimal(0.00))),
-          taxAt55Percent = Option(value.taxAt55Percent.getOrElse(BigDecimal(0.00)))
-        )
-        Right(updatedChargeDetails)
-      }
-    )
-
-  }
-
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    combineValidationResults[MemberDetails, ChargeDDetails](
-      Result(memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
-      Result(chargeDetailsValidation(startDate, index, chargeFields), createCommitItem(index, ChargeDetailsPage.apply))
-    )
+    validateMinimumFields(startDate, index, chargeFields)
   }
 }

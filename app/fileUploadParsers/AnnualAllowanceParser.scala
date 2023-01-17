@@ -26,7 +26,6 @@ import models.{CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.data.validation.{Invalid, Valid}
-import play.api.i18n.Messages
 
 import java.time.LocalDate
 
@@ -119,7 +118,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
 
   protected def validateMinimumFields(startDate: LocalDate,
                                       index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+                                      chargeFields: Seq[String]): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     combineValidationResults[MemberDetails, ChargeEDetails, String](
       Result(memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
       Result(chargeDetailsValidation(startDate, index, chargeFields), createCommitItem(index, ChargeDetailsPage.apply)),
