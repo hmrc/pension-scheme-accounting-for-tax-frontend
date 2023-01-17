@@ -19,7 +19,7 @@ package helpers
 import base.SpecBase
 import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import data.SampleData.startDate
-import fileUploadParsers.ParserErrorMessages.{HeaderInvalidOrFileIsEmpty, NotEnoughFields}
+import fileUploadParsers.ParserErrorMessages.HeaderInvalidOrFileIsEmpty
 import fileUploadParsers.{AnnualAllowanceParser, CsvLineSplitter, LifetimeAllowanceParser, ParserValidationError}
 import models.UserAnswers
 import org.scalatest.BeforeAndAfterEach
@@ -43,18 +43,6 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
       result.isLeft mustBe true
       result.swap.toSeq.flatten.take(1) mustBe Seq(
         ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
-      )
-    }
-
-    "return validation error for not enough fields" in {
-      val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
-        s"""$header
-one,two"""
-      )
-      val result = parser.parse(startDate, validCsvFile, UserAnswers())
-      result.isLeft mustBe true
-      result.swap.toSeq.flatten.take(1) mustBe Seq(
-        ParserValidationError(1, 0, NotEnoughFields)
       )
     }
 
@@ -148,16 +136,6 @@ one,two"""
         ParserValidationError(1, 4, "chargeAmount.error.required", "chargeAmount")
       )
     }
-
-    "return validation errors when not enough fields" in {
-      val GivingNotEnoughFields = CsvLineSplitter.split(
-        s"""$header
-                          Bloggs,AB123456C,2020268.28,2020-01-01,true"""
-      )
-      val result = parser.parse(startDate, GivingNotEnoughFields, UserAnswers())
-      result.isLeft mustBe true
-      result.swap.toSeq.flatten.take(1) mustBe Seq(ParserValidationError(1, 0, NotEnoughFields))
-    }
   }
 
   def lifetimeAllowanceParserWithMinimalFields(header: String, parser: LifetimeAllowanceParser): Unit = {
@@ -174,18 +152,6 @@ one,two"""
       result.isLeft mustBe true
       result.swap.toSeq.flatten.take(1) mustBe Seq(
         ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
-      )
-    }
-
-    "return validation error for not enough fields" in {
-      val GivingNotEnoughFields = CsvLineSplitter.split(
-        s"""$header
-                          one,two"""
-      )
-      val result = parser.parse(startDate, GivingNotEnoughFields, UserAnswers())
-      result.isLeft mustBe true
-      result.swap.toSeq.flatten.take(1) mustBe Seq(
-        ParserValidationError(1, 0, NotEnoughFields)
       )
     }
 
@@ -249,16 +215,6 @@ one,two"""
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
       )
-    }
-
-    "return validation errors when not enough fields" in {
-      val GivingNotEnoughFields = CsvLineSplitter.split(
-        s"""$header
-                          Bloggs,AB123456C,2020268.28,2020-01-01,true"""
-      )
-      val result = parser.parse(startDate, GivingNotEnoughFields, UserAnswers())
-      result.isLeft mustBe true
-      result.swap.toSeq.flatten.take(1) mustBe Seq(ParserValidationError(1, 0, "Enter all of the information for this member"))
     }
   }
 

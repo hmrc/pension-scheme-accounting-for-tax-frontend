@@ -20,7 +20,7 @@ import base.SpecBase
 import config.FrontendAppConfig
 import data.SampleData
 import data.SampleData.startDate
-import fileUploadParsers.ParserErrorMessages.{HeaderInvalidOrFileIsEmpty, NotEnoughFields}
+import fileUploadParsers.ParserErrorMessages.HeaderInvalidOrFileIsEmpty
 import forms.chargeG.{ChargeAmountsFormProvider, ChargeDetailsFormProvider, MemberDetailsFormProvider}
 import models.UserAnswers
 import models.chargeG.{ChargeAmounts, ChargeDetails}
@@ -77,17 +77,6 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
       val result = parser.parse(startDate, Nil, UserAnswers())
       result mustBe Left(Seq(
         ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
-      ))
-    }
-
-    "return validation error for not enough fields" in {
-      val GivingNotEnoughFields = CsvLineSplitter.split(
-        s"""$header
-                            one,two"""
-      )
-      val result = parser.parse(startDate, GivingNotEnoughFields, UserAnswers())
-      result mustBe Left(Seq(
-        ParserValidationError(1, 0, NotEnoughFields)
       ))
     }
 

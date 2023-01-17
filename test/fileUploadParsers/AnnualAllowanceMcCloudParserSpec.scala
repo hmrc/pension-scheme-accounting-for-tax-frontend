@@ -46,12 +46,13 @@ class AnnualAllowanceMcCloudParserSpec extends SpecBase
     when(mockFrontendAppConfig.earliestDateOfNotice).thenReturn(LocalDate.of(1900, 1, 1))
     when(mockFrontendAppConfig.validAnnualAllowanceMcCloudHeader).thenReturn(header)
   }
+  
   "Annual allowance McCloud parser" must {
     "return charges in user answers when there are no validation errors" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-    Joe,Bloggs,AB123456C,2020,268.28,02/02/2020,YES,YES,YES,NO,,2022,1,45,,,,,,,,,,,,,,,,,,,,
-    Joe,Bliggs,AB123457C,2020,268.28,02/02/2020,YES,YES,YES,NO,,2022,1,45,,,,,,,,,,,,,,,,,,,,"""
+    Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,YES,NO,,2022,1,45,,,,,,,,,,,,,,,,,,,,
+    Joe,Bliggs,AB123457C,2020,268.28,01/01/2020,YES,YES,YES,NO,,2022,1,45,,,,,,,,,,,,,,,,,,,,"""
       )
       val chargeDetails = ChargeEDetails(BigDecimal(268.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
       val result = parser.parse(startDate, validCsvFile, UserAnswers())

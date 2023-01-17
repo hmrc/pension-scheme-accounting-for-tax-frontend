@@ -18,7 +18,7 @@ package fileUploadParsers
 
 import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
-import fileUploadParsers.ParserErrorMessages.{HeaderInvalidOrFileIsEmpty, NotEnoughFields}
+import fileUploadParsers.ParserErrorMessages.HeaderInvalidOrFileIsEmpty
 import models.{MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
@@ -30,7 +30,6 @@ import java.time.LocalDate
 
 object ParserErrorMessages {
   val HeaderInvalidOrFileIsEmpty = "Header invalid or File is empty"
-  val NotEnoughFields = "Enter all of the information for this member"
 }
 
 object Parser {
@@ -65,16 +64,11 @@ trait Parser {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) =>
-        row.length match {
-          case this.totalFields =>
-            (acc, validateFields(startDate, index, row.toIndexedSeq)) match {
-              case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ newErrors)
-              case (Right(_), newErrors@Left(_)) => newErrors
-              case (currentErrors@Left(_), Right(_)) => currentErrors
-              case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
-            }
-          case _ =>
-            Left(acc.left.getOrElse(Nil) :+ ParserValidationError(index, 0, NotEnoughFields, EMPTY))
+        (acc, validateFields(startDate, index, row.toIndexedSeq)) match {
+          case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ newErrors)
+          case (Right(_), newErrors@Left(_)) => newErrors
+          case (currentErrors@Left(_), Right(_)) => currentErrors
+          case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
         }
     }
   }
