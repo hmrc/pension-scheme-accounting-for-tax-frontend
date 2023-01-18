@@ -48,7 +48,7 @@ class ValidationErrorsSummaryControllerSpec extends ControllerSpecBase with Nunj
   private def httpPathGET: String = controllers.fileUpload.routes.ValidationErrorsSummaryController
     .onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
 
-  private def fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
+  private def fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType, None).url
 
   private def returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController
     .returnToSchemeDetails(srn, startDate.toString, accessType, versionInt).url
