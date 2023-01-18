@@ -24,7 +24,6 @@ import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import models.{ChargeType, CommonQuarters}
 import pages.IsPublicServicePensionsRemedyPage
 import pages.mccloud.IsChargeInAdditionReportedPage
-import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.JsBoolean
 
@@ -49,15 +48,12 @@ class AnnualAllowanceMcCloudParser @Inject()(
   private def chargeTypeDescription(implicit messages: Messages) =
     Messages(s"chargeType.description.${ChargeType.ChargeTypeAnnualAllowance.toString}")
 
-  private def isChargeInAdditionReportedValidation(index: Int, columns: Seq[String],
-                                                   yesNoForm: Form[Boolean]): Either[Seq[ParserValidationError], Boolean] = {
-    val fields = Seq(
-      Field(McCloudFieldNames.isChargeInAdditionReported, stringToBoolean(fieldValue(columns, FieldNoIsChargeInAdditionReported)),
-        McCloudFieldNames.isChargeInAdditionReported, FieldNoIsChargeInAdditionReported)
-    )
+  private def booleanValidation(index: Int, columns: Seq[String], fieldName: String, fieldNo: Int, formMessageKey: String)(implicit messages: Messages)
+  : Either[Seq[ParserValidationError], Boolean] = {
+    val form = yesNoFormProvider(messages(formMessageKey, chargeTypeDescription))
+    val fields = Seq(Field(fieldName, stringToBoolean(fieldValue(columns, fieldNo)), fieldName, fieldNo))
     val toMap = Field.seqToMap(fields)
-
-    val bind = yesNoForm.bind(toMap)
+    val bind = form.bind(toMap)
     bind.fold(
       formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
       value => Right(value)
@@ -70,8 +66,13 @@ class AnnualAllowanceMcCloudParser @Inject()(
     val minimalFieldsResult: Either[Seq[ParserValidationError], Seq[CommitItem]] = validateMinimumFields(startDate, index, columns)
     val additionalResult: Result[Boolean] =
       Result(
-        isChargeInAdditionReportedValidation(index, columns,
-          yesNoFormProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription))),
+        booleanValidation(
+          index = index,
+          columns = columns,
+          fieldName = McCloudFieldNames.isChargeInAdditionReported,
+          fieldNo = FieldNoIsChargeInAdditionReported,
+          formMessageKey = "isChargeInAdditionReported.error.required"
+        ),
         createCommitItem(index, IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int))
       )
 
