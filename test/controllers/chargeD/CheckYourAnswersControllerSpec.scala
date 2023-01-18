@@ -50,9 +50,14 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   val pensionsRemedySchemeSummary: List[PensionsRemedySchemeSummary] =
     List(PensionsRemedySchemeSummary(schemeIndex, None, Some(dynamicYearRange), Some(taxQuarter), Some(chargeAmountReported)))
 
-  private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(MemberDetailsPage(0), memberDetails).toOption.get
-    .set(ChargeDetailsPage(0), chargeDDetails).toOption.get
+  private def ua: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(MemberDetailsPage(0), memberDetails)
+      .toOption
+      .get
+      .set(ChargeDetailsPage(0), chargeDDetails)
+      .toOption
+      .get
 
   private val helper = new CYAChargeDHelper(srn, startDate, accessType, versionInt)
 
@@ -60,17 +65,13 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
     (isPSR, isChargeInAddition, wasAnotherPensionScheme) match {
       case (false, _, _) =>
-        PensionsRemedySummary(Some(isPSR),
-          Some(isChargeInAddition), Some(wasAnotherPensionScheme), pensionsRemedySchemeSummaryEmpty)
+        PensionsRemedySummary(Some(isPSR), Some(isChargeInAddition), Some(wasAnotherPensionScheme), pensionsRemedySchemeSummaryEmpty)
       case (true, false, _) =>
-        PensionsRemedySummary(Some(isPSR),
-          Some(isChargeInAddition), Some(wasAnotherPensionScheme), pensionsRemedySchemeSummaryEmpty)
+        PensionsRemedySummary(Some(isPSR), Some(isChargeInAddition), Some(wasAnotherPensionScheme), pensionsRemedySchemeSummaryEmpty)
       case (true, true, false) =>
-        PensionsRemedySummary(Some(isPSR),
-          Some(isChargeInAddition), Some(wasAnotherPensionScheme), pensionsRemedySchemeSummary)
+        PensionsRemedySummary(Some(isPSR), Some(isChargeInAddition), Some(wasAnotherPensionScheme), pensionsRemedySchemeSummary)
       case (true, true, true) =>
-        PensionsRemedySummary(Some(isPSR),
-          Some(isChargeInAddition), Some(wasAnotherPensionScheme), pensionsRemedySchemeSummaryWithPstr)
+        PensionsRemedySummary(Some(isPSR), Some(isChargeInAddition), Some(wasAnotherPensionScheme), pensionsRemedySchemeSummaryWithPstr)
     }
   }
 
@@ -99,14 +100,15 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     }
   }
 
-  private def rows(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) = Seq(
-    helper.isPsprForChargeD(0, Some(isPSR)),
-    helper.chargeDMemberDetails(0, memberDetails),
-    helper.chargeDDetails(0, chargeDDetails),
-    Seq(helper.total(chargeAmount1 + chargeAmount2)),
-    helper.psprChargeDDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
-    helper.psprSchemesChargeDDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
-  ).flatten
+  private def rows(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) =
+    Seq(
+      helper.isPsprForChargeD(0, Some(isPSR)),
+      helper.chargeDMemberDetails(0, memberDetails),
+      helper.chargeDDetails(0, chargeDDetails),
+      Seq(helper.total(chargeAmount1 + chargeAmount2)),
+      helper.psprChargeDDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
+      helper.psprSchemesChargeDDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
+    ).flatten
 
   private def jsonToPassToTemplate(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean): JsObject = Json.obj(
     "list" -> rows(isPSR, isChargeInAddition, wasAnotherPensionScheme)

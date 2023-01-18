@@ -21,6 +21,4 @@ case class PensionsRemedySchemeSummary(schemeIndex: Int,
                                        pstrNumber: Option[String],
                                        taxYear: Option[YearRange],
                                        taxQuarter: Option[AFTQuarter],
-                                       chargeAmountReported: Option[BigDecimal]) {
-
-}
+                                       chargeAmountReported: Option[BigDecimal])

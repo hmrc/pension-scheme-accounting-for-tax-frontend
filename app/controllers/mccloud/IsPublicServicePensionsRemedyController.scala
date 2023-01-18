@@ -124,26 +124,29 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
 
             },
             value =>
-              if(value) {
+              if (value) {
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
                   _ <- userAnswersCacheConnector
                     .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
                 } yield
                   Redirect(
-                    navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                    navigator
+                      .nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
               } else {
                 for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.removeWithPath(SchemePathHelper.basePath(chargeType, index))
-                    .set(IsPublicServicePensionsRemedyPage(chargeType, index), value))
+                  updatedAnswers <- Future.fromTry(
+                    request.userAnswers
+                      .removeWithPath(SchemePathHelper.basePath(chargeType, index))
+                      .set(IsPublicServicePensionsRemedyPage(chargeType, index), value))
                   _ <- userAnswersCacheConnector
                     .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
                 } yield
                   Redirect(
-                    navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
-              }
+                    navigator
+                      .nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+            }
           )
-
       }
     }
 }

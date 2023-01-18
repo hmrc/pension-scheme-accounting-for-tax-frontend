@@ -208,9 +208,9 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         controllers.mccloud.routes.AddAnotherPensionSchemeController
           .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, i)
       case (Some(i), true, CheckMode) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (Some(i), false, _) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (None, true | false, _) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (_, _, _) => sessionExpiredPage
+      case (Some(i), false, _)        => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (None, true | false, _)    => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (_, _, _)                  => sessionExpiredPage
     }
   }
 
@@ -227,7 +227,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         controllers.mccloud.routes.EnterPstrController
           .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, countSchemeSize(userAnswers, index))
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case _ => sessionExpiredPage
+      case _           => sessionExpiredPage
     }
   }
   private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {

@@ -108,7 +108,14 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
-    SchemePathHelper.path(ChargeTypeLifetimeAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+    SchemePathHelper
+      .path(ChargeTypeLifetimeAllowance, index)
+      .readNullable[JsArray]
+      .reads(userAnswers.data)
+      .asOpt
+      .flatten
+      .map(_.value.size)
+      .getOrElse(0)
   }
 
   private def routeFromIsPublicServicePensionsRemedyPage(userAnswers: UserAnswers,
@@ -211,9 +218,9 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         controllers.mccloud.routes.AddAnotherPensionSchemeController
           .onPageLoad(ChargeTypeLifetimeAllowance, mode, srn, startDate, accessType, version, index, i)
       case (Some(i), true, CheckMode) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (Some(i), false, _) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (None, true | false, _) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (_, _, _) => sessionExpiredPage
+      case (Some(i), false, _)        => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (None, true | false, _)    => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (_, _, _)                  => sessionExpiredPage
     }
   }
 
@@ -230,7 +237,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         controllers.mccloud.routes.EnterPstrController
           .onPageLoad(ChargeTypeLifetimeAllowance, mode, srn, startDate, accessType, version, index, countSchemeSize(userAnswers, index))
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case _ => sessionExpiredPage
+      case _           => sessionExpiredPage
     }
   }
 

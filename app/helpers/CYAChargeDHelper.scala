@@ -30,7 +30,7 @@ import java.time.LocalDate
 
 class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
-  val chargeTypeDescription: String = Messages(s"chargeType.description.$ChargeTypeLifetimeAllowance")
+  val chargeTypeDescription: String = Messages(s"chargeType.description.lifeTimeAllowance")
 
   def chargeDMemberDetails(index: Int, answer: models.MemberDetails): Seq[Row] = {
     Seq(
@@ -41,9 +41,10 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeD.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("visuallyHidden.memberName.label")
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("visuallyHidden.memberName.label")
+              ))
           )
         )
       ),
@@ -54,9 +55,10 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeD.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("cya.nino.label", answer.fullName )
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("cya.nino.label", answer.fullName)
+              ))
           )
         )
       )
@@ -72,37 +74,40 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeDDetails.dateOfEvent.visuallyHidden.label")
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("chargeDDetails.dateOfEvent.visuallyHidden.label")
+              ))
           )
         )
       ),
       Row(
         key = Key(msg"taxAt25Percent.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(
-          answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"),
+                      classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("taxAt25Percent.visuallyHidden.label")
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("taxAt25Percent.visuallyHidden.label")
+              ))
           )
         )
       ),
       Row(
         key = Key(msg"taxAt55Percent.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(
-          answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"),
+                      classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("taxAt55Percent.visuallyHidden.label")
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("taxAt55Percent.visuallyHidden.label")
+              ))
           )
         )
       )
@@ -118,10 +123,12 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.mccloud.routes.IsPublicServicePensionsRemedyController
-              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("isPublicServicePensionsRemedy.label")
-            ))
+              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index)
+              .url,
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("isPublicServicePensionsRemedy.label")
+              ))
           )
         )
       )
@@ -135,8 +142,9 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
 
     (isPublicServiceRemedy, isChargeInAdditionReported) match {
       case (true, true) =>
-        Some(getIsChargeInAdditionReportedRow(index, pensionsRemedySummary) ++
-          getWasAnotherPensionSchemeRow(index, pensionsRemedySummary))
+        Some(
+          getIsChargeInAdditionReportedRow(index, pensionsRemedySummary) ++
+            getWasAnotherPensionSchemeRow(index, pensionsRemedySummary))
       case (true, false) =>
         Some(getIsChargeInAdditionReportedRow(index, pensionsRemedySummary))
       case (false, _) => None
@@ -152,10 +160,12 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.mccloud.routes.IsChargeInAdditionReportedController
-              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("isChargeInAdditionReported.label", chargeTypeDescription)
-            ))
+              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index)
+              .url,
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("isChargeInAdditionReported.label", chargeTypeDescription)
+              ))
           )
         )
       )
@@ -171,10 +181,12 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.mccloud.routes.WasAnotherPensionSchemeController
-              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("wasAnotherPensionScheme.label", chargeTypeDescription)
-            ))
+              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index)
+              .url,
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("wasAnotherPensionScheme.label", chargeTypeDescription)
+              ))
           )
         )
       )
@@ -196,32 +208,40 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
   def pensionsRemedySchemeSummaryDetails(index: Int, pensionsRemedySchemeSummary: PensionsRemedySchemeSummary): Seq[Row] = {
     val basicSchemeRows = Seq(
       Row(
-        key = Key(msg"${messages(s"mccloud.scheme.cya.ref${pensionsRemedySchemeSummary.schemeIndex}")}"
-          , classes = Seq("govuk-!-width-full govuk-heading-m govuk-!-display-block govuk-!-margin-top-7")),
+        key = Key(
+          msg"${messages(s"mccloud.scheme.cya.ref${pensionsRemedySchemeSummary.schemeIndex}")}",
+          classes = Seq("govuk-!-width-full govuk-heading-m govuk-!-display-block govuk-!-margin-top-7")
+        ),
         value = Value(Html(""), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.remove")}</span>"),
             href = "#",
-            visuallyHiddenText = Some(Literal(
-              messages("site.remove") + " " + messages(s"mccloud.scheme.cya.ref${pensionsRemedySchemeSummary.schemeIndex}").toLowerCase
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.remove") + " " + messages(s"mccloud.scheme.cya.ref${pensionsRemedySchemeSummary.schemeIndex}").toLowerCase
+              ))
           )
         )
       ),
       Row(
-        key = Key(msg"${messages("enterPstr.cya.label", messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)}"
-          , classes = Seq("govuk-!-width-one-half")),
+        key = Key(
+          msg"${messages("enterPstr.cya.label", messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)}",
+          classes = Seq("govuk-!-width-one-half")
+        ),
         value = Value(getOptionalLiteralValue(pensionsRemedySchemeSummary.pstrNumber), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.mccloud.routes.EnterPstrController
-              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsRemedySchemeSummary.schemeIndex).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("enterPstr.cya.visuallyHidden.text",
-                messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)
-            ))
+              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsRemedySchemeSummary.schemeIndex)
+              .url,
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("enterPstr.cya.visuallyHidden.text",
+                                                       messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"),
+                                                       chargeTypeDescription)
+              ))
           )
         )
       )
@@ -232,9 +252,11 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
 
   //scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
-  def pensionsRemedySummaryDetails(index: Int, pensionsRemedySchemeSummary: PensionsRemedySchemeSummary, wasAnotherPensionSchemeVal: Boolean): Seq[Row] = {
+  def pensionsRemedySummaryDetails(index: Int,
+                                   pensionsRemedySchemeSummary: PensionsRemedySchemeSummary,
+                                   wasAnotherPensionSchemeVal: Boolean): Seq[Row] = {
 
-    val schemeIndex = if(wasAnotherPensionSchemeVal) {
+    val schemeIndex = if (wasAnotherPensionSchemeVal) {
       Some(pensionsRemedySchemeSummary.schemeIndex)
     } else {
       None
@@ -242,61 +264,82 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
 
     Seq(
       Row(
-        key = Key(msg"${
-          messages("taxYearReportedAndPaid.cya.label", messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"),
-            chargeTypeDescription)
-        }", classes = Seq("govuk-!-width-one-half")),
+        key = Key(
+          msg"${messages("taxYearReportedAndPaid.cya.label", messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)}",
+          classes = Seq("govuk-!-width-one-half")
+        ),
         value = Value(getOptionalYearValue(pensionsRemedySchemeSummary.taxYear), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.mccloud.routes.TaxYearReportedAndPaidController
-              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, schemeIndex).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("taxYearReportedAndPaid.cya.visuallyHidden.text",
-                messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)
-            ))
+              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
+              .url,
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("taxYearReportedAndPaid.cya.visuallyHidden.text",
+                                                       messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"),
+                                                       chargeTypeDescription)
+              ))
           )
         )
       ),
       Row(
-        key = Key(msg"${
-          messages("taxQuarterReportedAndPaid.cya.label", getOptionalYearForKey(pensionsRemedySchemeSummary.taxYear),
-            messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)
-        }",
-          classes = Seq("govuk-!-width-one-half")),
+        key = Key(
+          msg"${messages(
+            "taxQuarterReportedAndPaid.cya.label",
+            getOptionalYearForKey(pensionsRemedySchemeSummary.taxYear),
+            messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"),
+            chargeTypeDescription
+          )}",
+          classes = Seq("govuk-!-width-one-half")
+        ),
         value = Value(getOptionalLiteralQuarterValue(pensionsRemedySchemeSummary.taxQuarter), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.mccloud.routes.TaxYearReportedAndPaidController
-              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, schemeIndex).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("taxQuarterReportedAndPaid.cya.visuallyHidden.text",
+              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
+              .url,
+            visuallyHiddenText = Some(
+              Literal(messages("site.edit") + " " + messages(
+                "taxQuarterReportedAndPaid.cya.visuallyHidden.text",
                 getOptionalYearForKey(pensionsRemedySchemeSummary.taxYear),
-                messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription))
-            ))
+                messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"),
+                chargeTypeDescription
+              )))
+          )
         )
       ),
       Row(
-        key = Key(msg"${
-          messages("chargeAmountReported.cya.label", messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"),
-            chargeTypeDescription, getOptionalQuarterValue(pensionsRemedySchemeSummary.taxQuarter))
-        }", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${
-          FormatHelper.formatCurrencyAmountAsString(
-            pensionsRemedySchemeSummary.chargeAmountReported.getOrElse(BigDecimal(0.00)))
-        }"), classes = Seq("govuk-!-width-one-third")),
+        key = Key(
+          msg"${messages(
+            "chargeAmountReported.cya.label",
+            messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"),
+            chargeTypeDescription,
+            getOptionalQuarterValue(pensionsRemedySchemeSummary.taxQuarter)
+          )}",
+          classes = Seq("govuk-!-width-one-half")
+        ),
+        value = Value(
+          Literal(s"${FormatHelper.formatCurrencyAmountAsString(pensionsRemedySchemeSummary.chargeAmountReported.getOrElse(BigDecimal(0.00)))}"),
+          classes = Seq("govuk-!-width-one-third")
+        ),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.mccloud.routes.ChargeAmountReportedController
-              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, schemeIndex).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeAmountReported.cya.visuallyHidden.text",
-                messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"),
-                chargeTypeDescription, getOptionalQuarterValue(pensionsRemedySchemeSummary.taxQuarter))
-            ))
+              .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
+              .url,
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages(
+                  "chargeAmountReported.cya.visuallyHidden.text",
+                  messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"),
+                  chargeTypeDescription,
+                  getOptionalQuarterValue(pensionsRemedySchemeSummary.taxQuarter)
+                )
+              ))
           )
         )
       )
@@ -305,28 +348,28 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
 
   private def getOptionalValue(optionalVal: Option[Boolean]): Content = {
     optionalVal match {
-      case None => msg"mccloud.not.entered"
+      case None             => msg"mccloud.not.entered"
       case Some(booleanVal) => yesOrNo(booleanVal)
     }
   }
 
   private def getOptionalYearValue(optionalYearRange: Option[YearRange]): Content = {
     optionalYearRange match {
-      case None => msg"mccloud.not.entered"
+      case None            => msg"mccloud.not.entered"
       case Some(yearRange) => YearRange.getLabel(yearRange)
     }
   }
 
   private def getOptionalLiteralValue(optionalString: Option[String]): Content = {
     optionalString match {
-      case None => msg"mccloud.not.entered"
+      case None            => msg"mccloud.not.entered"
       case Some(stringVal) => Literal(stringVal.toUpperCase)
     }
   }
 
   private def getOptionalLiteralQuarterValue(optionalAFTQuarter: Option[AFTQuarter]): Content = {
     optionalAFTQuarter match {
-      case None => msg"mccloud.not.entered"
+      case None             => msg"mccloud.not.entered"
       case Some(aftQuarter) => Literal(AFTQuarter.formatForDisplay(aftQuarter))
     }
   }
@@ -342,7 +385,7 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
 
   private def getOptionalQuarterValue(optionalAFTQuarter: Option[AFTQuarter]): String = {
     optionalAFTQuarter match {
-      case None => msg"mccloud.not.entered".resolve
+      case None             => msg"mccloud.not.entered".resolve
       case Some(aftQuarter) => AFTQuarter.formatForDisplay(aftQuarter)
     }
   }
@@ -350,7 +393,7 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
   private def getValueFromOptionBoolean(optionalVal: Option[Boolean]): Boolean = {
     optionalVal match {
       case Some(booleanVal) => booleanVal
-      case _ => false
+      case _                => false
     }
   }
 

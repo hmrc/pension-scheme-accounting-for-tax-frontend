@@ -19,5 +19,4 @@ package models.mccloud
 case class PensionsRemedySummary(isPublicServicePensionsRemedy: Option[Boolean],
                                  isChargeInAdditionReported: Option[Boolean],
                                  wasAnotherPensionScheme: Option[Boolean],
-                                 pensionsRemedySchemeSummary: List[PensionsRemedySchemeSummary]) {
-}
+                                 pensionsRemedySchemeSummary: List[PensionsRemedySchemeSummary])
