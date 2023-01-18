@@ -26,6 +26,7 @@ import pages.IsPublicServicePensionsRemedyPage
 import pages.mccloud.IsChargeInAdditionReportedPage
 import play.api.i18n.Messages
 import play.api.libs.json.JsBoolean
+import queries.Gettable
 
 import java.time.LocalDate
 
@@ -35,7 +36,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
                                               override val config: FrontendAppConfig,
                                               val yesNoFormProvider: YesNoFormProvider
                                             ) extends AnnualAllowanceParser with Constraints with CommonQuarters {
-  override protected val totalFields: Int = 7 // TODO This will vary
+  override protected val totalFields: Int = 7 // TODO This can be removed
 
   override protected def validHeader: String = config.validAnnualAllowanceMcCloudHeader
 
@@ -45,38 +46,49 @@ class AnnualAllowanceMcCloudParser @Inject()(
     val isChargeInAdditionReported = "value"
   }
 
-  private def chargeTypeDescription(implicit messages: Messages) =
-    Messages(s"chargeType.description.${ChargeType.ChargeTypeAnnualAllowance.toString}")
+  private def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages) =
+    Messages(s"chargeType.description.${chargeType.toString}")
 
-  private def booleanValidation(index: Int, columns: Seq[String],
-                                fieldName: String, fieldNo: Int, formMessageKey: String)(implicit messages: Messages)
-  : Either[Seq[ParserValidationError], Boolean] = {
-    val form = yesNoFormProvider(messages(formMessageKey, chargeTypeDescription))
-    val fields = Seq(Field(fieldName, stringToBoolean(fieldValue(columns, fieldNo)), fieldName, fieldNo))
-    val toMap = Field.seqToMap(fields)
-    val bind = form.bind(toMap)
-    bind.fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-      value => Right(value)
+  private def validateBooleanField(
+                                    index: Int,
+                                    columns: Seq[String],
+                                    page: Int => Gettable[_],
+                                    errorMessage: String,
+                                    formFieldName: String,
+                                    fieldNo: Int
+                                  )(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+
+    def validation(index: Int, columns: Seq[String],
+                   fieldName: String, fieldNo: Int, formMessageKey: String)(implicit messages: Messages)
+    : Either[Seq[ParserValidationError], Boolean] = {
+      val form = yesNoFormProvider(messages(formMessageKey, chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)))
+      val fields = Seq(Field(fieldName, stringToBoolean(fieldValue(columns, fieldNo)), fieldName, fieldNo))
+      val toMap = Field.seqToMap(fields)
+      val bind = form.bind(toMap)
+      bind.fold(
+        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+        value => Right(value)
+      )
+    }
+
+    val formValidationResult = validation(index, columns, formFieldName, fieldNo, errorMessage)
+    resultFromFormValidationResult[Boolean](
+      formValidationResult,
+      createCommitItem(index, page)
     )
   }
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-
     val minimalFieldsResult: Either[Seq[ParserValidationError], Seq[CommitItem]] = validateMinimumFields(startDate, index, columns)
     val isPublicServicePensionsRemedyResult: Either[Seq[ParserValidationError], Seq[CommitItem]] =
       Right(Seq(CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(true))))
-
-    val isChargeInAdditionReportedResult: Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-      val formValidationResult = booleanValidation(index, columns, McCloudFieldNames.isChargeInAdditionReported,
-        FieldNoIsChargeInAdditionReported, "isChargeInAdditionReported.error.required")
-      resultFromFormValidationResult[Boolean](
-        formValidationResult,
-        createCommitItem(index, IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int))
+    val isChargeInAdditionReportedResult: Either[Seq[ParserValidationError], Seq[CommitItem]] =
+      validateBooleanField(
+        index, columns, IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
+        "isChargeInAdditionReported.error.required", McCloudFieldNames.isChargeInAdditionReported, FieldNoIsChargeInAdditionReported
       )
-    }
 
     combineResults(minimalFieldsResult, isPublicServicePensionsRemedyResult, isChargeInAdditionReportedResult)
   }

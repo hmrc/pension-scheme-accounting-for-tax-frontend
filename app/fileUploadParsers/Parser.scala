@@ -27,7 +27,6 @@ import play.api.libs.json.{JsPath, JsValue, Json, Writes}
 import queries.Gettable
 
 import java.time.LocalDate
-import scala.util.Either
 
 object ParserErrorMessages {
   val HeaderInvalidOrFileIsEmpty = "Header invalid or File is empty"
@@ -139,26 +138,16 @@ trait Parser {
     }
   }
 
-  protected final def combineResults(a: Either[Seq[ParserValidationError], Seq[CommitItem]],
-                                     b: Either[Seq[ParserValidationError], Seq[CommitItem]]): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    (a, b) match {
-      case (Left(x), Left(y)) => Left(x ++ y)
-      case (x@Left(_), Right(_)) => x
-      case (Right(_), x@Left(_)) => x
-      case (Right(x), Right(y)) => Right(x ++ y)
+  protected final def combineResults(first: Either[Seq[ParserValidationError], Seq[CommitItem]],
+                                     rest: Either[Seq[ParserValidationError], Seq[CommitItem]]*): Either[Seq[ParserValidationError], Seq[CommitItem]] =
+    rest.foldLeft(first) { (b, c) =>
+      (b, c) match {
+        case (Left(x), Left(y)) => Left(x ++ y)
+        case (x@Left(_), Right(_)) => x
+        case (Right(_), x@Left(_)) => x
+        case (Right(x), Right(y)) => Right(x ++ y)
+      }
     }
-  }
-
-  protected final def combineResults(a: Either[Seq[ParserValidationError], Seq[CommitItem]],
-                                     b: Either[Seq[ParserValidationError], Seq[CommitItem]],
-                                     c: Either[Seq[ParserValidationError], Seq[CommitItem]]
-                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] = combineResults(combineResults(a, b), c)
-
-  protected final def combineResults(a: Either[Seq[ParserValidationError], Seq[CommitItem]],
-                                     b: Either[Seq[ParserValidationError], Seq[CommitItem]],
-                                     c: Either[Seq[ParserValidationError], Seq[CommitItem]],
-                                     d: Either[Seq[ParserValidationError], Seq[CommitItem]]
-                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] = combineResults(combineResults(a, b, c), d)
 
   protected final def combineValidationResults[A, B](a: Result[A], b: Result[B]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
     addToValidationResults(b, addToValidationResults(a, Right(Nil)))
