@@ -17,14 +17,12 @@
 package controllers.fileUpload
 
 import controllers.actions._
-import controllers.fileUpload.WhatYouWillNeedController.FileTypes
-import controllers.fileUpload.WhatYouWillNeedController.FileTypes.Instructions
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, Enumerable, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}
 import pages.fileUpload.WhatYouWillNeedPage
+import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -47,7 +45,6 @@ class WhatYouWillNeedController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  // scalastyle:off
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
@@ -57,8 +54,7 @@ class WhatYouWillNeedController @Inject()(
         case _ => None
       }
 
-      // TODO: rename val to perhaps separate out links by more appropriate name convention rather than _1, _2
-      val downloadLinks: (Json.JsValueWrapper, Json.JsValueWrapper) = (psr, chargeType) match {
+      val (templateDownloadLink, instructionsDownloadLink): (Json.JsValueWrapper, Json.JsValueWrapper) = (psr, chargeType) match {
           case (Some(true), ChargeTypeAnnualAllowance) => // PSR, AA
             (controllers.routes.FileDownloadController.templateFile(ChargeTypeAnnualAllowance, Some(true)).url,
               controllers.routes.FileDownloadController.instructionsFile(ChargeTypeAnnualAllowance, Some(true)).url)
@@ -87,8 +83,8 @@ class WhatYouWillNeedController @Inject()(
           "chargeType" -> chargeType.toString,
           "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
           "srn" -> srn, "startDate" -> Some(startDate),
-          "fileDownloadTemplateLink" -> downloadLinks._1,
-          "fileDownloadInstructionsLink" -> downloadLinks._2,
+          "fileDownloadTemplateLink" -> templateDownloadLink,
+          "fileDownloadInstructionsLink" -> instructionsDownloadLink,
           "viewModel" -> viewModel,
           "psr" -> psr))
         .map(Ok(_))
