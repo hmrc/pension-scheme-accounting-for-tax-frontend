@@ -27,6 +27,7 @@ import play.api.libs.json.{JsPath, JsValue, Json, Writes}
 import queries.Gettable
 
 import java.time.LocalDate
+import scala.util.Either
 
 object ParserErrorMessages {
   val HeaderInvalidOrFileIsEmpty = "Header invalid or File is empty"
@@ -35,6 +36,7 @@ object ParserErrorMessages {
 object Parser {
   val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty: ParserValidationError = ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty, EMPTY)
 }
+
 // TODO: columns should return "" if field not there
 trait Parser {
   protected final val FieldNoFirstName = 0
@@ -45,7 +47,7 @@ trait Parser {
 
   protected val totalFields: Int
 
-  protected def fieldValue(columns:Seq[String], fieldNo: Int): String =
+  protected def fieldValue(columns: Seq[String], fieldNo: Int): String =
     if (columns.isDefinedAt(fieldNo)) {
       columns(fieldNo)
     } else {
@@ -110,7 +112,7 @@ trait Parser {
     a => CommitItem(page(index - 1).path, Json.toJson(a))
 
   protected def addToValidationResults[A](resultToBeAdded: Result[A],
-                                        validationResults: Either[Seq[ParserValidationError], Seq[CommitItem]]):
+                                          validationResults: Either[Seq[ParserValidationError], Seq[CommitItem]]):
   Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     resultToBeAdded.result match {
       case Left(resultAErrors) =>
@@ -129,8 +131,16 @@ trait Parser {
     }
   }
 
+  protected def resultFromFormValidationResult[A](formValidationResult: Either[Seq[ParserValidationError], A],
+                                                  generateCommitItem: A => CommitItem): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+    formValidationResult match {
+      case Left(resultAErrors) => Left(resultAErrors)
+      case Right(resultAObject) => Right(Seq(generateCommitItem(resultAObject)))
+    }
+  }
+
   protected final def combineResults(a: Either[Seq[ParserValidationError], Seq[CommitItem]],
-                                               b: Either[Seq[ParserValidationError], Seq[CommitItem]]): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+                                     b: Either[Seq[ParserValidationError], Seq[CommitItem]]): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     (a, b) match {
       case (Left(x), Left(y)) => Left(x ++ y)
       case (x@Left(_), Right(_)) => x
@@ -138,6 +148,17 @@ trait Parser {
       case (Right(x), Right(y)) => Right(x ++ y)
     }
   }
+
+  protected final def combineResults(a: Either[Seq[ParserValidationError], Seq[CommitItem]],
+                                     b: Either[Seq[ParserValidationError], Seq[CommitItem]],
+                                     c: Either[Seq[ParserValidationError], Seq[CommitItem]]
+                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] = combineResults(combineResults(a, b), c)
+
+  protected final def combineResults(a: Either[Seq[ParserValidationError], Seq[CommitItem]],
+                                     b: Either[Seq[ParserValidationError], Seq[CommitItem]],
+                                     c: Either[Seq[ParserValidationError], Seq[CommitItem]],
+                                     d: Either[Seq[ParserValidationError], Seq[CommitItem]]
+                                    ): Either[Seq[ParserValidationError], Seq[CommitItem]] = combineResults(combineResults(a, b, c), d)
 
   protected final def combineValidationResults[A, B](a: Result[A], b: Result[B]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
     addToValidationResults(b, addToValidationResults(a, Right(Nil)))
