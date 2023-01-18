@@ -27,6 +27,7 @@ import play.api.libs.json.{JsPath, JsValue, Json, Writes}
 import queries.Gettable
 
 import java.time.LocalDate
+import scala.util.Either
 
 object ParserErrorMessages {
   val HeaderInvalidOrFileIsEmpty = "Header invalid or File is empty"
@@ -35,7 +36,7 @@ object ParserErrorMessages {
 object Parser {
   val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty: ParserValidationError = ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty, EMPTY)
 }
-
+// TODO: columns should return "" if field not there
 trait Parser {
   protected final val FieldNoFirstName = 0
   protected final val FieldNoLastName = 1
@@ -44,6 +45,13 @@ trait Parser {
   protected def validHeader: String
 
   protected val totalFields: Int
+
+  protected def fieldValue(columns:Seq[String], fieldNo: Int): String =
+    if (columns.isDefinedAt(fieldNo)) {
+      columns(fieldNo)
+    } else {
+      ""
+    }
 
   def parse(startDate: LocalDate, rows: Seq[Array[String]], userAnswers: UserAnswers)
            (implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
@@ -80,9 +88,9 @@ trait Parser {
   protected def memberDetailsValidation(index: Int, columns: Seq[String],
                                         memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
-      Field(MemberDetailsFieldNames.firstName, columns(FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
-      Field(MemberDetailsFieldNames.lastName, columns(FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
-      Field(MemberDetailsFieldNames.nino, columns(FieldNoNino), MemberDetailsFieldNames.nino, 2)
+      Field(MemberDetailsFieldNames.firstName, fieldValue(columns, FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
+      Field(MemberDetailsFieldNames.lastName, fieldValue(columns, FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
+      Field(MemberDetailsFieldNames.nino, fieldValue(columns, FieldNoNino), MemberDetailsFieldNames.nino, 2)
     )
     val toMap = Field.seqToMap(fields)
 
@@ -108,7 +116,7 @@ trait Parser {
   protected final def createCommitItem[A](index: Int, page: Int => Gettable[_])(implicit writes: Writes[A]): A => CommitItem =
     a => CommitItem(page(index - 1).path, Json.toJson(a))
 
-  private def addToValidationResults[A](resultToBeAdded: Result[A],
+  protected def addToValidationResults[A](resultToBeAdded: Result[A],
                                         validationResults: Either[Seq[ParserValidationError], Seq[CommitItem]]):
   Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     resultToBeAdded.result match {
@@ -127,6 +135,17 @@ trait Parser {
         }
     }
   }
+
+  protected final def combineResults(a: Either[Seq[ParserValidationError], Seq[CommitItem]],
+                                               b: Either[Seq[ParserValidationError], Seq[CommitItem]]): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+    (a, b) match {
+      case (Left(x), Left(y)) => Left(x ++ y)
+      case (x@Left(_), Right(_)) => x
+      case (Right(_), x@Left(_)) => x
+      case (Right(x), Right(y)) => Right(x ++ y)
+    }
+  }
+
 
   protected final def combineValidationResults[A, B](a: Result[A], b: Result[B]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
     addToValidationResults(b, addToValidationResults(a, Right(Nil)))

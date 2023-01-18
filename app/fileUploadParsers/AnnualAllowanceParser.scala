@@ -122,7 +122,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
     combineValidationResults[MemberDetails, ChargeEDetails, String](
       Result(memberDetailsValidation(index, columns, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
       Result(chargeDetailsValidation(startDate, index, columns), createCommitItem(index, ChargeDetailsPage.apply)),
-      Result(Right(columns(FieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply))
+      Result(Right(fieldValue(columns, FieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply))
     )
   }
 }

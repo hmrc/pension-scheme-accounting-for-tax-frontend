@@ -20,18 +20,18 @@ import base.SpecBase
 import config.FrontendAppConfig
 import data.SampleData
 import data.SampleData.startDate
-import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
+import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import helpers.ParserHelper
-import models.{UserAnswers, YearRange}
 import models.chargeE.ChargeEDetails
+import models.{ChargeType, UserAnswers, YearRange}
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
-import play.api.libs.json.Json
+import pages.mccloud.IsChargeInAdditionReportedPage
 
 import java.time.LocalDate
 
@@ -56,6 +56,7 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,12/02/22,45.66,,,,,,,,,,
 Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,24000017IN,01/01/22,102.55,24000018IN,01/01/22,99.88,24000019IN,01/01/22,99.88,24000020IN,01/01/22,99.88,24000021IN,01/01/22,498.9
 Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       )
+
       val chargeDetails1 = ChargeEDetails(BigDecimal(268.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
       val chargeDetails2 = ChargeEDetails(BigDecimal(100.50), LocalDate.of(2020, 1, 1), isPaymentMandatory = false)
       val chargeDetails3 = ChargeEDetails(BigDecimal(68.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
@@ -66,6 +67,8 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(MemberDetailsPage(0)) mustBe Some(SampleData.memberDetails2)
       actualUA.get(ChargeDetailsPage(0)) mustBe Some(chargeDetails1)
       actualUA.get(AnnualAllowanceYearPage(0)) mustBe Some(YearRange("2020"))
+
+      actualUA.get(IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, 0)) mustBe Some(true)
 
       actualUA.get(MemberDetailsPage(1)) mustBe Some(SampleData.memberDetails3)
       actualUA.get(ChargeDetailsPage(1)) mustBe Some(chargeDetails2)
@@ -78,7 +81,20 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
 
     }
 
-    behave like annualAllowanceParserWithMinimalFields(header, parser)
+    behave like annualAllowanceParserWithMinimalFields(
+      header = header,
+      parser = parser,
+      extraExpected = r =>
+        Seq(
+          ParserValidationError(
+            row = r,
+            col = 7,
+            error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
+            columnName = parser.McCloudFieldNames.isChargeInAdditionReported,
+            args = Nil
+          )
+        )
+    )
 
   }
 }
@@ -87,9 +103,10 @@ object AnnualAllowanceMcCloudParserSpec extends MockitoSugar {
   private val header: String = "Test McCloud header"
 
   private val mockFrontendAppConfig = mock[FrontendAppConfig]
-
   private val formProviderMemberDetails = new MemberDetailsFormProvider
   private val formProviderChargeDetails = new ChargeDetailsFormProvider
+  private val formProviderYesNo = new YesNoFormProvider
 
-  private val parser = new AnnualAllowanceMcCloudParser(formProviderMemberDetails, formProviderChargeDetails, mockFrontendAppConfig)
+  private val parser = new AnnualAllowanceMcCloudParser(
+    formProviderMemberDetails, formProviderChargeDetails, mockFrontendAppConfig, formProviderYesNo)
 }
