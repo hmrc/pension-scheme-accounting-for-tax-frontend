@@ -17,9 +17,11 @@
 package controllers.fileUpload
 
 import controllers.actions._
+import controllers.fileUpload.WhatYouWillNeedController.FileTypes
+import controllers.fileUpload.WhatYouWillNeedController.FileTypes.Instructions
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, Enumerable, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}
 import pages.fileUpload.WhatYouWillNeedPage
@@ -45,6 +47,7 @@ class WhatYouWillNeedController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
+  // scalastyle:off
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
@@ -53,6 +56,25 @@ class WhatYouWillNeedController @Inject()(
         case ChargeTypeLifetimeAllowance | ChargeTypeAnnualAllowance => ua.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
         case _ => None
       }
+
+      // TODO: rename val to perhaps separate out links by more appropriate name convention rather than _1, _2
+      val downloadLinks: (Json.JsValueWrapper, Json.JsValueWrapper) = (psr, chargeType) match {
+          case (Some(true), ChargeTypeAnnualAllowance) => // PSR, AA
+            (controllers.routes.FileDownloadController.templateFile(ChargeTypeAnnualAllowance, Some(true)).url,
+              controllers.routes.FileDownloadController.instructionsFile(ChargeTypeAnnualAllowance, Some(true)).url)
+          case (Some(true), ChargeTypeLifetimeAllowance) => // PSR, LTA
+            (controllers.routes.FileDownloadController.templateFile(ChargeTypeLifetimeAllowance, Some(true)).url,
+              controllers.routes.FileDownloadController.instructionsFile(ChargeTypeLifetimeAllowance, Some(true)).url)
+          case (Some(false), ChargeTypeAnnualAllowance) => // NON PSR, AA
+            (controllers.routes.FileDownloadController.templateFile(ChargeTypeAnnualAllowance, Some(false)).url,
+              controllers.routes.FileDownloadController.instructionsFile(ChargeTypeAnnualAllowance, Some(false)).url)
+          case (Some(false), ChargeTypeLifetimeAllowance) => // NON PSR, LTA
+            (controllers.routes.FileDownloadController.templateFile(ChargeTypeLifetimeAllowance, Some(false)).url,
+              controllers.routes.FileDownloadController.instructionsFile(ChargeTypeLifetimeAllowance, Some(false)).url)
+          case (None, _) => // OVERSEAS TRANSFER
+            (controllers.routes.FileDownloadController.templateFile(_, None).url,
+              controllers.routes.FileDownloadController.instructionsFile(_, None).url)
+        }
 
       val viewModel = GenericViewModel(
         submitUrl = navigator.nextPage(WhatYouWillNeedPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url,
@@ -65,11 +87,10 @@ class WhatYouWillNeedController @Inject()(
           "chargeType" -> chargeType.toString,
           "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
           "srn" -> srn, "startDate" -> Some(startDate),
-          "fileDownloadTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType).url,
-          "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType).url,
+          "fileDownloadTemplateLink" -> downloadLinks._1,
+          "fileDownloadInstructionsLink" -> downloadLinks._2,
           "viewModel" -> viewModel,
           "psr" -> psr))
         .map(Ok(_))
     }
 }
-
