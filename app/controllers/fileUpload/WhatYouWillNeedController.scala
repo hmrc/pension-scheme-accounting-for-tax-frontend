@@ -17,7 +17,7 @@
 package controllers.fileUpload
 
 import controllers.actions._
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
@@ -67,9 +67,9 @@ class WhatYouWillNeedController @Inject()(
           case (Some(false), ChargeTypeLifetimeAllowance) => // NON PSR, LTA
             (controllers.routes.FileDownloadController.templateFile(ChargeTypeLifetimeAllowance, Some(false)).url,
               controllers.routes.FileDownloadController.instructionsFile(ChargeTypeLifetimeAllowance, Some(false)).url)
-          case (None, _) => // OVERSEAS TRANSFER
-            (controllers.routes.FileDownloadController.templateFile(_: ChargeType, None).url,
-              controllers.routes.FileDownloadController.instructionsFile(_: ChargeType, None).url)
+          case (None, ChargeTypeOverseasTransfer) => // OVERSEAS TRANSFER
+            (controllers.routes.FileDownloadController.templateFile(ChargeTypeOverseasTransfer, None).url,
+              controllers.routes.FileDownloadController.instructionsFile(ChargeTypeOverseasTransfer, None).url)
         }
 
       val viewModel = GenericViewModel(
