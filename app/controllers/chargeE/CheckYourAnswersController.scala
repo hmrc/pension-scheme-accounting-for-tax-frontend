@@ -65,12 +65,12 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           val wasAnotherPensionSchemeVal = pensionsRemedySummary.wasAnotherPensionScheme.getOrElse(false)
 
           val seqRows: Seq[SummaryList.Row] = Seq(
-            helper.isPsprForChargeE(index, pensionsRemedySummary.isPublicServicePensionsRemedy),
+            helper.isPsprForCharge(index, pensionsRemedySummary.isPublicServicePensionsRemedy),
             helper.chargeEMemberDetails(index, memberDetails),
             helper.chargeETaxYear(index, taxYear),
             helper.chargeEDetails(index, chargeEDetails),
-            helper.psprChargeEDetails(index, pensionsRemedySummary).getOrElse(None),
-            helper.psprSchemesChargeEDetails(index, pensionsRemedySummary, wasAnotherPensionSchemeVal)
+            helper.psprChargeDetails(index, pensionsRemedySummary).getOrElse(None),
+            helper.psprSchemesChargeDetails(index, pensionsRemedySummary, wasAnotherPensionSchemeVal)
           ).flatten
 
           renderer

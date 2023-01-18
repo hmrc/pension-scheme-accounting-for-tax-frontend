@@ -102,12 +102,12 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private def rows(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) =
     Seq(
-      helper.isPsprForChargeD(0, Some(isPSR)),
+      helper.isPsprForCharge(0, Some(isPSR)),
       helper.chargeDMemberDetails(0, memberDetails),
       helper.chargeDDetails(0, chargeDDetails),
       Seq(helper.total(chargeAmount1 + chargeAmount2)),
-      helper.psprChargeDDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
-      helper.psprSchemesChargeDDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
+      helper.psprChargeDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
+      helper.psprSchemesChargeDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
     ).flatten
 
   private def jsonToPassToTemplate(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean): JsObject = Json.obj(

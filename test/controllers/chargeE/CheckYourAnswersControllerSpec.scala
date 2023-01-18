@@ -106,12 +106,12 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def rows(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) = {
 
     Seq(
-      helper.isPsprForChargeE(0, Some(isPSR)),
+      helper.isPsprForCharge(0, Some(isPSR)),
       helper.chargeEMemberDetails(0, memberDetails),
       helper.chargeETaxYear(0, dynamicYearRange),
       helper.chargeEDetails(0, chargeEDetails),
-      helper.psprChargeEDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
-      helper.psprSchemesChargeEDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
+      helper.psprChargeDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
+      helper.psprSchemesChargeDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
     ).flatten
   }
 
