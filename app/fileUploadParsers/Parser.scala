@@ -27,7 +27,6 @@ import play.api.libs.json.{JsPath, JsValue, Json, Writes}
 import queries.Gettable
 
 import java.time.LocalDate
-import scala.util.Either
 
 object ParserErrorMessages {
   val HeaderInvalidOrFileIsEmpty = "Header invalid or File is empty"
@@ -71,13 +70,7 @@ trait Parser {
                            (implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
     rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
-      case (acc, Tuple2(row, index)) =>
-        (acc, validateFields(startDate, index, row.toIndexedSeq)) match {
-          case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ newErrors)
-          case (Right(_), newErrors@Left(_)) => newErrors
-          case (currentErrors@Left(_), Right(_)) => currentErrors
-          case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
-        }
+      case (acc, Tuple2(row, index)) => combineResults(acc, validateFields(startDate, index, row.toIndexedSeq))
     }
   }
 
@@ -145,7 +138,6 @@ trait Parser {
       case (Right(x), Right(y)) => Right(x ++ y)
     }
   }
-
 
   protected final def combineValidationResults[A, B](a: Result[A], b: Result[B]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
     addToValidationResults(b, addToValidationResults(a, Right(Nil)))
