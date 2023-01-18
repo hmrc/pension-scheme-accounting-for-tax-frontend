@@ -23,7 +23,7 @@ import data.SampleData.startDate
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import helpers.ParserHelper
-import models.UserAnswers
+import models.{UserAnswers, YearRange}
 import models.chargeE.ChargeEDetails
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -46,24 +46,36 @@ class AnnualAllowanceMcCloudParserSpec extends SpecBase
     when(mockFrontendAppConfig.earliestDateOfNotice).thenReturn(LocalDate.of(1900, 1, 1))
     when(mockFrontendAppConfig.validAnnualAllowanceMcCloudHeader).thenReturn(header)
   }
-  
+
   "Annual allowance McCloud parser" must {
+
     "return charges in user answers when there are no validation errors" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-    Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,YES,NO,,2022,1,45,,,,,,,,,,,,,,,,,,,,
-    Joe,Bliggs,AB123457C,2020,268.28,01/01/2020,YES,YES,YES,NO,,2022,1,45,,,,,,,,,,,,,,,,,,,,"""
+Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,12/02/22,45.66,,,,,,,,,,,,
+Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,24000017IN,01/01/22,102.55,24000018IN,01/01/22,99.88,24000019IN,01/01/22,99.88,24000020IN,01/01/22,99.88,24000021IN,01/01/22,498.9
+Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       )
-      val chargeDetails = ChargeEDetails(BigDecimal(268.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
+      val chargeDetails1 = ChargeEDetails(BigDecimal(268.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
+      val chargeDetails2 = ChargeEDetails(BigDecimal(100.50), LocalDate.of(2020, 1, 1), isPaymentMandatory = false)
+      val chargeDetails3 = ChargeEDetails(BigDecimal(68.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
-      result mustBe Right(UserAnswers()
-        .setOrException(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2))
-        .setOrException(ChargeDetailsPage(0).path, Json.toJson(chargeDetails))
-        .setOrException(AnnualAllowanceYearPage(0).path, Json.toJson("2020"))
-        .setOrException(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3))
-        .setOrException(ChargeDetailsPage(1).path, Json.toJson(chargeDetails))
-        .setOrException(AnnualAllowanceYearPage(1).path, Json.toJson("2020"))
-      )
+      result.isRight mustBe true
+      val actualUA = result.toOption.value
+
+      actualUA.get(MemberDetailsPage(0)) mustBe Some(SampleData.memberDetails2)
+      actualUA.get(ChargeDetailsPage(0)) mustBe Some(chargeDetails1)
+      actualUA.get(AnnualAllowanceYearPage(0)) mustBe Some(YearRange("2020"))
+
+      actualUA.get(MemberDetailsPage(1)) mustBe Some(SampleData.memberDetails3)
+      actualUA.get(ChargeDetailsPage(1)) mustBe Some(chargeDetails2)
+      actualUA.get(AnnualAllowanceYearPage(1)) mustBe Some(YearRange("2020"))
+
+      actualUA.get(MemberDetailsPage(2)) mustBe Some(SampleData.memberDetails4)
+      actualUA.get(ChargeDetailsPage(2)) mustBe Some(chargeDetails3)
+      actualUA.get(AnnualAllowanceYearPage(2)) mustBe Some(YearRange("2020"))
+
+
     }
 
     behave like annualAllowanceParserWithMinimalFields(header, parser)
