@@ -55,19 +55,19 @@ class WhatYouWillNeedController @Inject()(
       }
 
       val (templateDownloadLink, instructionsDownloadLink): (Json.JsValueWrapper, Json.JsValueWrapper) = (psr, chargeType) match {
-          case (Some(true), ChargeTypeAnnualAllowance) => // PSR, AA
+          case (Some(true), ChargeTypeAnnualAllowance) =>
             (controllers.routes.FileDownloadController.templateFile(ChargeTypeAnnualAllowance, Some(true)).url,
               controllers.routes.FileDownloadController.instructionsFile(ChargeTypeAnnualAllowance, Some(true)).url)
-          case (Some(true), ChargeTypeLifetimeAllowance) => // PSR, LTA
+          case (Some(true), ChargeTypeLifetimeAllowance) =>
             (controllers.routes.FileDownloadController.templateFile(ChargeTypeLifetimeAllowance, Some(true)).url,
               controllers.routes.FileDownloadController.instructionsFile(ChargeTypeLifetimeAllowance, Some(true)).url)
-          case (Some(false), ChargeTypeAnnualAllowance) => // NON PSR, AA
+          case (Some(false), ChargeTypeAnnualAllowance) =>
             (controllers.routes.FileDownloadController.templateFile(ChargeTypeAnnualAllowance, Some(false)).url,
               controllers.routes.FileDownloadController.instructionsFile(ChargeTypeAnnualAllowance, Some(false)).url)
-          case (Some(false), ChargeTypeLifetimeAllowance) => // NON PSR, LTA
+          case (Some(false), ChargeTypeLifetimeAllowance) =>
             (controllers.routes.FileDownloadController.templateFile(ChargeTypeLifetimeAllowance, Some(false)).url,
               controllers.routes.FileDownloadController.instructionsFile(ChargeTypeLifetimeAllowance, Some(false)).url)
-          case (None, ChargeTypeOverseasTransfer) => // OVERSEAS TRANSFER
+          case _ =>
             (controllers.routes.FileDownloadController.templateFile(ChargeTypeOverseasTransfer, None).url,
               controllers.routes.FileDownloadController.instructionsFile(ChargeTypeOverseasTransfer, None).url)
         }

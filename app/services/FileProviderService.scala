@@ -27,18 +27,18 @@ class FileProviderService @Inject()(environment: Environment){
   private val baseTemplatePath: String = "conf/resources/fileDownload/template"
 
   private val instructionsFilePathMap = Map(
-    "annualAllowancePSR" -> s"$baseInstructionsPath/aft-annual-allowance-charge-upload-format-instructions.ods",
-    "annualAllowanceNonPSR" -> s"$baseInstructionsPath/aft-annual-allowance-charge-upload-format-instructions.ods",
-    "lifeTimeAllowancePSR" -> s"$baseInstructionsPath/aft-lifetime-allowance-charge-upload-format-instructions.ods",
-    "lifeTimeAllowanceNonPSR" -> s"$baseInstructionsPath/aft-lifetime-allowance-charge-upload-format-instructions.ods",
+    "annualAllowancePSR" -> s"$baseInstructionsPath/instructions_aft-annual-allowance-charge-upload-format.ods",
+    "annualAllowanceNonPSR" -> s"$baseInstructionsPath/instructions_aft-annual-allowance-charge-upload-non-public-service-pensions-remedy.ods",
+    "lifeTimeAllowancePSR" -> s"$baseInstructionsPath/instructions_aft-lifetime-allowance-charge-upload-format.ods",
+    "lifeTimeAllowanceNonPSR" -> s"$baseInstructionsPath/instructions_aft-lifetime-allowance-charge-upload-non-public-service-pensions-remedy.ods",
     "overseasTransfer"-> s"$baseInstructionsPath/aft-overseas-transfer-charge-upload-format-instructions.ods"
   )
 
   private val templateFilePathMap = Map(
-    "annualAllowancePSR" -> s"$baseTemplatePath/aft-annual-allowance-charge-upload-template.csv",
-    "annualAllowanceNonPSR" -> s"$baseTemplatePath/aft-annual-allowance-charge-upload-template.csv",
-    "lifeTimeAllowancePSR"-> s"$baseTemplatePath/aft-lifetime-allowance-charge-upload-template.csv",
-    "lifeTimeAllowanceNonPSR"-> s"$baseTemplatePath/aft-lifetime-allowance-charge-upload-template.csv",
+    "annualAllowancePSR" -> s"$baseTemplatePath/upload-template_aft-annual-allowance-charge.csv",
+    "annualAllowanceNonPSR" -> s"$baseTemplatePath/upload-template_aft-annual-allowance-charge_non-public-service-pensions-remedy.csv",
+    "lifeTimeAllowancePSR"-> s"$baseTemplatePath/upload-template_aft-lifetime-allowance-charge.csv",
+    "lifeTimeAllowanceNonPSR"-> s"$baseTemplatePath/upload-template_aft-lifetime-allowance-charge_non-public-service-pensions-remedy.csv",
     "overseasTransfer"-> s"$baseTemplatePath/aft-overseas-transfer-charge-upload-template.csv"
   )
 
