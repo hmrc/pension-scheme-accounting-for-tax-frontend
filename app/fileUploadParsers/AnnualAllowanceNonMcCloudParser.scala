@@ -21,8 +21,10 @@ import config.FrontendAppConfig
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
-import models.CommonQuarters
+import models.{ChargeType, CommonQuarters}
+import pages.IsPublicServicePensionsRemedyPage
 import play.api.i18n.Messages
+import play.api.libs.json.JsBoolean
 
 import java.time.LocalDate
 
@@ -38,6 +40,8 @@ class AnnualAllowanceNonMcCloudParser @Inject()(
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    validateMinimumFields(startDate, index, columns)
+    val isPublicServicePensionsRemedyResult: Either[Seq[ParserValidationError], Seq[CommitItem]] =
+      Right(Seq(CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(false))))
+    combineResults(validateMinimumFields(startDate, index, columns), isPublicServicePensionsRemedyResult)
   }
 }

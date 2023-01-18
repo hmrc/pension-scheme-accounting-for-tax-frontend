@@ -23,14 +23,16 @@ import data.SampleData.startDate
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import helpers.ParserHelper
-import models.UserAnswers
+import models.{ChargeType, UserAnswers}
 import models.chargeE.ChargeEDetails
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
+import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
+import pages.mccloud.IsChargeInAdditionReportedPage
 import play.api.libs.json.Json
 
 import java.time.LocalDate
@@ -60,9 +62,12 @@ class AnnualAllowanceNonMcCloudParserSpec extends SpecBase
         .setOrException(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2))
         .setOrException(ChargeDetailsPage(0).path, Json.toJson(chargeDetails))
         .setOrException(AnnualAllowanceYearPage(0).path, Json.toJson("2020"))
+        .setOrException(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(0)), false)
+
         .setOrException(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3))
         .setOrException(ChargeDetailsPage(1).path, Json.toJson(chargeDetails))
         .setOrException(AnnualAllowanceYearPage(1).path, Json.toJson("2020"))
+        .setOrException(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(1)), false)
       )
     }
 

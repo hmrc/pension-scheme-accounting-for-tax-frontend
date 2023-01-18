@@ -22,9 +22,11 @@ import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import models.{ChargeType, CommonQuarters}
+import pages.IsPublicServicePensionsRemedyPage
 import pages.mccloud.IsChargeInAdditionReportedPage
 import play.api.data.Form
 import play.api.i18n.Messages
+import play.api.libs.json.JsBoolean
 
 import java.time.LocalDate
 
@@ -72,6 +74,10 @@ class AnnualAllowanceMcCloudParser @Inject()(
           yesNoFormProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription))),
         createCommitItem(index, IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int))
       )
-    addToValidationResults(additionalResult, minimalFieldsResult)
+
+    val isPublicServicePensionsRemedyResult: Either[Seq[ParserValidationError], Seq[CommitItem]] =
+      Right(Seq(CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(true))))
+
+    combineResults(addToValidationResults(additionalResult, minimalFieldsResult), isPublicServicePensionsRemedyResult)
   }
 }
