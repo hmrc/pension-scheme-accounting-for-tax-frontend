@@ -56,5 +56,4 @@ class FileDownloadController @Inject()(override val messagesApi: MessagesApi,
         ))
     }
   }
-
 }

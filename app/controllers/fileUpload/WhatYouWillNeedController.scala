@@ -68,8 +68,8 @@ class WhatYouWillNeedController @Inject()(
             (controllers.routes.FileDownloadController.templateFile(ChargeTypeLifetimeAllowance, Some(false)).url,
               controllers.routes.FileDownloadController.instructionsFile(ChargeTypeLifetimeAllowance, Some(false)).url)
           case (None, _) => // OVERSEAS TRANSFER
-            (controllers.routes.FileDownloadController.templateFile(_, None).url,
-              controllers.routes.FileDownloadController.instructionsFile(_, None).url)
+            (controllers.routes.FileDownloadController.templateFile(_: ChargeType, None).url,
+              controllers.routes.FileDownloadController.instructionsFile(_: ChargeType, None).url)
         }
 
       val viewModel = GenericViewModel(
