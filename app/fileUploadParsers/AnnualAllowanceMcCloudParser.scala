@@ -48,27 +48,25 @@ class AnnualAllowanceMcCloudParser @Inject()(
   private def chargeTypeDescription(implicit messages: Messages) =
     Messages(s"chargeType.description.${ChargeType.ChargeTypeAnnualAllowance.toString}")
 
-  private def booleanValidation(index: Int, columns: Seq[String], fieldName: String, fieldNo: Int, formMessageKey: String)(implicit messages: Messages)
-  : Either[Seq[ParserValidationError], Boolean] = {
-    val form = yesNoFormProvider(messages(formMessageKey, chargeTypeDescription))
-    val fields = Seq(Field(fieldName, stringToBoolean(fieldValue(columns, fieldNo)), fieldName, fieldNo))
-    val toMap = Field.seqToMap(fields)
-    val bind = form.bind(toMap)
-    bind.fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-      value => Right(value)
-    )
-  }
-
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+
+    def booleanValidation(fieldName: String, fieldNo: Int, formMessageKey: String): Either[Seq[ParserValidationError], Boolean] = {
+      val form = yesNoFormProvider(messages(formMessageKey, chargeTypeDescription))
+      val fields = Seq(Field(fieldName, stringToBoolean(fieldValue(columns, fieldNo)), fieldName, fieldNo))
+      val toMap = Field.seqToMap(fields)
+      val bind = form.bind(toMap)
+      bind.fold(
+        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+        value => Right(value)
+      )
+    }
+
     val minimalFieldsResult: Either[Seq[ParserValidationError], Seq[CommitItem]] = validateMinimumFields(startDate, index, columns)
     val additionalResult: Result[Boolean] =
       Result(
         booleanValidation(
-          index = index,
-          columns = columns,
           fieldName = McCloudFieldNames.isChargeInAdditionReported,
           fieldNo = FieldNoIsChargeInAdditionReported,
           formMessageKey = "isChargeInAdditionReported.error.required"

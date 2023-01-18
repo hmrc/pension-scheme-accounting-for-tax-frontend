@@ -92,7 +92,7 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       args = Nil
     ))
 
-   // behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
+    behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
   }
 }
 
