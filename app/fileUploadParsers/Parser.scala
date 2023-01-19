@@ -23,7 +23,7 @@ import models.{MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsPath, JsValue, Json, Reads, Writes}
+import play.api.libs.json._
 import queries.Gettable
 
 import java.time.LocalDate
@@ -43,8 +43,6 @@ trait Parser {
   protected final val FieldNoNino = 2
 
   protected def validHeader: String
-
-  protected val totalFields: Int
 
   // scalastyle:off parameter.number
   protected def validateField[A](
@@ -92,7 +90,10 @@ trait Parser {
           }
           case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
-      case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+      case xx =>
+        println("\nACT:" + xx.map(_.mkString(",")))
+        println("\nexp:" + validHeader)
+        Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
   }
 

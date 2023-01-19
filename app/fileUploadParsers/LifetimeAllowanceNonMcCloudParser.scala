@@ -31,8 +31,6 @@ class LifetimeAllowanceNonMcCloudParser @Inject()(
                                        ) extends LifetimeAllowanceParser {
   override protected def validHeader: String = config.validLifeTimeAllowanceHeader
 
-  override protected val totalFields: Int = 6
-
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Result = {

@@ -33,8 +33,6 @@ class AnnualAllowanceNonMcCloudParser @Inject()(
                                                  override val chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                                  override val config: FrontendAppConfig
                                                ) extends AnnualAllowanceParser with Constraints with CommonQuarters {
-  override protected val totalFields: Int = 7
-
   override protected def validHeader: String = config.validAnnualAllowanceNonMcCloudHeader
 
   override protected def validateFields(startDate: LocalDate,
