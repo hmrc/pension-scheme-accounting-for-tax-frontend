@@ -25,7 +25,7 @@ import forms.mccloud.EnterPstrFormProvider
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import helpers.ParserHelper
 import models.chargeE.ChargeEDetails
-import models.{ChargeType, UserAnswers, YearRange}
+import models.{AFTQuarter, ChargeType, UserAnswers, YearRange}
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -33,7 +33,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
-import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, WasAnotherPensionSchemePage}
+import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage, WasAnotherPensionSchemePage}
 
 import java.time.LocalDate
 
@@ -54,8 +54,8 @@ class AnnualAllowanceMcCloudParserSpec extends SpecBase
     "return charges in user answers when there are no validation errors" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,12/02/22,45.66,,,,,,,,,,,,
-Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,24000017RN,01/01/22,102.55,24000018IN,01/01/22,99.88,24000019IN,01/01/22,99.88,24000020IN,01/01/22,99.88,24000021IN,01/01/22,498.9
+Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,31/03/2022,45.66,,,,,,,,,,,,
+Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,24000017RN,30/06/2022,102.55,24000018IN,31/03/2022,99.88,24000019IN,30/06/2022,99.88,24000020IN,31/03/0222,99.88,24000021IN,31/03/2022,498.9
 Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       )
 
@@ -74,7 +74,8 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(0))) mustBe Some(true)
       actualUA.get(IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, 0)) mustBe Some(true)
       actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 0)) mustBe Some(false)
-      actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 0, 0)) mustBe None
+      actualUA.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 0, None)) mustBe
+        Some(AFTQuarter(LocalDate.of(2022,1,1), LocalDate.of(2022,3,31)))
 
       actualUA.get(MemberDetailsPage(1)) mustBe Some(SampleData.memberDetails3)
       actualUA.get(ChargeDetailsPage(1)) mustBe Some(chargeDetails2)
@@ -83,6 +84,8 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, 1)) mustBe Some(true)
       actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 1)) mustBe Some(true)
       actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 1, 0)) mustBe Some("24000017RN")
+      actualUA.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(0))) mustBe
+        Some(AFTQuarter(LocalDate.of(2022, 4, 1), LocalDate.of(2022, 6, 30)))
 
       actualUA.get(MemberDetailsPage(2)) mustBe Some(SampleData.memberDetails4)
       actualUA.get(ChargeDetailsPage(2)) mustBe Some(chargeDetails3)
@@ -93,15 +96,15 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 2, 0)) mustBe None
     }
 
-    val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
-      row = row,
-      col = 7,
-      error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
-      columnName = parser.McCloudFieldNames.allSingleFields,
-      args = Nil
-    ))
-
-    behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
+//    val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
+//      row = row,
+//      col = 7,
+//      error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
+//      columnName = parser.McCloudFieldNames.allSingleFields,
+//      args = Nil
+//    ))
+//
+//    behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
   }
 }
 

@@ -24,11 +24,10 @@ import forms.mccloud.EnterPstrFormProvider
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import models.{ChargeType, CommonQuarters}
 import pages.IsPublicServicePensionsRemedyPage
-import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, WasAnotherPensionSchemePage}
-import play.api.data.Form
+import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, TaxQuarterReportedAndPaidPage, WasAnotherPensionSchemePage}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsBoolean, Reads, Writes}
-import queries.Gettable
+import play.api.libs.json.{JsBoolean, Json}
+import utils.DateHelper.dateFormatterDMYSlashes
 
 import java.time.LocalDate
 
@@ -46,6 +45,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
   protected final val FieldNoIsChargeInAdditionReported: Int = 7
   protected final val FieldNoWasAnotherPensionScheme: Int = 8
   protected final val FieldNoEnterPstr1: Int = 9
+  protected final val FieldNoTaxQuarterReportedAndPaid1: Int = 10
 
   object McCloudFieldNames {
     val allSingleFields = "value"
@@ -53,6 +53,18 @@ class AnnualAllowanceMcCloudParser @Inject()(
 
   private def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages) =
     Messages(s"chargeType.description.${chargeType.toString}")
+
+  private def validateTaxQuarterReportedAndPaid(index: Int, columns: Seq[String], schemeIndex: => Option[Int]): Result = {
+    fieldValue(columns, FieldNoTaxQuarterReportedAndPaid1) match {
+      case a if a.isEmpty =>
+        Left(Seq(ParserValidationError(index, FieldNoTaxQuarterReportedAndPaid1,
+          "taxQuarterReportedAndPaid.error.required", McCloudFieldNames.allSingleFields)))
+      case a =>
+        val ld = LocalDate.parse(a, dateFormatterDMYSlashes)
+        val qtr = getQuarter(ld)
+        Right(Seq(CommitItem(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index - 1, schemeIndex).path, Json.toJson(qtr))))
+    }
+  }
 
   private def otherMcCloud(index: Int,
                            columns: Seq[String])(implicit messages: Messages): Seq[Result] = {
@@ -65,19 +77,19 @@ class AnnualAllowanceMcCloudParser @Inject()(
       )
 
     val wasAnotherPensionScheme = getOrElse[Boolean](wasAnotherPensionSchemeResult, false)
-
-    val b = if (wasAnotherPensionScheme) {
+    val taxQuarter = if (wasAnotherPensionScheme) {
       Seq(validateField(
         index, columns, EnterPstrPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int, 0),
         McCloudFieldNames.allSingleFields, FieldNoEnterPstr1,
         enterPstrFormProvider()
-      ))
+      )) :+ validateTaxQuarterReportedAndPaid(index, columns, Some(0))
     } else {
-      Nil
+      Seq(validateTaxQuarterReportedAndPaid(index, columns, None))
     }
 
-    Seq(wasAnotherPensionSchemeResult) ++ b
+    Seq(wasAnotherPensionSchemeResult) ++ taxQuarter
   }
+
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,

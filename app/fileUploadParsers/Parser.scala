@@ -60,7 +60,6 @@ trait Parser {
                  fieldName: String, fieldNo: Int)
     : Either[Seq[ParserValidationError], A] = {
       val form: Form[A] = formProvider
-      println(s"\nForm bind $formFieldName $fieldNo:" + fieldValue(columns, fieldNo))
       val fields = Seq(Field(fieldName, convertValue(fieldValue(columns, fieldNo)), fieldName, fieldNo))
       val toMap = Field.seqToMap(fields)
       val bind = form.bind(toMap)
