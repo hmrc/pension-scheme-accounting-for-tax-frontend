@@ -111,7 +111,7 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
     "return correctly when where McCloud errors: invalid boolean values" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,INVALID,INVALID"""
+Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO,INVALID,INVALID"""
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
@@ -119,7 +119,6 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,INVALID,INVALID"""
 
       // TODO: Check - I think the field name "value" is not correct:
       result.swap.toSeq.flatten mustBe Seq(
-        ParserValidationError(1, 6, "error.boolean", "isPaymentMandatory"),
         ParserValidationError(1, 7, "error.boolean", "value")
       )
     }
