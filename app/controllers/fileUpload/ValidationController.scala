@@ -30,7 +30,7 @@ import models.fileUpload.FileUploadOutcomeStatus._
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
-import pages.PSTRQuery
+import pages.{IsPublicServicePensionsRemedyPage, PSTRQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -269,7 +269,14 @@ class ValidationController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
-        findParser(chargeType) match {
+
+        val psr = chargeType match {
+          case ChargeTypeLifetimeAllowance | ChargeTypeAnnualAllowance =>
+            request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
+          case _ => None
+        }
+
+        findParser(chargeType, psr) match {
           case Some(parser) =>
             downloadAndProcess(srn, startDate, accessType, version, chargeType, uploadId, parser)
             Future.successful(Redirect(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version, chargeType)))
@@ -300,11 +307,13 @@ class ValidationController @Inject()(
 
   private def sessionExpired: Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
-  private def findParser(chargeType: ChargeType): Option[Parser] = {
-    chargeType match {
-      case ChargeTypeAnnualAllowance => Some(annualAllowanceParser)
-      case ChargeTypeLifetimeAllowance => Some(lifeTimeAllowanceParser)
-      case ChargeTypeOverseasTransfer => Some(overseasTransferParser)
+  private def findParser(chargeType: ChargeType, psr: Option[Boolean]): Option[Parser] = {
+    (chargeType, psr) match {
+      case (ChargeTypeAnnualAllowance, Some(true)) => Some(annualAllowanceParser)       // PSR YES, McCloud
+      case (ChargeTypeAnnualAllowance, Some(false)) => Some(annualAllowanceParser)      // PSR NO,  Non McC
+      case (ChargeTypeLifetimeAllowance, Some(true)) => Some(lifeTimeAllowanceParser)   // PSR YES, McCloud
+      case (ChargeTypeLifetimeAllowance, Some(false)) => Some(lifeTimeAllowanceParser)  // PSR NO,  Non McC
+      case (ChargeTypeOverseasTransfer, None) => Some(overseasTransferParser)           // PSR Q NOT ASKED
       case _ => None
     }
   }

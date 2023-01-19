@@ -492,6 +492,7 @@ object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport 
   }
 
   private val mockAnnualAllowanceParser = mock[AnnualAllowanceNonMcCloudParser]
+  // private val mockAnnualAllowanceMcCloudParser = mock[AnnualAllowanceNonMcCloudParser] // Change to McC
   private val mockLifetimeAllowanceParser = mock[LifetimeAllowanceNonMcCloudParser]
   private val mockOverseasTransferParser = mock[OverseasTransferParser]
 
