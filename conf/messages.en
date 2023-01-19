@@ -1553,15 +1553,18 @@ isPublicServicePensionsRemedy.title = Is this {0} being paid as a result of the 
 isPublicServicePensionsRemedy.heading = Is this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pensions Remedy
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pension Remedy
+isPublicServicePensionsRemedy.label = whether this payment is as of a result of the Public Service Pensions Remedy
 
 isChargeInAdditionReported.title = Is this {0} in addition to a previously reported {0} for this member?
 isChargeInAdditionReported.heading = Is this {0} in addition to a previously reported {0} for this member?
 isChargeInAdditionReported.error.required = Select yes if this {0} is in addition to a previously reported {0}
+isChargeInAdditionReported.label = if this {0} is in addition to a previously reported {0} for this member
 
 wasAnotherPensionScheme.title = Was the previously reported {0} paid by another pension scheme?
 wasAnotherPensionScheme.heading = Was the previously reported {0} paid by another pension scheme?
 wasAnotherPensionScheme.hint = If you answer yes, you will be able to add up to five pension schemes.
 wasAnotherPensionScheme.error.required = Select yes if the previously reported {0} was paid by another pension scheme
+wasAnotherPensionScheme.label = whether the previously reported {0} was paid by another pension scheme
 
 taxYearReportedAndPaid.title = Select the tax year in which this {0} {1} was reported and paid
 taxYearReportedAndPaid.heading = Select the tax year in which this {0} {1} was reported and paid
@@ -1595,3 +1598,21 @@ chargeAmountReported.error.invalid = The charge amount must be an amount of mone
 chargeAmountReported.error.decimal = The charge amount must include pence, like 123.45 or 156.00
 chargeAmountReported.error.maximum = The charge amount must be £999999999.99 or less
 chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
+
+mccloud.not.entered = Not entered
+
+mccloud.scheme.cya.ref0 = First scheme details
+mccloud.scheme.cya.ref1 = Second scheme details
+mccloud.scheme.cya.ref2 = Third scheme details
+mccloud.scheme.cya.ref3 = Fourth scheme details
+mccloud.scheme.cya.ref4 = Fifth scheme details
+add.another_scheme = Add another scheme
+
+enterPstr.cya.label = The Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported {1}
+enterPstr.cya.visuallyHidden.text = the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported {1}
+taxYearReportedAndPaid.cya.label = The tax year in which this {0} {1} was reported and paid
+taxYearReportedAndPaid.cya.visuallyHidden.text = the tax year in which this {0} {1} was reported and paid
+taxQuarterReportedAndPaid.cya.label = The quarter of {0} that this {1} {2} was reported and paid
+taxQuarterReportedAndPaid.cya.visuallyHidden.text = the quarter of {0} that this {1} {2} was reported and paid
+chargeAmountReported.cya.label = The {0} {1} amount reported for {2}
+chargeAmountReported.cya.visuallyHidden.text = the {0} {1} amount reported for {2}

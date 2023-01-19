@@ -21,7 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YesNoFormProvider
 import matchers.JsonMatchers
-import models.ChargeType.ChargeTypeAnnualAllowance
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
 import models.{GenericViewModel, NormalMode}
 import org.mockito.ArgumentCaptor
@@ -43,7 +43,7 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 
 class IsChargeInAdditionReportedControllerSpec
-    extends ControllerSpecBase
+  extends ControllerSpecBase
     with MockitoSugar
     with NunjucksSupport
     with JsonMatchers
@@ -59,18 +59,34 @@ class IsChargeInAdditionReportedControllerSpec
   private val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
   private val form: Form[Boolean] = formProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription))
 
-  private def httpPathGET: String =
+  private def httpPathGETAnnualAllowance: String =
     routes.IsChargeInAdditionReportedController
       .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
       .url
 
-  private def httpPathPOST: String =
+  private def httpPathGETLifetimeAllowance: String =
+    routes.IsChargeInAdditionReportedController
+      .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+      .url
+
+  private def httpPathPOSTAnnualAllowance: String =
     routes.IsChargeInAdditionReportedController
       .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
       .url
 
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
+  private def httpPathPOSTLifetimeAllowance: String =
+    routes.IsChargeInAdditionReportedController
+      .onSubmit(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+      .url
+
+  private val viewModelAnnualAllowance = GenericViewModel(
+    submitUrl = httpPathPOSTAnnualAllowance,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+    schemeName = schemeName
+  )
+
+  private val viewModelLifetimeAllowance = GenericViewModel(
+    submitUrl = httpPathPOSTLifetimeAllowance,
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
     schemeName = schemeName
   )
@@ -86,11 +102,11 @@ class IsChargeInAdditionReportedControllerSpec
 
   "IsChargeInAdditionReported Controller" must {
 
-    "return OK and the correct view for a GET" in {
+    "return OK and the correct view for a GET for AnnualAllowance" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET)
+      val request = FakeRequest(GET, httpPathGETAnnualAllowance)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -102,7 +118,7 @@ class IsChargeInAdditionReportedControllerSpec
 
       val expectedJson = Json.obj(
         "form" -> form,
-        "viewModel" -> viewModel,
+        "viewModel" -> viewModelAnnualAllowance,
         "radios" -> Radios.yesNo(form("value")),
         "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
       )
@@ -111,15 +127,91 @@ class IsChargeInAdditionReportedControllerSpec
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted" in {
+    "return OK and the correct view for a GET for LifetimeAllowance" in {
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+      val request = FakeRequest(GET, httpPathGETLifetimeAllowance)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "form" -> form,
+        "viewModel" -> viewModelLifetimeAllowance,
+        "radios" -> Radios.yesNo(form("value")),
+        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeLifetimeAllowance.toString}")
+      )
+
+      templateCaptor.getValue mustEqual "mccloud/isChargeInAdditionReported.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
+
+    "redirect to the next page when valid data is submitted for AnnualAllowance" in {
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathGETAnnualAllowance)
           .withFormUrlEncodedBody(("value", "true"))
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual onwardRoute.url
+    }
+
+    "redirect to the next page when valid data is submitted and user select no for isChargeInAddition for AnnualAllowance" in {
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+
+      val request =
+        FakeRequest(POST, httpPathGETAnnualAllowance)
+          .withFormUrlEncodedBody(("value", "false"))
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual onwardRoute.url
+    }
+
+    "redirect to the next page when valid data is submitted for LifetimeAllowance" in {
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+
+      val request =
+        FakeRequest(POST, httpPathGETLifetimeAllowance)
+          .withFormUrlEncodedBody(("value", "true"))
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual onwardRoute.url
+    }
+
+    "redirect to the next page when valid data is submitted and user select no for isChargeInAddition for LifetimeAllowance" in {
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+
+      val request =
+        FakeRequest(POST, httpPathGETLifetimeAllowance)
+          .withFormUrlEncodedBody(("value", "false"))
 
       val result = route(application, request).value
 
@@ -133,7 +225,7 @@ class IsChargeInAdditionReportedControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
-      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathGETAnnualAllowance).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -146,7 +238,7 @@ class IsChargeInAdditionReportedControllerSpec
 
       val expectedJson = Json.obj(
         "form" -> boundForm,
-        "viewModel" -> viewModel,
+        "viewModel" -> viewModelAnnualAllowance,
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
@@ -159,7 +251,7 @@ class IsChargeInAdditionReportedControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
-      val request = FakeRequest(GET, httpPathGET)
+      val request = FakeRequest(GET, httpPathGETAnnualAllowance)
 
       val result = route(application, request).value
 
@@ -173,7 +265,7 @@ class IsChargeInAdditionReportedControllerSpec
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathGETAnnualAllowance)
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
