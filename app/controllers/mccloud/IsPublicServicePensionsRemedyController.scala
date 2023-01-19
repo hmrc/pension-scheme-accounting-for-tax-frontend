@@ -48,7 +48,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                                                         formProvider: YesNoFormProvider,
                                                         val controllerComponents: MessagesControllerComponents,
                                                         renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -74,7 +74,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
           )
 
           val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
-            case None        => form(chargeTypeDescription)
+            case None => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
@@ -124,26 +124,29 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
 
             },
             value =>
-              if(value) {
+              if (value) {
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
                   _ <- userAnswersCacheConnector
                     .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
                 } yield
                   Redirect(
-                    navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                    navigator
+                      .nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
               } else {
                 for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.removeWithPath(SchemePathHelper.basePath(chargeType, index))
-                    .set(IsPublicServicePensionsRemedyPage(chargeType, index), value))
+                  updatedAnswers <- Future.fromTry(
+                    request.userAnswers
+                      .removeWithPath(SchemePathHelper.basePath(chargeType, index))
+                      .set(IsPublicServicePensionsRemedyPage(chargeType, index), value))
                   _ <- userAnswersCacheConnector
                     .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
                 } yield
                   Redirect(
-                    navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                    navigator
+                      .nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
               }
           )
-
       }
     }
 }

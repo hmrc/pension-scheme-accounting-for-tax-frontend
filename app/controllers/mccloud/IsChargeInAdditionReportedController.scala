@@ -48,7 +48,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
                                                      formProvider: YesNoFormProvider,
                                                      val controllerComponents: MessagesControllerComponents,
                                                      renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -74,7 +74,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
           )
 
           val preparedForm = request.userAnswers.get(IsChargeInAdditionReportedPage(chargeType, index)) match {
-            case None        => form(chargeTypeDescription)
+            case None => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
@@ -122,7 +122,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
               renderer.render("mccloud/isChargeInAdditionReported.njk", json).map(BadRequest(_))
             },
             value =>
-              if(value) {
+              if (value) {
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(IsChargeInAdditionReportedPage(chargeType, index), value, mode))
                   _ <- userAnswersCacheConnector
@@ -132,16 +132,17 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
                     navigator.nextPage(IsChargeInAdditionReportedPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
               } else {
                 for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.removeWithPath(SchemePathHelper.basePath(chargeType, index))
-                    .setOrException(IsPublicServicePensionsRemedyPage(chargeType, index), true)
-                    .set(IsChargeInAdditionReportedPage(chargeType, index), value))
+                  updatedAnswers <- Future.fromTry(
+                    request.userAnswers
+                      .removeWithPath(SchemePathHelper.basePath(chargeType, index))
+                      .setOrException(IsPublicServicePensionsRemedyPage(chargeType, index), true)
+                      .set(IsChargeInAdditionReportedPage(chargeType, index), value))
                   _ <- userAnswersCacheConnector
                     .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
                 } yield
                   Redirect(
                     navigator.nextPage(IsChargeInAdditionReportedPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
               }
-
           )
       }
     }

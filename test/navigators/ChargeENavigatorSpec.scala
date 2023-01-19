@@ -151,9 +151,9 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index),
           isAnotherSchemeNo),
-        row (RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(WasAnotherPensionSchemeController
+        row(RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(WasAnotherPensionSchemeController
           .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, versionInt, index), Some(SampleData.uaWithPSPRAndOneSchemeAnnualNav)),
-        row (RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController
+        row(RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index), Some(SampleData.uaWithPSPRAndTwoSchemesAnnualNav)),
         row(RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index), removeSchemeNo)

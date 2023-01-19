@@ -106,12 +106,12 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def rows(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) = {
 
     Seq(
-      helper.isPsprForChargeE(0, Some(isPSR)),
+      helper.isPsprForCharge(0, Some(isPSR)),
       helper.chargeEMemberDetails(0, memberDetails),
       helper.chargeETaxYear(0, dynamicYearRange),
       helper.chargeEDetails(0, chargeEDetails),
-      helper.psprChargeEDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
-      helper.psprSchemesChargeEDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
+      helper.psprChargeDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme)).getOrElse(None),
+      helper.psprSchemesChargeDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
     ).flatten
   }
 
@@ -121,7 +121,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   DateHelper.setDate(Some(LocalDate.of(2020, 4, 1)))
 
-  "CheckYourAnswers Controller for (false, false, false)" must {
+  "CheckYourAnswers Controller for PSR if isPSR is false, isChargeInAddition is false and wasAnotherPensionScheme is false" must {
 
     behave like cyaController(
       httpPath = httpGETRoute,
@@ -143,7 +143,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     )
   }
 
-  "CheckYourAnswers Controller for (true, false, false)" must {
+  "CheckYourAnswers Controller for  PSR if isPSR is true, isChargeInAddition is false and wasAnotherPensionScheme is false" must {
 
     behave like cyaController(
       httpPath = httpGETRoute,
@@ -153,7 +153,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     )
   }
 
-  "CheckYourAnswers Controller for PSR (true, true, false)" must {
+  "CheckYourAnswers Controller for PSR if isPSR is true, isChargeInAddition is true and wasAnotherPensionScheme is false" must {
 
     behave like cyaController(
       httpPath = httpGETRoute,
@@ -163,7 +163,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     )
   }
 
-  "CheckYourAnswers Controller for PSR (true, true, true)" must {
+  "CheckYourAnswers Controller for PSR if isPSR is true, isChargeInAddition is true and wasAnotherPensionScheme is true" must {
 
     behave like cyaController(
       httpPath = httpGETRoute,

@@ -193,22 +193,18 @@ object DataRetrievals {
   private def getPensionsRemedySchemeSummary(ua: UserAnswers,
                                              index: Index,
                                              chargeType: ChargeType,
-                                             wasAnotherPensionScheme: Option[Boolean]
-                                            ): List[PensionsRemedySchemeSummary] = {
+                                             wasAnotherPensionScheme: Option[Boolean]): List[PensionsRemedySchemeSummary] = {
     val pensionsSchemeSize = pensionsSchemeCount(ua, index, chargeType)
-    val wasAnotherPensionSchemeVal = wasAnotherPensionScheme match {
-      case Some(booleanValue) => booleanValue
-      case None => None
-    }
-    val pensionsRemedySchemeSummaryList = (pensionsSchemeSize, wasAnotherPensionSchemeVal) match {
-      case (0, false) =>
-        List(PensionsRemedySchemeSummary(
-          0,
-          None,
-          ua.get(TaxYearReportedAndPaidPage(chargeType, index, None)),
-          ua.get(TaxQuarterReportedAndPaidPage(chargeType, index, None)),
-          ua.get(ChargeAmountReportedPage(chargeType, index, None))
-        ))
+    val pensionsRemedySchemeSummaryList = (pensionsSchemeSize, wasAnotherPensionScheme) match {
+      case (0, Some(false)) =>
+        List(
+          PensionsRemedySchemeSummary(
+            0,
+            None,
+            ua.get(TaxYearReportedAndPaidPage(chargeType, index, None)),
+            ua.get(TaxQuarterReportedAndPaidPage(chargeType, index, None)),
+            ua.get(ChargeAmountReportedPage(chargeType, index, None))
+          ))
       case (_, _) =>
         (0 until pensionsSchemeSize).map { schemeIndex =>
           PensionsRemedySchemeSummary(
@@ -229,8 +225,7 @@ object DataRetrievals {
     val wasAnotherPensionScheme = ua.get(pages.mccloud.WasAnotherPensionSchemePage(chargeType, index))
     val pensionsRemedySchemeSummary = getPensionsRemedySchemeSummary(ua, index, chargeType, wasAnotherPensionScheme)
 
-    PensionsRemedySummary(isPublicServicePensionsRemedy, isChargeInAdditionReported, wasAnotherPensionScheme
-      , pensionsRemedySchemeSummary)
+    PensionsRemedySummary(isPublicServicePensionsRemedy, isChargeInAdditionReported, wasAnotherPensionScheme, pensionsRemedySchemeSummary)
   }
 
   private def pensionsSchemeCount(userAnswers: UserAnswers, index: Int, chargeType: ChargeType): Int = {
