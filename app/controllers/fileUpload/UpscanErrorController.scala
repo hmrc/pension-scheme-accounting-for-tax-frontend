@@ -19,7 +19,9 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.{AccessType, ChargeType, GenericViewModel}
+import pages.IsPublicServicePensionsRemedyPage
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -63,6 +65,13 @@ class UpscanErrorController @Inject()(
   def invalidHeaderOrBodyError(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
+
+        val psr = chargeType match {
+          case ChargeTypeLifetimeAllowance | ChargeTypeAnnualAllowance =>
+            request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
+          case _ => None
+        }
+
         val viewModel = GenericViewModel(
           submitUrl = routes.FileUploadController.onPageLoad(srn, startDate.toString, accessType, version, chargeType).url,
           returnUrl = config.schemeDashboardUrl(request).format(srn),
@@ -70,8 +79,8 @@ class UpscanErrorController @Inject()(
         )
         val json = Json.obj(
           "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-          "fileTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType).url,
-          "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType).url,
+          "fileTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType, psr).url,
+          "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType, psr).url,
           "viewModel" -> viewModel
         )
         renderer.render("fileUpload/error/invalidHeaderOrBody.njk", json).map(Ok(_))
