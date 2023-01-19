@@ -28,8 +28,9 @@ import java.time.LocalDate
 
 
 class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType)
-                                            (implicit messages: Messages) extends CYAHelper {
+                                   (implicit messages: Messages) extends CYAHelper {
   val chargeTypeDescription: String = Messages(s"chargeType.description.$chargeType")
+
   def isPsprForCharge(index: Int, isPSR: Option[Boolean]): Seq[Row] = {
     Seq(
       Row(
@@ -108,7 +109,7 @@ class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessTyp
   }
 
   def psprSchemesChargeDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary,
-                                wasAnotherPensionSchemeVal: Boolean): Seq[Row] = {
+                               wasAnotherPensionSchemeVal: Boolean): Seq[Row] = {
     {
       if (wasAnotherPensionSchemeVal) {
         for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
@@ -180,8 +181,10 @@ class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessTyp
     Seq(
       Row(
         key = Key(
-          msg"${messages("taxYearReportedAndPaid.cya.label",
-            messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)}",
+          msg"${
+            messages("taxYearReportedAndPaid.cya.label",
+              messages(s"mccloud.scheme.ref${pensionsRemedySchemeSummary.schemeIndex}"), chargeTypeDescription)
+          }",
           classes = Seq("govuk-!-width-one-half")
         ),
         value = Value(getOptionalYearValue(pensionsRemedySchemeSummary.taxYear), classes = Seq("govuk-!-width-one-third")),

@@ -114,7 +114,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     "list" -> rows(isPSR, isChargeInAddition, wasAnotherPensionScheme)
   )
 
-  "CheckYourAnswers Controller for (false, false, false)" must {
+  "CheckYourAnswers Controller for PSR if isPSR is false, isChargeInAddition is false and wasAnotherPensionScheme is false" must {
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
@@ -153,7 +153,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     }
   }
 
-  "CheckYourAnswers Controller for (true, false, false)" must {
+  "CheckYourAnswers Controller for PSR if isPSR is true, isChargeInAddition is false and wasAnotherPensionScheme is false" must {
 
     behave like cyaController(
       httpPath = httpGETRoute,
@@ -163,7 +163,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     )
   }
 
-  "CheckYourAnswers Controller for PSR (true, true, false)" must {
+  "CheckYourAnswers Controller for PSR if isPSR is true, isChargeInAddition is true and wasAnotherPensionScheme is false" must {
 
     behave like cyaController(
       httpPath = httpGETRoute,
@@ -173,7 +173,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     )
   }
 
-  "CheckYourAnswers Controller for PSR (true, true, true)" must {
+  "CheckYourAnswers Controller for PSR if isPSR is true, isChargeInAddition is true and wasAnotherPensionScheme is true" must {
 
     behave like cyaController(
       httpPath = httpGETRoute,
