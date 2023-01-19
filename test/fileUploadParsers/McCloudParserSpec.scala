@@ -107,7 +107,7 @@ object McCloudParserSpec extends MockitoSugar {
   private val formProviderChargeAmountReported = new ChargeAmountReportedFormProvider
 
   class TestParser extends McCloudParser {
-    def callCountSchemeFields(columns: Seq[String], startFrom: Int): Int = super.countSchemeFields(columns, startFrom)
+    def callCountSchemeFields(columns: Seq[String], startFrom: Int): Int = super.countNoOfSchemes(columns, startFrom)
   }
 
   val testParser = new TestParser

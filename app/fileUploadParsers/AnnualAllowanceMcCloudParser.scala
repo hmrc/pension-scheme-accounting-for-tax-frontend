@@ -90,7 +90,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
 
     val wasAnotherPensionScheme = getOrElse[Boolean](wasAnotherPensionSchemeResult, false)
     val taxQuarter = if (wasAnotherPensionScheme) {
-      val max = countSchemeFields(columns, FieldNoEnterPstr1)
+      val max = countNoOfSchemes(columns, FieldNoEnterPstr1)
       (0 until max).foldLeft[Seq[Result]](Nil){ (acc, schemeIndex) =>
         val offset = (schemeIndex * 3)
         acc ++ Seq(validateField(
