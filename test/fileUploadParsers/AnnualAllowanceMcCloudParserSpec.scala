@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import data.SampleData
 import data.SampleData.startDate
 import forms.chargeE.ChargeDetailsFormProvider
-import forms.mccloud.EnterPstrFormProvider
+import forms.mccloud.{ChargeAmountReportedFormProvider, EnterPstrFormProvider}
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import helpers.ParserHelper
 import models.chargeE.ChargeEDetails
@@ -33,7 +33,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
-import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage, WasAnotherPensionSchemePage}
+import pages.mccloud._
 
 import java.time.LocalDate
 
@@ -76,6 +76,8 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 0)) mustBe Some(false)
       actualUA.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 0, None)) mustBe
         Some(AFTQuarter(LocalDate.of(2022,1,1), LocalDate.of(2022,3,31)))
+      actualUA.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, 0, None)) mustBe
+        Some(BigDecimal(45.66))
 
       actualUA.get(MemberDetailsPage(1)) mustBe Some(SampleData.memberDetails3)
       actualUA.get(ChargeDetailsPage(1)) mustBe Some(chargeDetails2)
@@ -86,6 +88,8 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 1, 0)) mustBe Some("24000017RN")
       actualUA.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(0))) mustBe
         Some(AFTQuarter(LocalDate.of(2022, 4, 1), LocalDate.of(2022, 6, 30)))
+      actualUA.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(0))) mustBe
+        Some(BigDecimal(102.55))
 
       actualUA.get(MemberDetailsPage(2)) mustBe Some(SampleData.memberDetails4)
       actualUA.get(ChargeDetailsPage(2)) mustBe Some(chargeDetails3)
@@ -96,15 +100,15 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 2, 0)) mustBe None
     }
 
-//    val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
-//      row = row,
-//      col = 7,
-//      error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
-//      columnName = parser.McCloudFieldNames.allSingleFields,
-//      args = Nil
-//    ))
-//
-//    behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
+    val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
+      row = row,
+      col = 7,
+      error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
+      columnName = parser.McCloudFieldNames.allSingleFields,
+      args = Nil
+    ))
+
+    behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
   }
 }
 
@@ -116,7 +120,9 @@ object AnnualAllowanceMcCloudParserSpec extends MockitoSugar {
   private val formProviderChargeDetails = new ChargeDetailsFormProvider
   private val formProviderYesNo = new YesNoFormProvider
   private val formProviderEnterPstr = new EnterPstrFormProvider
+  private val formProviderChargeAmountReported = new ChargeAmountReportedFormProvider
 
   private val parser = new AnnualAllowanceMcCloudParser(
-    formProviderMemberDetails, formProviderChargeDetails, mockFrontendAppConfig, formProviderYesNo, formProviderEnterPstr)
+    formProviderMemberDetails, formProviderChargeDetails, mockFrontendAppConfig,
+    formProviderYesNo, formProviderEnterPstr, formProviderChargeAmountReported)
 }
