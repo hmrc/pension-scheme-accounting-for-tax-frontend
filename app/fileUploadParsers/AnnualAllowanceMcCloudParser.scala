@@ -111,7 +111,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Result = {
     val minimalFieldsResult = validateMinimumFields(startDate, index, columns)
-    val isPublicServicePensionsRemedyResult: Result = Right(Seq(
+    val isPublicServicePensionsRemedyResult = Right(Seq(
       CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(true))))
     val isChargeInAdditionReportedResult = validateField(
       index, columns, IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
@@ -119,8 +119,6 @@ class AnnualAllowanceMcCloudParser @Inject()(
       yesNoFormProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance))),
       stringToBoolean
     )
-
-    println("\n>>>cols=" + columns)
 
     val isMcCloud =
       getOrElse[Boolean](isPublicServicePensionsRemedyResult, false) &&

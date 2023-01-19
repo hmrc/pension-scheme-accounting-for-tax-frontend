@@ -107,15 +107,32 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 2, 0)) mustBe None
     }
 
-//    val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
-//      row = row,
-//      col = 7,
-//      error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
-//      columnName = parser.McCloudFieldNames.allSingleFields,
-//      args = Nil
-//    ))
-//
-//    behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
+
+    "return correctly when where McCloud errors: invalid boolean values" in {
+      val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
+        s"""$header
+Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,INVALID,INVALID"""
+      )
+
+      val result = parser.parse(startDate, validCsvFile, UserAnswers())
+      result.isRight mustBe false
+
+      // TODO: Check - I think the field name "value" is not correct:
+      result.swap.toSeq.flatten mustBe Seq(
+        ParserValidationError(1, 6, "error.boolean", "isPaymentMandatory"),
+        ParserValidationError(1, 7, "error.boolean", "value")
+      )
+    }
+
+    val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
+      row = row,
+      col = 7,
+      error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
+      columnName = parser.McCloudFieldNames.allSingleFields,
+      args = Nil
+    ))
+
+    behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
   }
 }
 
