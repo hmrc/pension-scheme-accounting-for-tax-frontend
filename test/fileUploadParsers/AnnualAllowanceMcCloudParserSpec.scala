@@ -21,6 +21,7 @@ import config.FrontendAppConfig
 import data.SampleData
 import data.SampleData.startDate
 import forms.chargeE.ChargeDetailsFormProvider
+import forms.mccloud.EnterPstrFormProvider
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import helpers.ParserHelper
 import models.chargeE.ChargeEDetails
@@ -32,7 +33,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
-import pages.mccloud.{AddAnotherPensionSchemePage, IsChargeInAdditionReportedPage, WasAnotherPensionSchemePage}
+import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, WasAnotherPensionSchemePage}
 
 import java.time.LocalDate
 
@@ -54,7 +55,7 @@ class AnnualAllowanceMcCloudParserSpec extends SpecBase
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
 Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,12/02/22,45.66,,,,,,,,,,,,
-Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,24000017IN,01/01/22,102.55,24000018IN,01/01/22,99.88,24000019IN,01/01/22,99.88,24000020IN,01/01/22,99.88,24000021IN,01/01/22,498.9
+Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,24000017RN,01/01/22,102.55,24000018IN,01/01/22,99.88,24000019IN,01/01/22,99.88,24000020IN,01/01/22,99.88,24000021IN,01/01/22,498.9
 Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       )
 
@@ -62,6 +63,8 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       val chargeDetails2 = ChargeEDetails(BigDecimal(100.50), LocalDate.of(2020, 1, 1), isPaymentMandatory = false)
       val chargeDetails3 = ChargeEDetails(BigDecimal(68.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
+
+      println("\n>>>" + result)
       result.isRight mustBe true
       val actualUA = result.toOption.value
 
@@ -71,6 +74,7 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(0))) mustBe Some(true)
       actualUA.get(IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, 0)) mustBe Some(true)
       actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 0)) mustBe Some(false)
+      actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 0, 0)) mustBe None
 
       actualUA.get(MemberDetailsPage(1)) mustBe Some(SampleData.memberDetails3)
       actualUA.get(ChargeDetailsPage(1)) mustBe Some(chargeDetails2)
@@ -78,6 +82,7 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(1))) mustBe Some(true)
       actualUA.get(IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, 1)) mustBe Some(true)
       actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 1)) mustBe Some(true)
+      actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 1, 0)) mustBe Some("24000017RN")
 
       actualUA.get(MemberDetailsPage(2)) mustBe Some(SampleData.memberDetails4)
       actualUA.get(ChargeDetailsPage(2)) mustBe Some(chargeDetails3)
@@ -85,13 +90,14 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(2))) mustBe Some(true)
       actualUA.get(IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, 2)) mustBe Some(false)
       actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 2)) mustBe None
+      actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 2, 0)) mustBe None
     }
 
     val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
       row = row,
       col = 7,
       error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
-      columnName = parser.McCloudFieldNames.allSingleBooleanFields,
+      columnName = parser.McCloudFieldNames.allSingleFields,
       args = Nil
     ))
 
@@ -106,7 +112,8 @@ object AnnualAllowanceMcCloudParserSpec extends MockitoSugar {
   private val formProviderMemberDetails = new MemberDetailsFormProvider
   private val formProviderChargeDetails = new ChargeDetailsFormProvider
   private val formProviderYesNo = new YesNoFormProvider
+  private val formProviderEnterPstr = new EnterPstrFormProvider
 
   private val parser = new AnnualAllowanceMcCloudParser(
-    formProviderMemberDetails, formProviderChargeDetails, mockFrontendAppConfig, formProviderYesNo)
+    formProviderMemberDetails, formProviderChargeDetails, mockFrontendAppConfig, formProviderYesNo, formProviderEnterPstr)
 }

@@ -20,12 +20,14 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
+import forms.mccloud.EnterPstrFormProvider
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import models.{ChargeType, CommonQuarters}
 import pages.IsPublicServicePensionsRemedyPage
-import pages.mccloud.{IsChargeInAdditionReportedPage, WasAnotherPensionSchemePage}
+import pages.mccloud.{EnterPstrPage, IsChargeInAdditionReportedPage, WasAnotherPensionSchemePage}
+import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsBoolean, Reads}
+import play.api.libs.json.{JsBoolean, Reads, Writes}
 import queries.Gettable
 
 import java.time.LocalDate
@@ -34,7 +36,8 @@ class AnnualAllowanceMcCloudParser @Inject()(
                                               override val memberDetailsFormProvider: MemberDetailsFormProvider,
                                               override val chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                               override val config: FrontendAppConfig,
-                                              val yesNoFormProvider: YesNoFormProvider
+                                              val yesNoFormProvider: YesNoFormProvider,
+                                              enterPstrFormProvider: EnterPstrFormProvider
                                             ) extends AnnualAllowanceParser with Constraints with CommonQuarters {
   override protected val totalFields: Int = 7 // TODO This can be removed
 
@@ -42,68 +45,66 @@ class AnnualAllowanceMcCloudParser @Inject()(
 
   protected final val FieldNoIsChargeInAdditionReported: Int = 7
   protected final val FieldNoWasAnotherPensionScheme: Int = 8
+  protected final val FieldNoEnterPstr1: Int = 9
 
   object McCloudFieldNames {
-    val allSingleBooleanFields = "value"
+    val allSingleFields = "value"
   }
 
   private def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages) =
     Messages(s"chargeType.description.${chargeType.toString}")
 
-  private def validateBooleanField(
-                                    index: Int,
-                                    columns: Seq[String],
-                                    page: Int => Gettable[_],
-                                    errorMessage: String,
-                                    formFieldName: String,
-                                    fieldNo: Int
-                                  )(implicit messages: Messages): Result = {
-    def bindForm(index: Int, columns: Seq[String],
-                   fieldName: String, fieldNo: Int, formMessageKey: String)(implicit messages: Messages)
-    : Either[Seq[ParserValidationError], Boolean] = {
-      val form = yesNoFormProvider(messages(formMessageKey, chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)))
-      val fields = Seq(Field(fieldName, stringToBoolean(fieldValue(columns, fieldNo)), fieldName, fieldNo))
-      val toMap = Field.seqToMap(fields)
-      val bind = form.bind(toMap)
-      bind.fold(
-        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-        value => Right(value)
+  private def otherMcCloud(index: Int,
+                           columns: Seq[String])(implicit messages: Messages): Seq[Result] = {
+    val wasAnotherPensionSchemeResult =
+      validateField(
+        index, columns, WasAnotherPensionSchemePage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
+        McCloudFieldNames.allSingleFields, FieldNoWasAnotherPensionScheme,
+        yesNoFormProvider(messages("wasAnotherPensionScheme.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance))),
+        stringToBoolean
       )
+
+    val wasAnotherPensionScheme = getOrElse[Boolean](wasAnotherPensionSchemeResult, false)
+
+    val b = if (wasAnotherPensionScheme) {
+      Seq(validateField(
+        index, columns, EnterPstrPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int, 0),
+        McCloudFieldNames.allSingleFields, FieldNoEnterPstr1,
+        enterPstrFormProvider()
+      ))
+    } else {
+      Nil
     }
 
-    resultFromFormValidationResult[Boolean](
-      bindForm(index, columns, formFieldName, fieldNo, errorMessage),
-      createCommitItem(index, page)
-    )
+    Seq(wasAnotherPensionSchemeResult) ++ b
   }
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Result = {
     val minimalFieldsResult = validateMinimumFields(startDate, index, columns)
-    val isPublicServicePensionsRemedyResult:Result = Right(Seq(
+    val isPublicServicePensionsRemedyResult: Result = Right(Seq(
       CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(true))))
-    val isChargeInAdditionReportedResult = validateBooleanField(
+    val isChargeInAdditionReportedResult = validateField(
       index, columns, IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
-      "isChargeInAdditionReported.error.required", McCloudFieldNames.allSingleBooleanFields, FieldNoIsChargeInAdditionReported
+      McCloudFieldNames.allSingleFields, FieldNoIsChargeInAdditionReported,
+      yesNoFormProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance))),
+      stringToBoolean
     )
 
     val isMcCloud =
       getOrElse[Boolean](isPublicServicePensionsRemedyResult, false) &&
-      getOrElse[Boolean](isChargeInAdditionReportedResult, false)
+        getOrElse[Boolean](isChargeInAdditionReportedResult, false)
 
-    val wasAnotherPensionSchemeResult = if (isMcCloud) {
-      validateBooleanField(
-        index, columns, WasAnotherPensionSchemePage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
-        "wasAnotherPensionScheme.error.required", McCloudFieldNames.allSingleBooleanFields, FieldNoWasAnotherPensionScheme
-      )
+    val otherResults = if (isMcCloud) {
+      otherMcCloud(index, columns)
     } else {
-      Right(Nil)
+      Nil
     }
 
-    val ss = Seq(
-      minimalFieldsResult, isPublicServicePensionsRemedyResult, isChargeInAdditionReportedResult, wasAnotherPensionSchemeResult
-    ) :+ wasAnotherPensionSchemeResult
-    combineResults(ss :_*)
+    val finalResults = Seq(
+      minimalFieldsResult, isPublicServicePensionsRemedyResult, isChargeInAdditionReportedResult
+    ) ++ otherResults
+    combineResults(finalResults: _*)
   }
 }

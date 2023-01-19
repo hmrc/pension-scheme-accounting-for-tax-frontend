@@ -46,6 +46,36 @@ trait Parser {
 
   protected val totalFields: Int
 
+  // scalastyle:off parameter.number
+  protected def validateField[A](
+                                index: Int,
+                                columns: Seq[String],
+                                page: Int => Gettable[_],
+                                formFieldName: String,
+                                fieldNo: Int,
+                                formProvider: => Form[A],
+                                convertValue: String => String = identity
+                              )(implicit messages: Messages, writes: Writes[A]): Result = {
+    def bindForm(index: Int, columns: Seq[String],
+                 fieldName: String, fieldNo: Int)
+    : Either[Seq[ParserValidationError], A] = {
+      val form: Form[A] = formProvider
+      println(s"\nForm bind $formFieldName $fieldNo:" + fieldValue(columns, fieldNo))
+      val fields = Seq(Field(fieldName, convertValue(fieldValue(columns, fieldNo)), fieldName, fieldNo))
+      val toMap = Field.seqToMap(fields)
+      val bind = form.bind(toMap)
+      bind.fold(
+        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+        value => Right(value)
+      )
+    }
+
+    resultFromFormValidationResult[A](
+      bindForm(index, columns, formFieldName, fieldNo),
+      createCommitItem(index, page)
+    )
+  }
+
   protected def fieldValue(columns: Seq[String], fieldNo: Int): String =
     if (columns.isDefinedAt(fieldNo)) {
       columns(fieldNo)
