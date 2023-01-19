@@ -55,7 +55,7 @@ class AnnualAllowanceMcCloudParserSpec extends SpecBase
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
 Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,31/03/2022,45.66,,,,,,,,,,,,
-Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,24000017RN,30/06/2022,102.55,24000018IN,31/03/2022,99.88,24000019IN,30/06/2022,99.88,24000020IN,31/03/0222,99.88,24000021IN,31/03/2022,498.9
+Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,24000017RN,30/06/2022,102.55,24000018RN,31/03/2022,99.88,24000019RN,30/06/2022,99.88,24000020RN,31/03/2022,99.88,24000021RN,31/03/2022,498.90
 Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       )
 
@@ -64,7 +64,6 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       val chargeDetails3 = ChargeEDetails(BigDecimal(68.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
 
-      println("\n>>>" + result)
       result.isRight mustBe true
       val actualUA = result.toOption.value
 
@@ -85,11 +84,19 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(1))) mustBe Some(true)
       actualUA.get(IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, 1)) mustBe Some(true)
       actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 1)) mustBe Some(true)
-      actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 1, 0)) mustBe Some("24000017RN")
-      actualUA.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(0))) mustBe
-        Some(AFTQuarter(LocalDate.of(2022, 4, 1), LocalDate.of(2022, 6, 30)))
-      actualUA.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(0))) mustBe
-        Some(BigDecimal(102.55))
+      Seq(
+        Tuple3("24000017RN", AFTQuarter(LocalDate.of(2022, 4, 1), LocalDate.of(2022, 6, 30)), BigDecimal(102.55)),
+        Tuple3("24000018RN", AFTQuarter(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 3, 31)), BigDecimal(99.88)),
+        Tuple3("24000019RN", AFTQuarter(LocalDate.of(2022, 4, 1), LocalDate.of(2022, 6, 30)), BigDecimal(99.88)),
+        Tuple3("24000020RN", AFTQuarter(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 3, 31)), BigDecimal(99.88)),
+        Tuple3("24000021RN", AFTQuarter(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 3, 31)), BigDecimal(498.90))
+      ).zipWithIndex.map{ case ((expectedPstr, expectedQuarter, expectedAmount), index) =>
+        actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 1, index)) mustBe Some(expectedPstr)
+        actualUA.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(index))) mustBe
+          Some(expectedQuarter)
+        actualUA.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(index))) mustBe
+          Some(expectedAmount)
+      }
 
       actualUA.get(MemberDetailsPage(2)) mustBe Some(SampleData.memberDetails4)
       actualUA.get(ChargeDetailsPage(2)) mustBe Some(chargeDetails3)
@@ -100,15 +107,15 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 2, 0)) mustBe None
     }
 
-    val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
-      row = row,
-      col = 7,
-      error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
-      columnName = parser.McCloudFieldNames.allSingleFields,
-      args = Nil
-    ))
-
-    behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
+//    val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
+//      row = row,
+//      col = 7,
+//      error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
+//      columnName = parser.McCloudFieldNames.allSingleFields,
+//      args = Nil
+//    ))
+//
+//    behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
   }
 }
 

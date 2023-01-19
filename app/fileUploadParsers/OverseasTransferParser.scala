@@ -38,8 +38,6 @@ class OverseasTransferParser @Inject()(
                                       ) extends Parser {
   override protected def validHeader: String = config.validOverseasTransferHeader
 
-  override protected val totalFields: Int = 8
-
   private final val FieldNoDateOfBirth = 3
   private final val FieldNoQropsRefNo = 4
   private final val FieldNoDateOfTransfer = 5

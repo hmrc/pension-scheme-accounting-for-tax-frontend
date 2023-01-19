@@ -16,6 +16,14 @@
 
 package fileUploadParsers
 
-trait McCloudParser {
-
+trait McCloudParser  {
+  protected def countSchemeFields(columns: Seq[String], startFrom: Int): Int = {
+    val default: Int => String = _ => ""
+    val processedSeq = ( startFrom until columns.size by 3).takeWhile { w =>
+      columns.applyOrElse(w, default).nonEmpty ||
+        columns.applyOrElse(w + 1, default).nonEmpty ||
+        columns.applyOrElse(w + 2, default).nonEmpty
+    }
+    processedSeq.size
+  }
 }

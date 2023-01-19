@@ -38,9 +38,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
                                               val yesNoFormProvider: YesNoFormProvider,
                                               enterPstrFormProvider: EnterPstrFormProvider,
                                               chargeAmountReportedFormProvider: ChargeAmountReportedFormProvider
-                                            ) extends AnnualAllowanceParser with Constraints with CommonQuarters {
-  override protected val totalFields: Int = 7 // TODO This can be removed
-
+                                            ) extends AnnualAllowanceParser with Constraints with CommonQuarters with McCloudParser {
   override protected def validHeader: String = config.validAnnualAllowanceMcCloudHeader
 
   protected final val FieldNoIsChargeInAdditionReported: Int = 7
@@ -56,10 +54,11 @@ class AnnualAllowanceMcCloudParser @Inject()(
   private def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages) =
     Messages(s"chargeType.description.${chargeType.toString}")
 
-  private def validateTaxQuarterReportedAndPaid(index: Int, columns: Seq[String], schemeIndex: => Option[Int]): Result = {
-    fieldValue(columns, FieldNoTaxQuarterReportedAndPaid1) match {
+  private def validateTaxQuarterReportedAndPaid(index: Int, columns: Seq[String], schemeIndex: => Option[Int], offset: Int): Result = {
+    val fieldNo = FieldNoTaxQuarterReportedAndPaid1 + offset
+    fieldValue(columns, fieldNo) match {
       case a if a.isEmpty =>
-        Left(Seq(ParserValidationError(index, FieldNoTaxQuarterReportedAndPaid1,
+        Left(Seq(ParserValidationError(index, fieldNo,
           "taxQuarterReportedAndPaid.error.required", McCloudFieldNames.allSingleFields)))
       case a =>
         val ld = LocalDate.parse(a, dateFormatterDMYSlashes)
@@ -78,12 +77,12 @@ class AnnualAllowanceMcCloudParser @Inject()(
         stringToBoolean
       )
 
-    def schemeFields(schemeIndex: Option[Int]): Seq[Result] = {
+    def schemeFields(schemeIndex: Option[Int], offset: Int): Seq[Result] = {
       Seq(
-        validateTaxQuarterReportedAndPaid(index, columns, schemeIndex),
+        validateTaxQuarterReportedAndPaid(index, columns, schemeIndex, offset),
         validateField(
           index, columns, ChargeAmountReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int, schemeIndex),
-          McCloudFieldNames.allSingleFields, FieldNoChargeAmountReported1,
+          McCloudFieldNames.allSingleFields, FieldNoChargeAmountReported1 + offset,
           chargeAmountReportedFormProvider(BigDecimal(0))
         )
       )
@@ -91,13 +90,17 @@ class AnnualAllowanceMcCloudParser @Inject()(
 
     val wasAnotherPensionScheme = getOrElse[Boolean](wasAnotherPensionSchemeResult, false)
     val taxQuarter = if (wasAnotherPensionScheme) {
-      Seq(validateField(
-        index, columns, EnterPstrPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int, 0),
-        McCloudFieldNames.allSingleFields, FieldNoEnterPstr1,
-        enterPstrFormProvider()
-      )) ++ schemeFields(Some(0))
+      val max = countSchemeFields(columns, FieldNoEnterPstr1)
+      (0 until max).foldLeft[Seq[Result]](Nil){ (acc, schemeIndex) =>
+        val offset = (schemeIndex * 3)
+        acc ++ Seq(validateField(
+          index, columns, EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, _: Int, schemeIndex),
+          McCloudFieldNames.allSingleFields, FieldNoEnterPstr1 + offset,
+          enterPstrFormProvider()
+        )) ++ schemeFields(Some(schemeIndex), offset)
+      }
     } else {
-      schemeFields(None)
+      schemeFields(None, 0)
     }
 
     Seq(wasAnotherPensionSchemeResult) ++ taxQuarter
@@ -116,6 +119,8 @@ class AnnualAllowanceMcCloudParser @Inject()(
       yesNoFormProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance))),
       stringToBoolean
     )
+
+    println("\n>>>cols=" + columns)
 
     val isMcCloud =
       getOrElse[Boolean](isPublicServicePensionsRemedyResult, false) &&
