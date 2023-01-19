@@ -119,10 +119,15 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
   protected def validateMinimumFields(startDate: LocalDate,
                                       index: Int,
                                       columns: Seq[String]): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    combineValidationResults[MemberDetails, ChargeEDetails, String](
-      Result(memberDetailsValidation(index, columns, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
-      Result(chargeDetailsValidation(startDate, index, columns), createCommitItem(index, ChargeDetailsPage.apply)),
-      Result(Right(fieldValue(columns, FieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply))
+    val a = resultFromFormValidationResult[MemberDetails](
+      memberDetailsValidation(index, columns, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)
     )
+    val b = resultFromFormValidationResult[ChargeEDetails](
+      chargeDetailsValidation(startDate, index, columns), createCommitItem(index, ChargeDetailsPage.apply)
+    )
+    val c = resultFromFormValidationResult[String](
+      Right(fieldValue(columns, FieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)
+    )
+    combineResults(a, b, c)
   }
 }

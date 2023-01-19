@@ -36,7 +36,6 @@ object Parser {
   val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty: ParserValidationError = ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty, EMPTY)
 }
 
-// TODO: columns should return "" if field not there
 trait Parser {
   protected final val FieldNoFirstName = 0
   protected final val FieldNoLastName = 1
@@ -105,30 +104,8 @@ trait Parser {
     }
   }
 
-  protected case class Result[A](result: Either[Seq[ParserValidationError], A], generateCommitItem: A => CommitItem)
-
   protected final def createCommitItem[A](index: Int, page: Int => Gettable[_])(implicit writes: Writes[A]): A => CommitItem =
     a => CommitItem(page(index - 1).path, Json.toJson(a))
-
-  protected def addToValidationResults[A](resultToBeAdded: Result[A],
-                                          validationResults: Either[Seq[ParserValidationError], Seq[CommitItem]]):
-  Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    resultToBeAdded.result match {
-      case Left(resultAErrors) =>
-        validationResults match {
-          case Left(existingErrors) => Left(existingErrors ++ resultAErrors)
-          case Right(_) => Left(resultAErrors)
-        }
-      case Right(resultAObject) =>
-        validationResults match {
-          case Left(existingErrors) => Left(existingErrors)
-          case Right(existingCommits) =>
-            Right(
-              existingCommits ++ Seq(resultToBeAdded.generateCommitItem(resultAObject))
-            )
-        }
-    }
-  }
 
   protected def resultFromFormValidationResult[A](formValidationResult: Either[Seq[ParserValidationError], A],
                                                   generateCommitItem: A => CommitItem): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
@@ -148,21 +125,6 @@ trait Parser {
         case (Right(x), Right(y)) => Right(x ++ y)
       }
     }
-
-  protected final def combineValidationResults[A, B](a: Result[A], b: Result[B]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
-    addToValidationResults(b, addToValidationResults(a, Right(Nil)))
-
-  protected final def combineValidationResults[A, B, C](a: Result[A], b: Result[B], c: Result[C]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
-    addToValidationResults(c, addToValidationResults(b, addToValidationResults(a, Right(Nil))))
-
-  protected final def combineValidationResults[A, B, C, D](a: Result[A], b: Result[B], c: Result[C], d: Result[D])
-  : Either[Seq[ParserValidationError], Seq[CommitItem]] =
-    addToValidationResults(d, addToValidationResults(c, addToValidationResults(b, addToValidationResults(a, Right(Nil)))))
-
-  protected final def combineValidationResults[A, B, C, D, E](a: Result[A], b: Result[B], c: Result[C], d: Result[D], e: Result[E])
-  : Either[Seq[ParserValidationError], Seq[CommitItem]] =
-    addToValidationResults(e, addToValidationResults(d, addToValidationResults(c,
-      addToValidationResults(b, addToValidationResults(a, Right(Nil))))))
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 

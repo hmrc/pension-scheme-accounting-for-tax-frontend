@@ -73,11 +73,14 @@ trait LifetimeAllowanceParser extends Parser {
   }
 
   protected def validateMinimumFields(startDate: LocalDate,
-                                        index: Int,
+                                      index: Int,
                                       columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    combineValidationResults[MemberDetails, ChargeDDetails](
-      Result(memberDetailsValidation(index, columns, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)),
-      Result(chargeDetailsValidation(startDate, index, columns), createCommitItem(index, ChargeDetailsPage.apply))
+    val a = resultFromFormValidationResult[MemberDetails](
+      memberDetailsValidation(index, columns, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)
     )
+    val b = resultFromFormValidationResult[ChargeDDetails](
+      chargeDetailsValidation(startDate, index, columns), createCommitItem(index, ChargeDetailsPage.apply)
+    )
+    combineResults(a, b)
   }
 }

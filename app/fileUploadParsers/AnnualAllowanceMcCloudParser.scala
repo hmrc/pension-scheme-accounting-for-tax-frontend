@@ -81,15 +81,13 @@ class AnnualAllowanceMcCloudParser @Inject()(
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    val minimalFieldsResult: Either[Seq[ParserValidationError], Seq[CommitItem]] = validateMinimumFields(startDate, index, columns)
-    val isPublicServicePensionsRemedyResult: Either[Seq[ParserValidationError], Seq[CommitItem]] =
-      Right(Seq(CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(true))))
-    val isChargeInAdditionReportedResult: Either[Seq[ParserValidationError], Seq[CommitItem]] =
-      validateBooleanField(
+    val minimalFieldsResult = validateMinimumFields(startDate, index, columns)
+    val isPublicServicePensionsRemedyResult = Right(Seq(
+      CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(true))))
+    val isChargeInAdditionReportedResult = validateBooleanField(
         index, columns, IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
         "isChargeInAdditionReported.error.required", McCloudFieldNames.isChargeInAdditionReported, FieldNoIsChargeInAdditionReported
       )
-
     combineResults(minimalFieldsResult, isPublicServicePensionsRemedyResult, isChargeInAdditionReportedResult)
   }
 }
