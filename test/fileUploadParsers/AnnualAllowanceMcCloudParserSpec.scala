@@ -32,7 +32,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
-import pages.mccloud.IsChargeInAdditionReportedPage
+import pages.mccloud.{AddAnotherPensionSchemePage, IsChargeInAdditionReportedPage, WasAnotherPensionSchemePage}
 
 import java.time.LocalDate
 
@@ -70,25 +70,28 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(AnnualAllowanceYearPage(0)) mustBe Some(YearRange("2020"))
       actualUA.get(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(0))) mustBe Some(true)
       actualUA.get(IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, 0)) mustBe Some(true)
+      actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 0)) mustBe Some(false)
 
       actualUA.get(MemberDetailsPage(1)) mustBe Some(SampleData.memberDetails3)
       actualUA.get(ChargeDetailsPage(1)) mustBe Some(chargeDetails2)
       actualUA.get(AnnualAllowanceYearPage(1)) mustBe Some(YearRange("2020"))
       actualUA.get(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(1))) mustBe Some(true)
       actualUA.get(IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, 1)) mustBe Some(true)
+      actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 1)) mustBe Some(true)
 
       actualUA.get(MemberDetailsPage(2)) mustBe Some(SampleData.memberDetails4)
       actualUA.get(ChargeDetailsPage(2)) mustBe Some(chargeDetails3)
       actualUA.get(AnnualAllowanceYearPage(2)) mustBe Some(YearRange("2020"))
       actualUA.get(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(2))) mustBe Some(true)
       actualUA.get(IsChargeInAdditionReportedPage(ChargeType.ChargeTypeAnnualAllowance, 2)) mustBe Some(false)
+      actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 2)) mustBe None
     }
 
     val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
       row = row,
       col = 7,
       error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
-      columnName = parser.McCloudFieldNames.isChargeInAdditionReported,
+      columnName = parser.McCloudFieldNames.allSingleBooleanFields,
       args = Nil
     ))
 

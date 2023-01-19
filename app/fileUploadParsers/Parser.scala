@@ -23,7 +23,7 @@ import models.{MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsPath, JsValue, Json, Writes}
+import play.api.libs.json.{JsPath, JsValue, Json, Reads, Writes}
 import queries.Gettable
 
 import java.time.LocalDate
@@ -115,6 +115,15 @@ trait Parser {
       case Right(resultAObject) => Right(Seq(generateCommitItem(resultAObject)))
     }
   }
+
+  protected def get[A](r: Result)(implicit reads: Reads[A]): Option[A] =
+    r.toOption.flatMap(_.headOption.flatMap(_.value.asOpt[A]))
+
+  protected def getOrElse[A](r: Result, default: A)(implicit reads: Reads[A]): A =
+    r.toOption.flatMap(_.headOption.flatMap(_.value.asOpt[A])) match {
+      case None => default
+      case Some(a) => a
+    }
 
   protected final def combineResults(items: Result*): Result =
     items.foldLeft[Result](Right(Nil)) { (b, c) =>

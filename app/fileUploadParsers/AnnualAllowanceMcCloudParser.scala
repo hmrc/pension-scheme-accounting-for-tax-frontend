@@ -23,9 +23,9 @@ import forms.mappings.Constraints
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import models.{ChargeType, CommonQuarters}
 import pages.IsPublicServicePensionsRemedyPage
-import pages.mccloud.IsChargeInAdditionReportedPage
+import pages.mccloud.{IsChargeInAdditionReportedPage, WasAnotherPensionSchemePage}
 import play.api.i18n.Messages
-import play.api.libs.json.JsBoolean
+import play.api.libs.json.{JsBoolean, Reads}
 import queries.Gettable
 
 import java.time.LocalDate
@@ -41,9 +41,10 @@ class AnnualAllowanceMcCloudParser @Inject()(
   override protected def validHeader: String = config.validAnnualAllowanceMcCloudHeader
 
   protected final val FieldNoIsChargeInAdditionReported: Int = 7
+  protected final val FieldNoWasAnotherPensionScheme: Int = 8
 
   object McCloudFieldNames {
-    val isChargeInAdditionReported = "value"
+    val allSingleBooleanFields = "value"
   }
 
   private def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages) =
@@ -80,12 +81,29 @@ class AnnualAllowanceMcCloudParser @Inject()(
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Result = {
     val minimalFieldsResult = validateMinimumFields(startDate, index, columns)
-    val isPublicServicePensionsRemedyResult = Right(Seq(
+    val isPublicServicePensionsRemedyResult:Result = Right(Seq(
       CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(true))))
     val isChargeInAdditionReportedResult = validateBooleanField(
-        index, columns, IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
-        "isChargeInAdditionReported.error.required", McCloudFieldNames.isChargeInAdditionReported, FieldNoIsChargeInAdditionReported
+      index, columns, IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
+      "isChargeInAdditionReported.error.required", McCloudFieldNames.allSingleBooleanFields, FieldNoIsChargeInAdditionReported
+    )
+
+    val isMcCloud =
+      getOrElse[Boolean](isPublicServicePensionsRemedyResult, false) &&
+      getOrElse[Boolean](isChargeInAdditionReportedResult, false)
+
+    val wasAnotherPensionSchemeResult = if (isMcCloud) {
+      validateBooleanField(
+        index, columns, WasAnotherPensionSchemePage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
+        "wasAnotherPensionScheme.error.required", McCloudFieldNames.allSingleBooleanFields, FieldNoWasAnotherPensionScheme
       )
-    combineResults(minimalFieldsResult, isPublicServicePensionsRemedyResult, isChargeInAdditionReportedResult)
+    } else {
+      Right(Nil)
+    }
+
+    val ss = Seq(
+      minimalFieldsResult, isPublicServicePensionsRemedyResult, isChargeInAdditionReportedResult, wasAnotherPensionSchemeResult
+    ) :+ wasAnotherPensionSchemeResult
+    combineResults(ss :_*)
   }
 }
