@@ -56,9 +56,8 @@ class AnnualAllowanceMcCloudParser @Inject()(
                                     errorMessage: String,
                                     formFieldName: String,
                                     fieldNo: Int
-                                  )(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-
-    def validation(index: Int, columns: Seq[String],
+                                  )(implicit messages: Messages): Result = {
+    def bindForm(index: Int, columns: Seq[String],
                    fieldName: String, fieldNo: Int, formMessageKey: String)(implicit messages: Messages)
     : Either[Seq[ParserValidationError], Boolean] = {
       val form = yesNoFormProvider(messages(formMessageKey, chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)))
@@ -71,16 +70,15 @@ class AnnualAllowanceMcCloudParser @Inject()(
       )
     }
 
-    val formValidationResult = validation(index, columns, formFieldName, fieldNo, errorMessage)
     resultFromFormValidationResult[Boolean](
-      formValidationResult,
+      bindForm(index, columns, formFieldName, fieldNo, errorMessage),
       createCommitItem(index, page)
     )
   }
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
-                                        columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+                                        columns: Seq[String])(implicit messages: Messages): Result = {
     val minimalFieldsResult = validateMinimumFields(startDate, index, columns)
     val isPublicServicePensionsRemedyResult = Right(Seq(
       CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(true))))

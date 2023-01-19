@@ -37,6 +37,7 @@ object Parser {
 }
 
 trait Parser {
+  type Result = Either[Seq[ParserValidationError], Seq[CommitItem]]
   protected final val FieldNoFirstName = 0
   protected final val FieldNoLastName = 1
   protected final val FieldNoNino = 2
@@ -67,8 +68,8 @@ trait Parser {
   }
 
   private def parseDataRows(startDate: LocalDate, rows: Seq[Array[String]])
-                           (implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
+                           (implicit messages: Messages): Result = {
+    rows.zipWithIndex.foldLeft[Result](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) => combineResults(acc, validateFields(startDate, index, row.toIndexedSeq))
     }
@@ -76,7 +77,7 @@ trait Parser {
 
   protected def validateFields(startDate: LocalDate,
                                index: Int,
-                               columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
+                               columns: Seq[String])(implicit messages: Messages): Result
 
   protected def memberDetailsValidation(index: Int, columns: Seq[String],
                                         memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
@@ -108,16 +109,15 @@ trait Parser {
     a => CommitItem(page(index - 1).path, Json.toJson(a))
 
   protected def resultFromFormValidationResult[A](formValidationResult: Either[Seq[ParserValidationError], A],
-                                                  generateCommitItem: A => CommitItem): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
+                                                  generateCommitItem: A => CommitItem): Result = {
     formValidationResult match {
       case Left(resultAErrors) => Left(resultAErrors)
       case Right(resultAObject) => Right(Seq(generateCommitItem(resultAObject)))
     }
   }
 
-  protected final def combineResults(first: Either[Seq[ParserValidationError], Seq[CommitItem]],
-                                     rest: Either[Seq[ParserValidationError], Seq[CommitItem]]*): Either[Seq[ParserValidationError], Seq[CommitItem]] =
-    rest.foldLeft(first) { (b, c) =>
+  protected final def combineResults(items: Result*): Result =
+    items.foldLeft[Result](Right(Nil)) { (b, c) =>
       (b, c) match {
         case (Left(x), Left(y)) => Left(x ++ y)
         case (x@Left(_), Right(_)) => x

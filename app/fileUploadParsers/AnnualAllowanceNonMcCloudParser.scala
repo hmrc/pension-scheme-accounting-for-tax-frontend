@@ -39,8 +39,8 @@ class AnnualAllowanceNonMcCloudParser @Inject()(
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
-                                        columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    val isPublicServicePensionsRemedyResult: Either[Seq[ParserValidationError], Seq[CommitItem]] =
+                                        columns: Seq[String])(implicit messages: Messages): Result = {
+    val isPublicServicePensionsRemedyResult: Result =
       Right(Seq(CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(false))))
     combineResults(validateMinimumFields(startDate, index, columns), isPublicServicePensionsRemedyResult)
   }
