@@ -21,12 +21,12 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.EnterPstrFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, Mode, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.mccloud.EnterPstrPage
+import pages.mccloud.{ChargeAmountReportedPage, EnterPstrPage, SchemePathHelper}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
@@ -55,6 +55,8 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
 
   private def form(): Form[String] = formProvider()
 
+  //scalastyle:off method.length
+  //scalastyle:off cyclomatic.complexity
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
@@ -77,19 +79,45 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
           case None => form()
         }
 
-        (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
-          case (ordinalValue, Some(chargeTypeDesc)) =>
-            val json = Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(localDateToString(startDate)),
-              "form" -> preparedForm,
-              "viewModel" -> viewModel,
-              "ordinal" -> ordinalValue,
-              "chargeTypeDesc" -> chargeTypeDesc
-            )
-            renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
-          case _ =>
-            renderer.render("badRequest.njk").map(BadRequest(_))
+        val schemeSize = countSchemeSize(request.userAnswers, index, chargeType)
+
+        (schemeSize == 0, mode) match {
+
+          case (false, CheckMode) =>
+            (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
+              case (ordinalValue, Some(chargeTypeDesc)) =>
+                val json = Json.obj(
+                  "srn" -> srn,
+                  "startDate" -> Some(localDateToString(startDate)),
+                  "form" -> preparedForm,
+                  "viewModel" -> viewModel,
+                  "ordinal" -> ordinalValue,
+                  "chargeTypeDesc" -> chargeTypeDesc
+                )
+                renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
+              case _ =>
+                renderer.render("badRequest.njk").map(BadRequest(_))
+            }
+          case (_, NormalMode) =>
+            (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
+              case (ordinalValue, Some(chargeTypeDesc)) =>
+                val json = Json.obj(
+                  "srn" -> srn,
+                  "startDate" -> Some(localDateToString(startDate)),
+                  "form" -> preparedForm,
+                  "viewModel" -> viewModel,
+                  "ordinal" -> ordinalValue,
+                  "chargeTypeDesc" -> chargeTypeDesc
+                )
+                renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
+              case _ =>
+                renderer.render("badRequest.njk").map(BadRequest(_))
+            }
+
+
+          case (true, CheckMode) =>
+            Future(Redirect(navigator.nextPage(
+              ChargeAmountReportedPage(chargeType, index, Some(schemeIndex)), mode, request.userAnswers, srn, startDate, accessType, version)))
         }
       }
     }
@@ -141,4 +169,8 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
 
       }
     }
+
+  private def countSchemeSize(userAnswers: UserAnswers, index: Int, chargeType: ChargeType): Int = {
+    SchemePathHelper.path(chargeType, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+  }
 }
