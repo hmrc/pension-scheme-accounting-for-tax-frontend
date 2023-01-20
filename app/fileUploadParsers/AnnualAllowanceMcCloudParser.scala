@@ -40,7 +40,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
                                               enterPstrFormProvider: EnterPstrFormProvider,
                                               chargeAmountReportedFormProvider: ChargeAmountReportedFormProvider
                                             ) extends AnnualAllowanceParser with Constraints with CommonQuarters with McCloudParser {
-  override protected def validHeader: String = config.validAnnualAllowanceMcCloudHeader
+  override protected def validHeader: String = "First name,Last name,National Insurance number,Date to which the annual allowance charge relates (XX/XX/XXXX),Annual allowance charge amount (£),Date you received notice to pay the charge (XX/XX/XXXX),Payment type mandatory (YES/NO),Annual allowance charge in addition to previously reported annual allowance charge? (YES/NO),Previously reported annual allowance charge paid by another pension scheme? (YES/NO),Pension Scheme Tax Reference (PSTR),Date that annual allowance charge was reported and paid (XX/XX/XXXX),Annual allowance charge amount reported for selected period (£),PSTR (2nd) ,Date that charge was paid (XX/XX/XXXX) - 2nd ,Annual allowance charge amount (£) - 2nd,PSTR - 3rd,Date that charge was paid (XX/XX/XXXX) - 3rd,Annual allowance charge amount (£) - 3rd,PSTR - 4th,Date that charge was paid (XX/XX/XXXX) - 4th,Annual allowance charge amount (£) - 4th,PSTR - 5th,Date that charge was paid (XX/XX/XXXX) - 5th,Annual allowance charge amount (£) - 5th" //config.validAnnualAllowanceMcCloudHeader
 
   protected final val FieldNoIsChargeInAdditionReported: Int = 7
   protected final val FieldNoWasAnotherPensionScheme: Int = 8
