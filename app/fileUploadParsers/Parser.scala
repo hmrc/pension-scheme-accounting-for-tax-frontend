@@ -54,7 +54,7 @@ trait Parser {
                                 fieldNo: Int,
                                 formProvider: => Form[A],
                                 convertValue: String => String = identity
-                              )(implicit messages: Messages, writes: Writes[A]): Result = {
+                              )(implicit writes: Writes[A]): Result = {
     def bindForm(index: Int, columns: Seq[String],
                  fieldName: String, fieldNo: Int)
     : Either[Seq[ParserValidationError], A] = {
@@ -127,7 +127,7 @@ trait Parser {
   protected final def errorsFromForm[A](formWithErrors: Form[A], fields: Seq[Field], index: Int): Seq[ParserValidationError] = {
     for {
       formError <- formWithErrors.errors
-      field <- fields.find(_.getFullFieldName == formError.key)
+      field <- fields.find(_.getFormValidationFullFieldName == formError.key)
     }
     yield {
       ParserValidationError(index, field.columnNo, formError.message, field.columnName, formError.args)
@@ -191,9 +191,9 @@ protected case class Field(formValidationFieldName: String,
                            fieldValue: String,
                            columnName: String,
                            columnNo: Int,
-                           formValidationFullFieldName: Option[String] = None
+                           private val formValidationFullFieldName: Option[String] = None
                           ) {
-  def getFullFieldName: String = formValidationFullFieldName match {
+  def getFormValidationFullFieldName: String = formValidationFullFieldName match {
     case Some(v) => v
     case _ => formValidationFieldName
   }
