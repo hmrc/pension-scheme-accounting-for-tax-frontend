@@ -49,7 +49,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
   protected final val FieldNoChargeAmountReported1: Int = 11
 
   object McCloudFieldNames {
-    val allSingleFields = "value"
+    val formFieldNameForSingleFields = "value"
 
     val isInAdditionToPrevious: String = "isInAdditionToPrevious"
     val wasPaidByAnotherScheme: String = "wasPaidByAnotherScheme"
@@ -84,7 +84,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
         index = index,
         columns = columns,
         page = WasAnotherPensionSchemePage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
-        formFieldName = McCloudFieldNames.allSingleFields,
+        formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
         columnName = McCloudFieldNames.wasPaidByAnotherScheme,
         fieldNo = FieldNoWasAnotherPensionScheme,
         formProvider = yesNoFormProvider(messages("wasAnotherPensionScheme.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance))),
@@ -98,7 +98,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
           index = index,
           columns = columns,
           page = ChargeAmountReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int, schemeIndex),
-          formFieldName = McCloudFieldNames.allSingleFields,
+          formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
           columnName = McCloudFieldNames.chargeAmountReported,
           fieldNo = FieldNoChargeAmountReported1 + offset,
           formProvider = chargeAmountReportedFormProvider(BigDecimal(0))
@@ -115,7 +115,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
           index = index,
           columns = columns,
           page = EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, _: Int, schemeIndex),
-          formFieldName = McCloudFieldNames.allSingleFields,
+          formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
           columnName = McCloudFieldNames.pstr,
           fieldNo = FieldNoEnterPstr1 + offset,
           formProvider = enterPstrFormProvider()
@@ -139,7 +139,7 @@ class AnnualAllowanceMcCloudParser @Inject()(
       index = index,
       columns = columns,
       page = IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
-      formFieldName = McCloudFieldNames.allSingleFields,
+      formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
       columnName = McCloudFieldNames.isInAdditionToPrevious,
       fieldNo = FieldNoIsChargeInAdditionReported,
       formProvider = yesNoFormProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance))),

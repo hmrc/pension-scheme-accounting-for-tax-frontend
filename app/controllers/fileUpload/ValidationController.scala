@@ -41,8 +41,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 class ValidationController @Inject()(
                                       override val messagesApi: MessagesApi,
@@ -67,8 +66,8 @@ class ValidationController @Inject()(
 
   val maximumNumberOfError = 10
 
-  private def processInvalid( chargeType: ChargeType,
-                              errors: Seq[ParserValidationError])(implicit messages: Messages): FileUploadOutcome = {
+  private def processInvalid(chargeType: ChargeType,
+                             errors: Seq[ParserValidationError])(implicit messages: Messages): FileUploadOutcome = {
     errors match {
       case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
         FileUploadOutcome(status = UpscanInvalidHeaderOrBody)
@@ -272,7 +271,6 @@ class ValidationController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
-
         val psr = chargeType match {
           case ChargeTypeLifetimeAllowance | ChargeTypeAnnualAllowance =>
             request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
@@ -312,11 +310,11 @@ class ValidationController @Inject()(
 
   private def findParser(chargeType: ChargeType, psr: Option[Boolean]): Option[Parser] = {
     (chargeType, psr) match {
-      case (ChargeTypeAnnualAllowance, Some(true)) => Some(annualAllowanceParserMcCloud)       // PSR YES, McCloud
-      case (ChargeTypeAnnualAllowance, Some(false)) => Some(annualAllowanceParser)      // PSR NO,  Non McC
-      case (ChargeTypeLifetimeAllowance, Some(true)) => Some(lifeTimeAllowanceParser)   // PSR YES, McCloud
-      case (ChargeTypeLifetimeAllowance, Some(false)) => Some(lifeTimeAllowanceParser)  // PSR NO,  Non McC
-      case (ChargeTypeOverseasTransfer, None) => Some(overseasTransferParser)           // PSR Q NOT ASKED
+      case (ChargeTypeAnnualAllowance, Some(true)) => Some(annualAllowanceParserMcCloud) // PSR YES, McCloud
+      case (ChargeTypeAnnualAllowance, Some(false)) => Some(annualAllowanceParser) // PSR NO,  Non McC
+      case (ChargeTypeLifetimeAllowance, Some(true)) => Some(lifeTimeAllowanceParser) // PSR YES, McCloud
+      case (ChargeTypeLifetimeAllowance, Some(false)) => Some(lifeTimeAllowanceParser) // PSR NO,  Non McC
+      case (ChargeTypeOverseasTransfer, None) => Some(overseasTransferParser) // PSR Q NOT ASKED
       case _ => None
     }
   }
