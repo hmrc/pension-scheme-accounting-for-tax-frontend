@@ -121,7 +121,7 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO"""
       // TODO: Check - I think the field name "value" is not correct:
       result.swap.toSeq.flatten mustBe Seq(
         ParserValidationError(1, 7, messages("isChargeInAdditionReported.error.required",
-          chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), "value")
+          chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), parser.McCloudFieldNames.isInAdditionToPrevious)
       )
     }
 
@@ -137,9 +137,9 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO,YES"""
       // TODO: Check - I think the field name "value" is not correct:
       result.swap.toSeq.flatten mustBe Seq(
         ParserValidationError(1, 8, messages("wasAnotherPensionScheme.error.required",
-          chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), "value"),
-        ParserValidationError(1, 10, "taxQuarterReportedAndPaid.error.required", "value"),
-        ParserValidationError(1, 11, "chargeAmountReported.error.required", "value")
+          chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), parser.McCloudFieldNames.wasPaidByAnotherScheme),
+        ParserValidationError(1, 10, "taxQuarterReportedAndPaid.error.required", parser.McCloudFieldNames.dateReportedAndPaid),
+        ParserValidationError(1, 11, "chargeAmountReported.error.required", parser.McCloudFieldNames.chargeAmountReported)
       )
     }
 
@@ -152,10 +152,10 @@ Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,4000017RN,30/06/2022,102.
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
       result.isRight mustBe false
       result.swap.toSeq.flatten mustBe Seq(
-        ParserValidationError(1, 9, "enterPstr.error.invalid", "value", Seq("^[0-9]{8}[Rr][A-Za-z]{1}$")),
-        ParserValidationError(1, 16, "taxQuarterReportedAndPaid.error.required", "value"),
-        ParserValidationError(1, 20, "chargeAmountReported.error.invalid", "value"),
-        ParserValidationError(1, 21, "enterPstr.error.required", "value")
+        ParserValidationError(1, 9, "enterPstr.error.invalid", parser.McCloudFieldNames.pstr, Seq("^[0-9]{8}[Rr][A-Za-z]{1}$")),
+        ParserValidationError(1, 16, "taxQuarterReportedAndPaid.error.required", parser.McCloudFieldNames.dateReportedAndPaid),
+        ParserValidationError(1, 20, "chargeAmountReported.error.invalid", parser.McCloudFieldNames.chargeAmountReported),
+        ParserValidationError(1, 21, "enterPstr.error.required", parser.McCloudFieldNames.pstr)
       )
     }
 
@@ -171,7 +171,7 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,
 
       // TODO: Check - I think the field name "value" is not correct:
       result.swap.toSeq.flatten mustBe Seq(
-        ParserValidationError(1, 10, "Invalid tax quarter reported and paid", "value"))
+        ParserValidationError(1, 10, "Invalid tax quarter reported and paid", parser.McCloudFieldNames.dateReportedAndPaid))
     }
 
 
@@ -179,7 +179,7 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,
       row = row,
       col = 7,
       error = messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)),
-      columnName = parser.McCloudFieldNames.allSingleFields,
+      columnName = parser.McCloudFieldNames.isInAdditionToPrevious,
       args = Nil
     ))
 

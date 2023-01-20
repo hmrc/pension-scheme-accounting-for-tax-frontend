@@ -17,6 +17,7 @@
 package fileUploadParsers
 
 import config.FrontendAppConfig
+import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames
 import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames._
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
@@ -46,9 +47,9 @@ trait LifetimeAllowanceParser extends Parser {
 
     val parsedDate = splitDayMonthYear(chargeFields(FieldNoDateOfEvent))
     val fields = Seq(
-      Field(dateOfEventDay, parsedDate.day, dateOfEvent, FieldNoDateOfEvent),
-      Field(dateOfEventMonth, parsedDate.month, dateOfEvent, FieldNoDateOfEvent),
-      Field(dateOfEventYear, parsedDate.year, dateOfEvent, FieldNoDateOfEvent),
+      Field(dateOfEventDay, parsedDate.day, dateOfEvent, FieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
+      Field(dateOfEventMonth, parsedDate.month, dateOfEvent, FieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
+      Field(dateOfEventYear, parsedDate.year, dateOfEvent, FieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
       Field(taxAt25Percent, chargeFields(FieldNoTaxAt25Percent), taxAt25Percent, FieldNoTaxAt25Percent),
       Field(taxAt55Percent, chargeFields(FieldNoTaxAt55Percent), taxAt55Percent, FieldNoTaxAt55Percent)
     )

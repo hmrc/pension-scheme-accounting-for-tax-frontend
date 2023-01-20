@@ -18,7 +18,7 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
+import controllers.fileUpload.FileUploadHeaders.{MemberDetailsFieldNames, OverseasTransferFieldNames}
 import controllers.fileUpload.FileUploadHeaders.OverseasTransferFieldNames._
 import forms.chargeG.{ChargeAmountsFormProvider, ChargeDetailsFormProvider, MemberDetailsFormProvider}
 import models.Quarters
@@ -51,9 +51,9 @@ class OverseasTransferParser @Inject()(
       Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, FieldNoFirstName),
       Field(MemberDetailsFieldNames.lastName, chargeFields(FieldNoLastName), MemberDetailsFieldNames.lastName, FieldNoLastName),
       Field(MemberDetailsFieldNames.nino, chargeFields(FieldNoNino), MemberDetailsFieldNames.nino, FieldNoNino),
-      Field(dateOfBirthDay, parsedDOB.day, dateOfBirth, FieldNoDateOfBirth),
-      Field(dateOfBirthMonth, parsedDOB.month, dateOfBirth, FieldNoDateOfBirth),
-      Field(dateOfBirthYear, parsedDOB.year, dateOfBirth, FieldNoDateOfBirth)
+      Field(dateOfBirthDay, parsedDOB.day, dateOfBirth, FieldNoDateOfBirth, Some(OverseasTransferFieldNames.dateOfBirth)),
+      Field(dateOfBirthMonth, parsedDOB.month, dateOfBirth, FieldNoDateOfBirth, Some(OverseasTransferFieldNames.dateOfBirth)),
+      Field(dateOfBirthYear, parsedDOB.year, dateOfBirth, FieldNoDateOfBirth, Some(OverseasTransferFieldNames.dateOfBirth))
     )
     memberDetailsForm
       .bind(Field.seqToMap(fields))
@@ -69,9 +69,9 @@ class OverseasTransferParser @Inject()(
 
     val parsedDateOfTransfer = splitDayMonthYear(chargeFields(FieldNoDateOfTransfer))
     val fields = Seq(
-      Field(dateOfTransferDay, parsedDateOfTransfer.day, dateOfTransfer, FieldNoDateOfTransfer),
-      Field(dateOfTransferMonth, parsedDateOfTransfer.month, dateOfTransfer, FieldNoDateOfTransfer),
-      Field(dateOfTransferYear, parsedDateOfTransfer.year, dateOfTransfer, FieldNoDateOfTransfer),
+      Field(dateOfTransferDay, parsedDateOfTransfer.day, dateOfTransfer, FieldNoDateOfTransfer, Some(OverseasTransferFieldNames.dateOfTransfer)),
+      Field(dateOfTransferMonth, parsedDateOfTransfer.month, dateOfTransfer, FieldNoDateOfTransfer, Some(OverseasTransferFieldNames.dateOfTransfer)),
+      Field(dateOfTransferYear, parsedDateOfTransfer.year, dateOfTransfer, FieldNoDateOfTransfer, Some(OverseasTransferFieldNames.dateOfTransfer)),
       Field(qropsReferenceNumber, chargeFields(FieldNoQropsRefNo), qropsReferenceNumber, FieldNoQropsRefNo)
     )
     val chargeDetailsForm: Form[ChargeDetails] = chargeDetailsFormProvider(

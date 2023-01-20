@@ -32,6 +32,12 @@ object FileUploadHeaders {
     val dateNoticeReceived: String = "dateNoticeReceived"
     val isPaymentMandatory = "isPaymentMandatory"
     val taxYear = "TaxYear"
+    // MCCLOUD
+    val isInAdditionToPrevious: String = "isInAdditionToPrevious"
+    val wasPaidByAnotherScheme: String = "wasPaidByAnotherScheme"
+    val pstr: String = "pstr"
+    val dateReportedAndPaid: String = "dateReportedAndPaid"
+    val chargeAmountReported: String = "chargeAmountReported"
   }
 
   object LifetimeAllowanceFieldNames {

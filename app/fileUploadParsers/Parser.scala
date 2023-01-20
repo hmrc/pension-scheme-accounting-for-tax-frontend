@@ -50,6 +50,7 @@ trait Parser {
                                 columns: Seq[String],
                                 page: Int => Gettable[_],
                                 formFieldName: String,
+                                columnName: String,
                                 fieldNo: Int,
                                 formProvider: => Form[A],
                                 convertValue: String => String = identity
@@ -58,7 +59,7 @@ trait Parser {
                  fieldName: String, fieldNo: Int)
     : Either[Seq[ParserValidationError], A] = {
       val form: Form[A] = formProvider
-      val fields = Seq(Field(fieldName, convertValue(fieldValue(columns, fieldNo)), fieldName, fieldNo))
+      val fields = Seq(Field(fieldName, convertValue(fieldValue(columns, fieldNo)), columnName, fieldNo))
       val toMap = Field.seqToMap(fields)
       val bind = form.bind(toMap)
       bind.fold(
@@ -126,7 +127,7 @@ trait Parser {
   protected final def errorsFromForm[A](formWithErrors: Form[A], fields: Seq[Field], index: Int): Seq[ParserValidationError] = {
     for {
       formError <- formWithErrors.errors
-      field <- fields.find(_.columnName == formError.key)
+      field <- fields.find(_.getFullFieldName == formError.key)
     }
     yield {
       ParserValidationError(index, field.columnNo, formError.message, field.columnName, formError.args)
@@ -186,7 +187,17 @@ case class ParserValidationError(row: Int, col: Int, error: String, columnName: 
 
 protected case class CommitItem(jsPath: JsPath, value: JsValue)
 
-protected case class Field(formValidationFieldName: String, fieldValue: String, columnName: String, columnNo: Int)
+protected case class Field(formValidationFieldName: String,
+                           fieldValue: String,
+                           columnName: String,
+                           columnNo: Int,
+                           formValidationFullFieldName: Option[String] = None
+                          ) {
+  def getFullFieldName: String = formValidationFullFieldName match {
+    case Some(v) => v
+    case _ => formValidationFieldName
+  }
+}
 
 protected case class ParsedDate(day: String, month: String, year: String)
 

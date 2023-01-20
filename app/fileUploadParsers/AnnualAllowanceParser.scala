@@ -56,23 +56,29 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
                                              taxYearsErrors: Seq[ParserValidationError]): Either[Seq[ParserValidationError], ChargeEDetails] = {
     val fields = Seq(
       Field(AnnualAllowanceFieldNames.chargeAmount, chargeFields(FieldNoChargeAmount), AnnualAllowanceFieldNames.chargeAmount, FieldNoChargeAmount),
-      Field(AnnualAllowanceFieldNames.dateNoticeReceivedDay, parsedDate.day, AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
-      Field(AnnualAllowanceFieldNames.dateNoticeReceivedMonth, parsedDate.month, AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
-      Field(AnnualAllowanceFieldNames.dateNoticeReceivedYear, parsedDate.year, AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
+      Field(AnnualAllowanceFieldNames.dateNoticeReceivedDay, parsedDate.day,
+        AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
+      Field(AnnualAllowanceFieldNames.dateNoticeReceivedMonth, parsedDate.month,
+        AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
+      Field(AnnualAllowanceFieldNames.dateNoticeReceivedYear, parsedDate.year,
+        AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
       Field(AnnualAllowanceFieldNames.isPaymentMandatory, stringToBoolean(chargeFields(FieldNoIsPaymentMandatory)),
         AnnualAllowanceFieldNames.isPaymentMandatory, FieldNoIsPaymentMandatory)
 
     )
-
+// form field,
     val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
       minimumChargeValueAllowed = minChargeValueAllowed,
       minimumDate = config.earliestDateOfNotice,
       maximumDate = getQuarter(startDate).endDate
     )
+
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
     ).fold(
-      formWithErrors => errors(index, formWithErrors, fields, taxYearsErrors),
+      formWithErrors => {
+        errors(index, formWithErrors, fields, taxYearsErrors)},
+
       value => checkIfTaxYearHasAnErrorsOrReturnChargeEDetails(value, taxYearsErrors)
     )
   }
@@ -125,6 +131,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
     val b = resultFromFormValidationResult[ChargeEDetails](
       chargeDetailsValidation(startDate, index, columns), createCommitItem(index, ChargeDetailsPage.apply)
     )
+
     val c = resultFromFormValidationResult[String](
       Right(fieldValue(columns, FieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)
     )
