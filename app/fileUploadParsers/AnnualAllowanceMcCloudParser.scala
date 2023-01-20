@@ -24,7 +24,7 @@ import forms.mccloud.{ChargeAmountReportedFormProvider, EnterPstrFormProvider}
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import models.{ChargeType, CommonQuarters}
 import pages.IsPublicServicePensionsRemedyPage
-import pages.mccloud.{ChargeAmountReportedPage, EnterPstrPage, IsChargeInAdditionReportedPage, TaxQuarterReportedAndPaidPage, WasAnotherPensionSchemePage}
+import pages.mccloud._
 import play.api.i18n.Messages
 import play.api.libs.json.{JsBoolean, Json}
 import utils.DateHelper.dateFormatterDMYSlashes
@@ -50,9 +50,6 @@ class AnnualAllowanceMcCloudParser @Inject()(
   object McCloudFieldNames {
     val allSingleFields = "value"
   }
-
-  private def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages) =
-    Messages(s"chargeType.description.${chargeType.toString}")
 
   private def validateTaxQuarterReportedAndPaid(index: Int, columns: Seq[String], schemeIndex: => Option[Int], offset: Int): Result = {
     val fieldNo = FieldNoTaxQuarterReportedAndPaid1 + offset

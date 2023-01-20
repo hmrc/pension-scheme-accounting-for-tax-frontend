@@ -34,6 +34,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import pages.mccloud._
+import play.api.i18n.Messages
 
 import java.time.LocalDate
 
@@ -48,6 +49,7 @@ class AnnualAllowanceMcCloudParserSpec extends SpecBase
     when(mockFrontendAppConfig.earliestDateOfNotice).thenReturn(LocalDate.of(1900, 1, 1))
     when(mockFrontendAppConfig.validAnnualAllowanceMcCloudHeader).thenReturn(header)
   }
+
 
   "Annual allowance McCloud parser" must {
 
@@ -108,10 +110,10 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
     }
 
 
-    "return correctly when where McCloud errors: invalid boolean values" in {
+    "return correctly where McCloud errors - missing: isChargeInAdditionReported" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO,INVALID,INVALID"""
+Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO"""
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
@@ -119,7 +121,42 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO,INVALID,INVALID"""
 
       // TODO: Check - I think the field name "value" is not correct:
       result.swap.toSeq.flatten mustBe Seq(
-        ParserValidationError(1, 7, "error.boolean", "value")
+        ParserValidationError(1, 7, messages("isChargeInAdditionReported.error.required",
+          chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), "value")
+      )
+    }
+
+    "return correctly where McCloud errors - missing: wasAnotherPensionScheme, taxQuarterReportedAndPaid & chargeAmountReported" in {
+      val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
+        s"""$header
+Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO,YES"""
+      )
+
+      val result = parser.parse(startDate, validCsvFile, UserAnswers())
+      result.isRight mustBe false
+
+      // TODO: Check - I think the field name "value" is not correct:
+      result.swap.toSeq.flatten mustBe Seq(
+        ParserValidationError(1, 8, messages("wasAnotherPensionScheme.error.required",
+          chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), "value"),
+        ParserValidationError(1, 10, "taxQuarterReportedAndPaid.error.required", "value"),
+        ParserValidationError(1, 11, "chargeAmountReported.error.required", "value")
+      )
+    }
+
+    "return correctly when where McCloud errors - invalid & missing pstrs" in {
+      val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
+        s"""$header
+Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,4000017RN,30/06/2022,102.55,24000018RN,31/03/2022,99.88,24000019RN,,99.88,24000020RN,31/03/2022,invalid,,31/03/2022,498.90"""
+      )
+
+      val result = parser.parse(startDate, validCsvFile, UserAnswers())
+      result.isRight mustBe false
+      result.swap.toSeq.flatten mustBe Seq(
+        ParserValidationError(1, 9, "enterPstr.error.invalid", "value", Seq("^[0-9]{8}[Rr][A-Za-z]{1}$")),
+        ParserValidationError(1, 16, "taxQuarterReportedAndPaid.error.required", "value"),
+        ParserValidationError(1, 20, "chargeAmountReported.error.invalid", "value"),
+        ParserValidationError(1, 21, "enterPstr.error.required", "value")
       )
     }
 

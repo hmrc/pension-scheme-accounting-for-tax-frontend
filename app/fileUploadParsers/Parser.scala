@@ -90,9 +90,7 @@ trait Parser {
           }
           case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
-      case xx =>
-        println("\nACT:" + xx.map(_.mkString(",")))
-        println("\nexp:" + validHeader)
+      case _ =>
         Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
   }

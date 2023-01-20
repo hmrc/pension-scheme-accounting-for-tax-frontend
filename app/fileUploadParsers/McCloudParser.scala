@@ -16,6 +16,9 @@
 
 package fileUploadParsers
 
+import models.ChargeType
+import play.api.i18n.Messages
+
 trait McCloudParser  {
   protected def countNoOfSchemes(columns: Seq[String], startFrom: Int): Int = {
     val default: Int => String = _ => ""
@@ -26,4 +29,7 @@ trait McCloudParser  {
     }
     processedSeq.size
   }
+
+  protected def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages): String =
+    Messages(s"chargeType.description.${chargeType.toString}")
 }
