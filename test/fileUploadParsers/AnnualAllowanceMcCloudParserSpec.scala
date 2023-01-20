@@ -109,7 +109,6 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 2, 0)) mustBe None
     }
 
-
     "return correctly where McCloud errors - missing: isChargeInAdditionReported" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
@@ -159,6 +158,22 @@ Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,4000017RN,30/06/2022,102.
         ParserValidationError(1, 21, "enterPstr.error.required", "value")
       )
     }
+
+
+    "return correctly where McCloud errors - invalid date" in {
+      val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
+        s"""$header
+Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,,"""
+      )
+
+      val result = parser.parse(startDate, validCsvFile, UserAnswers())
+      result.isRight mustBe false
+
+      // TODO: Check - I think the field name "value" is not correct:
+      result.swap.toSeq.flatten mustBe Seq(
+        ParserValidationError(1, 10, "Invalid tax quarter reported and paid", "value"))
+    }
+
 
     val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
       row = row,

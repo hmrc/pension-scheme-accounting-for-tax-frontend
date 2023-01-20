@@ -41,7 +41,8 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class ValidationController @Inject()(
                                       override val messagesApi: MessagesApi,
@@ -54,6 +55,7 @@ class ValidationController @Inject()(
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
                                       annualAllowanceParser: AnnualAllowanceNonMcCloudParser,
+                                      annualAllowanceParserMcCloud: AnnualAllowanceMcCloudParser,
                                       lifeTimeAllowanceParser: LifetimeAllowanceNonMcCloudParser,
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService: AFTService,
@@ -122,6 +124,7 @@ class ValidationController @Inject()(
     val startTime = System.currentTimeMillis
     val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, csvContent, updatedUA), "Parsing and Validation")
     val endTime = System.currentTimeMillis
+
     val futureResult =
       parserResult match {
         case Left(errors) =>
@@ -214,12 +217,12 @@ class ValidationController @Inject()(
   }
 
   private def getFileName(uploadStatus: FileUploadDataCache): String = {
-      val status = uploadStatus.status
-      status._type match {
-        case "UploadedSuccessfully" => status.name.getOrElse("No File Found")
-        case "InProgress" => "InProgress"
-        case _ => "No File Found"
-      }
+    val status = uploadStatus.status
+    status._type match {
+      case "UploadedSuccessfully" => status.name.getOrElse("No File Found")
+      case "InProgress" => "InProgress"
+      case _ => "No File Found"
+    }
   }
 
   private def downloadAndProcess(
@@ -275,12 +278,12 @@ class ValidationController @Inject()(
             request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
           case _ => None
         }
-
         findParser(chargeType, psr) match {
           case Some(parser) =>
             downloadAndProcess(srn, startDate, accessType, version, chargeType, uploadId, parser)
             Future.successful(Redirect(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version, chargeType)))
-          case _ => sessionExpired
+          case _ =>
+            sessionExpired
         }
     }
 
@@ -309,7 +312,7 @@ class ValidationController @Inject()(
 
   private def findParser(chargeType: ChargeType, psr: Option[Boolean]): Option[Parser] = {
     (chargeType, psr) match {
-      case (ChargeTypeAnnualAllowance, Some(true)) => Some(annualAllowanceParser)       // PSR YES, McCloud
+      case (ChargeTypeAnnualAllowance, Some(true)) => Some(annualAllowanceParserMcCloud)       // PSR YES, McCloud
       case (ChargeTypeAnnualAllowance, Some(false)) => Some(annualAllowanceParser)      // PSR NO,  Non McC
       case (ChargeTypeLifetimeAllowance, Some(true)) => Some(lifeTimeAllowanceParser)   // PSR YES, McCloud
       case (ChargeTypeLifetimeAllowance, Some(false)) => Some(lifeTimeAllowanceParser)  // PSR NO,  Non McC

@@ -30,6 +30,7 @@ import play.api.libs.json.{JsBoolean, Json}
 import utils.DateHelper.dateFormatterDMYSlashes
 
 import java.time.LocalDate
+import scala.util.Try
 
 class AnnualAllowanceMcCloudParser @Inject()(
                                               override val memberDetailsFormProvider: MemberDetailsFormProvider,
@@ -58,9 +59,15 @@ class AnnualAllowanceMcCloudParser @Inject()(
         Left(Seq(ParserValidationError(index, fieldNo,
           "taxQuarterReportedAndPaid.error.required", McCloudFieldNames.allSingleFields)))
       case a =>
-        val ld = LocalDate.parse(a, dateFormatterDMYSlashes)
-        val qtr = getQuarter(ld)
-        Right(Seq(CommitItem(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index - 1, schemeIndex).path, Json.toJson(qtr))))
+        Try(LocalDate.parse(a, dateFormatterDMYSlashes)).toOption match {
+          case None => // TODO: Need proper date validation and content - future ticket for this
+            Left(Seq(ParserValidationError(index, fieldNo,
+              "Invalid tax quarter reported and paid", McCloudFieldNames.allSingleFields)))
+          case Some(ld) =>
+            val qtr = getQuarter(ld)
+            Right(Seq(CommitItem(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, index - 1, schemeIndex).path, Json.toJson(qtr))))
+
+        }
     }
   }
 
