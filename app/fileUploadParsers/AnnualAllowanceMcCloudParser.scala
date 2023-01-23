@@ -76,7 +76,6 @@ class AnnualAllowanceMcCloudParser @Inject()(
         }
     }
   }
-// TODO: Take out is mccloud remedy boolean as this will be in ua
   private def otherMcCloud(index: Int,
                            columns: Seq[String])(implicit messages: Messages): Seq[Result] = {
     val wasAnotherPensionSchemeResult =
@@ -124,7 +123,6 @@ class AnnualAllowanceMcCloudParser @Inject()(
     } else {
       schemeFields(None, 0)
     }
-
     Seq(wasAnotherPensionSchemeResult) ++ taxQuarter
   }
 
