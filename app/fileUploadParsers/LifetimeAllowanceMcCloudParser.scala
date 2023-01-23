@@ -18,7 +18,7 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import forms.chargeE.ChargeDetailsFormProvider
+import forms.chargeD.ChargeDetailsFormProvider
 import forms.mappings.Constraints
 import forms.mccloud.{ChargeAmountReportedFormProvider, EnterPstrFormProvider}
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
@@ -29,31 +29,31 @@ import play.api.libs.json.JsBoolean
 
 import java.time.LocalDate
 
-class AnnualAllowanceMcCloudParser @Inject()(
-                                              override val memberDetailsFormProvider: MemberDetailsFormProvider,
-                                              override val chargeDetailsFormProvider: ChargeDetailsFormProvider,
+class LifetimeAllowanceMcCloudParser @Inject()(
+                                                override val memberDetailsFormProvider: MemberDetailsFormProvider,
+                                                override val chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                               override val config: FrontendAppConfig,
                                               val yesNoFormProvider: YesNoFormProvider,
                                               val enterPstrFormProvider: EnterPstrFormProvider,
                                               val chargeAmountReportedFormProvider: ChargeAmountReportedFormProvider
-                                            ) extends AnnualAllowanceParser with Constraints with CommonQuarters with McCloudParser {
+                                            ) extends LifetimeAllowanceParser with Constraints with CommonQuarters with McCloudParser {
 
-  override protected val chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance
+  override protected val chargeType: ChargeType = ChargeType.ChargeTypeLifetimeAllowance
 
-  override protected val FieldNoIsChargeInAdditionReported: Int = 7
-  override protected val FieldNoWasAnotherPensionScheme: Int = 8
-  override protected val FieldNoEnterPstr1: Int = 9
-  override protected val FieldNoTaxQuarterReportedAndPaid1: Int = 10
-  override protected val FieldNoChargeAmountReported1: Int = 11
+  override protected val FieldNoIsChargeInAdditionReported: Int = 6
+  override protected val FieldNoWasAnotherPensionScheme: Int = 7
+  override protected val FieldNoEnterPstr1: Int = 8
+  override protected val FieldNoTaxQuarterReportedAndPaid1: Int = 9
+  override protected val FieldNoChargeAmountReported1: Int = 10
 
-  override protected def validHeader: String = config.validAnnualAllowanceMcCloudHeader
+  override protected def validHeader: String = config.validLifetimeAllowanceMcCloudHeader
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Result = {
     val minimalFieldsResult = validateMinimumFields(startDate, index, columns)
     val isPublicServicePensionsRemedyResult = Right(Seq(
-      CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(true))))
+      CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeLifetimeAllowance, Some(index - 1)).path, JsBoolean(true))))
 
     val isInAdditionResult = isChargeInAdditionReportedResult(index, columns)
 

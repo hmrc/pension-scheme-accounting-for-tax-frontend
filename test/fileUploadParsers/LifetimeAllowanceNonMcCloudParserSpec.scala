@@ -44,7 +44,7 @@ class LifetimeAllowanceNonMcCloudParserSpec extends SpecBase
 
   override def beforeEach(): Unit = {
     Mockito.reset(mockFrontendAppConfig)
-    when(mockFrontendAppConfig.validLifeTimeAllowanceHeader).thenReturn(header)
+    when(mockFrontendAppConfig.validLifetimeAllowanceHeader).thenReturn(header)
   }
 
   "LifeTime allowance parser" must {

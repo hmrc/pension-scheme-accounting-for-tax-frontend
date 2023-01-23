@@ -35,11 +35,11 @@ trait McCloudParser  extends Parser {
   protected val enterPstrFormProvider: EnterPstrFormProvider
   protected val chargeType: ChargeType
 
-  protected final val FieldNoIsChargeInAdditionReported: Int = 7
-  protected final val FieldNoWasAnotherPensionScheme: Int = 8
-  protected final val FieldNoEnterPstr1: Int = 9
-  protected final val FieldNoTaxQuarterReportedAndPaid1: Int = 10
-  protected final val FieldNoChargeAmountReported1: Int = 11
+  protected val FieldNoIsChargeInAdditionReported: Int
+  protected val FieldNoWasAnotherPensionScheme: Int
+  protected val FieldNoEnterPstr1: Int
+  protected val FieldNoTaxQuarterReportedAndPaid1: Int
+  protected val FieldNoChargeAmountReported1: Int
 
   object McCloudFieldNames {
     val formFieldNameForSingleFields = "value"
@@ -74,11 +74,11 @@ trait McCloudParser  extends Parser {
                                        columns: Seq[String])(implicit messages: Messages): Result = validateField(
     index = index,
     columns = columns,
-    page = IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
+    page = IsChargeInAdditionReportedPage.apply(chargeType, _: Int),
     formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
     columnName = McCloudFieldNames.isInAdditionToPrevious,
     fieldNo = FieldNoIsChargeInAdditionReported,
-    formProvider = yesNoFormProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance))),
+    formProvider = yesNoFormProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription(chargeType))),
     convertValue = stringToBoolean
   )
 

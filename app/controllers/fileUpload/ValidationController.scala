@@ -56,6 +56,7 @@ class ValidationController @Inject()(
                                       annualAllowanceParser: AnnualAllowanceNonMcCloudParser,
                                       annualAllowanceParserMcCloud: AnnualAllowanceMcCloudParser,
                                       lifeTimeAllowanceParser: LifetimeAllowanceNonMcCloudParser,
+                                      lifeTimeAllowanceParserMcCloud: LifetimeAllowanceMcCloudParser,
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService: AFTService,
                                       fileUploadAftReturnService: FileUploadAftReturnService,
@@ -312,7 +313,7 @@ class ValidationController @Inject()(
     (chargeType, psr) match {
       case (ChargeTypeAnnualAllowance, Some(true)) => Some(annualAllowanceParserMcCloud) // PSR YES, McCloud
       case (ChargeTypeAnnualAllowance, Some(false)) => Some(annualAllowanceParser) // PSR NO,  Non McC
-      case (ChargeTypeLifetimeAllowance, Some(true)) => Some(lifeTimeAllowanceParser) // PSR YES, McCloud
+      case (ChargeTypeLifetimeAllowance, Some(true)) => Some(lifeTimeAllowanceParserMcCloud) // PSR YES, McCloud
       case (ChargeTypeLifetimeAllowance, Some(false)) => Some(lifeTimeAllowanceParser) // PSR NO,  Non McC
       case (ChargeTypeOverseasTransfer, None) => Some(overseasTransferParser) // PSR Q NOT ASKED
       case _ => None

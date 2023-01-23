@@ -29,7 +29,7 @@ class LifetimeAllowanceNonMcCloudParser @Inject()(
                                          override val chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                          override val config: FrontendAppConfig
                                        ) extends LifetimeAllowanceParser {
-  override protected def validHeader: String = config.validLifeTimeAllowanceHeader
+  override protected def validHeader: String = config.validLifetimeAllowanceHeader
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,

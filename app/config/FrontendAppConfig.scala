@@ -215,6 +215,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val validAnnualAllowanceNonMcCloudHeader: String = configuration.get[String]("validAnnualAllowanceNonMcCloudHeader")
   lazy val validAnnualAllowanceMcCloudHeader: String = configuration.get[String]("validAnnualAllowanceMcCloudHeader")
-  lazy val validLifeTimeAllowanceHeader: String = configuration.get[String]("validLifeTimeAllowanceHeader")
+  lazy val validLifetimeAllowanceHeader: String = configuration.get[String]("validLifetimeAllowanceHeader")
+  lazy val validLifetimeAllowanceMcCloudHeader: String = configuration.get[String]("validLifetimeAllowanceMcCloudHeader")
   lazy val validOverseasTransferHeader: String = configuration.get[String]("validOverseasTransferHeader")
 }

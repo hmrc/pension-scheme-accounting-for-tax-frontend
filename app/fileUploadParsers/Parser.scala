@@ -83,9 +83,6 @@ trait Parser {
 
   def parse(startDate: LocalDate, rows: Seq[Array[String]], userAnswers: UserAnswers)
            (implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
-
-
-
     rows.headOption match {
       case Some(row) if row.mkString(",").equalsIgnoreCase(validHeader) =>
         rows.size match {
@@ -94,18 +91,18 @@ trait Parser {
           }
           case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
-//      case Some(row) =>
-//        val a = row.mkString(",")
-//        val b = validHeader
-//
-//        a.zipWithIndex.foreach{ case (a,i) =>
-//          println("\n" + i.toString + ":" + a + " ========" + b(i) + " - " + b(i).toInt + " ===> " + (a == b(i)))
-//        }
-//
-//        println( "\nActual=" + a + " length = " + a.size)
-//        println( "\nExpected=" + b+ " length = " + a.size)
-//        println( "\nEquality = " + a == b)
-//        Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+      case Some(row) =>
+        val a = row.mkString(",")
+        val b = validHeader
+
+        a.zipWithIndex.foreach{ case (a,i) =>
+          println("\n" + i.toString + ":" + a + " " + a.toInt + " ========" + b(i) + " - " + b(i).toInt + " ===> " + (a == b(i)))
+        }
+
+        println( "\nActual=" + a + " length = " + a.size)
+        println( "\nExpected=" + b+ " length = " + a.size)
+        println( "\nEquality = " + a == b)
+        Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
       case _ =>
         Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
