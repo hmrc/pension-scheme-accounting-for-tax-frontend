@@ -88,25 +88,24 @@ trait Parser {
 
     rows.headOption match {
       case Some(row) if row.mkString(",").equalsIgnoreCase(validHeader) =>
-//      case Some(row) if true => //row.mkString(",").equalsIgnoreCase(validHeader) =>
         rows.size match {
           case n if n >= 2 => parseDataRows(startDate, rows).map { commitItems =>
             commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
           }
           case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
-      case Some(row) =>
-        val a = row.mkString(",")
-        val b = validHeader
-
-        a.zipWithIndex.foreach{ case (a,i) =>
-          println("\n" + i.toString + ":" + a + " ========" + b(i) + " - " + b(i).toInt + " ===> " + (a == b(i)))
-        }
-
-        println( "\nActual=" + a + " length = " + a.size)
-        println( "\nExpected=" + b+ " length = " + a.size)
-        println( "\nEquality = " + a == b)
-        Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+//      case Some(row) =>
+//        val a = row.mkString(",")
+//        val b = validHeader
+//
+//        a.zipWithIndex.foreach{ case (a,i) =>
+//          println("\n" + i.toString + ":" + a + " ========" + b(i) + " - " + b(i).toInt + " ===> " + (a == b(i)))
+//        }
+//
+//        println( "\nActual=" + a + " length = " + a.size)
+//        println( "\nExpected=" + b+ " length = " + a.size)
+//        println( "\nEquality = " + a == b)
+//        Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
       case _ =>
         Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
