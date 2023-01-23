@@ -26,6 +26,7 @@ import models.{CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.data.validation.{Invalid, Valid}
+import play.api.i18n.Messages
 
 import java.time.LocalDate
 
@@ -124,7 +125,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
 
   protected def validateMinimumFields(startDate: LocalDate,
                                       index: Int,
-                                      columns: Seq[String]): Result = {
+                                      columns: Seq[String])(implicit messages: Messages): Result = {
     val a = resultFromFormValidationResult[MemberDetails](
       memberDetailsValidation(index, columns, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)
     )

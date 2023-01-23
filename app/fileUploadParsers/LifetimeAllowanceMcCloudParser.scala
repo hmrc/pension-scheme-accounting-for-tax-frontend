@@ -23,11 +23,6 @@ import forms.mappings.Constraints
 import forms.mccloud.{ChargeAmountReportedFormProvider, EnterPstrFormProvider}
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
 import models.{ChargeType, CommonQuarters}
-import pages.IsPublicServicePensionsRemedyPage
-import play.api.i18n.Messages
-import play.api.libs.json.JsBoolean
-
-import java.time.LocalDate
 
 class LifetimeAllowanceMcCloudParser @Inject()(
                                                 override val memberDetailsFormProvider: MemberDetailsFormProvider,
@@ -47,26 +42,4 @@ class LifetimeAllowanceMcCloudParser @Inject()(
   override protected val FieldNoChargeAmountReported1: Int = 10
 
   override protected def validHeader: String = config.validLifetimeAllowanceMcCloudHeader
-
-  override protected def validateFields(startDate: LocalDate,
-                                        index: Int,
-                                        columns: Seq[String])(implicit messages: Messages): Result = {
-    val minimalFieldsResult = validateMinimumFields(startDate, index, columns)
-    val isPublicServicePensionsRemedyResult = Right(Seq(
-      CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeLifetimeAllowance, Some(index - 1)).path, JsBoolean(true))))
-
-    val isInAdditionResult = isChargeInAdditionReportedResult(index, columns)
-
-    val isInAddition = getOrElse[Boolean](isInAdditionResult, false)
-
-    val schemeResults = if (isInAddition) {
-      schemeFields(index, columns)
-    } else {
-      Nil
-    }
-
-    val finalResults =
-      Seq(minimalFieldsResult, isPublicServicePensionsRemedyResult, isInAdditionResult) ++ schemeResults
-    combineResults(finalResults: _*)
-  }
 }

@@ -21,9 +21,10 @@ import forms.YesNoFormProvider
 import forms.mccloud.{ChargeAmountReportedFormProvider, EnterPstrFormProvider}
 import models.ChargeType
 import models.Quarters.getQuarter
+import pages.IsPublicServicePensionsRemedyPage
 import pages.mccloud.{ChargeAmountReportedPage, EnterPstrPage, IsChargeInAdditionReportedPage, TaxQuarterReportedAndPaidPage, WasAnotherPensionSchemePage}
 import play.api.i18n.Messages
-import play.api.libs.json.Json
+import play.api.libs.json.{JsBoolean, Json}
 import utils.DateHelper.dateFormatterDMYSlashes
 
 import java.time.LocalDate
@@ -134,6 +135,32 @@ trait McCloudParser  extends Parser {
 
   protected def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages): String =
     Messages(s"chargeType.description.${chargeType.toString}")
+
+  protected def validateMinimumFields(startDate: LocalDate,
+                                      index: Int,
+                                      columns: Seq[String])(implicit messages: Messages): Result
+
+  override protected def validateFields(startDate: LocalDate,
+                                        index: Int,
+                                        columns: Seq[String])(implicit messages: Messages): Result = {
+    val minimalFieldsResult = validateMinimumFields(startDate, index, columns)
+    val isPublicServicePensionsRemedyResult = Right(Seq(
+      CommitItem(IsPublicServicePensionsRemedyPage(chargeType, Some(index - 1)).path, JsBoolean(true))))
+
+    val isInAdditionResult = isChargeInAdditionReportedResult(index, columns)
+
+    val isInAddition = getOrElse[Boolean](isInAdditionResult, false)
+
+    val schemeResults = if (isInAddition) {
+      schemeFields(index, columns)
+    } else {
+      Nil
+    }
+
+    val finalResults =
+      Seq(minimalFieldsResult, isPublicServicePensionsRemedyResult, isInAdditionResult) ++ schemeResults
+    combineResults(finalResults: _*)
+  }
 }
 
 object McCloudParser {
