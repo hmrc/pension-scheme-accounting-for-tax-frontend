@@ -42,8 +42,6 @@ class AnnualAllowanceMcCloudParser @Inject()(
 
   override protected def validHeader: String = config.validAnnualAllowanceMcCloudHeader
 
-
-
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Result = {

@@ -96,7 +96,7 @@ trait McCloudParser  extends Parser {
         convertValue = stringToBoolean
       )
 
-    def schemeFields(schemeIndex: Option[Int], offset: Int): Seq[Result] = {
+    def otherSchemeFields(schemeIndex: Option[Int], offset: Int): Seq[Result] = {
       Seq(
         validateTaxQuarterReportedAndPaid(index, columns, schemeIndex, offset),
         validateField(
@@ -124,20 +124,16 @@ trait McCloudParser  extends Parser {
           columnName = McCloudFieldNames.pstr,
           fieldNo = FieldNoEnterPstr1 + offset,
           formProvider = enterPstrFormProvider()
-        )) ++ schemeFields(Some(schemeIndex), offset)
+        )) ++ otherSchemeFields(Some(schemeIndex), offset)
       }
     } else {
-      schemeFields(None, 0)
+      otherSchemeFields(None, 0)
     }
     Seq(wasAnotherPensionSchemeResult) ++ taxQuarter
   }
 
-
-
   protected def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages): String =
     Messages(s"chargeType.description.${chargeType.toString}")
-
-
 }
 
 object McCloudParser {
