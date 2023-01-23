@@ -16,20 +16,138 @@
 
 package fileUploadParsers
 
+import fileUploadParsers.McCloudParser.countNoOfSchemes
+import forms.YesNoFormProvider
+import forms.mccloud.{ChargeAmountReportedFormProvider, EnterPstrFormProvider}
 import models.ChargeType
+import models.Quarters.getQuarter
+import pages.mccloud.{ChargeAmountReportedPage, EnterPstrPage, IsChargeInAdditionReportedPage, TaxQuarterReportedAndPaidPage, WasAnotherPensionSchemePage}
 import play.api.i18n.Messages
+import play.api.libs.json.Json
+import utils.DateHelper.dateFormatterDMYSlashes
 
-trait McCloudParser  {
-  protected def countNoOfSchemes(columns: Seq[String], startFrom: Int): Int = {
+import java.time.LocalDate
+import scala.util.Try
+
+trait McCloudParser  extends Parser {
+  protected val yesNoFormProvider: YesNoFormProvider
+  protected val chargeAmountReportedFormProvider: ChargeAmountReportedFormProvider
+  protected val enterPstrFormProvider: EnterPstrFormProvider
+  protected val chargeType: ChargeType
+
+  protected final val FieldNoIsChargeInAdditionReported: Int = 7
+  protected final val FieldNoWasAnotherPensionScheme: Int = 8
+  protected final val FieldNoEnterPstr1: Int = 9
+  protected final val FieldNoTaxQuarterReportedAndPaid1: Int = 10
+  protected final val FieldNoChargeAmountReported1: Int = 11
+
+  object McCloudFieldNames {
+    val formFieldNameForSingleFields = "value"
+
+    val isInAdditionToPrevious: String = "isInAdditionToPrevious"
+    val wasPaidByAnotherScheme: String = "wasPaidByAnotherScheme"
+    val pstr: String = "pstr"
+    val dateReportedAndPaid: String = "dateReportedAndPaid"
+    val chargeAmountReported: String = "chargeAmountReported"
+  }
+
+  private def validateTaxQuarterReportedAndPaid(index: Int, columns: Seq[String], schemeIndex: => Option[Int], offset: Int): Result = {
+    val fieldNo = FieldNoTaxQuarterReportedAndPaid1 + offset
+    fieldValue(columns, fieldNo) match {
+      case a if a.isEmpty =>
+        Left(Seq(ParserValidationError(index, fieldNo,
+          "taxQuarterReportedAndPaid.error.required", McCloudFieldNames.dateReportedAndPaid)))
+      case a =>
+        Try(LocalDate.parse(a, dateFormatterDMYSlashes)).toOption match {
+          case None => // TODO: Need proper date validation and content - future ticket for this
+            Left(Seq(ParserValidationError(index, fieldNo,
+              "Invalid tax quarter reported and paid", McCloudFieldNames.dateReportedAndPaid)))
+          case Some(ld) =>
+            val qtr = getQuarter(ld)
+            Right(Seq(CommitItem(TaxQuarterReportedAndPaidPage(chargeType, index - 1, schemeIndex).path, Json.toJson(qtr))))
+
+        }
+    }
+  }
+
+  protected def isChargeInAdditionReportedResult(index: Int,
+                                       columns: Seq[String])(implicit messages: Messages): Result = validateField(
+    index = index,
+    columns = columns,
+    page = IsChargeInAdditionReportedPage.apply(ChargeType.ChargeTypeAnnualAllowance, _: Int),
+    formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
+    columnName = McCloudFieldNames.isInAdditionToPrevious,
+    fieldNo = FieldNoIsChargeInAdditionReported,
+    formProvider = yesNoFormProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance))),
+    convertValue = stringToBoolean
+  )
+
+  protected def schemeFields(index: Int,
+                             columns: Seq[String])(implicit messages: Messages): Seq[Result] = {
+    val wasAnotherPensionSchemeResult =
+      validateField(
+        index = index,
+        columns = columns,
+        page = WasAnotherPensionSchemePage.apply(chargeType, _: Int),
+        formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
+        columnName = McCloudFieldNames.wasPaidByAnotherScheme,
+        fieldNo = FieldNoWasAnotherPensionScheme,
+        formProvider = yesNoFormProvider(messages("wasAnotherPensionScheme.error.required", chargeTypeDescription(chargeType))),
+        convertValue = stringToBoolean
+      )
+
+    def schemeFields(schemeIndex: Option[Int], offset: Int): Seq[Result] = {
+      Seq(
+        validateTaxQuarterReportedAndPaid(index, columns, schemeIndex, offset),
+        validateField(
+          index = index,
+          columns = columns,
+          page = ChargeAmountReportedPage.apply(chargeType, _: Int, schemeIndex),
+          formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
+          columnName = McCloudFieldNames.chargeAmountReported,
+          fieldNo = FieldNoChargeAmountReported1 + offset,
+          formProvider = chargeAmountReportedFormProvider(BigDecimal(0))
+        )
+      )
+    }
+
+    val wasAnotherPensionScheme = getOrElse[Boolean](wasAnotherPensionSchemeResult, false)
+    val taxQuarter = if (wasAnotherPensionScheme) {
+      val max = countNoOfSchemes(columns, FieldNoEnterPstr1)
+      (0 until max).foldLeft[Seq[Result]](Nil) { (acc, schemeIndex) =>
+        val offset = (schemeIndex * 3)
+        acc ++ Seq(validateField(
+          index = index,
+          columns = columns,
+          page = EnterPstrPage(chargeType, _: Int, schemeIndex),
+          formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
+          columnName = McCloudFieldNames.pstr,
+          fieldNo = FieldNoEnterPstr1 + offset,
+          formProvider = enterPstrFormProvider()
+        )) ++ schemeFields(Some(schemeIndex), offset)
+      }
+    } else {
+      schemeFields(None, 0)
+    }
+    Seq(wasAnotherPensionSchemeResult) ++ taxQuarter
+  }
+
+
+
+  protected def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages): String =
+    Messages(s"chargeType.description.${chargeType.toString}")
+
+
+}
+
+object McCloudParser {
+  def countNoOfSchemes(columns: Seq[String], startFrom: Int): Int = {
     val default: Int => String = _ => ""
-    val processedSeq = ( startFrom until columns.size by 3).takeWhile { w =>
+    val processedSeq = (startFrom until columns.size by 3).takeWhile { w =>
       columns.applyOrElse(w, default).nonEmpty ||
         columns.applyOrElse(w + 1, default).nonEmpty ||
         columns.applyOrElse(w + 2, default).nonEmpty
     }
     processedSeq.size
   }
-
-  protected def chargeTypeDescription(chargeType: ChargeType)(implicit messages: Messages): String =
-    Messages(s"chargeType.description.${chargeType.toString}")
 }
