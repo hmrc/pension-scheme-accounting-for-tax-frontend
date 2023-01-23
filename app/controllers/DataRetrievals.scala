@@ -19,13 +19,15 @@ package controllers
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.mccloud.{PensionsRemedySchemeSummary, PensionsRemedySummary}
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, Index, MemberDetails, SponsoringEmployerType, YearRange}
+import models.{AFTQuarter, AccessType, ChargeType, Index, MemberDetails, SponsoringEmployerType, UserAnswers, YearRange}
 import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
-import play.api.libs.json.Reads
+import pages.mccloud._
+import play.api.libs.json.{JsArray, Reads}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 
@@ -44,7 +46,7 @@ object DataRetrievals {
   def retrieveSchemeWithPSTR(block: (String, String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery)) match {
       case (Some(schemeName), Some(pstr)) => block(schemeName, pstr)
-      case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _                              => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -85,7 +87,7 @@ object DataRetrievals {
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _                                       => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
@@ -114,12 +116,12 @@ object DataRetrievals {
   }
 
   def retrieveSchemeEmployerTypeAndSponsoringEmployer(index: Int)(block: (String, String, SponsoringEmployerType) => Future[Result])(
-    implicit request: DataRequest[AnyContent]): Future[Result] = {
+      implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
     (ua.get(WhichTypeOfSponsoringEmployerPage(index)),
-      ua.get(SponsoringOrganisationDetailsPage(index)),
-      ua.get(SponsoringIndividualDetailsPage(index)),
-      ua.get(SchemeNameQuery)) match {
+     ua.get(SponsoringOrganisationDetailsPage(index)),
+     ua.get(SponsoringIndividualDetailsPage(index)),
+     ua.get(SchemeNameQuery)) match {
       case (Some(SponsoringEmployerTypeOrganisation), Some(company), _, Some(schemeName)) =>
         block(schemeName, company.name, SponsoringEmployerTypeOrganisation)
       case (Some(SponsoringEmployerTypeIndividual), _, Some(individual), Some(schemeName)) =>
@@ -173,31 +175,75 @@ object DataRetrievals {
   }
 
   def cyaChargeD(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])(
+      block: (models.MemberDetails, models.chargeD.ChargeDDetails, PensionsRemedySummary, String) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
       request.userAnswers.get(pages.chargeD.MemberDetailsPage(index)),
       request.userAnswers.get(ChargeDetailsPage(index)),
+      getPensionsRemedySummary(request.userAnswers, index, ChargeType.ChargeTypeLifetimeAllowance),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
-      case (Some(memberDetails), Some(chargeDetails), Some(schemeName)) =>
-        block(memberDetails, chargeDetails, schemeName)
+      case (Some(memberDetails), Some(chargeDetails), pensionsRemedySummary, Some(schemeName)) =>
+        block(memberDetails, chargeDetails, pensionsRemedySummary, schemeName)
       case _ =>
         Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))
     }
   }
 
+  private def getPensionsRemedySchemeSummary(ua: UserAnswers,
+                                             index: Index,
+                                             chargeType: ChargeType,
+                                             wasAnotherPensionScheme: Option[Boolean]): List[PensionsRemedySchemeSummary] = {
+    val pensionsSchemeSize = pensionsSchemeCount(ua, index, chargeType)
+    val pensionsRemedySchemeSummaryList = (pensionsSchemeSize, wasAnotherPensionScheme) match {
+      case (0, Some(false)) =>
+        List(
+          PensionsRemedySchemeSummary(
+            0,
+            None,
+            ua.get(TaxYearReportedAndPaidPage(chargeType, index, None)),
+            ua.get(TaxQuarterReportedAndPaidPage(chargeType, index, None)),
+            ua.get(ChargeAmountReportedPage(chargeType, index, None))
+          ))
+      case (_, _) =>
+        (0 until pensionsSchemeSize).map { schemeIndex =>
+          PensionsRemedySchemeSummary(
+            schemeIndex,
+            ua.get(EnterPstrPage(chargeType, index, schemeIndex)),
+            ua.get(TaxYearReportedAndPaidPage(chargeType, index, Some(schemeIndex))),
+            ua.get(TaxQuarterReportedAndPaidPage(chargeType, index, Some(schemeIndex))),
+            ua.get(ChargeAmountReportedPage(chargeType, index, Some(schemeIndex)))
+          )
+        }.toList
+    }
+    pensionsRemedySchemeSummaryList
+  }
+
+  private def getPensionsRemedySummary(ua: UserAnswers, index: Index, chargeType: ChargeType): PensionsRemedySummary = {
+    val isPublicServicePensionsRemedy = ua.get(pages.IsPublicServicePensionsRemedyPage(chargeType, Some(index)))
+    val isChargeInAdditionReported = ua.get(pages.mccloud.IsChargeInAdditionReportedPage(chargeType, index))
+    val wasAnotherPensionScheme = ua.get(pages.mccloud.WasAnotherPensionSchemePage(chargeType, index))
+    val pensionsRemedySchemeSummary = getPensionsRemedySchemeSummary(ua, index, chargeType, wasAnotherPensionScheme)
+
+    PensionsRemedySummary(isPublicServicePensionsRemedy, isChargeInAdditionReported, wasAnotherPensionScheme, pensionsRemedySchemeSummary)
+  }
+
+  private def pensionsSchemeCount(userAnswers: UserAnswers, index: Int, chargeType: ChargeType): Int = {
+    SchemePathHelper.path(chargeType, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+  }
+
   def cyaChargeE(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])(
+      block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, PensionsRemedySummary, String) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
       request.userAnswers.get(pages.chargeE.MemberDetailsPage(index)),
       request.userAnswers.get(AnnualAllowanceYearPage(index)),
       request.userAnswers.get(pages.chargeE.ChargeDetailsPage(index)),
+      getPensionsRemedySummary(request.userAnswers, index, ChargeType.ChargeTypeAnnualAllowance),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
-      case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), Some(schemeName)) =>
-        block(memberDetails, taxYear, chargeEDetails, schemeName)
+      case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), pensionsRemedySummary, Some(schemeName)) =>
+        block(memberDetails, taxYear, chargeEDetails, pensionsRemedySummary, schemeName)
       case _ =>
         Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))
     }

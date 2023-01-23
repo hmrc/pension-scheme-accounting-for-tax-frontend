@@ -16,6 +16,7 @@
 
 package helpers
 
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
 import models.{AccessType, CheckMode, YearRange}
@@ -26,20 +27,24 @@ import uk.gov.hmrc.viewmodels._
 
 import java.time.LocalDate
 
-class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
+class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages)
+ extends CYAPublicPensionsRemedyHelper(srn, startDate, accessType, version, ChargeTypeAnnualAllowance) {
+
+
 
   def chargeEMemberDetails(index: Int, answer: models.MemberDetails): Seq[Row] = {
     Seq(
       Row(
         key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(answer.fullName), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("visuallyHidden.memberName.label")
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("visuallyHidden.memberName.label")
+              ))
           )
         )
       ),
@@ -50,9 +55,10 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("cya.nino.label", answer.fullName)
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("cya.nino.label", answer.fullName)
+              ))
           )
         )
       )
@@ -68,15 +74,15 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeE.visuallyHidden.taxYear.label")
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("chargeE.visuallyHidden.taxYear.label")
+              ))
           )
         )
       )
     )
   }
-
 
   def chargeEDetails(index: Int, answer: ChargeEDetails): Seq[Row] = {
     Seq(
@@ -87,9 +93,10 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeE.visuallyHidden.chargeAmount.label")
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("chargeE.visuallyHidden.chargeAmount.label")
+              ))
           )
         )
       ),
@@ -100,9 +107,10 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeE.visuallyHidden.dateNoticeReceived.label")
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("chargeE.visuallyHidden.dateNoticeReceived.label")
+              ))
           )
         )
       ),
@@ -113,13 +121,13 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeE.visuallyHidden.isPaymentMandatory.label")
-            ))
+            visuallyHiddenText = Some(
+              Literal(
+                messages("site.edit") + " " + messages("chargeE.visuallyHidden.isPaymentMandatory.label")
+              ))
           )
         )
       )
     )
   }
-
 }

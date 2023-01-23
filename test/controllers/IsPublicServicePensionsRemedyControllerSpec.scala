@@ -22,7 +22,7 @@ import controllers.routes
 import data.SampleData._
 import forms.YesNoFormProvider
 import matchers.JsonMatchers
-import models.ChargeType.ChargeTypeAnnualAllowance
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
 import models.{GenericViewModel, NormalMode}
 import org.mockito.ArgumentCaptor
@@ -61,18 +61,34 @@ class IsPublicServicePensionsRemedyControllerSpec
   private val formManual: Form[Boolean] = formProvider(messages("isPublicServicePensionsRemedy.error.required", chargeTypeDescription))
   private val formBulk: Form[Boolean] = formProvider(messages("isPublicServicePensionsRemedyBulk.error.required", chargeTypeDescription))
 
-  private def httpPathGET(index: Option[Int]): String =
+  private def httpPathGETAnnualAllowance(index: Option[Int]): String =
     routes.IsPublicServicePensionsRemedyController
       .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index)
       .url
 
-  private def httpPathPOST(index: Option[Int]): String =
+  private def httpPathPOSTAnnualAllowance(index: Option[Int]): String =
     routes.IsPublicServicePensionsRemedyController
       .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, index)
       .url
 
-  private def viewModel(index: Option[Int]) = GenericViewModel(
-    submitUrl = httpPathPOST(index),
+  private def httpPathGETLifetimeAllowance(index: Option[Int]): String =
+    routes.IsPublicServicePensionsRemedyController
+      .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index)
+      .url
+
+  private def httpPathPOSTLifetimeAllowance(index: Option[Int]): String =
+    routes.IsPublicServicePensionsRemedyController
+      .onSubmit(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index)
+      .url
+
+  private def viewModelAnnualAllowance(index: Option[Int]) = GenericViewModel(
+    submitUrl = httpPathPOSTAnnualAllowance(index),
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+    schemeName = schemeName
+  )
+
+  private def viewModelLifetimeAllowance(index: Option[Int]) = GenericViewModel(
+    submitUrl = httpPathPOSTLifetimeAllowance(index),
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
     schemeName = schemeName
   )
@@ -88,11 +104,11 @@ class IsPublicServicePensionsRemedyControllerSpec
 
   "IsPublicServicePensionsRemedy Controller" must {
 
-    "return OK and the correct view for a GET (for FileUpload PSR question)" in {
+    "return OK and the correct view for a GET for Annual allowance (fileUpload)" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET(None))
+      val request = FakeRequest(GET, httpPathGETAnnualAllowance(None))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -104,7 +120,7 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       def expectedJson(heading: String, title: String) = Json.obj(
         "form" -> formBulk,
-        "viewModel" -> viewModel(None),
+        "viewModel" -> viewModelAnnualAllowance(None),
         "radios" -> Radios.yesNo(formBulk("value")),
         "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}"),
         "manOrBulkHeading" -> s"isPublicServicePensionsRemedy$heading",
@@ -118,7 +134,7 @@ class IsPublicServicePensionsRemedyControllerSpec
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET(Some(0)))
+      val request = FakeRequest(GET, httpPathGETAnnualAllowance(Some(0)))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -130,7 +146,7 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       def expectedJson(heading: String, title: String) = Json.obj(
         "form" -> formManual,
-        "viewModel" -> viewModel(Some(0)),
+        "viewModel" -> viewModelAnnualAllowance(Some(0)),
         "radios" -> Radios.yesNo(formManual("value")),
         "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}"),
         "manOrBulkHeading" -> s"isPublicServicePensionsRemedy$heading",
@@ -141,21 +157,99 @@ class IsPublicServicePensionsRemedyControllerSpec
       jsonCaptor.getValue must containJson(expectedJson(".heading", ".title"))
     }
 
-    "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted (manual Journey)" in {
+    "return OK and the correct view for a GET for Lifetime allowance (Manual Input)" in {
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+      val request = FakeRequest(GET, httpPathGETLifetimeAllowance(Some(0)))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "form" -> formManual,
+        "viewModel" -> viewModelLifetimeAllowance(Some(0)),
+        "radios" -> Radios.yesNo(formManual("value")),
+        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeLifetimeAllowance.toString}")
+      )
+
+      templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
+
+    "redirect to the next page when valid data is submitted for AnnualAllowance (Manual Journey)" in {
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =
-        FakeRequest(POST, httpPathGET(Some(0)))
+        FakeRequest(POST, httpPathPOSTAnnualAllowance(Some(0)))
           .withFormUrlEncodedBody(("value", "true"))
-
       val result = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual onwardRoute.url
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
+      verify(mockCompoundNavigator, times(1)).nextPage(any(), any(), any(), any(), any(), any(), any())(any())
+    }
+
+    "redirect to the next page when valid data and user select no to isPublicPensionsRemedy scheme for AnnualAllowance" in {
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+
+      val request =
+        FakeRequest(POST, httpPathPOSTAnnualAllowance(Some(0)))
+          .withFormUrlEncodedBody(("value", "false"))
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual onwardRoute.url
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
+      verify(mockCompoundNavigator, times(1)).nextPage(any(), any(), any(), any(), any(), any(), any())(any())
+    }
+
+    "redirect to the next page when valid data with two scheme is submitted for LifetimeAllowance" in {
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+
+      val request =
+        FakeRequest(POST, httpPathPOSTLifetimeAllowance(Some(0)))
+          .withFormUrlEncodedBody(("value", "true"))
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual onwardRoute.url
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
+      verify(mockCompoundNavigator, times(1)).nextPage(any(), any(), any(), any(), any(), any(), any())(any())
+    }
+
+    "redirect to the next page when valid data and user select no to isPublicPensionsRemedy scheme for LifetimeAllowance" in {
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+
+      val request =
+        FakeRequest(POST, httpPathPOSTLifetimeAllowance(Some(0)))
+          .withFormUrlEncodedBody(("value", "false"))
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual onwardRoute.url
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
+      verify(mockCompoundNavigator, times(1)).nextPage(any(), any(), any(), any(), any(), any(), any())(any())
     }
 
     "return a Bad Request and errors when invalid data is submitted (manual journey)" in {
@@ -163,7 +257,7 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
-      val request = FakeRequest(POST, httpPathGET(Some(0))).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathGETAnnualAllowance(Some(0))).withFormUrlEncodedBody(("value", ""))
       val boundForm = formManual.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -176,7 +270,7 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       val expectedJson = Json.obj(
         "form" -> boundForm,
-        "viewModel" -> viewModel(Some(0)),
+        "viewModel" -> viewModelAnnualAllowance(Some(0)),
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
@@ -189,7 +283,7 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
-      val request = FakeRequest(POST, httpPathGET(None)).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathGETAnnualAllowance(None)).withFormUrlEncodedBody(("value", ""))
       val boundForm = formBulk.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -202,7 +296,7 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       val expectedJson = Json.obj(
         "form" -> boundForm,
-        "viewModel" -> viewModel(None),
+        "viewModel" -> viewModelAnnualAllowance(None),
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
@@ -215,7 +309,7 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
-      val request = FakeRequest(GET, httpPathGET(Some(0)))
+      val request = FakeRequest(GET, httpPathGETAnnualAllowance(Some(0)))
 
       val result = route(application, request).value
 
@@ -229,7 +323,7 @@ class IsPublicServicePensionsRemedyControllerSpec
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
-        FakeRequest(POST, httpPathGET(Some(0)))
+        FakeRequest(POST, httpPathGETAnnualAllowance(Some(0)))
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
