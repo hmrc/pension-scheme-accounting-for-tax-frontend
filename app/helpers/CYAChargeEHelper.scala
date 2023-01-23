@@ -28,8 +28,7 @@ import uk.gov.hmrc.viewmodels._
 import java.time.LocalDate
 
 class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages)
- extends CYAPublicPensionsRemedyHelper(srn, startDate, accessType, version, ChargeTypeAnnualAllowance) {
-
+  extends CYAPublicPensionsRemedyHelper(srn, startDate, accessType, version, ChargeTypeAnnualAllowance) {
 
 
   def chargeEMemberDetails(index: Int, answer: models.MemberDetails): Seq[Row] = {

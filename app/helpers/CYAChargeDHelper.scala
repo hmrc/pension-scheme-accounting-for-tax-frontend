@@ -82,7 +82,7 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
       Row(
         key = Key(msg"taxAt25Percent.label", classes = Seq("govuk-!-width-one-half")),
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"),
-                      classes = Seq("govuk-!-width-one-third")),
+          classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
@@ -97,7 +97,7 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
       Row(
         key = Key(msg"taxAt55Percent.label", classes = Seq("govuk-!-width-one-half")),
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"),
-                      classes = Seq("govuk-!-width-one-third")),
+          classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),

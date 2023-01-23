@@ -48,7 +48,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
                                                      formProvider: YesNoFormProvider,
                                                      val controllerComponents: MessagesControllerComponents,
                                                      renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -74,7 +74,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
           )
 
           val preparedForm = request.userAnswers.get(IsChargeInAdditionReportedPage(chargeType, index)) match {
-            case None        => form(chargeTypeDescription)
+            case None => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
@@ -142,7 +142,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
                 } yield
                   Redirect(
                     navigator.nextPage(IsChargeInAdditionReportedPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
-            }
+              }
           )
       }
     }

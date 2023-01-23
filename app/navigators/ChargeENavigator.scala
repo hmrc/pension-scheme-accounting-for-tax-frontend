@@ -40,18 +40,18 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  deleteChargeHelper: DeleteChargeHelper,
                                  chargeServiceHelper: ChargeServiceHelper,
                                  config: FrontendAppConfig)
-    extends Navigator {
+  extends Navigator {
 
   def nextIndex(ua: UserAnswers): Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
-    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
+    case _ => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
   }
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      implicit request: DataRequest[AnyContent]): Call =
+    implicit request: DataRequest[AnyContent]): Call =
     if (deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
     } else if (chargeServiceHelper.isEmployerOrMemberPresent(ua, "chargeEDetails")) {
@@ -63,7 +63,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   //scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
+    implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
     case InputSelectionPage(ChargeTypeAnnualAllowance) => inputSelectionNav(ua, srn, startDate, accessType, version)
@@ -74,7 +74,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case FileUploadPage(ChargeTypeAnnualAllowance) =>
       controllers.fileUpload.routes.ValidationController.onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance, UploadId(""))
 
-    case MemberDetailsPage(index)       => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
+    case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) =>
       controllers.mccloud.routes.IsPublicServicePensionsRemedyController
@@ -104,8 +104,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       routeFromAddAnotherPensionSchemePage(ua, NormalMode, srn, startDate, accessType, version, index, schemeIndex)
 
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
-    case AddMembersPage       => addMembers(ua, srn, startDate, accessType, version)
-    case DeleteMemberPage     => deleteMemberRoutes(ua, srn, startDate, accessType, version)
+    case AddMembersPage => addMembers(ua, srn, startDate, accessType, version)
+    case DeleteMemberPage => deleteMemberRoutes(ua, srn, startDate, accessType, version)
   }
 
   private def routeFromIsPublicServicePensionsRemedyPage(userAnswers: UserAnswers,
@@ -120,7 +120,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         controllers.mccloud.routes.IsChargeInAdditionReportedController
           .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index)
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case _           => sessionExpiredPage
+      case _ => sessionExpiredPage
     }
   }
 
@@ -136,7 +136,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         controllers.mccloud.routes.WasAnotherPensionSchemeController
           .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index)
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case _           => sessionExpiredPage
+      case _ => sessionExpiredPage
     }
   }
 
@@ -208,9 +208,9 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         controllers.mccloud.routes.AddAnotherPensionSchemeController
           .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, i)
       case (Some(i), true, CheckMode) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (Some(i), false, _)        => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (None, true | false, _)    => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case (_, _, _)                  => sessionExpiredPage
+      case (Some(i), false, _) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (None, true | false, _) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (_, _, _) => sessionExpiredPage
     }
   }
 
@@ -227,9 +227,30 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         controllers.mccloud.routes.EnterPstrController
           .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index, countSchemeSize(userAnswers, index))
       case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case _           => sessionExpiredPage
+      case _ => sessionExpiredPage
     }
   }
+
+  private def routeFromRemovePensionSchemePage(userAnswers: UserAnswers,
+                                               mode: Mode,
+                                               srn: String,
+                                               startDate: LocalDate,
+                                               accessType: AccessType,
+                                               version: Int,
+                                               index: Int,
+                                               schemeIndex: Int): Call = {
+    val schemeSize = countSchemeSize(userAnswers, index)
+    val schemeSizeLessThan5 = schemeSize > 1 && schemeSize <= 5
+
+    (userAnswers.get(RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex)), schemeSizeLessThan5) match {
+      case (Some(true), false) => controllers.mccloud.routes.WasAnotherPensionSchemeController
+        .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index)
+      case (Some(true), true) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (Some(false), true | false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case (_, _) => sessionExpiredPage
+    }
+  }
+
   private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
     SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
@@ -245,10 +266,10 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
-    case MemberDetailsPage(index)       => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+    implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
+    case MemberDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-    case ChargeDetailsPage(index)       => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+    case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     case IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index) =>
       routeFromIsPublicServicePensionsRemedyPage(ua, CheckMode, srn, startDate, accessType, version, index)
     case IsChargeInAdditionReportedPage(ChargeTypeAnnualAllowance, index) =>
@@ -266,6 +287,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       routeFromChargeAmountReportedPage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
     case AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
       routeFromAddAnotherPensionSchemePage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
+    case RemovePensionSchemePage(ChargeTypeAnnualAllowance, index, schemeIndex) =>
+      routeFromRemovePensionSchemePage(ua, CheckMode, srn, startDate, accessType, version, index, schemeIndex)
   }
 
   private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad
