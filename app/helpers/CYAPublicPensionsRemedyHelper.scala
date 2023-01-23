@@ -40,7 +40,7 @@ class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessTyp
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.routes.IsPublicServicePensionsRemedyController
-              .onPageLoad(chargeType, CheckMode, srn, startDate, accessType, version, index)
+              .onPageLoad(chargeType, CheckMode, srn, startDate, accessType, version, Some(index))
               .url,
             visuallyHiddenText = Some(
               Literal(
@@ -132,7 +132,8 @@ class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessTyp
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.remove")}</span>"),
-            href = "#",
+            href = controllers.mccloud.routes.RemovePensionSchemeController
+              .onPageLoad(chargeType, CheckMode, srn, startDate, accessType, version, index, pensionsRemedySchemeSummary.schemeIndex).url,
             visuallyHiddenText = Some(
               Literal(
                 messages("site.remove") + " " + messages(s"mccloud.scheme.cya.ref${pensionsRemedySchemeSummary.schemeIndex}").toLowerCase

@@ -44,7 +44,7 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 
 class IsPublicServicePensionsRemedyControllerSpec
-    extends ControllerSpecBase
+  extends ControllerSpecBase
     with MockitoSugar
     with NunjucksSupport
     with JsonMatchers

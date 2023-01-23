@@ -52,7 +52,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            val controllerComponents: MessagesControllerComponents,
                                            chargeServiceHelper: ChargeServiceHelper,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -122,9 +122,9 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             ua2 <- Future.fromTry(ua1.set(ChargeDetailsPage(index), updatedChargeDetails))
             _ <- userAnswersCacheConnector.savePartial(request.internalId, ua2.data, chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance))
             _ <- userAnswersCacheConnector.savePartial(request.internalId,
-                                                       ua2.data,
-                                                       chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance),
-                                                       memberNo = Some(index.id))
+              ua2.data,
+              chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance),
+              memberNo = Some(index.id))
             _ <- aftService.fileCompileReturn(pstr, ua2)
           } yield {
             Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))

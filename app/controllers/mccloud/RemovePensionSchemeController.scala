@@ -21,13 +21,12 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.IsPublicServicePensionsRemedyPage
-import pages.mccloud.{IsChargeInAdditionReportedPage, SchemePathHelper}
+import pages.mccloud.{RemovePensionSchemePage, SchemePathHelper, WasAnotherPensionSchemePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
@@ -37,44 +36,43 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
-class IsChargeInAdditionReportedController @Inject()(override val messagesApi: MessagesApi,
-                                                     userAnswersCacheConnector: UserAnswersCacheConnector,
-                                                     userAnswersService: UserAnswersService,
-                                                     navigator: CompoundNavigator,
-                                                     identify: IdentifierAction,
-                                                     getData: DataRetrievalAction,
-                                                     allowAccess: AllowAccessActionProvider,
-                                                     requireData: DataRequiredAction,
-                                                     formProvider: YesNoFormProvider,
-                                                     val controllerComponents: MessagesControllerComponents,
-                                                     renderer: Renderer)(implicit ec: ExecutionContext)
+class RemovePensionSchemeController @Inject()(override val messagesApi: MessagesApi,
+                                              userAnswersCacheConnector: UserAnswersCacheConnector,
+                                              userAnswersService: UserAnswersService,
+                                              navigator: CompoundNavigator,
+                                              identify: IdentifierAction,
+                                              getData: DataRetrievalAction,
+                                              allowAccess: AllowAccessActionProvider,
+                                              requireData: DataRequiredAction,
+                                              formProvider: YesNoFormProvider,
+                                              val controllerComponents: MessagesControllerComponents,
+                                              renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
-
-  private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
-    formProvider(messages("isChargeInAdditionReported.error.required", memberName))
-
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
-                 index: Index): Action[AnyContent] =
+                 index: Index,
+                 schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
           val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
           val viewModel = GenericViewModel(
-            submitUrl = routes.IsChargeInAdditionReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+            submitUrl =
+              routes.RemovePensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = schemeName
           )
 
-          val preparedForm = request.userAnswers.get(IsChargeInAdditionReportedPage(chargeType, index)) match {
+          val preparedForm = request.userAnswers.get(RemovePensionSchemePage(chargeType, index, schemeIndex)) match {
             case None => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
@@ -84,21 +82,26 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
             "startDate" -> Some(localDateToString(startDate)),
             "form" -> preparedForm,
             "viewModel" -> viewModel,
-            "radios" -> Radios.yesNo(preparedForm("value")),
-            "chargeTypeDescription" -> Messages(s"chargeType.description.${chargeType.toString}")
+            "radios" -> Radios.yesNo(preparedForm("value"))
           )
+          renderer.render("mccloud/removePensionScheme.njk", json).map(Ok(_))
 
-          renderer.render("mccloud/isChargeInAdditionReported.njk", json).map(Ok(_))
         }
     }
 
+  private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
+    formProvider(messages("removePensionScheme.error.required", memberName))
+
+  //scalastyle:off method.length
+  //scalastyle:off cyclomatic.complexity
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
                srn: String,
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,
-               index: Index): Action[AnyContent] =
+               index: Index,
+               schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
@@ -106,45 +109,51 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
           .bindFromRequest()
           .fold(
             formWithErrors => {
-
               val viewModel = GenericViewModel(
-                submitUrl = routes.IsChargeInAdditionReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+                submitUrl =
+                  routes.RemovePensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
+
               val json = Json.obj(
                 "srn" -> srn,
                 "startDate" -> Some(localDateToString(startDate)),
                 "form" -> formWithErrors,
                 "viewModel" -> viewModel,
-                "radios" -> Radios.yesNo(formWithErrors("value")),
-                "chargeTypeDescription" -> Messages(s"chargeType.description.${chargeType.toString}")
+                "radios" -> Radios.yesNo(formWithErrors("value"))
               )
-              renderer.render("mccloud/isChargeInAdditionReported.njk", json).map(BadRequest(_))
+              renderer.render("mccloud/removePensionScheme.njk", json).map(BadRequest(_))
             },
             value =>
               if (value) {
                 for {
-                  updatedAnswers <- Future.fromTry(userAnswersService.set(IsChargeInAdditionReportedPage(chargeType, index), value, mode))
+                  updatedAnswers <- if (pensionsSchemeCount(request.userAnswers, chargeType, index) > 1) {
+                    Future.fromTry(Success(request.userAnswers.removeWithPath(SchemePathHelper.schemePath(chargeType, index, schemeIndex))))
+                  } else {
+                    Future.fromTry(request.userAnswers.removeWithPath(SchemePathHelper.path(chargeType, index))
+                      .remove(WasAnotherPensionSchemePage(chargeType, index)))
+                  }
                   _ <- userAnswersCacheConnector
                     .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(RemovePensionSchemePage(chargeType, index, schemeIndex), value, mode))
                 } yield
                   Redirect(
-                    navigator.nextPage(IsChargeInAdditionReportedPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                    navigator
+                      .nextPage(RemovePensionSchemePage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
               } else {
                 for {
-                  updatedAnswers <- Future.fromTry(
-                    request.userAnswers
-                      .removeWithPath(SchemePathHelper.basePath(chargeType, index))
-                      .setOrException(IsPublicServicePensionsRemedyPage(chargeType, Some(index)), true)
-                      .set(IsChargeInAdditionReportedPage(chargeType, index), value))
-                  _ <- userAnswersCacheConnector
-                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(RemovePensionSchemePage(chargeType, index, schemeIndex), value, mode))
                 } yield
                   Redirect(
-                    navigator.nextPage(IsChargeInAdditionReportedPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                    navigator
+                      .nextPage(RemovePensionSchemePage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
               }
           )
       }
     }
+
+  private def pensionsSchemeCount(userAnswers: UserAnswers, chargeType: ChargeType, index: Int): Int = {
+    SchemePathHelper.path(chargeType, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+  }
 }
