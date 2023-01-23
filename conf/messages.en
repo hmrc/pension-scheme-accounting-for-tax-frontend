@@ -1560,6 +1560,7 @@ isPublicServicePensionsRemedy.title = Is this {0} being paid as a result of the 
 isPublicServicePensionsRemedyBulk.title = Are any entries for this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedy.heading = Is this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedyBulk.heading = Are any entries for this {0} being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedy.p1 = In 2015 the government introduced reforms to public sector pensions. Steps are being taken to remedy those reforms, known as the ‘Public Service Pensions Remedy’ and ’2015 Remedy (McCloud)’.
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pensions Remedy
 isPublicServicePensionsRemedyBulk.error.required = Select yes if any {0}s are being paid as a result of the Public Service Pensions Remedy
 
