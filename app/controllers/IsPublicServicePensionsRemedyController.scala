@@ -24,7 +24,6 @@ import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.IsPublicServicePensionsRemedyPage
-import pages.mccloud.SchemePathHelper
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -144,29 +143,15 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
 
             },
             value =>
-              if (value) {
-                for {
-                  updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
-                  _ <- userAnswersCacheConnector
-                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
-                } yield
-                  Redirect(
-                    navigator
-                      .nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
-              } else {
-                for {
-                  updatedAnswers <- Future.fromTry(
-                    request.userAnswers
-                      .removeWithPath(SchemePathHelper.basePath(chargeType, index))
-                      .set(IsPublicServicePensionsRemedyPage(chargeType, index), value))
-                  _ <- userAnswersCacheConnector
-                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
-                } yield
-                  Redirect(
-                    navigator
-                      .nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
-            }
+              for {
+                updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
+                _ <- userAnswersCacheConnector
+                  .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
+              } yield
+                Redirect(
+                  navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
+
       }
     }
 }

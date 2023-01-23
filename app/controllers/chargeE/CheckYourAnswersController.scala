@@ -17,30 +17,30 @@
 package controllers.chargeE
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.{IdentifierAction, AllowAccessActionProvider, DataRetrievalAction, DataRequiredAction}
 import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeEHelper, ChargeServiceHelper}
-import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{GenericViewModel, AccessType, NormalMode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeE.{CheckYourAnswersPage, TotalChargeAmountPage}
-import pages.mccloud.SchemePathHelper
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsArray, Json}
+import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import uk.gov.hmrc.viewmodels.{SummaryList, NunjucksSupport}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
-class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
+class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
+                                           override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
                                            allowAccess: AllowAccessActionProvider,
@@ -58,47 +58,33 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
-      DataRetrievals.cyaChargeE(index, srn, startDate, accessType, version) {
-        (memberDetails, taxYear, chargeEDetails, pensionsRemedySummary, schemeName) =>
-          val helper = new CYAChargeEHelper(srn, startDate, accessType, version)
-          val pensionsSchemeSize = pensionsSchemeCount(request.userAnswers, index)
-          val wasAnotherPensionSchemeVal = pensionsRemedySummary.wasAnotherPensionScheme.getOrElse(false)
+      DataRetrievals.cyaChargeE(index, srn, startDate, accessType, version) { (memberDetails, taxYear, chargeEDetails, schemeName) =>
+        val helper = new CYAChargeEHelper(srn, startDate, accessType, version)
 
-          val seqRows: Seq[SummaryList.Row] = Seq(
-            helper.isPsprForCharge(index, pensionsRemedySummary.isPublicServicePensionsRemedy),
-            helper.chargeEMemberDetails(index, memberDetails),
-            helper.chargeETaxYear(index, taxYear),
-            helper.chargeEDetails(index, chargeEDetails),
-            helper.psprChargeDetails(index, pensionsRemedySummary).getOrElse(None),
-            helper.psprSchemesChargeDetails(index, pensionsRemedySummary, wasAnotherPensionSchemeVal)
-          ).flatten
+        val seqRows: Seq[SummaryList.Row] = Seq(
+          helper.chargeEMemberDetails(index, memberDetails),
+          helper.chargeETaxYear(index, taxYear),
+          helper.chargeEDetails(index, chargeEDetails)
+        ).flatten
 
-          renderer
-            .render(
-              "check-your-answers.njk",
-              Json.obj(
-                "list" -> helper.rows(request.isViewOnly, seqRows),
-                "viewModel" -> GenericViewModel(
-                  submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version, index).url,
-                  returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                  schemeName = schemeName
-                ),
-                "selectAnotherSchemeUrl" -> controllers.mccloud.routes.AddAnotherPensionSchemeController
-                  .onPageLoad(ChargeType.ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsSchemeSize - 1)
-                  .url,
-                "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
-                "chargeName" -> "chargeE",
-                "showAnotherSchemeBtn" -> (pensionsSchemeSize < 5 && wasAnotherPensionSchemeVal),
-                "canChange" -> !request.isViewOnly
-              )
+        renderer
+          .render(
+            "check-your-answers.njk",
+            Json.obj(
+              "list" -> helper.rows(request.isViewOnly, seqRows),
+              "viewModel" -> GenericViewModel(
+                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version, index).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName = schemeName
+              ),
+              "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
+              "chargeName" -> "chargeE",
+              "canChange" -> !request.isViewOnly
             )
-            .map(Ok(_))
+          )
+          .map(Ok(_))
       }
     }
-
-  private def pensionsSchemeCount(userAnswers: UserAnswers, index: Int): Int = {
-    SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
-  }
 
   def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
@@ -106,7 +92,8 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         val totalAmount = chargeServiceHelper.totalAmount(request.userAnswers, "chargeEDetails")
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
-          _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAnnualAllowance))
+          _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
+            chargeType = Some(ChargeType.ChargeTypeAnnualAllowance))
           _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
         } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
