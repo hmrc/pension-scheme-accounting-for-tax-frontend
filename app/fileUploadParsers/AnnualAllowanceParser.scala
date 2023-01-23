@@ -66,7 +66,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
         AnnualAllowanceFieldNames.isPaymentMandatory, FieldNoIsPaymentMandatory)
 
     )
-// form field,
+
     val chargeDetailsForm: Form[ChargeEDetails] = chargeDetailsFormProvider(
       minimumChargeValueAllowed = minChargeValueAllowed,
       minimumDate = config.earliestDateOfNotice,
