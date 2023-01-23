@@ -34,7 +34,6 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import pages.mccloud._
-import play.api.i18n.Messages
 
 import java.time.LocalDate
 

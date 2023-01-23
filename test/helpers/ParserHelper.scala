@@ -161,7 +161,9 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
     }
   }
 
-  def lifetimeAllowanceParserWithMinimalFields(header: String, parser: LifetimeAllowanceParser): Unit = {
+  def lifetimeAllowanceParserWithMinimalFields(header: String,
+                                               parser: LifetimeAllowanceParser,
+                                               extraExpected: Int => Seq[ParserValidationError] = _ => Nil): Unit = {
     "return validation error for incorrect header" in {
       val GivingIncorrectHeader = CsvLineSplitter.split("""test""")
       val result = parser.parse(startDate, GivingIncorrectHeader, UserAnswers())
@@ -186,11 +188,12 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
       )
       val result = parser.parse(startDate, GivingIncorrectMemberDetails, UserAnswers())
       result.isLeft mustBe true
-      result.swap.toSeq.flatten.take(3) mustBe Seq(
+      val expectedResult = combine(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino")
-      )
+      ), extraExpected)
+      result.swap.toSeq.flatten.take(expectedResult.size) mustBe expectedResult
     }
 
     "return validation errors for charge details when present, including missing year and missing month" in {
@@ -202,10 +205,11 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
 
       val result = parser.parse(startDate, GivingMissingYearAndMonth, UserAnswers())
       result.isLeft mustBe true
-      result.swap.toSeq.flatten.take(2) mustBe Seq(
+      val expectedResult = combine(Seq(
         ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
         ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("month", "year"))
-      )
+      ), extraExpected)
+      result.swap.toSeq.flatten.take(expectedResult.size) mustBe expectedResult
     }
 
     "return validation errors for member details AND charge details when both present" in {
@@ -216,13 +220,14 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
       )
       val result = parser.parse(startDate, GivingIncorrectMemberDetailsAndChargeDetails, UserAnswers())
       result.isLeft mustBe true
-      result.swap.toSeq.flatten.take(5) mustBe Seq(
+      val expectedResult = combine(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino"),
         ParserValidationError(2, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("month", "year"))
-      )
+      ), extraExpected)
+      result.swap.toSeq.flatten.take(expectedResult.size) mustBe expectedResult
     }
 
     "return validation errors for member details AND charge details when errors present in first row but not in second" in {
@@ -234,10 +239,11 @@ trait ParserHelper extends SpecBase with Matchers with MockitoSugar with BeforeA
 
       val result = parser.parse(startDate, GivingIncorrectMemberDetailsAndChargeDetailsFirstRow, UserAnswers())
       result.isLeft mustBe true
-      result.swap.toSeq.flatten.take(2) mustBe Seq(
+      val expectedResult = combine(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(1, 3, "dateOfEvent.error.incomplete", "dateOfEvent", Seq("year")),
-      )
+      ), extraExpected)
+      result.swap.toSeq.flatten.take(expectedResult.size) mustBe expectedResult
     }
   }
 
