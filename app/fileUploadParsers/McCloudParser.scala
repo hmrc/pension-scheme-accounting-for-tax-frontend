@@ -119,7 +119,7 @@ trait McCloudParser  extends Parser {
     val taxQuarter = if (wasAnotherPensionScheme) {
       val max = countNoOfSchemes(columns, fieldNoEnterPstr1)
       (0 until max).foldLeft[Seq[Result]](Nil) { (acc, schemeIndex) =>
-        val offset = (schemeIndex * 3)
+        val offset = schemeIndex * 3
         acc ++ Seq(validateField(
           index = index,
           columns = columns,
