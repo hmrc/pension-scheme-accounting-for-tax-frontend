@@ -20,6 +20,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.{MemberDetailsFieldNames, OverseasTransferFieldNames}
 import controllers.fileUpload.FileUploadHeaders.OverseasTransferFieldNames._
+import fileUploadParsers.Parser.Result
 import forms.chargeG.{ChargeAmountsFormProvider, ChargeDetailsFormProvider, MemberDetailsFormProvider}
 import models.Quarters
 import models.chargeG.{ChargeAmounts, ChargeDetails, MemberDetails}

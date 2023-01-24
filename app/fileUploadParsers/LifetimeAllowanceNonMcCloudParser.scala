@@ -18,6 +18,7 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import fileUploadParsers.Parser.Result
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import play.api.i18n.Messages

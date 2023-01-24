@@ -19,6 +19,7 @@ package fileUploadParsers
 import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames
 import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames._
+import fileUploadParsers.Parser.Result
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import models.chargeD.ChargeDDetails

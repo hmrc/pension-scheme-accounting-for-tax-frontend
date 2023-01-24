@@ -18,6 +18,7 @@ package fileUploadParsers
 
 import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
+import fileUploadParsers.Parser.Result
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints

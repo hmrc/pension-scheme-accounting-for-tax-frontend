@@ -17,6 +17,7 @@
 package fileUploadParsers
 
 import fileUploadParsers.McCloudParser.countNoOfSchemes
+import fileUploadParsers.Parser.Result
 import forms.YesNoFormProvider
 import forms.mccloud.{ChargeAmountReportedFormProvider, EnterPstrFormProvider}
 import models.ChargeType

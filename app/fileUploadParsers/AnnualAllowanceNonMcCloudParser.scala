@@ -18,6 +18,7 @@ package fileUploadParsers
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import fileUploadParsers.Parser.Result
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
@@ -25,6 +26,7 @@ import models.{ChargeType, CommonQuarters}
 import pages.IsPublicServicePensionsRemedyPage
 import play.api.i18n.Messages
 import play.api.libs.json.JsBoolean
+import utils.Semigroup.resultSemigroup
 
 import java.time.LocalDate
 
