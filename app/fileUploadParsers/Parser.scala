@@ -38,9 +38,9 @@ object Parser {
 
 trait Parser {
   type Result = Either[Seq[ParserValidationError], Seq[CommitItem]]
-  protected final val FieldNoFirstName = 0
-  protected final val FieldNoLastName = 1
-  protected final val FieldNoNino = 2
+  protected val fieldNoFirstName = 0
+  protected val fieldNoLastName = 1
+  protected val fieldNoNino = 2
 
   protected def validHeader: String
 
@@ -91,18 +91,6 @@ trait Parser {
           }
           case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
-      case Some(row) =>
-        val a = row.mkString(",")
-        val b = validHeader
-
-        a.zipWithIndex.foreach{ case (a,i) =>
-          println("\n" + i.toString + ":" + a + " " + a.toInt + " ========" + b(i) + " - " + b(i).toInt + " ===> " + (a == b(i)))
-        }
-
-        println( "\nActual=" + a + " length = " + a.size)
-        println( "\nExpected=" + b+ " length = " + a.size)
-        println( "\nEquality = " + a == b)
-        Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
       case _ =>
         Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
@@ -123,9 +111,9 @@ trait Parser {
   protected def memberDetailsValidation(index: Int, columns: Seq[String],
                                         memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
-      Field(MemberDetailsFieldNames.firstName, fieldValue(columns, FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
-      Field(MemberDetailsFieldNames.lastName, fieldValue(columns, FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
-      Field(MemberDetailsFieldNames.nino, fieldValue(columns, FieldNoNino), MemberDetailsFieldNames.nino, 2)
+      Field(MemberDetailsFieldNames.firstName, fieldValue(columns, fieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
+      Field(MemberDetailsFieldNames.lastName, fieldValue(columns, fieldNoLastName), MemberDetailsFieldNames.lastName, 1),
+      Field(MemberDetailsFieldNames.nino, fieldValue(columns, fieldNoNino), MemberDetailsFieldNames.nino, 2)
     )
     val toMap = Field.seqToMap(fields)
 

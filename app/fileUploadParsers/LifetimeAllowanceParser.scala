@@ -37,21 +37,21 @@ trait LifetimeAllowanceParser extends Parser {
 
   protected val config: FrontendAppConfig
 
-  private final val FieldNoDateOfEvent = 3
-  private final val FieldNoTaxAt25Percent = 4
-  private final val FieldNoTaxAt55Percent = 5
+  private val fieldNoDateOfEvent = 3
+  private val fieldNoTaxAt25Percent = 4
+  private val fieldNoTaxAt55Percent = 5
 
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
                                       chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDDetails] = {
 
-    val parsedDate = splitDayMonthYear(chargeFields(FieldNoDateOfEvent))
+    val parsedDate = splitDayMonthYear(chargeFields(fieldNoDateOfEvent))
     val fields = Seq(
-      Field(dateOfEventDay, parsedDate.day, dateOfEvent, FieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
-      Field(dateOfEventMonth, parsedDate.month, dateOfEvent, FieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
-      Field(dateOfEventYear, parsedDate.year, dateOfEvent, FieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
-      Field(taxAt25Percent, chargeFields(FieldNoTaxAt25Percent), taxAt25Percent, FieldNoTaxAt25Percent),
-      Field(taxAt55Percent, chargeFields(FieldNoTaxAt55Percent), taxAt55Percent, FieldNoTaxAt55Percent)
+      Field(dateOfEventDay, parsedDate.day, dateOfEvent, fieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
+      Field(dateOfEventMonth, parsedDate.month, dateOfEvent, fieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
+      Field(dateOfEventYear, parsedDate.year, dateOfEvent, fieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
+      Field(taxAt25Percent, chargeFields(fieldNoTaxAt25Percent), taxAt25Percent, fieldNoTaxAt25Percent),
+      Field(taxAt55Percent, chargeFields(fieldNoTaxAt55Percent), taxAt55Percent, fieldNoTaxAt55Percent)
     )
     val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
       min = startDate,

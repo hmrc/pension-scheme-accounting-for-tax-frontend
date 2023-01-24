@@ -38,10 +38,10 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
 
   protected val config: FrontendAppConfig
 
-  private final val FieldNoTaxYear = 3
-  private final val FieldNoChargeAmount = 4
-  private final val FieldNoDateNoticeReceived = 5
-  private final val FieldNoIsPaymentMandatory = 6
+  private val fieldNoTaxYear = 3
+  private val fieldNoChargeAmount = 4
+  private val fieldNoDateNoticeReceived = 5
+  private val fieldNoIsPaymentMandatory = 6
 
   private final object TaxYearErrorKeys {
     val requiredKey = "annualAllowanceYear.fileUpload.error.required"
@@ -56,15 +56,15 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
                                              parsedDate: ParsedDate,
                                              taxYearsErrors: Seq[ParserValidationError]): Either[Seq[ParserValidationError], ChargeEDetails] = {
     val fields = Seq(
-      Field(AnnualAllowanceFieldNames.chargeAmount, chargeFields(FieldNoChargeAmount), AnnualAllowanceFieldNames.chargeAmount, FieldNoChargeAmount),
+      Field(AnnualAllowanceFieldNames.chargeAmount, chargeFields(fieldNoChargeAmount), AnnualAllowanceFieldNames.chargeAmount, fieldNoChargeAmount),
       Field(AnnualAllowanceFieldNames.dateNoticeReceivedDay, parsedDate.day,
-        AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
+        AnnualAllowanceFieldNames.dateNoticeReceived, fieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
       Field(AnnualAllowanceFieldNames.dateNoticeReceivedMonth, parsedDate.month,
-        AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
+        AnnualAllowanceFieldNames.dateNoticeReceived, fieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
       Field(AnnualAllowanceFieldNames.dateNoticeReceivedYear, parsedDate.year,
-        AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
-      Field(AnnualAllowanceFieldNames.isPaymentMandatory, stringToBoolean(chargeFields(FieldNoIsPaymentMandatory)),
-        AnnualAllowanceFieldNames.isPaymentMandatory, FieldNoIsPaymentMandatory)
+        AnnualAllowanceFieldNames.dateNoticeReceived, fieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
+      Field(AnnualAllowanceFieldNames.isPaymentMandatory, stringToBoolean(chargeFields(fieldNoIsPaymentMandatory)),
+        AnnualAllowanceFieldNames.isPaymentMandatory, fieldNoIsPaymentMandatory)
 
     )
 
@@ -104,7 +104,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
       index,
       startDate,
       chargeFields,
-      splitDayMonthYear(chargeFields(FieldNoDateNoticeReceived)),
+      splitDayMonthYear(chargeFields(fieldNoDateNoticeReceived)),
       validateTaxYear(startDate, index, chargeFields(3))
     )
 
@@ -134,7 +134,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
     )
 
     val c = resultFromFormValidationResult[String](
-      Right(fieldValue(columns, FieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)
+      Right(fieldValue(columns, fieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)
     )
     combineResults(a, b, c)
   }

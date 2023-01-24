@@ -36,11 +36,11 @@ trait McCloudParser  extends Parser {
   protected val enterPstrFormProvider: EnterPstrFormProvider
   protected val chargeType: ChargeType
 
-  protected val FieldNoIsChargeInAdditionReported: Int
-  protected val FieldNoWasAnotherPensionScheme: Int
-  protected val FieldNoEnterPstr1: Int
-  protected val FieldNoTaxQuarterReportedAndPaid1: Int
-  protected val FieldNoChargeAmountReported1: Int
+  protected val fieldNoIsChargeInAdditionReported: Int
+  protected val fieldNoWasAnotherPensionScheme: Int
+  protected val fieldNoEnterPstr1: Int
+  protected val fieldNoTaxQuarterReportedAndPaid1: Int
+  protected val fieldNoChargeAmountReported1: Int
 
   object McCloudFieldNames {
     val formFieldNameForSingleFields = "value"
@@ -53,7 +53,7 @@ trait McCloudParser  extends Parser {
   }
 
   private def validateTaxQuarterReportedAndPaid(index: Int, columns: Seq[String], schemeIndex: => Option[Int], offset: Int): Result = {
-    val fieldNo = FieldNoTaxQuarterReportedAndPaid1 + offset
+    val fieldNo = fieldNoTaxQuarterReportedAndPaid1 + offset
     fieldValue(columns, fieldNo) match {
       case a if a.isEmpty =>
         Left(Seq(ParserValidationError(index, fieldNo,
@@ -78,7 +78,7 @@ trait McCloudParser  extends Parser {
     page = IsChargeInAdditionReportedPage.apply(chargeType, _: Int),
     formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
     columnName = McCloudFieldNames.isInAdditionToPrevious,
-    fieldNo = FieldNoIsChargeInAdditionReported,
+    fieldNo = fieldNoIsChargeInAdditionReported,
     formProvider = yesNoFormProvider(messages("isChargeInAdditionReported.error.required", chargeTypeDescription(chargeType))),
     convertValue = stringToBoolean
   )
@@ -92,7 +92,7 @@ trait McCloudParser  extends Parser {
         page = WasAnotherPensionSchemePage.apply(chargeType, _: Int),
         formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
         columnName = McCloudFieldNames.wasPaidByAnotherScheme,
-        fieldNo = FieldNoWasAnotherPensionScheme,
+        fieldNo = fieldNoWasAnotherPensionScheme,
         formProvider = yesNoFormProvider(messages("wasAnotherPensionScheme.error.required", chargeTypeDescription(chargeType))),
         convertValue = stringToBoolean
       )
@@ -106,7 +106,7 @@ trait McCloudParser  extends Parser {
           page = ChargeAmountReportedPage.apply(chargeType, _: Int, schemeIndex),
           formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
           columnName = McCloudFieldNames.chargeAmountReported,
-          fieldNo = FieldNoChargeAmountReported1 + offset,
+          fieldNo = fieldNoChargeAmountReported1 + offset,
           formProvider = chargeAmountReportedFormProvider(BigDecimal(0))
         )
       )
@@ -114,7 +114,7 @@ trait McCloudParser  extends Parser {
 
     val wasAnotherPensionScheme = getOrElse[Boolean](wasAnotherPensionSchemeResult, false)
     val taxQuarter = if (wasAnotherPensionScheme) {
-      val max = countNoOfSchemes(columns, FieldNoEnterPstr1)
+      val max = countNoOfSchemes(columns, fieldNoEnterPstr1)
       (0 until max).foldLeft[Seq[Result]](Nil) { (acc, schemeIndex) =>
         val offset = (schemeIndex * 3)
         acc ++ Seq(validateField(
@@ -123,7 +123,7 @@ trait McCloudParser  extends Parser {
           page = EnterPstrPage(chargeType, _: Int, schemeIndex),
           formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
           columnName = McCloudFieldNames.pstr,
-          fieldNo = FieldNoEnterPstr1 + offset,
+          fieldNo = fieldNoEnterPstr1 + offset,
           formProvider = enterPstrFormProvider()
         )) ++ otherSchemeFields(Some(schemeIndex), offset)
       }

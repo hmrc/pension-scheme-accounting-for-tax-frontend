@@ -63,8 +63,6 @@ Joe,Blaggs,AB123458C,01/04/2020,68.28,0.00,NO,,,,,,,,,,,,,,,,"""
       val chargeDetails3 = ChargeDDetails(LocalDate.of(2020, 4, 1), Some(BigDecimal(68.28)), Some(BigDecimal(0.00)))
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
 
-      println("\n>>>" + result)
-
       result.isRight mustBe true
       val actualUA = result.toOption.value
 

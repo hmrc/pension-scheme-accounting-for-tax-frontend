@@ -35,11 +35,11 @@ class AnnualAllowanceMcCloudParser @Inject()(
 
   override protected val chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance
 
-  override protected val FieldNoIsChargeInAdditionReported: Int = 7
-  override protected val FieldNoWasAnotherPensionScheme: Int = 8
-  override protected val FieldNoEnterPstr1: Int = 9
-  override protected val FieldNoTaxQuarterReportedAndPaid1: Int = 10
-  override protected val FieldNoChargeAmountReported1: Int = 11
+  override protected val fieldNoIsChargeInAdditionReported: Int = 7
+  override protected val fieldNoWasAnotherPensionScheme: Int = 8
+  override protected val fieldNoEnterPstr1: Int = 9
+  override protected val fieldNoTaxQuarterReportedAndPaid1: Int = 10
+  override protected val fieldNoChargeAmountReported1: Int = 11
 
   override protected def validHeader: String = config.validAnnualAllowanceMcCloudHeader
 }
