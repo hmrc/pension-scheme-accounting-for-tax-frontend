@@ -16,6 +16,7 @@
 
 package fileUploadParsers
 
+import cats.implicits.toFoldableOps
 import fileUploadParsers.McCloudParser.countNoOfSchemes
 import fileUploadParsers.Parser.Result
 import forms.YesNoFormProvider
@@ -28,6 +29,7 @@ import play.api.i18n.Messages
 import play.api.libs.json.{JsBoolean, Json}
 import utils.DateHelper.dateFormatterDMYSlashes
 import fileUploadParsers.Parser.resultMonoid
+
 import java.time.LocalDate
 import scala.util.Try
 
@@ -157,10 +159,7 @@ trait McCloudParser  extends Parser {
     } else {
       Nil
     }
-
-    val finalResults =
-      Seq(minimalFieldsResult, isPublicServicePensionsRemedyResult, isInAdditionResult) ++ schemeResults
-    combineResults(finalResults: _*)
+    (Seq(minimalFieldsResult, isPublicServicePensionsRemedyResult, isInAdditionResult) ++ schemeResults).combineAll
   }
 }
 

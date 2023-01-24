@@ -17,6 +17,7 @@
 package fileUploadParsers
 
 import cats.Monoid
+import cats.implicits._
 import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 import fileUploadParsers.ParserErrorMessages.HeaderInvalidOrFileIsEmpty
 import models.{MemberDetails, UserAnswers}
@@ -25,7 +26,7 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json._
 import queries.Gettable
-import cats.implicits._
+
 import java.time.LocalDate
 
 object ParserErrorMessages {
@@ -117,7 +118,7 @@ trait Parser {
                            (implicit messages: Messages): Result = {
     rows.zipWithIndex.foldLeft[Result](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
-      case (acc, Tuple2(row, index)) => combineResults(acc, validateFields(startDate, index, row.toIndexedSeq))
+      case (acc, Tuple2(row, index)) => Seq(acc, validateFields(startDate, index, row.toIndexedSeq)).combineAll
     }
   }
 
@@ -170,8 +171,6 @@ trait Parser {
       case None => default
       case Some(a) => a
     }
-
-  protected final def combineResults[A](items: A*)(implicit monoid: Monoid[A]): A = items.combineAll
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 

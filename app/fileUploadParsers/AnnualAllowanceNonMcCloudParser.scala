@@ -16,6 +16,7 @@
 
 package fileUploadParsers
 
+import cats.implicits.toFoldableOps
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import fileUploadParsers.Parser.Result
@@ -42,6 +43,6 @@ class AnnualAllowanceNonMcCloudParser @Inject()(
                                         columns: Seq[String])(implicit messages: Messages): Result = {
     val isPublicServicePensionsRemedyResult: Result =
       Right(Seq(CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(false))))
-    combineResults(validateMinimumFields(startDate, index, columns), isPublicServicePensionsRemedyResult)
+    Seq(validateMinimumFields(startDate, index, columns), isPublicServicePensionsRemedyResult).combineAll
   }
 }

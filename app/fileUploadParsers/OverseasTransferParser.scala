@@ -16,6 +16,7 @@
 
 package fileUploadParsers
 
+import cats.implicits.toFoldableOps
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.{MemberDetailsFieldNames, OverseasTransferFieldNames}
@@ -28,6 +29,7 @@ import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
 import fileUploadParsers.Parser.resultMonoid
+
 import java.time.LocalDate
 
 
@@ -126,6 +128,6 @@ class OverseasTransferParser @Inject()(
     val c = resultFromFormValidationResult[ChargeAmounts](
       chargeAmountsValidation(getMemberName(chargeFields), index, chargeFields), createCommitItem(index, ChargeAmountsPage.apply)
     )
-    combineResults(a, b, c)
+    Seq(a, b, c).combineAll
   }
 }

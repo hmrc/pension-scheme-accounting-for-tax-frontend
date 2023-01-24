@@ -16,6 +16,7 @@
 
 package fileUploadParsers
 
+import cats.implicits.toFoldableOps
 import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import fileUploadParsers.Parser.Result
@@ -138,6 +139,6 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
     val c = resultFromFormValidationResult[String](
       Right(fieldValue(columns, fieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)
     )
-    combineResults(a, b, c)
+    Seq(a, b, c).combineAll
   }
 }
