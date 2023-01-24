@@ -52,6 +52,7 @@ object Parser {
 }
 
 trait Parser {
+
   import Parser._
 
   protected val fieldNoFirstName = 0
@@ -170,13 +171,7 @@ trait Parser {
       case Some(a) => a
     }
 
-
-
-
-
-
-  protected final def combineResults[A](items: A*)(implicit monoid: Monoid[A]): A =
-    items.foldLeft(monoid.empty) { (b, c) => monoid.combine(b, c) }
+  protected final def combineResults[A](items: A*)(implicit monoid: Monoid[A]): A = monoid.combineAll(items)
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 
