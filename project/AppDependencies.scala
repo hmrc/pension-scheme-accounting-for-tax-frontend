@@ -13,7 +13,8 @@ object AppDependencies {
     "com.google.inject.extensions"  %   "guice-multibindings"            % "4.2.3",
     "uk.gov.hmrc"                   %%  "domain"                         % "8.1.0-play-28",
     "com.univocity"                 %  "univocity-parsers"               % "2.9.1",
-    "com.fasterxml.jackson.module"  %% "jackson-module-scala"           % "2.14.0"
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala"           % "2.14.0",
+    "org.typelevel" %% "cats-core" % "2.9.0"
   )
 
   val test: Seq[ModuleID] = Seq(

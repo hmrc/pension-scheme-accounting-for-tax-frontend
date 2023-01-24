@@ -16,6 +16,7 @@
 
 package fileUploadParsers
 
+import cats.Monoid
 import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 import fileUploadParsers.ParserErrorMessages.HeaderInvalidOrFileIsEmpty
 import models.{MemberDetails, UserAnswers}
@@ -24,8 +25,6 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json._
 import queries.Gettable
-import utils.Semigroup
-import utils.Semigroup.resultSemigroup
 
 import java.time.LocalDate
 
@@ -36,6 +35,20 @@ object ParserErrorMessages {
 object Parser {
   type Result = Either[Seq[ParserValidationError], Seq[CommitItem]]
   val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty: ParserValidationError = ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty, EMPTY)
+
+  implicit val resultMonoid: Monoid[Result] = new Monoid[Result] {
+    def combine(a: Result, b: Result): Result = {
+      (a, b) match {
+        case (Left(x), Left(y)) => Left(x ++ y)
+        case (x@Left(_), Right(_)) => x
+        case (Right(_), x@Left(_)) => x
+        case (Right(x), Right(y)) => Right(x ++ y)
+      }
+    }
+
+    def empty: Result = Right(Nil)
+  }
+
 }
 
 trait Parser {
@@ -162,8 +175,8 @@ trait Parser {
 
 
 
-  protected final def combineResults[A](items: A*)(implicit semigroup: Semigroup[A]): A =
-    items.foldLeft(semigroup.unit) { (b, c) => semigroup.combine(b, c) }
+  protected final def combineResults[A](items: A*)(implicit monoid: Monoid[A]): A =
+    items.foldLeft(monoid.empty) { (b, c) => monoid.combine(b, c) }
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 

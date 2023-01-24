@@ -27,7 +27,7 @@ import models.{MemberDetails, Quarters}
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
-
+import fileUploadParsers.Parser.resultMonoid
 import java.time.LocalDate
 
 trait LifetimeAllowanceParser extends Parser {

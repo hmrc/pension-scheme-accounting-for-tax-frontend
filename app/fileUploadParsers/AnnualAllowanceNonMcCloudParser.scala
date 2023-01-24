@@ -26,7 +26,7 @@ import models.{ChargeType, CommonQuarters}
 import pages.IsPublicServicePensionsRemedyPage
 import play.api.i18n.Messages
 import play.api.libs.json.JsBoolean
-import utils.Semigroup.resultSemigroup
+import fileUploadParsers.Parser.resultMonoid
 
 import java.time.LocalDate
 
