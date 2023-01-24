@@ -17,6 +17,8 @@
 package controllers.fileUpload
 
 import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AuditService}
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
 import connectors.UpscanInitiateConnector
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions._
@@ -127,9 +129,9 @@ class ValidationController @Inject()(
 
     val futureResult =
       parserResult match {
-        case Left(errors) =>
+        case Invalid(errors) =>
           Future.successful(processInvalid(chargeType, errors))
-        case Right(updatedUA) =>
+        case Valid(updatedUA) =>
           TimeLogger.logOperationTime(
             processSuccessResult(chargeType, updatedUA)
               .map(_ => FileUploadOutcome(status = Success, fileName = Some(fileName))),
@@ -173,14 +175,14 @@ class ValidationController @Inject()(
                              chargeType: ChargeType,
                              numberOfEntries: Int,
                              fileValidationTimeInSeconds: Int,
-                             parserResult: Either[Seq[ParserValidationError], UserAnswers]
+                             parserResult: Validated[Seq[ParserValidationError], UserAnswers]
                             )(implicit request: DataRequest[AnyContent], messages: Messages): Unit = {
 
     val numberOfFailures = parserResult.fold(_.size, _ => 0)
     val (failureReason, errorReport) = parserResult match {
-      case Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
+      case Invalid(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
         Tuple2(Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error), None)
-      case Left(errors) =>
+      case Invalid(errors) =>
         failureReasonAndErrorReportForAudit(errors, chargeType)(messages) match {
           case Some(Tuple2(reason, report)) => Tuple2(Some(reason), Some(report))
           case _ => Tuple2(None, None)
@@ -195,7 +197,7 @@ class ValidationController @Inject()(
         pstr = pstr,
         numberOfEntries = numberOfEntries,
         chargeType = chargeType,
-        validationCheckSuccessful = parserResult.isRight,
+        validationCheckSuccessful = parserResult.isValid,
         fileValidationTimeInSeconds = fileValidationTimeInSeconds,
         failureReason = failureReason,
         numberOfFailures = numberOfFailures,

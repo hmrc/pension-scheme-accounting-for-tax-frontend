@@ -17,6 +17,7 @@
 package fileUploadParsers
 
 import base.SpecBase
+import cats.data.Validated.Valid
 import config.FrontendAppConfig
 import data.SampleData
 import data.SampleData.startDate
@@ -58,7 +59,7 @@ class LifetimeAllowanceNonMcCloudParserSpec extends SpecBase
       val chargeDetails1 = ChargeDDetails(LocalDate.of(2020, 4, 1), Some(BigDecimal(268.28)), Some(BigDecimal(0.0)))
       val chargeDetails2 = ChargeDDetails(LocalDate.of(2020, 4, 1), Some(BigDecimal(0.0)), Some(BigDecimal(268.28)))
       val result = parser.parse(startDate, GivingValidCSVFile, UserAnswers())
-      result mustBe Right(UserAnswers()
+      result mustBe Valid(UserAnswers()
         .setOrException(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2))
         .setOrException(ChargeDetailsPage(0).path, Json.toJson(chargeDetails1))
         .setOrException(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3))

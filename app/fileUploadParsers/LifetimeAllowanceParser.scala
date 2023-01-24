@@ -16,6 +16,8 @@
 
 package fileUploadParsers
 
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
 import cats.implicits.toFoldableOps
 import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames
@@ -28,7 +30,6 @@ import models.{MemberDetails, Quarters}
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
-import fileUploadParsers.Parser.resultMonoid
 
 import java.time.LocalDate
 
@@ -46,7 +47,7 @@ trait LifetimeAllowanceParser extends Parser {
 
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDDetails] = {
+                                      chargeFields: Seq[String])(implicit messages: Messages): Validated[Seq[ParserValidationError], ChargeDDetails] = {
 
     val parsedDate = splitDayMonthYear(chargeFields(fieldNoDateOfEvent))
     val fields = Seq(
@@ -64,13 +65,13 @@ trait LifetimeAllowanceParser extends Parser {
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
     ).fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+      formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
       value => {
         val updatedChargeDetails: ChargeDDetails = value.copy(
           taxAt25Percent = Option(value.taxAt25Percent.getOrElse(BigDecimal(0.00))),
           taxAt55Percent = Option(value.taxAt55Percent.getOrElse(BigDecimal(0.00)))
         )
-        Right(updatedChargeDetails)
+        Valid(updatedChargeDetails)
       }
     )
 

@@ -16,7 +16,8 @@
 
 package fileUploadParsers
 
-import cats.Monoid
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
 import cats.implicits._
 import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 import fileUploadParsers.ParserErrorMessages.HeaderInvalidOrFileIsEmpty
@@ -34,22 +35,8 @@ object ParserErrorMessages {
 }
 
 object Parser {
-  type Result = Either[Seq[ParserValidationError], Seq[CommitItem]]
+  type Result = Validated[Seq[ParserValidationError], Seq[CommitItem]]
   val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty: ParserValidationError = ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty, EMPTY)
-
-  implicit val resultMonoid: Monoid[Result] = new Monoid[Result] {
-    def combine(a: Result, b: Result): Result = {
-      (a, b) match {
-        case (Left(x), Left(y)) => Left(x ++ y)
-        case (x@Left(_), Right(_)) => x
-        case (Right(_), x@Left(_)) => x
-        case (Right(x), Right(y)) => Right(x ++ y)
-      }
-    }
-
-    def empty: Result = Right(Nil)
-  }
-
 }
 
 trait Parser {
@@ -75,14 +62,14 @@ trait Parser {
                                 )(implicit writes: Writes[A]): Result = {
     def bindForm(index: Int, columns: Seq[String],
                  fieldName: String, fieldNo: Int)
-    : Either[Seq[ParserValidationError], A] = {
+    : Validated[Seq[ParserValidationError], A] = {
       val form: Form[A] = formProvider
       val fields = Seq(Field(fieldName, convertValue(fieldValue(columns, fieldNo)), columnName, fieldNo))
       val toMap = Field.seqToMap(fields)
       val bind = form.bind(toMap)
       bind.fold(
-        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-        value => Right(value)
+        formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
+        value => Valid(value)
       )
     }
 
@@ -100,23 +87,23 @@ trait Parser {
     }
 
   def parse(startDate: LocalDate, rows: Seq[Array[String]], userAnswers: UserAnswers)
-           (implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
+           (implicit messages: Messages): Validated[Seq[ParserValidationError], UserAnswers] = {
     rows.headOption match {
       case Some(row) if true => //row.mkString(",").equalsIgnoreCase(validHeader) =>
         rows.size match {
           case n if n >= 2 => parseDataRows(startDate, rows).map { commitItems =>
             commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
           }
-          case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+          case _ => Invalid(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
       case _ =>
-        Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+        Invalid(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
   }
 
   private def parseDataRows(startDate: LocalDate, rows: Seq[Array[String]])
                            (implicit messages: Messages): Result = {
-    rows.zipWithIndex.foldLeft[Result](Right(Nil)) {
+    rows.zipWithIndex.foldLeft[Result](Valid(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
       case (acc, Tuple2(row, index)) => Seq(acc, validateFields(startDate, index, row.toIndexedSeq)).combineAll
     }
@@ -127,7 +114,7 @@ trait Parser {
                                columns: Seq[String])(implicit messages: Messages): Result
 
   protected def memberDetailsValidation(index: Int, columns: Seq[String],
-                                        memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
+                                        memberDetailsForm: Form[MemberDetails]): Validated[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
       Field(MemberDetailsFieldNames.firstName, fieldValue(columns, fieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
       Field(MemberDetailsFieldNames.lastName, fieldValue(columns, fieldNoLastName), MemberDetailsFieldNames.lastName, 1),
@@ -137,8 +124,8 @@ trait Parser {
 
     val bind = memberDetailsForm.bind(toMap)
     bind.fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-      value => Right(value)
+      formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
+      value => Valid(value)
     )
   }
 
@@ -155,11 +142,11 @@ trait Parser {
   protected final def createCommitItem[A](index: Int, page: Int => Gettable[_])(implicit writes: Writes[A]): A => CommitItem =
     a => CommitItem(page(index - 1).path, Json.toJson(a))
 
-  protected def resultFromFormValidationResult[A](formValidationResult: Either[Seq[ParserValidationError], A],
+  protected def resultFromFormValidationResult[A](formValidationResult: Validated[Seq[ParserValidationError], A],
                                                   generateCommitItem: A => CommitItem): Result = {
     formValidationResult match {
-      case Left(resultAErrors) => Left(resultAErrors)
-      case Right(resultAObject) => Right(Seq(generateCommitItem(resultAObject)))
+      case Invalid(resultAErrors) => Invalid(resultAErrors)
+      case Valid(resultAObject) => Valid(Seq(generateCommitItem(resultAObject)))
     }
   }
 

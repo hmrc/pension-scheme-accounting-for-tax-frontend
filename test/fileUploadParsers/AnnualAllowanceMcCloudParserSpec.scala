@@ -65,7 +65,7 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       val chargeDetails3 = ChargeEDetails(BigDecimal(68.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
 
-      result.isRight mustBe true
+      result.isValid mustBe true
       val actualUA = result.toOption.value
 
       actualUA.get(MemberDetailsPage(0)) mustBe Some(SampleData.memberDetails2)
@@ -115,10 +115,10 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO"""
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
-      result.isRight mustBe false
+      result.isValid mustBe false
 
       // TODO: Check - I think the field name "value" is not correct:
-      result.swap.toSeq.flatten mustBe Seq(
+      result.swap.toList.flatten mustBe Seq(
         ParserValidationError(1, 7, messages("isChargeInAdditionReported.error.required",
           chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), parser.McCloudFieldNames.isInAdditionToPrevious)
       )
@@ -131,10 +131,10 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO,YES"""
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
-      result.isRight mustBe false
+      result.isValid mustBe false
 
       // TODO: Check - I think the field name "value" is not correct:
-      result.swap.toSeq.flatten mustBe Seq(
+      result.swap.toList.flatten mustBe Seq(
         ParserValidationError(1, 8, messages("wasAnotherPensionScheme.error.required",
           chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), parser.McCloudFieldNames.wasPaidByAnotherScheme),
         ParserValidationError(1, 10, "taxQuarterReportedAndPaid.error.required", parser.McCloudFieldNames.dateReportedAndPaid),
@@ -149,8 +149,8 @@ Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,4000017RN,30/06/2022,102.
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
-      result.isRight mustBe false
-      result.swap.toSeq.flatten mustBe Seq(
+      result.isValid mustBe false
+      result.swap.toList.flatten mustBe Seq(
         ParserValidationError(1, 9, "enterPstr.error.invalid", parser.McCloudFieldNames.pstr, Seq("^[0-9]{8}[Rr][A-Za-z]{1}$")),
         ParserValidationError(1, 16, "taxQuarterReportedAndPaid.error.required", parser.McCloudFieldNames.dateReportedAndPaid),
         ParserValidationError(1, 20, "chargeAmountReported.error.invalid", parser.McCloudFieldNames.chargeAmountReported),
@@ -166,10 +166,10 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
-      result.isRight mustBe false
+      result.isValid mustBe false
 
       // TODO: Check - I think the field name "value" is not correct:
-      result.swap.toSeq.flatten mustBe Seq(
+      result.swap.toList.flatten mustBe Seq(
         ParserValidationError(1, 10, "Invalid tax quarter reported and paid", parser.McCloudFieldNames.dateReportedAndPaid))
     }
 

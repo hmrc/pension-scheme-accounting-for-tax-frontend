@@ -16,6 +16,7 @@
 
 package fileUploadParsers
 
+import cats.data.Validated.Valid
 import cats.implicits.toFoldableOps
 import com.google.inject.Inject
 import config.FrontendAppConfig
@@ -27,7 +28,6 @@ import models.{ChargeType, CommonQuarters}
 import pages.IsPublicServicePensionsRemedyPage
 import play.api.i18n.Messages
 import play.api.libs.json.JsBoolean
-import fileUploadParsers.Parser.resultMonoid
 
 import java.time.LocalDate
 
@@ -42,7 +42,7 @@ class AnnualAllowanceNonMcCloudParser @Inject()(
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Result = {
     val isPublicServicePensionsRemedyResult: Result =
-      Right(Seq(CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(false))))
+      Valid(Seq(CommitItem(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeAnnualAllowance, Some(index - 1)).path, JsBoolean(false))))
     Seq(validateMinimumFields(startDate, index, columns), isPublicServicePensionsRemedyResult).combineAll
   }
 }

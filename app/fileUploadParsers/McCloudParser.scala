@@ -16,6 +16,7 @@
 
 package fileUploadParsers
 
+import cats.data.Validated.{Invalid, Valid}
 import cats.implicits.toFoldableOps
 import fileUploadParsers.McCloudParser.countNoOfSchemes
 import fileUploadParsers.Parser.Result
@@ -24,11 +25,10 @@ import forms.mccloud.{ChargeAmountReportedFormProvider, EnterPstrFormProvider}
 import models.ChargeType
 import models.Quarters.getQuarter
 import pages.IsPublicServicePensionsRemedyPage
-import pages.mccloud.{ChargeAmountReportedPage, EnterPstrPage, IsChargeInAdditionReportedPage, TaxQuarterReportedAndPaidPage, WasAnotherPensionSchemePage}
+import pages.mccloud._
 import play.api.i18n.Messages
 import play.api.libs.json.{JsBoolean, Json}
 import utils.DateHelper.dateFormatterDMYSlashes
-import fileUploadParsers.Parser.resultMonoid
 
 import java.time.LocalDate
 import scala.util.Try
@@ -59,16 +59,16 @@ trait McCloudParser  extends Parser {
     val fieldNo = fieldNoTaxQuarterReportedAndPaid1 + offset
     fieldValue(columns, fieldNo) match {
       case a if a.isEmpty =>
-        Left(Seq(ParserValidationError(index, fieldNo,
+        Invalid(Seq(ParserValidationError(index, fieldNo,
           "taxQuarterReportedAndPaid.error.required", McCloudFieldNames.dateReportedAndPaid)))
       case a =>
         Try(LocalDate.parse(a, dateFormatterDMYSlashes)).toOption match {
           case None => // TODO: Need proper date validation and content - future ticket for this
-            Left(Seq(ParserValidationError(index, fieldNo,
+            Invalid(Seq(ParserValidationError(index, fieldNo,
               "Invalid tax quarter reported and paid", McCloudFieldNames.dateReportedAndPaid)))
           case Some(ld) =>
             val qtr = getQuarter(ld)
-            Right(Seq(CommitItem(TaxQuarterReportedAndPaidPage(chargeType, index - 1, schemeIndex).path, Json.toJson(qtr))))
+            Valid(Seq(CommitItem(TaxQuarterReportedAndPaidPage(chargeType, index - 1, schemeIndex).path, Json.toJson(qtr))))
 
         }
     }
@@ -147,7 +147,7 @@ trait McCloudParser  extends Parser {
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Result = {
     val minimalFieldsResult = validateMinimumFields(startDate, index, columns)
-    val isPublicServicePensionsRemedyResult = Right(Seq(
+    val isPublicServicePensionsRemedyResult = Valid(Seq(
       CommitItem(IsPublicServicePensionsRemedyPage(chargeType, Some(index - 1)).path, JsBoolean(true))))
 
     val isInAdditionResult = isChargeInAdditionReportedResult(index, columns)

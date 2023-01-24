@@ -17,6 +17,7 @@
 package fileUploadParsers
 
 import base.SpecBase
+import cats.data.Validated.Valid
 import config.FrontendAppConfig
 import data.SampleData
 import data.SampleData.startDate
@@ -58,7 +59,7 @@ class AnnualAllowanceNonMcCloudParserSpec extends SpecBase
       )
       val chargeDetails = ChargeEDetails(BigDecimal(268.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
-      result mustBe Right(UserAnswers()
+      result mustBe Valid(UserAnswers()
         .setOrException(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2))
         .setOrException(ChargeDetailsPage(0).path, Json.toJson(chargeDetails))
         .setOrException(AnnualAllowanceYearPage(0).path, Json.toJson("2020"))

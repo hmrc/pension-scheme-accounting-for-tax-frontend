@@ -17,6 +17,7 @@
 package fileUploadParsers
 
 import base.SpecBase
+import cats.data.Validated.{Invalid, Valid}
 import config.FrontendAppConfig
 import data.SampleData
 import data.SampleData.startDate
@@ -55,7 +56,7 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
                             Joe,Bloggs,AB123456C,01/04/2000,123123,01/04/2020,1.00,2.00"""
       )
       val result = parser.parse(startDate, GivingValidCSVFile, UserAnswers())
-      result mustBe Right(UserAnswers()
+      result mustBe Valid(UserAnswers()
         .setOrException(MemberDetailsPage(0).path, Json.toJson(SampleData.memberGDetails))
         .setOrException(ChargeDetailsPage(0).path, Json.toJson(chargeDetails))
         .setOrException(ChargeAmountsPage(0).path, Json.toJson(chargeAmounts))
@@ -68,14 +69,14 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
     "return validation error for incorrect header" in {
       val GivingIncorrectHeader = CsvLineSplitter.split("""test""")
       val result = parser.parse(startDate, GivingIncorrectHeader, UserAnswers())
-      result mustBe Left(Seq(
+      result mustBe Invalid(Seq(
         ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
       ))
     }
 
     "return validation error for empty file" in {
       val result = parser.parse(startDate, Nil, UserAnswers())
-      result mustBe Left(Seq(
+      result mustBe Invalid(Seq(
         ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty)
       ))
     }
@@ -88,7 +89,7 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
       )
 
       val result = parser.parse(startDate, GivingInvalidMemberDetails, UserAnswers())
-      result mustBe Left(Seq(
+      result mustBe Invalid(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(2, 1, "memberDetails.error.lastName.required", "lastName"),
         ParserValidationError(2, 2, "memberDetails.error.nino.invalid", "nino")
@@ -103,7 +104,7 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
       )
 
       val result = parser.parse(startDate, GivingInvalidChargeDetails, UserAnswers())
-      result mustBe Left(Seq(
+      result mustBe Invalid(Seq(
         ParserValidationError(1, 3, "dob.error.incomplete", "dob", Seq("month", "year")),
         ParserValidationError(1, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two", "qropsTransferDate", Seq("year")),
         ParserValidationError(2, 3, "dob.error.incomplete", "dob", Seq("year")),
@@ -119,7 +120,7 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
       )
 
       val result = parser.parse(startDate, GivingInvalidMemberDetailsAndChargeDetails, UserAnswers())
-      result mustBe Left(Seq(
+      result mustBe Invalid(Seq(
         ParserValidationError(1, 0, "memberDetails.error.firstName.required", "firstName"),
         ParserValidationError(1, 3, "dob.error.incomplete", "dob", Seq("month", "year")),
         ParserValidationError(1, 5, "chargeG.chargeDetails.qropsTransferDate.error.required.two", "qropsTransferDate", Seq("year")),
@@ -141,7 +142,7 @@ class OverseasTransferParserSpec extends SpecBase with Matchers with MockitoSuga
       )
 
       val result = parser.parse(startDate, GivingInvalidChargeAmounts, UserAnswers())
-      result mustBe Left(Seq(
+      result mustBe Invalid(Seq(
         ParserValidationError(1, 6, "Enter the amount transferred into the QROPS for first last", "amountTransferred"),
         ParserValidationError(2, 7, "amountTaxDue.error.invalid", "amountTaxDue")
       ))

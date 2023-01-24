@@ -17,6 +17,7 @@
 package controllers.fileUpload
 
 import audit.{AFTFileValidationCheckAuditEvent, AuditEvent, AuditService}
+import cats.data.Validated.{Invalid, Valid}
 import connectors.cache.FileUploadOutcomeConnector
 import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions.MutableFakeDataRetrievalAction
@@ -118,8 +119,8 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory\n" +
         "Joy,Smith,9717C,2020,268.28,2020-01-01,true\nJoy,Smath,9717C,2020,268.28,2020-01-01,true")))
     mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-    when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
-    when(mockAnnualAllowanceMcCloudParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
+    when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Invalid(errors))
+    when(mockAnnualAllowanceMcCloudParser.parse(any(), any(), any())(any())).thenReturn(Invalid(errors))
     route(
       application,
       httpGETRequest(
@@ -261,7 +262,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         .setOrException(ChargeDDetailsPage(0).path, Json.toJson(chargeDDetails))
         .setOrException(IsPublicServicePensionsRemedyPage(chargeType, None), false)
 
-      when(mockLifetimeAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
+      when(mockLifetimeAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Valid(uaUpdatedWithParsedItems))
       when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
       when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
@@ -302,7 +303,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val errors: Seq[ParserValidationError] =
         Seq(ParserValidationError(0, 0, "Header invalid or File is empty"))
 
-      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Left(errors))
+      when(mockAnnualAllowanceParser.parse(any(), any(), any())(any())).thenReturn(Invalid(errors))
 
       val result = route(
         application,
@@ -376,7 +377,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         .setOrException(ChargeDDetailsPage(0).path, Json.toJson(chargeDDetails))
         .setOrException(IsPublicServicePensionsRemedyPage(chargeType, None), false)
 
-      when(mockLifetimeAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
+      when(mockLifetimeAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Valid(uaUpdatedWithParsedItems))
       when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
       when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
@@ -410,7 +411,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         .setOrException(ChargeEDetailsPage(0).path, Json.toJson(chargeEDetails2))
         .setOrException(IsPublicServicePensionsRemedyPage(chargeType, None), false)
 
-      when(mockAnnualAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
+      when(mockAnnualAllowanceParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Valid(uaUpdatedWithParsedItems))
       when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
       when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
@@ -446,7 +447,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
         .setOrException(ChargeGDetailsPage(0).path, Json.toJson(chargeGDetails))
         .setOrException(ChargeAmountsPage(0).path, Json.toJson(chargeAmounts2))
 
-      when(mockOverseasTransferParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Right(uaUpdatedWithParsedItems))
+      when(mockOverseasTransferParser.parse(any(), any(), uaCaptorPassedIntoParse.capture())(any())).thenReturn(Valid(uaUpdatedWithParsedItems))
       when(mockFileUploadAftReturnService.preProcessAftReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(uaUpdatedWithParsedItems))
       when(mockAFTService.fileCompileReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)

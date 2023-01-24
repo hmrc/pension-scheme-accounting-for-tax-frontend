@@ -16,11 +16,13 @@
 
 package fileUploadParsers
 
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
 import cats.implicits.toFoldableOps
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import controllers.fileUpload.FileUploadHeaders.{MemberDetailsFieldNames, OverseasTransferFieldNames}
 import controllers.fileUpload.FileUploadHeaders.OverseasTransferFieldNames._
+import controllers.fileUpload.FileUploadHeaders.{MemberDetailsFieldNames, OverseasTransferFieldNames}
 import fileUploadParsers.Parser.Result
 import forms.chargeG.{ChargeAmountsFormProvider, ChargeDetailsFormProvider, MemberDetailsFormProvider}
 import models.Quarters
@@ -28,7 +30,6 @@ import models.chargeG.{ChargeAmounts, ChargeDetails, MemberDetails}
 import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
-import fileUploadParsers.Parser.resultMonoid
 
 import java.time.LocalDate
 
@@ -48,7 +49,7 @@ class OverseasTransferParser @Inject()(
   private val fieldNoAmountTaxDue = 7
 
   def chargeMemberDetailsValidation(index: Int, chargeFields: Seq[String],
-                                    memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
+                                    memberDetailsForm: Form[MemberDetails]): Validated[Seq[ParserValidationError], MemberDetails] = {
     val parsedDOB = splitDayMonthYear(chargeFields(fieldNoDateOfBirth))
     val fields = Seq(
       Field(MemberDetailsFieldNames.firstName, chargeFields(fieldNoFirstName), MemberDetailsFieldNames.firstName, fieldNoFirstName),
@@ -61,14 +62,14 @@ class OverseasTransferParser @Inject()(
     memberDetailsForm
       .bind(Field.seqToMap(fields))
       .fold(
-        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-        value => Right(value)
+        formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
+        value => Valid(value)
       )
   }
 
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDetails] = {
+                                      chargeFields: Seq[String])(implicit messages: Messages): Validated[Seq[ParserValidationError], ChargeDetails] = {
 
     val parsedDateOfTransfer = splitDayMonthYear(chargeFields(fieldNoDateOfTransfer))
     val fields = Seq(
@@ -84,14 +85,14 @@ class OverseasTransferParser @Inject()(
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
     ).fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-      value => Right(value)
+      formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
+      value => Valid(value)
     )
   }
 
   private def chargeAmountsValidation(memberName: String,
                                       index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeAmounts] = {
+                                      chargeFields: Seq[String])(implicit messages: Messages): Validated[Seq[ParserValidationError], ChargeAmounts] = {
     val fields = Seq(
       Field(amountTransferred, chargeFields(fieldNoAmountTransferred), amountTransferred, fieldNoAmountTransferred),
       Field(amountTaxDue, chargeFields(fieldNoAmountTaxDue), amountTaxDue, fieldNoAmountTaxDue)
@@ -103,8 +104,8 @@ class OverseasTransferParser @Inject()(
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
     ).fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-      value => Right(value)
+      formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
+      value => Valid(value)
     )
   }
 

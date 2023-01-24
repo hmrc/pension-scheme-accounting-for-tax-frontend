@@ -16,6 +16,8 @@
 
 package fileUploadParsers
 
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
 import cats.implicits.toFoldableOps
 import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
@@ -27,9 +29,7 @@ import models.chargeE.ChargeEDetails
 import models.{CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
-import play.api.data.validation.{Invalid, Valid}
 import play.api.i18n.Messages
-import fileUploadParsers.Parser.resultMonoid
 
 import java.time.LocalDate
 
@@ -57,7 +57,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
                                              startDate: LocalDate,
                                              chargeFields: Seq[String],
                                              parsedDate: ParsedDate,
-                                             taxYearsErrors: Seq[ParserValidationError]): Either[Seq[ParserValidationError], ChargeEDetails] = {
+                                             taxYearsErrors: Seq[ParserValidationError]): Validated[Seq[ParserValidationError], ChargeEDetails] = {
     val fields = Seq(
       Field(AnnualAllowanceFieldNames.chargeAmount, chargeFields(fieldNoChargeAmount), AnnualAllowanceFieldNames.chargeAmount, fieldNoChargeAmount),
       Field(AnnualAllowanceFieldNames.dateNoticeReceivedDay, parsedDate.day,
@@ -91,18 +91,18 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
   private def errors[A](fieldIndex: Int,
                         formWithErrors: Form[A],
                         fields: Seq[Field],
-                        taxYearsErrors: Seq[ParserValidationError]): Left[Seq[ParserValidationError], A] =
-    Left(errorsFromForm(formWithErrors, fields, fieldIndex) ++ taxYearsErrors)
+                        taxYearsErrors: Seq[ParserValidationError]): Validated[Seq[ParserValidationError], A] =
+    Invalid(errorsFromForm(formWithErrors, fields, fieldIndex) ++ taxYearsErrors)
 
   private def checkIfTaxYearHasAnErrorsOrReturnChargeEDetails(chargeEDetails: ChargeEDetails, taxYearsErrors: Seq[ParserValidationError])
-  : Either[Seq[ParserValidationError], ChargeEDetails] =
+  : Validated[Seq[ParserValidationError], ChargeEDetails] =
     if (taxYearsErrors.nonEmpty) {
-      Left(taxYearsErrors)
+      Invalid(taxYearsErrors)
     } else {
-      Right(chargeEDetails)
+      Valid(chargeEDetails)
     }
 
-  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Either[Seq[ParserValidationError], ChargeEDetails] =
+  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Validated[Seq[ParserValidationError], ChargeEDetails] =
     processChargeDetailsValidation(
       index,
       startDate,
@@ -121,8 +121,8 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
       minKey = TaxYearErrorKeys.minKey,
       maxKey = TaxYearErrorKeys.maxKey
     ).apply(fieldValue) match {
-      case Valid => Nil
-      case Invalid(errors) => errors.map(error => ParserValidationError(index, 3, error.message, AnnualAllowanceFieldNames.taxYear))
+      case play.api.data.validation.Valid => Nil
+      case play.api.data.validation.Invalid(errors) => errors.map(error => ParserValidationError(index, 3, error.message, AnnualAllowanceFieldNames.taxYear))
     }
   }
 
@@ -137,7 +137,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
     )
 
     val c = resultFromFormValidationResult[String](
-      Right(fieldValue(columns, fieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)
+      Valid(fieldValue(columns, fieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)
     )
     Seq(a, b, c).combineAll
   }
