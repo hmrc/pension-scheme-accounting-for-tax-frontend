@@ -25,7 +25,7 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json._
 import queries.Gettable
-
+import cats.implicits._
 import java.time.LocalDate
 
 object ParserErrorMessages {
@@ -171,7 +171,7 @@ trait Parser {
       case Some(a) => a
     }
 
-  protected final def combineResults[A](items: A*)(implicit monoid: Monoid[A]): A = monoid.combineAll(items)
+  protected final def combineResults[A](items: A*)(implicit monoid: Monoid[A]): A = items.combineAll
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 
