@@ -16,8 +16,9 @@
 
 package fileUploadParsers
 
+import cats.Monoid
+import cats.implicits._
 import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
-import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
 import fileUploadParsers.ParserErrorMessages.HeaderInvalidOrFileIsEmpty
 import models.{MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
@@ -33,11 +34,28 @@ object ParserErrorMessages {
 }
 
 object Parser {
+  type Result = Either[Seq[ParserValidationError], Seq[CommitItem]]
   val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty: ParserValidationError = ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty, EMPTY)
+
+  implicit val resultMonoid: Monoid[Result] = new Monoid[Result] {
+    def combine(a: Result, b: Result): Result = {
+      (a, b) match {
+        case (Left(x), Left(y)) => Left(x ++ y)
+        case (x@Left(_), Right(_)) => x
+        case (Right(_), x@Left(_)) => x
+        case (Right(x), Right(y)) => Right(x ++ y)
+      }
+    }
+
+    def empty: Result = Right(Nil)
+  }
+
 }
 
 trait Parser {
-  type Result = Either[Seq[ParserValidationError], Seq[CommitItem]]
+
+  import Parser._
+
   protected val fieldNoFirstName = 0
   protected val fieldNoLastName = 1
   protected val fieldNoNino = 2
@@ -46,15 +64,15 @@ trait Parser {
 
   // scalastyle:off parameter.number
   protected def validateField[A](
-                                index: Int,
-                                columns: Seq[String],
-                                page: Int => Gettable[_],
-                                formFieldName: String,
-                                columnName: String,
-                                fieldNo: Int,
-                                formProvider: => Form[A],
-                                convertValue: String => String = identity
-                              )(implicit writes: Writes[A]): Result = {
+                                  index: Int,
+                                  columns: Seq[String],
+                                  page: Int => Gettable[_],
+                                  formFieldName: String,
+                                  columnName: String,
+                                  fieldNo: Int,
+                                  formProvider: => Form[A],
+                                  convertValue: String => String = identity
+                                )(implicit writes: Writes[A]): Result = {
     def bindForm(index: Int, columns: Seq[String],
                  fieldName: String, fieldNo: Int)
     : Either[Seq[ParserValidationError], A] = {
@@ -100,7 +118,7 @@ trait Parser {
                            (implicit messages: Messages): Result = {
     rows.zipWithIndex.foldLeft[Result](Right(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
-      case (acc, Tuple2(row, index)) => combineResults(acc, validateFields(startDate, index, row.toIndexedSeq))
+      case (acc, Tuple2(row, index)) => Seq(acc, validateFields(startDate, index, row.toIndexedSeq)).combineAll
     }
   }
 
@@ -152,16 +170,6 @@ trait Parser {
     r.toOption.flatMap(_.headOption.flatMap(_.value.asOpt[A])) match {
       case None => default
       case Some(a) => a
-    }
-
-  protected final def combineResults(items: Result*): Result =
-    items.foldLeft[Result](Right(Nil)) { (b, c) =>
-      (b, c) match {
-        case (Left(x), Left(y)) => Left(x ++ y)
-        case (x@Left(_), Right(_)) => x
-        case (Right(_), x@Left(_)) => x
-        case (Right(x), Right(y)) => Right(x ++ y)
-      }
     }
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")

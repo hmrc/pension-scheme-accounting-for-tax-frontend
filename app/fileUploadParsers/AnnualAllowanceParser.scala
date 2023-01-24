@@ -16,8 +16,10 @@
 
 package fileUploadParsers
 
+import cats.implicits.toFoldableOps
 import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
+import fileUploadParsers.Parser.Result
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
@@ -27,6 +29,7 @@ import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsP
 import play.api.data.Form
 import play.api.data.validation.{Invalid, Valid}
 import play.api.i18n.Messages
+import fileUploadParsers.Parser.resultMonoid
 
 import java.time.LocalDate
 
@@ -136,6 +139,6 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
     val c = resultFromFormValidationResult[String](
       Right(fieldValue(columns, fieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)
     )
-    combineResults(a, b, c)
+    Seq(a, b, c).combineAll
   }
 }

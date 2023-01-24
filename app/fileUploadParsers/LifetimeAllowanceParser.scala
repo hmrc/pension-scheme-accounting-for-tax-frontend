@@ -16,9 +16,11 @@
 
 package fileUploadParsers
 
+import cats.implicits.toFoldableOps
 import config.FrontendAppConfig
 import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames
 import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames._
+import fileUploadParsers.Parser.Result
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import models.chargeD.ChargeDDetails
@@ -26,6 +28,7 @@ import models.{MemberDetails, Quarters}
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
+import fileUploadParsers.Parser.resultMonoid
 
 import java.time.LocalDate
 
@@ -82,6 +85,6 @@ trait LifetimeAllowanceParser extends Parser {
     val b = resultFromFormValidationResult[ChargeDDetails](
       chargeDetailsValidation(startDate, index, columns), createCommitItem(index, ChargeDetailsPage.apply)
     )
-    combineResults(a, b)
+    Seq(a, b).combineAll
   }
 }
