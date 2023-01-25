@@ -89,7 +89,7 @@ trait Parser {
   def parse(startDate: LocalDate, rows: Seq[Array[String]], userAnswers: UserAnswers)
            (implicit messages: Messages): Validated[Seq[ParserValidationError], UserAnswers] = {
     rows.headOption match {
-      case Some(row) if true => //row.mkString(",").equalsIgnoreCase(validHeader) =>
+      case Some(row) if row.mkString(",").equalsIgnoreCase(validHeader) =>
         rows.size match {
           case n if n >= 2 => parseDataRows(startDate, rows).map { commitItems =>
             commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
