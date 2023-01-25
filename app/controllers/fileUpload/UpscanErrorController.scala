@@ -63,15 +63,18 @@ class UpscanErrorController @Inject()(
   def invalidHeaderOrBodyError(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
+
         val viewModel = GenericViewModel(
           submitUrl = routes.FileUploadController.onPageLoad(srn, startDate.toString, accessType, version, chargeType).url,
           returnUrl = config.schemeDashboardUrl(request).format(srn),
           schemeName = schemeName
         )
+        val isPsr = request.userAnswers.isPublicServicePensionsRemedy(chargeType)
         val json = Json.obj(
           "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-          "fileTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType).url,
-          "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType).url,
+          "fileTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url,
+          "fileDownloadInstructionsLink" ->
+            controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url,
           "viewModel" -> viewModel
         )
         renderer.render("fileUpload/error/invalidHeaderOrBody.njk", json).map(Ok(_))

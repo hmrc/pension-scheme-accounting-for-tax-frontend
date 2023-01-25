@@ -16,6 +16,7 @@
 
 package models
 
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import pages._
 import play.api.libs.json._
 
@@ -116,6 +117,13 @@ final case class UserAnswers(
         page.cleanup(None, updatedAnswers)
     }
   }
+
+  def isPublicServicePensionsRemedy(chargeType: ChargeType): Option[Boolean] = chargeType match {
+    case ChargeTypeLifetimeAllowance | ChargeTypeAnnualAllowance =>
+      get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
+    case _ => None
+  }
+
 }
 
 

@@ -17,7 +17,7 @@
 package controllers
 
 import controllers.base.ControllerSpecBase
-import models.ChargeType.ChargeTypeAnnualAllowance
+import models.ChargeType.ChargeTypeOverseasTransfer
 import org.scalatest.concurrent.ScalaFutures.whenReady
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -26,11 +26,11 @@ class FileDownloadControllerSpec extends ControllerSpecBase {
 
   "templateFile" must {
 
-    "return an OK with a GET" in {
+    "return an OK with a GET for Overseas charge type" in {
 
       val application = applicationBuilder(userAnswers = None).build()
 
-      val request = FakeRequest(GET, routes.FileDownloadController.templateFile(ChargeTypeAnnualAllowance).url)
+      val request = FakeRequest(GET, routes.FileDownloadController.templateFile(ChargeTypeOverseasTransfer, None).url)
 
       val result = route(application, request).value
 
@@ -39,30 +39,30 @@ class FileDownloadControllerSpec extends ControllerSpecBase {
       whenReady(result) { response =>
         val headers: Option[String] = response.header.headers.get("Content-Disposition")
 
-        headers mustBe Some("""attachment; filename="aft-annual-allowance-charge-upload-template.csv"""")
+        headers mustBe Some("""attachment; filename="aft-overseas-transfer-charge-upload-template.csv"""")
       }
 
       application.stop()
     }
   }
 
-  "instructionsFile" must {}
-  "return an OK with a GET" in {
-    val application = applicationBuilder(userAnswers = None).build()
+  "instructionsFile" must {
+    "return an OK with a GET for Overseas charge type" in {
+      val application = applicationBuilder(userAnswers = None).build()
 
-    val request = FakeRequest(GET, routes.FileDownloadController.instructionsFile(ChargeTypeAnnualAllowance).url)
+      val request = FakeRequest(GET, routes.FileDownloadController.instructionsFile(ChargeTypeOverseasTransfer, None).url)
 
-    val result = route(application, request).value
+      val result = route(application, request).value
 
-    status(result) mustEqual OK
+      status(result) mustEqual OK
 
-    whenReady(result) { response =>
-      val headers: Option[String] = response.header.headers.get("Content-Disposition")
+      whenReady(result) { response =>
+        val headers: Option[String] = response.header.headers.get("Content-Disposition")
 
-      headers mustBe Some("""attachment; filename="aft-annual-allowance-charge-upload-format-instructions.ods"""")
+        headers mustBe Some("""attachment; filename="aft-overseas-transfer-charge-upload-format-instructions.ods"""")
+      }
+
+      application.stop()
     }
-
-    application.stop()
   }
-
 }

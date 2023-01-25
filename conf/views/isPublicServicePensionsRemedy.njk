@@ -27,14 +27,20 @@
 
           {{ csrf() | safe }}
 
+          <h1 class="govuk-heading-xl">
+            {{ messages(manOrBulkHeading, chargeTypeDescription) }}
+          </h1>
+
+        <p class="govuk-body"> {{ messages("isPublicServicePensionsRemedy.p1") }}</p>
+
           {{ govukRadios({
             classes: "govuk-radios--inline",
             name: 'value',
             fieldset: {
               legend: {
                 text: messages(manOrBulkHeading, chargeTypeDescription),
-                isPageHeading: true,
-                classes: "govuk-fieldset__legend--xl"
+                isPageHeading: false,
+                classes: "govuk-visually-hidden"
               }
             },
             items: radios,
