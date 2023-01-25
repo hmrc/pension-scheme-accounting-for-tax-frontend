@@ -23,13 +23,13 @@ import forms.YesNoFormProvider
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.mccloud.WasAnotherPensionSchemePage
+import pages.IsPublicServicePensionsRemedyPage
+import pages.mccloud.{IsChargeInAdditionReportedPage, SchemePathHelper, WasAnotherPensionSchemePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -39,7 +39,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class WasAnotherPensionSchemeController @Inject()(override val messagesApi: MessagesApi,
                                                   userAnswersCacheConnector: UserAnswersCacheConnector,
-                                                  userAnswersService: UserAnswersService,
                                                   navigator: CompoundNavigator,
                                                   identify: IdentifierAction,
                                                   getData: DataRetrievalAction,
@@ -48,7 +47,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
                                                   formProvider: YesNoFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -74,7 +73,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
           )
 
           val preparedForm = request.userAnswers.get(WasAnotherPensionSchemePage(chargeType, index)) match {
-            case None        => form(chargeTypeDescription)
+            case None => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
@@ -123,7 +122,12 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(WasAnotherPensionSchemePage(chargeType, index), value, mode))
+                updatedAnswers <- Future.fromTry(
+                  request.userAnswers
+                    .removeWithPath(SchemePathHelper.basePath(chargeType, index))
+                    .setOrException(IsPublicServicePensionsRemedyPage(chargeType, Some(index)), true)
+                    .setOrException(IsChargeInAdditionReportedPage(chargeType, index), true)
+                    .set(WasAnotherPensionSchemePage(chargeType, index), value))
                 _ <- userAnswersCacheConnector
                   .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
               } yield

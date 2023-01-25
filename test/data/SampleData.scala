@@ -25,7 +25,7 @@ import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement._
-import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models._
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -69,6 +69,11 @@ object SampleData {
   val version = "1"
   val versionInt = 1
   val version2Int = 2
+
+  val pstrNumber = "12345678RA"
+  val taxYear = new YearRange("2020")
+  val taxQuarter: AFTQuarter = AFTQuarter(LocalDate.of(2020, 1, 1), LocalDate.of(2020, 3, 31))
+  val chargeAmountReported = BigDecimal(83.44)
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)
@@ -116,6 +121,204 @@ object SampleData {
       "pstr" -> pstr,
       "quarter" -> AFTQuarter(QUARTER_START_DATE, QUARTER_END_DATE))
     )
+
+  def uaWithPSPRAndOneSchemeAnnual: UserAnswers =
+    UserAnswers(Json.obj(
+      "schemeName" -> schemeName,
+      "memberDetails" -> memberDetails,
+      "annualAllowanceYear" -> "2020",
+      "chargeDetails" -> chargeEDetails,
+      "mccloudRemedy" -> Json.obj(
+        "isPublicServicePensionsRemedy" -> true,
+        "isChargeInAdditionReported" -> true,
+        "wasAnotherPensionScheme" -> true,
+        "schemes" -> Json.arr(
+          Json.obj(
+            "pstr" -> pstrNumber,
+            "taxYearReportedAndPaidPage" -> taxYear,
+            "taxQuarterReportedAndPaid" -> taxQuarter,
+            "chargeAmountReported" -> chargeAmountReported
+          )
+        )
+      )
+    ))
+
+  def uaWithPSPRAndTwoSchemesAnnual: UserAnswers =
+    UserAnswers(Json.obj(
+      "schemeName" -> schemeName,
+      "memberDetails" -> memberDetails,
+      "annualAllowanceYear" -> "2020",
+      "chargeDetails" -> chargeEDetails,
+      "mccloudRemedy" -> Json.obj(
+        "isPublicServicePensionsRemedy" -> true,
+        "isChargeInAdditionReported" -> true,
+        "wasAnotherPensionScheme" -> true,
+        "schemes" -> Json.arr(
+          Json.obj(
+            "pstr" -> "20123456RZ",
+            "taxYearReportedAndPaidPage" -> taxYear,
+            "taxQuarterReportedAndPaid" -> taxQuarter,
+            "chargeAmountReported" -> chargeAmountReported
+          ),
+          Json.obj(
+            "pstr" -> "20123456RQ",
+            "taxYearReportedAndPaidPage" -> taxYear,
+            "taxQuarterReportedAndPaid" -> taxQuarter,
+            "chargeAmountReported" -> chargeAmountReported
+          )
+        )
+      )
+    ))
+
+  def uaWithPSPRAndOneSchemeAnnualNav: UserAnswers =
+    UserAnswers(Json.obj(
+      "chargeEDetails" -> Json.obj(
+        "members" -> Json.arr(
+          Json.obj(
+            "mccloudRemedy" -> Json.obj(
+              "schemes" -> Json.arr(
+                Json.obj(
+                  "pstr" -> "20123456RZ",
+                  "taxYearReportedAndPaidPage" -> taxYear,
+                  "taxQuarterReportedAndPaid" -> taxQuarter,
+                  "chargeAmountReported" -> chargeAmountReported,
+                  "removePensionScheme" -> true
+                )
+              )
+            ))
+        ))
+    ))
+
+  def uaWithPSPRAndTwoSchemesAnnualNav: UserAnswers =
+    UserAnswers(Json.obj(
+      "chargeEDetails" ->Json.obj(
+        "members" -> Json.arr(
+          Json.obj(
+            "mccloudRemedy" -> Json.obj(
+              "schemes" -> Json.arr(
+                Json.obj(
+                  "pstr" -> "20123456RZ",
+                  "taxYearReportedAndPaidPage" -> taxYear,
+                  "taxQuarterReportedAndPaid" -> taxQuarter,
+                  "chargeAmountReported" -> chargeAmountReported,
+                  "removePensionScheme" -> true
+                ),
+                Json.obj(
+                  "pstr" -> "20123456RQ",
+                  "taxYearReportedAndPaidPage" -> taxYear,
+                  "taxQuarterReportedAndPaid" -> taxQuarter,
+                  "chargeAmountReported" -> chargeAmountReported,
+                  "removePensionScheme" -> false
+                )
+              )
+            ))
+        ))
+    ))
+
+  def uaWithPSPRAndOneSchemeLifetimeNav: UserAnswers =
+    UserAnswers(Json.obj(
+      "chargeDDetails" -> Json.obj(
+        "members" -> Json.arr(
+          Json.obj(
+            "mccloudRemedy" -> Json.obj(
+              "schemes" -> Json.arr(
+                Json.obj(
+                  "pstr" -> "20123456RZ",
+                  "taxYearReportedAndPaidPage" -> taxYear,
+                  "taxQuarterReportedAndPaid" -> taxQuarter,
+                  "chargeAmountReported" -> chargeAmountReported,
+                  "removePensionScheme" -> true
+                )
+              )
+            ))
+        ))
+    ))
+
+  def uaWithPSPRAndTwoSchemesLifetimeNav: UserAnswers =
+    UserAnswers(Json.obj(
+      "chargeDDetails" -> Json.obj(
+        "members" -> Json.arr(
+          Json.obj(
+            "mccloudRemedy" -> Json.obj(
+              "schemes" -> Json.arr(
+                Json.obj(
+                  "pstr" -> "20123456RZ",
+                  "taxYearReportedAndPaidPage" -> taxYear,
+                  "taxQuarterReportedAndPaid" -> taxQuarter,
+                  "chargeAmountReported" -> chargeAmountReported,
+                  "removePensionScheme" -> true
+                ),
+                Json.obj(
+                  "pstr" -> "20123456RQ",
+                  "taxYearReportedAndPaidPage" -> taxYear,
+                  "taxQuarterReportedAndPaid" -> taxQuarter,
+                  "chargeAmountReported" -> chargeAmountReported,
+                  "removePensionScheme" -> false
+                )
+              )
+            ))
+        ))
+    ))
+
+  def uaWithPSPRAndNoSchemesLifetime: UserAnswers =
+    UserAnswers(Json.obj(
+      "schemeName" -> schemeName,
+      "memberDetails" -> memberDetails,
+      "annualAllowanceYear" -> "2020",
+      "chargeDetails" -> chargeDDetails,
+      "mccloudRemedy" -> Json.obj(
+        "isPublicServicePensionsRemedy" -> true,
+        "isChargeInAdditionReported" -> true
+      )
+    ))
+
+  def uaWithPSPRAndOneSchemeLifetime: UserAnswers =
+    UserAnswers(Json.obj(
+      "schemeName" -> schemeName,
+      "memberDetails" -> memberDetails,
+      "annualAllowanceYear" -> "2020",
+      "chargeDetails" -> chargeDDetails,
+      "mccloudRemedy" -> Json.obj(
+        "isPublicServicePensionsRemedy" -> true,
+        "isChargeInAdditionReported" -> true,
+        "wasAnotherPensionScheme" -> true,
+        "schemes" -> Json.arr(
+          Json.obj(
+            "pstr" -> pstrNumber,
+            "taxYearReportedAndPaidPage" -> taxYear,
+            "taxQuarterReportedAndPaid" -> taxQuarter,
+            "chargeAmountReported" -> chargeAmountReported
+          )
+        )
+      )
+    ))
+
+  def uaWithPSPRAndTwoSchemesLifetime: UserAnswers =
+    UserAnswers(Json.obj(
+      "schemeName" -> schemeName,
+      "memberDetails" -> memberDetails,
+      "annualAllowanceYear" -> "2020",
+      "chargeDetails" -> chargeDDetails,
+      "mccloudRemedy" -> Json.obj(
+        "isPublicServicePensionsRemedy" -> true,
+        "isChargeInAdditionReported" -> true,
+        "wasAnotherPensionScheme" -> true,
+        "schemes" -> Json.arr(
+          Json.obj(
+            "pstr" -> "20123456RZ",
+            "taxYearReportedAndPaidPage" -> taxYear,
+            "taxQuarterReportedAndPaid" -> taxQuarter,
+            "chargeAmountReported" -> chargeAmountReported
+          ),
+          Json.obj(
+            "pstr" -> "20123456RQ",
+            "taxYearReportedAndPaidPage" -> taxYear,
+            "taxQuarterReportedAndPaid" -> taxQuarter,
+            "chargeAmountReported" -> chargeAmountReported
+          )
+        )
+      )
+    ))
 
   def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get

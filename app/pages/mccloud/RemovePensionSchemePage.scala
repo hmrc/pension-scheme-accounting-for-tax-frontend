@@ -17,19 +17,13 @@
 package pages.mccloud
 
 import models.ChargeType
+import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-object SchemePathHelper {
-  def path(chargeType: ChargeType, index: Int): JsPath = {
-    basePath(chargeType, index) \ "schemes"
-  }
+case class RemovePensionSchemePage(chargeType: ChargeType, index: Int, schemeIndex: Int) extends QuestionPage[Boolean] {
+  override def path: JsPath = SchemePathHelper.path(chargeType, index)  \ schemeIndex \ RemovePensionSchemePage.toString
+}
 
-  def basePath(chargeType: ChargeType, index: Int): JsPath = {
-    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy"
-  }
-
-  def schemePath(chargeType: ChargeType, index: Int, schemeIndex: Int): JsPath = {
-    basePath(chargeType, index) \ "schemes" \ schemeIndex
-  }
-
+object RemovePensionSchemePage {
+  override def toString: String = "removePensionScheme"
 }

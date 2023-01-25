@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package pages.mccloud
+package models.mccloud
 
-import models.ChargeType
-import play.api.libs.json.JsPath
-
-object SchemePathHelper {
-  def path(chargeType: ChargeType, index: Int): JsPath = {
-    basePath(chargeType, index) \ "schemes"
-  }
-
-  def basePath(chargeType: ChargeType, index: Int): JsPath = {
-    JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy"
-  }
-
-  def schemePath(chargeType: ChargeType, index: Int, schemeIndex: Int): JsPath = {
-    basePath(chargeType, index) \ "schemes" \ schemeIndex
-  }
-
-}
+import models.{AFTQuarter, YearRange}
+case class PensionsRemedySchemeSummary(schemeIndex: Int,
+                                       pstrNumber: Option[String],
+                                       taxYear: Option[YearRange],
+                                       taxQuarter: Option[AFTQuarter],
+                                       chargeAmountReported: Option[BigDecimal])
