@@ -220,7 +220,7 @@ object DataRetrievals {
   }
 
   private def getPensionsRemedySummary(ua: UserAnswers, index: Index, chargeType: ChargeType): PensionsRemedySummary = {
-    val isPublicServicePensionsRemedy = ua.get(pages.mccloud.IsPublicServicePensionsRemedyPage(chargeType, index))
+    val isPublicServicePensionsRemedy = ua.get(pages.IsPublicServicePensionsRemedyPage(chargeType, Some(index)))
     val isChargeInAdditionReported = ua.get(pages.mccloud.IsChargeInAdditionReportedPage(chargeType, index))
     val wasAnotherPensionScheme = ua.get(pages.mccloud.WasAnotherPensionSchemePage(chargeType, index))
     val pensionsRemedySchemeSummary = getPensionsRemedySchemeSummary(ua, index, chargeType, wasAnotherPensionScheme)

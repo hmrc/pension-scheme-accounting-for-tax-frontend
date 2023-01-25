@@ -39,8 +39,8 @@ class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessTyp
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.mccloud.routes.IsPublicServicePensionsRemedyController
-              .onPageLoad(chargeType, CheckMode, srn, startDate, accessType, version, index)
+            href = controllers.routes.IsPublicServicePensionsRemedyController
+              .onPageLoad(chargeType, CheckMode, srn, startDate, accessType, version, Some(index))
               .url,
             visuallyHiddenText = Some(
               Literal(

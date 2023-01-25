@@ -17,10 +17,11 @@
 package controllers.fileUpload
 
 import controllers.actions._
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.SchemeNameQuery
+import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}
 import pages.fileUpload.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -48,6 +49,11 @@ class WhatYouWillNeedController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
 
+      val psr = chargeType match {
+        case ChargeTypeLifetimeAllowance | ChargeTypeAnnualAllowance => ua.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
+        case _ => None
+      }
+
       val viewModel = GenericViewModel(
         submitUrl = navigator.nextPage(WhatYouWillNeedPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
@@ -61,7 +67,8 @@ class WhatYouWillNeedController @Inject()(
           "srn" -> srn, "startDate" -> Some(startDate),
           "fileDownloadTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType).url,
           "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType).url,
-          "viewModel" -> viewModel))
+          "viewModel" -> viewModel,
+          "psr" -> psr))
         .map(Ok(_))
     }
 }

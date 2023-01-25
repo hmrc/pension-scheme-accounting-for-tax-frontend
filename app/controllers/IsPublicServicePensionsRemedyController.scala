@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package controllers.mccloud
+package controllers
 
 import connectors.cache.UserAnswersCacheConnector
-import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.mccloud.{IsPublicServicePensionsRemedyPage, SchemePathHelper}
+import pages.IsPublicServicePensionsRemedyPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -52,8 +51,12 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
-    formProvider(messages("isPublicServicePensionsRemedy.error.required", memberName))
+  private def form(memberName: String, optIndex: Option[Index])(implicit messages: Messages): Form[Boolean] = {
+    optIndex match {
+      case Some(_) => formProvider(messages("isPublicServicePensionsRemedy.error.required", memberName))
+      case None => formProvider(messages("isPublicServicePensionsRemedyBulk.error.required", memberName))
+    }
+  }
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
@@ -61,7 +64,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
-                 index: Index): Action[AnyContent] =
+                 index: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
@@ -73,9 +76,14 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             schemeName = schemeName
           )
 
+          val( heading, title ) = index match {
+            case Some(_) => Tuple2("isPublicServicePensionsRemedy.heading", "isPublicServicePensionsRemedy.title")
+            case None => Tuple2("isPublicServicePensionsRemedyBulk.heading", "isPublicServicePensionsRemedyBulk.title")
+          }
+
           val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
-            case None => form(chargeTypeDescription)
-            case Some(value) => form(chargeTypeDescription).fill(value)
+            case None        => form(chargeTypeDescription, index)
+            case Some(value) => form(chargeTypeDescription, index).fill(value)
           }
 
           val json = Json.obj(
@@ -84,68 +92,66 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             "form" -> preparedForm,
             "viewModel" -> viewModel,
             "radios" -> Radios.yesNo(preparedForm("value")),
-            "chargeTypeDescription" -> chargeTypeDescription
+            "chargeTypeDescription" -> chargeTypeDescription,
+            "manOrBulkHeading" -> heading,
+            "manOrBulkTitle" -> title
           )
 
-          renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(Ok(_))
+          renderer.render("isPublicServicePensionsRemedy.njk", json).map(Ok(_))
 
         }
     }
 
+  // scalastyle:off method.length
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
                srn: String,
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,
-               index: Index): Action[AnyContent] =
+               index: Option[Index]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
-        form(chargeTypeDescription)
+        form(chargeTypeDescription, index)
           .bindFromRequest()
-          .fold(
-            formWithErrors => {
-
+          .fold( formWithErrors => {
               val viewModel = GenericViewModel(
                 submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
+              val( heading, title ) = index match {
+                case Some(_) => Tuple2("isPublicServicePensionsRemedy.heading", "isPublicServicePensionsRemedy.title")
+                case None => Tuple2("isPublicServicePensionsRemedyBulk.heading", "isPublicServicePensionsRemedyBulk.title")
+              }
               val json = Json.obj(
                 "srn" -> srn,
                 "startDate" -> Some(localDateToString(startDate)),
                 "form" -> formWithErrors,
                 "viewModel" -> viewModel,
                 "radios" -> Radios.yesNo(formWithErrors("value")),
-                "chargeTypeDescription" -> chargeTypeDescription
+                "chargeTypeDescription" -> chargeTypeDescription,
+                "manOrBulkHeading" -> heading,
+                "manOrBulkTitle" -> title
               )
-              renderer.render("mccloud/isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
-
+              renderer.render("isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
             },
-            value =>
-              if (value) {
+            value => if (value) {
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
                   _ <- userAnswersCacheConnector
-                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
+                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
                 } yield
-                  Redirect(
-                    navigator
-                      .nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+                  Redirect( navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
               } else {
-                for {
-                  updatedAnswers <- Future.fromTry(
-                    request.userAnswers
-                      .removeWithPath(SchemePathHelper.basePath(chargeType, index))
-                      .set(IsPublicServicePensionsRemedyPage(chargeType, index), value))
-                  _ <- userAnswersCacheConnector
-                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
-                } yield
-                  Redirect(
-                    navigator
-                      .nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
-              }
+               val uaAfterRemoval =  request.userAnswers
+                  .remove(IsPublicServicePensionsRemedyPage(chargeType, index)).getOrElse(request.userAnswers)
+                val uaAfterSet = uaAfterRemoval.setOrException(IsPublicServicePensionsRemedyPage(chargeType, index), value)
+                userAnswersCacheConnector.savePartial(request.internalId, uaAfterSet.data, chargeType = Some(chargeType), memberNo = index.map(_.id)).map{ _ =>
+                    Redirect(navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, uaAfterSet, srn, startDate, accessType, version))
+                }
+            }
           )
       }
     }

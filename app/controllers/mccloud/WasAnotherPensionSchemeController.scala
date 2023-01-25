@@ -23,7 +23,8 @@ import forms.YesNoFormProvider
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.mccloud.{IsChargeInAdditionReportedPage, IsPublicServicePensionsRemedyPage, SchemePathHelper, WasAnotherPensionSchemePage}
+import pages.IsPublicServicePensionsRemedyPage
+import pages.mccloud.{IsChargeInAdditionReportedPage, SchemePathHelper, WasAnotherPensionSchemePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -124,7 +125,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
                 updatedAnswers <- Future.fromTry(
                   request.userAnswers
                     .removeWithPath(SchemePathHelper.basePath(chargeType, index))
-                    .setOrException(IsPublicServicePensionsRemedyPage(chargeType, index), true)
+                    .setOrException(IsPublicServicePensionsRemedyPage(chargeType, Some(index)), true)
                     .setOrException(IsChargeInAdditionReportedPage(chargeType, index), true)
                     .set(WasAnotherPensionSchemePage(chargeType, index), value))
                 _ <- userAnswersCacheConnector

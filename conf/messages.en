@@ -1310,12 +1310,14 @@ fileupload.whatYouWillNeed.annualAllowance.item3 = the date the scheme administr
 fileupload.whatYouWillNeed.annualAllowance.item4 = the amount of the annual allowance charge
 fileupload.whatYouWillNeed.annualAllowance.item5 = the tax year to which the annual allowance charge relates
 fileupload.whatYouWillNeed.annualAllowance.item6 = whether the annual allowance payment type was mandatory or voluntary
+fileupload.whatYouWillNeed.annualAllowance.item7 = whether the annual allowance charge is being paid as a result of the Public Service Pensions Remedy and, if applicable, the details of the previously reported charge
 
 fileupload.whatYouWillNeed.lifeTimeAllowance.item1 = their name
 fileupload.whatYouWillNeed.lifeTimeAllowance.item2 = their National Insurance number
 fileupload.whatYouWillNeed.lifeTimeAllowance.item3 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
 fileupload.whatYouWillNeed.lifeTimeAllowance.item4 = the amount of tax due at 25%
 fileupload.whatYouWillNeed.lifeTimeAllowance.item5 = the amount of tax due at 55%
+fileupload.whatYouWillNeed.lifeTimeAllowance.item6 = whether the lifetime allowance charge is being paid as a result of the Public Service Pensions Remedy and, if applicable, the details of the previously reported charge
 
 fileupload.whatYouWillNeed.overseasTransfer.item1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
 fileupload.whatYouWillNeed.overseasTransfer.item2 = the date and ’transferred value’ of each transfer
@@ -1550,9 +1552,11 @@ chargeType.description.lifeTimeAllowance = lifetime allowance charge
 chargeType.description.annualAllowance = annual allowance charge
 
 isPublicServicePensionsRemedy.title = Is this {0} being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedyBulk.title = Are any entries for this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedy.heading = Is this {0} being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedyBulk.heading = Are any entries for this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pensions Remedy
-isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pension Remedy
+isPublicServicePensionsRemedyBulk.error.required = Select yes if any {0}s are being paid as a result of the Public Service Pensions Remedy
 isPublicServicePensionsRemedy.label = whether this payment is as of a result of the Public Service Pensions Remedy
 
 isChargeInAdditionReported.title = Is this {0} in addition to a previously reported {0} for this member?

@@ -25,6 +25,7 @@ import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.mccloud.{PensionsRemedySchemeSummary, PensionsRemedySummary}
 import models.{UserAnswers, YearRange}
+import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
 import pages.mccloud._
 import play.api.libs.json.{JsObject, Json}
@@ -78,19 +79,19 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def updateUserAnswers(ua: UserAnswers, isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean): UserAnswers = {
 
     (isPSR, isChargeInAddition, wasAnotherPensionScheme) match {
-      case (false, _, _) => ua.setOrException(IsPublicServicePensionsRemedyPage(lifetimeAllowanceCharge, 0), isPSR)
+      case (false, _, _) => ua.setOrException(IsPublicServicePensionsRemedyPage(lifetimeAllowanceCharge, Some(0)), isPSR)
       case (true, false, _) =>
-        ua.setOrException(IsPublicServicePensionsRemedyPage(lifetimeAllowanceCharge, 0), isPSR)
+        ua.setOrException(IsPublicServicePensionsRemedyPage(lifetimeAllowanceCharge, Some(0)), isPSR)
           .setOrException(IsChargeInAdditionReportedPage(lifetimeAllowanceCharge, 0), isChargeInAddition)
       case (true, true, false) =>
-        ua.setOrException(IsPublicServicePensionsRemedyPage(lifetimeAllowanceCharge, 0), isPSR)
+        ua.setOrException(IsPublicServicePensionsRemedyPage(lifetimeAllowanceCharge, Some(0)), isPSR)
           .setOrException(IsChargeInAdditionReportedPage(lifetimeAllowanceCharge, 0), isChargeInAddition)
           .setOrException(WasAnotherPensionSchemePage(lifetimeAllowanceCharge, 0), wasAnotherPensionScheme)
           .setOrException(TaxYearReportedAndPaidPage(lifetimeAllowanceCharge, 0, None), dynamicYearRange)
           .setOrException(TaxQuarterReportedAndPaidPage(lifetimeAllowanceCharge, 0, None), taxQuarter)
           .setOrException(ChargeAmountReportedPage(lifetimeAllowanceCharge, 0, None), chargeAmountReported)
       case (true, true, true) =>
-        ua.setOrException(IsPublicServicePensionsRemedyPage(lifetimeAllowanceCharge, 0), isPSR)
+        ua.setOrException(IsPublicServicePensionsRemedyPage(lifetimeAllowanceCharge, Some(0)), isPSR)
           .setOrException(IsChargeInAdditionReportedPage(lifetimeAllowanceCharge, 0), isChargeInAddition)
           .setOrException(WasAnotherPensionSchemePage(lifetimeAllowanceCharge, 0), wasAnotherPensionScheme)
           .setOrException(EnterPstrPage(lifetimeAllowanceCharge, 0, 0), pstrNumber)

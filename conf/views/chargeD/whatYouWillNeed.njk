@@ -27,7 +27,9 @@
           <li>{{ messages("chargeD.whatYouWillNeed.li3") }}</li>
           <li>{{ messages("chargeD.whatYouWillNeed.li4") }}</li>
           <li>{{ messages("chargeD.whatYouWillNeed.li5") }}</li>
-          <li>{{ messages("chargeD.whatYouWillNeed.li6") }}</li>
+           {% if psr %}
+                <li>{{ messages(psr) }}</li>
+           {% endif %}
         </ul>
 
          {{ govukButton({
