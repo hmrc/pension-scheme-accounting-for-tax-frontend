@@ -108,7 +108,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
       startDate,
       chargeFields,
       splitDayMonthYear(chargeFields(fieldNoDateNoticeReceived)),
-      validateTaxYear(startDate, index, chargeFields(3))
+      validateTaxYear(startDate, index, chargeFields(fieldNoTaxYear))
     )
 
   private def validateTaxYear(startDate: LocalDate, index: Int, fieldValue: String): Seq[ParserValidationError] = {
@@ -122,7 +122,9 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
       maxKey = TaxYearErrorKeys.maxKey
     ).apply(fieldValue) match {
       case play.api.data.validation.Valid => Nil
-      case play.api.data.validation.Invalid(errors) => errors.map(error => ParserValidationError(index, 3, error.message, AnnualAllowanceFieldNames.taxYear))
+      case play.api.data.validation.Invalid(errors) => errors.map(
+        error => ParserValidationError(index, fieldNoTaxYear, error.message, AnnualAllowanceFieldNames.taxYear)
+      )
     }
   }
 
