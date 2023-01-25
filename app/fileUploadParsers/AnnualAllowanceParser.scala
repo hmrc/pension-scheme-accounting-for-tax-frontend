@@ -56,8 +56,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
   private def processChargeDetailsValidation(index: Int,
                                              startDate: LocalDate,
                                              chargeFields: Seq[String],
-                                             parsedDate: ParsedDate,
-                                             taxYearsErrors: Seq[ParserValidationError]): Validated[Seq[ParserValidationError], ChargeEDetails] = {
+                                             parsedDate: ParsedDate): Validated[Seq[ParserValidationError], ChargeEDetails] = {
     val fields = Seq(
       Field(AnnualAllowanceFieldNames.chargeAmount, chargeFields(fieldNoChargeAmount), AnnualAllowanceFieldNames.chargeAmount, fieldNoChargeAmount),
       Field(AnnualAllowanceFieldNames.dateNoticeReceivedDay, parsedDate.day,
@@ -80,38 +79,27 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
     ).fold(
-      formWithErrors => {
-        errors(index, formWithErrors, fields, taxYearsErrors)},
-
-      value => checkIfTaxYearHasAnErrorsOrReturnChargeEDetails(value, taxYearsErrors)
+      formWithErrors => errors(index, formWithErrors, fields),
+      value => Valid(value)
     )
   }
 
 
   private def errors[A](fieldIndex: Int,
                         formWithErrors: Form[A],
-                        fields: Seq[Field],
-                        taxYearsErrors: Seq[ParserValidationError]): Validated[Seq[ParserValidationError], A] =
-    Invalid(errorsFromForm(formWithErrors, fields, fieldIndex) ++ taxYearsErrors)
-
-  private def checkIfTaxYearHasAnErrorsOrReturnChargeEDetails(chargeEDetails: ChargeEDetails, taxYearsErrors: Seq[ParserValidationError])
-  : Validated[Seq[ParserValidationError], ChargeEDetails] =
-    if (taxYearsErrors.nonEmpty) {
-      Invalid(taxYearsErrors)
-    } else {
-      Valid(chargeEDetails)
-    }
+                        fields: Seq[Field]): Validated[Seq[ParserValidationError], A] =
+    Invalid(errorsFromForm(formWithErrors, fields, fieldIndex))
 
   private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Validated[Seq[ParserValidationError], ChargeEDetails] =
     processChargeDetailsValidation(
       index,
       startDate,
       chargeFields,
-      splitDayMonthYear(chargeFields(fieldNoDateNoticeReceived)),
-      validateTaxYear(startDate, index, chargeFields(fieldNoTaxYear))
+      splitDayMonthYear(chargeFields(fieldNoDateNoticeReceived))
     )
 
-  private def validateTaxYear(startDate: LocalDate, index: Int, fieldValue: String): Seq[ParserValidationError] = {
+  private def validateTaxYear(startDate: LocalDate, index: Int,
+                              columns: Seq[String], fieldValue: String): Validated[Seq[ParserValidationError], String] = {
     val minYearDefaultValue = 2011
     year(
       minYear = minYearDefaultValue,
@@ -121,10 +109,11 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
       minKey = TaxYearErrorKeys.minKey,
       maxKey = TaxYearErrorKeys.maxKey
     ).apply(fieldValue) match {
-      case play.api.data.validation.Valid => Nil
-      case play.api.data.validation.Invalid(errors) => errors.map(
+      case play.api.data.validation.Valid =>
+        Valid(this.fieldValue(columns, fieldNoTaxYear))
+      case play.api.data.validation.Invalid(errors) => Invalid(errors.map(
         error => ParserValidationError(index, fieldNoTaxYear, error.message, AnnualAllowanceFieldNames.taxYear)
-      )
+      ))
     }
   }
 
@@ -132,14 +121,16 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
                                       index: Int,
                                       columns: Seq[String])(implicit messages: Messages): Result = {
     val a = resultFromFormValidationResult[MemberDetails](
-      memberDetailsValidation(index, columns, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)
+      memberDetailsValidation(index, columns, memberDetailsFormProvider()),
+      createCommitItem(index, MemberDetailsPage.apply)
     )
     val b = resultFromFormValidationResult[ChargeEDetails](
-      chargeDetailsValidation(startDate, index, columns), createCommitItem(index, ChargeDetailsPage.apply)
+      chargeDetailsValidation(startDate, index, columns),
+      createCommitItem(index, ChargeDetailsPage.apply)
     )
-
     val c = resultFromFormValidationResult[String](
-      Valid(fieldValue(columns, fieldNoTaxYear)), createCommitItem(index, AnnualAllowanceYearPage.apply)
+      validateTaxYear(startDate, index, columns, fieldValue(columns, fieldNoTaxYear)),
+      createCommitItem(index, AnnualAllowanceYearPage.apply)
     )
     Seq(a, b, c).combineAll
   }
