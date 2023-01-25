@@ -91,9 +91,8 @@ trait Parser {
     rows.headOption match {
       case Some(row) if row.mkString(",").equalsIgnoreCase(validHeader) =>
         rows.size match {
-          case n if n >= 2 => parseDataRows(startDate, rows).map { commitItems =>
-            commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
-          }
+          case n if n >= 2 => parseDataRows(startDate, rows)
+            .map(_.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value)))
           case _ => Invalid(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
       case _ =>
