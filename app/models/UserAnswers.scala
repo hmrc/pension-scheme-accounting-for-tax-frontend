@@ -16,8 +16,11 @@
 
 package models
 
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
+import models.requests.DataRequest
 import pages._
 import play.api.libs.json._
+import play.api.mvc.AnyContent
 
 import scala.util.{Failure, Success, Try}
 
@@ -116,6 +119,16 @@ final case class UserAnswers(
         page.cleanup(None, updatedAnswers)
     }
   }
+}
+
+object UserAnswers {
+
+  def isPublicServicePensionsRemedy(chargeType: ChargeType, request: DataRequest[AnyContent]): Option[Boolean] = chargeType match {
+    case ChargeTypeLifetimeAllowance | ChargeTypeAnnualAllowance =>
+      request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
+    case _ => None
+  }
+
 }
 
 

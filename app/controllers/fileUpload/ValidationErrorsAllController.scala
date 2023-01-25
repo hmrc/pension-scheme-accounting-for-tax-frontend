@@ -19,11 +19,11 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
+import models.UserAnswers.isPublicServicePensionsRemedy
 import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsLessThanMax
 import models.{AccessType, ChargeType}
-import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}
+import pages.SchemeNameQuery
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -51,14 +51,9 @@ class ValidationErrorsAllController @Inject()(appConfig: FrontendAppConfig,
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
 
-        val psr = chargeType match {
-          case ChargeTypeLifetimeAllowance | ChargeTypeAnnualAllowance =>
-            request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
-          case _ => None
-        }
-
         val schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme")
-        val fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType, psr).url
+        val fileDownloadInstructionLink =
+          controllers.routes.FileDownloadController.instructionsFile(chargeType, isPublicServicePensionsRemedy(chargeType,request)).url
         val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
         val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
 
