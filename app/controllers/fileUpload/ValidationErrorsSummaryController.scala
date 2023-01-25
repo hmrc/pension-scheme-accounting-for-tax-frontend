@@ -19,7 +19,6 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.UserAnswers.isPublicServicePensionsRemedy
 import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsMoreThanOrEqualToMax
 import models.{AccessType, ChargeType}
@@ -53,7 +52,7 @@ class ValidationErrorsSummaryController @Inject()(appConfig: FrontendAppConfig,
 
         val schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme")
         val fileDownloadInstructionLink =
-          controllers.routes.FileDownloadController.instructionsFile(chargeType, isPublicServicePensionsRemedy(chargeType, request)).url
+          controllers.routes.FileDownloadController.instructionsFile(chargeType, request.userAnswers.isPublicServicePensionsRemedy(chargeType)).url
         val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
         val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
         fileUploadOutcomeConnector.getOutcome.flatMap {

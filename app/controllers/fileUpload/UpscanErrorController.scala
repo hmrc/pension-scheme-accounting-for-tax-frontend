@@ -19,7 +19,6 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.UserAnswers.isPublicServicePensionsRemedy
 import models.{AccessType, ChargeType, GenericViewModel}
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
@@ -70,11 +69,12 @@ class UpscanErrorController @Inject()(
           returnUrl = config.schemeDashboardUrl(request).format(srn),
           schemeName = schemeName
         )
+        val isPsr = request.userAnswers.isPublicServicePensionsRemedy(chargeType)
         val json = Json.obj(
           "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-          "fileTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType, isPublicServicePensionsRemedy(chargeType,request)).url,
+          "fileTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url,
           "fileDownloadInstructionsLink" ->
-            controllers.routes.FileDownloadController.instructionsFile(chargeType, isPublicServicePensionsRemedy(chargeType,request)).url,
+            controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url,
           "viewModel" -> viewModel
         )
         renderer.render("fileUpload/error/invalidHeaderOrBody.njk", json).map(Ok(_))

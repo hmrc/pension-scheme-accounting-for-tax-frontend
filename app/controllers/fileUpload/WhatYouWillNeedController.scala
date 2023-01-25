@@ -18,7 +18,6 @@ package controllers.fileUpload
 
 import controllers.actions._
 import models.LocalDateBinder._
-import models.UserAnswers.isPublicServicePensionsRemedy
 import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
@@ -48,7 +47,7 @@ class WhatYouWillNeedController @Inject()(
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
-      val isPsr =  isPublicServicePensionsRemedy(chargeType,request)
+      val isPsr =  request.userAnswers.isPublicServicePensionsRemedy(chargeType)
       val (templateDownloadLink, instructionsDownloadLink) =
         (controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url,
         controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url)
