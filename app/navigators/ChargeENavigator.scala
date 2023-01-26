@@ -47,11 +47,18 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   def nextIndex(ua: UserAnswers): Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").size
 
-  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = ua.get(AddMembersPage) match {
-    case Some(true) =>
-      routes.IsPublicServicePensionsRemedyController
-        .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
-    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
+  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
+    val showPSRQuestions = enablePSR(ua)
+    val addMembersPageVal = ua.get(AddMembersPage)
+
+    (addMembersPageVal, showPSRQuestions) match {
+      case (Some(true), true) =>
+        routes.IsPublicServicePensionsRemedyController
+          .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
+      case (Some(true), false) =>
+        MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
+      case _ => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
+    }
   }
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
@@ -84,8 +91,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case Some(true) =>
         controllers.mccloud.routes.IsChargeInAdditionReportedController
           .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, index)
-      case Some(false) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-      case _ => sessionExpiredPage
+      case _ => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     }
 
     case IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, index) =>
@@ -127,15 +133,15 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     mode match {
       case NormalMode =>
         (userAnswers.get(InputSelectionPage(ChargeTypeAnnualAllowance)), userAnswers.get(AddMembersPage), optIndex) match {
-          case (Some(FileUploadInput) | Some(ManualInput), Some(true), Some(index))=>
+          case (Some(FileUploadInput) | Some(ManualInput), Some(true), Some(index)) =>
             MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
-          case (Some(FileUploadInput), _, None)=>
+          case (Some(FileUploadInput), _, None) =>
             controllers.fileUpload.routes.WhatYouWillNeedController
               .onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
-          case (Some(ManualInput), _, Some(index))=>
+          case (Some(ManualInput), _, Some(index)) =>
             controllers.chargeE.routes.WhatYouWillNeedController
               .onPageLoad(srn, startDate, accessType, version, index)
-          case _           => sessionExpiredPage
+          case _ => sessionExpiredPage
         }
       case CheckMode =>
         (userAnswers.get(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, optIndex)), optIndex) match {
@@ -143,8 +149,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
             controllers.mccloud.routes.IsChargeInAdditionReportedController
               .onPageLoad(ChargeTypeAnnualAllowance, mode, srn, startDate, accessType, version, index)
           case (Some(false), Some(index)) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
-          case _           => sessionExpiredPage
-    }
+          case _ => sessionExpiredPage
+        }
       case _ => sessionExpiredPage
     }
   }
@@ -280,7 +286,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 
-  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index:Int): Call = {
+  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Call = {
     val inputSelection = ua.get(InputSelectionPage(ChargeTypeAnnualAllowance))
     val showPSRQuestions = enablePSR(ua)
     (inputSelection, showPSRQuestions) match {
