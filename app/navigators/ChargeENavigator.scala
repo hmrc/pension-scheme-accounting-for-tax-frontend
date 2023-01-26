@@ -31,11 +31,12 @@ import models.{AccessType, CheckMode, MemberDetails, Mode, NormalMode, UploadId,
 import pages.chargeE._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import pages.mccloud._
-import pages.{IsPublicServicePensionsRemedyPage, Page}
+import pages.{IsPublicServicePensionsRemedyPage, Page, QuarterPage}
 import play.api.libs.json.JsArray
 import play.api.mvc.{AnyContent, Call}
+import utils.DateHelper
 
-import java.time.LocalDate
+import java.time.{LocalDate, Month}
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
@@ -69,7 +70,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
-    case InputSelectionPage(ChargeTypeAnnualAllowance) => inputSelectionNav(ua, srn, startDate, accessType, version)
+    case InputSelectionPage(ChargeTypeAnnualAllowance) => inputSelectionNav(ua, srn, startDate, accessType, version, nextIndex(ua))
 
     // TODO: Refactor magic strings
     case pages.fileUpload.WhatYouWillNeedPage(ChargeTypeAnnualAllowance) =>
@@ -279,13 +280,29 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 
-  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
-    ua.get(InputSelectionPage(ChargeTypeAnnualAllowance)) match {
-      case Some(ManualInput) => controllers.routes.IsPublicServicePensionsRemedyController
+  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index:Int): Call = {
+    val inputSelection = ua.get(InputSelectionPage(ChargeTypeAnnualAllowance))
+    val showPSRQuestions = enablePSR(ua)
+    (inputSelection, showPSRQuestions) match {
+      case (Some(ManualInput), true) => controllers.routes.IsPublicServicePensionsRemedyController
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, Some(nextIndex(ua)))
-      case Some(FileUploadInput) => controllers.routes.IsPublicServicePensionsRemedyController
+      case (Some(FileUploadInput), true) => controllers.routes.IsPublicServicePensionsRemedyController
         .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, version, None)
+      case (Some(ManualInput), false) => controllers.chargeE.routes.WhatYouWillNeedController
+        .onPageLoad(srn, startDate, accessType, version, index)
+      case (Some(FileUploadInput), false) => controllers.fileUpload.routes.WhatYouWillNeedController
+        .onPageLoad(srn, startDate, accessType, version, ChargeTypeAnnualAllowance)
       case _ => sessionExpiredPage
+    }
+  }
+
+  private def enablePSR(userAnswers: UserAnswers): Boolean = {
+    val selectedAFTQuarter = userAnswers.get(QuarterPage)
+    val mcCloudDisplayFromDate = LocalDate.of(DateHelper.today.getYear, Month.APRIL.getValue, 1)
+    selectedAFTQuarter match {
+      case Some(aftQuarter) =>
+        if (aftQuarter.startDate.isAfter(mcCloudDisplayFromDate) || aftQuarter.startDate.isEqual(mcCloudDisplayFromDate)) true else false
+      case _ => false
     }
   }
 
