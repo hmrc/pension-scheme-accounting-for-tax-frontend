@@ -48,7 +48,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
                                                   formProvider: YesNoFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -74,7 +74,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
           )
 
           val preparedForm = request.userAnswers.get(WasAnotherPensionSchemePage(chargeType, index)) match {
-            case None        => form(chargeTypeDescription)
+            case None => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 

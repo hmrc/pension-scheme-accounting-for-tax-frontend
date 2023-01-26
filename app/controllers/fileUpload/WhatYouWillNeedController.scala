@@ -17,12 +17,11 @@
 package controllers.fileUpload
 
 import controllers.actions._
-import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
+import pages.SchemeNameQuery
 import pages.fileUpload.WhatYouWillNeedPage
-import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -48,29 +47,10 @@ class WhatYouWillNeedController @Inject()(
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
-
-      val psr = chargeType match {
-        case ChargeTypeLifetimeAllowance | ChargeTypeAnnualAllowance => ua.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
-        case _ => None
-      }
-
-      val (templateDownloadLink, instructionsDownloadLink): (Json.JsValueWrapper, Json.JsValueWrapper) = (psr, chargeType) match {
-          case (Some(true), ChargeTypeAnnualAllowance) =>
-            (controllers.routes.FileDownloadController.templateFile(ChargeTypeAnnualAllowance, Some(true)).url,
-              controllers.routes.FileDownloadController.instructionsFile(ChargeTypeAnnualAllowance, Some(true)).url)
-          case (Some(true), ChargeTypeLifetimeAllowance) =>
-            (controllers.routes.FileDownloadController.templateFile(ChargeTypeLifetimeAllowance, Some(true)).url,
-              controllers.routes.FileDownloadController.instructionsFile(ChargeTypeLifetimeAllowance, Some(true)).url)
-          case (Some(false), ChargeTypeAnnualAllowance) =>
-            (controllers.routes.FileDownloadController.templateFile(ChargeTypeAnnualAllowance, Some(false)).url,
-              controllers.routes.FileDownloadController.instructionsFile(ChargeTypeAnnualAllowance, Some(false)).url)
-          case (Some(false), ChargeTypeLifetimeAllowance) =>
-            (controllers.routes.FileDownloadController.templateFile(ChargeTypeLifetimeAllowance, Some(false)).url,
-              controllers.routes.FileDownloadController.instructionsFile(ChargeTypeLifetimeAllowance, Some(false)).url)
-          case _ =>
-            (controllers.routes.FileDownloadController.templateFile(ChargeTypeOverseasTransfer, None).url,
-              controllers.routes.FileDownloadController.instructionsFile(ChargeTypeOverseasTransfer, None).url)
-        }
+      val isPsr =  request.userAnswers.isPublicServicePensionsRemedy(chargeType)
+      val (templateDownloadLink, instructionsDownloadLink) =
+        (controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url,
+        controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url)
 
       val viewModel = GenericViewModel(
         submitUrl = navigator.nextPage(WhatYouWillNeedPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url,
@@ -86,7 +66,7 @@ class WhatYouWillNeedController @Inject()(
           "fileDownloadTemplateLink" -> templateDownloadLink,
           "fileDownloadInstructionsLink" -> instructionsDownloadLink,
           "viewModel" -> viewModel,
-          "psr" -> psr))
+          "psr" -> isPsr))
         .map(Ok(_))
     }
 }

@@ -18,7 +18,6 @@ package controllers
 
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import controllers.routes
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
@@ -48,7 +47,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                                                         formProvider: YesNoFormProvider,
                                                         val controllerComponents: MessagesControllerComponents,
                                                         renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -103,6 +102,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
         }
     }
 
+  // scalastyle:off method.length
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
                srn: String,
@@ -115,20 +115,16 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
         val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
         form(chargeTypeDescription, index)
           .bindFromRequest()
-          .fold(
-            formWithErrors => {
-
+          .fold( formWithErrors => {
               val viewModel = GenericViewModel(
                 submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
-
               val( heading, title ) = index match {
                 case Some(_) => Tuple2("isPublicServicePensionsRemedy.heading", "isPublicServicePensionsRemedy.title")
                 case None => Tuple2("isPublicServicePensionsRemedyBulk.heading", "isPublicServicePensionsRemedyBulk.title")
               }
-
               val json = Json.obj(
                 "srn" -> srn,
                 "startDate" -> Some(localDateToString(startDate)),
@@ -140,16 +136,22 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                 "manOrBulkTitle" -> title
               )
               renderer.render("isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
-
             },
-            value =>
-              for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
-                _ <- userAnswersCacheConnector
-                  .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
-              } yield
-                Redirect(
-                  navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+            value => if (value) {
+                for {
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
+                  _ <- userAnswersCacheConnector
+                    .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
+                } yield
+                  Redirect( navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+              } else {
+               val uaAfterRemoval =  request.userAnswers
+                  .remove(IsPublicServicePensionsRemedyPage(chargeType, index)).getOrElse(request.userAnswers)
+                val uaAfterSet = uaAfterRemoval.setOrException(IsPublicServicePensionsRemedyPage(chargeType, index), value)
+                userAnswersCacheConnector.savePartial(request.internalId, uaAfterSet.data, chargeType = Some(chargeType), memberNo = index.map(_.id)).map{ _ =>
+                    Redirect(navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, uaAfterSet, srn, startDate, accessType, version))
+                }
+            }
           )
 
       }
