@@ -29,18 +29,19 @@ class FileProviderServiceSpec extends SpecBase with MockitoSugar {
   private val fileProviderService = new FileProviderService(environment)
 
   "getInstructionsFile" must {
-    "for the charge type Annual Allowance return the correct file name" in {
+    "for the charge type Annual Allowance return the correct file name if PSR answer is Yes" in {
 
-      val instructionsFileToCheck = new File("./conf/resources/fileDownload/instructions/aft-annual-allowance-charge-upload-format-instructions.ods")
+      val instructionsFileToCheck = new File("./conf/resources/fileDownload/instructions/instructions_aft-annual-allowance-charge-upload-format.ods")
 
-      fileProviderService.getInstructionsFile(ChargeTypeAnnualAllowance) mustBe instructionsFileToCheck
+      fileProviderService.getInstructionsFile(ChargeTypeAnnualAllowance, Some(true)) mustBe instructionsFileToCheck
 
     }
-    "for the charge type Lifetime Allowance return the correct file name" in {
+    "for the charge type Lifetime Allowance return the correct file name if PSR answer is No" in {
 
-      val instructionsFileToCheck = new File("./conf/resources/fileDownload/instructions/aft-lifetime-allowance-charge-upload-format-instructions.ods")
+      val instructionsFileToCheck =
+        new File("./conf/resources/fileDownload/instructions/instructions_aft-lifetime-allowance-charge-upload-non-public-service-pensions-remedy.ods")
 
-      fileProviderService.getInstructionsFile(ChargeTypeLifetimeAllowance) mustBe instructionsFileToCheck
+      fileProviderService.getInstructionsFile(ChargeTypeLifetimeAllowance, Some(false)) mustBe instructionsFileToCheck
 
     }
 
@@ -48,24 +49,25 @@ class FileProviderServiceSpec extends SpecBase with MockitoSugar {
 
       val instructionsFileToCheck = new File("./conf/resources/fileDownload/instructions/aft-overseas-transfer-charge-upload-format-instructions.ods")
 
-      fileProviderService.getInstructionsFile(ChargeTypeOverseasTransfer) mustBe instructionsFileToCheck
+      fileProviderService.getInstructionsFile(ChargeTypeOverseasTransfer, None) mustBe instructionsFileToCheck
 
     }
   }
 
   "getTemplateFile" must {
-    "for the charge type Annual Allowance return the correct file name" in {
+    "for the charge type Annual Allowance return the correct file name if PSR answer is No" in {
 
-      val templateFileToCheck = new File("./conf/resources/fileDownload/template/aft-annual-allowance-charge-upload-template.csv")
+      val templateFileToCheck =
+        new File("./conf/resources/fileDownload/template/upload-template_aft-annual-allowance-charge_non-public-service-pensions-remedy.csv")
 
-      fileProviderService.getTemplateFile(ChargeTypeAnnualAllowance) mustBe templateFileToCheck
+      fileProviderService.getTemplateFile(ChargeTypeAnnualAllowance, Some(false)) mustBe templateFileToCheck
 
     }
-    "for the charge type Lifetime Allowance return the correct file name" in {
+    "for the charge type Lifetime Allowance return the correct file name if PSR answer is Yes" in {
 
-      val templateFileToCheck = new File("./conf/resources/fileDownload/template/aft-lifetime-allowance-charge-upload-template.csv")
+      val templateFileToCheck = new File("./conf/resources/fileDownload/template/upload-template_aft-lifetime-allowance-charge.csv")
 
-      fileProviderService.getTemplateFile(ChargeTypeLifetimeAllowance) mustBe templateFileToCheck
+      fileProviderService.getTemplateFile(ChargeTypeLifetimeAllowance, Some(true)) mustBe templateFileToCheck
 
     }
 
@@ -73,7 +75,7 @@ class FileProviderServiceSpec extends SpecBase with MockitoSugar {
 
       val templateFileToCheck = new File("./conf/resources/fileDownload/template/aft-overseas-transfer-charge-upload-template.csv")
 
-      fileProviderService.getTemplateFile(ChargeTypeOverseasTransfer) mustBe templateFileToCheck
+      fileProviderService.getTemplateFile(ChargeTypeOverseasTransfer, None) mustBe templateFileToCheck
 
     }
   }

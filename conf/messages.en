@@ -1304,6 +1304,11 @@ fileupload.whatYouWillNeed.p2 = and use this to enter the information. Do not ch
 fileupload.download.instructions.link = Download the instructions for the format of your file
 fileupload.download.template.link = Download the template file
 
+fileupload.whatYouWillNeed.ltaAa.p3 = The previous {0} file (last updated XX/XX/XXXX) is out of date and cannot be used. For the correct document and information on how to complete it, download the:
+fileupload.download.instructions.ltaAa.link = instructions which explain the format that should be used
+fileupload.download.template.ltaAa.link = latest template file
+fileupload.download.template.ltaAa.linkText = – do not change or delete the header (row 1) or change the order of the columns
+
 fileupload.whatYouWillNeed.annualAllowance.item1 = their name
 fileupload.whatYouWillNeed.annualAllowance.item2 = their National Insurance number
 fileupload.whatYouWillNeed.annualAllowance.item3 = the date the scheme administrator received the notice from the member requiring them to pay the annual allowance charge
@@ -1555,6 +1560,7 @@ isPublicServicePensionsRemedy.title = Is this {0} being paid as a result of the 
 isPublicServicePensionsRemedyBulk.title = Are any entries for this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedy.heading = Is this {0} being paid as a result of the Public Service Pensions Remedy?
 isPublicServicePensionsRemedyBulk.heading = Are any entries for this {0} being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedy.p1 = In 2015 the government introduced reforms to public sector pensions. Steps are being taken to remedy those reforms, known as the ‘Public Service Pensions Remedy’ and ’2015 Remedy (McCloud)’.
 isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pensions Remedy
 isPublicServicePensionsRemedyBulk.error.required = Select yes if any {0}s are being paid as a result of the Public Service Pensions Remedy
 isPublicServicePensionsRemedy.label = whether this payment is as of a result of the Public Service Pensions Remedy

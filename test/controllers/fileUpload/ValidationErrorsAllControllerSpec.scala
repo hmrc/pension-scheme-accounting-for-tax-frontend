@@ -43,11 +43,11 @@ class ValidationErrorsAllControllerSpec extends ControllerSpecBase with Nunjucks
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
 
   private val templateToBeRendered = "fileUpload/invalid.njk"
-  private val chargeType = ChargeType.ChargeTypeAnnualAllowance
+  private val chargeType = ChargeType.ChargeTypeOverseasTransfer
 
   private def httpPathGET: String = controllers.fileUpload.routes.ValidationErrorsAllController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
 
-  private def fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
+  private def fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType, None).url
 
   private def returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, versionInt).url
 

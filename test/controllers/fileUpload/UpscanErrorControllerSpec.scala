@@ -39,7 +39,7 @@ import scala.concurrent.Future
 class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
 
   private val startDate = LocalDate.parse(QUARTER_START_DATE)
-  private val chargeType = ChargeType.ChargeTypeAnnualAllowance
+  private val chargeType = ChargeType.ChargeTypeOverseasTransfer
   private val application = applicationBuilder(userAnswers = None).build()
 
   private def ua: UserAnswers = userAnswersWithSchemeName
@@ -123,9 +123,9 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       templateCaptor.getValue mustEqual "fileUpload/error/invalidHeaderOrBody.njk"
       val jsonToPassToTemplate = Json.obj(
-        "chargeTypeText" -> "annual allowance charge",
-        "fileTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType).url,
-        "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType).url,
+        "chargeTypeText" -> "overseas transfer charge",
+        "fileTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType, None).url,
+        "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType, None).url,
         "viewModel" -> viewModel
       )
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
