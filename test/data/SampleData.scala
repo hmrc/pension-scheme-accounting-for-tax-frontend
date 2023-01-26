@@ -73,6 +73,8 @@ object SampleData {
   val pstrNumber = "12345678RA"
   val taxYear = new YearRange("2020")
   val taxQuarter: AFTQuarter = AFTQuarter(LocalDate.of(2020, 1, 1), LocalDate.of(2020, 3, 31))
+  val taxQtrAprToJun2023: AFTQuarter = AFTQuarter(LocalDate.of(2023, 4, 1), LocalDate.of(2023, 6, 30))
+
   val chargeAmountReported = BigDecimal(83.44)
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
