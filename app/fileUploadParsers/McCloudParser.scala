@@ -114,7 +114,7 @@ trait McCloudParser extends Parser {
           formFieldName = McCloudFieldNames.formFieldNameForSingleFields,
           columnName = McCloudFieldNames.chargeAmountReported,
           fieldNo = fieldNoChargeAmountReported1 + offset,
-          formProvider = chargeAmountReportedFormProvider(BigDecimal(0))
+          formProvider = chargeAmountReportedFormProvider(minChargeValueAllowed)
         )
       )
     }
