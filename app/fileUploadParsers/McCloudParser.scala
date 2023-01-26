@@ -33,7 +33,7 @@ import utils.DateHelper.dateFormatterDMYSlashes
 import java.time.LocalDate
 import scala.util.Try
 
-trait McCloudParser  extends Parser {
+trait McCloudParser extends Parser {
   protected val yesNoFormProvider: YesNoFormProvider
   protected val chargeAmountReportedFormProvider: ChargeAmountReportedFormProvider
   protected val enterPstrFormProvider: EnterPstrFormProvider
@@ -68,14 +68,18 @@ trait McCloudParser  extends Parser {
               "Invalid tax quarter reported and paid", McCloudFieldNames.dateReportedAndPaid)))
           case Some(ld) =>
             val qtr = getQuarter(ld)
-            Valid(Seq(CommitItem(TaxQuarterReportedAndPaidPage(chargeType, index - 1, schemeIndex).path, Json.toJson(qtr))))
-
+            Valid(
+              Seq(
+                CommitItem(TaxQuarterReportedAndPaidPage(chargeType, index - 1, schemeIndex).path, Json.toJson(qtr)),
+                CommitItem(TaxYearReportedAndPaidPage(chargeType, index - 1, schemeIndex).path, Json.toJson(qtr.startDate.getYear.toString))
+              )
+            )
         }
     }
   }
 
   protected def isChargeInAdditionReportedResult(index: Int,
-                                       columns: Seq[String])(implicit messages: Messages): Result = validateField(
+                                                 columns: Seq[String])(implicit messages: Messages): Result = validateField(
     index = index,
     columns = columns,
     page = IsChargeInAdditionReportedPage.apply(chargeType, _: Int),

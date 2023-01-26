@@ -76,6 +76,8 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 0)) mustBe Some(false)
       actualUA.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 0, None)) mustBe
         Some(AFTQuarter(LocalDate.of(2022,1,1), LocalDate.of(2022,3,31)))
+      actualUA.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(0))) mustBe
+        Some(YearRange("2022"))
       actualUA.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, 0, None)) mustBe
         Some(BigDecimal(45.66))
 
@@ -95,6 +97,8 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
         actualUA.get(EnterPstrPage(ChargeType.ChargeTypeAnnualAllowance, 1, index)) mustBe Some(expectedPstr)
         actualUA.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(index))) mustBe
           Some(expectedQuarter)
+        actualUA.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(index))) mustBe
+          Some(YearRange(expectedQuarter.startDate.getYear.toString))
         actualUA.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(index))) mustBe
           Some(expectedAmount)
       }
@@ -117,7 +121,6 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO"""
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
       result.isValid mustBe false
 
-      // TODO: Check - I think the field name "value" is not correct:
       result.swap.toList.flatten mustBe Seq(
         ParserValidationError(1, 7, messages("isChargeInAdditionReported.error.required",
           chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), parser.McCloudFieldNames.isInAdditionToPrevious)
@@ -133,7 +136,6 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO,YES"""
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
       result.isValid mustBe false
 
-      // TODO: Check - I think the field name "value" is not correct:
       result.swap.toList.flatten mustBe Seq(
         ParserValidationError(1, 8, messages("wasAnotherPensionScheme.error.required",
           chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), parser.McCloudFieldNames.wasPaidByAnotherScheme),
@@ -168,7 +170,6 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
       result.isValid mustBe false
 
-      // TODO: Check - I think the field name "value" is not correct:
       result.swap.toList.flatten mustBe Seq(
         ParserValidationError(1, 10, "Invalid tax quarter reported and paid", parser.McCloudFieldNames.dateReportedAndPaid))
     }
