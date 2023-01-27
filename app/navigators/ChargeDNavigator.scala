@@ -34,9 +34,8 @@ import pages.mccloud._
 import pages.{IsPublicServicePensionsRemedyPage, Page, QuarterPage}
 import play.api.libs.json.JsArray
 import play.api.mvc.{AnyContent, Call}
-import utils.DateHelper
 
-import java.time.{LocalDate, Month}
+import java.time.LocalDate
 
 class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
@@ -312,7 +311,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def enablePSR(userAnswers: UserAnswers): Boolean = {
     val selectedAFTQuarter = userAnswers.get(QuarterPage)
-    val mcCloudDisplayFromDate = LocalDate.of(DateHelper.today.getYear, Month.APRIL.getValue, 1)
+    val mcCloudDisplayFromDate = LocalDate.of(2023, 4, 1)
     selectedAFTQuarter match {
       case Some(aftQuarter) =>
         if (aftQuarter.startDate.isAfter(mcCloudDisplayFromDate) || aftQuarter.startDate.isEqual(mcCloudDisplayFromDate)) true else false

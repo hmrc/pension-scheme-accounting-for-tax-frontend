@@ -44,6 +44,14 @@ class FileProviderServiceSpec extends SpecBase with MockitoSugar {
       fileProviderService.getInstructionsFile(ChargeTypeLifetimeAllowance, Some(false)) mustBe instructionsFileToCheck
 
     }
+    "for the charge type Lifetime Allowance return the correct file name if PSR is None" in {
+
+      val instructionsFileToCheck =
+        new File("./conf/resources/fileDownload/instructions/instructions_aft-lifetime-allowance-charge-upload-non-public-service-pensions-remedy.ods")
+
+      fileProviderService.getInstructionsFile(ChargeTypeLifetimeAllowance, None) mustBe instructionsFileToCheck
+
+    }
 
     "for the charge type Overseas Transfer return the correct file name" in {
 
@@ -61,6 +69,14 @@ class FileProviderServiceSpec extends SpecBase with MockitoSugar {
         new File("./conf/resources/fileDownload/template/upload-template_aft-annual-allowance-charge_non-public-service-pensions-remedy.csv")
 
       fileProviderService.getTemplateFile(ChargeTypeAnnualAllowance, Some(false)) mustBe templateFileToCheck
+
+    }
+    "for the charge type Annual Allowance return the correct file name if PSR is None" in {
+
+      val templateFileToCheck =
+        new File("./conf/resources/fileDownload/template/upload-template_aft-annual-allowance-charge_non-public-service-pensions-remedy.csv")
+
+      fileProviderService.getTemplateFile(ChargeTypeAnnualAllowance, None) mustBe templateFileToCheck
 
     }
     "for the charge type Lifetime Allowance return the correct file name if PSR answer is Yes" in {
