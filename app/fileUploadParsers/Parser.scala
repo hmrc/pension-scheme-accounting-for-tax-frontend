@@ -21,7 +21,7 @@ import cats.data.Validated.{Invalid, Valid}
 import cats.implicits._
 import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 import fileUploadParsers.ParserErrorMessages.HeaderInvalidOrFileIsEmpty
-import models.{MemberDetails, UserAnswers}
+import models.{ChargeType, MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -42,6 +42,8 @@ object Parser {
 trait Parser {
 
   import Parser._
+
+  protected val chargeType: ChargeType
 
   protected val fieldNoFirstName = 0
   protected val fieldNoLastName = 1

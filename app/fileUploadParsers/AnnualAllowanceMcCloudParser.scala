@@ -33,8 +33,6 @@ class AnnualAllowanceMcCloudParser @Inject()(
                                               val chargeAmountReportedFormProvider: ChargeAmountReportedFormProvider
                                             ) extends AnnualAllowanceParser with Constraints with CommonQuarters with McCloudParser {
 
-  override protected val chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance
-
   override protected val fieldNoIsChargeInAdditionReported: Int = 7
   override protected val fieldNoWasAnotherPensionScheme: Int = 8
   override protected val fieldNoEnterPstr1: Int = 9

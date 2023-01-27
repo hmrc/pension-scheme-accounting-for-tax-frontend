@@ -26,7 +26,7 @@ import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
 import models.chargeE.ChargeEDetails
-import models.{CommonQuarters, MemberDetails}
+import models.{ChargeType, CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -34,7 +34,7 @@ import play.api.i18n.Messages
 import java.time.LocalDate
 
 trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters {
-
+  override val chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance
   protected val memberDetailsFormProvider: MemberDetailsFormProvider
 
   protected val chargeDetailsFormProvider: ChargeDetailsFormProvider

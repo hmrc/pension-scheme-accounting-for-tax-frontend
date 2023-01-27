@@ -22,7 +22,7 @@ import forms.chargeD.ChargeDetailsFormProvider
 import forms.mappings.Constraints
 import forms.mccloud.{ChargeAmountReportedFormProvider, EnterPstrFormProvider}
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
-import models.{ChargeType, CommonQuarters}
+import models.CommonQuarters
 
 class LifetimeAllowanceMcCloudParser @Inject()(
                                                 override val memberDetailsFormProvider: MemberDetailsFormProvider,
@@ -32,8 +32,6 @@ class LifetimeAllowanceMcCloudParser @Inject()(
                                               val enterPstrFormProvider: EnterPstrFormProvider,
                                               val chargeAmountReportedFormProvider: ChargeAmountReportedFormProvider
                                             ) extends LifetimeAllowanceParser with Constraints with CommonQuarters with McCloudParser {
-
-  override protected val chargeType: ChargeType = ChargeType.ChargeTypeLifetimeAllowance
 
   override protected val fieldNoIsChargeInAdditionReported: Int = 6
   override protected val fieldNoWasAnotherPensionScheme: Int = 7

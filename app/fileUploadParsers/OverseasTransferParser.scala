@@ -25,7 +25,7 @@ import controllers.fileUpload.FileUploadHeaders.OverseasTransferFieldNames._
 import controllers.fileUpload.FileUploadHeaders.{MemberDetailsFieldNames, OverseasTransferFieldNames}
 import fileUploadParsers.Parser.Result
 import forms.chargeG.{ChargeAmountsFormProvider, ChargeDetailsFormProvider, MemberDetailsFormProvider}
-import models.Quarters
+import models.{ChargeType, Quarters}
 import models.chargeG.{ChargeAmounts, ChargeDetails, MemberDetails}
 import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
@@ -40,6 +40,7 @@ class OverseasTransferParser @Inject()(
                                         chargeAmountsFormProvider: ChargeAmountsFormProvider,
                                         config: FrontendAppConfig
                                       ) extends Parser {
+  override val chargeType: ChargeType = ChargeType.ChargeTypeOverseasTransfer
   override protected def validHeader: String = config.validOverseasTransferHeader
 
   private val fieldNoDateOfBirth = 3

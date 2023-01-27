@@ -25,13 +25,14 @@ import fileUploadParsers.AnnualAllowanceNonMcCloudParserSpec.mock
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import helpers.ParserHelper
-import models.UserAnswers
+import models.{ChargeType, UserAnswers}
 import models.chargeD.ChargeDDetails
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
+import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 
@@ -62,8 +63,10 @@ class LifetimeAllowanceNonMcCloudParserSpec extends SpecBase
       result mustBe Valid(UserAnswers()
         .setOrException(MemberDetailsPage(0).path, Json.toJson(SampleData.memberDetails2))
         .setOrException(ChargeDetailsPage(0).path, Json.toJson(chargeDetails1))
+        .setOrException(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeLifetimeAllowance, Some(0)), false)
         .setOrException(MemberDetailsPage(1).path, Json.toJson(SampleData.memberDetails3))
         .setOrException(ChargeDetailsPage(1).path, Json.toJson(chargeDetails2))
+        .setOrException(IsPublicServicePensionsRemedyPage(ChargeType.ChargeTypeLifetimeAllowance, Some(1)), false)
       )
     }
 

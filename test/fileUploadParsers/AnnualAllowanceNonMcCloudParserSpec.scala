@@ -24,8 +24,8 @@ import data.SampleData.startDate
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import helpers.ParserHelper
-import models.{ChargeType, UserAnswers}
 import models.chargeE.ChargeEDetails
+import models.{ChargeType, UserAnswers}
 import org.mockito.Mockito
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -33,7 +33,6 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
-import pages.mccloud.IsChargeInAdditionReportedPage
 import play.api.libs.json.Json
 
 import java.time.LocalDate

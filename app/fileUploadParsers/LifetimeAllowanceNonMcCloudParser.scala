@@ -16,12 +16,16 @@
 
 package fileUploadParsers
 
+import cats.data.Validated.Valid
+import cats.implicits.toFoldableOps
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import fileUploadParsers.Parser.Result
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
+import pages.IsPublicServicePensionsRemedyPage
 import play.api.i18n.Messages
+import play.api.libs.json.JsBoolean
 
 import java.time.LocalDate
 
@@ -30,11 +34,14 @@ class LifetimeAllowanceNonMcCloudParser @Inject()(
                                          override val chargeDetailsFormProvider: ChargeDetailsFormProvider,
                                          override val config: FrontendAppConfig
                                        ) extends LifetimeAllowanceParser {
+
   override protected def validHeader: String = config.validLifetimeAllowanceHeader
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
                                         columns: Seq[String])(implicit messages: Messages): Result = {
-    validateMinimumFields(startDate, index, columns)
+    val isPublicServicePensionsRemedyResult: Result =
+      Valid(Seq(CommitItem(IsPublicServicePensionsRemedyPage(chargeType, Some(index - 1)).path, JsBoolean(false))))
+    Seq(validateMinimumFields(startDate, index, columns), isPublicServicePensionsRemedyResult).combineAll
   }
 }

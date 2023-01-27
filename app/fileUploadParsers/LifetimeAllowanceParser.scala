@@ -26,7 +26,7 @@ import fileUploadParsers.Parser.Result
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import models.chargeD.ChargeDDetails
-import models.{MemberDetails, Quarters}
+import models.{ChargeType, MemberDetails, Quarters}
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -34,6 +34,7 @@ import play.api.i18n.Messages
 import java.time.LocalDate
 
 trait LifetimeAllowanceParser extends Parser {
+  override val chargeType: ChargeType = ChargeType.ChargeTypeLifetimeAllowance
 
   protected val memberDetailsFormProvider: MemberDetailsFormProvider
 

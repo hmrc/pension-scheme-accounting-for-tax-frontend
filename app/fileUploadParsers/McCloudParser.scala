@@ -37,7 +37,6 @@ trait McCloudParser extends Parser {
   protected val yesNoFormProvider: YesNoFormProvider
   protected val chargeAmountReportedFormProvider: ChargeAmountReportedFormProvider
   protected val enterPstrFormProvider: EnterPstrFormProvider
-  protected val chargeType: ChargeType
 
   protected val fieldNoIsChargeInAdditionReported: Int
   protected val fieldNoWasAnotherPensionScheme: Int
