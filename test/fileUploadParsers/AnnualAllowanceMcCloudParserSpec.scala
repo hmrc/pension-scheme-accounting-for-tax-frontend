@@ -34,6 +34,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import pages.mccloud._
+import utils.DateHelper
 
 import java.time.LocalDate
 
@@ -53,6 +54,9 @@ class AnnualAllowanceMcCloudParserSpec extends SpecBase
   "Annual allowance McCloud parser" must {
 
     "return charges in user answers when there are no validation errors" in {
+
+      DateHelper.setDate(Some(LocalDate.of(2023, 12, 12)))
+
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
 Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,31/03/2022,45.66,,,,,,,,,,,,
@@ -76,6 +80,7 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       actualUA.get(WasAnotherPensionSchemePage(ChargeType.ChargeTypeAnnualAllowance, 0)) mustBe Some(false)
       actualUA.get(TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 0, None)) mustBe
         Some(AFTQuarter(LocalDate.of(2022,1,1), LocalDate.of(2022,3,31)))
+
       actualUA.get(TaxYearReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 1, Some(0))) mustBe
         Some(YearRange("2022"))
       actualUA.get(ChargeAmountReportedPage(ChargeType.ChargeTypeAnnualAllowance, 0, None)) mustBe
