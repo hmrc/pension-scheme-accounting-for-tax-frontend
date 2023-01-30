@@ -39,10 +39,15 @@ object FeatureToggleName {
     val asString = "dummy"
   }
 
-  val toggles = Seq(DummyToggle)
+  case object McCloudPSR extends FeatureToggleName {
+    val asString = "mccloud-psr"
+  }
+
+  val toggles = Seq(DummyToggle, McCloudPSR)
 
   implicit val reads: Reads[FeatureToggleName] = Reads {
     case JsString(DummyToggle.asString) => JsSuccess(DummyToggle)
+    case JsString(McCloudPSR.asString) => JsSuccess(McCloudPSR)
     case _ => JsError("Unrecognised feature toggle name")
   }
 
