@@ -311,10 +311,10 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def enablePSR(userAnswers: UserAnswers): Boolean = {
     val selectedAFTQuarter = userAnswers.get(QuarterPage)
-    val mcCloudDisplayFromDate = LocalDate.of(2023, 4, 1)
     selectedAFTQuarter match {
       case Some(aftQuarter) =>
-        if (aftQuarter.startDate.isAfter(mcCloudDisplayFromDate) || aftQuarter.startDate.isEqual(mcCloudDisplayFromDate)) true else false
+        val mcCloudDisplayFromDate = config.mccloudPsrStartDate
+        aftQuarter.startDate.isAfter(mcCloudDisplayFromDate) || aftQuarter.startDate.isEqual(mcCloudDisplayFromDate)
       case _ => false
     }
   }

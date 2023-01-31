@@ -176,7 +176,11 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
       configuration.get[String]("earliestDateOfNotice"),
       DateTimeFormatter.ofPattern("yyyy-MM-dd")
     )
-
+  lazy val mccloudPsrStartDate: LocalDate = LocalDate
+    .parse(
+      configuration.get[String]("mccloudPsrStartDate"),
+      DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    )
   def featureToggleUrl(toggle: String): String =
     s"$aftUrl${configuration.underlying.getString("urls.featureToggle").format(toggle)}"
 
@@ -216,4 +220,5 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val validAnnualAllowanceHeader: String = configuration.get[String]("validAnnualAllowanceHeader")
   lazy val validLifeTimeAllowanceHeader: String = configuration.get[String]("validLifeTimeAllowanceHeader")
   lazy val validOverseasTransferHeader: String = configuration.get[String]("validOverseasTransferHeader")
+
 }
