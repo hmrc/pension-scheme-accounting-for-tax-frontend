@@ -41,22 +41,22 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
-    //scalastyle:off method.length
+  //scalastyle:off method.length
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
         row(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(index)))(
           controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, index),
-        Some(publicPensionRemedyYesNormalMode)),
+          Some(publicPensionRemedyYesNormalMode)),
         row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index)),
         row(ChargeDetailsPage(index))(controllers.mccloud.routes.IsChargeInAdditionReportedController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index),
-        Some(publicPensionRemedyYesNormalMode)),
+          Some(publicPensionRemedyYesNormalMode)),
         row(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index))(CheckYourAnswersController
           .onPageLoad(srn, startDate, accessType, versionInt, index),
-        Some(chargeInAdditionReportedNo)),
+          Some(chargeInAdditionReportedNo)),
         row(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index))(
           EnterPstrController
             .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index, schemeIndex),
@@ -89,7 +89,7 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeDMember)),
         row(InputSelectionPage(ChargeTypeLifetimeAllowance))(controllers.routes.IsPublicServicePensionsRemedyController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(index)),
-        Some(manualInput)),
+          Some(manualInput)),
         row(InputSelectionPage(ChargeTypeLifetimeAllowance))(
           controllers.routes.IsPublicServicePensionsRemedyController
             .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, None),

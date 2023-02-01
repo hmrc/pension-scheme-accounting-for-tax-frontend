@@ -40,7 +40,12 @@ object FileUploadGenericErrorReporter {
       AnnualAllowanceFieldNames.chargeAmount -> "fileUpload.chargeAmount.generic.error",
       AnnualAllowanceFieldNames.dateNoticeReceived -> "fileUpload.dateNoticeReceived.generic.error",
       AnnualAllowanceFieldNames.isPaymentMandatory -> "fileUpload.isPayment.generic.error",
-      AnnualAllowanceFieldNames.taxYear -> "fileUpload.taxYear.generic.error"
+      AnnualAllowanceFieldNames.taxYear -> "fileUpload.taxYear.generic.error",
+      AnnualAllowanceFieldNames.isInAdditionToPrevious -> "fileupload.isInAdditionToPrevious.generic.error",
+      AnnualAllowanceFieldNames.wasPaidByAnotherScheme -> "fileupload.wasPaidByAnotherScheme.generic.error",
+      AnnualAllowanceFieldNames.pstr -> "fileupload.pstr.generic.error",
+      AnnualAllowanceFieldNames.dateReportedAndPaid -> "fileupload.dateReportedAndPaid.generic.error",
+      AnnualAllowanceFieldNames.chargeAmountReported -> "fileupload.chargeAmountReported.generic.error"
     )
 
   private val lifetimeAllowanceHeader = commonColumnAndErrorMessageMap ++
