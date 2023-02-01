@@ -16,138 +16,149 @@
 
 package fileUploadParsers
 
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
+import cats.implicits._
 import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
-import fileUploadParsers.Parser.FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty
-import fileUploadParsers.ParserErrorMessages.{HeaderInvalidOrFileIsEmpty, NotEnoughFields}
-import models.{MemberDetails, UserAnswers}
+import fileUploadParsers.ParserErrorMessages.HeaderInvalidOrFileIsEmpty
+import models.{ChargeType, MemberDetails, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsPath, JsValue, Json, Writes}
+import play.api.libs.json._
 import queries.Gettable
 
 import java.time.LocalDate
 
 object ParserErrorMessages {
   val HeaderInvalidOrFileIsEmpty = "Header invalid or File is empty"
-  val NotEnoughFields = "Enter all of the information for this member"
 }
 
 object Parser {
+  type Result = Validated[Seq[ParserValidationError], Seq[CommitItem]]
   val FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty: ParserValidationError = ParserValidationError(0, 0, HeaderInvalidOrFileIsEmpty, EMPTY)
 }
 
 trait Parser {
-  protected final val FieldNoFirstName = 0
-  protected final val FieldNoLastName = 1
-  protected final val FieldNoNino = 2
+
+  import Parser._
+
+  protected val chargeType: ChargeType
+
+  protected val fieldNoFirstName = 0
+  protected val fieldNoLastName = 1
+  protected val fieldNoNino = 2
 
   protected def validHeader: String
 
-  protected val totalFields: Int
+  // scalastyle:off parameter.number
+  protected def validateField[A](
+                                  index: Int,
+                                  columns: Seq[String],
+                                  page: Int => Gettable[_],
+                                  formFieldName: String,
+                                  columnName: String,
+                                  fieldNo: Int,
+                                  formProvider: => Form[A],
+                                  convertValue: String => String = identity
+                                )(implicit writes: Writes[A]): Result = {
+    def bindForm(index: Int, columns: Seq[String],
+                 fieldName: String, fieldNo: Int)
+    : Validated[Seq[ParserValidationError], A] = {
+      val form: Form[A] = formProvider
+      val fields = Seq(Field(fieldName, convertValue(fieldValue(columns, fieldNo)), columnName, fieldNo))
+      val toMap = Field.seqToMap(fields)
+      val bind = form.bind(toMap)
+      bind.fold(
+        formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
+        value => Valid(value)
+      )
+    }
+
+    resultFromFormValidationResult[A](
+      bindForm(index, columns, formFieldName, fieldNo),
+      createCommitItem(index, page)
+    )
+  }
+
+  protected def fieldValue(columns: Seq[String], fieldNo: Int): String =
+    if (columns.isDefinedAt(fieldNo)) {
+      columns(fieldNo)
+    } else {
+      ""
+    }
 
   def parse(startDate: LocalDate, rows: Seq[Array[String]], userAnswers: UserAnswers)
-           (implicit messages: Messages): Either[Seq[ParserValidationError], UserAnswers] = {
+           (implicit messages: Messages): Validated[Seq[ParserValidationError], UserAnswers] = {
     rows.headOption match {
       case Some(row) if row.mkString(",").equalsIgnoreCase(validHeader) =>
         rows.size match {
-          case n if n >= 2 => parseDataRows(startDate, rows).map { commitItems =>
-            commitItems.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value))
-          }
-          case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+          case n if n >= 2 => parseDataRows(startDate, rows)
+            .map(_.foldLeft(userAnswers)((acc, ci) => acc.setOrException(ci.jsPath, ci.value)))
+          case _ => Invalid(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
         }
-      case _ => Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
+      case _ =>
+        Invalid(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty))
     }
   }
 
   private def parseDataRows(startDate: LocalDate, rows: Seq[Array[String]])
-                           (implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    rows.zipWithIndex.foldLeft[Either[Seq[ParserValidationError], Seq[CommitItem]]](Right(Nil)) {
+                           (implicit messages: Messages): Result = {
+    rows.zipWithIndex.foldLeft[Result](Valid(Nil)) {
       case (acc, Tuple2(_, 0)) => acc
-      case (acc, Tuple2(row, index)) =>
-        row.length match {
-          case this.totalFields =>
-            (acc, validateFields(startDate, index, row.toIndexedSeq)) match {
-              case (Left(currentErrors), Left(newErrors)) => Left(currentErrors ++ newErrors)
-              case (Right(_), newErrors@Left(_)) => newErrors
-              case (currentErrors@Left(_), Right(_)) => currentErrors
-              case (currentCommitItems@Right(_), Right(newCommitItems)) => currentCommitItems.map(_ ++ newCommitItems)
-            }
-          case _ =>
-            Left(acc.left.getOrElse(Nil) :+ ParserValidationError(index, 0, NotEnoughFields, EMPTY))
-        }
+      case (acc, Tuple2(row, index)) => Seq(acc, validateFields(startDate, index, row.toIndexedSeq)).combineAll
     }
   }
 
   protected def validateFields(startDate: LocalDate,
                                index: Int,
-                               columns: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]]
+                               columns: Seq[String])(implicit messages: Messages): Result
 
   protected def memberDetailsValidation(index: Int, columns: Seq[String],
-                                        memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
+                                        memberDetailsForm: Form[MemberDetails]): Validated[Seq[ParserValidationError], MemberDetails] = {
     val fields = Seq(
-      Field(MemberDetailsFieldNames.firstName, columns(FieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
-      Field(MemberDetailsFieldNames.lastName, columns(FieldNoLastName), MemberDetailsFieldNames.lastName, 1),
-      Field(MemberDetailsFieldNames.nino, columns(FieldNoNino), MemberDetailsFieldNames.nino, 2)
+      Field(MemberDetailsFieldNames.firstName, fieldValue(columns, fieldNoFirstName), MemberDetailsFieldNames.firstName, 0),
+      Field(MemberDetailsFieldNames.lastName, fieldValue(columns, fieldNoLastName), MemberDetailsFieldNames.lastName, 1),
+      Field(MemberDetailsFieldNames.nino, fieldValue(columns, fieldNoNino), MemberDetailsFieldNames.nino, 2)
     )
     val toMap = Field.seqToMap(fields)
 
     val bind = memberDetailsForm.bind(toMap)
     bind.fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-      value => Right(value)
+      formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
+      value => Valid(value)
     )
   }
 
   protected final def errorsFromForm[A](formWithErrors: Form[A], fields: Seq[Field], index: Int): Seq[ParserValidationError] = {
     for {
       formError <- formWithErrors.errors
-      field <- fields.find(_.columnName == formError.key)
+      field <- fields.find(_.getFormValidationFullFieldName == formError.key)
     }
     yield {
       ParserValidationError(index, field.columnNo, formError.message, field.columnName, formError.args)
     }
   }
 
-  protected case class Result[A](result: Either[Seq[ParserValidationError], A], generateCommitItem: A => CommitItem)
-
   protected final def createCommitItem[A](index: Int, page: Int => Gettable[_])(implicit writes: Writes[A]): A => CommitItem =
     a => CommitItem(page(index - 1).path, Json.toJson(a))
 
-  private def addToValidationResults[A](resultToBeAdded: Result[A],
-                                        validationResults: Either[Seq[ParserValidationError], Seq[CommitItem]]):
-  Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    resultToBeAdded.result match {
-      case Left(resultAErrors) =>
-        validationResults match {
-          case Left(existingErrors) => Left(existingErrors ++ resultAErrors)
-          case Right(_) => Left(resultAErrors)
-        }
-      case Right(resultAObject) =>
-        validationResults match {
-          case Left(existingErrors) => Left(existingErrors)
-          case Right(existingCommits) =>
-            Right(
-              existingCommits ++ Seq(resultToBeAdded.generateCommitItem(resultAObject))
-            )
-        }
+  protected def resultFromFormValidationResult[A](formValidationResult: Validated[Seq[ParserValidationError], A],
+                                                  generateCommitItem: A => CommitItem): Result = {
+    formValidationResult match {
+      case Invalid(resultAErrors) => Invalid(resultAErrors)
+      case Valid(resultAObject) => Valid(Seq(generateCommitItem(resultAObject)))
     }
   }
 
-  protected final def combineValidationResults[A, B](a: Result[A], b: Result[B]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
-    addToValidationResults(b, addToValidationResults(a, Right(Nil)))
+  protected def get[A](r: Result)(implicit reads: Reads[A]): Option[A] =
+    r.toOption.flatMap(_.headOption.flatMap(_.value.asOpt[A]))
 
-  protected final def combineValidationResults[A, B, C](a: Result[A], b: Result[B], c: Result[C]): Either[Seq[ParserValidationError], Seq[CommitItem]] =
-    addToValidationResults(c, addToValidationResults(b, addToValidationResults(a, Right(Nil))))
-
-  protected final def combineValidationResults[A, B, C, D](a: Result[A], b: Result[B], c: Result[C], d: Result[D])
-  : Either[Seq[ParserValidationError], Seq[CommitItem]] =
-    addToValidationResults(d, addToValidationResults(c, addToValidationResults(b, addToValidationResults(a, Right(Nil)))))
-
-  protected final def combineValidationResults[A, B, C, D, E](a: Result[A], b: Result[B], c: Result[C], d: Result[D], e: Result[E])
-  : Either[Seq[ParserValidationError], Seq[CommitItem]] =
-    addToValidationResults(e, addToValidationResults(d, addToValidationResults(c,
-      addToValidationResults(b, addToValidationResults(a, Right(Nil))))))
+  protected def getOrElse[A](r: Result, default: A)(implicit reads: Reads[A]): A =
+    r.toOption.flatMap(_.headOption.flatMap(_.value.asOpt[A])) match {
+      case None => default
+      case Some(a) => a
+    }
 
   protected final val minChargeValueAllowed = BigDecimal("0.01")
 
@@ -172,7 +183,17 @@ case class ParserValidationError(row: Int, col: Int, error: String, columnName: 
 
 protected case class CommitItem(jsPath: JsPath, value: JsValue)
 
-protected case class Field(formValidationFieldName: String, fieldValue: String, columnName: String, columnNo: Int)
+protected case class Field(formValidationFieldName: String,
+                           fieldValue: String,
+                           columnName: String,
+                           columnNo: Int,
+                           private val formValidationFullFieldName: Option[String] = None
+                          ) {
+  def getFormValidationFullFieldName: String = formValidationFullFieldName match {
+    case Some(v) => v
+    case _ => formValidationFieldName
+  }
+}
 
 protected case class ParsedDate(day: String, month: String, year: String)
 

@@ -17,6 +17,8 @@
 package controllers.fileUpload
 
 import audit.{AFTFileValidationCheckAuditEvent, AFTUpscanFileDownloadAuditEvent, AuditService}
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
 import connectors.UpscanInitiateConnector
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions._
@@ -30,7 +32,7 @@ import models.fileUpload.FileUploadOutcomeStatus._
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
-import pages.PSTRQuery
+import pages.{IsPublicServicePensionsRemedyPage, PSTRQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -53,8 +55,10 @@ class ValidationController @Inject()(
                                       auditService: AuditService,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
-                                      annualAllowanceParser: AnnualAllowanceParser,
-                                      lifeTimeAllowanceParser: LifetimeAllowanceParser,
+                                      annualAllowanceParser: AnnualAllowanceNonMcCloudParser,
+                                      annualAllowanceParserMcCloud: AnnualAllowanceMcCloudParser,
+                                      lifeTimeAllowanceParser: LifetimeAllowanceNonMcCloudParser,
+                                      lifeTimeAllowanceParserMcCloud: LifetimeAllowanceMcCloudParser,
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService: AFTService,
                                       fileUploadAftReturnService: FileUploadAftReturnService,
@@ -65,8 +69,8 @@ class ValidationController @Inject()(
 
   val maximumNumberOfError = 10
 
-  private def processInvalid( chargeType: ChargeType,
-                              errors: Seq[ParserValidationError])(implicit messages: Messages): FileUploadOutcome = {
+  private def processInvalid(chargeType: ChargeType,
+                             errors: Seq[ParserValidationError])(implicit messages: Messages): FileUploadOutcome = {
     errors match {
       case Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty) =>
         FileUploadOutcome(status = UpscanInvalidHeaderOrBody)
@@ -122,11 +126,12 @@ class ValidationController @Inject()(
     val startTime = System.currentTimeMillis
     val parserResult = TimeLogger.logOperationTime(parser.parse(startDate, csvContent, updatedUA), "Parsing and Validation")
     val endTime = System.currentTimeMillis
+
     val futureResult =
       parserResult match {
-        case Left(errors) =>
+        case Invalid(errors) =>
           Future.successful(processInvalid(chargeType, errors))
-        case Right(updatedUA) =>
+        case Valid(updatedUA) =>
           TimeLogger.logOperationTime(
             processSuccessResult(chargeType, updatedUA)
               .map(_ => FileUploadOutcome(status = Success, fileName = Some(fileName))),
@@ -170,14 +175,14 @@ class ValidationController @Inject()(
                              chargeType: ChargeType,
                              numberOfEntries: Int,
                              fileValidationTimeInSeconds: Int,
-                             parserResult: Either[Seq[ParserValidationError], UserAnswers]
+                             parserResult: Validated[Seq[ParserValidationError], UserAnswers]
                             )(implicit request: DataRequest[AnyContent], messages: Messages): Unit = {
 
     val numberOfFailures = parserResult.fold(_.size, _ => 0)
     val (failureReason, errorReport) = parserResult match {
-      case Left(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
+      case Invalid(Seq(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty)) =>
         Tuple2(Some(FileLevelParserValidationErrorTypeHeaderInvalidOrFileEmpty.error), None)
-      case Left(errors) =>
+      case Invalid(errors) =>
         failureReasonAndErrorReportForAudit(errors, chargeType)(messages) match {
           case Some(Tuple2(reason, report)) => Tuple2(Some(reason), Some(report))
           case _ => Tuple2(None, None)
@@ -192,7 +197,7 @@ class ValidationController @Inject()(
         pstr = pstr,
         numberOfEntries = numberOfEntries,
         chargeType = chargeType,
-        validationCheckSuccessful = parserResult.isRight,
+        validationCheckSuccessful = parserResult.isValid,
         fileValidationTimeInSeconds = fileValidationTimeInSeconds,
         failureReason = failureReason,
         numberOfFailures = numberOfFailures,
@@ -214,12 +219,12 @@ class ValidationController @Inject()(
   }
 
   private def getFileName(uploadStatus: FileUploadDataCache): String = {
-      val status = uploadStatus.status
-      status._type match {
-        case "UploadedSuccessfully" => status.name.getOrElse("No File Found")
-        case "InProgress" => "InProgress"
-        case _ => "No File Found"
-      }
+    val status = uploadStatus.status
+    status._type match {
+      case "UploadedSuccessfully" => status.name.getOrElse("No File Found")
+      case "InProgress" => "InProgress"
+      case _ => "No File Found"
+    }
   }
 
   private def downloadAndProcess(
@@ -269,11 +274,17 @@ class ValidationController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
-        findParser(chargeType) match {
+        val psr = chargeType match {
+          case ChargeTypeLifetimeAllowance | ChargeTypeAnnualAllowance =>
+            request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, optIndex = None))
+          case _ => None
+        }
+        findParser(chargeType, psr) match {
           case Some(parser) =>
             downloadAndProcess(srn, startDate, accessType, version, chargeType, uploadId, parser)
             Future.successful(Redirect(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version, chargeType)))
-          case _ => sessionExpired
+          case _ =>
+            sessionExpired
         }
     }
 
@@ -300,11 +311,13 @@ class ValidationController @Inject()(
 
   private def sessionExpired: Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
-  private def findParser(chargeType: ChargeType): Option[Parser] = {
-    chargeType match {
-      case ChargeTypeAnnualAllowance => Some(annualAllowanceParser)
-      case ChargeTypeLifetimeAllowance => Some(lifeTimeAllowanceParser)
-      case ChargeTypeOverseasTransfer => Some(overseasTransferParser)
+  private def findParser(chargeType: ChargeType, psr: Option[Boolean]): Option[Parser] = {
+    (chargeType, psr) match {
+      case (ChargeTypeAnnualAllowance, Some(true)) => Some(annualAllowanceParserMcCloud) // PSR YES, McCloud
+      case (ChargeTypeAnnualAllowance, Some(false)) => Some(annualAllowanceParser) // PSR NO,  Non McC
+      case (ChargeTypeLifetimeAllowance, Some(true)) => Some(lifeTimeAllowanceParserMcCloud) // PSR YES, McCloud
+      case (ChargeTypeLifetimeAllowance, Some(false)) => Some(lifeTimeAllowanceParser) // PSR NO,  Non McC
+      case (ChargeTypeOverseasTransfer, None) => Some(overseasTransferParser) // PSR Q NOT ASKED
       case _ => None
     }
   }
