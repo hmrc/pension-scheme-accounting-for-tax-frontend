@@ -23,6 +23,7 @@ sealed trait SchemeFSChargeType
 object SchemeFSChargeType extends Enumerable.Implicits {
 
   case object PSS_AFT_RETURN extends WithName("Accounting for Tax return") with SchemeFSChargeType
+  case object PSS_AFT_RETURN_CREDIT extends WithName("Accounting for Tax return credit") with SchemeFSChargeType
   case object PSS_AFT_RETURN_INTEREST extends WithName("Interest on Accounting for Tax return") with SchemeFSChargeType
   case object PSS_OTC_AFT_RETURN extends WithName("Overseas transfer charge") with SchemeFSChargeType
   case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("Interest on overseas transfer charge") with SchemeFSChargeType
@@ -41,6 +42,7 @@ object SchemeFSChargeType extends Enumerable.Implicits {
 
   val values: Seq[SchemeFSChargeType] = Seq(
     PSS_AFT_RETURN,
+    PSS_AFT_RETURN_CREDIT,
     PSS_AFT_RETURN_INTEREST,
     PSS_OTC_AFT_RETURN,
     PSS_OTC_AFT_RETURN_INTEREST,
