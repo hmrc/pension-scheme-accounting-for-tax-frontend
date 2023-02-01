@@ -26,10 +26,13 @@ object SchemeFSChargeType extends Enumerable.Implicits {
   case object PSS_AFT_RETURN_CREDIT extends WithName("Accounting for Tax return credit") with SchemeFSChargeType
   case object PSS_AFT_RETURN_INTEREST extends WithName("Interest on Accounting for Tax return") with SchemeFSChargeType
   case object PSS_OTC_AFT_RETURN extends WithName("Overseas transfer charge") with SchemeFSChargeType
+  case object PSS_OTC_AFT_RETURN_CREDIT extends WithName("Overseas transfer charge credit") with SchemeFSChargeType
   case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("Interest on overseas transfer charge") with SchemeFSChargeType
   case object AFT_MANUAL_ASST extends WithName( "Accounting for Tax return manual assessment") with SchemeFSChargeType
+  case object AFT_MANUAL_ASST_CREDIT extends WithName( "Accounting for Tax return manual assessment credit") with SchemeFSChargeType
   case object AFT_MANUAL_ASST_INTEREST extends WithName("Interest on Accounting for Tax return manual assessment") with SchemeFSChargeType
   case object OTC_MANUAL_ASST extends WithName("Overseas transfer charge manual assessment") with SchemeFSChargeType
+  case object OTC_MANUAL_ASST_CREDIT extends WithName("Overseas transfer charge manual assessment credit") with SchemeFSChargeType
   case object OTC_MANUAL_ASST_INTEREST extends WithName("Interest on overseas transfer charge manual assessment") with SchemeFSChargeType
   case object PSS_CHARGE extends WithName("Pensions charge") with SchemeFSChargeType
   case object PSS_CHARGE_INTEREST extends WithName("Interest on pensions charge") with SchemeFSChargeType
@@ -45,10 +48,13 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     PSS_AFT_RETURN_CREDIT,
     PSS_AFT_RETURN_INTEREST,
     PSS_OTC_AFT_RETURN,
+    PSS_OTC_AFT_RETURN_CREDIT,
     PSS_OTC_AFT_RETURN_INTEREST,
     AFT_MANUAL_ASST,
+    AFT_MANUAL_ASST_CREDIT,
     AFT_MANUAL_ASST_INTEREST,
     OTC_MANUAL_ASST,
+    OTC_MANUAL_ASST_CREDIT,
     OTC_MANUAL_ASST_INTEREST,
     PSS_CHARGE,
     PSS_CHARGE_INTEREST,
