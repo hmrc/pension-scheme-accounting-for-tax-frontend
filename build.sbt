@@ -12,7 +12,7 @@ lazy val root = (project in file("."))
   .settings(DefaultBuildSettings.scalaSettings: _*)
   .settings(DefaultBuildSettings.defaultSettings(): _*)
   .settings(SbtDistributablesPlugin.publishingSettings: _*)
-  .settings(scalaVersion := "2.13.10")
+  .settings(scalaVersion := "2.13.8")
   .settings(
     Test / parallelExecution := true
   )
