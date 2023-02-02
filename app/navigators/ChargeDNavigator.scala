@@ -43,10 +43,10 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers): Int =
+  private def nextIndex(ua: UserAnswers): Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails").size
 
-  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
+  private def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
     val showPSRQuestions = enablePSR(ua)
     val addMembersPageVal = ua.get(AddMembersPage)
 
@@ -60,7 +60,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     }
   }
 
-  def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+  private def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
     implicit request: DataRequest[AnyContent]): Call =
     if (deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
