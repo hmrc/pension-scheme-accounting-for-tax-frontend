@@ -43,10 +43,10 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers): Int =
+  private def nextIndex(ua: UserAnswers): Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").size
 
-  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
+  private def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
     val showPSRQuestions = enablePSR(ua)
     val addMembersPageVal = ua.get(AddMembersPage)
 
@@ -60,7 +60,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     }
   }
 
-  def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+  private def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
     implicit request: DataRequest[AnyContent]): Call =
     if (deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
@@ -132,7 +132,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     mode match {
       case NormalMode =>
         (userAnswers.get(InputSelectionPage(ChargeTypeAnnualAllowance)), userAnswers.get(AddMembersPage), optIndex) match {
-          case (Some(FileUploadInput) | Some(ManualInput), Some(true), Some(index)) =>
+          case (_, Some(true), Some(index)) =>
             MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
           case (Some(FileUploadInput), _, None) =>
             controllers.fileUpload.routes.WhatYouWillNeedController
@@ -282,7 +282,13 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   private def countSchemeSize(userAnswers: UserAnswers, index: Int): Int = {
-    SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
+    SchemePathHelper
+      .path(ChargeTypeAnnualAllowance, index)
+      .readNullable[JsArray]
+      .reads(userAnswers.data)
+      .asOpt.flatten
+      .map(_.value.size)
+      .getOrElse(0)
   }
 
   private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Call = {
