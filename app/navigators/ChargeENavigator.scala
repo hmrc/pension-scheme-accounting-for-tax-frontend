@@ -132,7 +132,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     mode match {
       case NormalMode =>
         (userAnswers.get(InputSelectionPage(ChargeTypeAnnualAllowance)), userAnswers.get(AddMembersPage), optIndex) match {
-          case (Some(FileUploadInput) | Some(ManualInput), Some(true), Some(index)) =>
+          case (_, Some(true), Some(index)) =>
             MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
           case (Some(FileUploadInput), _, None) =>
             controllers.fileUpload.routes.WhatYouWillNeedController
