@@ -22,7 +22,7 @@ import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
 import forms.mccloud.{ChargeAmountReportedFormProvider, EnterPstrFormProvider}
 import forms.{MemberDetailsFormProvider, YesNoFormProvider}
-import models.{ChargeType, CommonQuarters}
+import models.CommonQuarters
 
 class AnnualAllowanceMcCloudParser @Inject()(
                                               override val memberDetailsFormProvider: MemberDetailsFormProvider,
