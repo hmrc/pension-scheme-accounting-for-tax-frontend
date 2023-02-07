@@ -32,24 +32,29 @@ class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessTyp
   val chargeTypeDescription: String = Messages(s"chargeType.description.$chargeType")
 
   def isPsprForCharge(index: Int, isPSR: Option[Boolean]): Seq[Row] = {
-    Seq(
-      Row(
-        key = Key(msg"${messages("isPublicServicePensionsRemedy.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
-        value = Value(getOptionalValue(isPSR), classes = Seq("govuk-!-width-one-third")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.routes.IsPublicServicePensionsRemedyController
-              .onPageLoad(chargeType, CheckMode, srn, startDate, accessType, version, Some(index))
-              .url,
-            visuallyHiddenText = Some(
-              Literal(
-                messages("site.edit") + " " + messages("isPublicServicePensionsRemedy.label")
-              ))
+
+    isPSR match {
+      case Some(true) | Some(false) =>
+        Seq(
+          Row(
+            key = Key(msg"${messages("isPublicServicePensionsRemedy.title", chargeTypeDescription)}", classes = Seq("govuk-!-width-one-half")),
+            value = Value(getOptionalValue(isPSR), classes = Seq("govuk-!-width-one-third")),
+            actions = List(
+              Action(
+                content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+                href = controllers.routes.IsPublicServicePensionsRemedyController
+                  .onPageLoad(chargeType, CheckMode, srn, startDate, accessType, version, Some(index))
+                  .url,
+                visuallyHiddenText = Some(
+                  Literal(
+                    messages("site.edit") + " " + messages("isPublicServicePensionsRemedy.label")
+                  ))
+              )
+            )
           )
         )
-      )
-    )
+      case _ => Nil
+    }
   }
 
   def psprChargeDetails(index: Int, pensionsRemedySummary: PensionsRemedySummary): Option[Seq[Row]] = {

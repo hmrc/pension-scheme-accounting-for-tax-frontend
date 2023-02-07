@@ -33,6 +33,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
 import java.time.LocalDate
+import scala.collection.Seq
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
   //scalastyle:off magic.number
@@ -120,6 +121,16 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     "list" -> rows(isPSR, isChargeInAddition, wasAnotherPensionScheme)
   )
 
+  private val rowsWithoutPSR = Seq(
+    helper.chargeEMemberDetails(0, memberDetails),
+    helper.chargeETaxYear(0, dynamicYearRange),
+    helper.chargeEDetails(0, chargeEDetails)
+  ).flatten
+
+  private val jsonToPassToTemplateNoPSR: JsObject = Json.obj(
+    "list" -> rowsWithoutPSR
+  )
+
   DateHelper.setDate(Some(LocalDate.of(2020, 4, 1)))
 
   "CheckYourAnswers Controller for PSR if isPSR is false, isChargeInAddition is false and wasAnotherPensionScheme is false" must {
@@ -129,6 +140,28 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate(isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false),
       userAnswers = updateUserAnswers(ua, isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false)
+    )
+
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = ua
+    )
+
+    behave like redirectToErrorOn5XX(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = ua
+    )
+  }
+
+  "CheckYourAnswers Controller without PSR Questions" must {
+
+    behave like cyaController(
+      httpPath = httpGETRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplateNoPSR,
+      userAnswers = ua
     )
 
     behave like controllerWithOnClick(

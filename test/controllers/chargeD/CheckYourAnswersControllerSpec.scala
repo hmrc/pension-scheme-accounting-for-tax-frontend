@@ -31,6 +31,8 @@ import pages.mccloud._
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import scala.collection.Seq
+
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
   //scalastyle:off magic.number
 
@@ -115,12 +117,61 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     "list" -> rows(isPSR, isChargeInAddition, wasAnotherPensionScheme)
   )
 
+  private val rowsWithoutPSR = Seq(
+    helper.chargeDMemberDetails(0, memberDetails),
+    helper.chargeDDetails(0, chargeDDetails),
+    Seq(helper.total(chargeAmount1 + chargeAmount2))
+  ).flatten
+
+  private val jsonToPassToTemplateNoPSR: JsObject = Json.obj(
+    "list" -> rowsWithoutPSR
+  )
+
   "CheckYourAnswers Controller for PSR if isPSR is false, isChargeInAddition is false and wasAnotherPensionScheme is false" must {
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate(isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false),
       userAnswers = updateUserAnswers(ua, isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false)
+    )
+
+    behave like redirectToErrorOn5XX(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = ua
+    )
+
+    "CheckYourAnswers Controller with both rates of tax set" must {
+      behave like controllerWithOnClick(
+        httpPath = httpOnClickRoute,
+        page = CheckYourAnswersPage,
+        userAnswers = ua
+      )
+    }
+
+    "CheckYourAnswers Controller with no 25% rate of tax set" must {
+      behave like controllerWithOnClick(
+        httpPath = httpOnClickRoute,
+        page = CheckYourAnswersPage,
+        userAnswers = ua.set(ChargeDetailsPage(0), chargeDDetails.copy(taxAt25Percent = None)).get
+      )
+    }
+
+    "CheckYourAnswers Controller with no 55% rate of tax set" must {
+      behave like controllerWithOnClick(
+        httpPath = httpOnClickRoute,
+        page = CheckYourAnswersPage,
+        userAnswers = ua.set(ChargeDetailsPage(0), chargeDDetails.copy(taxAt55Percent = None)).get
+      )
+    }
+  }
+
+  "CheckYourAnswers Controller Without PSR Questions" must {
+    behave like cyaController(
+      httpPath = httpGETRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplateNoPSR,
+      userAnswers = ua
     )
 
     behave like redirectToErrorOn5XX(

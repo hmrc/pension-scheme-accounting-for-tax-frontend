@@ -28,33 +28,31 @@ class FileProviderService @Inject()(environment: Environment){
 
   private val instructionsFilePathMap = Map(
     "annualAllowancePSR" -> s"$baseInstructionsPath/instructions_aft-annual-allowance-charge-upload-format.ods",
-    "annualAllowanceNonPSR" -> s"$baseInstructionsPath/instructions_aft-annual-allowance-charge-upload-non-public-service-pensions-remedy.ods",
+    "annualAllowance" -> s"$baseInstructionsPath/instructions_aft-annual-allowance-charge-upload-non-public-service-pensions-remedy.ods",
     "lifeTimeAllowancePSR" -> s"$baseInstructionsPath/instructions_aft-lifetime-allowance-charge-upload-format.ods",
-    "lifeTimeAllowanceNonPSR" -> s"$baseInstructionsPath/instructions_aft-lifetime-allowance-charge-upload-non-public-service-pensions-remedy.ods",
+    "lifeTimeAllowance" -> s"$baseInstructionsPath/instructions_aft-lifetime-allowance-charge-upload-non-public-service-pensions-remedy.ods",
     "overseasTransfer"-> s"$baseInstructionsPath/aft-overseas-transfer-charge-upload-format-instructions.ods"
   )
 
   private val templateFilePathMap = Map(
     "annualAllowancePSR" -> s"$baseTemplatePath/upload-template_aft-annual-allowance-charge.csv",
-    "annualAllowanceNonPSR" -> s"$baseTemplatePath/upload-template_aft-annual-allowance-charge_non-public-service-pensions-remedy.csv",
+    "annualAllowance" -> s"$baseTemplatePath/upload-template_aft-annual-allowance-charge_non-public-service-pensions-remedy.csv",
     "lifeTimeAllowancePSR"-> s"$baseTemplatePath/upload-template_aft-lifetime-allowance-charge.csv",
-    "lifeTimeAllowanceNonPSR"-> s"$baseTemplatePath/upload-template_aft-lifetime-allowance-charge_non-public-service-pensions-remedy.csv",
+    "lifeTimeAllowance"-> s"$baseTemplatePath/upload-template_aft-lifetime-allowance-charge_non-public-service-pensions-remedy.csv",
     "overseasTransfer"-> s"$baseTemplatePath/aft-overseas-transfer-charge-upload-template.csv"
   )
 
   private def instructionsFilePath(chargeType: ChargeType, psr: Option[Boolean]): String = {
     psr match {
       case Some(true) => instructionsFilePathMap(s"${chargeType.toString}PSR")
-      case Some(false) => instructionsFilePathMap(s"${chargeType.toString}NonPSR")
-      case None => instructionsFilePathMap(chargeType.toString)
+      case _ => instructionsFilePathMap(chargeType.toString)
     }
   }
 
   private def templateFilePath(chargeType: ChargeType, psr: Option[Boolean]): String = {
     psr match {
       case Some(true) => templateFilePathMap(s"${chargeType.toString}PSR")
-      case Some(false) => templateFilePathMap(s"${chargeType.toString}NonPSR")
-      case None => templateFilePathMap(chargeType.toString)
+      case _ => templateFilePathMap(chargeType.toString)
     }
   }
 

@@ -26,10 +26,10 @@ import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.{CheckMode, NormalMode, UserAnswers, YearRange}
 import org.scalatest.prop.TableFor3
+import pages._
 import pages.chargeD._
 import pages.fileUpload.InputSelectionPage
 import pages.mccloud._
-import pages.{IsPublicServicePensionsRemedyPage, Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 
@@ -82,19 +82,27 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
           isAnotherSchemeNo),
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(AddMembersPage)(controllers.routes.IsPublicServicePensionsRemedyController
-          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(index)), addMembersYes),
+          .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(index)), Some(addMembersYesAndPSR)),
+        row(AddMembersPage)(MemberDetailsController
+          .onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), Some(addMembersYesAndPSRNo)),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),
         row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeDMember)),
         row(InputSelectionPage(ChargeTypeLifetimeAllowance))(controllers.routes.IsPublicServicePensionsRemedyController
           .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(index)),
-          Some(manualInput)),
+          Some(manualInputTaxQtrAprToJun2023)),
+        row(InputSelectionPage(ChargeTypeLifetimeAllowance))(controllers.chargeD.routes.WhatYouWillNeedController
+          .onPageLoad(srn, startDate, accessType, versionInt, index),
+          Some(manualInputTaxQtrBfrAprToJun2023)),
         row(InputSelectionPage(ChargeTypeLifetimeAllowance))(
           controllers.routes.IsPublicServicePensionsRemedyController
             .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, None),
-          Some(fileUploadInput)
-        )
+          Some(fileUploadInputTaxQtrAprToJun2023)),
+        row(InputSelectionPage(ChargeTypeLifetimeAllowance))(
+          controllers.fileUpload.routes.WhatYouWillNeedController
+            .onPageLoad(srn, startDate, accessType, versionInt, ChargeTypeLifetimeAllowance),
+          Some(fileUploadInputTaxQtrBfrAprToJun2023))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate, accessType, versionInt)
@@ -166,7 +174,10 @@ object ChargeDNavigatorSpec {
   private val startDate = QUARTER_START_DATE
   private val index = 0
   private val schemeIndex = 0
-  private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
+  private val addMembersYesAndPSR = UserAnswers().setOrException(AddMembersPage, true)
+    .setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
+  private val addMembersYesAndPSRNo = UserAnswers().setOrException(AddMembersPage, true)
+    .setOrException(QuarterPage, SampleData.taxQuarter)
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
   private val wasAnother = UserAnswers().set(WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, 0), true).toOption
   private val zeroedCharge =
@@ -175,8 +186,14 @@ object ChargeDNavigatorSpec {
     .set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails)
     .flatMap(_.set(chargeB.ChargeBDetailsPage, SampleData.chargeBDetails))
     .toOption
-  private val manualInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), ManualInput)
-  private val fileUploadInput = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), FileUploadInput)
+  private val manualInputTaxQtrAprToJun2023 = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), ManualInput)
+    .setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
+  private val manualInputTaxQtrBfrAprToJun2023 = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), ManualInput)
+    .setOrException(QuarterPage, SampleData.taxQuarter)
+  private val fileUploadInputTaxQtrAprToJun2023 = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), FileUploadInput)
+    .setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
+  private val fileUploadInputTaxQtrBfrAprToJun2023 = UserAnswers().setOrException(InputSelectionPage(ChargeTypeLifetimeAllowance), FileUploadInput)
+    .setOrException(QuarterPage, SampleData.taxQuarter)
   private val publicPensionRemedyYes = UserAnswers().setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(0)), true)
   private val publicPensionRemedyNo = UserAnswers().setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(0)), false)
   private val chargeInAdditionReportedYes = UserAnswers().setOrException(IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, 0), true)
