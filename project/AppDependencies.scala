@@ -2,10 +2,12 @@ import sbt._
 
 object AppDependencies {
 
-  val compile = Seq(
+  val bootstrapFrontendPlayVersion = "7.11.0"
+
+  val compile: Seq[ModuleID] = Seq(
     play.sbt.PlayImport.ws,
     "uk.gov.hmrc"                   %%  "play-conditional-form-mapping"  % "1.12.0-play-28",
-    "uk.gov.hmrc"                   %%  "bootstrap-frontend-play-28"     % "7.11.0",
+    "uk.gov.hmrc"                   %%  "bootstrap-frontend-play-28"     % bootstrapFrontendPlayVersion,
     "uk.gov.hmrc"                   %%  "play-nunjucks"                  % "0.40.0-play-28",
     "uk.gov.hmrc"                   %%  "play-nunjucks-viewmodel"        % "0.16.0-play-28",
     "org.webjars.npm"               %   "govuk-frontend"                 % "4.3.1",
@@ -13,7 +15,7 @@ object AppDependencies {
     "com.google.inject.extensions"  %   "guice-multibindings"            % "4.2.3",
     "uk.gov.hmrc"                   %%  "domain"                         % "8.1.0-play-28",
     "com.univocity"                 %  "univocity-parsers"               % "2.9.1",
-    "com.fasterxml.jackson.module"  %% "jackson-module-scala"           % "2.14.0",
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala"            % "2.14.0",
     "org.typelevel" %% "cats-core" % "2.9.0"
   )
 
@@ -24,7 +26,8 @@ object AppDependencies {
     "org.scalatestplus"           %% "scalacheck-1-17"    % "3.2.14.0",
     "org.pegdown"                 %  "pegdown"            % "1.6.0",
     "com.github.tomakehurst"      %  "wiremock-jre8"      % "2.35.0",
-    "com.vladsch.flexmark"        % "flexmark-all"        % "0.62.2"
+    "com.vladsch.flexmark"        % "flexmark-all"        % "0.62.2",
+    "uk.gov.hmrc"                 %% "bootstrap-test-play-28"     % bootstrapFrontendPlayVersion,
   ).map(_ % Test)
 
   def apply(): Seq[ModuleID] = compile ++ test
