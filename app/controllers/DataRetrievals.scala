@@ -25,85 +25,125 @@ import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
+import play.api.Logger
 import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
 object DataRetrievals {
+  private val logger = Logger("DataRetrievals")
 
   def retrieveSchemeName(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(SchemeNameQuery) match {
       case Some(schemeName) => block(schemeName)
-      case _                => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
   def retrieveSchemeWithPSTR(block: (String, String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery)) match {
       case (Some(schemeName), Some(pstr)) => block(schemeName, pstr)
-      case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
   def retrieveSchemeNameWithEmailAndQuarter(block: (String, String, AFTQuarter) => Future[Result])(
-      implicit request: DataRequest[AnyContent]): Future[Result] = {
+    implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(EmailQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(email), Some(quarter)) => block(schemeName, email, quarter)
-      case _                                              => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
   def retrievePSAAndSchemeDetailsWithAmendment(block: (String, String, String, AFTQuarter, Boolean, Int) => Future[Result])(
-      implicit request: DataRequest[AnyContent]): Future[Result] = {
+    implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
     (ua.get(SchemeNameQuery), ua.get(PSTRQuery), ua.get(EmailQuery), ua.get(QuarterPage)) match {
       case (Some(schemeName), Some(pstr), Some(email), Some(quarter)) =>
         block(schemeName, pstr, email, quarter, request.isAmendment, request.aftVersion)
-      case _ =>
+      case (a, b, c, d) =>
+        logger.warn(s"Redirecting to session expired (with pstr). UA state:- name: $a pstr: $b email: $c quarter: $d")
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
+  }
+
+  private def defaultValue = "Unknown"
+
+  private def logDetailsWhenDefaultValueUsed(schemeName: String, email: String, startDate: String, endDate: String): Unit = {
+    if (schemeName == defaultValue || email == defaultValue || startDate == defaultValue || endDate == defaultValue) {
+      val s1 = if (schemeName == defaultValue) "scheme name" else ""
+      val s2 = if (email == defaultValue) "email" else ""
+      val s3 = if (startDate == defaultValue) "start date" else ""
+      val s4 = if (endDate == defaultValue) "end date" else ""
+
+      logger.error(
+        s"Retrieving user answer details: one ore more retrieved items has default value of unknown: $s1 $s2 $s3 $s4")
+    }
+  }
+
+  def retrievePSAAndSchemeDetailsWithAmendmentNoPSTR(block: (String, String, String, String, Boolean, Int) => Future[Result])(
+    implicit request: DataRequest[AnyContent]): Future[Result] = {
+    val ua = request.userAnswers
+
+
+    val schemeName = ua.get(SchemeNameQuery).getOrElse(defaultValue)
+    val email = ua.get(EmailQuery).getOrElse(defaultValue)
+
+    val (startDate, endDate) = ua.get(QuarterPage) match {
+      case Some(aftQuarter) =>
+        (
+          aftQuarter.startDate.format(dateFormatterStartDate),
+          aftQuarter.endDate.format(dateFormatterDMY)
+        )
+      case _ => (defaultValue, defaultValue)
+    }
+
+    logDetailsWhenDefaultValueUsed(schemeName, email, startDate, endDate)
+
+    block(schemeName, email, startDate, endDate, request.isAmendment, request.aftVersion)
   }
 
   def retrieveSchemeAndQuarter(block: (String, AFTQuarter) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
-      case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
   def retrievePSTR(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(PSTRQuery) match {
       case Some(pstr) => block(pstr)
-      case _          => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
   def retrieveSchemeAndMember(memberPage: QuestionPage[MemberDetails])(block: (String, String) => Future[Result])(
-      implicit request: DataRequest[AnyContent]): Future[Result] = {
+    implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case _                                       => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
   def retrieveSchemeMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, String) => Future[Result])(
-      implicit request: DataRequest[AnyContent]): Future[Result] = {
+    implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case _                                       => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
   def retrieveSchemeAndSponsoringEmployer(index: Int)(block: (String, String) => Future[Result])(
-      implicit request: DataRequest[AnyContent]): Future[Result] = {
+    implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
     (ua.get(WhichTypeOfSponsoringEmployerPage(index)),
-     ua.get(SponsoringOrganisationDetailsPage(index)),
-     ua.get(SponsoringIndividualDetailsPage(index)),
-     ua.get(SchemeNameQuery)) match {
+      ua.get(SponsoringOrganisationDetailsPage(index)),
+      ua.get(SponsoringIndividualDetailsPage(index)),
+      ua.get(SchemeNameQuery)) match {
       case (Some(SponsoringEmployerTypeOrganisation), Some(company), _, Some(schemeName)) =>
         block(schemeName, company.name)
       case (Some(SponsoringEmployerTypeIndividual), _, Some(individual), Some(schemeName)) =>
@@ -130,7 +170,7 @@ object DataRetrievals {
   }
 
   def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A], srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      block: (A, String) => Future[Result])(implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
+    block: (A, String) => Future[Result])(implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
     (
       request.userAnswers.get(chargeDetailsPage),
       request.userAnswers.get(SchemeNameQuery)
@@ -143,11 +183,11 @@ object DataRetrievals {
   }
 
   def cyaChargeC(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      block: (SponsoringEmployerType,
-              Either[models.MemberDetails, SponsoringOrganisationDetails],
-              SponsoringEmployerAddress,
-              ChargeCDetails,
-              String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    block: (SponsoringEmployerType,
+      Either[models.MemberDetails, SponsoringOrganisationDetails],
+      SponsoringEmployerAddress,
+      ChargeCDetails,
+      String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
 
     (
       request.userAnswers.get(WhichTypeOfSponsoringEmployerPage(index)),
@@ -173,8 +213,8 @@ object DataRetrievals {
   }
 
   def cyaChargeD(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])(
-      implicit request: DataRequest[AnyContent]): Future[Result] = {
+    block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])(
+                  implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
       request.userAnswers.get(pages.chargeD.MemberDetailsPage(index)),
       request.userAnswers.get(ChargeDetailsPage(index)),
@@ -188,8 +228,8 @@ object DataRetrievals {
   }
 
   def cyaChargeE(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])(
-      implicit request: DataRequest[AnyContent]): Future[Result] = {
+    block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])(
+                  implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
       request.userAnswers.get(pages.chargeE.MemberDetailsPage(index)),
       request.userAnswers.get(AnnualAllowanceYearPage(index)),
@@ -204,8 +244,8 @@ object DataRetrievals {
   }
 
   def cyaChargeG(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
-      block: (models.chargeG.ChargeDetails, models.chargeG.MemberDetails, models.chargeG.ChargeAmounts, String) => Future[Result])(
-      implicit request: DataRequest[AnyContent]): Future[Result] = {
+    block: (models.chargeG.ChargeDetails, models.chargeG.MemberDetails, models.chargeG.ChargeAmounts, String) => Future[Result])(
+                  implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
       request.userAnswers.get(pages.chargeG.ChargeDetailsPage(index)),
       request.userAnswers.get(pages.chargeG.MemberDetailsPage(index)),

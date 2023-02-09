@@ -144,6 +144,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
       templateCaptor.getValue mustEqual "confirmation.njk"
+
       jsonCaptor.getValue must containJson(json(isAmendment = false))
     }
 
