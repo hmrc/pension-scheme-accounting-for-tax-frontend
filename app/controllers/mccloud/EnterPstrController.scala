@@ -133,7 +133,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(EnterPstrPage(chargeType, index, schemeIndex), value, mode))
+                updatedAnswers <- Future.fromTry(userAnswersService.set(EnterPstrPage(chargeType, index, schemeIndex), value.toUpperCase, mode))
                 _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
                   chargeType = Some(chargeType), memberNo = Some(index.id))
               } yield Redirect(navigator.nextPage(EnterPstrPage(chargeType, index, schemeIndex), mode, updatedAnswers, srn, startDate, accessType, version))
