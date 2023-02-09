@@ -166,9 +166,11 @@ class RequestCreationService @Inject()(
       val updatedVersion = (accessType, isCompilable) match {
         case (Draft, Some(false)) =>
           if (version == 1) {
-            logger.warn("Version is 1 so will derive a zero. seqAFTOverview=" + seqAFTOverview)
+            logger.warn("Version is 1 so will derive a zero so leave at 1. seqAFTOverview=" + seqAFTOverview)
+            version
+          } else {
+            version - 1
           }
-          version - 1
         case _ => version
       }
       logger.warn(s"seqAFTOverview non empty - getAftDetails will be called for version $updatedVersion")
