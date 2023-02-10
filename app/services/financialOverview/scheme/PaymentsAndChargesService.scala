@@ -58,11 +58,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   def getPaymentsAndCharges(srn: String,
                             pstr: String,
                             schemeFSDetail: Seq[SchemeFSDetail],
-                            chargeDetailsFilter: ChargeDetailsFilter
+                            chargeDetailsFilter: ChargeDetailsFilter,
+                            typeOfPaymentsAndCharges: Seq[SchemeFSChargeType] = SchemeFSChargeType.values
                            )
                            (implicit messages: Messages): Table = {
-    val filteredSchemeFSDetail = filteredSchemeDetailCredits(schemeFSDetail)
-    val seqPayments: Seq[FinancialPaymentAndChargesDetails] = filteredSchemeFSDetail.flatMap { paymentOrCharge =>
+    val filteredSchemeFSDetail = filteredSeqSchemeFsDetailNoCredits(schemeFSDetail)
+    val filteredSchemeFSDetailAftOnly = filteredSeqSchemeFsDetailPerTypeOfPayment(filteredSchemeFSDetail)
+
+    val seqPayments: Seq[FinancialPaymentAndChargesDetails] = filteredSchemeFSDetailAftOnly.flatMap { paymentOrCharge =>
       paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeDetailsFilter)
     }
     mapToTable(seqPayments, chargeDetailsFilter)
@@ -479,9 +482,16 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  private def filteredSchemeDetailCredits(seqSchemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail]= {
+  private def filteredSeqSchemeFsDetailNoCredits(seqSchemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail]= {
     seqSchemeFSDetail.filter { schemeFSDetail =>
       !isCreditChargeType(schemeFSDetail.chargeType)
+    }
+  }
+
+  private def filteredSeqSchemeFsDetailPerTypeOfPayment(seqSchemeFSDetail: Seq[SchemeFSDetail], typeOfPaymentsAndCharges: Seq[SchemeFSChargeType]): Seq[SchemeFSDetail]= {
+    //Match on typeOfPaymentsAndCharges
+    seqSchemeFSDetail.filter { schemeFSDetail =>
+      isAftChargeType(schemeFSDetail.chargeType)
     }
   }
 }
