@@ -52,6 +52,9 @@ object SchemeFSChargeType extends Enumerable.Implicits {
   case object PSS_FIXED_CREDIT_CHARGE_MEMBERS_TAX extends WithName("Fixed credit charge members tax") with SchemeFSChargeType
   case object PSS_MANUAL_FIXED_CHARGE_MEMBERS_TAX extends WithName("Manual fixed charge members tax") with SchemeFSChargeType
 
+  case object PSS_LTA_DISCHARGE_ASSESSMENT extends WithName( "PSS LTA Discharge Assessment") with SchemeFSChargeType
+  case object PSS_LTA_DISCHARGE_ASSESSMENT_INTEREST extends WithName( "Interest on PSS LTA Discharge Assessment") with SchemeFSChargeType
+
   val values: Seq[SchemeFSChargeType] = Seq(
     PSS_AFT_RETURN,
     PSS_AFT_RETURN_CREDIT,
@@ -81,7 +84,9 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     PSS_MANUAL_SCHEME_SANCTION_CHARGE_INTEREST,
     PSS_FIXED_CHARGE_MEMBERS_TAX,
     PSS_FIXED_CREDIT_CHARGE_MEMBERS_TAX,
-    PSS_MANUAL_FIXED_CHARGE_MEMBERS_TAX
+    PSS_MANUAL_FIXED_CHARGE_MEMBERS_TAX,
+    PSS_LTA_DISCHARGE_ASSESSMENT,
+    PSS_LTA_DISCHARGE_ASSESSMENT_INTEREST
   )
 
   def isAFTOrOTCNonInterestChargeType(schemeFSChargeType:SchemeFSChargeType):Boolean =
