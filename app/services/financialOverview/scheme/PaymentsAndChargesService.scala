@@ -261,14 +261,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
 
       Seq(
-        Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half")),
+        Cell(htmlChargeType, classes = Seq("govuk-!-width-one-third")),
         Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-padding-right-7")),
         if (data.originalChargeAmount.isEmpty) {
           Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
         } else {
-          Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-padding-right-7"))
+          Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-padding-right-7 table-nowrap"))
         },
-        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-padding-right-7")),
+        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-padding-right-5 table-nowrap")),
         Cell(htmlStatus(data), classes = Nil)
       )
     }
