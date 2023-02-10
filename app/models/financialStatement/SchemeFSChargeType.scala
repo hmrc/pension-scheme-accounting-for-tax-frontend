@@ -89,15 +89,6 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     PSS_LTA_DISCHARGE_ASSESSMENT_INTEREST
   )
 
-  val eventReportingCharges: Seq[SchemeFSChargeType] = Seq(
-    PSS_SCHEME_SANCTION_CHARGE,
-    PSS_SCHEME_SANCTION_CHARGE_INTEREST,
-    PSS_MANUAL_SSC,
-    PSS_MANUAL_SCHEME_SANCTION_CHARGE_INTEREST,
-    PSS_FIXED_CHARGE_MEMBERS_TAX,
-    PSS_MANUAL_FIXED_CHARGE_MEMBERS_TAX
-  )
-
   val credits: Seq[SchemeFSChargeType] = Seq(
     PSS_AFT_RETURN_CREDIT,
     PSS_OTC_AFT_RETURN_CREDIT,
@@ -108,43 +99,10 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     PSS_FIXED_CREDIT_CHARGE_MEMBERS_TAX
   )
 
-  val aftCharges: Seq[SchemeFSChargeType] = Seq(
-    PSS_AFT_RETURN,
-    PSS_AFT_RETURN_INTEREST,
-    PSS_OTC_AFT_RETURN,
-    PSS_OTC_AFT_RETURN_INTEREST,
-    AFT_MANUAL_ASST,
-    AFT_MANUAL_ASST_INTEREST,
-    OTC_MANUAL_ASST,
-    OTC_MANUAL_ASST_INTEREST,
-    PSS_LTA_DISCHARGE_ASSESSMENT,
-    PSS_LTA_DISCHARGE_ASSESSMENT_INTEREST
-  )
-
-  val contractSettlementCharges: Seq[SchemeFSChargeType] = Seq(
-    CONTRACT_SETTLEMENT,
-    CONTRACT_SETTLEMENT_INTEREST
-  )
-
-  val excessReliefPaidCharges: Seq[SchemeFSChargeType] = Seq(
-    EXCESS_RELIEF_PAID
-  )
-
-  val interestOnExcessReliefPaidCharges: Seq[SchemeFSChargeType] = Seq(
-    EXCESS_RELIEF_INTEREST
-  )
-
-  val pensionsCharges: Seq[SchemeFSChargeType] = Seq(
-    PSS_CHARGE,
-    PSS_CHARGE_INTEREST
-  )
-
   def isCreditChargeType(schemeFSChargeType:SchemeFSChargeType):Boolean = {
     credits.contains(schemeFSChargeType)
   }
-  def isAftChargeType(schemeFSChargeType:SchemeFSChargeType):Boolean = {
-    aftCharges.contains(schemeFSChargeType)
-  }
+
   def isAFTOrOTCNonInterestChargeType(schemeFSChargeType:SchemeFSChargeType):Boolean =
     schemeFSChargeType == PSS_AFT_RETURN || schemeFSChargeType == PSS_OTC_AFT_RETURN
 
