@@ -72,7 +72,7 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     PSS_CHARGE_INTEREST,
     CONTRACT_SETTLEMENT,
     CONTRACT_SETTLEMENT_INTEREST,
-    REPAYMENT_INTEREST, //TODO: Investigate whether this goes into AFT section
+    REPAYMENT_INTEREST,
     EXCESS_RELIEF_PAID,
     EXCESS_RELIEF_INTEREST,
     PAYMENT_ON_ACCOUNT,
