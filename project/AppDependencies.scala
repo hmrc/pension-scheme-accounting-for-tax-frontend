@@ -1,11 +1,11 @@
 import sbt._
 
 object AppDependencies {
-
+  private val playVersion = "7.13.0"
   val compile = Seq(
     play.sbt.PlayImport.ws,
     "uk.gov.hmrc"                   %%  "play-conditional-form-mapping"  % "1.12.0-play-28",
-    "uk.gov.hmrc"                   %%  "bootstrap-frontend-play-28"     % "7.13.0",
+    "uk.gov.hmrc"                   %%  "bootstrap-frontend-play-28"     % playVersion,
     "uk.gov.hmrc"                   %%  "play-nunjucks"                  % "0.41.0-play-28",
     "uk.gov.hmrc"                   %%  "play-nunjucks-viewmodel"        % "0.17.0-play-28",
     "org.webjars.npm"               %   "govuk-frontend"                 % "4.3.1",
@@ -17,6 +17,7 @@ object AppDependencies {
   )
 
   val test: Seq[ModuleID] = Seq(
+    "uk.gov.hmrc"             %% "bootstrap-test-play-28"     % playVersion,
     "org.scalatest"               %% "scalatest"          % "3.2.14",
     "org.scalatestplus.play"      %% "scalatestplus-play" % "5.1.0",
     "org.scalatestplus"           %% "mockito-4-6"        % "3.2.14.0",
