@@ -26,6 +26,7 @@ class EnterPstrFormProvider @Inject() extends Mappings with Constraints {
   def apply(): Form[String] =
     Form(
       "value" ->  text("enterPstr.error.required")
+        .transform(toUpperCaseLetters, noTransform)
         .verifying(
           firstError(
             regexp(pstrRegx, "enterPstr.error.invalid")
