@@ -37,6 +37,13 @@ class EnterPstrFormProviderSpec extends StringFieldBehaviours {
       result.value.value mustBe validValue
     }
 
+    "transform valid data to uppercase" in {
+      val validValue = "12345678ra"
+      val transformedValue = "12345678RA"
+      val result = form.bind(Map(fieldName -> validValue))
+      result.value.value mustBe transformedValue
+    }
+
     behave like mandatoryField(
       form,
       fieldName,
