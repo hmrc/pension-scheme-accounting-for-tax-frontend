@@ -85,14 +85,9 @@ class ConfirmationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission).async {
       implicit request =>
-        DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment {
-          (schemeName, _, email, quarter, isAmendment, amendedVersion) =>
-            val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
-            val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
-
+        DataRetrievals.retrievePSAAndSchemeDetailsWithAmendmentNoPSTR {
+          (schemeName, email, quarterStartDate, quarterEndDate, isAmendment, amendedVersion) =>
             val submittedDate = formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London")))
-
-
             val rows = getRows(
               schemeName = schemeName,
               quarterStartDate = quarterStartDate,

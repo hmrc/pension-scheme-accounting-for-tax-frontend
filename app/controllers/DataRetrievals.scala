@@ -28,13 +28,17 @@ import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
 import pages.mccloud._
 import play.api.libs.json.{JsArray, Reads}
+import play.api.Logger
+import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
 object DataRetrievals {
+  private val logger = Logger("DataRetrievals")
 
   def retrieveSchemeName(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(SchemeNameQuery) match {
@@ -64,9 +68,46 @@ object DataRetrievals {
     (ua.get(SchemeNameQuery), ua.get(PSTRQuery), ua.get(EmailQuery), ua.get(QuarterPage)) match {
       case (Some(schemeName), Some(pstr), Some(email), Some(quarter)) =>
         block(schemeName, pstr, email, quarter, request.isAmendment, request.aftVersion)
-      case _ =>
+      case (a, b, c, d) =>
+        logger.warn(s"Redirecting to session expired (with pstr). UA state:- name: $a pstr: $b email: $c quarter: $d")
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
+  }
+
+  private def defaultValue = "Unknown"
+
+  private def logDetailsWhenDefaultValueUsed(schemeName: String, email: String, startDate: String, endDate: String): Unit = {
+    if (schemeName == defaultValue || email == defaultValue || startDate == defaultValue || endDate == defaultValue) {
+      val s1 = if (schemeName == defaultValue) "scheme name" else ""
+      val s2 = if (email == defaultValue) "email" else ""
+      val s3 = if (startDate == defaultValue) "start date" else ""
+      val s4 = if (endDate == defaultValue) "end date" else ""
+
+      logger.error(
+        s"Retrieving user answer details: one ore more retrieved items has default value of unknown: $s1 $s2 $s3 $s4")
+    }
+  }
+
+  def retrievePSAAndSchemeDetailsWithAmendmentNoPSTR(block: (String, String, String, String, Boolean, Int) => Future[Result])(
+    implicit request: DataRequest[AnyContent]): Future[Result] = {
+    val ua = request.userAnswers
+
+
+    val schemeName = ua.get(SchemeNameQuery).getOrElse(defaultValue)
+    val email = ua.get(EmailQuery).getOrElse(defaultValue)
+
+    val (startDate, endDate) = ua.get(QuarterPage) match {
+      case Some(aftQuarter) =>
+        (
+          aftQuarter.startDate.format(dateFormatterStartDate),
+          aftQuarter.endDate.format(dateFormatterDMY)
+        )
+      case _ => (defaultValue, defaultValue)
+    }
+
+    logDetailsWhenDefaultValueUsed(schemeName, email, startDate, endDate)
+
+    block(schemeName, email, startDate, endDate, request.isAmendment, request.aftVersion)
   }
 
   def retrieveSchemeAndQuarter(block: (String, AFTQuarter) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
