@@ -89,6 +89,20 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     PSS_LTA_DISCHARGE_ASSESSMENT_INTEREST
   )
 
+  val credits: Seq[SchemeFSChargeType] = Seq(
+    PSS_AFT_RETURN_CREDIT,
+    PSS_OTC_AFT_RETURN_CREDIT,
+    AFT_MANUAL_ASST_CREDIT,
+    OTC_MANUAL_ASST_CREDIT,
+    PSS_SCHEME_SANCTION_CREDIT_CHARGE,
+    PSS_MANUAL_CREDIT_SSC,
+    PSS_FIXED_CREDIT_CHARGE_MEMBERS_TAX
+  )
+
+  def isCreditChargeType(schemeFSChargeType:SchemeFSChargeType):Boolean = {
+    credits.contains(schemeFSChargeType)
+  }
+
   def isAFTOrOTCNonInterestChargeType(schemeFSChargeType:SchemeFSChargeType):Boolean =
     schemeFSChargeType == PSS_AFT_RETURN || schemeFSChargeType == PSS_OTC_AFT_RETURN
 

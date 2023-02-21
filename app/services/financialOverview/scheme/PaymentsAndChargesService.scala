@@ -61,8 +61,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                             chargeDetailsFilter: ChargeDetailsFilter
                            )
                            (implicit messages: Messages): Table = {
+    val filteredSchemeFSDetail = filteredSeqSchemeFsDetailNoCredits(schemeFSDetail)
 
-    val seqPayments: Seq[FinancialPaymentAndChargesDetails] = schemeFSDetail.flatMap { paymentOrCharge =>
+    val seqPayments: Seq[FinancialPaymentAndChargesDetails] = filteredSchemeFSDetail.flatMap { paymentOrCharge =>
       paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeDetailsFilter)
     }
     mapToTable(seqPayments, chargeDetailsFilter)
@@ -474,6 +475,12 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           case OTHER_REASONS => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c6")
         }
       case _ => None
+    }
+  }
+
+  private def filteredSeqSchemeFsDetailNoCredits(seqSchemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail]= {
+    seqSchemeFSDetail.filter { schemeFSDetail =>
+      !isCreditChargeType(schemeFSDetail.chargeType)
     }
   }
 }
