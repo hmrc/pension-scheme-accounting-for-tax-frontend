@@ -314,9 +314,9 @@ class ValidationController @Inject()(
   private def findParser(chargeType: ChargeType, psr: Option[Boolean]): Option[Parser] = {
     (chargeType, psr) match {
       case (ChargeTypeAnnualAllowance, Some(true)) => Some(annualAllowanceParserMcCloud) // PSR YES, McCloud
-      case (ChargeTypeAnnualAllowance, Some(false)) => Some(annualAllowanceParser) // PSR NO,  Non McC
+      case (ChargeTypeAnnualAllowance, _) => Some(annualAllowanceParser) // PSR NO,  Non McC
       case (ChargeTypeLifetimeAllowance, Some(true)) => Some(lifeTimeAllowanceParserMcCloud) // PSR YES, McCloud
-      case (ChargeTypeLifetimeAllowance, Some(false)) => Some(lifeTimeAllowanceParser) // PSR NO,  Non McC
+      case (ChargeTypeLifetimeAllowance, _) => Some(lifeTimeAllowanceParser) // PSR NO,  Non McC
       case (ChargeTypeOverseasTransfer, None) => Some(overseasTransferParser) // PSR Q NOT ASKED
       case _ => None
     }
