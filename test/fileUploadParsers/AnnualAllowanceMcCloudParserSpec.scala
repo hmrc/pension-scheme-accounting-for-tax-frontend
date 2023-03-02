@@ -190,6 +190,21 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,
 
     behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
   }
+
+  "return correctly where McCloud errors - invalid Tax Year" in {
+    val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
+      s"""$header
+Joe,Bloggs,AB123456C,2020-2021,268.28,01/01/2020,NO,NO,NO,,,,,,,,,,,,,,,"""
+    )
+
+    val result = parser.parse(startDate, validCsvFile, UserAnswers())
+    result.isValid mustBe false
+
+    result.swap.toList.flatten mustBe Seq(
+      ParserValidationError(1, 7, messages("isChargeInAdditionReported.error.required",
+        chargeTypeDescription(ChargeType.ChargeTypeAnnualAllowance)), parser.McCloudFieldNames.isInAdditionToPrevious)
+    )
+  }
 }
 
 object AnnualAllowanceMcCloudParserSpec extends MockitoSugar {
