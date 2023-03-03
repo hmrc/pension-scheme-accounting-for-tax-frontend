@@ -53,8 +53,8 @@ class AnnualAllowanceNonMcCloudParserSpec extends SpecBase
     "return charges in user answers when there are no validation errors" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-    Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,yes
-    Joe,Bliggs,AB123457C,2020,268.28,01/01/2020,yes"""
+    Joe,Bloggs,AB123456C,2020 to 2021,268.28,01/01/2020,yes
+    Joe,Bliggs,AB123457C,2020 to 2021,268.28,01/01/2020,yes"""
       )
       val chargeDetails = ChargeEDetails(BigDecimal(268.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
