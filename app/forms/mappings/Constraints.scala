@@ -40,16 +40,20 @@ trait Constraints {
                     ): Constraint[String] =
     Constraint {
       case year if year.isEmpty => Invalid(requiredKey)
-      case year if year.length != 4 => Invalid(invalidKey)
       case year =>
-        val y = year.toInt
-        if (y > maxYear) {
-          Invalid(maxKey)
-        } else if (y < minYear) {
-          Invalid(minKey)
-        } else {
-          Valid
+        year.split(" ").map(_.trim.toLowerCase) match {
+          case Array(year1, "to", year2) if year1.length == 4 && year2.toInt == year1.toInt + 1 =>
+            if (year1.toInt > maxYear){
+              Invalid(maxKey)
+            } else if(year1.toInt < minYear){
+              Invalid(minKey)
+            } else {
+              Valid
+            }
+          case _ =>
+            Invalid(invalidKey)
         }
+      case _ => Invalid(invalidKey)
     }
 
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
