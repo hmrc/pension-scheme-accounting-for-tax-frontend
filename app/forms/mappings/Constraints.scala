@@ -40,21 +40,49 @@ trait Constraints {
                     ): Constraint[String] =
     Constraint {
       case year if year.isEmpty => Invalid(requiredKey)
-      case year =>
-        year.split(" ").map(_.trim.toLowerCase) match {
-          case Array(year1, "to", year2) if year1.length == 4 && year2.toInt == year1.toInt + 1 =>
-            if (year1.toInt > maxYear){
-              Invalid(maxKey)
-            } else if(year1.toInt < minYear){
-              Invalid(minKey)
-            } else {
-              Valid
-            }
-          case _ =>
-            Invalid(invalidKey)
-        }
+      case year if year.toLowerCase.contains("to") =>
+        val Array(year1, "to", year2) = year.split(" ").map(_.trim)
+        if (year1.toInt > maxYear)
+          Invalid(maxKey)
+        else if (year1.toInt < minYear)
+          Invalid(minKey)
+        else if (year2.toInt - year1.toInt == 1)
+          Valid
+        else
+          Invalid(invalidKey)
+      case year if year.length == 4 =>
+        if (year.toInt > maxYear)
+          Invalid(maxKey)
+        else if (year.toInt < minYear)
+          Invalid(minKey)
+        else
+          Invalid(invalidKey)
       case _ => Invalid(invalidKey)
     }
+//    Constraint {
+//      case year if year.isEmpty => Invalid(requiredKey)
+//      case year if year.toLowerCase.contains("to") =>
+//        year.split(" ").map(_.trim) match {
+//          case Array(year1, "to", year2) if year1.length == 4 && year2.toInt == year1.toInt + 1 =>
+//            if (year1.toInt > maxYear){
+//              Invalid(maxKey)
+//            } else if(year1.toInt < minYear){
+//              Invalid(minKey)
+//            } else {
+//              Valid
+//            }
+//          case _ =>
+//            Invalid(invalidKey)
+//        }
+//      case year if year.length == 4 =>
+//        if(year.toInt > maxYear)
+//          Invalid(maxKey)
+//        else if (year.toInt < minYear)
+//          Invalid(minKey)
+//        else
+//        Invalid(invalidKey)
+//      case _ => Invalid(invalidKey)
+//    }
 
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
     Constraint {
