@@ -30,6 +30,8 @@ import models.{ChargeType, CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
+import play.api.libs.json.{JsString, Json, Writes}
+import queries.Gettable
 
 import java.time.LocalDate
 
@@ -128,9 +130,12 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
       chargeDetailsValidation(startDate, index, columns),
       createCommitItem(index, ChargeDetailsPage.apply)
     )
+
     val c = resultFromFormValidationResult[String](
       validateTaxYear(startDate, index, columns, fieldValue(columns, fieldNoTaxYear)),
-      createCommitItem(index, AnnualAllowanceYearPage.apply)
+      createCommitItem[String](index, AnnualAllowanceYearPage.apply) andThen (
+        ci => ci copy (value = JsString(ci.value.as[String].substring(0, 4)))
+        )
     )
     Seq(a, b, c).combineAll
   }
