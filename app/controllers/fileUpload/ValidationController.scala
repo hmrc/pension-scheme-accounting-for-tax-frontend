@@ -33,6 +33,7 @@ import models.requests.DataRequest
 import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.{IsPublicServicePensionsRemedyPage, PSTRQuery}
+import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -66,6 +67,8 @@ class ValidationController @Inject()(
                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
+
+  private val logger = Logger(classOf[ValidationController])
 
   val maximumNumberOfError = 10
 
@@ -265,7 +268,9 @@ class ValidationController @Inject()(
     }
 
     futureOutcome recoverWith {
-      case _: Throwable => Future.successful(FileUploadOutcome(GeneralError))
+      case e: Throwable =>
+        logger.error("Error during file upload validation", e)
+        Future.successful(FileUploadOutcome(GeneralError))
     } flatMap { outcome =>
       fileUploadOutcomeConnector.setOutcome(outcome)
     }
