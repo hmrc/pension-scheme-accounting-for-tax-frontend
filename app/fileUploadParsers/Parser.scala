@@ -49,6 +49,8 @@ trait Parser {
   protected val fieldNoLastName = 1
   protected val fieldNoNino = 2
 
+  protected final val YearLength = 4
+
   protected def validHeader: String
 
   // scalastyle:off parameter.number

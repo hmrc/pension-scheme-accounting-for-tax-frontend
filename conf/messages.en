@@ -369,7 +369,7 @@ yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
 
 annualAllowanceYear.fileUpload.error.required = Enter the tax year to which the annual allowance charge relates
-annualAllowanceYear.fileUpload.error.invalid = Enter a real tax year to which the annual allowance charge relates
+annualAllowanceYear.fileUpload.error.invalid = Enter a valid tax year in the correct format, like 2020 to 2021
 annualAllowanceYear.fileUpload.error.future = The tax year to which the annual allowance charge relates must not be in the future
 annualAllowanceYear.fileUpload.error.past = The tax year to which the annual allowance charge related must not be before 2011
 

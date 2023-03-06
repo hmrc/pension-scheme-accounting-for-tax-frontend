@@ -30,6 +30,7 @@ import models.{ChargeType, CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
+import play.api.libs.json.{JsString, Json}
 
 import java.time.LocalDate
 
@@ -90,13 +91,14 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
                         fields: Seq[Field]): Validated[Seq[ParserValidationError], A] =
     Invalid(errorsFromForm(formWithErrors, fields, fieldIndex))
 
-  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Validated[Seq[ParserValidationError], ChargeEDetails] =
+  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Validated[Seq[ParserValidationError], ChargeEDetails] = {
     processChargeDetailsValidation(
       index,
       startDate,
       chargeFields,
       splitDayMonthYear(chargeFields(fieldNoDateNoticeReceived))
     )
+  }
 
   private def validateTaxYear(startDate: LocalDate, index: Int,
                               columns: Seq[String], fieldValue: String): Validated[Seq[ParserValidationError], String] = {
@@ -128,9 +130,13 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
       chargeDetailsValidation(startDate, index, columns),
       createCommitItem(index, ChargeDetailsPage.apply)
     )
+
+    val createCommitItemForYear: String => CommitItem =
+      year => CommitItem(AnnualAllowanceYearPage(index - 1).path, Json.toJson(year.take(YearLength)))
+
     val c = resultFromFormValidationResult[String](
       validateTaxYear(startDate, index, columns, fieldValue(columns, fieldNoTaxYear)),
-      createCommitItem(index, AnnualAllowanceYearPage.apply)
+      createCommitItemForYear
     )
     Seq(a, b, c).combineAll
   }

@@ -55,7 +55,7 @@ class ConstraintsSpec extends AnyFreeSpec with Matchers with ScalaCheckPropertyC
 
     "must return Valid when valid year" in {
       val result =
-        year(minYear = 2000, maxYear = 2020, requiredKey = "required", invalidKey = "invalid", minKey = "min", maxKey = "max").apply("2015")
+        year(minYear = 2000, maxYear = 2020, requiredKey = "required", invalidKey = "invalid", minKey = "min", maxKey = "max").apply("2015 to 2016")
       result mustEqual Valid
     }
 

@@ -18,6 +18,7 @@ package fileUploadParsers
 
 import base.SpecBase
 import config.FrontendAppConfig
+import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 import data.SampleData
 import data.SampleData.startDate
 import forms.chargeE.ChargeDetailsFormProvider
@@ -59,9 +60,9 @@ class AnnualAllowanceMcCloudParserSpec extends SpecBase
 
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,31/03/2022,45.66,,,,,,,,,,,,
-Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,24000017RN,30/06/2022,102.55,24000018RN,31/03/2022,99.88,24000019RN,30/06/2022,99.88,24000020RN,31/03/2022,99.88,24000021RN,31/03/2022,498.90
-Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
+Joe,Bloggs,AB123456C,2020 to 2021,268.28,01/01/2020,YES,YES,NO,,31/03/2022,45.66,,,,,,,,,,,,
+Joe,Bliggs,AB123457C,2020 to 2021,100.50,01/01/2020,NO,YES,YES,24000017RN,30/06/2022,102.55,24000018RN,31/03/2022,99.88,24000019RN,30/06/2022,99.88,24000020RN,31/03/2022,99.88,24000021RN,31/03/2022,498.90
+Joe,Blaggs,AB123458C,2020 to 2021,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
       )
 
       val chargeDetails1 = ChargeEDetails(BigDecimal(268.28), LocalDate.of(2020, 1, 1), isPaymentMandatory = true)
@@ -120,7 +121,7 @@ Joe,Blaggs,AB123458C,2020,68.28,01/01/2020,YES,NO,,,,,,,,,,,,,,,,"""
     "return correctly where McCloud errors - missing: isChargeInAdditionReported" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO"""
+Joe,Bloggs,AB123456C,2020 to 2021,268.28,01/01/2020,NO"""
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
@@ -135,7 +136,7 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO"""
     "return correctly where McCloud errors - missing: wasAnotherPensionScheme, taxQuarterReportedAndPaid & chargeAmountReported" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO,YES"""
+Joe,Bloggs,AB123456C,2020 to 2021,268.28,01/01/2020,NO,YES"""
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
@@ -152,7 +153,7 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,NO,YES"""
     "return correctly when where McCloud errors - invalid & missing pstrs" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,4000017RN,30/06/2022,102.55,24000018RN,31/03/2022,99.88,24000019RN,,99.88,24000020RN,31/03/2022,invalid,,31/03/2022,498.90"""
+Joe,Bliggs,AB123457C,2020 to 2021,100.50,01/01/2020,NO,YES,YES,4000017RN,30/06/2022,102.55,24000018RN,31/03/2022,99.88,24000019RN,,99.88,24000020RN,31/03/2022,invalid,,31/03/2022,498.90"""
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
@@ -169,7 +170,7 @@ Joe,Bliggs,AB123457C,2020,100.50,01/01/2020,NO,YES,YES,4000017RN,30/06/2022,102.
     "return correctly where McCloud errors - invalid date" in {
       val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
         s"""$header
-Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,,"""
+Joe,Bloggs,AB123456C,2020 to 2021,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,,"""
       )
 
       val result = parser.parse(startDate, validCsvFile, UserAnswers())
@@ -179,6 +180,18 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,
         ParserValidationError(1, 10, "Invalid tax quarter reported and paid", parser.McCloudFieldNames.dateReportedAndPaid))
     }
 
+  "return correctly where McCloud errors - invalid Tax Year" in {
+    val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
+      s"""$header
+Joe,Bloggs,AB123456C,2020-2021,268.28,01/01/2020,NO,NO,NO,,,,,,,,,,,,,,,"""
+    )
+
+    val result = parser.parse(startDate, validCsvFile, UserAnswers())
+    result.isValid mustBe false
+
+    result.swap.toList.flatten mustBe Seq(
+      ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear))
+  }
 
     val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
       row = row,
@@ -190,6 +203,7 @@ Joe,Bloggs,AB123456C,2020,268.28,01/01/2020,YES,YES,NO,,invalid,45.66,,,,,,,,,,,
 
     behave like annualAllowanceParserWithMinimalFields(header, parser, extraErrorsExpectedForMcCloud)
   }
+
 }
 
 object AnnualAllowanceMcCloudParserSpec extends MockitoSugar {
