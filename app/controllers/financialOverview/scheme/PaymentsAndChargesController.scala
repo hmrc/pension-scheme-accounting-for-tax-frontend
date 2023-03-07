@@ -17,7 +17,6 @@
 package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.ChargeDetailsFilter
@@ -44,7 +43,6 @@ class PaymentsAndChargesController @Inject()(
                                               val controllerComponents: MessagesControllerComponents,
                                               config: FrontendAppConfig,
                                               paymentsAndChargesService: PaymentsAndChargesService,
-                                              aftConnector: AFTConnector,
                                               renderer: Renderer
                                             )(implicit ec: ExecutionContext)
   extends FrontendBaseController
