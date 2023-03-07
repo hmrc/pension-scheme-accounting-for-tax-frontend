@@ -16,6 +16,7 @@
 
 package models.financialStatement
 
+import models.financialStatement.PenaltyType.EventReportingCharge
 import models.{Enumerable, WithName}
 
 sealed trait SchemeFSChargeType
@@ -42,9 +43,9 @@ object SchemeFSChargeType extends Enumerable.Implicits {
   case object EXCESS_RELIEF_PAID extends WithName("Excess relief paid charge") with SchemeFSChargeType
   case object EXCESS_RELIEF_INTEREST extends WithName("Interest on excess relief charge") with SchemeFSChargeType
   case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with SchemeFSChargeType
-  case object PSS_SCHEME_SANCTION_CHARGE extends WithName("Scheme sanction charge") with SchemeFSChargeType
+  case object PSS_SCHEME_SANCTION_CHARGE extends WithName("Scheme sanction charge") with SchemeFSChargeType with EventReportingCharge
   case object PSS_SCHEME_SANCTION_CREDIT_CHARGE extends WithName("Scheme sanction credit charge") with SchemeFSChargeType
-  case object PSS_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Scheme sanction charge interest") with SchemeFSChargeType
+  case object PSS_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Scheme sanction charge interest") with SchemeFSChargeType with EventReportingCharge
   case object PSS_MANUAL_SSC extends WithName("Manual SSC") with SchemeFSChargeType
   case object PSS_MANUAL_CREDIT_SSC extends WithName("Manual credit SSC") with SchemeFSChargeType
   case object PSS_MANUAL_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Manual scheme sanction charge interest") with SchemeFSChargeType
@@ -128,6 +129,10 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     }
   interestChargeType.toString
 }
+  def displayCharge(penaltyType: PenaltyType): Boolean = penaltyType match {
+      case _:EventReportingCharge => true
+      case _ => true
+    }
 
   implicit val enumerable: Enumerable[SchemeFSChargeType] =
     Enumerable(values.map(v => v.toString -> v): _*)

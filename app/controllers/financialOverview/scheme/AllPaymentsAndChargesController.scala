@@ -56,6 +56,7 @@ class AllPaymentsAndChargesController @Inject()(
   def onPageLoad(srn: String, pstr: String, period: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
+        println(paymentsCache.schemeFSDetail)
         val (title, filteredPayments): (String, Seq[SchemeFSDetail]) =
           getTitleAndFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
 

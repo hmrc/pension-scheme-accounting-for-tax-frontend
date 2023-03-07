@@ -26,7 +26,7 @@ import viewmodels.{Hint, LabelClasses, Radios}
 
 import scala.language.implicitConversions
 
-sealed trait PenaltyType
+trait PenaltyType
 
 object PenaltyType extends Enumerable.Implicits {
 
@@ -34,12 +34,14 @@ object PenaltyType extends Enumerable.Implicits {
   case object ContractSettlementCharges extends PenaltyType
   case object InformationNoticePenalties extends PenaltyType
   case object PensionsPenalties extends PenaltyType
+  trait EventReportingCharge extends PenaltyType
 
   def getPenaltyType(chargeType: PsaFSChargeType): PenaltyType =
     chargeType match {
       case PSS_PENALTY => PensionsPenalties
       case PSS_INFO_NOTICE => InformationNoticePenalties
       case CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST | INTEREST_ON_CONTRACT_SETTLEMENT => ContractSettlementCharges
+      case x:PenaltyType => x
       case _ => AccountingForTaxPenalties
     }
 

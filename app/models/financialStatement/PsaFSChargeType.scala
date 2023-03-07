@@ -16,6 +16,7 @@
 
 package models.financialStatement
 
+import models.financialStatement.PenaltyType.EventReportingCharge
 import models.{Enumerable, WithName}
 
 sealed trait PsaFSChargeType
@@ -37,9 +38,9 @@ object PsaFSChargeType extends Enumerable.Implicits {
   case object INTEREST_ON_CONTRACT_SETTLEMENT extends WithName("Interest on contract settlement charge") with PsaFSChargeType
   case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with PsaFSChargeType
   case object REPAYMENT_INTEREST extends WithName("Repayment Interest") with PsaFSChargeType
-  case object SSC_30_DAY_LPP extends WithName("SSC 30 day LPP") with PsaFSChargeType
-  case object SSC_6_MONTH_LPP extends WithName("SSC 6 month LPP") with PsaFSChargeType
-  case object SSC_12_MONTH_LPP extends WithName("SSC 12 month LPP") with PsaFSChargeType
+  case object SSC_30_DAY_LPP extends WithName("SSC 30 day LPP") with PsaFSChargeType with EventReportingCharge
+  case object SSC_6_MONTH_LPP extends WithName("SSC 6 month LPP") with PsaFSChargeType with EventReportingCharge
+  case object SSC_12_MONTH_LPP extends WithName("SSC 12 month LPP") with PsaFSChargeType with EventReportingCharge
   case object LTA_DISCHARGE_ASSESSMENT_30_DAY_LPP extends WithName("LTA discharge assessment 30 day LPP") with PsaFSChargeType
   case object LTA_DISCHARGE_ASSESSMENT_6_MONTH_LPP extends WithName("LTA discharge assessment 6 month LPP") with PsaFSChargeType
   case object LTA_DISCHARGE_ASSESSMENT_12_MONTH_LPP extends WithName("LTA discharge assessment 12 month LPP") with PsaFSChargeType
