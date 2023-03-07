@@ -66,7 +66,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = filteredSchemeFSDetail.flatMap { paymentOrCharge =>
       def data = paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeDetailsFilter)
       paymentOrCharge.chargeType match {
-        case x:PenaltyType if !displayCharge(x) => Seq.empty
+        case x:PenaltyType if !PenaltyType.displayCharge(x) => Seq.empty
         case _ => data
       }
     }

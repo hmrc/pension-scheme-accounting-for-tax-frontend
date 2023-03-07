@@ -105,4 +105,10 @@ object PenaltyType extends Enumerable.Implicits {
       case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))
       case _ => None
     }
+
+  //TODO: Might need to remove after event reporting has been implemented -Pavel Vjalicin
+  def displayCharge(penaltyType: PenaltyType): Boolean = penaltyType match {
+    case _: EventReportingCharge => false
+    case _ => true
+  }
 }

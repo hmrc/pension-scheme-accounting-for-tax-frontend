@@ -129,11 +129,6 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     }
   interestChargeType.toString
 }
-  def displayCharge(penaltyType: PenaltyType): Boolean = penaltyType match {
-      case _:EventReportingCharge => true
-      case _ => true
-    }
-
   implicit val enumerable: Enumerable[SchemeFSChargeType] =
     Enumerable(values.map(v => v.toString -> v): _*)
 }
