@@ -88,6 +88,7 @@ object PenaltyType extends Enumerable.Implicits {
       case ContractSettlementCharges => "contract-settlement"
       case InformationNoticePenalties => "information-notice"
       case PensionsPenalties => "pensions-penalty"
+      case _ => throw new RuntimeException("Penalty type not found")
     }
 
   implicit def stringToPenaltyType(value: String): PenaltyType =
