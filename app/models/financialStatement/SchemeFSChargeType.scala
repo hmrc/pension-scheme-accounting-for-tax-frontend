@@ -46,7 +46,7 @@ object SchemeFSChargeType extends Enumerable.Implicits {
   case object PSS_SCHEME_SANCTION_CHARGE extends WithName("Scheme sanction charge") with SchemeFSChargeType with EventReportingCharge
   case object PSS_SCHEME_SANCTION_CREDIT_CHARGE extends WithName("Scheme sanction credit charge") with SchemeFSChargeType
   case object PSS_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Scheme sanction charge interest") with SchemeFSChargeType with EventReportingCharge
-  case object PSS_MANUAL_SSC extends WithName("Manual SSC") with SchemeFSChargeType with EventReportingCharge
+  case object PSS_MANUAL_SSC extends WithName("Manual Scheme Sanction Charge") with SchemeFSChargeType with EventReportingCharge
   case object PSS_MANUAL_CREDIT_SSC extends WithName("Manual credit SSC") with SchemeFSChargeType
   case object PSS_MANUAL_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Manual scheme sanction charge interest") with SchemeFSChargeType with EventReportingCharge
   case object PSS_FIXED_CHARGE_MEMBERS_TAX extends WithName("Fixed charge members tax") with SchemeFSChargeType

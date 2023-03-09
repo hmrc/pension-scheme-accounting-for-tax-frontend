@@ -104,6 +104,7 @@ object PenaltyType extends Enumerable.Implicits {
     penaltyTypes.hintText match {
       case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))
       case _ => None
+
     }
 
   //TODO: Might need to remove after event reporting has been implemented -Pavel Vjalicin
