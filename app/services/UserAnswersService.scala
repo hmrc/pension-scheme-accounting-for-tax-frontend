@@ -36,7 +36,11 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
     if (request.isAmendment) { //this IS an amendment
       if (isMemberBased) { //charge C, D, E or G
 
-        val status: String = if (mode == NormalMode) AmendedChargeStatus.Added.toString else getCorrectStatus(page, AmendedChargeStatus.Updated.toString, request.userAnswers)
+        val status: String = if (mode == NormalMode) {
+          AmendedChargeStatus.Added.toString
+        } else {
+          getCorrectStatus(page, AmendedChargeStatus.Updated.toString, request.userAnswers)
+        }
 
         request.userAnswers
           .removeWithPath(amendedVersionPath(page))
@@ -136,11 +140,26 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
   private def totalAmountPath[A](page: QuestionPage[A]): JsPath =
     JsPath(page.path.path.take(1) ++ List(KeyPathNode("totalChargeAmount")))
 
-  private def memberVersionPath[A](page: QuestionPage[A]): JsPath =
-    JsPath(page.path.path.init ++ List(KeyPathNode("memberAFTVersion")))
+  private def isMcCloudField[A](page: QuestionPage[A]) =
+    page.path.path.exists(_.toJsonString.endsWith("mccloudRemedy"))
 
-  private def memberStatusPath[A](page: QuestionPage[A]): JsPath =
-    JsPath(page.path.path.init ++ List(KeyPathNode("memberStatus")))
+  private def memberVersionPath[A](page: QuestionPage[A]): JsPath = {
+    val p = page.path.path
+    if (isMcCloudField(page)) {
+      JsPath(p.init.init.init.init ++ List(KeyPathNode("memberAFTVersion")))
+    } else {
+      JsPath(p.init ++ List(KeyPathNode("memberAFTVersion")))
+    }
+  }
+
+  private def memberStatusPath[A](page: QuestionPage[A]): JsPath = {
+    val p = page.path.path
+    if (isMcCloudField(page)) {
+      JsPath(p.init.init.init.init ++ List(KeyPathNode("memberStatus")))
+    } else {
+      JsPath(p.init ++ List(KeyPathNode("memberStatus")))
+    }
+  }
 
   private def memberParentPath[A](page: QuestionPage[A]): JsPath = {
     JsPath(page.path.path.take(3))
