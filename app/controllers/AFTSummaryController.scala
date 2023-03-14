@@ -159,7 +159,7 @@ class AFTSummaryController @Inject()(
             },
             value => {
               for {
-                userAnswers <- Future.fromTry(request.userAnswers.remove(ChargeTypePage))
+                userAnswers <- Future.fromTry(request.userAnswers.removeWithCleanup(ChargeTypePage))
                 updatedAnswers <- Future.fromTry(userAnswers.set(AFTSummaryPage,value))
                 _ <-  userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield {

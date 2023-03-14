@@ -80,14 +80,14 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
         Json.obj("text" -> "AB123456C", "classes" -> cssQuarterWidth),
         Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)), "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
         Json.obj("html" -> s"<a class= govuk-link id=member-0-view href=viewlink1><span aria-hidden=true>View</span><span class= govuk-visually-hidden>View first last’s overseas transfer charge</span> </a>", "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-        Json.obj("html" -> s"<a class= govuk-link id=member-0-remove href=removelink1><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove first last’s overseas transfer charge</span> </a>", "classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a class= govuk-link id=member-0-removeWithCleanup href=removelink1><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove first last’s overseas transfer charge</span> </a>", "classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Joe Bloggs", "classes" -> cssQuarterWidth),
         Json.obj("text" -> "AB123456C", "classes" -> cssQuarterWidth),
         Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)), "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
         Json.obj("html" -> s"<a class= govuk-link id=member-1-view href=viewlink2><span aria-hidden=true>View</span><span class= govuk-visually-hidden>View Joe Bloggs’s overseas transfer charge</span> </a>", "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-        Json.obj("html" -> s"<a class= govuk-link id=member-1-remove href=removelink2><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s overseas transfer charge</span> </a>", "classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a class= govuk-link id=member-1-removeWithCleanup href=removelink2><span aria-hidden=true>Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s overseas transfer charge</span> </a>", "classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> ""),

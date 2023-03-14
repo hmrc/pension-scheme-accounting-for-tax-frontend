@@ -51,17 +51,19 @@ final case class UserAnswers(
   }
 
   def set[A](page: QuestionPage[A], value: A)(implicit writes: Writes[A]): Try[UserAnswers] = {
-    val updatedData = data.setObject(page.path, Json.toJson(value)) match {
-      case JsSuccess(jsValue, _) =>
-        Success(jsValue)
-      case JsError(errors) =>
-        Failure(JsResultException(errors))
-    }
+    page.cleanupBeforeSettingValue(Some(value), this).flatMap { ua =>
+      val updatedData = ua.data.setObject(page.path, Json.toJson(value)) match {
+        case JsSuccess(jsValue, _) =>
+          Success(jsValue)
+        case JsError(errors) =>
+          Failure(JsResultException(errors))
+      }
 
-    updatedData.flatMap {
-      d =>
-        val updatedAnswers = copy(data = d)
-        page.cleanup(Some(value), updatedAnswers)
+      updatedData.flatMap {
+        d =>
+          val updatedAnswers = copy(data = d)
+          page.cleanup(Some(value), updatedAnswers)
+      }
     }
   }
 
@@ -99,22 +101,22 @@ final case class UserAnswers(
       case JsSuccess(jsValue, _) =>
         UserAnswers(jsValue)
       case JsError(_) =>
-        throw new RuntimeException("Unable to remove with path: " + path)
+        throw new RuntimeException("Unable to removeWithCleanup with path: " + path)
     }
   }
 
+  def removeWithCleanup[A](page: QuestionPage[A]): Try[UserAnswers] = {
+    remove(page).flatMap( updatedAnswers => page.cleanup(None, updatedAnswers) )
+  }
+
   def remove[A](page: QuestionPage[A]): Try[UserAnswers] = {
-    val updatedData = data.removeObject(page.path) match {
+    println("\nREMOVE:L " + page.path)
+    data.removeObject(page.path) match {
       case JsSuccess(jsValue, _) =>
-        Success(jsValue)
+        println("\nREMOVED OBJ:" + jsValue)
+        Success(this copy (data = jsValue))
       case JsError(_) =>
         throw new RuntimeException("Unable to remove page: " + page)
-    }
-
-    updatedData.flatMap {
-      d =>
-        val updatedAnswers = copy(data = d)
-        page.cleanup(None, updatedAnswers)
     }
   }
 

@@ -209,7 +209,7 @@ class RemovePensionSchemeControllerSpec
       verify(mockCompoundNavigator, times(1)).nextPage(any(), any(), any(), any(), any(), any(), any())(any())
     }
 
-    "redirect to the next page when valid data and user select no to remove scheme for AnnualAllowance" in {
+    "redirect to the next page when valid data and user select no to removeWithCleanup scheme for AnnualAllowance" in {
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersTwoSchemesAnnual))
 
@@ -261,7 +261,7 @@ class RemovePensionSchemeControllerSpec
       verify(mockCompoundNavigator, times(1)).nextPage(any(), any(), any(), any(), any(), any(), any())(any())
     }
 
-    "redirect to the next page when valid data and user select no to remove scheme for LifetimeAllowance" in {
+    "redirect to the next page when valid data and user select no to removeWithCleanup scheme for LifetimeAllowance" in {
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersTwoSchemesLifetime))

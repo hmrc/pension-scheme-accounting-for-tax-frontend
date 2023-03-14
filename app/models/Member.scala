@@ -21,7 +21,7 @@ import play.api.libs.json.{Format, Json}
 case class Member(index: Int, name: String, nino: String, amount: BigDecimal, viewLink: String, removeLink: String) {
     def id = s"member-$index"
 
-    def removeLinkId = s"$id-remove"
+    def removeLinkId = s"$id-removeWithCleanup"
 
     def viewLinkId = s"$id-view"
 

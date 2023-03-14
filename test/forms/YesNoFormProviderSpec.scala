@@ -21,7 +21,7 @@ import play.api.data.FormError
 
 class YesNoFormProviderSpec extends BooleanFieldBehaviours {
 
-  val requiredKey = "Select yes if you want to remove the annual allowance charge for first last"
+  val requiredKey = "Select yes if you want to removeWithCleanup the annual allowance charge for first last"
   val invalidKey = "error.boolean"
 
   val form = new YesNoFormProvider()(requiredKey)

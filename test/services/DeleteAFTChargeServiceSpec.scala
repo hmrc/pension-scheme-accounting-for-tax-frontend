@@ -61,7 +61,7 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
 
   "deleteAndFileAFTReturn" must {
 
-    "file aft return and remove everything from cache if all charges have been deleted or zeroed out" in {
+    "file aft return and removeWithCleanup everything from cache if all charges have been deleted or zeroed out" in {
       when(mockDeleteChargeHelper.allChargesDeletedOrZeroed(any())).thenReturn(true)
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 

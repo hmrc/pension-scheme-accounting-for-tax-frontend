@@ -16,13 +16,27 @@
 
 package pages
 
-import models.ChargeType
+import models.{ChargeType, UserAnswers}
 import play.api.libs.json.JsPath
+
+import scala.util.Try
 
 case class IsPublicServicePensionsRemedyPage(chargeType: ChargeType, optIndex: Option[Int]) extends QuestionPage[Boolean] {
   override def path: JsPath = optIndex match {
     case Some(index) => JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ IsPublicServicePensionsRemedyPage.toString
     case None => JsPath \ ChargeType.chargeBaseNode(chargeType) \ "mccloudRemedy" \ IsPublicServicePensionsRemedyPage.toString
+  }
+
+  override def cleanupBeforeSettingValue(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] = {
+    println("\nCLEANUPBEFORE:" + value)
+    val uaAfterRemoval = value match {
+      case Some(false) =>
+        println("\nI AM HERE")
+        userAnswers.remove(IsPublicServicePensionsRemedyPage(chargeType, optIndex)).toOption.getOrElse(userAnswers)
+      case _ =>
+        userAnswers
+    }
+    super.cleanup(value, uaAfterRemoval)
   }
 }
 

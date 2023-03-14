@@ -61,7 +61,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   }
 
   "fileSubmitReturn" must {
-    "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
+    "removeWithCleanup lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
       val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
       val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
       when(mockAFTConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
@@ -74,7 +74,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   }
 
   "fileCompileReturn" must {
-    "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
+    "removeWithCleanup lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
       val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
       val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
       when(mockAFTConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))

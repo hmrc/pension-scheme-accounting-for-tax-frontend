@@ -74,7 +74,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
     }
 
   private def removeZeroOrUpdateAmendmentStatuses[A](ua: UserAnswers, page: QuestionPage[A], version: Int): UserAnswers = {
-    // Either physically remove, zero or update the amendment status flags for the member-based charge
+    // Either physically removeWithCleanup, zero or update the amendment status flags for the member-based charge
 
     if (deleteChargeHelper.isLastCharge(ua)) { // Last charge/ member on last charge
       deleteChargeHelper.zeroOutLastCharge(ua)
@@ -88,7 +88,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
   }
 
   private def removeMemberOrCharge[A](ua: UserAnswers, page: QuestionPage[A]) = {
-    // Either remove the member from charge, or if it is the only member in the charge then remove the whole charge
+    // Either removeWithCleanup the member from charge, or if it is the only member in the charge then removeWithCleanup the whole charge
     membersPath(page)
       .asSingleJsResult(ua.data)
       .asOpt
@@ -105,7 +105,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
       .getOrElse(ua)
   }
 
-  /* Use this remove for deleting a scheme-based charge */
+  /* Use this removeWithCleanup for deleting a scheme-based charge */
   def removeSchemeBasedCharge[A](page: QuestionPage[A])(implicit request: DataRequest[AnyContent]): UserAnswers = {
     val ua: UserAnswers = request.userAnswers
     if (request.isAmendment) {
@@ -128,8 +128,11 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
 
   private def isAddedInAmendmentOfSameVersion[A](ua: UserAnswers, page: QuestionPage[A], version:Int) = {
     val previousVersion = ua.get(memberVersionPath(page))
+
     def isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == version
     val prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus).as[String]
+
+    println(s"\n>>>Prev version for $page = $previousVersion and prev member status = $prevMemberStatus and isChangeInSameCompile is $isChangeInSameCompile")
 
     (previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus == AmendedChargeStatus.Added.toString
   }

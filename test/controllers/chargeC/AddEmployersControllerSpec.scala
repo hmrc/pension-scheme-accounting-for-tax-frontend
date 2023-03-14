@@ -80,13 +80,13 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
         Json.obj("text" -> "first last", "classes" -> cssHalfWidth),
         Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)), "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
         Json.obj("html" -> s"<a class=govuk-link id=employer-0-view href=viewlink1><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View first last’s authorised surplus payments charge</span> </a>", "classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a class=govuk-link id=employer-0-remove href=removelink1><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove first last’s authorised surplus payments charge</span> </a>", "classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a class=govuk-link id=employer-0-removeWithCleanup href=removelink1><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove first last’s authorised surplus payments charge</span> </a>", "classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Joe Bloggs", "classes" -> cssHalfWidth),
         Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)), "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
         Json.obj("html" -> s"<a class=govuk-link id=employer-1-view href=viewlink2><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View Joe Bloggs’s authorised surplus payments charge</span> </a>", "classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a class=govuk-link id=employer-1-remove href=removelink2><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s authorised surplus payments charge</span> </a>", "classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a class=govuk-link id=employer-1-removeWithCleanup href=removelink2><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove Joe Bloggs’s authorised surplus payments charge</span> </a>", "classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Total charge amount for this quarter", "classes" -> "govuk-!-font-weight-bold govuk-table__header--numeric"),

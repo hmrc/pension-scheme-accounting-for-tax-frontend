@@ -163,7 +163,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
     }
 
-    "remove the data and redirect to the pension scheme url when user submits with value false" in {
+    "removeWithCleanup the data and redirect to the pension scheme url when user submits with value false" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
       val request =
