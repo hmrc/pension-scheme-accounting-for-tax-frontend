@@ -140,13 +140,16 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
   private def totalAmountPath[A](page: QuestionPage[A]): JsPath =
     JsPath(page.path.path.take(1) ++ List(KeyPathNode("totalChargeAmount")))
 
-  private def isMcCloudField[A](page: QuestionPage[A]) =
-    page.path.path.exists(_.toJsonString.endsWith("mccloudRemedy"))
+  private val isPathNodeMcCloud: PathNode => Boolean = _.toJsonString.endsWith("mccloudRemedy")
+
+  private def isMcCloudField(p: List[PathNode]) = p.exists(isPathNodeMcCloud)
+
+  private def pathNodesAboveMcCloud(p: List[PathNode]): List[PathNode] = p.init.takeWhile(n => !isPathNodeMcCloud(n))
 
   private def memberVersionPath[A](page: QuestionPage[A]): JsPath = {
     val p = page.path.path
-    if (isMcCloudField(page)) {
-      JsPath(p.init.init.init.init ++ List(KeyPathNode("memberAFTVersion")))
+    if (isMcCloudField(p)) {
+      JsPath(pathNodesAboveMcCloud(p) ++ List(KeyPathNode("memberAFTVersion")))
     } else {
       JsPath(p.init ++ List(KeyPathNode("memberAFTVersion")))
     }
@@ -154,8 +157,8 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
 
   private def memberStatusPath[A](page: QuestionPage[A]): JsPath = {
     val p = page.path.path
-    if (isMcCloudField(page)) {
-      JsPath(p.init.init.init.init ++ List(KeyPathNode("memberStatus")))
+    if (isMcCloudField(p)) {
+      JsPath(pathNodesAboveMcCloud(p) ++ List(KeyPathNode("memberStatus")))
     } else {
       JsPath(p.init ++ List(KeyPathNode("memberStatus")))
     }

@@ -250,8 +250,8 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
 
     "AMENDMENT - set amended version, member version to null, status to Changed and the page value" +
-      " for a scheme level charge if version is 2 for a member being changed after the last submission for McCloud page" in {
-      val resultFuture = Future.fromTry(service.set(MemberMcCloudPage, pageValue, CheckMode)(dataRequest(memberUaMcCloud(), 2), implicitly))
+      " for a charge if version is 2 for a member being changed after the last submission for McCloud scheme field" in {
+      val resultFuture = Future.fromTry(service.set(MemberMcCloudSchemePage, pageValue, CheckMode)(dataRequest(memberUaMcCloudSchemeField(), 2), implicitly))
       whenReady(resultFuture) {
         _ mustBe UserAnswers(Json.obj(
           "chargeType" -> Json.obj(
@@ -264,6 +264,26 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
                     )
                   )
                 ),
+                "memberStatus" -> AmendedChargeStatus.Updated.toString
+              )
+            ))
+        ))
+      }
+    }
+
+    "AMENDMENT - set amended version, member version to null, status to Changed and the page value" +
+      " for a charge if version is 2 for a member being changed after the last submission for McCloud non-scheme field" in {
+      val resultFuture = Future.fromTry(
+        service.set(MemberMcCloudNonSchemePage, pageValue, CheckMode)(dataRequest(memberUaMcCloudNonSchemeField(), 2), implicitly))
+      whenReady(resultFuture) {
+        _ mustBe UserAnswers(Json.obj(
+          "chargeType" -> Json.obj(
+            "members" -> Json.arr(
+              Json.obj(
+                "mccloudRemedy" ->
+                  Json.obj(
+                    MemberPage.toString -> "value"
+                  ),
                 "memberStatus" -> AmendedChargeStatus.Updated.toString
               )
             ))
@@ -287,8 +307,14 @@ object UserAnswersServiceSpec {
     override def toString: String = "memberPage"
   }
 
-  private case object MemberMcCloudPage extends QuestionPage[String] {
+  private case object MemberMcCloudSchemePage extends QuestionPage[String] {
     override def path: JsPath = JsPath \ "chargeType" \ "members" \ 0 \ "mccloudRemedy" \ "schemes" \ 0 \ toString
+
+    override def toString: String = "memberPage"
+  }
+
+  private case object MemberMcCloudNonSchemePage extends QuestionPage[String] {
+    override def path: JsPath = JsPath \ "chargeType" \ "members" \ 0 \ "mccloudRemedy" \ toString
 
     override def toString: String = "memberPage"
   }
@@ -330,7 +356,7 @@ object UserAnswersServiceSpec {
       "amendedVersion" -> version)
   ))
 
-  def memberUaMcCloud(version: Int = 1, status: String = AmendedChargeStatus.Added.toString): UserAnswers = UserAnswers(Json.obj(
+  private def memberUaMcCloudSchemeField(version: Int = 1, status: String = AmendedChargeStatus.Added.toString): UserAnswers = UserAnswers(Json.obj(
     "chargeType" -> Json.obj(
       "members" -> Json.arr(
         Json.obj(
@@ -339,6 +365,20 @@ object UserAnswersServiceSpec {
               Json.obj(
                 MemberPage.toString -> pageValue
               ))),
+          "memberAFTVersion" -> version,
+          "memberStatus" -> status
+        )
+      ),
+      "amendedVersion" -> version)
+  ))
+
+  private def memberUaMcCloudNonSchemeField(version: Int = 1, status: String = AmendedChargeStatus.Added.toString): UserAnswers = UserAnswers(Json.obj(
+    "chargeType" -> Json.obj(
+      "members" -> Json.arr(
+        Json.obj(
+          "mccloudRemedy" -> Json.obj(
+            MemberPage.toString -> pageValue
+          ),
           "memberAFTVersion" -> version,
           "memberStatus" -> status
         )
