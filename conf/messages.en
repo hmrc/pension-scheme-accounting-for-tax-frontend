@@ -1627,8 +1627,8 @@ mccloud.scheme.cya.ref3 = Fourth scheme details
 mccloud.scheme.cya.ref4 = Fifth scheme details
 add.another_scheme = Add another scheme
 
-enterPstr.cya.label = The Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported {1}
-enterPstr.cya.visuallyHidden.text = the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported {1}
+enterPstr.cya.label = Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported {1}
+enterPstr.cya.visuallyHidden.text = Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported {1}
 taxYearReportedAndPaid.cya.label = The tax year in which this {0} {1} was reported and paid
 taxYearReportedAndPaid.cya.visuallyHidden.text = the tax year in which this {0} {1} was reported and paid
 taxQuarterReportedAndPaid.cya.label = The quarter of {0} that this {1} {2} was reported and paid

@@ -299,7 +299,7 @@ class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessTyp
   private def getOptionalLiteralQuarterValue(optionalAFTQuarter: Option[AFTQuarter]): Content = {
     optionalAFTQuarter match {
       case None => msg"mccloud.not.entered"
-      case Some(aftQuarter) => Literal(AFTQuarter.formatForDisplay(aftQuarter))
+      case Some(aftQuarter) => Literal(AFTQuarter.monthDayStringFormat(aftQuarter))
     }
   }
 
