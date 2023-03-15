@@ -137,14 +137,15 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             )
             renderer.render("isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
           },
-            value =>
+            value => {
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
                 _ <- userAnswersCacheConnector
                   .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
-              } yield
-                Redirect(navigator
-                  .nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+              } yield {
+                Redirect(navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+              }
+            }
           )
 
       }
