@@ -125,7 +125,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
                       .setOrException(IsPublicServicePensionsRemedyPage(chargeType, Some(index)), true)
                       .setOrException(IsChargeInAdditionReportedPage(chargeType, index), true)
                       .set(WasAnotherPensionSchemePage(chargeType, index), value))
-                  case _ => Future.successful(request.userAnswers)
+                  case _ => Future.successful(request.userAnswers.setOrException(WasAnotherPensionSchemePage(chargeType, index), value))
                 }
               }
               for {
