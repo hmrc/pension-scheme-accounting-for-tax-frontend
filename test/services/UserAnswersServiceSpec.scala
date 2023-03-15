@@ -138,7 +138,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
     }
 
 
-    "FOR AMENDMENT - removeWithCleanup member" +
+    "FOR AMENDMENT - remove member" +
       " for a member level charge if version is 2 and member added in this version and " +
       "member is not last member in charge" in {
       val resultFuture = Future.fromTry(service
@@ -158,7 +158,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       }
     }
 
-    "FOR AMENDMENT - removeWithCleanup whole charge" +
+    "FOR AMENDMENT - remove whole charge" +
       " for a member level charge if version is 2 and member added in this version and " +
       " is not last charge and member is last member in charge" in {
       val resultFuture = Future.fromTry(service

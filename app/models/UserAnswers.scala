@@ -68,7 +68,6 @@ final case class UserAnswers(
   }
 
   def set(path: JsPath, value: JsValue): Try[UserAnswers] = {
-
     val updatedData = data.setObject(path, Json.toJson(value)) match {
       case JsSuccess(jsValue, _) =>
         Success(jsValue)
@@ -101,7 +100,7 @@ final case class UserAnswers(
       case JsSuccess(jsValue, _) =>
         UserAnswers(jsValue)
       case JsError(_) =>
-        throw new RuntimeException("Unable to removeWithCleanup with path: " + path)
+        throw new RuntimeException("Unable to remove with path: " + path)
     }
   }
 
