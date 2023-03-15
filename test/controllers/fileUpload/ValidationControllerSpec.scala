@@ -364,7 +364,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "for charge type D when there are no validation errors " + "" +
-      "redirect to next page, removeWithCleanup existing data for charge type but leave other " +
+      "redirect to next page, remove existing data for charge type but leave other " +
       "charge types intact then save items to be committed into Mongo" in {
       val chargeType = ChargeType.ChargeTypeLifetimeAllowance
       val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
@@ -399,7 +399,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "for charge type E when there are no validation errors " + "" +
-      "redirect to next page, removeWithCleanup existing data for charge type but leave other " +
+      "redirect to next page, remove existing data for charge type but leave other " +
       "charge types intact then save items to be committed into Mongo" in {
       val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
@@ -434,7 +434,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "for charge type G when there are no validation errors " + "" +
-      "redirect to next page, removeWithCleanup existing data for charge type but leave other " +
+      "redirect to next page, remove existing data for charge type but leave other " +
       "charge types intact then save items to be committed into Mongo" in {
       val chargeType = ChargeType.ChargeTypeOverseasTransfer
       val uaCaptorPassedIntoParse: ArgumentCaptor[UserAnswers] = ArgumentCaptor.forClass(classOf[UserAnswers])

@@ -51,7 +51,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
   }
 
   ".removeSchemeBasedCharge" must {
-    "FIRST COMPILE - completely removeWithCleanup a scheme level charge being deleted if version is 1 and it is not the last charge" in {
+    "FIRST COMPILE - completely remove a scheme level charge being deleted if version is 1 and it is not the last charge" in {
 
       val result = service.removeSchemeBasedCharge(Page)(dataRequest(ua))
 
@@ -77,7 +77,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
   }
 
   ".removeMemberBasedCharge" must {
-    "FOR FIRST COMPILE - removeWithCleanup the member & set total for a member level charge being " +
+    "FOR FIRST COMPILE - remove the member & set total for a member level charge being " +
       "deleted if version is 1 and is not last charge and member not last member" in {
       val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
         .setOrException(MemberPage2, pageValue)
@@ -91,7 +91,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
     }
 
 
-    "FOR FIRST COMPILE - removeWithCleanup the whole charge & NOT set total for a member level charge being " +
+    "FOR FIRST COMPILE - remove the whole charge & NOT set total for a member level charge being " +
       "deleted if version is 1 and is not last charge and member is last member" in {
       val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
       val resultFuture = Future.fromTry(service

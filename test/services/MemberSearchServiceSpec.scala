@@ -92,7 +92,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
       memberSearchService.search(emptyUserAnswers, srn, startDate, "ZZ098765A", accessType, versionInt) mustBe Nil
     }
 
-    "return valid results with no removeWithCleanup link when read only" in {
+    "return valid results with no remove link when read only" in {
       val fakeDataRequest: DataRequest[AnyContent] = request(sessionAccessData = SampleData.sessionAccessData(accessMode = AccessMode.PageAccessModeViewOnly))
 
       List(memberSearchService.search(UserAnswers(uaJs), srn, startDate, "CS121212C", accessType, versionInt)(fakeDataRequest)(1)) mustBe
