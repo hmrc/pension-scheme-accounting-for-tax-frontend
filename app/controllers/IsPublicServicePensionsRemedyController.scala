@@ -20,7 +20,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, UserAnswers}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.IsPublicServicePensionsRemedyPage
 import play.api.data.Form
@@ -137,28 +137,14 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
             )
             renderer.render("isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
           },
-            value => if (value) {
+            value =>
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
                 _ <- userAnswersCacheConnector
                   .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
               } yield
-                Redirect(navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
-            } else {
-              for {
-                ua <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
-                _ <- userAnswersCacheConnector.savePartial(request.internalId, ua.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
-              } yield {
-                Redirect(navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, ua, srn, startDate, accessType, version))
-              }
-
-              //               val uaAfterRemoval =  request.userAnswers
-              //                  .removeWithCleanup(IsPublicServicePensionsRemedyPage(chargeType, index)).getOrElse(request.userAnswers)
-              //                val uaAfterSet = uaAfterRemoval.setOrException(IsPublicServicePensionsRemedyPage(chargeType, index), value)
-              //                userAnswersCacheConnector.savePartial(request.internalId, uaAfterSet.data, chargeType = Some(chargeType), memberNo = index.map(_.id)).map{ _ =>
-              //                    Redirect(navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, uaAfterSet, srn, startDate, accessType, version))
-              //                }
-            }
+                Redirect(navigator
+                  .nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
 
       }

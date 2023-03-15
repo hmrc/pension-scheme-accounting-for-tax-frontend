@@ -131,9 +131,6 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper,
 
     def isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == version
     val prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus).as[String]
-
-    println(s"\n>>>Prev version for $page = $previousVersion and prev member status = $prevMemberStatus and isChangeInSameCompile is $isChangeInSameCompile")
-
     (previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus == AmendedChargeStatus.Added.toString
   }
 

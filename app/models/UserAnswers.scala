@@ -110,10 +110,8 @@ final case class UserAnswers(
   }
 
   def remove[A](page: QuestionPage[A]): Try[UserAnswers] = {
-    println("\nREMOVE:L " + page.path)
     data.removeObject(page.path) match {
       case JsSuccess(jsValue, _) =>
-        println("\nREMOVED OBJ:" + jsValue)
         Success(this copy (data = jsValue))
       case JsError(_) =>
         throw new RuntimeException("Unable to remove page: " + page)
