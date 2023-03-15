@@ -255,7 +255,7 @@ object MemberSearchService {
                                    amount: BigDecimal,
                                    viewLink: String,
                                    removeLink: String) {
-    def linkIdRemove = s"$id-removeWithCleanup"
+    def linkIdRemove = s"$id-remove"
 
     def linkIdView = s"$id-view"
 
