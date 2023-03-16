@@ -113,7 +113,7 @@ trait PageBehaviours extends AnyFreeSpec with Matchers with ScalaCheckPropertyCh
         forAll(gen) {
           case (page, userAnswers) =>
 
-            val updatedAnswers = userAnswers.remove(page).success.value
+            val updatedAnswers = userAnswers.removeWithCleanup(page).success.value
             updatedAnswers.get(page) must be(empty)
         }
       }

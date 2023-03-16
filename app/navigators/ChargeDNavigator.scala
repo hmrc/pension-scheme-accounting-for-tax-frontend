@@ -93,7 +93,8 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     }
 
     case IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index) =>
-      routeFromIsPublicServicePensionsRemedyPage(ua, NormalMode, srn, startDate, accessType, version, index)
+      val previousValue = request.userAnswers.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index))
+      routeFromIsPublicServicePensionsRemedyPage(ua, NormalMode, srn, startDate, accessType, version, index, previousValue)
 
     case IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index) =>
       routeFromIsChargeInAdditionReportedPage(ua, NormalMode, srn, startDate, accessType, version, index)
@@ -139,7 +140,8 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                                          startDate: LocalDate,
                                                          accessType: AccessType,
                                                          version: Int,
-                                                         optIndex: Option[Int]): Call = {
+                                                         optIndex: Option[Int],
+                                                         previousValue: Option[Boolean]): Call = {
     mode match {
       case NormalMode =>
         (userAnswers.get(InputSelectionPage(ChargeTypeLifetimeAllowance)), userAnswers.get(AddMembersPage), optIndex) match {
@@ -154,11 +156,12 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
           case _ => sessionExpiredPage
         }
       case CheckMode =>
-        (userAnswers.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, optIndex)), optIndex) match {
-          case (Some(true), Some(index)) =>
+        (previousValue, userAnswers.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, optIndex)), optIndex) match {
+          case (Some(pv), Some(cv), Some(index)) if cv == pv => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+          case (_, Some(true), Some(index)) =>
             controllers.mccloud.routes.IsChargeInAdditionReportedController
               .onPageLoad(ChargeTypeLifetimeAllowance, mode, srn, startDate, accessType, version, index)
-          case (Some(false), Some(index)) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+          case (_, Some(false), Some(index)) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
           case _ => sessionExpiredPage
         }
       case _ => sessionExpiredPage
@@ -324,7 +327,8 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case MemberDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     case IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index) =>
-      routeFromIsPublicServicePensionsRemedyPage(ua, CheckMode, srn, startDate, accessType, version, index)
+      val previousValue = request.userAnswers.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, index))
+      routeFromIsPublicServicePensionsRemedyPage(ua, CheckMode, srn, startDate, accessType, version, index, previousValue)
     case IsChargeInAdditionReportedPage(ChargeTypeLifetimeAllowance, index) =>
       routeFromIsChargeInAdditionReportedPage(ua, CheckMode, srn, startDate, accessType, version, index)
     case WasAnotherPensionSchemePage(ChargeTypeLifetimeAllowance, index) =>

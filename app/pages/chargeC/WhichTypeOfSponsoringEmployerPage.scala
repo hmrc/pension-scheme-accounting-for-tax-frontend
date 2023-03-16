@@ -30,14 +30,14 @@ case class WhichTypeOfSponsoringEmployerPage(index: Int) extends QuestionPage[Sp
     val tidyResult = value match {
       case Some(SponsoringEmployerType.SponsoringEmployerTypeIndividual) if userAnswers.get(SponsoringOrganisationDetailsPage(index)).isDefined =>
         userAnswers
-          .remove(SponsoringOrganisationDetailsPage(index)).toOption.getOrElse(userAnswers)
-          .remove(SponsoringEmployerAddressPage(index)).toOption.getOrElse(userAnswers)
-          .remove(ChargeCDetailsPage(index)).toOption
+          .removeWithCleanup(SponsoringOrganisationDetailsPage(index)).toOption.getOrElse(userAnswers)
+          .removeWithCleanup(SponsoringEmployerAddressPage(index)).toOption.getOrElse(userAnswers)
+          .removeWithCleanup(ChargeCDetailsPage(index)).toOption
       case Some(SponsoringEmployerType.SponsoringEmployerTypeOrganisation) if userAnswers.get(SponsoringIndividualDetailsPage(index)).isDefined =>
         userAnswers
-          .remove(SponsoringIndividualDetailsPage(index)).toOption.getOrElse(userAnswers)
-          .remove(SponsoringEmployerAddressPage(index)).toOption.getOrElse(userAnswers)
-          .remove(ChargeCDetailsPage(index)).toOption
+          .removeWithCleanup(SponsoringIndividualDetailsPage(index)).toOption.getOrElse(userAnswers)
+          .removeWithCleanup(SponsoringEmployerAddressPage(index)).toOption.getOrElse(userAnswers)
+          .removeWithCleanup(ChargeCDetailsPage(index)).toOption
       case _ => None
     }
     super.cleanup(value, tidyResult.getOrElse(userAnswers))

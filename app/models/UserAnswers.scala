@@ -51,22 +51,23 @@ final case class UserAnswers(
   }
 
   def set[A](page: QuestionPage[A], value: A)(implicit writes: Writes[A]): Try[UserAnswers] = {
-    val updatedData = data.setObject(page.path, Json.toJson(value)) match {
-      case JsSuccess(jsValue, _) =>
-        Success(jsValue)
-      case JsError(errors) =>
-        Failure(JsResultException(errors))
-    }
+    page.cleanupBeforeSettingValue(Some(value), this).flatMap { ua =>
+      val updatedData = ua.data.setObject(page.path, Json.toJson(value)) match {
+        case JsSuccess(jsValue, _) =>
+          Success(jsValue)
+        case JsError(errors) =>
+          Failure(JsResultException(errors))
+      }
 
-    updatedData.flatMap {
-      d =>
-        val updatedAnswers = copy(data = d)
-        page.cleanup(Some(value), updatedAnswers)
+      updatedData.flatMap {
+        d =>
+          val updatedAnswers = copy(data = d)
+          page.cleanup(Some(value), updatedAnswers)
+      }
     }
   }
 
   def set(path: JsPath, value: JsValue): Try[UserAnswers] = {
-
     val updatedData = data.setObject(path, Json.toJson(value)) match {
       case JsSuccess(jsValue, _) =>
         Success(jsValue)
@@ -103,18 +104,16 @@ final case class UserAnswers(
     }
   }
 
+  def removeWithCleanup[A](page: QuestionPage[A]): Try[UserAnswers] = {
+    remove(page).flatMap( updatedAnswers => page.cleanup(None, updatedAnswers) )
+  }
+
   def remove[A](page: QuestionPage[A]): Try[UserAnswers] = {
-    val updatedData = data.removeObject(page.path) match {
+    data.removeObject(page.path) match {
       case JsSuccess(jsValue, _) =>
-        Success(jsValue)
+        Success(this copy (data = jsValue))
       case JsError(_) =>
         throw new RuntimeException("Unable to remove page: " + page)
-    }
-
-    updatedData.flatMap {
-      d =>
-        val updatedAnswers = copy(data = d)
-        page.cleanup(None, updatedAnswers)
     }
   }
 

@@ -21,7 +21,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.IsPublicServicePensionsRemedyPage
 import pages.mccloud.{IsChargeInAdditionReportedPage, SchemePathHelper, WasAnotherPensionSchemePage}
@@ -91,12 +91,8 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
     }
 
   def onSubmit(chargeType: ChargeType,
-               mode: Mode,
-               srn: String,
-               startDate: LocalDate,
-               accessType: AccessType,
-               version: Int,
-               index: Index): Action[AnyContent] =
+               mode: Mode, srn: String, startDate: LocalDate,
+               accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
@@ -120,19 +116,26 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
               )
               renderer.render("mccloud/wasAnotherPensionScheme.njk", json).map(BadRequest(_))
             },
-            value =>
+            value => {
+              def getUserAnswers: Future[UserAnswers] = {
+                (mode, value) match {
+                  case (CheckMode, false) =>
+                    Future.fromTry(request.userAnswers
+                      .removeWithPath(SchemePathHelper.basePath(chargeType, index))
+                      .setOrException(IsPublicServicePensionsRemedyPage(chargeType, Some(index)), true)
+                      .setOrException(IsChargeInAdditionReportedPage(chargeType, index), true)
+                      .set(WasAnotherPensionSchemePage(chargeType, index), value))
+                  case _ => Future.successful(request.userAnswers.setOrException(WasAnotherPensionSchemePage(chargeType, index), value))
+                }
+              }
               for {
-                updatedAnswers <- Future.fromTry(
-                  request.userAnswers
-                    .removeWithPath(SchemePathHelper.basePath(chargeType, index))
-                    .setOrException(IsPublicServicePensionsRemedyPage(chargeType, Some(index)), true)
-                    .setOrException(IsChargeInAdditionReportedPage(chargeType, index), true)
-                    .set(WasAnotherPensionSchemePage(chargeType, index), value))
+                updatedAnswers <- getUserAnswers
                 _ <- userAnswersCacheConnector
                   .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
               } yield
                 Redirect(
                   navigator.nextPage(WasAnotherPensionSchemePage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+            }
           )
       }
     }
