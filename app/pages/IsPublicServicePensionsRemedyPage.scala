@@ -16,13 +16,25 @@
 
 package pages
 
-import models.ChargeType
+import models.{ChargeType, UserAnswers}
 import play.api.libs.json.JsPath
 
+import scala.util.Try
+
 case class IsPublicServicePensionsRemedyPage(chargeType: ChargeType, optIndex: Option[Int]) extends QuestionPage[Boolean] {
-  override def path: JsPath = optIndex match {
-    case Some(index) => JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy" \ IsPublicServicePensionsRemedyPage.toString
-    case None => JsPath \ ChargeType.chargeBaseNode(chargeType) \ "mccloudRemedy" \ IsPublicServicePensionsRemedyPage.toString
+  private val mcCloudPath: JsPath = optIndex match {
+    case Some(index) => JsPath \ ChargeType.chargeBaseNode(chargeType) \ "members" \ index \ "mccloudRemedy"
+    case None => JsPath \ ChargeType.chargeBaseNode(chargeType) \ "mccloudRemedy"
+  }
+
+  override def path: JsPath = mcCloudPath \ IsPublicServicePensionsRemedyPage.toString
+
+  override def cleanupBeforeSettingValue(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] = {
+    val uaAfterRemoval = value match {
+      case Some(false) => userAnswers.removeWithPath(mcCloudPath)
+      case _ => userAnswers
+    }
+    super.cleanup(value, uaAfterRemoval)
   }
 }
 

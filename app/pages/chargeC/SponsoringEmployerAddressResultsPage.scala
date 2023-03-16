@@ -25,7 +25,7 @@ case class SponsoringEmployerAddressResultsPage(index: Int) extends QuestionPage
   override def path: JsPath = JsPath \ SponsoringEmployerAddressResultsPage.toString
 
   override def cleanup(value: Option[TolerantAddress], userAnswers: UserAnswers): Try[UserAnswers] =
-   userAnswers.remove(SponsoringEmployerAddressPage(index)).flatMap { ua =>
+   userAnswers.removeWithCleanup(SponsoringEmployerAddressPage(index)).flatMap { ua =>
       super.cleanup(value, ua)
     }
 }

@@ -132,7 +132,7 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
                     Future.fromTry(Success(request.userAnswers.removeWithPath(SchemePathHelper.schemePath(chargeType, index, schemeIndex))))
                   } else {
                     Future.fromTry(request.userAnswers.removeWithPath(SchemePathHelper.path(chargeType, index))
-                      .remove(WasAnotherPensionSchemePage(chargeType, index)))
+                      .removeWithCleanup(WasAnotherPensionSchemePage(chargeType, index)))
                   }
                   _ <- userAnswersCacheConnector
                     .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = Some(index.id))
