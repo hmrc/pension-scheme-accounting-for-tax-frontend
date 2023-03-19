@@ -23,38 +23,38 @@ sealed trait SchemeFSChargeType
 
 object SchemeFSChargeType extends Enumerable.Implicits {
 
-  case object PSS_AFT_RETURN extends WithName("Accounting for Tax return") with SchemeFSChargeType
-  case object PSS_AFT_RETURN_CREDIT extends WithName("Accounting for Tax return credit") with SchemeFSChargeType
-  case object PSS_AFT_RETURN_INTEREST extends WithName("Interest on Accounting for Tax return") with SchemeFSChargeType
-  case object PSS_OTC_AFT_RETURN extends WithName("Overseas transfer charge") with SchemeFSChargeType
-  case object PSS_OTC_AFT_RETURN_CREDIT extends WithName("Overseas transfer charge credit") with SchemeFSChargeType
-  case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("Interest on overseas transfer charge") with SchemeFSChargeType
-  case object AFT_MANUAL_ASST extends WithName( "Accounting for Tax return manual assessment") with SchemeFSChargeType
-  case object AFT_MANUAL_ASST_CREDIT extends WithName( "Accounting for Tax return manual assessment credit") with SchemeFSChargeType
-  case object AFT_MANUAL_ASST_INTEREST extends WithName("Interest on Accounting for Tax return manual assessment") with SchemeFSChargeType
-  case object OTC_MANUAL_ASST extends WithName("Overseas transfer charge manual assessment") with SchemeFSChargeType
-  case object OTC_MANUAL_ASST_CREDIT extends WithName("Overseas transfer charge manual assessment credit") with SchemeFSChargeType
-  case object OTC_MANUAL_ASST_INTEREST extends WithName("Interest on overseas transfer charge manual assessment") with SchemeFSChargeType
-  case object PSS_CHARGE extends WithName("Pensions charge") with SchemeFSChargeType
-  case object PSS_CHARGE_INTEREST extends WithName("Interest on pensions charge") with SchemeFSChargeType
-  case object CONTRACT_SETTLEMENT extends WithName("Contract settlement charge") with SchemeFSChargeType
-  case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract settlement interest charge") with SchemeFSChargeType
-  case object REPAYMENT_INTEREST extends WithName("Repayment interest") with SchemeFSChargeType
-  case object EXCESS_RELIEF_PAID extends WithName("Excess relief paid charge") with SchemeFSChargeType
-  case object EXCESS_RELIEF_INTEREST extends WithName("Interest on excess relief charge") with SchemeFSChargeType
-  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with SchemeFSChargeType
-  case object PSS_SCHEME_SANCTION_CHARGE extends WithName("Scheme sanction charge") with SchemeFSChargeType with EventReportingCharge
-  case object PSS_SCHEME_SANCTION_CREDIT_CHARGE extends WithName("Scheme sanction credit charge") with SchemeFSChargeType
-  case object PSS_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Scheme sanction charge interest") with SchemeFSChargeType with EventReportingCharge
+  case object PSS_AFT_RETURN extends WithName("Accounting for Tax Return") with SchemeFSChargeType
+  case object PSS_AFT_RETURN_CREDIT extends WithName("Accounting for Tax Return credit") with SchemeFSChargeType
+  case object PSS_AFT_RETURN_INTEREST extends WithName("Accounting for Tax Return Interest") with SchemeFSChargeType
+  case object PSS_OTC_AFT_RETURN extends WithName("Overseas Transfer Charge") with SchemeFSChargeType
+  case object PSS_OTC_AFT_RETURN_CREDIT extends WithName("Overseas Transfer Charge credit") with SchemeFSChargeType
+  case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("Overseas Transfer Charge Interest") with SchemeFSChargeType
+  case object AFT_MANUAL_ASST extends WithName( "Accounting for Tax assessment") with SchemeFSChargeType
+  case object AFT_MANUAL_ASST_CREDIT extends WithName( "Accounting for Tax assessment credit") with SchemeFSChargeType
+  case object AFT_MANUAL_ASST_INTEREST extends WithName("Interest on Accounting for Tax assessment") with SchemeFSChargeType
+  case object OTC_MANUAL_ASST extends WithName("Overseas Transfer Charge assessment") with SchemeFSChargeType
+  case object OTC_MANUAL_ASST_CREDIT extends WithName("Overseas Transfer Charge assessment credit") with SchemeFSChargeType
+  case object OTC_MANUAL_ASST_INTEREST extends WithName("Interest on Overseas Transfer Charge assessment") with SchemeFSChargeType
+  case object PSS_CHARGE extends WithName("Pensions Charge") with SchemeFSChargeType
+  case object PSS_CHARGE_INTEREST extends WithName("Pensions Charge Interest") with SchemeFSChargeType
+  case object CONTRACT_SETTLEMENT extends WithName("Contract Settlement") with SchemeFSChargeType
+  case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract Settlement Interest") with SchemeFSChargeType
+  case object REPAYMENT_INTEREST extends WithName("Repayment Interest") with SchemeFSChargeType
+  case object EXCESS_RELIEF_PAID extends WithName("Relief at Source Excess Relief Repaid") with SchemeFSChargeType
+  case object EXCESS_RELIEF_INTEREST extends WithName("Relief at Source Excess Relief Interest Charge") with SchemeFSChargeType
+  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on Account") with SchemeFSChargeType
+  case object PSS_SCHEME_SANCTION_CHARGE extends WithName("Scheme Sanction Charge") with SchemeFSChargeType with EventReportingCharge
+  case object PSS_SCHEME_SANCTION_CREDIT_CHARGE extends WithName("Scheme Sanction Charge credit") with SchemeFSChargeType
+  case object PSS_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Scheme Sanction Charge Interest") with SchemeFSChargeType with EventReportingCharge
   case object PSS_MANUAL_SSC extends WithName("Manual Scheme Sanction Charge") with SchemeFSChargeType with EventReportingCharge
-  case object PSS_MANUAL_CREDIT_SSC extends WithName("Manual credit SSC") with SchemeFSChargeType
-  case object PSS_MANUAL_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Manual scheme sanction charge interest") with SchemeFSChargeType with EventReportingCharge
+  case object PSS_MANUAL_CREDIT_SSC extends WithName("Manual Scheme Sanction Charge credit") with SchemeFSChargeType
+  case object PSS_MANUAL_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Manual Scheme Sanction Charge Interest") with SchemeFSChargeType with EventReportingCharge
   case object PSS_FIXED_CHARGE_MEMBERS_TAX extends WithName("Member Unauthorised Payments") with SchemeFSChargeType
-  case object PSS_FIXED_CREDIT_CHARGE_MEMBERS_TAX extends WithName("Fixed credit charge members tax") with SchemeFSChargeType
+  case object PSS_FIXED_CREDIT_CHARGE_MEMBERS_TAX extends WithName("Member Unauthorised Payments credit") with SchemeFSChargeType
   case object PSS_MANUAL_FIXED_CHARGE_MEMBERS_TAX extends WithName("Manual Member Unauthorised Payments") with SchemeFSChargeType
 
-  case object PSS_LTA_DISCHARGE_ASSESSMENT extends WithName( "PSS LTA Discharge Assessment") with SchemeFSChargeType
-  case object PSS_LTA_DISCHARGE_ASSESSMENT_INTEREST extends WithName( "Interest on PSS LTA Discharge Assessment") with SchemeFSChargeType
+  case object PSS_LTA_DISCHARGE_ASSESSMENT extends WithName( "Lifetime Allowance Discharge Assessment") with SchemeFSChargeType
+  case object PSS_LTA_DISCHARGE_ASSESSMENT_INTEREST extends WithName( "Lifetime Allowance Assessment Interest") with SchemeFSChargeType
 
   val values: Seq[SchemeFSChargeType] = Seq(
     PSS_AFT_RETURN,
