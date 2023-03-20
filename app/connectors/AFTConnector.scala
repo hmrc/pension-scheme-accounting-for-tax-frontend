@@ -27,6 +27,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import utils.{DateHelper, HttpResponseHelper}
 
 import java.time.LocalDate
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
 
@@ -35,9 +36,9 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
 
   private val logger = Logger(classOf[AFTConnector])
 
-  def fileAFTReturn(pstr: String, answers: UserAnswers, journeyType: JourneyType.Name)
+  def fileAFTReturn(requestId:String, pstr: String, answers: UserAnswers, journeyType: JourneyType.Name)
                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
-    val url = config.aftFileReturn.format(journeyType.toString)
+    val url = config.aftFileReturn.format(journeyType.toString, requestId)
     val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr)
     http.POST[JsObject, HttpResponse](url, answers.data)(implicitly, implicitly, aftHc, implicitly).map {
       response =>

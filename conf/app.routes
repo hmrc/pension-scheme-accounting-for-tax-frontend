@@ -212,7 +212,7 @@ POST        /:srn/:startDate/:accessType/:version/want-to-submit                
 
 GET         /:srn/:startDate/:accessType/:version/declaration                                                                                        controllers.DeclarationController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 
-GET         /:srn/:startDate/:accessType/:version/declaration/on-submit-declaration                                                                  controllers.DeclarationController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
+GET         /:srn/:startDate/:accessType/:version/declaration/on-submit-declaration                                                                  controllers.DeclarationController.onSubmit(requestId:String, srn: String, startDate: String, accessType: AccessType, version: Int)
 
 GET         /:srn/:startDate/:accessType/:version/confirmation                                                                                       controllers.ConfirmationController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 

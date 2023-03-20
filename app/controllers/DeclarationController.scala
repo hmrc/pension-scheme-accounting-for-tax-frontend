@@ -40,6 +40,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
+import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -66,7 +67,7 @@ class DeclarationController @Inject()(
       andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val viewModel = GenericViewModel(
-          submitUrl = routes.DeclarationController.onSubmit(srn, startDate, accessType, version).url,
+          submitUrl = routes.DeclarationController.onSubmit(UUID.randomUUID().toString, srn, startDate, accessType, version).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
@@ -79,7 +80,7 @@ class DeclarationController @Inject()(
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(requestId:String, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)
       andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, pstr, email, quarter, isAmendment, amendedVersion) =>
@@ -88,7 +89,7 @@ class DeclarationController @Inject()(
         (for {
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, answersWithDeclaration.data)
-          _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
+          _ <- aftService.fileSubmitReturn(requestId, pstr, answersWithDeclaration)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
