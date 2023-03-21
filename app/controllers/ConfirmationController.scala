@@ -121,6 +121,9 @@ class ConfirmationController @Inject()(
               ) ++ optViewPaymentsUrl
 
               renderer.render(getView, json).flatMap { viewHtml =>
+                //TODO: removeAll below stops user from refreshing the page.
+                //TODO: Ability to display this page should not rely on userAnswers being there.
+                //TODO: There should be a separate temporary cache. -Pavel Vjalicin
                 userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
                   Ok(viewHtml)
                 }

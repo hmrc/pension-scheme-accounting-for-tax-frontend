@@ -90,10 +90,13 @@ class DeclarationController @Inject()(
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(requestId, pstr, answersWithDeclaration)
-          _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
-          Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
-        }) recoverWith {
+          //TODO: Attempting to submit the page multiple times will result in multiple emails sent out to users
+          //TODO: Fix needed. -Pavel Vjalicin
+          sendEmail(email, quarter, schemeName, isAmendment, amendedVersion).map { _ =>
+            Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
+          }
+        }).flatten recoverWith {
           case ReturnAlreadySubmittedException() =>
             Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn, startDate)))
         } recoverWith recoverFrom5XX(srn, startDate)
