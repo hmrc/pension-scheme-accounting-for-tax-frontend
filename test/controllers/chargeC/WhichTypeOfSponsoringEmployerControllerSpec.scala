@@ -132,7 +132,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathPOST)
           .withFormUrlEncodedBody(("value", "individual"))
 
       val result = route(application, request).value
@@ -149,7 +149,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
-      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathPOST).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -188,7 +188,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathPOST)
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value

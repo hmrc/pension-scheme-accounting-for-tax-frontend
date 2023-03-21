@@ -34,7 +34,7 @@ import pages.PSTRQuery
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import services.AFTService
+import services.{AFTService, UUIDService}
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -58,7 +58,8 @@ class ValidationController @Inject()(
                                       overseasTransferParser: OverseasTransferParser,
                                       aftService: AFTService,
                                       fileUploadAftReturnService: FileUploadAftReturnService,
-                                      fileUploadOutcomeConnector: FileUploadOutcomeConnector
+                                      fileUploadOutcomeConnector: FileUploadOutcomeConnector,
+                                      uuidService: UUIDService
                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport with NunjucksSupport {
@@ -109,6 +110,7 @@ class ValidationController @Inject()(
     }
 
   private def parseAndGetResult(
+                                 requestId:String,
                                  srn: String,
                                  startDate: LocalDate,
                                  chargeType: ChargeType,
@@ -128,7 +130,7 @@ class ValidationController @Inject()(
           Future.successful(processInvalid(chargeType, errors))
         case Right(updatedUA) =>
           TimeLogger.logOperationTime(
-            processSuccessResult(chargeType, updatedUA)
+            processSuccessResult(requestId, chargeType, updatedUA)
               .map(_ => FileUploadOutcome(status = Success, fileName = Some(fileName))),
             "processSuccessResult"
           )
@@ -202,12 +204,12 @@ class ValidationController @Inject()(
   }
 
 
-  private def processSuccessResult(chargeType: ChargeType, ua: UserAnswers)
+  private def processSuccessResult(requestId:String, chargeType: ChargeType, ua: UserAnswers)
                                   (implicit request: DataRequest[AnyContent]): Future[UserAnswers] = {
 
     for {
       updatedAnswers <- fileUploadAftReturnService.preProcessAftReturn(chargeType, ua)
-      _ <- aftService.fileCompileReturn(ua.get(PSTRQuery).getOrElse("pstr"), updatedAnswers)
+      _ <- aftService.fileCompileReturn(requestId, ua.get(PSTRQuery).getOrElse("pstr"), updatedAnswers)
     } yield {
       updatedAnswers
     }
@@ -223,6 +225,7 @@ class ValidationController @Inject()(
   }
 
   private def downloadAndProcess(
+                                  requestId:String,
                                   srn: String,
                                   startDate: LocalDate,
                                   accessType: AccessType,
@@ -246,7 +249,7 @@ class ValidationController @Inject()(
                   case OK =>
                     val linesFromCSV = CsvLineSplitter.split(response.body)
                     val fileName = getFileName(uploadStatus)
-                    parseAndGetResult(srn, startDate, chargeType, linesFromCSV, parser, fileName)
+                    parseAndGetResult(requestId, srn, startDate, chargeType, linesFromCSV, parser, fileName)
                   case _ =>
                     Future.successful(FileUploadOutcome(status = UpscanUnknownError))
                 }
@@ -271,7 +274,7 @@ class ValidationController @Inject()(
       implicit request =>
         findParser(chargeType) match {
           case Some(parser) =>
-            downloadAndProcess(srn, startDate, accessType, version, chargeType, uploadId, parser)
+            downloadAndProcess(uuidService.v4, srn, startDate, accessType, version, chargeType, uploadId, parser)
             Future.successful(Redirect(controllers.fileUpload.routes.ProcessingRequestController.onPageLoad(srn, startDate, accessType, version, chargeType)))
           case _ => sessionExpired
         }

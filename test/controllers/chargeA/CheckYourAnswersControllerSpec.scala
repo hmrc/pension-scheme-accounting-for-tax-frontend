@@ -33,7 +33,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  private def httpOnClickRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt).url
+  private def httpOnClickRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onClick(uuid, srn, startDate, accessType, versionInt).url
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(ChargeDetailsPage, chargeAChargeDetails).toOption.get
 
@@ -47,7 +47,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.total(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
     ),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt).url,
+      submitUrl = routes.CheckYourAnswersController.onClick(uuid, srn, startDate, accessType, versionInt).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
       schemeName = schemeName
     ),

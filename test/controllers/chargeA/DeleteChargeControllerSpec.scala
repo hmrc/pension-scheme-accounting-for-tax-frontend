@@ -61,7 +61,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
 
   private def httpPathGET: String = routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  private def httpPathPOST: String = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, versionInt).url
+  private def httpPathPOST: String = routes.DeleteChargeController.onSubmit(uuid, srn, startDate, accessType, versionInt).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
@@ -101,12 +101,12 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the charge deleted" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeleteChargePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathPOST)
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
@@ -115,16 +115,16 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(ArgumentMatchers.eq(pstr),
+      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(any(), ArgumentMatchers.eq(pstr),
         any())(any(), any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
-      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathPOST).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -160,11 +160,11 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
     }
 
     "redirect to Session Expired for a POST if no existing data is found" in {
-
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathPOST)
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
@@ -176,9 +176,9 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
 
     "redirect to your action was not processed page for a POST if 5XX error is thrown" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any()))
         .thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
-      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", "true"))
+      val request = FakeRequest(POST, httpPathPOST).withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
 

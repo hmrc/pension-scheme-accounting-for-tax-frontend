@@ -34,7 +34,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{DeleteAFTChargeService, UserAnswersService}
+import services.{DeleteAFTChargeService, UUIDService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -56,7 +56,8 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                          val controllerComponents: MessagesControllerComponents,
                                          chargeServiceHelper: ChargeServiceHelper,
                                          config: FrontendAppConfig,
-                                         renderer: Renderer)(implicit ec: ExecutionContext)
+                                         renderer: Renderer,
+                                         uuidService: UUIDService)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
@@ -68,7 +69,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, employerName, employerType) =>
         val viewModel = GenericViewModel(
-          submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, version, index).url,
+          submitUrl = routes.DeleteEmployerController.onSubmit(uuidService.v4, srn, startDate, accessType, version, index).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
@@ -87,7 +88,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onSubmit(requestId:String, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, employerName, employerType) =>
         form(employerName)
@@ -96,7 +97,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, version, index).url,
+                submitUrl = routes.DeleteEmployerController.onSubmit(requestId, srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
@@ -120,7 +121,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
 
                   (for {
                     updatedAnswers <- Future.fromTry(removeCharge(index, srn, startDate, accessType, version))
-                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
+                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(requestId, pstr, updatedAnswers)
                   } yield {
                     Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
                   }) recoverWith recoverFrom5XX(srn, startDate)

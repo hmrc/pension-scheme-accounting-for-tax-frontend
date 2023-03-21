@@ -37,6 +37,8 @@ import viewmodels.Table
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.UUID
+
 
 object SampleData {
   //scalastyle.off: magic.number
@@ -44,6 +46,7 @@ object SampleData {
   val psaId = "A0000000"
   val pspId = "20000000"
   val srn = "aa"
+  val uuid = UUID.randomUUID().toString
   val submittedDate = "2016-12-17"
   val startDate = QUARTER_START_DATE
   val accessType = Draft

@@ -34,7 +34,9 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.{ActionFilter, AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Result}
 import play.api.test.Helpers.{GET, POST}
 import play.api.test.{FakeHeaders, FakeRequest}
+import services.UUIDService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
+import utils.UUIDServiceMock
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -75,6 +77,7 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
     mock[AllowAccessActionProviderForIdentifierRequest]
 
   def modules: Seq[GuiceableModule] = Seq(
+    bind[UUIDService].to[UUIDServiceMock],
     bind[DataRequiredAction].to[DataRequiredActionImpl],
     bind[IdentifierAction].to[FakeIdentifierAction],
     bind[NunjucksRenderer].toInstance(mockRenderer),

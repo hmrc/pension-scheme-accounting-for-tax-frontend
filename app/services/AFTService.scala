@@ -25,7 +25,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
 
 import java.time.LocalDate
-import java.util.UUID
 import javax.inject.Singleton
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -41,11 +40,11 @@ class AFTService @Inject()(
       .fileAFTReturn(requestId:String,pstr, answers.setOrException(AFTStatusQuery, "Submitted"), journeyType)
   }
 
-  def fileCompileReturn(pstr: String, answers: UserAnswers)
+  def fileCompileReturn(requestId:String, pstr: String, answers: UserAnswers)
                        (implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
     val journeyType = if (request.isAmendment) JourneyType.AFT_COMPILE_AMEND else JourneyType.AFT_COMPILE_RETURN
     aftConnector
-      .fileAFTReturn(UUID.randomUUID().toString, pstr, answers.setOrException(AFTStatusQuery, "Compiled"), journeyType)
+      .fileAFTReturn(requestId, pstr, answers.setOrException(AFTStatusQuery, "Compiled"), journeyType)
   }
 
   def isSubmissionDisabled(quarterEndDate: String): Boolean = {

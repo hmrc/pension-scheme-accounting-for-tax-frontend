@@ -27,7 +27,6 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import utils.{DateHelper, HttpResponseHelper}
 
 import java.time.LocalDate
-import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
 

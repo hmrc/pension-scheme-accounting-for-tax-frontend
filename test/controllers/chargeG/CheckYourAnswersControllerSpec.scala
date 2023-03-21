@@ -32,7 +32,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private val templateToBeRendered = "check-your-answers.njk"
 
   private def httpGETRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
-  private def httpOnClickRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt, 0).url
+  private def httpOnClickRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onClick(uuid, srn, startDate, accessType, versionInt, 0).url
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberGDetails).toOption.get

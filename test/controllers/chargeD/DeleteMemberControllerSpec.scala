@@ -59,7 +59,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
 
-  private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, startDate, accessType, versionInt, 0).url
+  private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(uuid, srn, startDate, accessType, versionInt, 0).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
@@ -102,11 +102,11 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathPOST)
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
@@ -120,7 +120,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
         .set(PSTRQuery, pstr).success.value
         .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
 
-      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(ArgumentMatchers.eq(pstr),
+      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(any(), ArgumentMatchers.eq(pstr),
         ArgumentMatchers.eq(expectedUA))(any(), any(), any())
     }
 
@@ -128,10 +128,10 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathPOST).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -170,7 +170,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathPOST)
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
@@ -182,9 +182,9 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
     "redirect to your action was not processed page for a POST if 5XX error is thrown" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any()))
         .thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
-      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", "true"))
+      val request = FakeRequest(POST, httpPathPOST).withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
 

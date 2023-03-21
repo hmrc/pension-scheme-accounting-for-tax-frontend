@@ -34,7 +34,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
+import services.{AFTService, UUIDService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -52,7 +52,8 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            val controllerComponents: MessagesControllerComponents,
                                            deleteChargeHelper: DeleteChargeHelper,
                                            config: FrontendAppConfig,
-                                           renderer: Renderer)(implicit ec: ExecutionContext)
+                                           renderer: Renderer,
+                                           uuidService: UUIDService)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
@@ -76,7 +77,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               ctx = Json.obj(
                 "list" -> helper.rows(request.isViewOnly, seqRows),
                 "viewModel" -> GenericViewModel(
-                  submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version).url,
+                  submitUrl = routes.CheckYourAnswersController.onClick(uuidService.v4, srn, startDate, accessType, version).url,
                   returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                   schemeName = schemeName
                 ),
@@ -97,7 +98,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, version).url
     }
 
-  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onClick(requestId:String, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
       implicit request =>
         (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
@@ -111,7 +112,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeDetails))
               _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedUserAnswers.data,
                 chargeType = Some(ChargeType.ChargeTypeShortService))
-              _ <- aftService.fileCompileReturn(pstr, updatedUserAnswers)
+              _ <- aftService.fileCompileReturn(requestId, pstr, updatedUserAnswers)
             } yield {
               Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn, startDate, accessType, version))
             }) recoverWith recoverFrom5XX(srn, startDate)

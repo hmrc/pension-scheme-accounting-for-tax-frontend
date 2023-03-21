@@ -42,11 +42,12 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.AFTService
+import services.{AFTService, UUIDService}
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
+import utils.UUIDServiceMock
 
 import java.time.{ZoneId, ZonedDateTime}
 import scala.concurrent.Future
@@ -73,7 +74,8 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
       bind[CompoundNavigator].toInstance(mockCompoundNavigator),
       bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider),
-      bind[AuditService].toInstance(mockAuditService)
+      bind[AuditService].toInstance(mockAuditService),
+      bind[UUIDService].to[UUIDServiceMock]
     )
 
   private val extraModulesPsp: Seq[GuiceableModule] = Seq[GuiceableModule](
@@ -90,11 +92,11 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
   private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
 
-  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url
+  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(uuid, srn, QUARTER_START_DATE, accessType, versionInt).url
 
   private val jsonToPassToTemplate = Json.obj(
     fields = "viewModel" -> GenericViewModel(
-      submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url,
+      submitUrl = httpPathOnSubmit,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName)
   )
@@ -161,13 +163,13 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-      when(mockAFTService.fileSubmitReturn(any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileSubmitReturn(any(), any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockAFTService, times(1)).fileSubmitReturn(any(), any())(any(), any(), any())
+      verify(mockAFTService, times(1)).fileSubmitReturn(any(), any(), any())(any(), any(), any())
       verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
       uaCaptor.getValue.get(DeclarationPage) mustBe Some(Declaration(
         submittedBy = "PSA",
@@ -195,13 +197,13 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-      when(mockAFTService.fileSubmitReturn(any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileSubmitReturn(any(), any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(applicationPsp, httpGETRequest(httpPathOnSubmit)).value
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockAFTService, times(1)).fileSubmitReturn(any(), any())(any(), any(), any())
+      verify(mockAFTService, times(1)).fileSubmitReturn(any(), any(), any())(any(), any(), any())
       verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
       uaCaptor.getValue.get(DeclarationPage) mustBe Some(Declaration(
         submittedBy = "PSP",
@@ -233,7 +235,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileSubmitReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
@@ -260,7 +262,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileSubmitReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
@@ -286,7 +288,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileSubmitReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
@@ -321,7 +323,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         userAnswersWithPSTREmailQuarter.map(_.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease))
       )
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).
+      when(mockAFTService.fileSubmitReturn(any(), any(), any())(any(), any(), any())).
         thenReturn(Future.failed(UpstreamErrorResponse("serviceUnavailable", SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE)))
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
@@ -334,7 +336,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         userAnswersWithPSTREmailQuarter.map(_.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease))
       )
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).
+      when(mockAFTService.fileSubmitReturn(any(), any(), any())(any(), any(), any())).
         thenReturn(Future.failed(ReturnAlreadySubmittedException()))
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 

@@ -31,7 +31,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{DeleteAFTChargeService, UserAnswersService}
+import services.{DeleteAFTChargeService, UUIDService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -51,7 +51,8 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
-                                       renderer: Renderer)(implicit ec: ExecutionContext)
+                                       renderer: Renderer,
+                                       uuidService: UUIDService)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
@@ -65,7 +66,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
         DataRetrievals.retrieveSchemeName { schemeName =>
 
           val viewModel = GenericViewModel(
-            submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, version).url,
+            submitUrl = routes.DeleteChargeController.onSubmit(uuidService.v4,  srn, startDate, accessType, version).url,
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = schemeName
           )
@@ -83,7 +84,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
         }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(requestId:String, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form
@@ -92,7 +93,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, version).url,
+                submitUrl = routes.DeleteChargeController.onSubmit(requestId, srn, startDate, accessType, version).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
@@ -114,7 +115,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                 DataRetrievals.retrievePSTR { pstr =>
                   val userAnswers: UserAnswers = userAnswersService.removeSchemeBasedCharge(ShortServiceRefundQuery)
                   (for {
-                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers)
+                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(requestId, pstr, userAnswers)
                   } yield {
                     Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate, accessType, version))
                   }) recoverWith recoverFrom5XX(srn, startDate)

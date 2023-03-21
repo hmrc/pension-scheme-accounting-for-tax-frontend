@@ -34,13 +34,12 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
+import services.{AFTService, UUIDService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
-import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -58,7 +57,8 @@ class DeclarationController @Inject()(
     config: FrontendAppConfig,
     renderer: Renderer,
     emailConnector: EmailConnector,
-    auditService: AuditService
+    auditService: AuditService,
+    uuidService: UUIDService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -67,7 +67,7 @@ class DeclarationController @Inject()(
       andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val viewModel = GenericViewModel(
-          submitUrl = routes.DeclarationController.onSubmit(UUID.randomUUID().toString, srn, startDate, accessType, version).url,
+          submitUrl = routes.DeclarationController.onSubmit(uuidService.v4, srn, startDate, accessType, version).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
