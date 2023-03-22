@@ -555,26 +555,26 @@ object PenaltiesServiceSpec {
   def aftLink(chargeReference: String = "XY002610150184"): Html = Html(
     s"<a id=$chargeReference class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0", All).url}>" +
-      s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
+      s"Accounting for Tax Late Filing Penalty<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
   def contractSettlementLink(chargeReference: String = "XY002610150184"): Html = Html(
     s"<a id=$chargeReference class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0", PenaltiesFilter.All).url}>" +
-      s"Contract settlement charge<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
+      s"Contract Settlement<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
   def interestOnContractSettlementLink(chargeReference: String = "XY002610150184"): Html = Html(
     s"<a id=$chargeReference-interest class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.InterestController.onPageLoad(srn, "0").url}>" +
-      s"Interest on contract settlement charge<span class=govuk-visually-hidden>for charge reference to come</span> </a>")
+      s"Interest on contract settlement<span class=govuk-visually-hidden>for charge reference to come</span> </a>")
 
   def otcLink(chargeReference: String = "XY002610150185"): Html = Html(
     s"<a id=$chargeReference class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0", All).url}>" +
-      s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
+      s"Overseas Transfer Charge 6 Months Late Payment Penalty<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
 
   def totalAmount(amount: BigDecimal = BigDecimal(80000.00)): Row = Row(
-    key = Key(Literal("Accounting for Tax late filing penalty"), classes = Seq("govuk-!-width-three-quarters")),
+    key = Key(Literal("Accounting for Tax Late Filing Penalty"), classes = Seq("govuk-!-width-three-quarters")),
     value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
   )
 
