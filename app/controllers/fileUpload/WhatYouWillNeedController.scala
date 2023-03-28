@@ -47,6 +47,10 @@ class WhatYouWillNeedController @Inject()(
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
+      val isPsr =  request.userAnswers.isPublicServicePensionsRemedy(chargeType)
+      val (templateDownloadLink, instructionsDownloadLink) =
+        (controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url,
+        controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url)
 
       val viewModel = GenericViewModel(
         submitUrl = navigator.nextPage(WhatYouWillNeedPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url,
@@ -59,10 +63,10 @@ class WhatYouWillNeedController @Inject()(
           "chargeType" -> chargeType.toString,
           "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
           "srn" -> srn, "startDate" -> Some(startDate),
-          "fileDownloadTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType).url,
-          "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType).url,
-          "viewModel" -> viewModel))
+          "fileDownloadTemplateLink" -> templateDownloadLink,
+          "fileDownloadInstructionsLink" -> instructionsDownloadLink,
+          "viewModel" -> viewModel,
+          "psr" -> isPsr))
         .map(Ok(_))
     }
 }
-

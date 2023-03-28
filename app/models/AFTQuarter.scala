@@ -19,6 +19,7 @@ package models
 import play.api.libs.json.{Format, Json}
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 case class AFTQuarter(startDate: LocalDate, endDate: LocalDate)
 
@@ -26,4 +27,14 @@ object AFTQuarter {
 
   implicit lazy val formats: Format[AFTQuarter] =
     Json.format[AFTQuarter]
+
+  private val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")
+
+  def monthDayStringFormat(aftQuarter: AFTQuarter): String = {
+    s"${aftQuarter.startDate.format(dateFormatterDMY)} to ${aftQuarter.endDate.format(dateFormatterDMY)} "
+  }
+
+  def formatForDisplay(aftQuarter: AFTQuarter): String = {
+    monthDayStringFormat(aftQuarter) + s"${aftQuarter.startDate.getYear} to ${aftQuarter.startDate.getYear + 1}"
+  }
 }

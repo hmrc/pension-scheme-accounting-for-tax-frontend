@@ -28,6 +28,7 @@ trait Constraints {
   private val regexCrn = "^[A-Za-z0-9 -]{8}$"
   val addressLineRegex = """^[A-Za-z0-9 \-,.&'\/]{1,35}$"""
   val psaIdRegex = "^A[0-9]{7}$"
+  val pstrRegx = """^[0-9]{8}[Rr][A-Za-z]{1}$"""
 
 
   protected def year(minYear: Int,
@@ -39,16 +40,24 @@ trait Constraints {
                     ): Constraint[String] =
     Constraint {
       case year if year.isEmpty => Invalid(requiredKey)
-      case year if year.length != 4 => Invalid(invalidKey)
-      case year =>
-        val y = year.toInt
-        if (y > maxYear) {
+      case year if year.toLowerCase.contains("to") =>
+        val Array(year1, "to", year2) = year.split(" ").map(_.trim)
+        if (year1.toInt > maxYear)
           Invalid(maxKey)
-        } else if (y < minYear) {
+        else if (year1.toInt < minYear)
           Invalid(minKey)
-        } else {
+        else if (year2.toInt - year1.toInt == 1)
           Valid
-        }
+        else
+          Invalid(invalidKey)
+      case year if year.length == 4 =>
+        if (year.toInt > maxYear)
+          Invalid(maxKey)
+        else if (year.toInt < minYear)
+          Invalid(minKey)
+        else
+          Invalid(invalidKey)
+      case _ => Invalid(invalidKey)
     }
 
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
@@ -187,9 +196,8 @@ trait Constraints {
 
   protected def futureDate(invalidKey: String): Constraint[LocalDate] =
     Constraint {
-      case date if date.isAfter(DateHelper.today) => {
+      case date if date.isAfter(DateHelper.today) =>
         Invalid(invalidKey)
-      }
       case _ => Valid
     }
 

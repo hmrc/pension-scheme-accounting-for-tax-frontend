@@ -51,7 +51,8 @@ class ValidationErrorsAllController @Inject()(appConfig: FrontendAppConfig,
       implicit request =>
 
         val schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme")
-        val fileDownloadInstructionLink = controllers.routes.FileDownloadController.instructionsFile(chargeType).url
+        val fileDownloadInstructionLink =
+          controllers.routes.FileDownloadController.instructionsFile(chargeType, request.userAnswers.isPublicServicePensionsRemedy(chargeType)).url
         val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
         val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
 

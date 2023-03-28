@@ -97,7 +97,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
   private def savePost(headers: Seq[(String, String)], url: String, value: JsValue)
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[JsValue] = {
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
-
     http.POST[JsValue, HttpResponse](url, value)(implicitly, implicitly, hc, implicitly)
       .map { response =>
         response.status match {

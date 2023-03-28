@@ -17,31 +17,31 @@
 package controllers.chargeD
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{IdentifierAction, AllowAccessActionProvider, DataRetrievalAction, DataRequiredAction}
+import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeDHelper, ChargeServiceHelper}
+import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
-import models.{GenericViewModel, AccessType, NormalMode, ChargeType, Index}
+import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
-import pages.{ViewOnlyAccessiblePage, PSTRQuery}
-import play.api.i18n.{MessagesApi, I18nSupport}
-import play.api.libs.json.Json
+import pages.mccloud.SchemePathHelper
+import pages.{PSTRQuery, ViewOnlyAccessiblePage}
+import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{ChargeDService, AFTService}
+import services.AFTService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{SummaryList, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
-class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
-                                           override val messagesApi: MessagesApi,
+class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
                                            allowAccess: AllowAccessActionProvider,
@@ -50,23 +50,27 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
-                                           chargeDHelper: ChargeDService,
                                            chargeServiceHelper: ChargeServiceHelper,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
-      DataRetrievals.cyaChargeD(index, srn, startDate, accessType, version) { (memberDetails, chargeDetails, schemeName) =>
+      DataRetrievals.cyaChargeD(index, srn, startDate, accessType, version) { (memberDetails, chargeDetails, pensionsRemedySummary, schemeName) =>
         val helper = new CYAChargeDHelper(srn, startDate, accessType, version)
+        val pensionsSchemeSize = pensionsSchemeCount(request.userAnswers, index)
+        val wasAnotherPensionSchemeVal = pensionsRemedySummary.wasAnotherPensionScheme.getOrElse(false)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
+          helper.isPsprForCharge(index, pensionsRemedySummary.isPublicServicePensionsRemedy),
           helper.chargeDMemberDetails(index, memberDetails),
           helper.chargeDDetails(index, chargeDetails),
-          Seq(helper.total(chargeDetails.total))
+          Seq(helper.total(chargeDetails.total)),
+          helper.psprChargeDetails(index, pensionsRemedySummary).getOrElse(None),
+          helper.psprSchemesChargeDetails(index, pensionsRemedySummary, wasAnotherPensionSchemeVal)
         ).flatten
 
         renderer
@@ -79,14 +83,29 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               ),
+              "selectAnotherSchemeUrl" -> controllers.mccloud.routes.AddAnotherPensionSchemeController
+                .onPageLoad(ChargeType.ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsSchemeSize - 1)
+                .url,
               "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
               "chargeName" -> "chargeD",
+              "showAnotherSchemeBtn" -> (pensionsSchemeSize < 5 && wasAnotherPensionSchemeVal),
               "canChange" -> !request.isViewOnly
             )
           )
           .map(Ok(_))
       }
     }
+
+  private def pensionsSchemeCount(userAnswers: UserAnswers, index: Int): Int = {
+    SchemePathHelper
+      .path(ChargeTypeLifetimeAllowance, index)
+      .readNullable[JsArray]
+      .reads(userAnswers.data)
+      .asOpt
+      .flatten
+      .map(_.value.size)
+      .getOrElse(0)
+  }
 
   def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
@@ -101,10 +120,11 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           (for {
             ua1 <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
             ua2 <- Future.fromTry(ua1.set(ChargeDetailsPage(index), updatedChargeDetails))
-            _ <- userAnswersCacheConnector.savePartial(request.internalId, ua2.data,
-              chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance))
-            _ <- userAnswersCacheConnector.savePartial(request.internalId, ua2.data,
-              chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance), memberNo = Some(index.id))
+            _ <- userAnswersCacheConnector.savePartial(request.internalId, ua2.data, chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance))
+            _ <- userAnswersCacheConnector.savePartial(request.internalId,
+              ua2.data,
+              chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance),
+              memberNo = Some(index.id))
             _ <- aftService.fileCompileReturn(pstr, ua2)
           } yield {
             Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))

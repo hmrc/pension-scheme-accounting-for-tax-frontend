@@ -16,14 +16,12 @@
 
 package controllers.chargeD
 
-import config.FrontendAppConfig
-import connectors.SchemeDetailsConnector
-import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
+import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.{AccessType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.SchemeNameQuery
+import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}
 import pages.chargeD.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -43,18 +41,18 @@ class WhatYouWillNeedController @Inject()(
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
-    schemeDetailsConnector: SchemeDetailsConnector,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    navigator: CompoundNavigator,
-    config: FrontendAppConfig
-)(implicit ec: ExecutionContext)
+    navigator: CompoundNavigator)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
 
+      val psr = ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(index))) match {
+      case Some(true) => Some("chargeD.whatYouWillNeed.li6")
+      case _ => None
+    }
       val viewModel = GenericViewModel(
         submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
@@ -62,7 +60,7 @@ class WhatYouWillNeedController @Inject()(
       )
 
       renderer
-        .render(template = "chargeD/whatYouWillNeed.njk", Json.obj("srn" -> srn, "startDate" -> Some(localDateToString(startDate)), "viewModel" -> viewModel))
+        .render(template = "chargeD/whatYouWillNeed.njk", Json.obj("srn" -> srn, "startDate" -> Some(localDateToString(startDate)), "viewModel" -> viewModel, "psr" -> psr))
         .map(Ok(_))
     }
 }

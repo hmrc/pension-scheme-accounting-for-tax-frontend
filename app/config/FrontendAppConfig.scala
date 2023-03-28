@@ -176,7 +176,11 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
       configuration.get[String]("earliestDateOfNotice"),
       DateTimeFormatter.ofPattern("yyyy-MM-dd")
     )
-
+  lazy val mccloudPsrStartDate: LocalDate = LocalDate
+    .parse(
+      configuration.get[String]("mccloudPsrStartDate"),
+      DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    )
   def featureToggleUrl(toggle: String): String =
     s"$aftUrl${configuration.underlying.getString("urls.featureToggle").format(toggle)}"
 
@@ -213,7 +217,10 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val maxUploadFileSize: Int = configuration.getOptional[Int]("upscan.maxUploadFileSizeMb").getOrElse(1)
 
-  lazy val validAnnualAllowanceHeader: String = configuration.get[String]("validAnnualAllowanceHeader")
-  lazy val validLifeTimeAllowanceHeader: String = configuration.get[String]("validLifeTimeAllowanceHeader")
+  lazy val validAnnualAllowanceNonMcCloudHeader: String = configuration.get[String]("validAnnualAllowanceNonMcCloudHeader")
+  lazy val validAnnualAllowanceMcCloudHeader: String = configuration.get[String]("validAnnualAllowanceMcCloudHeader")
+  lazy val validLifetimeAllowanceHeader: String = configuration.get[String]("validLifetimeAllowanceHeader")
+  lazy val validLifetimeAllowanceMcCloudHeader: String = configuration.get[String]("validLifetimeAllowanceMcCloudHeader")
   lazy val validOverseasTransferHeader: String = configuration.get[String]("validOverseasTransferHeader")
+
 }

@@ -92,6 +92,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   private def paymentTable(rows: Seq[Seq[Table.Cell]]): Table =
     Table(head = tableHead, rows = rows, attributes = Map("role" -> "table"))
 
+
+
   private def row(isInterestAccrued: Boolean,
                   chargeType: String,
                   displayChargeReference: String,
@@ -114,14 +116,14 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
     Seq(
       Cell(htmlChargeType(isInterestAccrued, chargeType, "AYU3494534632", redirectUrl, period, visuallyHiddenText),
-        classes = Seq("govuk-!-width-one-half")),
+        classes = Seq("govuk-!-width-one-third")),
       Cell(Literal(s"$displayChargeReference"), classes = Seq("govuk-!-padding-right-7")),
       if (originalChargeAmount.isEmpty) {
         Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
       } else {
-        Cell(Literal(originalChargeAmount), classes = Seq("govuk-!-padding-right-7"))
+        Cell(Literal(originalChargeAmount), classes = Seq("govuk-!-padding-right-7 table-nowrap"))
       },
-      Cell(Literal(paymentDue), classes = Seq("govuk-!-padding-right-7")),
+      Cell(Literal(paymentDue), classes = Seq("govuk-!-padding-right-5 table-nowrap")),
       Cell(statusHtml)
     )
   }

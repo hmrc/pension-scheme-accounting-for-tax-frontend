@@ -16,17 +16,20 @@
 
 package fileUploadParsers
 
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
+import cats.implicits.toFoldableOps
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import controllers.fileUpload.FileUploadHeaders.MemberDetailsFieldNames
 import controllers.fileUpload.FileUploadHeaders.OverseasTransferFieldNames._
+import controllers.fileUpload.FileUploadHeaders.{MemberDetailsFieldNames, OverseasTransferFieldNames}
+import fileUploadParsers.Parser.Result
 import forms.chargeG.{ChargeAmountsFormProvider, ChargeDetailsFormProvider, MemberDetailsFormProvider}
-import models.Quarters
+import models.{ChargeType, Quarters}
 import models.chargeG.{ChargeAmounts, ChargeDetails, MemberDetails}
 import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.Json
 
 import java.time.LocalDate
 
@@ -37,45 +40,44 @@ class OverseasTransferParser @Inject()(
                                         chargeAmountsFormProvider: ChargeAmountsFormProvider,
                                         config: FrontendAppConfig
                                       ) extends Parser {
+  override val chargeType: ChargeType = ChargeType.ChargeTypeOverseasTransfer
   override protected def validHeader: String = config.validOverseasTransferHeader
 
-  override protected val totalFields: Int = 8
-
-  private final val FieldNoDateOfBirth = 3
-  private final val FieldNoQropsRefNo = 4
-  private final val FieldNoDateOfTransfer = 5
-  private final val FieldNoAmountTransferred = 6
-  private final val FieldNoAmountTaxDue = 7
+  private val fieldNoDateOfBirth = 3
+  private val fieldNoQropsRefNo = 4
+  private val fieldNoDateOfTransfer = 5
+  private val fieldNoAmountTransferred = 6
+  private val fieldNoAmountTaxDue = 7
 
   def chargeMemberDetailsValidation(index: Int, chargeFields: Seq[String],
-                                    memberDetailsForm: Form[MemberDetails]): Either[Seq[ParserValidationError], MemberDetails] = {
-    val parsedDOB = splitDayMonthYear(chargeFields(FieldNoDateOfBirth))
+                                    memberDetailsForm: Form[MemberDetails]): Validated[Seq[ParserValidationError], MemberDetails] = {
+    val parsedDOB = splitDayMonthYear(chargeFields(fieldNoDateOfBirth))
     val fields = Seq(
-      Field(MemberDetailsFieldNames.firstName, chargeFields(FieldNoFirstName), MemberDetailsFieldNames.firstName, FieldNoFirstName),
-      Field(MemberDetailsFieldNames.lastName, chargeFields(FieldNoLastName), MemberDetailsFieldNames.lastName, FieldNoLastName),
-      Field(MemberDetailsFieldNames.nino, chargeFields(FieldNoNino), MemberDetailsFieldNames.nino, FieldNoNino),
-      Field(dateOfBirthDay, parsedDOB.day, dateOfBirth, FieldNoDateOfBirth),
-      Field(dateOfBirthMonth, parsedDOB.month, dateOfBirth, FieldNoDateOfBirth),
-      Field(dateOfBirthYear, parsedDOB.year, dateOfBirth, FieldNoDateOfBirth)
+      Field(MemberDetailsFieldNames.firstName, chargeFields(fieldNoFirstName), MemberDetailsFieldNames.firstName, fieldNoFirstName),
+      Field(MemberDetailsFieldNames.lastName, chargeFields(fieldNoLastName), MemberDetailsFieldNames.lastName, fieldNoLastName),
+      Field(MemberDetailsFieldNames.nino, chargeFields(fieldNoNino), MemberDetailsFieldNames.nino, fieldNoNino),
+      Field(dateOfBirthDay, parsedDOB.day, dateOfBirth, fieldNoDateOfBirth, Some(OverseasTransferFieldNames.dateOfBirth)),
+      Field(dateOfBirthMonth, parsedDOB.month, dateOfBirth, fieldNoDateOfBirth, Some(OverseasTransferFieldNames.dateOfBirth)),
+      Field(dateOfBirthYear, parsedDOB.year, dateOfBirth, fieldNoDateOfBirth, Some(OverseasTransferFieldNames.dateOfBirth))
     )
     memberDetailsForm
       .bind(Field.seqToMap(fields))
       .fold(
-        formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-        value => Right(value)
+        formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
+        value => Valid(value)
       )
   }
 
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDetails] = {
+                                      chargeFields: Seq[String])(implicit messages: Messages): Validated[Seq[ParserValidationError], ChargeDetails] = {
 
-    val parsedDateOfTransfer = splitDayMonthYear(chargeFields(FieldNoDateOfTransfer))
+    val parsedDateOfTransfer = splitDayMonthYear(chargeFields(fieldNoDateOfTransfer))
     val fields = Seq(
-      Field(dateOfTransferDay, parsedDateOfTransfer.day, dateOfTransfer, FieldNoDateOfTransfer),
-      Field(dateOfTransferMonth, parsedDateOfTransfer.month, dateOfTransfer, FieldNoDateOfTransfer),
-      Field(dateOfTransferYear, parsedDateOfTransfer.year, dateOfTransfer, FieldNoDateOfTransfer),
-      Field(qropsReferenceNumber, chargeFields(FieldNoQropsRefNo), qropsReferenceNumber, FieldNoQropsRefNo)
+      Field(dateOfTransferDay, parsedDateOfTransfer.day, dateOfTransfer, fieldNoDateOfTransfer, Some(OverseasTransferFieldNames.dateOfTransfer)),
+      Field(dateOfTransferMonth, parsedDateOfTransfer.month, dateOfTransfer, fieldNoDateOfTransfer, Some(OverseasTransferFieldNames.dateOfTransfer)),
+      Field(dateOfTransferYear, parsedDateOfTransfer.year, dateOfTransfer, fieldNoDateOfTransfer, Some(OverseasTransferFieldNames.dateOfTransfer)),
+      Field(qropsReferenceNumber, chargeFields(fieldNoQropsRefNo), qropsReferenceNumber, fieldNoQropsRefNo)
     )
     val chargeDetailsForm: Form[ChargeDetails] = chargeDetailsFormProvider(
       min = startDate,
@@ -84,17 +86,17 @@ class OverseasTransferParser @Inject()(
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
     ).fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-      value => Right(value)
+      formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
+      value => Valid(value)
     )
   }
 
   private def chargeAmountsValidation(memberName: String,
                                       index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeAmounts] = {
+                                      chargeFields: Seq[String])(implicit messages: Messages): Validated[Seq[ParserValidationError], ChargeAmounts] = {
     val fields = Seq(
-      Field(amountTransferred, chargeFields(FieldNoAmountTransferred), amountTransferred, FieldNoAmountTransferred),
-      Field(amountTaxDue, chargeFields(FieldNoAmountTaxDue), amountTaxDue, FieldNoAmountTaxDue)
+      Field(amountTransferred, chargeFields(fieldNoAmountTransferred), amountTransferred, fieldNoAmountTransferred),
+      Field(amountTaxDue, chargeFields(fieldNoAmountTaxDue), amountTaxDue, fieldNoAmountTaxDue)
     )
     val chargeDetailsForm: Form[ChargeAmounts] = chargeAmountsFormProvider(
       memberName = memberName,
@@ -103,41 +105,31 @@ class OverseasTransferParser @Inject()(
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
     ).fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
-      value => Right(value)
+      formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
+      value => Valid(value)
     )
   }
 
   private def getMemberName(chargeFields: Seq[String])(implicit messages: Messages) =
-    (chargeFields(FieldNoFirstName) + " " + chargeFields(FieldNoLastName)).trim match {
+    (chargeFields(fieldNoFirstName) + " " + chargeFields(fieldNoLastName)).trim match {
       case fullName if fullName.isEmpty => messages("fileUpload.theMember")
       case fullName => fullName
     }
 
   override protected def validateFields(startDate: LocalDate,
                                         index: Int,
-                                        chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    val memberName = getMemberName(chargeFields)
-
-    val validatedMemberDetails = addToValidationResults[MemberDetails](
-      chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
-      Right(Nil),
-      MemberDetailsPage(index - 1).path,
-      Json.toJson(_)
+                                        chargeFields: Seq[String])(implicit messages: Messages): Result = {
+    val a = resultFromFormValidationResult[MemberDetails](
+      chargeMemberDetailsValidation(index, chargeFields, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)
     )
 
-    val validatedMemberDetailsPlusChargeDetails = addToValidationResults[ChargeDetails](
-      chargeDetailsValidation(startDate, index, chargeFields),
-      validatedMemberDetails,
-      ChargeDetailsPage(index - 1).path,
-      Json.toJson(_)
+    val b = resultFromFormValidationResult[ChargeDetails](
+      chargeDetailsValidation(startDate, index, chargeFields), createCommitItem(index, ChargeDetailsPage.apply)
     )
 
-    addToValidationResults[ChargeAmounts](
-      chargeAmountsValidation(memberName, index, chargeFields),
-      validatedMemberDetailsPlusChargeDetails,
-      ChargeAmountsPage(index - 1).path,
-      Json.toJson(_)
+    val c = resultFromFormValidationResult[ChargeAmounts](
+      chargeAmountsValidation(getMemberName(chargeFields), index, chargeFields), createCommitItem(index, ChargeAmountsPage.apply)
     )
+    Seq(a, b, c).combineAll
   }
 }

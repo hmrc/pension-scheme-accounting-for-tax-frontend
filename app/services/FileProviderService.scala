@@ -26,34 +26,43 @@ class FileProviderService @Inject()(environment: Environment){
   private val baseInstructionsPath: String = "conf/resources/fileDownload/instructions"
   private val baseTemplatePath: String = "conf/resources/fileDownload/template"
 
-  private val instructionsFilePath = Map(
-    "annualAllowance" -> s"$baseInstructionsPath/aft-annual-allowance-charge-upload-format-instructions.ods",
-    "lifeTimeAllowance" -> s"$baseInstructionsPath/aft-lifetime-allowance-charge-upload-format-instructions.ods",
+  private val instructionsFilePathMap = Map(
+    "annualAllowancePSR" -> s"$baseInstructionsPath/instructions_aft-annual-allowance-charge-upload-format.ods",
+    "annualAllowance" -> s"$baseInstructionsPath/instructions_aft-annual-allowance-charge-upload-non-public-service-pensions-remedy.ods",
+    "lifeTimeAllowancePSR" -> s"$baseInstructionsPath/instructions_aft-lifetime-allowance-charge-upload-format.ods",
+    "lifeTimeAllowance" -> s"$baseInstructionsPath/instructions_aft-lifetime-allowance-charge-upload-non-public-service-pensions-remedy.ods",
     "overseasTransfer"-> s"$baseInstructionsPath/aft-overseas-transfer-charge-upload-format-instructions.ods"
   )
 
   private val templateFilePathMap = Map(
-    "annualAllowance" -> s"$baseTemplatePath/aft-annual-allowance-charge-upload-template.csv",
-    "lifeTimeAllowance"-> s"$baseTemplatePath/aft-lifetime-allowance-charge-upload-template.csv",
+    "annualAllowancePSR" -> s"$baseTemplatePath/upload-template_aft-annual-allowance-charge.csv",
+    "annualAllowance" -> s"$baseTemplatePath/upload-template_aft-annual-allowance-charge_non-public-service-pensions-remedy.csv",
+    "lifeTimeAllowancePSR"-> s"$baseTemplatePath/upload-template_aft-lifetime-allowance-charge.csv",
+    "lifeTimeAllowance"-> s"$baseTemplatePath/upload-template_aft-lifetime-allowance-charge_non-public-service-pensions-remedy.csv",
     "overseasTransfer"-> s"$baseTemplatePath/aft-overseas-transfer-charge-upload-template.csv"
   )
 
-  private def instructionsFilePath(chargeType: ChargeType): String = {
-    instructionsFilePath(chargeType.toString)
+  private def instructionsFilePath(chargeType: ChargeType, psr: Option[Boolean]): String = {
+    psr match {
+      case Some(true) => instructionsFilePathMap(s"${chargeType.toString}PSR")
+      case _ => instructionsFilePathMap(chargeType.toString)
+    }
   }
 
-  private def templateFilePath(chargeType: ChargeType): String = {
-    templateFilePathMap(chargeType.toString)
+  private def templateFilePath(chargeType: ChargeType, psr: Option[Boolean]): String = {
+    psr match {
+      case Some(true) => templateFilePathMap(s"${chargeType.toString}PSR")
+      case _ => templateFilePathMap(chargeType.toString)
+    }
   }
 
-
-  def getInstructionsFile(chargeType: ChargeType): File  = {
-    val path: String = instructionsFilePath(chargeType)
+  def getInstructionsFile(chargeType: ChargeType, psr: Option[Boolean]): File  = {
+    val path: String = instructionsFilePath(chargeType, psr)
     environment.getFile(path)
   }
 
-  def getTemplateFile(chargeType: ChargeType): File = {
-    val path: String = templateFilePath(chargeType)
+  def getTemplateFile(chargeType: ChargeType, psr: Option[Boolean]): File = {
+    val path: String = templateFilePath(chargeType, psr)
     environment.getFile(path)
   }
 }

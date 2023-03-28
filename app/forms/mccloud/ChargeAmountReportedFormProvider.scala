@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package forms
+package forms.mccloud
 
-import forms.mappings.Mappings
+import forms.mappings.{Constraints, Mappings}
 import play.api.data.Form
 
 import javax.inject.Inject
 
-class DeleteFormProvider @Inject() extends Mappings {
+class ChargeAmountReportedFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(errorKey: String): Form[Boolean] =
+  def apply(minimumChargeValueAllowed:BigDecimal): Form[BigDecimal] =
     Form(
-      "value" -> boolean(errorKey)
+      "value" -> bigDecimal2DP(
+        requiredKey = "chargeAmountReported.error.required",
+        invalidKey = "chargeAmountReported.error.invalid",
+        decimalKey = "chargeAmountReported.error.decimal"
+      ).verifying(
+        maximumValue[BigDecimal](BigDecimal("999999999.99"), "chargeAmountReported.error.maximum"),
+        minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeAmountReported.error.invalid")
+      )
     )
 }

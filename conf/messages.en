@@ -338,6 +338,7 @@ chargeE.whatYouWillNeed.li3 = the date the scheme administrator received the not
 chargeE.whatYouWillNeed.li4 = the amount of the annual allowance charge
 chargeE.whatYouWillNeed.li5 = the tax year to which the annual allowance charge relates
 chargeE.whatYouWillNeed.li6 = whether the annual allowance payment type was mandatory or voluntary
+chargeE.whatYouWillNeed.li7 = whether the annual allowance charge is being paid as a result of the Public Service Pensions Remedy and, if applicable, the details of the previously reported charge
 
 chargeF = De-registration charge
 chargeF.whatYouWillNeed.title = De-registration charge
@@ -368,7 +369,7 @@ yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
 
 annualAllowanceYear.fileUpload.error.required = Enter the tax year to which the annual allowance charge relates
-annualAllowanceYear.fileUpload.error.invalid = Enter a real tax year to which the annual allowance charge relates
+annualAllowanceYear.fileUpload.error.invalid = Enter a valid tax year in the correct format, like 2020 to 2021
 annualAllowanceYear.fileUpload.error.future = The tax year to which the annual allowance charge relates must not be in the future
 annualAllowanceYear.fileUpload.error.past = The tax year to which the annual allowance charge related must not be before 2011
 
@@ -503,6 +504,7 @@ chargeD.whatYouWillNeed.li2 = their National Insurance number
 chargeD.whatYouWillNeed.li3 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
 chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
 chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
+chargeD.whatYouWillNeed.li6 = whether the lifetime allowance charge is being paid as a result of the Public Service Pensions Remedy and, if applicable, the details of the previously reported charge
 
 chargeD.amountTaxDue.error.required = Enter the amount of tax due at {0}%
 chargeD.amountTaxDue.error.invalid = The amount of tax due at {0}% must be an amount of money, like 123 or 123.45
@@ -1302,18 +1304,25 @@ fileupload.whatYouWillNeed.p2 = and use this to enter the information. Do not ch
 fileupload.download.instructions.link = Download the instructions for the format of your file
 fileupload.download.template.link = Download the template file
 
+fileupload.whatYouWillNeed.ltaAa.p3 = The previous {0} file (last updated XX/XX/XXXX) is out of date and cannot be used. For the correct document and information on how to complete it, download the:
+fileupload.download.instructions.ltaAa.link = instructions which explain the format that should be used
+fileupload.download.template.ltaAa.link = latest template file
+fileupload.download.template.ltaAa.linkText = – do not change or delete the header (row 1) or change the order of the columns
+
 fileupload.whatYouWillNeed.annualAllowance.item1 = their name
 fileupload.whatYouWillNeed.annualAllowance.item2 = their National Insurance number
 fileupload.whatYouWillNeed.annualAllowance.item3 = the date the scheme administrator received the notice from the member requiring them to pay the annual allowance charge
 fileupload.whatYouWillNeed.annualAllowance.item4 = the amount of the annual allowance charge
 fileupload.whatYouWillNeed.annualAllowance.item5 = the tax year to which the annual allowance charge relates
 fileupload.whatYouWillNeed.annualAllowance.item6 = whether the annual allowance payment type was mandatory or voluntary
+fileupload.whatYouWillNeed.annualAllowance.item7 = whether the annual allowance charge is being paid as a result of the Public Service Pensions Remedy and, if applicable, the details of the previously reported charge
 
 fileupload.whatYouWillNeed.lifeTimeAllowance.item1 = their name
 fileupload.whatYouWillNeed.lifeTimeAllowance.item2 = their National Insurance number
 fileupload.whatYouWillNeed.lifeTimeAllowance.item3 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
 fileupload.whatYouWillNeed.lifeTimeAllowance.item4 = the amount of tax due at 25%
 fileupload.whatYouWillNeed.lifeTimeAllowance.item5 = the amount of tax due at 55%
+fileupload.whatYouWillNeed.lifeTimeAllowance.item6 = whether the lifetime allowance charge is being paid as a result of the Public Service Pensions Remedy and, if applicable, the details of the previously reported charge
 
 fileupload.whatYouWillNeed.overseasTransfer.item1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
 fileupload.whatYouWillNeed.overseasTransfer.item2 = the date and ’transferred value’ of each transfer
@@ -1504,6 +1513,11 @@ fileUpload.amountTransferred.generic.error = amount transferred into the QROPS i
 fileUpload.amountTaxDue.generic.error = amount of tax due for this transfer into the QROPS is missing or in the wrong format
 fileUpload.amountTaxDue.generic.total.error.part1 = Your file has {0} errors. At least one:
 
+fileupload.isInAdditionToPrevious.generic.error = is in addition to previous is missing or in the wrong format
+fileupload.wasPaidByAnotherScheme.generic.error = was paid is missing or in the wrong format
+fileupload.pstr.generic.error = pstr is missing or in the wrong format
+fileupload.dateReportedAndPaid.generic.error = date reported and paid is missing or in the wrong format
+fileupload.chargeAmountReported.generic.error = charge amount reported is missing or in the wrong format
 
 fileupload.invalid.title = There is a problem with your {0} file
 fileupload.invalid.p1 = Correct the following errors and upload it again, or upload a different file.
@@ -1544,4 +1558,80 @@ aftReturnLocked.heading = This AFT return is locked
 aftReturnLocked.p1 = You cannot view this return. Try again later.
 aftReturnLocked.p2 = You cannot make changes to the return until it is unlocked.
 
+chargeType.description.lifeTimeAllowance = lifetime allowance charge
+chargeType.description.annualAllowance = annual allowance charge
 
+isPublicServicePensionsRemedy.title = Is this {0} being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedyBulk.title = Are any entries for this {0} being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedy.heading = Is this {0} being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedyBulk.heading = Are any entries for this {0} being paid as a result of the Public Service Pensions Remedy?
+isPublicServicePensionsRemedy.p1 = In 2015 the government introduced reforms to public sector pensions. Steps are being taken to remedy those reforms, known as the ‘Public Service Pensions Remedy’ and ’2015 Remedy (McCloud)’.
+isPublicServicePensionsRemedy.error.required = Select yes if this {0} is being paid as a result of the Public Service Pensions Remedy
+isPublicServicePensionsRemedyBulk.error.required = Select yes if any {0}s are being paid as a result of the Public Service Pensions Remedy
+isPublicServicePensionsRemedy.label = whether this payment is as of a result of the Public Service Pensions Remedy
+
+isChargeInAdditionReported.title = Is this {0} in addition to a previously reported {0} for this member?
+isChargeInAdditionReported.heading = Is this {0} in addition to a previously reported {0} for this member?
+isChargeInAdditionReported.error.required = Select yes if this {0} is in addition to a previously reported {0}
+isChargeInAdditionReported.label = if this {0} is in addition to a previously reported {0} for this member
+
+wasAnotherPensionScheme.title = Was the previously reported {0} paid by another pension scheme?
+wasAnotherPensionScheme.heading = Was the previously reported {0} paid by another pension scheme?
+wasAnotherPensionScheme.hint = If you answer yes, you will be able to add up to five pension schemes.
+wasAnotherPensionScheme.error.required = Select yes if the previously reported {0} was paid by another pension scheme
+wasAnotherPensionScheme.label = whether the previously reported {0} was paid by another pension scheme
+
+taxYearReportedAndPaid.title = Select the tax year in which this {0} {1} was reported and paid
+taxYearReportedAndPaid.heading = Select the tax year in which this {0} {1} was reported and paid
+taxYearReportedAndPaid.error.required = Select a tax year
+
+taxQuarterReportedAndPaid.title = Which quarter of {0} was this {1} {2} reported and paid?
+taxQuarterReportedAndPaid.heading = Which quarter of {0} was this {1} {2} reported and paid?
+taxQuarterReportedAndPaid.error.required = Select a quarter
+
+chargeAmountReported.title = What was the {2} amount reported for {0} in the {1} pension scheme?
+chargeAmountReported.heading = What was the {2} amount reported for {0} in the {1} pension scheme?
+
+enterPstr.title = Enter the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported {1}
+enterPstr.heading = Enter the Pension Scheme Tax Reference (PSTR) of the {0} pension scheme that paid the previously reported {1}
+enterPstr.hint = For example, 20123456RQ
+enterPstr.error.required = Enter a Pension Scheme Tax Reference (PSTR)
+enterPstr.error.invalid = Enter a Pension Scheme Tax Reference (PSTR) that is 8 numbers, followed by R, followed by a character, like 12345678RA
+
+mccloud.scheme.ref0 =
+mccloud.scheme.ref1 = second
+mccloud.scheme.ref2 = third
+mccloud.scheme.ref3 = fourth
+mccloud.scheme.ref4 = fifth
+
+addAnotherPensionScheme.title = Do you want to add another pension scheme?
+addAnotherPensionScheme.heading = Do you want to add another pension scheme?
+addAnotherPensionScheme.error.required = Select yes if you want to add another pension scheme
+
+removePensionScheme.title = Are you sure you want to remove this scheme?
+removePensionScheme.heading = Are you sure you want to remove this scheme?
+removePensionScheme.error.required = Select yes if you want to remove the pension scheme
+
+chargeAmountReported.error.required = Enter the charge amount
+chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
+chargeAmountReported.error.decimal = The charge amount must include pence, like 123.45 or 156.00
+chargeAmountReported.error.maximum = The charge amount must be £999999999.99 or less
+chargeAmountReported.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
+
+mccloud.not.entered = Not entered
+
+mccloud.scheme.cya.ref0 = First scheme details
+mccloud.scheme.cya.ref1 = Second scheme details
+mccloud.scheme.cya.ref2 = Third scheme details
+mccloud.scheme.cya.ref3 = Fourth scheme details
+mccloud.scheme.cya.ref4 = Fifth scheme details
+add.another_scheme = Add another scheme
+
+enterPstr.cya.label = The Pension Scheme Tax Reference of the {0} scheme that paid the previously reported {1}
+enterPstr.cya.visuallyHidden.text = the Pension Scheme Tax Reference of the {0} scheme that paid the previously reported {1}
+taxYearReportedAndPaid.cya.label = The tax year in which this {0} {1} was reported and paid
+taxYearReportedAndPaid.cya.visuallyHidden.text = the tax year in which this {0} {1} was reported and paid
+taxQuarterReportedAndPaid.cya.label = The quarter of {0} that this {1} {2} was reported and paid
+taxQuarterReportedAndPaid.cya.visuallyHidden.text = the quarter of {0} that this {1} {2} was reported and paid
+chargeAmountReported.cya.label = The {0} {1} amount reported for {2}
+chargeAmountReported.cya.visuallyHidden.text = the {0} {1} amount reported for {2}

@@ -4,5 +4,12 @@
        <li>{{ messages("fileupload.whatYouWillNeed.lifeTimeAllowance.item3") }}</li>
        <li>{{ messages("fileupload.whatYouWillNeed.lifeTimeAllowance.item4") }}</li>
        <li>{{ messages("fileupload.whatYouWillNeed.lifeTimeAllowance.item5") }}</li>
-
+       {% if psr %}
+          <li>{{ messages("fileupload.whatYouWillNeed.lifeTimeAllowance.item6") }}</li>
+       {% endif %}
+</ul>
+<p class="govuk-body">{{ messages("fileupload.whatYouWillNeed.ltaAa.p3", chargeTypeText) }}</p>
+<ul class="govuk-list govuk-list--bullet">
+    <li><a href="{{fileDownloadTemplateLink}}" class="govuk-link">{{ messages("fileupload.download.template.ltaAa.link") }}</a> {{ messages("fileupload.download.template.ltaAa.linkText") }}</li>
+    <li><a href="{{fileDownloadInstructionsLink}}" class="govuk-link">{{ messages("fileupload.download.instructions.ltaAa.link") }}</a></li>
 </ul>

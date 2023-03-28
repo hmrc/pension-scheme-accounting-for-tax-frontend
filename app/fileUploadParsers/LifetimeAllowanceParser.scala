@@ -16,44 +16,47 @@
 
 package fileUploadParsers
 
-import com.google.inject.Inject
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
+import cats.implicits.toFoldableOps
 import config.FrontendAppConfig
+import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames
+import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames._
+import fileUploadParsers.Parser.Result
 import forms.MemberDetailsFormProvider
 import forms.chargeD.ChargeDetailsFormProvider
 import models.chargeD.ChargeDDetails
-import models.{MemberDetails, Quarters}
+import models.{ChargeType, MemberDetails, Quarters}
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.Json
 
 import java.time.LocalDate
-import controllers.fileUpload.FileUploadHeaders.LifetimeAllowanceFieldNames._
 
-class LifetimeAllowanceParser @Inject()(
-                                         memberDetailsFormProvider: MemberDetailsFormProvider,
-                                         chargeDetailsFormProvider: ChargeDetailsFormProvider,
-                                         config: FrontendAppConfig
-                                       ) extends Parser {
-  override protected def validHeader: String = config.validLifeTimeAllowanceHeader
+trait LifetimeAllowanceParser extends Parser {
+  override val chargeType: ChargeType = ChargeType.ChargeTypeLifetimeAllowance
 
-  override protected val totalFields: Int = 6
+  protected val memberDetailsFormProvider: MemberDetailsFormProvider
 
-  private final val FieldNoDateOfEvent = 3
-  private final val FieldNoTaxAt25Percent = 4
-  private final val FieldNoTaxAt55Percent = 5
+  protected val chargeDetailsFormProvider: ChargeDetailsFormProvider
+
+  protected val config: FrontendAppConfig
+
+  private val fieldNoDateOfEvent = 3
+  private val fieldNoTaxAt25Percent = 4
+  private val fieldNoTaxAt55Percent = 5
 
   private def chargeDetailsValidation(startDate: LocalDate,
                                       index: Int,
-                                      chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], ChargeDDetails] = {
+                                      chargeFields: Seq[String])(implicit messages: Messages): Validated[Seq[ParserValidationError], ChargeDDetails] = {
 
-    val parsedDate = splitDayMonthYear(chargeFields(FieldNoDateOfEvent))
+    val parsedDate = splitDayMonthYear(chargeFields(fieldNoDateOfEvent))
     val fields = Seq(
-      Field(dateOfEventDay, parsedDate.day, dateOfEvent, FieldNoDateOfEvent),
-      Field(dateOfEventMonth, parsedDate.month, dateOfEvent, FieldNoDateOfEvent),
-      Field(dateOfEventYear, parsedDate.year, dateOfEvent, FieldNoDateOfEvent),
-      Field(taxAt25Percent, chargeFields(FieldNoTaxAt25Percent), taxAt25Percent, FieldNoTaxAt25Percent),
-      Field(taxAt55Percent, chargeFields(FieldNoTaxAt55Percent), taxAt55Percent, FieldNoTaxAt55Percent)
+      Field(dateOfEventDay, parsedDate.day, dateOfEvent, fieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
+      Field(dateOfEventMonth, parsedDate.month, dateOfEvent, fieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
+      Field(dateOfEventYear, parsedDate.year, dateOfEvent, fieldNoDateOfEvent, Some(LifetimeAllowanceFieldNames.dateOfEvent)),
+      Field(taxAt25Percent, chargeFields(fieldNoTaxAt25Percent), taxAt25Percent, fieldNoTaxAt25Percent),
+      Field(taxAt55Percent, chargeFields(fieldNoTaxAt55Percent), taxAt55Percent, fieldNoTaxAt55Percent)
     )
     val chargeDetailsForm: Form[ChargeDDetails] = chargeDetailsFormProvider(
       min = startDate,
@@ -63,28 +66,27 @@ class LifetimeAllowanceParser @Inject()(
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
     ).fold(
-      formWithErrors => Left(errorsFromForm(formWithErrors, fields, index)),
+      formWithErrors => Invalid(errorsFromForm(formWithErrors, fields, index)),
       value => {
         val updatedChargeDetails: ChargeDDetails = value.copy(
           taxAt25Percent = Option(value.taxAt25Percent.getOrElse(BigDecimal(0.00))),
           taxAt55Percent = Option(value.taxAt55Percent.getOrElse(BigDecimal(0.00)))
         )
-        Right(updatedChargeDetails)
+        Valid(updatedChargeDetails)
       }
     )
 
   }
 
-  override protected def validateFields(startDate: LocalDate,
-                                        index: Int,
-                                        chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    combineValidationResults[MemberDetails, ChargeDDetails](
-      memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
-      chargeDetailsValidation(startDate, index, chargeFields),
-      MemberDetailsPage(index - 1).path,
-      Json.toJson(_),
-      ChargeDetailsPage(index - 1).path,
-      Json.toJson(_)
+  protected def validateMinimumFields(startDate: LocalDate,
+                                      index: Int,
+                                      columns: Seq[String])(implicit messages: Messages): Result = {
+    val a = resultFromFormValidationResult[MemberDetails](
+      memberDetailsValidation(index, columns, memberDetailsFormProvider()), createCommitItem(index, MemberDetailsPage.apply)
     )
+    val b = resultFromFormValidationResult[ChargeDDetails](
+      chargeDetailsValidation(startDate, index, columns), createCommitItem(index, ChargeDetailsPage.apply)
+    )
+    Seq(a, b).combineAll
   }
 }

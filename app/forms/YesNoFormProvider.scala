@@ -16,30 +16,15 @@
 
 package forms
 
-import forms.behaviours.BooleanFieldBehaviours
-import play.api.data.FormError
+import forms.mappings.Mappings
+import play.api.data.Form
 
-class DeleteFormProviderSpec extends BooleanFieldBehaviours {
+import javax.inject.Inject
 
-  val requiredKey = "Select yes if you want to remove the annual allowance charge for first last"
-  val invalidKey = "error.boolean"
+class YesNoFormProvider @Inject() extends Mappings {
 
-  val form = new DeleteFormProvider()(requiredKey)
-
-  ".value" must {
-
-    val fieldName = "value"
-
-    behave like booleanField(
-      form,
-      fieldName,
-      invalidError = FormError(fieldName, invalidKey)
+  def apply(errorKey: String): Form[Boolean] =
+    Form(
+      "value" -> boolean(errorKey)
     )
-
-    behave like mandatoryField(
-      form,
-      fieldName,
-      requiredError = FormError(fieldName, requiredKey)
-    )
-  }
 }

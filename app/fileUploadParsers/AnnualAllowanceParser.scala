@@ -16,35 +16,36 @@
 
 package fileUploadParsers
 
-import com.google.inject.Inject
+import cats.data.Validated
+import cats.data.Validated.{Invalid, Valid}
+import cats.implicits.toFoldableOps
 import config.FrontendAppConfig
+import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
+import fileUploadParsers.Parser.Result
 import forms.MemberDetailsFormProvider
 import forms.chargeE.ChargeDetailsFormProvider
 import forms.mappings.Constraints
-import models.{CommonQuarters, MemberDetails}
 import models.chargeE.ChargeEDetails
+import models.{ChargeType, CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
-import play.api.data.validation.{Invalid, Valid}
 import play.api.i18n.Messages
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, Json}
 
 import java.time.LocalDate
-import controllers.fileUpload.FileUploadHeaders.AnnualAllowanceFieldNames
 
-class AnnualAllowanceParser @Inject()(
-                                       memberDetailsFormProvider: MemberDetailsFormProvider,
-                                       chargeDetailsFormProvider: ChargeDetailsFormProvider,
-                                       config: FrontendAppConfig
-                                     ) extends Parser with Constraints with CommonQuarters {
-  override protected val totalFields: Int = 7
+trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters {
+  override val chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance
+  protected val memberDetailsFormProvider: MemberDetailsFormProvider
 
-  override protected def validHeader: String = config.validAnnualAllowanceHeader
+  protected val chargeDetailsFormProvider: ChargeDetailsFormProvider
 
-  private final val FieldNoTaxYear = 3
-  private final val FieldNoChargeAmount = 4
-  private final val FieldNoDateNoticeReceived = 5
-  private final val FieldNoIsPaymentMandatory = 6
+  protected val config: FrontendAppConfig
+
+  private val fieldNoTaxYear = 3
+  private val fieldNoChargeAmount = 4
+  private val fieldNoDateNoticeReceived = 5
+  private val fieldNoIsPaymentMandatory = 6
 
   private final object TaxYearErrorKeys {
     val requiredKey = "annualAllowanceYear.fileUpload.error.required"
@@ -56,15 +57,17 @@ class AnnualAllowanceParser @Inject()(
   private def processChargeDetailsValidation(index: Int,
                                              startDate: LocalDate,
                                              chargeFields: Seq[String],
-                                             parsedDate: ParsedDate,
-                                             taxYearsErrors: Seq[ParserValidationError]): Either[Seq[ParserValidationError], ChargeEDetails] = {
+                                             parsedDate: ParsedDate): Validated[Seq[ParserValidationError], ChargeEDetails] = {
     val fields = Seq(
-      Field(AnnualAllowanceFieldNames.chargeAmount, chargeFields(FieldNoChargeAmount), AnnualAllowanceFieldNames.chargeAmount, FieldNoChargeAmount),
-      Field(AnnualAllowanceFieldNames.dateNoticeReceivedDay, parsedDate.day, AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
-      Field(AnnualAllowanceFieldNames.dateNoticeReceivedMonth, parsedDate.month, AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
-      Field(AnnualAllowanceFieldNames.dateNoticeReceivedYear, parsedDate.year, AnnualAllowanceFieldNames.dateNoticeReceived, FieldNoDateNoticeReceived),
-      Field(AnnualAllowanceFieldNames.isPaymentMandatory, stringToBoolean(chargeFields(FieldNoIsPaymentMandatory)),
-        AnnualAllowanceFieldNames.isPaymentMandatory, FieldNoIsPaymentMandatory)
+      Field(AnnualAllowanceFieldNames.chargeAmount, chargeFields(fieldNoChargeAmount), AnnualAllowanceFieldNames.chargeAmount, fieldNoChargeAmount),
+      Field(AnnualAllowanceFieldNames.dateNoticeReceivedDay, parsedDate.day,
+        AnnualAllowanceFieldNames.dateNoticeReceived, fieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
+      Field(AnnualAllowanceFieldNames.dateNoticeReceivedMonth, parsedDate.month,
+        AnnualAllowanceFieldNames.dateNoticeReceived, fieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
+      Field(AnnualAllowanceFieldNames.dateNoticeReceivedYear, parsedDate.year,
+        AnnualAllowanceFieldNames.dateNoticeReceived, fieldNoDateNoticeReceived, Some(AnnualAllowanceFieldNames.dateNoticeReceived)),
+      Field(AnnualAllowanceFieldNames.isPaymentMandatory, stringToBoolean(chargeFields(fieldNoIsPaymentMandatory)),
+        AnnualAllowanceFieldNames.isPaymentMandatory, fieldNoIsPaymentMandatory)
 
     )
 
@@ -73,35 +76,32 @@ class AnnualAllowanceParser @Inject()(
       minimumDate = config.earliestDateOfNotice,
       maximumDate = getQuarter(startDate).endDate
     )
+
     chargeDetailsForm.bind(
       Field.seqToMap(fields)
     ).fold(
-      formWithErrors => errors(index, formWithErrors, fields, taxYearsErrors),
-      value => checkIfTaxYearHasAnErrorsOrReturnChargeEDetails(value, taxYearsErrors)
+      formWithErrors => errors(index, formWithErrors, fields),
+      value => Valid(value)
     )
   }
 
 
-  private def errors[A](fieldIndex: Int, formWithErrors: Form[A], fields: Seq[Field], taxYearsErrors: Seq[ParserValidationError]) =
-    Left(errorsFromForm(formWithErrors, fields, fieldIndex) ++ taxYearsErrors)
+  private def errors[A](fieldIndex: Int,
+                        formWithErrors: Form[A],
+                        fields: Seq[Field]): Validated[Seq[ParserValidationError], A] =
+    Invalid(errorsFromForm(formWithErrors, fields, fieldIndex))
 
-  private def checkIfTaxYearHasAnErrorsOrReturnChargeEDetails(chargeEDetails: ChargeEDetails, taxYearsErrors: Seq[ParserValidationError])
-                                         :Either[Seq[ParserValidationError], ChargeEDetails] =
-    if (taxYearsErrors.nonEmpty) {
-      Left(taxYearsErrors)
-    } else {
-      Right(chargeEDetails)
-    }
-  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Either[Seq[ParserValidationError], ChargeEDetails] =
+  private def chargeDetailsValidation(startDate: LocalDate, index: Int, chargeFields: Seq[String]): Validated[Seq[ParserValidationError], ChargeEDetails] = {
     processChargeDetailsValidation(
       index,
       startDate,
       chargeFields,
-      splitDayMonthYear(chargeFields(FieldNoDateNoticeReceived)),
-      validateTaxYear(startDate, index, chargeFields(3))
+      splitDayMonthYear(chargeFields(fieldNoDateNoticeReceived))
     )
+  }
 
-  private def validateTaxYear(startDate: LocalDate, index: Int, fieldValue: String): Seq[ParserValidationError] = {
+  private def validateTaxYear(startDate: LocalDate, index: Int,
+                              columns: Seq[String], fieldValue: String): Validated[Seq[ParserValidationError], String] = {
     val minYearDefaultValue = 2011
     year(
       minYear = minYearDefaultValue,
@@ -111,23 +111,33 @@ class AnnualAllowanceParser @Inject()(
       minKey = TaxYearErrorKeys.minKey,
       maxKey = TaxYearErrorKeys.maxKey
     ).apply(fieldValue) match {
-      case Valid => Nil
-      case Invalid(errors) => errors.map(error => ParserValidationError(index, 3, error.message, AnnualAllowanceFieldNames.taxYear))
+      case play.api.data.validation.Valid =>
+        Valid(this.fieldValue(columns, fieldNoTaxYear))
+      case play.api.data.validation.Invalid(errors) => Invalid(errors.map(
+        error => ParserValidationError(index, fieldNoTaxYear, error.message, AnnualAllowanceFieldNames.taxYear)
+      ))
     }
   }
 
-  override protected def validateFields(startDate: LocalDate,
-                                        index: Int,
-                                        chargeFields: Seq[String])(implicit messages: Messages): Either[Seq[ParserValidationError], Seq[CommitItem]] = {
-    val validationResults = combineValidationResults[MemberDetails, ChargeEDetails](
-      memberDetailsValidation(index, chargeFields, memberDetailsFormProvider()),
-      chargeDetailsValidation(startDate, index, chargeFields),
-      MemberDetailsPage(index - 1).path,
-      Json.toJson(_),
-      ChargeDetailsPage(index - 1).path,
-      Json.toJson(_)
+  protected def validateMinimumFields(startDate: LocalDate,
+                                      index: Int,
+                                      columns: Seq[String])(implicit messages: Messages): Result = {
+    val a = resultFromFormValidationResult[MemberDetails](
+      memberDetailsValidation(index, columns, memberDetailsFormProvider()),
+      createCommitItem(index, MemberDetailsPage.apply)
+    )
+    val b = resultFromFormValidationResult[ChargeEDetails](
+      chargeDetailsValidation(startDate, index, columns),
+      createCommitItem(index, ChargeDetailsPage.apply)
     )
 
-    addToValidationResults[String](Right(chargeFields(FieldNoTaxYear)), validationResults, AnnualAllowanceYearPage(index - 1).path, Json.toJson(_))
+    val createCommitItemForYear: String => CommitItem =
+      year => CommitItem(AnnualAllowanceYearPage(index - 1).path, Json.toJson(year.take(YearLength)))
+
+    val c = resultFromFormValidationResult[String](
+      validateTaxYear(startDate, index, columns, fieldValue(columns, fieldNoTaxYear)),
+      createCommitItemForYear
+    )
+    Seq(a, b, c).combineAll
   }
 }
