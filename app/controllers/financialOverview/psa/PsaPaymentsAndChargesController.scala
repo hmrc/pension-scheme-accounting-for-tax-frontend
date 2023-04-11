@@ -20,8 +20,7 @@ import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.Upcoming
-import models.financialStatement.PsaFSChargeType.REPAYMENT_INTEREST
-import models.financialStatement.{PsaFSChargeType, PsaFSDetail}
+import models.financialStatement.PsaFSDetail
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -60,9 +59,7 @@ class PsaPaymentsAndChargesController @Inject()(
           psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
           penaltiesCache <- psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType)
         } yield {
-          val psaFSWithoutPaymentOnAccount: Seq[PsaFSDetail] = psaFSWithPaymentOnAccount.seqPsaFSDetail.filterNot(c => c.chargeType ==
-            PsaFSChargeType.PAYMENT_ON_ACCOUNT || c.chargeType == REPAYMENT_INTEREST)
-          renderFinancialOverdueAndInterestCharges(psaName, request.psaIdOrException.id, psaFSWithoutPaymentOnAccount,
+          renderFinancialOverdueAndInterestCharges(psaName, request.psaIdOrException.id,
             request, psaFSWithPaymentOnAccount.seqPsaFSDetail, journeyType, penaltiesCache)
         }
         response.flatten
@@ -73,7 +70,6 @@ class PsaPaymentsAndChargesController @Inject()(
   //scalastyle:off cyclomatic.complexity
   private def renderFinancialOverdueAndInterestCharges(psaName: String,
                                                        psaId: String,
-                                                       psaFS: Seq[PsaFSDetail],
                                                        request: RequestHeader,
                                                        creditPsaFS: Seq[PsaFSDetail],
                                                        journeyType: ChargeDetailsFilter,

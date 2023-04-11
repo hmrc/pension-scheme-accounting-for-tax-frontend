@@ -78,7 +78,7 @@ class ChargeDetailsControllerSpec
   val application: Application = applicationBuilder(extraModules = extraModules).build()
   private val templateToBeRendered = "financialStatement/penalties/chargeDetails.njk"
   private val commonJson: JsObject = Json.obj(
-    "heading" -> "Accounting for Tax late filing penalty",
+    "heading" -> "Accounting for Tax Late Filing Penalty",
     "isOverdue" -> true,
     "period" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
     "chargeReference" -> chargeRef,

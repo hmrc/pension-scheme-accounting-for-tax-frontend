@@ -26,7 +26,7 @@ import viewmodels.{Hint, LabelClasses, Radios}
 
 import scala.language.implicitConversions
 
-sealed trait PenaltyType
+trait PenaltyType
 
 object PenaltyType extends Enumerable.Implicits {
 
@@ -34,12 +34,14 @@ object PenaltyType extends Enumerable.Implicits {
   case object ContractSettlementCharges extends PenaltyType
   case object InformationNoticePenalties extends PenaltyType
   case object PensionsPenalties extends PenaltyType
+  trait EventReportingCharge extends PenaltyType
 
   def getPenaltyType(chargeType: PsaFSChargeType): PenaltyType =
     chargeType match {
       case PSS_PENALTY => PensionsPenalties
       case PSS_INFO_NOTICE => InformationNoticePenalties
       case CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST | INTEREST_ON_CONTRACT_SETTLEMENT => ContractSettlementCharges
+      case x:PenaltyType => x
       case _ => AccountingForTaxPenalties
     }
 
@@ -86,6 +88,7 @@ object PenaltyType extends Enumerable.Implicits {
       case ContractSettlementCharges => "contract-settlement"
       case InformationNoticePenalties => "information-notice"
       case PensionsPenalties => "pensions-penalty"
+      case _ => throw new RuntimeException("Penalty type not found")
     }
 
   implicit def stringToPenaltyType(value: String): PenaltyType =
@@ -102,5 +105,12 @@ object PenaltyType extends Enumerable.Implicits {
     penaltyTypes.hintText match {
       case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))
       case _ => None
+
     }
+
+  //TODO: Might need to remove after event reporting has been implemented -Pavel Vjalicin
+  def displayCharge(penaltyType: PenaltyType): Boolean = penaltyType match {
+    case _: EventReportingCharge => false
+    case _ => true
+  }
 }

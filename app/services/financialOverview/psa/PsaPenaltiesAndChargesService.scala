@@ -23,7 +23,7 @@ import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
-import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, displayCharge, getPenaltyType}
 import models.financialStatement.PsaFSChargeType._
 import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFSChargeType, PsaFSDetail}
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
@@ -84,7 +84,12 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                               penalties: Seq[PsaFSDetail],
                               journeyType: ChargeDetailsFilter)(implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
 
-    val seqPayments = penalties.foldLeft[Seq[Future[Table]]](
+    val seqPayments = penalties.filter({ penalty =>
+      penalty.chargeType match {
+        case x:PenaltyType => displayCharge(x)
+        case _ => true
+      }
+    }).foldLeft[Seq[Future[Table]]](
       Nil) { (acc, detail) =>
 
       val tableRecords = getSchemeName(psaId, detail.pstr).map { schemeName =>

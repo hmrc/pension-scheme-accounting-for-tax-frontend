@@ -78,7 +78,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
   val application: Application = applicationBuilder(extraModules = extraModules).build()
   private val templateToBeRendered = "financialOverview/psa/psaChargeDetails.njk"
   private val commonJson: JsObject = Json.obj(
-    "heading" -> "Accounting for Tax late filing penalty",
+    "heading" -> "Accounting for Tax Late Filing Penalty",
     "isOverdue" -> true,
     "period" -> "Quarter: 1 October to 31 December 2020",
     "chargeReference" -> chargeRef,

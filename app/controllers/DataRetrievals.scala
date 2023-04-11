@@ -27,9 +27,8 @@ import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
 import pages.mccloud._
-import play.api.libs.json.{JsArray, Reads}
 import play.api.Logger
-import play.api.libs.json.Reads
+import play.api.libs.json.{JsArray, Reads}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}

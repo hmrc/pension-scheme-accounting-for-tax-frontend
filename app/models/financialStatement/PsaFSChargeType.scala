@@ -16,33 +16,34 @@
 
 package models.financialStatement
 
+import models.financialStatement.PenaltyType.EventReportingCharge
 import models.{Enumerable, WithName}
 
 sealed trait PsaFSChargeType
 
 object PsaFSChargeType extends Enumerable.Implicits {
 
-  case object AFT_INITIAL_LFP extends WithName("Accounting for Tax late filing penalty") with PsaFSChargeType
-  case object AFT_DAILY_LFP extends WithName("Accounting for Tax further late filing penalty") with PsaFSChargeType
-  case object AFT_30_DAY_LPP extends WithName("Accounting for Tax late payment penalty (30 days)") with PsaFSChargeType
-  case object AFT_6_MONTH_LPP extends WithName("Accounting for Tax late payment penalty (6 months)") with PsaFSChargeType
-  case object AFT_12_MONTH_LPP extends WithName("Accounting for Tax late payment penalty (12 months)") with PsaFSChargeType
-  case object OTC_30_DAY_LPP extends WithName("Overseas transfer charge late payment penalty (30 days)") with PsaFSChargeType
-  case object OTC_6_MONTH_LPP extends WithName("Overseas transfer charge late payment penalty (6 months)") with PsaFSChargeType
-  case object OTC_12_MONTH_LPP extends WithName("Overseas transfer charge late payment penalty (12 months)") with PsaFSChargeType
+  case object AFT_INITIAL_LFP extends WithName("Accounting for Tax Late Filing Penalty") with PsaFSChargeType
+  case object AFT_DAILY_LFP extends WithName("Accounting for Tax Further Late Filing Penalty") with PsaFSChargeType
+  case object AFT_30_DAY_LPP extends WithName("Accounting for Tax 30 Days Late Payment Penalty") with PsaFSChargeType
+  case object AFT_6_MONTH_LPP extends WithName("Accounting for Tax 6 Months Late Payment Penalty") with PsaFSChargeType
+  case object AFT_12_MONTH_LPP extends WithName("Accounting for Tax 12 Months Late Payment Penalty") with PsaFSChargeType
+  case object OTC_30_DAY_LPP extends WithName("Overseas Transfer Charge 30 Days Late Payment Penalty") with PsaFSChargeType
+  case object OTC_6_MONTH_LPP extends WithName("Overseas Transfer Charge 6 Months Late Payment Penalty") with PsaFSChargeType
+  case object OTC_12_MONTH_LPP extends WithName("Overseas Transfer Charge 12 Months Late Payment Penalty") with PsaFSChargeType
   case object PSS_PENALTY extends WithName("Pensions Penalty") with PsaFSChargeType
   case object PSS_INFO_NOTICE extends WithName("Information Notice Penalty") with PsaFSChargeType
-  case object CONTRACT_SETTLEMENT extends WithName("Contract settlement charge") with PsaFSChargeType
-  case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract settlement interest") with PsaFSChargeType
+  case object CONTRACT_SETTLEMENT extends WithName("Contract Settlement") with PsaFSChargeType
+  case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract Settlement Interest") with PsaFSChargeType
   case object INTEREST_ON_CONTRACT_SETTLEMENT extends WithName("Interest on contract settlement charge") with PsaFSChargeType
-  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with PsaFSChargeType
+  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on Account") with PsaFSChargeType
   case object REPAYMENT_INTEREST extends WithName("Repayment Interest") with PsaFSChargeType
-  case object SSC_30_DAY_LPP extends WithName("SSC 30 day LPP") with PsaFSChargeType
-  case object SSC_6_MONTH_LPP extends WithName("SSC 6 month LPP") with PsaFSChargeType
-  case object SSC_12_MONTH_LPP extends WithName("SSC 12 month LPP") with PsaFSChargeType
-  case object LTA_DISCHARGE_ASSESSMENT_30_DAY_LPP extends WithName("LTA discharge assessment 30 day LPP") with PsaFSChargeType
-  case object LTA_DISCHARGE_ASSESSMENT_6_MONTH_LPP extends WithName("LTA discharge assessment 6 month LPP") with PsaFSChargeType
-  case object LTA_DISCHARGE_ASSESSMENT_12_MONTH_LPP extends WithName("LTA discharge assessment 12 month LPP") with PsaFSChargeType
+  case object SSC_30_DAY_LPP extends WithName("Scheme Sanction Charge 30 Days Late Payment Penalty") with PsaFSChargeType with EventReportingCharge
+  case object SSC_6_MONTH_LPP extends WithName("Scheme Sanction Charge 6 Months Late Payment Penalty") with PsaFSChargeType with EventReportingCharge
+  case object SSC_12_MONTH_LPP extends WithName("Scheme Sanction Charge 12 Months Late Payment Penalty") with PsaFSChargeType with EventReportingCharge
+  case object LTA_DISCHARGE_ASSESSMENT_30_DAY_LPP extends WithName("Lifetime Allowance Discharge Assessment 30 Days Late Payment Penalty") with PsaFSChargeType
+  case object LTA_DISCHARGE_ASSESSMENT_6_MONTH_LPP extends WithName("Lifetime Allowance Discharge Assessment 6 Months Late Payment Penalty") with PsaFSChargeType
+  case object LTA_DISCHARGE_ASSESSMENT_12_MONTH_LPP extends WithName("Lifetime Allowance Discharge Assessment 12 Months Late Payment Penalty") with PsaFSChargeType
 
   val values: Seq[PsaFSChargeType] = Seq(
     AFT_INITIAL_LFP,
