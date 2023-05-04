@@ -248,7 +248,8 @@ GET         /:srn/new-return/:year/select-quarter                               
 POST        /:srn/new-return/:year/select-quarter                                                                                                    controllers.QuartersController.onSubmit(srn: String, year: String)
 
 GET         /psp-scheme-dashboard-cards                                                                                                              controllers.partials.PspSchemeDashboardPartialsController.pspDashboardAllTilesPartial()
-GET         /:srn/psa-scheme-dashboard-cards                                                                                                         controllers.partials.PsaSchemeDashboardPartialsController.psaSchemeDashboardPartial(srn: String)
+GET         /:srn/psa-scheme-dashboard-aft-cards                                                                                                     controllers.partials.PsaSchemeDashboardPartialsController.psaSchemeDashboardAFTTilePartial(srn: String)
+GET         /:srn/psa-scheme-dashboard-fin-info-cards                                                                                                controllers.partials.PsaSchemeDashboardPartialsController.psaSchemeDashboardFinInfoPartial(srn: String)
 
 GET         /:srn/:startDate/:accessType/:version/enter-psa-id                                                                                       controllers.EnterPsaIdController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 POST        /:srn/:startDate/:accessType/:version/enter-psa-id                                                                                       controllers.EnterPsaIdController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)

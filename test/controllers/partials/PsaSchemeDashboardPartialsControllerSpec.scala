@@ -50,7 +50,7 @@ class PsaSchemeDashboardPartialsControllerSpec
     with ScalaFutures {
 
 
-  private def getPartial: String = routes.PsaSchemeDashboardPartialsController.psaSchemeDashboardPartial(srn).url
+  private def getPartial: String = routes.PsaSchemeDashboardPartialsController.psaSchemeDashboardAFTTilePartial(srn).url
 
   private val mockPsaSchemePartialService: PsaSchemePartialService = mock[PsaSchemePartialService]
   private val mockSchemeService: SchemeService = mock[SchemeService]

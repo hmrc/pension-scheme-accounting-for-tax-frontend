@@ -49,20 +49,10 @@ class PsaSchemeDashboardPartialsController @Inject()(
   private val logger = Logger(classOf[PsaSchemeDashboardPartialsController])
 
 
-  def psaSchemeDashboardPartial(srn: String): Action[AnyContent] = identify.async {
+  def psaSchemeDashboardAFTTilePartial(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
           schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
-            val aftModel =  service.aftCardModel(schemeDetails, srn)
-            val financialOverviewModel=getFinancialOverviewTile(srn, schemeDetails)
-            val cardsSequence = Future.traverse(Seq(aftModel,financialOverviewModel)) { cards =>
-              cards.recover {
-                case ex =>
-                  logger.warn("Error in financialOverview or aftModel tiles", ex)
-                  Nil
-              }
-            }
-            val mergeCards = cardsSequence.map(_.flatten)
-            mergeCards.flatMap { cards =>
+              service.aftCardModel(schemeDetails, srn).flatMap { cards =>
               renderer
                 .render(
                   template = "partials/psaSchemeDashboardPartial.njk",
@@ -71,6 +61,21 @@ class PsaSchemeDashboardPartialsController @Inject()(
                 .map(Ok(_))
             }
         }
+  }
+
+
+  def psaSchemeDashboardFinInfoPartial(srn: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+          getFinancialOverviewTile(srn, schemeDetails).flatMap { cards =>
+          renderer
+            .render(
+              template = "partials/psaSchemeDashboardPartial.njk",
+              ctx = Json.obj("cards" -> Json.toJson(cards))
+            )
+            .map(Ok(_))
+        }
+      }
   }
 
   private def getFinancialOverviewTile(srn: String, schemeDetails: SchemeDetails)(implicit request: IdentifierRequest[AnyContent]) = {
