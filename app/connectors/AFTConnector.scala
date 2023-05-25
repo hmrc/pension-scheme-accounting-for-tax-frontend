@@ -43,6 +43,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
       response =>
         response.status match {
           case OK => ()
+            //TODO:7967 add a new case for no content >> throw a specific exception
           case FORBIDDEN  if response.body.contains("RETURN_ALREADY_SUBMITTED") =>
             throw ReturnAlreadySubmittedException()
           case _ => handleErrorResponse("POST", url)(response)
