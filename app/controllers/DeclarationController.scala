@@ -89,9 +89,7 @@ class DeclarationController @Inject()(
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
-          // TODO:7967 if filesubmit returns no content (if it's been submitted a second time >> then don't call send email (dont call it twice)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
-          // TODO:7967 remove data needs to go here
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }) recoverWith {
