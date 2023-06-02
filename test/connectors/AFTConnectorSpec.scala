@@ -152,6 +152,21 @@ class AFTConnectorSpec extends AsyncWordSpec with Matchers with WireMockHelper {
         _ => assert(true)
       }
     }
+
+    "throw ReturnAlreadySubmittedException when 204 returned with message containing RETURN_ALREADY_SUBMITTED" in {
+      val data = Json.obj(fields = "Id" -> "value")
+      server.stubFor(
+        post(urlEqualTo(aftSubmitUrl))
+          .withRequestBody(equalTo(Json.stringify(data)))
+          .willReturn(
+            noContent().withBody("""RETURN_ALREADY_SUBMITTED""")
+          )
+      )
+
+      recoverToExceptionIf[ReturnAlreadySubmittedException](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
+        _ => assert(true)
+      }
+    }
   }
 
   "getAFTDetails" must {
