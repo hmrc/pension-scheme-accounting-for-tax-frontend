@@ -43,12 +43,12 @@ object SchemeFSChargeType extends Enumerable.Implicits {
   case object EXCESS_RELIEF_PAID extends WithName("Relief at Source Excess Relief Repaid") with SchemeFSChargeType
   case object EXCESS_RELIEF_INTEREST extends WithName("Relief at Source Excess Relief Interest Charge") with SchemeFSChargeType
   case object PAYMENT_ON_ACCOUNT extends WithName("Payment on Account") with SchemeFSChargeType
-  case object PSS_SCHEME_SANCTION_CHARGE extends WithName("Scheme Sanction Charge") with SchemeFSChargeType with EventReportingCharge
+  case object PSS_SCHEME_SANCTION_CHARGE extends WithName("Scheme Sanction Charge") with SchemeFSChargeType
   case object PSS_SCHEME_SANCTION_CREDIT_CHARGE extends WithName("Scheme Sanction Charge credit") with SchemeFSChargeType
-  case object PSS_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Scheme Sanction Charge Interest") with SchemeFSChargeType with EventReportingCharge
-  case object PSS_MANUAL_SSC extends WithName("Manual Scheme Sanction Charge") with SchemeFSChargeType with EventReportingCharge
+  case object PSS_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Scheme Sanction Charge Interest") with SchemeFSChargeType
+  case object PSS_MANUAL_SSC extends WithName("Manual Scheme Sanction Charge") with SchemeFSChargeType
   case object PSS_MANUAL_CREDIT_SSC extends WithName("Manual Scheme Sanction Charge credit") with SchemeFSChargeType
-  case object PSS_MANUAL_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Manual Scheme Sanction Charge Interest") with SchemeFSChargeType with EventReportingCharge
+  case object PSS_MANUAL_SCHEME_SANCTION_CHARGE_INTEREST extends WithName("Manual Scheme Sanction Charge Interest") with SchemeFSChargeType
   case object PSS_FIXED_CHARGE_MEMBERS_TAX extends WithName("Member Unauthorised Payments") with SchemeFSChargeType
   case object PSS_FIXED_CREDIT_CHARGE_MEMBERS_TAX extends WithName("Member Unauthorised Payments credit") with SchemeFSChargeType
   case object PSS_MANUAL_FIXED_CHARGE_MEMBERS_TAX extends WithName("Manual Member Unauthorised Payments") with SchemeFSChargeType

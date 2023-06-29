@@ -38,9 +38,9 @@ object PsaFSChargeType extends Enumerable.Implicits {
   case object INTEREST_ON_CONTRACT_SETTLEMENT extends WithName("Interest on contract settlement charge") with PsaFSChargeType
   case object PAYMENT_ON_ACCOUNT extends WithName("Payment on Account") with PsaFSChargeType
   case object REPAYMENT_INTEREST extends WithName("Repayment Interest") with PsaFSChargeType
-  case object SSC_30_DAY_LPP extends WithName("Scheme Sanction Charge 30 Days Late Payment Penalty") with PsaFSChargeType with EventReportingCharge
-  case object SSC_6_MONTH_LPP extends WithName("Scheme Sanction Charge 6 Months Late Payment Penalty") with PsaFSChargeType with EventReportingCharge
-  case object SSC_12_MONTH_LPP extends WithName("Scheme Sanction Charge 12 Months Late Payment Penalty") with PsaFSChargeType with EventReportingCharge
+  case object SSC_30_DAY_LPP extends WithName("Scheme Sanction Charge 30 Days Late Payment Penalty") with PsaFSChargeType
+  case object SSC_6_MONTH_LPP extends WithName("Scheme Sanction Charge 6 Months Late Payment Penalty") with PsaFSChargeType
+  case object SSC_12_MONTH_LPP extends WithName("Scheme Sanction Charge 12 Months Late Payment Penalty") with PsaFSChargeType
   case object LTA_DISCHARGE_ASSESSMENT_30_DAY_LPP extends WithName("Lifetime Allowance Discharge Assessment 30 Days Late Payment Penalty") with PsaFSChargeType
   case object LTA_DISCHARGE_ASSESSMENT_6_MONTH_LPP extends WithName("Lifetime Allowance Discharge Assessment 6 Months Late Payment Penalty") with PsaFSChargeType
   case object LTA_DISCHARGE_ASSESSMENT_12_MONTH_LPP extends WithName("Lifetime Allowance Discharge Assessment 12 Months Late Payment Penalty") with PsaFSChargeType
