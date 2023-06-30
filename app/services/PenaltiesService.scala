@@ -314,6 +314,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
     (penaltyType, yearsSeq.size) match {
       case (AccountingForTaxPenalties, 1) => navFromAftYearsPage(penalties, yearsSeq.head, psaId, journeyType)
+      case (EventReportingCharges, _) => Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType, journeyType)))
       case (_, 1) => navFromNonAftYearsPage(penalties, yearsSeq.head.toString, psaId, penaltyType, journeyType)
       case (_, size) if size > 1 => Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType, journeyType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -333,6 +334,8 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     penaltySchemes(year.toInt, psaId, penaltyType, penalties).map { schemes =>
       if (schemes.size > 1) {
         Redirect(SelectSchemeController.onPageLoad(penaltyType, year, journeyType))
+      } else if (penaltyType == EventReportingCharges) {
+        Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType, journeyType))
       } else if (schemes.size == 1) {
         logger.debug(s"Skipping the select scheme page for year $year and type $penaltyType")
         schemes.head.srn match {

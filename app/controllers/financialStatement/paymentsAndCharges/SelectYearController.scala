@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
+import models.financialStatement.PenaltyType.EventReportingCharges
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
@@ -78,6 +79,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
+  /* TODO navigation to select years page for Event Reporting */
   def onSubmit(srn: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     identify.async { implicit request =>
       service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
@@ -101,7 +103,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
               renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
             },
             value =>
-              if (paymentOrChargeType == AccountingForTaxCharges) {
+              if (paymentOrChargeType == AccountingForTaxCharges || paymentOrChargeType == EventReportingCharges) {
                 navService.navFromAFTYearsPage(paymentsCache.schemeFSDetail, value.year, srn, journeyType)
               } else {
                 Future.successful(
