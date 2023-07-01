@@ -16,7 +16,6 @@
 
 package models.financialStatement
 
-import models.financialStatement.PenaltyType.EventReportingCharge
 import models.{Enumerable, WithName}
 
 sealed trait SchemeFSChargeType
