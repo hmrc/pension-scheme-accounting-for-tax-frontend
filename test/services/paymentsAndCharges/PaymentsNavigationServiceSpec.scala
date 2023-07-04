@@ -81,6 +81,51 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
     )
   )
 
+  private def paymentsER(charge2Start: LocalDate = Q3_2020_START,
+                       charge2End: LocalDate = Q3_2020_END,
+                       charge1Type: SchemeFSChargeType = PSS_SCHEME_SANCTION_CHARGE,
+                       charge2Type: SchemeFSChargeType = PSS_SCHEME_SANCTION_CHARGE): Seq[SchemeFSDetail] = Seq(
+    SchemeFSDetail(
+      index = 0,
+      chargeReference = "1",
+      chargeType = charge1Type,
+      dueDate = Some(LocalDate.parse("2020-05-15")),
+      totalAmount = -20000.00,
+      outstandingAmount = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
+      accruedInterestTotal = 0.00,
+      periodStartDate = Some(QUARTER_START_DATE),
+      periodEndDate = Some(QUARTER_END_DATE),
+      formBundleNumber = None,
+      version = None,
+      receiptDate = None,
+      sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
+      documentLineItemDetails = Nil
+    ),
+    SchemeFSDetail(
+      index = 0,
+      chargeReference = "2",
+      chargeType = charge2Type,
+      dueDate = Some(LocalDate.parse("2020-05-15")),
+      totalAmount = -20000.00,
+      outstandingAmount = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
+      accruedInterestTotal = 0.00,
+      periodStartDate = Some(charge2Start),
+      periodEndDate = Some(charge2End),
+      formBundleNumber = None,
+      version = None,
+      receiptDate = None,
+      sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
+      documentLineItemDetails = Nil
+    )
+  )
+
+
   val paymentsNavigationService: PaymentsNavigationService = new PaymentsNavigationService
 
   "navFromAFTYearsPage" must {
@@ -116,7 +161,7 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
     }
 
     "redirect to navFromERYears method if there is only one year in the ER category" in {
-      whenReady(paymentsNavigationService.navFromPaymentsTypePage(payments(), srn, EventReportingCharges, journeyType)) {
+      whenReady(paymentsNavigationService.navFromPaymentsTypePage(paymentsER(), srn, EventReportingCharges, journeyType)) {
         _ mustBe Redirect(SelectYearController.onPageLoad(srn, EventReportingCharges, journeyType))
       }
     }
