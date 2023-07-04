@@ -41,7 +41,7 @@ object PenaltyType extends Enumerable.Implicits {
       case PSS_PENALTY => PensionsPenalties
       case PSS_INFO_NOTICE => InformationNoticePenalties
       case CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST | INTEREST_ON_CONTRACT_SETTLEMENT => ContractSettlementCharges
-      case SSC_30_DAY_LPP | SSC_6_MONTH_LPP | SSC_12_MONTH_LPP => EventReportingCharge
+      case SSC_30_DAY_LPP | SSC_6_MONTH_LPP | SSC_12_MONTH_LPP => EventReportingCharges
       case _ => AccountingForTaxPenalties
     }
 

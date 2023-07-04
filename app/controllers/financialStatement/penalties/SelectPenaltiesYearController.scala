@@ -70,13 +70,12 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
 
   }
 
-  /*TODO navigation to event reporting select years page*/
   def onSubmit(penaltyType: PenaltyType, journeyType: PenaltiesFilter): Action[AnyContent] = identify.async { implicit request =>
 
     val navMethod: (Seq[PsaFSDetail], Int) => Future[Result] = {
       penaltyType match {
-        case AccountingForTaxPenalties => aftAndEventReportingNavMethod(request.psaIdOrException.id, journeyType)
-        case EventReportingCharges => aftAndEventReportingNavMethod(request.psaIdOrException.id, journeyType)
+        case AccountingForTaxPenalties => aftNavMethod(request.psaIdOrException.id, journeyType)
+        case EventReportingCharges => erNavMethod(request.psaIdOrException.id, journeyType)
         case _ => nonAftNavMethod(penaltyType, journeyType)
       }
     }
@@ -111,14 +110,17 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
         DisplayYear(year, hint)
       }
   }
-
-  private def aftAndEventReportingNavMethod(psaId: String, journeyType: PenaltiesFilter)
+  private def erNavMethod(psaId: String, journeyType: PenaltiesFilter)
                           (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] =
     (penalties, year) => {
       val erPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == EventReportingCharges)
+      service.navFromERYearsPage(erPenalties, year, psaId, journeyType)
+    }
+  private def aftNavMethod(psaId: String, journeyType: PenaltiesFilter)
+                          (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] =
+    (penalties, year) => {
       val aftPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
-      if(erPenalties == true) service.navFromAftYearsPage(erPenalties, year, psaId, journeyType)
-      else service.navFromAftYearsPage(aftPenalties, year, psaId, journeyType)
+      service.navFromAftYearsPage(aftPenalties, year, psaId, journeyType)
     }
 
   private def nonAftNavMethod(penaltyType: PenaltyType, journeyType: PenaltiesFilter)

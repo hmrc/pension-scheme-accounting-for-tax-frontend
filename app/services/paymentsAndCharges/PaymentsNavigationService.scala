@@ -52,11 +52,17 @@ class PaymentsNavigationService {
 
     (paymentType, yearsSeq.size) match {
       case (AccountingForTaxCharges, 1) => navFromAFTYearsPage(payments, yearsSeq.head, srn, journeyType)
+      case (EventReportingCharges, 1) => navFromERYearsPage(payments, yearsSeq.head, srn, journeyType)
       case (_, 1) => Future.successful(Redirect(PaymentsAndChargesController.onPageLoad(srn, yearsSeq.head.toString, paymentType, journeyType)))
       case (_, size) if size > 1 => Future.successful(Redirect(SelectYearController.onPageLoad(srn, paymentType, journeyType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
     }
+
+  def navFromERYearsPage(payments: Seq[SchemeFSDetail], year: Int, srn: String, journeyType: ChargeDetailsFilter): Future[Result] = {
+    /*TODO for nav to select scheme page*/
+    Future.successful(Redirect(SelectYearController.onPageLoad(srn, EventReportingCharges, journeyType)))
+  }
 
   def navFromAFTYearsPage(payments: Seq[SchemeFSDetail], year: Int, srn: String, journeyType: ChargeDetailsFilter): Future[Result] = {
 

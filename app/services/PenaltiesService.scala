@@ -351,6 +351,12 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
   }
 
+  def navFromERYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, journeyType: PenaltiesFilter)
+                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
+    /*TODO implement nav to select scheme page*/
+    ???
+  }
+
   def navFromAftYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, journeyType: PenaltiesFilter)
                          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     val quartersSeq = penalties

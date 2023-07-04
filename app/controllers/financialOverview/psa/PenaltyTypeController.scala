@@ -19,7 +19,7 @@ package controllers.financialOverview.psa
 import connectors.EventReportingConnector
 import controllers.actions._
 import forms.financialStatement.PenaltyTypeFormProvider
-import models.financialStatement.PenaltyType.{EventReportingCharge, getPenaltyType}
+import models.financialStatement.PenaltyType.{EventReportingCharges, getPenaltyType}
 import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
@@ -92,6 +92,6 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
     }
 
   private def filterPenaltyTypesByFeatureToggle(seqDisplayPenaltyType : Seq[DisplayPenaltyType], isEnabled: Boolean): Seq[DisplayPenaltyType] = {
-    if(isEnabled) seqDisplayPenaltyType else seqDisplayPenaltyType.filter(category => {category.penaltyType != EventReportingCharge})
+    if(isEnabled) seqDisplayPenaltyType else seqDisplayPenaltyType.filter(category => {category.penaltyType != EventReportingCharges})
     }
 }

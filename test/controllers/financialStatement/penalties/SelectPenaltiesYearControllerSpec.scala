@@ -126,43 +126,6 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
-    /* TODO fix tests
-    "return OK and the correct view for a GET with event reporting" in {
-
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, httpGETRequest(erHttpPathGET)).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
-    }
-
-    "redirect to next page when valid data is submitted for event reporting" in {
-      when(mockPenaltiesService.navFromAftYearsPage(any(), any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(year, All))))
-
-      val result = route(application, httpPOSTRequest(erHttpPathPOST, valuesValid)).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result) mustBe Some(routes.SelectPenaltiesQuarterController.onPageLoad(year, All).url)
-    }
-
-    "return a BAD REQUEST when invalid data is submitted for event reporting" in {
-
-      val result = route(application, httpPOSTRequest(erHttpPathPOST, valuesInvalid)).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-    }
-    */
   }
 }
 

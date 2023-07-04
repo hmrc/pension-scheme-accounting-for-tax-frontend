@@ -17,7 +17,7 @@
 package services.financialOverview.psa
 
 import connectors.ListOfSchemesConnector
-import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, EventReportingCharges, getPenaltyType}
 import controllers.financialOverview.psa.routes._
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ListSchemeDetails, PenaltySchemes}
@@ -58,10 +58,17 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
 
     (penaltyType, yearsSeq.size) match {
       case (AccountingForTaxPenalties, 1) => navFromAFTYearsPage(penalties, yearsSeq.head, psaId, AccountingForTaxPenalties)
+      case (EventReportingCharges, 1) => navFromERYearsPage(penalties, yearsSeq.head, psaId, EventReportingCharges)
       case (_, 1) => navFromNonAftYearsPage(penalties, yearsSeq.head, psaId, penaltyType)
       case (_, size) if size > 1 => Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
+  }
+
+  def navFromERYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType)
+                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
+    /*TODO nav to select scheme page- currently no logic to skip if only one year*/
+    Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType)))
   }
 
   def navFromAFTYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType)

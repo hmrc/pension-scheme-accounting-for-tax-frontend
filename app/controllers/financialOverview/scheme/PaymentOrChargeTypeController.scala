@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.EventReportingConnector
 import controllers.actions._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
-import models.financialStatement.PaymentOrChargeType.{EventReportingCharge, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.{EventReportingCharges, getPaymentOrChargeType}
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
@@ -98,6 +98,6 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   private def filterPaymentOrChargeTypesByFeatureToggle(seqDisplayPaymentOrChargeType: Seq[DisplayPaymentOrChargeType],
                                                         isEnabled: Boolean): Seq[DisplayPaymentOrChargeType] = {
-    if (isEnabled) seqDisplayPaymentOrChargeType else seqDisplayPaymentOrChargeType.filter(category => {category.chargeType != EventReportingCharge})
+    if (isEnabled) seqDisplayPaymentOrChargeType else seqDisplayPaymentOrChargeType.filter(category => {category.chargeType != EventReportingCharges})
   }
 }
