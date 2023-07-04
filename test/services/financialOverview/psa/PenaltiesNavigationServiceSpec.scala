@@ -87,15 +87,15 @@ class PenaltiesNavigationServiceSpec extends SpecBase with MockitoSugar with Bef
     }
 
     "redirect to SelectYear page if there are multiple years to choose from for Event Reporting" in {
-      whenReady(penaltiesNavigationServiceSpec.navFromPenaltiesTypePage(
-        getAftPenalties("24000041IN", LocalDate.parse("2021-07-01"), LocalDate.parse("2021-07-01")), psaId, EventReportingCharges)) {
+      val penalties = getAftPenalties("24000041IN", LocalDate.parse("2019-07-01"), LocalDate.parse("2023-07-01"))
+      whenReady(penaltiesNavigationServiceSpec.navFromPenaltiesTypePage(penalties, psaId, EventReportingCharges)) {
         _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges))
       }
     }
 
     "redirect to SelectYear page if there is one year to choose from for Event Reporting" in {
       whenReady(penaltiesNavigationServiceSpec.navFromERYearsPage(penalties, year, psaId, EventReportingCharges)) {
-      _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges))
+      _ mustBe Redirect(AllPenaltiesAndChargesController.onPageLoad(year.toString, "24000041IN", EventReportingCharges))
       }
     }
   }
@@ -166,8 +166,8 @@ object PenaltiesNavigationServiceSpec {
       stoodOverAmount = 25089.08,
       accruedInterestTotal = 0.00,
       amountDue = 100.00,
-      periodStartDate = LocalDate.parse("2020-10-01"),
-      periodEndDate = LocalDate.parse("2020-12-31"),
+      periodStartDate = LocalDate.parse("2021-10-01"),
+      periodEndDate = LocalDate.parse("2022-12-31"),
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
       psaSourceChargeInfo = None,
@@ -226,6 +226,23 @@ object PenaltiesNavigationServiceSpec {
       amountDue = 100.00,
       periodStartDate = periodStartDate2,
       periodEndDate = periodEndDate2,
+      pstr = schemeName2,
+      sourceChargeRefForInterest = None,
+      psaSourceChargeInfo = None,
+      documentLineItemDetails = Nil
+    ),
+    PsaFSDetail(
+      index = 3,
+      chargeReference = "ER002610150189",
+      chargeType = SSC_30_DAY_LPP,
+      dueDate = Some(LocalDate.parse("2020-11-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      accruedInterestTotal = 0.00,
+      amountDue = 100.00,
+      periodStartDate = LocalDate.parse("2021-10-01"),
+      periodEndDate = LocalDate.parse("2022-12-31"),
       pstr = schemeName2,
       sourceChargeRefForInterest = None,
       psaSourceChargeInfo = None,

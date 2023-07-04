@@ -122,16 +122,14 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
       redirectLocation(result) mustBe Some(routes.AllPenaltiesAndChargesController.onPageLoad(year, pstr, ContractSettlementCharges).url)
     }
 
-// TODO implement test when nav completed on Years page for Event Reporting
+    "redirect to next page when valid data is submitted for Event Reporting" in {
+      when(mockNavigationService.navFromERYearsPage(any(), any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges))))
 
-//    "redirect to next page when valid data is submitted for Event Reporting" in {
-//      when(mockNavigationService.navFromERYearsPage(any(), any(), any(), any())(any(), any()))
-//        .thenReturn(Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges))))
-//
-//      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
-//      status(result) mustEqual SEE_OTHER
-//      redirectLocation(result) mustBe Some(routes.AllPenaltiesAndChargesController.onPageLoad(year, pstr, ContractSettlementCharges).url)
-//    }
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.AllPenaltiesAndChargesController.onPageLoad(year, pstr, ContractSettlementCharges).url)
+    }
 
     "return a BAD REQUEST when invalid data is submitted" in {
 

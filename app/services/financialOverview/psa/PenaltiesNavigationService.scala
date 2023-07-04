@@ -67,8 +67,17 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
 
   def navFromERYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType)
                          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-    /*TODO nav to select scheme page- currently no logic to skip if only one year*/
-    Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType)))
+    val uniquePstrs = penalties
+      .filter(p => getPenaltyType(p.chargeType) == EventReportingCharges)
+      .map(_.pstr).distinct
+
+    uniquePstrs.length match {
+      case 1 =>
+        logger.debug(s"Skipping the select scheme page as only 1 scheme is available")
+        Future.successful(Redirect(AllPenaltiesAndChargesController.onPageLoad(year.toString, uniquePstrs.head, penaltyType)))
+      case 0 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(SelectSchemeController.onPageLoad(penaltyType, year.toString)))
+    }
   }
 
   def navFromAFTYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType)

@@ -45,10 +45,10 @@ class PaymentsNavigationService {
   def navFromPaymentsTypePage(payments: Seq[SchemeFSDetail], srn: String,
                               paymentType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Future[Result] = {
 
-      val yearsSeq: Seq[Int] = payments
-        .filter(p => getPaymentOrChargeType(p.chargeType) == paymentType)
-        .filter(_.periodEndDate.nonEmpty)
-        .map(_.periodEndDate.get.getYear).distinct.sorted.reverse
+    val yearsSeq: Seq[Int] = payments
+      .filter(p => getPaymentOrChargeType(p.chargeType) == paymentType)
+      .filter(_.periodEndDate.nonEmpty)
+      .map(_.periodEndDate.get.getYear).distinct.sorted.reverse
 
     (paymentType, yearsSeq.size) match {
       case (AccountingForTaxCharges, 1) => navFromAFTYearsPage(payments, yearsSeq.head, srn, journeyType)
@@ -57,11 +57,17 @@ class PaymentsNavigationService {
       case (_, size) if size > 1 => Future.successful(Redirect(SelectYearController.onPageLoad(srn, paymentType, journeyType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
-    }
+  }
 
   def navFromERYearsPage(payments: Seq[SchemeFSDetail], year: Int, srn: String, journeyType: ChargeDetailsFilter): Future[Result] = {
-    /*TODO for nav to select scheme page*/
-    Future.successful(Redirect(SelectYearController.onPageLoad(srn, EventReportingCharges, journeyType)))
+    val uniqueYears = payments
+      .filter(p => getPaymentOrChargeType(p.chargeType) == EventReportingCharges)
+      .map(_.periodStartDate).distinct
+
+    uniqueYears.length match {
+      case 0 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(PaymentsAndChargesController.onPageLoad(srn, year.toString, EventReportingCharges, journeyType)))
+    }
   }
 
   def navFromAFTYearsPage(payments: Seq[SchemeFSDetail], year: Int, srn: String, journeyType: ChargeDetailsFilter): Future[Result] = {
