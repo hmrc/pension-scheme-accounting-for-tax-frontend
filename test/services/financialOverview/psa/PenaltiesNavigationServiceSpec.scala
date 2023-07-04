@@ -21,8 +21,8 @@ import connectors.ListOfSchemesConnector
 import controllers.financialOverview.psa.routes._
 import controllers.routes
 import data.SampleData.psaId
-import models.financialStatement.PenaltyType.AccountingForTaxPenalties
-import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, EventReportingCharges}
+import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, SSC_30_DAY_LPP}
 import models.financialStatement.PsaFSDetail
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -79,12 +79,24 @@ class PenaltiesNavigationServiceSpec extends SpecBase with MockitoSugar with Bef
 
   "navFromPenaltiesTypePage" must {
 
-    "redirect to SelectYear page if there are multiple years to choose from" in {
+    "redirect to SelectYear page if there are multiple years to choose from for AFT" in {
       whenReady(penaltiesNavigationServiceSpec.navFromPenaltiesTypePage(
         getAftPenalties("24000041IN", LocalDate.parse("2021-07-01"), LocalDate.parse("2021-07-01")), psaId, AccountingForTaxPenalties)) {
         _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(AccountingForTaxPenalties))
       }
+    }
 
+    "redirect to SelectYear page if there are multiple years to choose from for Event Reporting" in {
+      whenReady(penaltiesNavigationServiceSpec.navFromPenaltiesTypePage(
+        getAftPenalties("24000041IN", LocalDate.parse("2021-07-01"), LocalDate.parse("2021-07-01")), psaId, EventReportingCharges)) {
+        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges))
+      }
+    }
+
+    "redirect to SelectYear page if there is one year to choose from for Event Reporting" in {
+      whenReady(penaltiesNavigationServiceSpec.navFromERYearsPage(penalties, year, psaId, EventReportingCharges)) {
+      _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges))
+      }
     }
   }
 
@@ -143,6 +155,23 @@ object PenaltiesNavigationServiceSpec {
       sourceChargeRefForInterest = None,
       psaSourceChargeInfo = None,
       documentLineItemDetails = Nil
+    ),
+    PsaFSDetail(
+      index = 4,
+      chargeReference = "ER002610150184",
+      chargeType = SSC_30_DAY_LPP,
+      dueDate = Some(LocalDate.parse("2020-11-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      accruedInterestTotal = 0.00,
+      amountDue = 100.00,
+      periodStartDate = LocalDate.parse("2020-10-01"),
+      periodEndDate = LocalDate.parse("2020-12-31"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      psaSourceChargeInfo = None,
+      documentLineItemDetails = Nil
     )
   )
 
@@ -172,6 +201,23 @@ object PenaltiesNavigationServiceSpec {
       index = 2,
       chargeReference = "XY002610150186",
       chargeType = OTC_6_MONTH_LPP,
+      dueDate = Some(LocalDate.parse("2020-11-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      accruedInterestTotal = 0.00,
+      amountDue = 100.00,
+      periodStartDate = periodStartDate2,
+      periodEndDate = periodEndDate2,
+      pstr = schemeName2,
+      sourceChargeRefForInterest = None,
+      psaSourceChargeInfo = None,
+      documentLineItemDetails = Nil
+    ),
+    PsaFSDetail(
+      index = 3,
+      chargeReference = "ER002610150181",
+      chargeType = SSC_30_DAY_LPP,
       dueDate = Some(LocalDate.parse("2020-11-15")),
       totalAmount = 80000.00,
       outstandingAmount = 56049.08,

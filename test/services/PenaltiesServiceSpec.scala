@@ -26,7 +26,7 @@ import data.SampleData.{paymentsCache, psaFs, psaFsSeq, psaId, schemeFSResponseA
 import helpers.FormatHelper
 import models.LocalDateBinder._
 import models.PenaltiesFilter.All
-import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, PensionsPenalties}
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, EventReportingCharges, InformationNoticePenalties, PensionsPenalties}
 import models.financialStatement.PsaFSChargeType._
 import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFS, PsaFSChargeType, PsaFSDetail}
 import models.{ListOfSchemes, ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
@@ -362,6 +362,13 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
       }
     }
 
+    "redirect to SelectYear page if API returns multiple years for ER" in {
+      val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(SSC_30_DAY_LPP), customPsaFS(SSC_6_MONTH_LPP, "2020-01-01", "2020-03-31"))
+      whenReady(penaltiesService.navFromPenaltiesTypePage(apiResponse, EventReportingCharges, psaId, All)) {
+        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges, All))
+      }
+    }
+
     "redirect to SelectYear page if API returns multiple years for NON-AFT" in {
       val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(PSS_INFO_NOTICE), customPsaFS(PSS_INFO_NOTICE, "2020-01-01", "2020-03-31"))
       whenReady(penaltiesService.navFromPenaltiesTypePage(apiResponse, InformationNoticePenalties, psaId, All)) {
@@ -373,6 +380,13 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
       val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(OTC_12_MONTH_LPP))
       whenReady(penaltiesService.navFromPenaltiesTypePage(apiResponse, AccountingForTaxPenalties, psaId, All)) {
         _ mustBe Redirect(PenaltiesController.onPageLoadAft("2021-01-01", "SRN123", All))
+      }
+    }
+
+    "redirect to SelectYear page if API returns charges from a single year for ER" in {
+      val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(SSC_30_DAY_LPP))
+      whenReady(penaltiesService.navFromPenaltiesTypePage(apiResponse, EventReportingCharges, psaId, All)) {
+        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges, All))
       }
     }
 
