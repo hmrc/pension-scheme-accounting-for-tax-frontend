@@ -60,8 +60,14 @@ class PaymentsNavigationService {
     }
 
   def navFromERYearsPage(payments: Seq[SchemeFSDetail], year: Int, srn: String, journeyType: ChargeDetailsFilter): Future[Result] = {
-    /*TODO for nav to select scheme page*/
-    Future.successful(Redirect(SelectYearController.onPageLoad(srn, EventReportingCharges, journeyType)))
+    val uniqueYears = payments
+      .filter(p => getPaymentOrChargeType(p.chargeType) == EventReportingCharges)
+      .map(_.periodStartDate).distinct
+
+    uniqueYears.length match {
+      case 0 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => Future.successful(Redirect(PaymentsAndChargesController.onPageLoad(srn, year.toString, EventReportingCharges, journeyType)))
+    }
   }
 
   def navFromAFTYearsPage(payments: Seq[SchemeFSDetail], year: Int, srn: String, journeyType: ChargeDetailsFilter): Future[Result] = {
