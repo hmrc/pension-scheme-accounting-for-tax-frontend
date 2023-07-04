@@ -17,6 +17,7 @@
 package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
+import connectors.EventReportingConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -25,7 +26,7 @@ import matchers.JsonMatchers
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
-import models.{Enumerable, PaymentOverdue}
+import models.{Enumerable, PaymentOverdue, ToggleDetails}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -47,10 +48,12 @@ import scala.concurrent.Future
 class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
+  private val mockEventReportingConnector = mock[EventReportingConnector]
   implicit val config: FrontendAppConfig = mockAppConfig
   val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
+    bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
+    bind[EventReportingConnector].toInstance(mockEventReportingConnector)
   )
 
   private val displayPaymentOrChargeType: Seq[DisplayPaymentOrChargeType] = Seq(
@@ -85,6 +88,8 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(),
       any())(any(), any())).thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))
+    when(mockEventReportingConnector.getFeatureToggle(any())(any(), any())).thenReturn(
+      Future.successful(ToggleDetails("event-reporting", None, isEnabled = true)))
   }
 
   "PaymentOrChargeType Controller" must {

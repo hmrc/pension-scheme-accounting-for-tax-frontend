@@ -41,8 +41,7 @@ object PenaltyType extends Enumerable.Implicits {
       case PSS_PENALTY => PensionsPenalties
       case PSS_INFO_NOTICE => InformationNoticePenalties
       case CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST | INTEREST_ON_CONTRACT_SETTLEMENT => ContractSettlementCharges
-      //case x:PenaltyType => x
-      case SSC_30_DAY_LPP | SSC_6_MONTH_LPP | SSC_12_MONTH_LPP => EventReportingCharges
+      case SSC_30_DAY_LPP | SSC_6_MONTH_LPP | SSC_12_MONTH_LPP => EventReportingCharge
       case _ => AccountingForTaxPenalties
     }
 
@@ -112,9 +111,7 @@ object PenaltyType extends Enumerable.Implicits {
 
     }
 
-  //TODO: Might need to remove after event reporting has been implemented -Pavel Vjalicin
   def displayCharge(penaltyType: PenaltyType): Boolean = penaltyType match {
-    //case _: EventReportingCharge => false
     case _ => true
   }
 }
