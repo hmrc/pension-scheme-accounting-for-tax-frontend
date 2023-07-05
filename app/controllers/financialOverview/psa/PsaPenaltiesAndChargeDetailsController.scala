@@ -20,7 +20,7 @@ import controllers.actions._
 import controllers.financialOverview.psa.routes.AllPenaltiesAndChargesController
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.All
-import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
+import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, EventReportingCharges, getPenaltyType}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, INTEREST_ON_CONTRACT_SETTLEMENT}
 import models.financialStatement.{PenaltyType, PsaFSChargeType, PsaFSDetail}
 import models.requests.IdentifierRequest
@@ -149,6 +149,8 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     (journeyType, penaltyType) match {
       case (All, AccountingForTaxPenalties) =>
         AllPenaltiesAndChargesController.onPageLoad(fs.periodStartDate.toString, fs.pstr, penaltyType).url
+      case (All, EventReportingCharges) =>
+        AllPenaltiesAndChargesController.onPageLoad(fs.periodEndDate.getYear.toString, fs.pstr, penaltyType).url
       case (All, _) =>
         AllPenaltiesAndChargesController.onPageLoad(fs.periodStartDate.getYear.toString, fs.pstr, penaltyType).url
       case _ => routes.PsaPaymentsAndChargesController.onPageLoad(journeyType).url
@@ -162,6 +164,8 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
         val startDate = formatStartDate(fs.periodStartDate)
         val endDate = formatDateDMY(fs.periodEndDate)
         Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.aft.returnLink", startDate, endDate))
+      case (All, EventReportingCharges) =>
+        Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.returnLink", fs.periodEndDate.getYear.toString))
       case (All, _) =>
         Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.returnLink", fs.periodStartDate.getYear.toString))
       case _ => Json.obj("returnLinkBasedOnJourney" -> messages("financialPaymentsAndCharges.returnLink." +s"${journeyType.toString}"))
