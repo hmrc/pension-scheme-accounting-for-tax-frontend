@@ -34,19 +34,19 @@ object PenaltyType extends Enumerable.Implicits {
   case object ContractSettlementCharges extends PenaltyType
   case object InformationNoticePenalties extends PenaltyType
   case object PensionsPenalties extends PenaltyType
-  trait EventReportingCharge extends PenaltyType
+  case object EventReportingCharge extends PenaltyType
 
   def getPenaltyType(chargeType: PsaFSChargeType): PenaltyType =
     chargeType match {
       case PSS_PENALTY => PensionsPenalties
       case PSS_INFO_NOTICE => InformationNoticePenalties
       case CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST | INTEREST_ON_CONTRACT_SETTLEMENT => ContractSettlementCharges
-      case x:PenaltyType => x
+      case SSC_30_DAY_LPP | SSC_6_MONTH_LPP | SSC_12_MONTH_LPP => EventReportingCharge
       case _ => AccountingForTaxPenalties
     }
 
   val values: Seq[PenaltyType] =
-    Seq(AccountingForTaxPenalties, ContractSettlementCharges, InformationNoticePenalties, PensionsPenalties)
+    Seq(AccountingForTaxPenalties, ContractSettlementCharges, EventReportingCharge, InformationNoticePenalties, PensionsPenalties)
 
   def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true): Seq[Radios.Item] =
     {
@@ -71,6 +71,7 @@ object PenaltyType extends Enumerable.Implicits {
         stringBinder.bind(key, value) match {
           case Right("accounting-for-tax") => Right(AccountingForTaxPenalties)
           case Right("contract-settlement") => Right(ContractSettlementCharges)
+          case Right("event-reporting") => Right(EventReportingCharge)
           case Right("information-notice") => Right(InformationNoticePenalties)
           case Right("pensions-penalty") => Right(PensionsPenalties)
           case _ => Left("PenaltyType binding failed")
@@ -86,6 +87,7 @@ object PenaltyType extends Enumerable.Implicits {
     value match {
       case AccountingForTaxPenalties => "accounting-for-tax"
       case ContractSettlementCharges => "contract-settlement"
+      case EventReportingCharge => "event-reporting"
       case InformationNoticePenalties => "information-notice"
       case PensionsPenalties => "pensions-penalty"
       case _ => throw new RuntimeException("Penalty type not found")
@@ -95,6 +97,7 @@ object PenaltyType extends Enumerable.Implicits {
     value match {
       case "accounting-for-tax" => AccountingForTaxPenalties
       case "contract-settlement" => ContractSettlementCharges
+      case "event-reporting" => EventReportingCharge
       case "information-notice" => InformationNoticePenalties
       case "pensions-penalty" => PensionsPenalties
     }
@@ -108,9 +111,7 @@ object PenaltyType extends Enumerable.Implicits {
 
     }
 
-  //TODO: Might need to remove after event reporting has been implemented -Pavel Vjalicin
   def displayCharge(penaltyType: PenaltyType): Boolean = penaltyType match {
-    case _: EventReportingCharge => false
     case _ => true
   }
 }

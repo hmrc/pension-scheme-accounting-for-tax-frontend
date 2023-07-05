@@ -35,18 +35,21 @@ object PaymentOrChargeType extends Enumerable.Implicits {
   case object ExcessReliefPaidCharges extends PaymentOrChargeType
   case object InterestOnExcessRelief extends PaymentOrChargeType
   case object PensionsCharges extends PaymentOrChargeType
+  case object EventReportingCharge extends PaymentOrChargeType
 
   def getPaymentOrChargeType(chargeType: SchemeFSChargeType): PaymentOrChargeType =
     chargeType match {
       case EXCESS_RELIEF_PAID => ExcessReliefPaidCharges
       case EXCESS_RELIEF_INTEREST => InterestOnExcessRelief
+      case PSS_SCHEME_SANCTION_CHARGE | PSS_SCHEME_SANCTION_CHARGE_INTEREST
+           | PSS_MANUAL_SSC | PSS_MANUAL_SCHEME_SANCTION_CHARGE_INTEREST => EventReportingCharge
       case CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST => ContractSettlementCharges
       case PSS_CHARGE | PSS_CHARGE_INTEREST => PensionsCharges
       case _ => AccountingForTaxCharges
     }
 
   val values: Seq[PaymentOrChargeType] =
-    Seq(AccountingForTaxCharges, ContractSettlementCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, PensionsCharges)
+    Seq(AccountingForTaxCharges, ContractSettlementCharges, EventReportingCharge, ExcessReliefPaidCharges, InterestOnExcessRelief, PensionsCharges)
 
   def radios(form: Form[_], chargeTypes: Seq[DisplayPaymentOrChargeType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
             : Seq[Radios.Item] =
@@ -71,6 +74,7 @@ object PaymentOrChargeType extends Enumerable.Implicits {
       stringBinder.bind(key, value) match {
         case Right("accounting-for-tax") => Right(AccountingForTaxCharges)
         case Right("contract-settlement") => Right(ContractSettlementCharges)
+        case Right("event-reporting") => Right(EventReportingCharge)
         case Right("excess-relief-paid") => Right(ExcessReliefPaidCharges)
         case Right("interest-on-excess-relief-paid") => Right(InterestOnExcessRelief)
         case Right("pensions-charge") => Right(PensionsCharges)
@@ -88,6 +92,7 @@ object PaymentOrChargeType extends Enumerable.Implicits {
   implicit def penaltyTypeToString(value: PaymentOrChargeType): String = value match {
     case AccountingForTaxCharges => "accounting-for-tax"
     case ContractSettlementCharges => "contract-settlement"
+    case EventReportingCharge => "event-reporting"
     case ExcessReliefPaidCharges => "excess-relief-paid"
     case InterestOnExcessRelief => "interest-on-excess-relief-paid"
     case PensionsCharges => "pensions-charge"
@@ -97,6 +102,7 @@ object PaymentOrChargeType extends Enumerable.Implicits {
     value match {
       case "accounting-for-tax" => AccountingForTaxCharges
       case "contract-settlement" => ContractSettlementCharges
+      case "event-reporting" => EventReportingCharge
       case "excess-relief-paid" => ExcessReliefPaidCharges
       case "interest-on-excess-relief-paid" => InterestOnExcessRelief
       case "pensions-charge" => PensionsCharges

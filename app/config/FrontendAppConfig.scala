@@ -185,6 +185,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
     s"$aftUrl${configuration.underlying.getString("urls.featureToggle").format(toggle)}"
 
   lazy val addressLookUp = s"${servicesConfig.baseUrl("address-lookup")}"
+  lazy val eventReportingUrl: String = servicesConfig.baseUrl("pension-scheme-event-reporting")
+
 
   def routeToSwitchLanguage: String => Call =
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
