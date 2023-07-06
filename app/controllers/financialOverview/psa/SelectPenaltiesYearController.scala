@@ -71,8 +71,13 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
 
   def onSubmit(penaltyType: PenaltyType, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
 
-    val navMethod: (Seq[PsaFSDetail], Int) => Future[Result] =
-      if (penaltyType == AccountingForTaxPenalties) aftNavMethod(request.psaIdOrException.id) else nonAftNavMethod(penaltyType)
+    val navMethod: (Seq[PsaFSDetail], Int) => Future[Result] = {
+      penaltyType match {
+        case AccountingForTaxPenalties => aftNavMethod(request.psaIdOrException.id)
+        case EventReportingCharges => erNavMethod(request.psaIdOrException.id)
+        case _ => nonAftNavMethod(penaltyType)
+      }
+    }
     val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
 
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
@@ -109,6 +114,12 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       }
   }
 
+  private def erNavMethod(psaId: String)
+                          (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] =
+    (penalties, year) => {
+      val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == EventReportingCharges)
+      navService.navFromERYearsPage(filteredPenalties, year, psaId, EventReportingCharges)
+    }
   private def aftNavMethod(psaId: String)
                           (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] =
     (penalties, year) => {
