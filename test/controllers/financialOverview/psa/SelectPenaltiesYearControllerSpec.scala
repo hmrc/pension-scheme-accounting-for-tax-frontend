@@ -25,7 +25,7 @@ import forms.YearsFormProvider
 import matchers.JsonMatchers
 import models.StartYears.enumerable
 import models.financialStatement.PenaltyType
-import models.financialStatement.PenaltyType.ContractSettlementCharges
+import models.financialStatement.PenaltyType.{ContractSettlementCharges, EventReportingCharges}
 import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import org.mockito.ArgumentCaptor
@@ -43,7 +43,7 @@ import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
 import play.twirl.api.Html
 import services.PenaltiesServiceSpec.listOfSchemes
-import services.financialOverview.psa.PsaPenaltiesAndChargesServiceSpec.{psaFsSeq, pstr}
+import services.financialOverview.psa.PsaPenaltiesAndChargesServiceSpec.{psaFsERSeq, psaFsSeq, pstr}
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -74,6 +74,8 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
   lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad(penaltyType).url
   lazy val httpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(penaltyType).url
 
+  lazy val erHttpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(EventReportingCharges).url
+
   private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
     "form" -> form,
     "radios" -> FSYears.radios(form, years)
@@ -90,15 +92,14 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
-      thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
-    when(mockPsaPenaltiesAndChargesService.getTypeParam(ContractSettlementCharges)).
-      thenReturn(ContractSettlementCharges.toString)
   }
 
   "SelectYearController" must {
     "return OK and the correct view for a GET with the select option for Year" in {
-
+      when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
+        thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+      when(mockPsaPenaltiesAndChargesService.getTypeParam(ContractSettlementCharges)).
+        thenReturn(ContractSettlementCharges.toString)
       when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -114,6 +115,10 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     }
 
     "redirect to next page when valid data is submitted for AFT" in {
+      when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
+        thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+      when(mockPsaPenaltiesAndChargesService.getTypeParam(ContractSettlementCharges)).
+        thenReturn(ContractSettlementCharges.toString)
       when(mockNavigationService.navFromAFTYearsPage(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(ContractSettlementCharges, year))))
 
@@ -122,19 +127,25 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
       redirectLocation(result) mustBe Some(routes.AllPenaltiesAndChargesController.onPageLoad(year, pstr, ContractSettlementCharges).url)
     }
 
-// TODO implement test when nav completed on Years page for Event Reporting
+    "redirect to next page when valid data is submitted for Event Reporting" in {
+      when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
+        thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsERSeq)))
+      when(mockPsaPenaltiesAndChargesService.getTypeParam(EventReportingCharges)).
+        thenReturn(EventReportingCharges.toString)
+      when(mockNavigationService.navFromERYearsPage(any(), any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(EventReportingCharges, year))))
 
-//    "redirect to next page when valid data is submitted for Event Reporting" in {
-//      when(mockNavigationService.navFromERYearsPage(any(), any(), any(), any())(any(), any()))
-//        .thenReturn(Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges))))
-//
-//      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
-//      status(result) mustEqual SEE_OTHER
-//      redirectLocation(result) mustBe Some(routes.AllPenaltiesAndChargesController.onPageLoad(year, pstr, ContractSettlementCharges).url)
-//    }
+      val result = route(application, httpPOSTRequest(erHttpPathPOST, valuesValid)).value
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(routes.AllPenaltiesAndChargesController.onPageLoad(year, pstr, EventReportingCharges).url)
+    }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-
+      when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
+        thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+      when(mockPsaPenaltiesAndChargesService.getTypeParam(ContractSettlementCharges)).
+        thenReturn(ContractSettlementCharges.toString)
+      
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
       status(result) mustEqual BAD_REQUEST
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())

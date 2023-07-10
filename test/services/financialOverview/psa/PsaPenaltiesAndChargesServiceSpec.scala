@@ -24,7 +24,7 @@ import data.SampleData._
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, INTEREST_ON_CONTRACT_SETTLEMENT}
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, INTEREST_ON_CONTRACT_SETTLEMENT, SSC_30_DAY_LPP}
 import models.financialStatement._
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
@@ -380,6 +380,27 @@ object PsaPenaltiesAndChargesServiceSpec {
       documentLineItemDetails = Nil
     )
   )
+
+  val psaFsERSeq: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
+      index = 0,
+      chargeReference = "ER002610150184",
+      chargeType = SSC_30_DAY_LPP,
+      dueDate = Some(LocalDate.parse("2020-11-15")),
+      totalAmount = 500.00,
+      outstandingAmount = 0.00,
+      accruedInterestTotal = 155.00,
+      stoodOverAmount = 0.00,
+      amountDue = 500.00,
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      psaSourceChargeInfo = None,
+      documentLineItemDetails = Nil
+    )
+  )
+
   val psaFs: PsaFS = PsaFS(inhibitRefundSignal = false, psaFsSeq.toSeq)
 
   private def chargeReferenceRow: Seq[SummaryList.Row] = {

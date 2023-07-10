@@ -162,7 +162,7 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "redirect to navFromERYears method if there is only one year in the ER category" in {
       whenReady(paymentsNavigationService.navFromPaymentsTypePage(paymentsER(), srn, EventReportingCharges, journeyType)) {
-        _ mustBe Redirect(PaymentsAndChargesController.onPageLoad(srn, QUARTER_START_DATE.getYear.toString, EventReportingCharges, journeyType))
+        _ mustBe Redirect(PaymentsAndChargesController.onPageLoad(srn, "2020", EventReportingCharges, journeyType))
       }
     }
 
