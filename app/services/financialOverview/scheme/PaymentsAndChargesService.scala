@@ -143,7 +143,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       status =>
         FinancialPaymentAndChargesDetails(
           chargeType = details.chargeType.toString + suffix.getOrElse(""),
-          chargeReference = details.chargeReference,
+          chargeReference = displayChargeReference(details.chargeReference),
           originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
           paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
           status = status,
@@ -151,8 +151,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           submittedDate = setSubmittedDate(submittedDate, details.chargeType),
           redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargeDetailsController.onPageLoad(
             srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
-          visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", details.chargeReference),
-          id = details.chargeReference
+          visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", displayChargeReference(details.chargeReference)),
+          id = displayChargeReference(details.chargeReference)
         )
 
     (isDisplayInterestChargeType(details.chargeType), details.amountDue > 0) match {
@@ -486,6 +486,10 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     seqSchemeFSDetail.filter { schemeFSDetail =>
       !isCreditChargeType(schemeFSDetail.chargeType)
     }
+  }
+
+  private def displayChargeReference(chargeReference: String)(implicit messages: Messages): String = {
+    if(chargeReference == "") messages("paymentsAndCharges.chargeReference.toBeAssigned") else chargeReference
   }
 }
 

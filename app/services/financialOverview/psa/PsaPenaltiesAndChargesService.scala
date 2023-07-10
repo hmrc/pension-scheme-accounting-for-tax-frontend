@@ -99,7 +99,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
           status =>
             PsaPaymentsAndChargesDetails(
               chargeType = tableChargeType,
-              chargeReference = detail.chargeReference,
+              chargeReference = displayChargeReference(detail.chargeReference),
               originalChargeAmount = s"${formatCurrencyAmountAsString(detail.totalAmount)}",
               paymentDue = s"${formatCurrencyAmountAsString(detail.amountDue)}",
               status = status,
@@ -109,7 +109,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               redirectUrl = controllers.financialOverview.psa.routes.PsaPenaltiesAndChargeDetailsController
                 .onPageLoad(detail.pstr, detail.index.toString, journeyType)
                 .url,
-              visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", detail.chargeReference)
+              visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", displayChargeReference(detail.chargeReference))
             )
 
         val seqInterestCharge: Seq[PsaPaymentsAndChargesDetails] =
@@ -524,6 +524,10 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-width-two-quarters").toSeq),
         value = Value(msg"paymentsAndCharges.chargeReference.toBeAssigned", classes = Seq("govuk-!-width-one-quarter").toSeq)
       ))
+  }
+
+  private def displayChargeReference(chargeReference: String)(implicit messages: Messages): String = {
+    if (chargeReference == "") messages("paymentsAndCharges.chargeReference.toBeAssigned") else chargeReference
   }
 
   def interestRows(data: PsaFSDetail): Seq[SummaryList.Row] =
