@@ -170,7 +170,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
           status =>
             PsaPaymentsAndChargesDetails(
               chargeType = tableChargeType,
-              chargeReference = detail.chargeReference,
+              chargeReference = if(detail.chargeReference == "") messages("paymentsAndCharges.chargeReference.toBeAssigned") else detail.chargeReference,
               originalChargeAmount = s"${formatCurrencyAmountAsString(detail.totalAmount)}",
               paymentDue = s"${formatCurrencyAmountAsString(detail.amountDue)}",
               status = status,
