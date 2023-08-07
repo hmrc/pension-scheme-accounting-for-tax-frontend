@@ -18,7 +18,7 @@ package controllers
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.{DataRetrievalAction, IdentifierAction}
+import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.LocalDateBinder._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -37,28 +37,29 @@ class CannotResumeController @Inject()(appConfig: FrontendAppConfig,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
+                                       requireData: DataRequiredAction,
                                        schemeService: SchemeService,
                                        renderer: Renderer)
                                       (implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
-        val json = Json.obj(
-          "schemeName" -> schemeDetails.schemeName,
-          "returnUrl" -> controllers.routes.CannotResumeController.onClick(srn, startDate).url
-        )
-        renderer.render("cannotResume.njk", json).map(Ok(_))
+      userAnswersCacheConnector.removeAll(request.internalId).flatMap { _ =>
+        schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+          val json = Json.obj(
+            "schemeName" -> schemeDetails.schemeName,
+            "returnUrl" -> controllers.routes.CannotResumeController.onClick(srn, startDate).url
+          )
+          renderer.render("cannotResume.njk", json).map(Ok(_))
+        }
       }
   }
 
   def onClick(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate)).async {
+    (identify andThen getData(srn, startDate)) {
       implicit request =>
-        userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-          Redirect(appConfig.schemeDashboardUrl(request.psaId, request.pspId).format(srn))
-        }
+        Redirect(appConfig.schemeDashboardUrl(request.psaId, request.pspId).format(srn))
     }
 }
