@@ -87,6 +87,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private val applicationPsp: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModulesPsp).build()
 
   private val templateToBeRendered = "declaration.njk"
+  private val cannotResumePage = "cannotResume.njk"
 
   private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
 
@@ -127,8 +128,9 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     ) ++ (if (isAmendment) Map("submissionNumber" -> s"$versionNumber") else Map.empty)
 
   "Declaration Controller" must {
-    "return OK and the correct view for a GET" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+    "return OK and the correct view for a GET when an AFT return has not been submitted" in {
+      val userAnswersWithoutReturnSubmitted = Some(userAnswersWithSchemeName.setOrException(AFTStatusQuery, "Compiled"))
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithoutReturnSubmitted)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -141,8 +143,19 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
 
-    "return OK and the correct view for a GET for PSP" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+    "redirect to the cannot resume page when an AFT return has already been submitted" in {
+      val userAnswersWithReturnSubmitted = Some(userAnswersWithSchemeName.setOrException(AFTStatusQuery, "Submitted"))
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithReturnSubmitted)
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual "/manage-pension-scheme-accounting-for-tax/aa/2020-04-01/cannot-resume"
+    }
+
+    "return OK and the correct view for a GET for PSP when an AFT return has not been submitted" in {
+      val userAnswersWithoutReturnSubmitted = Some(userAnswersWithSchemeName.setOrException(AFTStatusQuery, "Compiled"))
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithoutReturnSubmitted)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -153,6 +166,17 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       templateCaptor.getValue mustEqual templateToBeRenderedPsp
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+    }
+
+    "redirect to the cannot resume page for PSP when an AFT return has already been submitted" in {
+      val userAnswersWithReturnSubmitted = Some(userAnswersWithSchemeName.setOrException(AFTStatusQuery, "Submitted"))
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithReturnSubmitted)
+
+      val result = route(applicationPsp, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual "/manage-pension-scheme-accounting-for-tax/aa/2020-04-01/cannot-resume"
     }
 
     "Save data to user answers, file AFT Return, send an email (with audit event) and redirect to next page when on submit declaration by PSA" in {
