@@ -141,7 +141,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(0)).removeAll(any())(any(), any())
 
       templateCaptor.getValue mustEqual "confirmation.njk"
 
