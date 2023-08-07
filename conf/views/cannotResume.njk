@@ -2,6 +2,10 @@
 
 {% from "macros/title.njk" import title %}
 
+{% block beforeContent %}
+  {% include "includes/phase-banner.njk" %}
+{% endblock %}
+
 {% block pageTitle %}
   {{ title(messages("cannotResume.title")) }}
 {% endblock %}
