@@ -64,6 +64,7 @@ class CannotResumeControllerSpec extends ControllerSpecBase with MockitoSugar wi
     "return OK and the correct view for a GET" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
+      when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 
       val application = applicationBuilder(userAnswers = data, extraModules).overrides().build()
       val request = FakeRequest(GET, getRoute)
@@ -83,13 +84,13 @@ class CannotResumeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       templateCaptor.getValue mustEqual "cannotResume.njk"
       jsonCaptor.getValue must containJson(expectedJson)
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
       application.stop()
     }
 
     "return redirect for the onClick GET" in {
       when(mockAppConfig.schemeDashboardUrl(any(), any())).thenReturn("dummy-return-url/%s")
-      when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 
       val application = applicationBuilder(userAnswers = data).overrides().build()
       val request = FakeRequest(GET, onClickRoute)
@@ -98,8 +99,6 @@ class CannotResumeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) mustBe Some(s"dummy-return-url/$srn")
-      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-
       application.stop()
     }
   }
