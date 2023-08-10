@@ -487,3 +487,6 @@ POST        /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:ind
 GET         /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:index/change/public-service-pension-remedy                              controllers.IsPublicServicePensionsRemedyController.onPageLoad(chargeType: ChargeType = ChargeTypeLifetimeAllowance, mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Option[Index])
 POST        /:srn/:startDate/:accessType/:version/lifetime-allowance-charge/:index/change/public-service-pension-remedy                              controllers.IsPublicServicePensionsRemedyController.onSubmit(chargeType: ChargeType = ChargeTypeLifetimeAllowance, mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Option[Index])
 
+GET         /:srn/:startDate/cannot-resume                                                                                                           controllers.CannotResumeController.onPageLoad(srn: String, startDate: String)
+GET         /:srn/:startDate/on-click-cannot-resume                                                                                                  controllers.CannotResumeController.onClick(srn: String, startDate: String)
+
