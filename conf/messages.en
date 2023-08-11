@@ -1637,7 +1637,3 @@ taxQuarterReportedAndPaid.cya.label = The quarter of {0} that this {1} {2} was r
 taxQuarterReportedAndPaid.cya.visuallyHidden.text = the quarter of {0} that this {1} {2} was reported and paid
 chargeAmountReported.cya.label = The {0} {1} amount reported for {2}
 chargeAmountReported.cya.visuallyHidden.text = the {0} {1} amount reported for {2}
-
-cannotResume.title = This AFT return has been submitted and is with HMRC
-cannotResume.heading = This AFT return has been submitted and is with HMRC
-cannotResume.p1 = You cannot resume this journey.

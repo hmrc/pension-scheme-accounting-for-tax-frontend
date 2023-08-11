@@ -29,7 +29,7 @@ import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTyp
 import models.requests.DataRequest
 import models.{AFTQuarter, AccessType, Declaration, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.{AFTStatusQuery, ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage, NameQuery}
+import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage, NameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -44,42 +44,38 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DeclarationController @Inject()(
-                                       override val messagesApi: MessagesApi,
-                                       identify: IdentifierAction,
-                                       getData: DataRetrievalAction,
-                                       requireData: DataRequiredAction,
-                                       allowAccess: AllowAccessActionProvider,
-                                       allowSubmission: AllowSubmissionAction,
-                                       aftService: AFTService,
-                                       userAnswersCacheConnector: UserAnswersCacheConnector,
-                                       navigator: CompoundNavigator,
-                                       val controllerComponents: MessagesControllerComponents,
-                                       config: FrontendAppConfig,
-                                       renderer: Renderer,
-                                       emailConnector: EmailConnector,
-                                       auditService: AuditService
-                                     )(implicit ec: ExecutionContext)
-  extends FrontendBaseController
+    override val messagesApi: MessagesApi,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    requireData: DataRequiredAction,
+    allowAccess: AllowAccessActionProvider,
+    allowSubmission: AllowSubmissionAction,
+    aftService: AFTService,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    navigator: CompoundNavigator,
+    val controllerComponents: MessagesControllerComponents,
+    config: FrontendAppConfig,
+    renderer: Renderer,
+    emailConnector: EmailConnector,
+    auditService: AuditService
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
     with I18nSupport {
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)
       andThen allowSubmission).async { implicit request =>
-      if (request.userAnswers.get(AFTStatusQuery).contains("Submitted")) {
-        Future.successful(Redirect(controllers.routes.CannotResumeController.onPageLoad(srn, startDate)))
-      } else {
-        DataRetrievals.retrieveSchemeName { schemeName =>
-          val viewModel = GenericViewModel(
-            submitUrl = routes.DeclarationController.onSubmit(srn, startDate, accessType, version).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        val viewModel = GenericViewModel(
+          submitUrl = routes.DeclarationController.onSubmit(srn, startDate, accessType, version).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName = schemeName
+        )
 
-          val template = request.schemeAdministratorType match {
-            case Administrator => "declaration.njk"
-            case Practitioner => "pspDeclaration.njk"
-          }
-          renderer.render(template, Json.obj(fields = "viewModel" -> viewModel)).map(Ok(_))
+        val template = request.schemeAdministratorType match {
+          case Administrator => "declaration.njk"
+          case Practitioner => "pspDeclaration.njk"
         }
+        renderer.render(template, Json.obj(fields = "viewModel" -> viewModel)).map(Ok(_))
       }
     }
 
@@ -90,7 +86,7 @@ class DeclarationController @Inject()(
         val schemeAdministratorType = if (request.schemeAdministratorType == Administrator) "PSA" else "PSP"
         val declaration = Declaration(schemeAdministratorType, request.idOrException, hasAgreed = true)
         (for {
-          answersWithDeclaration <- Future.successful(request.userAnswers.setOrException(DeclarationPage, declaration).setOrException(AFTStatusQuery, "Submitted"))
+          answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
@@ -104,7 +100,7 @@ class DeclarationController @Inject()(
     }
 
   private def sendEmail(email: String, quarter: AFTQuarter, schemeName: String, isAmendment: Boolean, amendedVersion: Int)(
-    implicit request: DataRequest[_], hc: HeaderCarrier, messages: Messages): Future[EmailStatus] = {
+      implicit request: DataRequest[_], hc: HeaderCarrier, messages: Messages): Future[EmailStatus] = {
     val requestId = hc.requestId.map(_.value).getOrElse(request.headers.get("X-Session-ID").getOrElse(""))
     val name = request.userAnswers.getOrException(NameQuery)
 
@@ -130,14 +126,14 @@ class DeclarationController @Inject()(
     }
 
     emailConnector.sendEmail(request.schemeAdministratorType, requestId, request.idOrException, journeyType, email, templateId, templateParams)
-      .map { emailStatus =>
+      .map{ emailStatus =>
         auditService.sendEvent(AFTReturnEmailAuditEvent(request.idOrException, journeyType, request.schemeAdministratorType, email))
         emailStatus
       }
   }
 
-  private def templateId(implicit request: DataRequest[_]): String = {
-    (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match {
+  private def templateId(implicit request: DataRequest[_]): String ={
+    (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match{
       case (true, Some(ChangeTypeDecrease)) => config.amendAftReturnDecreaseTemplateIdId
       case (true, Some(ChangeTypeIncrease)) => config.amendAftReturnIncreaseTemplateIdId
       case (true, Some(ChangeTypeSame)) => config.amendAftReturnNoChangeTemplateIdId

@@ -120,8 +120,10 @@ class ConfirmationController @Inject()(
                 )
               ) ++ optViewPaymentsUrl
 
-              renderer.render(getView, json).map { viewHtml =>
-                Ok(viewHtml)
+              renderer.render(getView, json).flatMap { viewHtml =>
+                userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+                  Ok(viewHtml)
+                }
               }
             }
         }
