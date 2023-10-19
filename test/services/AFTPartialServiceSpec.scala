@@ -1,3 +1,19 @@
+/*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package services
 
 import base.SpecBase
@@ -7,11 +23,13 @@ import data.SampleData.multiplePenalties
 import helpers.FormatHelper
 import models._
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
-import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
+import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentMatchers, MockitoSugar}
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -36,6 +54,7 @@ class AFTPartialServiceSpec
 
   private val aftCacheConnector = mock[UserAnswersCacheConnector]
   private val paymentsAndChargesService = mock[PaymentsAndChargesService]
+  private val documentLineItemDetails = Seq()
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -450,10 +469,10 @@ class AFTPartialServiceSpec
 
 
   private val charge1: SchemeFSDetail = SchemeFSDetail(index = 0,"XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(100.00),
-    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), Some(LocalDate.parse(startDate)), Some(LocalDate.parse(endDate)), None, None, None, None, Nil)
+    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), Some(LocalDate.parse(startDate)), Some(LocalDate.parse(endDate)), None, None, None, None, None, documentLineItemDetails)
 
   private val charge2: SchemeFSDetail = SchemeFSDetail(index = 0,"XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
-    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None, Nil)
+    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None, None, documentLineItemDetails)
   private val upcomingChargesMultiple: Seq[SchemeFSDetail] = Seq(charge1, charge2)
   private val outstandingAmountOverdue: Seq[SchemeFSDetail]= Seq(charge1)
   private def paymentsAndChargesModel(implicit messages: Messages): Seq[CardViewModel] = {
@@ -756,16 +775,18 @@ object AFTPartialServiceSpec {
       chargeType = PSS_AFT_RETURN,
       dueDate = dueDate,
       totalAmount = 56432.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
       amountDue = 1029.05,
+      outstandingAmount = 56049.08,
       accruedInterestTotal = accruedInterestTotal,
+      stoodOverAmount = 25089.08,
       periodStartDate = Some(LocalDate.parse(startDate)),
       periodEndDate = Some(LocalDate.parse(endDate)),
       formBundleNumber = None,
+      version = Some(1),
+      receiptDate = Some(LocalDate.now),
       sourceChargeRefForInterest = None,
       sourceChargeInfo = None,
-      documentLineItemDetails = Nil
+      documentLineItemDetails = Seq()
     )
   }
 
