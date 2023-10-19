@@ -1,3 +1,19 @@
+/*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package services
 
 import base.SpecBase
@@ -5,11 +21,13 @@ import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import helpers.FormatHelper
 import models._
-import models.financialStatement.{SchemeFSDetail, SchemeFSChargeType}
+import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.{ArgumentMatchers, MockitoSugar}
+import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
@@ -185,20 +203,21 @@ object PsaSchemePartialServiceSpec {
   private val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/pstr/past-payments-logic"
   private val positiveNumberFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(900)}"
   private val zeroFormatted : String = s"${FormatHelper.formatCurrencyAmountAsString(0)}"
+  private val documentLineItemDetails = Seq()
 
   private val charge1: SchemeFSDetail = SchemeFSDetail(index = 0, "XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
-    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), Some(LocalDate.parse(startDate)), Some(LocalDate.parse(endDate)), None, None, None, None, Nil)
+    BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), Some(LocalDate.parse(startDate)), Some(LocalDate.parse(endDate)), None, None, None, None, None, documentLineItemDetails)
 
   private val charge2: SchemeFSDetail = SchemeFSDetail(index = 0, "XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
-    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None,Nil)
+    BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None, None, documentLineItemDetails)
 
   private val charge3: SchemeFSDetail = SchemeFSDetail(index = 0, "XYZ", SchemeFSChargeType.PAYMENT_ON_ACCOUNT, Some(LocalDate.parse("2021-04-15")), BigDecimal(200.00),
-    BigDecimal(-1200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None,Nil)
+    BigDecimal(-1200.00), BigDecimal(200.00), BigDecimal(200.00), BigDecimal(200.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None, None, documentLineItemDetails)
 
   private val charge4: SchemeFSDetail = SchemeFSDetail(index = 0, "XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
-    BigDecimal(600.00), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None,Nil)
+    BigDecimal(600.00), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00), Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None, None, documentLineItemDetails)
   private val charge5: SchemeFSDetail = SchemeFSDetail(index = 0, "XYZ", SchemeFSChargeType.PSS_OTC_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
-    BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None,Nil)
+    BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00), BigDecimal(0.00),Some(LocalDate.parse("2021-01-01")), Some(LocalDate.parse("2021-03-31")), None, None, None, None, None, documentLineItemDetails)
   private val upcomingChargesMultiple: Seq[SchemeFSDetail] = Seq(charge1, charge2)
   private val upcomingChargesSingle: Seq[SchemeFSDetail] = Seq(charge1)
   private val upcomingChargesMultipleNegative: Seq[SchemeFSDetail] = Seq(charge1, charge2, charge3)
