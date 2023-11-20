@@ -17,6 +17,7 @@
 package controllers.chargeD
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
@@ -29,7 +30,7 @@ import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, Norma
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
 import pages.mccloud.SchemePathHelper
-import pages.{PSTRQuery, ViewOnlyAccessiblePage}
+import pages.{PSTRQuery, QuarterPage, ViewOnlyAccessiblePage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -49,6 +50,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            aftService: AFTService,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
+                                           config: FrontendAppConfig,
                                            val controllerComponents: MessagesControllerComponents,
                                            chargeServiceHelper: ChargeServiceHelper,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
@@ -65,7 +67,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         val wasAnotherPensionSchemeVal = pensionsRemedySummary.wasAnotherPensionScheme.getOrElse(false)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
-          helper.isPsprForCharge(index, pensionsRemedySummary.isPublicServicePensionsRemedy),
+          helper.isPsprForChargeD(isPsrAlwaysTrue(request.userAnswers), index, pensionsRemedySummary.isPublicServicePensionsRemedy),
           helper.chargeDMemberDetails(index, memberDetails),
           helper.chargeDDetails(index, chargeDetails),
           Seq(helper.total(chargeDetails.total)),
@@ -95,6 +97,15 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           .map(Ok(_))
       }
     }
+
+  private def isPsrAlwaysTrue(ua: UserAnswers): Boolean = {
+    ua.get(QuarterPage) match {
+      case Some(aftQuarter) =>
+        val mccloudPsrAlwaysTrueStartDate = config.mccloudPsrAlwaysTrueStartDate
+        aftQuarter.startDate.isAfter(mccloudPsrAlwaysTrueStartDate) || aftQuarter.startDate.isEqual(mccloudPsrAlwaysTrueStartDate)
+      case _ => false
+    }
+  }
 
   private def pensionsSchemeCount(userAnswers: UserAnswers, index: Int): Int = {
     SchemePathHelper

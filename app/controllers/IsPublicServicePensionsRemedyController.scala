@@ -16,13 +16,15 @@
 
 package controllers
 
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.YesNoFormProvider
+import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.IsPublicServicePensionsRemedyPage
+import pages.{IsPublicServicePensionsRemedyPage, QuarterPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -44,6 +46,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                                                         getData: DataRetrievalAction,
                                                         allowAccess: AllowAccessActionProvider,
                                                         requireData: DataRequiredAction,
+                                                        config: FrontendAppConfig,
                                                         formProvider: YesNoFormProvider,
                                                         val controllerComponents: MessagesControllerComponents,
                                                         renderer: Renderer)(implicit ec: ExecutionContext)
@@ -68,37 +71,45 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
-          val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
+          if (isPsrAlwaysTrueForLtaAbolition(chargeType, request.userAnswers)) {
+            for {
+              updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), true, mode))
+              _ <- userAnswersCacheConnector
+                .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
+            } yield {
+              Redirect(navigator.nextPage(IsPublicServicePensionsRemedyPage(chargeType, index), mode, updatedAnswers, srn, startDate, accessType, version))
+            }
+          } else {
+            val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
-          val viewModel = GenericViewModel(
-            submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )
+            val viewModel = GenericViewModel(
+              submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              schemeName = schemeName
+            )
 
-          val (heading, title) = index match {
-            case Some(_) => Tuple2("isPublicServicePensionsRemedy.heading", "isPublicServicePensionsRemedy.title")
-            case None => Tuple2("isPublicServicePensionsRemedyBulk.heading", "isPublicServicePensionsRemedyBulk.title")
+            val (heading, title) = index match {
+              case Some(_) => Tuple2("isPublicServicePensionsRemedy.heading", "isPublicServicePensionsRemedy.title")
+              case None => Tuple2("isPublicServicePensionsRemedyBulk.heading", "isPublicServicePensionsRemedyBulk.title")
+            }
+
+            val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
+              case None => form(chargeTypeDescription, index)
+              case Some(value) => form(chargeTypeDescription, index).fill(value)
+            }
+
+            val json = Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(localDateToString(startDate)),
+              "form" -> preparedForm,
+              "viewModel" -> viewModel,
+              "radios" -> Radios.yesNo(preparedForm("value")),
+              "chargeTypeDescription" -> chargeTypeDescription,
+              "manOrBulkHeading" -> heading,
+              "manOrBulkTitle" -> title
+            )
+            renderer.render("isPublicServicePensionsRemedy.njk", json).map(Ok(_))
           }
-
-          val preparedForm = request.userAnswers.get(IsPublicServicePensionsRemedyPage(chargeType, index)) match {
-            case None => form(chargeTypeDescription, index)
-            case Some(value) => form(chargeTypeDescription, index).fill(value)
-          }
-
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel,
-            "radios" -> Radios.yesNo(preparedForm("value")),
-            "chargeTypeDescription" -> chargeTypeDescription,
-            "manOrBulkHeading" -> heading,
-            "manOrBulkTitle" -> title
-          )
-
-          renderer.render("isPublicServicePensionsRemedy.njk", json).map(Ok(_))
-
         }
     }
 
@@ -150,4 +161,13 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
 
       }
     }
+
+  private def isPsrAlwaysTrueForLtaAbolition(chargeType: ChargeType, ua: UserAnswers): Boolean = {
+    ua.get(QuarterPage) match {
+      case Some(aftQuarter) if chargeType == ChargeTypeLifetimeAllowance =>
+        val mccloudPsrAlwaysTrueStartDate = config.mccloudPsrAlwaysTrueStartDate
+        aftQuarter.startDate.isAfter(mccloudPsrAlwaysTrueStartDate) || aftQuarter.startDate.isEqual(mccloudPsrAlwaysTrueStartDate)
+      case _ => false
+    }
+  }
 }

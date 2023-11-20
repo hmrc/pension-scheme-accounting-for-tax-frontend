@@ -111,4 +111,11 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
       )
     )
   }
+
+  def isPsprForChargeD(isPsrAlwaysTrue : Boolean, index: Int, isPSR: Option[Boolean]): Seq[Row] = {
+    isPsrAlwaysTrue match {
+      case true => Nil
+      case _ => isPsprForCharge(index, isPSR)
+    }
+  }
 }

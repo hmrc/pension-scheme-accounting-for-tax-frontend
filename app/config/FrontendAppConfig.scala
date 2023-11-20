@@ -98,7 +98,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   }"
 
   lazy val managePensionsSchemeOverviewUrl: String = Call("GET", loadConfig("urls.manage-pensions-frontend.schemesOverview")).url
-  lazy val youMustContactHMRCUrl : String = loadConfig("urls.manage-pensions-frontend.youMustContactHMRC")
+  lazy val youMustContactHMRCUrl: String = loadConfig("urls.manage-pensions-frontend.youMustContactHMRC")
   lazy val pensionSchemeUrl: String = servicesConfig.baseUrl("pensions-scheme")
   lazy val pensionsAdministratorUrl: String = servicesConfig.baseUrl("pension-administrator")
   lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
@@ -181,6 +181,13 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
       configuration.get[String]("mccloudPsrStartDate"),
       DateTimeFormatter.ofPattern("yyyy-MM-dd")
     )
+
+  lazy val mccloudPsrAlwaysTrueStartDate: LocalDate = LocalDate
+    .parse(
+      configuration.get[String]("mccloudPsrAlwaysTrueStartDate"),
+      DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    )
+
   def featureToggleUrl(toggle: String): String =
     s"$aftUrl${configuration.underlying.getString("urls.featureToggle").format(toggle)}"
 
