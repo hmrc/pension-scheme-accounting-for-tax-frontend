@@ -18,7 +18,7 @@ package controllers
 
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import controllers.routes
+import data.SampleData
 import data.SampleData._
 import forms.YesNoFormProvider
 import matchers.JsonMatchers
@@ -30,6 +30,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
+import pages.QuarterPage
 import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
@@ -41,6 +42,7 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class IsPublicServicePensionsRemedyControllerSpec
@@ -60,6 +62,7 @@ class IsPublicServicePensionsRemedyControllerSpec
   private val chargeTypeDescription = Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
   private val formManual: Form[Boolean] = formProvider(messages("isPublicServicePensionsRemedy.error.required", chargeTypeDescription))
   private val formBulk: Form[Boolean] = formProvider(messages("isPublicServicePensionsRemedyBulk.error.required", chargeTypeDescription))
+  private val mccloudPsrAlwaysTrueStartDate = LocalDate.of(2024, 4, 1)
 
   private def httpPathGETAnnualAllowance(index: Option[Int]): String =
     routes.IsPublicServicePensionsRemedyController
@@ -157,10 +160,13 @@ class IsPublicServicePensionsRemedyControllerSpec
       jsonCaptor.getValue must containJson(expectedJson(".heading", ".title"))
     }
 
-    "return OK and the correct view for a GET for Lifetime allowance (Manual Input)" in {
+    "return OK and the correct view for a GET for Lifetime allowance (Manual Input) for PSR dynamic" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockAppConfig.mccloudPsrAlwaysTrueStartDate).thenReturn(mccloudPsrAlwaysTrueStartDate)
 
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+      val ua = userAnswers.setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val request = FakeRequest(GET, httpPathGETLifetimeAllowance(Some(0)))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -180,6 +186,26 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
       jsonCaptor.getValue must containJson(expectedJson)
+    }
+
+    "return OK and the correct view for a GET for Lifetime allowance (Manual Input) for PSR default true" in {
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockAppConfig.mccloudPsrAlwaysTrueStartDate).thenReturn(mccloudPsrAlwaysTrueStartDate)
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+
+      val ua = userAnswers.setOrException(QuarterPage, SampleData.taxQtrAprToJun2024)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      val request = FakeRequest(GET, httpPathGETLifetimeAllowance(Some(0)))
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual onwardRoute.url
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
+      verify(mockCompoundNavigator, times(1)).nextPage(any(), any(), any(), any(), any(), any(), any())(any())
     }
 
     "redirect to the next page when valid data is submitted for AnnualAllowance (Manual Journey)" in {

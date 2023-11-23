@@ -18,6 +18,7 @@ package controllers.chargeD
 
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
+import data.SampleData
 import data.SampleData._
 import helpers.CYAChargeDHelper
 import matchers.JsonMatchers
@@ -25,12 +26,14 @@ import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.mccloud.{PensionsRemedySchemeSummary, PensionsRemedySummary}
 import models.{UserAnswers, YearRange}
-import pages.IsPublicServicePensionsRemedyPage
+import org.mockito.Mockito.when
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
 import pages.mccloud._
+import pages.{IsPublicServicePensionsRemedyPage, QuarterPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import scala.collection.Seq
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
@@ -40,6 +43,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
   private val lifetimeAllowanceCharge = ChargeTypeLifetimeAllowance
+  private val mccloudPsrAlwaysTrueStartDate = LocalDate.of(2024, 4, 1)
 
   private def httpGETRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
 
@@ -103,9 +107,9 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     }
   }
 
-  private def rows(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) =
+  private def rows(isPsrAlwaysTrue: Boolean, isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) =
     Seq(
-      helper.isPsprForCharge(0, Some(isPSR)),
+      helper.isPsprForChargeD(isPsrAlwaysTrue, 0, Some(isPSR)),
       helper.chargeDMemberDetails(0, memberDetails),
       helper.chargeDDetails(0, chargeDDetails),
       Seq(helper.total(chargeAmount1 + chargeAmount2)),
@@ -113,8 +117,9 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.psprSchemesChargeDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
     ).flatten
 
-  private def jsonToPassToTemplate(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean): JsObject = Json.obj(
-    "list" -> rows(isPSR, isChargeInAddition, wasAnotherPensionScheme)
+  private def jsonToPassToTemplate(isPsrAlwaysTrue: Boolean, isPSR: Boolean, isChargeInAddition: Boolean,
+                                   wasAnotherPensionScheme: Boolean): JsObject = Json.obj(
+    "list" -> rows(isPsrAlwaysTrue, isPSR, isChargeInAddition, wasAnotherPensionScheme)
   )
 
   private val rowsWithoutPSR = Seq(
@@ -127,25 +132,35 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     "list" -> rowsWithoutPSR
   )
 
+  private def isPsrAlwaysTrue(ua: UserAnswers): Boolean = {
+    when(mockAppConfig.mccloudPsrAlwaysTrueStartDate).thenReturn(mccloudPsrAlwaysTrueStartDate)
+    ua.get(QuarterPage) match {
+      case Some(aftQuarter) =>
+        aftQuarter.startDate.isAfter(mccloudPsrAlwaysTrueStartDate) || aftQuarter.startDate.isEqual(mccloudPsrAlwaysTrueStartDate)
+      case _ => false
+    }
+  }
+
   "CheckYourAnswers Controller for PSR if isPSR is false, isChargeInAddition is false and wasAnotherPensionScheme is false" must {
+    val updatedUA = ua.setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false),
-      userAnswers = updateUserAnswers(ua, isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false)
+      jsonToPassToTemplate = jsonToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false),
+      userAnswers = updateUserAnswers(updatedUA, isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false)
     )
 
     behave like redirectToErrorOn5XX(
       httpPath = httpOnClickRoute,
       page = CheckYourAnswersPage,
-      userAnswers = ua
+      userAnswers = updatedUA
     )
 
     "CheckYourAnswers Controller with both rates of tax set" must {
       behave like controllerWithOnClick(
         httpPath = httpOnClickRoute,
         page = CheckYourAnswersPage,
-        userAnswers = ua
+        userAnswers = updatedUA
       )
     }
 
@@ -153,7 +168,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       behave like controllerWithOnClick(
         httpPath = httpOnClickRoute,
         page = CheckYourAnswersPage,
-        userAnswers = ua.set(ChargeDetailsPage(0), chargeDDetails.copy(taxAt25Percent = None)).get
+        userAnswers = updatedUA.set(ChargeDetailsPage(0), chargeDDetails.copy(taxAt25Percent = None)).get
       )
     }
 
@@ -161,7 +176,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       behave like controllerWithOnClick(
         httpPath = httpOnClickRoute,
         page = CheckYourAnswersPage,
-        userAnswers = ua.set(ChargeDetailsPage(0), chargeDDetails.copy(taxAt55Percent = None)).get
+        userAnswers = updatedUA.set(ChargeDetailsPage(0), chargeDDetails.copy(taxAt55Percent = None)).get
       )
     }
   }
@@ -206,32 +221,33 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   }
 
   "CheckYourAnswers Controller for PSR if isPSR is true, isChargeInAddition is false and wasAnotherPensionScheme is false" must {
-
+    val updatedUA = ua.setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false),
-      userAnswers = updateUserAnswers(ua, isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false)
+      jsonToPassToTemplate = jsonToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false),
+      userAnswers = updateUserAnswers(updatedUA, isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false)
     )
   }
 
   "CheckYourAnswers Controller for PSR if isPSR is true, isChargeInAddition is true and wasAnotherPensionScheme is false" must {
+    val updatedUA = ua.setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
 
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false),
-      userAnswers = updateUserAnswers(ua, isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false)
+      jsonToPassToTemplate = jsonToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false),
+      userAnswers = updateUserAnswers(updatedUA, isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false)
     )
   }
 
   "CheckYourAnswers Controller for PSR if isPSR is true, isChargeInAddition is true and wasAnotherPensionScheme is true" must {
-
+    val updatedUA = ua.setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true),
-      userAnswers = updateUserAnswers(ua, isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true)
+      jsonToPassToTemplate = jsonToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true),
+      userAnswers = updateUserAnswers(updatedUA, isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true)
     )
   }
 }
