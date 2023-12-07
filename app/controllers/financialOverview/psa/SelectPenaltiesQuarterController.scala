@@ -75,7 +75,6 @@ class SelectPenaltiesQuarterController @Inject()(
 
   def onSubmit(year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-
       val quarters: Seq[AFTQuarter] = getQuarters(filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt))
       if (quarters.nonEmpty) {
         form(quarters).bindFromRequest().fold(
@@ -92,7 +91,7 @@ class SelectPenaltiesQuarterController @Inject()(
             )
             renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(BadRequest(_))
           },
-          value => navService.navFromQuartersPage(penaltiesCache.penalties, value.startDate, journeyType)
+          value => navService.navFromQuartersPage(penaltiesCache.penalties, value.startDate, request.psaIdOrException.id)
         )
       } else {
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
