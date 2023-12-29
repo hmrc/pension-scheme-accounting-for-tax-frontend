@@ -23,7 +23,7 @@ import controllers.actions.IdentifierAction
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.SubmitterType.PSA
-import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.requests.IdentifierRequest
 import models.{AFTOverview, AFTVersion, AccessType, Draft, LockDetail, Quarters, Submission, SubmitterDetails, VersionsWithSubmitter}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -74,7 +74,10 @@ class ReturnHistoryController @Inject()(
       table <- tableOfVersions(srn, versions.sortBy(_.versionDetails.reportVersion).reverse, startDate, seqAFTOverview)
     } yield {
 
-      val paymentJson = if (schemeFs.seqSchemeFSDetail.isEmpty) {
+      val paymentsAndCharges = schemeFs.seqSchemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
+        .filter(_.periodStartDate.contains(startDate))
+
+      val paymentJson = if (paymentsAndCharges.isEmpty) {
         Json.obj()
       }
       else {
