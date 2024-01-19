@@ -55,12 +55,12 @@ class RequestCreationService @Inject()(
                                  ): Future[OptionalDataRequest[A]] = {
 
     val id = s"$srn$startDate"
-    logger.warn("Entered retrieveAndCreateRequest method 1")
+    logger.info("Entered retrieveAndCreateRequest method 1")
     userAnswersCacheConnector.fetch(id).flatMap { data =>
 
           val optionUA = data.map { jsValue => UserAnswers(jsValue.as[JsObject]) }
           if(optionUA.nonEmpty) {
-            logger.warn(s"Some data found in cache for ${optionCurrentPage.getOrElse("unrecognised page")}")
+            logger.info(s"Some data found in cache for ${optionCurrentPage.getOrElse("unrecognised page")}")
           } else {
             logger.warn(s"No data found in cache but user in default case for ${optionCurrentPage.getOrElse("unrecognised page")}")
           }
@@ -160,20 +160,20 @@ class RequestCreationService @Inject()(
           .setOrException(SchemeNameQuery, schemeDetails.schemeName)
           .setOrException(PSTRQuery, schemeDetails.pstr))
     } else {
-      logger.warn("seqAFTOverview non empty - getAftDetails will be called")
+      logger.info("seqAFTOverview non empty - getAftDetails will be called")
       val isCompilable = seqAFTOverview.headOption.map(_.compiledVersionAvailable)
 
       val updatedVersion = (accessType, isCompilable) match {
         case (Draft, Some(false)) =>
           if (version == 1) {
-            logger.warn("Version is 1 so will derive a zero so leave at 1. seqAFTOverview=" + seqAFTOverview)
+            logger.info("Version is 1 so will derive a zero so leave at 1. seqAFTOverview=" + seqAFTOverview)
             version
           } else {
             version - 1
           }
         case _ => version
       }
-      logger.warn(s"seqAFTOverview non empty - getAftDetails will be called for version $updatedVersion")
+      logger.info(s"seqAFTOverview non empty - getAftDetails will be called for version $updatedVersion")
       aftConnector
         .getAFTDetails(schemeDetails.pstr, startDate, updatedVersion.toString)
         .map { aftDetails =>

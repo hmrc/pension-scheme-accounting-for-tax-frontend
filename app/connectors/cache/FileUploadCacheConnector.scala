@@ -69,8 +69,9 @@ class FileUploadCacheConnector @Inject()(
     http.POST[JsValue, HttpResponse](url, Json.toJson(fileReference))(implicitly, implicitly, hc, implicitly)
       .map { response =>
         response.status match {
-          case OK => logger.warn(s"requestUpload for uploadId ${uploadId.value} return response with status ${response.status}")
+          case OK => logger.info(s"requestUpload for uploadId ${uploadId.value} return response with status OK")
           case _ =>
+            logger.warn(s"requestUpload for uploadId ${uploadId.value} return response with status ${response.status}")
             throw new HttpException(response.body, response.status)
         }
       }
@@ -89,8 +90,9 @@ class FileUploadCacheConnector @Inject()(
     http.POST[JsValue, HttpResponse](urlUploadResult, Json.toJson(status))(implicitly, implicitly, hc, implicitly)
       .map { response =>
         response.status match {
-          case OK => logger.warn(s"registerUploadResult for Reference ${reference.reference} return response with status ${response.status}")
+          case OK => logger.info(s"registerUploadResult for Reference ${reference.reference} return response with status OK")
           case _ =>
+            logger.warn(s"registerUploadResult for Reference ${reference.reference} return response with status ${response.status}")
             throw new HttpException(response.body, response.status)
         }
       }

@@ -27,7 +27,7 @@ object TimeLogger {
     val start = System.currentTimeMillis
     val call = f
     val totalTime = System.currentTimeMillis() - start
-    logger.warn(s"FileUpload logging time $description is $totalTime ms")
+    logger.info(s"FileUpload logging time $description is $totalTime ms")
     call
   }
 
