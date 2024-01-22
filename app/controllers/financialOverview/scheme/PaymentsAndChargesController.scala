@@ -76,7 +76,7 @@ class PaymentsAndChargesController @Inject()(
             )
             renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
         } else {
-          logger.warn(s"Empty payments cache")
+          logger.warn("Empty payments cache")
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
       }

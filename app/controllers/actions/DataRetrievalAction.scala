@@ -41,7 +41,7 @@ class DataRetrievalImpl(
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     val id = s"$srn$startDate"
-    logger.warn("Dataretrieval action transform - start")
+    logger.info("Dataretrieval action transform - start")
     val result = for {
       data <- userAnswersCacheConnector.fetch(id)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
@@ -49,7 +49,7 @@ class DataRetrievalImpl(
       val optionUA = data.map(jsValue => UserAnswers(jsValue.as[JsObject]))
       OptionalDataRequest[A](request, id, request.psaId, request.pspId, optionUA, sessionData)
     }
-    logger.warn("Dataretrieval action transform - end")
+    logger.info("Dataretrieval action transform - end")
     result andThen {
       case Success(v) => logger.info("Successful response to data retrieval:" + v)
       case Failure(t: Throwable) => logger.warn("Unable to complete dataretrieval", t)
