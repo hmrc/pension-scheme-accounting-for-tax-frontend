@@ -30,7 +30,7 @@ import models.{ChargeType, CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json.Json
 
 import java.time.LocalDate
 

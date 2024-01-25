@@ -65,8 +65,7 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
     }
   }
 
-  def navFromERYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType)
-                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
+  def navFromERYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType): Future[Result] = {
     val uniquePstrs = penalties
       .filter(p => getPenaltyType(p.chargeType) == EventReportingCharges)
       .map(_.pstr).distinct
