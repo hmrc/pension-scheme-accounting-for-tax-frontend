@@ -225,14 +225,14 @@ chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of t
 
 chargeC = Authorised surplus payments charge
 chargeC.whatYouWillNeed.title = Authorised surplus payments charge
-chargeC.whatYouWillNeed.heading = Authorised surplus payments charge
-chargeC.whatYouWillNeed.p1 = To record an authorised surplus payments charge you will need the following for each sponsoring employer who received a payment:
+chargeC.whatYouWillNeed.heading = What you will need
+chargeC.whatYouWillNeed.p1 = To record an authorised surplus payments charge you will need to tell us the following for each sponsoring employer who received a payment:
 chargeC.whatYouWillNeed.li1 = the name of the sponsoring employer
 chargeC.whatYouWillNeed.li2 = their company number if the sponsoring employer is a company
 chargeC.whatYouWillNeed.li3 = their National Insurance number if the sponsoring employer is an individual
 chargeC.whatYouWillNeed.li4 = their registered address
 chargeC.whatYouWillNeed.li5 = the date of payment of the authorised surplus payment
-chargeC.whatYouWillNeed.li6 = the amount of tax due at 35% for this payment
+chargeC.whatYouWillNeed.li6 = the amount of tax due for this payment
 
 chargeC.whichTypeOfSponsoringEmployer.title = Which type of sponsoring employer received the authorised surplus payment?
 chargeC.whichTypeOfSponsoringEmployer.heading = Which type of sponsoring employer received the authorised surplus payment?
