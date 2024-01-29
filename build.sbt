@@ -11,7 +11,6 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .settings(DefaultBuildSettings.scalaSettings: _*)
   .settings(DefaultBuildSettings.defaultSettings(): _*)
-  .settings(SbtDistributablesPlugin.publishingSettings: _*)
   .settings(scalaVersion := "2.13.10")
   .settings(
     Test / parallelExecution := true
