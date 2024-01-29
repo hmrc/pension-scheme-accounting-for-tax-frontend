@@ -57,7 +57,7 @@ class PaymentsAndChargesInterestController @Inject()(
   private val logger = Logger(classOf[PaymentsAndChargesInterestController])
   def onPageLoad(srn: String, pstr: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType,
                  version: Option[Int], submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
-    (identify andThen allowAccess()).async {
+    (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
           val schemeFSDetail: Seq[SchemeFSDetail] = getFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
