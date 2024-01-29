@@ -49,7 +49,7 @@ class YearsController @Inject()(
 
   private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()(StartYears.enumerable)
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,
