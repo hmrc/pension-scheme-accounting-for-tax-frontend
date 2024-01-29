@@ -49,7 +49,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   private def form(journeyType: ChargeDetailsFilter): Form[PaymentOrChargeType] = formProvider(journeyType)
 
-  def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+  def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { cache =>
       val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail)
       val json = Json.obj(

@@ -53,7 +53,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                   (implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages(s"selectChargesQuarter.all.error", year), quarters)
 
-  def onPageLoad(srn: String, pstr: String, year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+  def onPageLoad(srn: String, pstr: String, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
 
       val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFSDetail)
