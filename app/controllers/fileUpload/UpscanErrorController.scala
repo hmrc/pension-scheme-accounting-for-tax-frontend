@@ -37,7 +37,7 @@ class UpscanErrorController @Inject()(
                                        getData: DataRetrievalAction,
                                        requireData: DataRequiredAction,
                                        renderer: Renderer,
-                                       allowAccess: AllowAccessActionProviderForIdentifierRequest,
+                                       allowAccess: AllowAccessActionProviderForIdentifierRequest
                                       )(implicit ec: ExecutionContext)
                                       extends FrontendBaseController
                                       with I18nSupport {
