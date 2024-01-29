@@ -78,7 +78,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
     }
   }
 
-  def onSubmit(srn: String, pstr: String, year: String): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String, pstr: String, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
 
       val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFSDetail)

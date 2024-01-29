@@ -40,7 +40,8 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
                                                   schemeService: SchemeService,
                                                   financialStatementConnector: FinancialStatementConnector,
                                                   service: PaymentsAndChargesService,
-                                                  renderer: Renderer
+                                                  renderer: Renderer,
+                                                  accessAction: AllowAccessActionProviderForIdentifierRequest
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -48,7 +49,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
 
   private val logger = Logger(classOf[SchemeFinancialOverviewController])
 
-  def schemeFinancialOverview(srn: String): Action[AnyContent] = identify.async {
+  def schemeFinancialOverview(srn: String): Action[AnyContent] = (identify andThen accessAction(Some(srn))).async {
     implicit request =>
       val response = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")

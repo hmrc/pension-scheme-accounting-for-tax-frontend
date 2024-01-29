@@ -77,7 +77,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     }
 
   def onSubmit(srn: String, pstr: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
-    identify.async { implicit request =>
+    (identify andThen allowAccess(Some(srn))).async { implicit request =>
       service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
         val typeParam: String = service.getTypeParam(paymentOrChargeType)
         val years = getYears(paymentsCache.schemeFSDetail, paymentOrChargeType)

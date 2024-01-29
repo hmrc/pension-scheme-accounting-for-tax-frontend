@@ -18,7 +18,7 @@ package controllers.fileUpload
 
 import config.FrontendAppConfig
 import controllers.DataRetrievals
-import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.{AccessType, ChargeType, GenericViewModel}
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
@@ -31,37 +31,41 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class UpscanErrorController @Inject()(
-                                      val controllerComponents: MessagesControllerComponents,
-                                      config: FrontendAppConfig,
-                                      identify: IdentifierAction,
-                                      getData: DataRetrievalAction,
-                                      requireData: DataRequiredAction,
-                                      renderer: Renderer
+                                       val controllerComponents: MessagesControllerComponents,
+                                       config: FrontendAppConfig,
+                                       identify: IdentifierAction,
+                                       getData: DataRetrievalAction,
+                                       requireData: DataRequiredAction,
+                                       renderer: Renderer,
+                                       allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                       )(implicit ec: ExecutionContext)
                                       extends FrontendBaseController
                                       with I18nSupport {
 
 
-  def quarantineError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] = Action.async { implicit request =>
+  def quarantineError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val json = Json.obj(
       "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
     renderer.render("fileUpload/error/quarantine.njk", json).map(Ok(_))
   }
 
-  def rejectedError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] = Action.async { implicit request =>
+  def rejectedError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val json = Json.obj(
       "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
     renderer.render("fileUpload/error/rejected.njk", json).map(Ok(_))
   }
 
-  def unknownError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] = Action.async { implicit request =>
+  def unknownError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val json = Json.obj(
       "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
     renderer.render("fileUpload/error/unknown.njk", json).map(Ok(_))
   }
 
   def invalidHeaderOrBodyError(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen allowAccess(Some(srn)) andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
         val viewModel = GenericViewModel(

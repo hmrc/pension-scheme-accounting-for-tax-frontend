@@ -64,7 +64,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
     }
   }
 
-  def onSubmit(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { cache =>
       form(journeyType).bindFromRequest().fold(
         formWithErrors => {
