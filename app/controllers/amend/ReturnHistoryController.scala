@@ -19,7 +19,7 @@ package controllers.amend
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, FinancialStatementConnector, SchemeDetailsConnector}
-import controllers.actions.IdentifierAction
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.SubmitterType.PSA
@@ -55,13 +55,14 @@ class ReturnHistoryController @Inject()(
                                          identify: IdentifierAction,
                                          val controllerComponents: MessagesControllerComponents,
                                          renderer: Renderer,
-                                         config: FrontendAppConfig
+                                         config: FrontendAppConfig,
+                                         allowAccess: AllowAccessActionProviderForIdentifierRequest
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val endDate = Quarters.getQuarter(startDate).endDate
     val internalId = s"$srn$startDate"
 

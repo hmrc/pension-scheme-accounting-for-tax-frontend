@@ -90,7 +90,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     }
 
   def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         aftService.fileCompileReturn(pstr, request.userAnswers).map { _ =>

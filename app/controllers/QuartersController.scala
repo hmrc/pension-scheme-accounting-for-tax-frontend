@@ -81,7 +81,7 @@ class QuartersController @Inject()(
     }
   }
 
-  def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>

@@ -121,7 +121,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                accessType: AccessType,
                version: Int,
                index: Option[Index]): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
         form(chargeTypeDescription, index)

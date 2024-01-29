@@ -44,7 +44,8 @@ class ContinueQuartersController @Inject()(
                                             config: FrontendAppConfig,
                                             quartersService: QuartersService,
                                             schemeService: SchemeService,
-                                            aftConnector: AFTConnector
+                                            aftConnector: AFTConnector,
+                                            allowAccess: AllowAccessActionProviderForIdentifierRequest
                                           )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -53,7 +54,7 @@ class ContinueQuartersController @Inject()(
   private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("continueQuarters.error.required"), quarters)
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,
@@ -80,7 +81,7 @@ class ContinueQuartersController @Inject()(
     }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,

@@ -67,7 +67,7 @@ class YearsController @Inject()(
     }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     form(config)
       .bindFromRequest()
       .fold(

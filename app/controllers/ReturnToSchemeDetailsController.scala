@@ -18,7 +18,7 @@ package controllers
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.IdentifierAction
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.AccessType
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -32,12 +32,13 @@ class ReturnToSchemeDetailsController @Inject()(
     config: FrontendAppConfig,
     identify: IdentifierAction,
     val controllerComponents: MessagesControllerComponents,
-    userAnswersCacheConnector: UserAnswersCacheConnector
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    allowAccess: AllowAccessActionProviderForIdentifierRequest
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
-  def returnToSchemeDetails(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] = identify.async { implicit request =>
+  def returnToSchemeDetails(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val id = s"$srn$startDate"
     userAnswersCacheConnector.removeAll(id).map(_ => Redirect(config.schemeDashboardUrl(request).format(srn)))
   }

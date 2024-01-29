@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.IdentifierAction
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -28,12 +28,13 @@ import scala.concurrent.{ExecutionContext, Future}
 class KeepAliveController @Inject()(
                                      identify: IdentifierAction,
                                      val controllerComponents: MessagesControllerComponents,
-                                     userAnswersCacheConnector: UserAnswersCacheConnector
+                                     userAnswersCacheConnector: UserAnswersCacheConnector,
+                                     allowAccess: AllowAccessActionProviderForIdentifierRequest
                                    )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
-  def keepAlive(srn: Option[String], startDate: Option[String]): Action[AnyContent] = identify.async {
+  def keepAlive(srn: Option[String], startDate: Option[String]): Action[AnyContent] = (identify andThen allowAccess(srn)).async {
     implicit request =>
       (srn, startDate) match {
         case (Some(sr), Some(startDt)) =>

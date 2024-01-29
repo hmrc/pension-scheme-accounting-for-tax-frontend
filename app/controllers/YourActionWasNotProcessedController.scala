@@ -17,7 +17,7 @@
 package controllers
 
 import config.FrontendAppConfig
-import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -34,13 +34,14 @@ class YourActionWasNotProcessedController @Inject()(appConfig: FrontendAppConfig
                                                     identify: IdentifierAction,
                                                     getData: DataRetrievalAction,
                                                     requireData: DataRequiredAction,
-                                                    renderer: Renderer
+                                                    renderer: Renderer,
+                                                    allowAccess: AllowAccessActionProviderForIdentifierRequest
                                                    )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
+    (identify andThen allowAccess(Some(srn)) andThen getData(srn, startDate) andThen requireData).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
           val json = Json.obj(

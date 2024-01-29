@@ -98,7 +98,8 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     }
 
   def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async {
       implicit request =>
         (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
           case (Some(pstr), Some(chargeDetails)) =>
