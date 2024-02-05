@@ -154,8 +154,7 @@ class AllowAccessActionForIdentifierRequest(
         case Some(f) => f.map(Some(_))
         case None    => Future.successful(None)
       }
-
-    //TODO: Potentially add code for both associations
+    
     val accessAllowedFtr = optFtrToFtrOpt(srnOpt.map { srn =>
       schemeDetailsConnector.checkForAssociation(request.idOrException, srn, getIdType(request))
         .recover{ _ => false}
