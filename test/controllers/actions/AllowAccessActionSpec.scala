@@ -73,6 +73,11 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     IdentifierRequest("id", request, None, Some(PspId(pspId)))
   }
 
+  private def identifierRequestBothEnrolments() = {
+    val request = fakeRequest
+    IdentifierRequest("id", request, Some(PsaId(psaId)), Some(PspId(pspId)))
+  }
+
   private def dataRequestPsp(ua: UserAnswers, headers: Seq[(String, String)] = Seq.empty): DataRequest[AnyContent] = {
     val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers: _*)
     DataRequest(request, "", None, Some(PspId(pspId)), ua, sessionData(sessionAccessDataViewOnly))
@@ -411,6 +416,63 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       .thenReturn(Future.successful(minimalDetails))
 
     whenReady(testHarness.test(identifierRequestPsp())) {
+      _ mustBe Some(errorResultNotFound)
+    }
+  }
+
+  "must give access if both enrolments used and only PSA has access" in {
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(true))
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(false))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+    when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequestBothEnrolments())) {
+      _ mustBe None
+    }
+  }
+  "must give access if both enrolments used and only PSP has access" in {
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(false))
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(true))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+    when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequestBothEnrolments())) {
+      _ mustBe None
+    }
+  }
+  "must give access if both enrolments used and both PSA and PSP has access" in {
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(true))
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(true))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+    when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequestBothEnrolments())) {
+      _ mustBe None
+    }
+  }
+  "must return not found if both enrolments don't have access" in {
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(false))
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(false))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+    when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequestBothEnrolments())) {
       _ mustBe Some(errorResultNotFound)
     }
   }

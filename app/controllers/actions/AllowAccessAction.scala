@@ -20,12 +20,13 @@ import com.google.inject.{ImplementedBy, Inject}
 import config.FrontendAppConfig
 import connectors.{AFTConnector, DelimitedAdminException, MinimalConnector, SchemeDetailsConnector}
 import handlers.ErrorHandler
-import models.AdministratorOrPractitioner.Administrator
+import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import models.LocalDateBinder._
 import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.{DataRequest, IdentifierRequest}
 import models.{AccessType, AdministratorOrPractitioner, MinimalFlags}
 import pages._
+import play.api.Logging
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
 import play.api.mvc.{ActionFilter, Call, Result}
@@ -68,11 +69,30 @@ class AllowAccessAction(
                        )(
                          implicit val executionContext: ExecutionContext
                        )
-  extends ActionFilter[DataRequest] with AllowAccessCommon {
+  extends ActionFilter[DataRequest] with AllowAccessCommon with Logging {
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
+
+    def allowAccess[T](srn: String, request: DataRequest[T]) = {
+      def isAssociated(id: String, idType: String) =
+        schemeDetailsConnector
+          .checkForAssociation(id, srn, idType)
+          .recover { err =>
+            logger.error("Association check failed", err)
+            false
+          }
+
+      def pspIsAssociated = request.pspId.map { pspId => isAssociated(pspId.id, "pspId") }.getOrElse(Future.successful(false))
+
+      request.psaId.map { psaId =>
+        isAssociated(psaId.id, "psaId").flatMap {
+          case false => pspIsAssociated
+          case true => Future.successful(true)
+        }
+      }.getOrElse(pspIsAssociated)
+    }
 
     (isInvalidDate, request.userAnswers.get(SchemeStatusQuery), minimalFlagChecks(request)) match {
       case (_, _, optionRedirectUrl@Some(_)) => Future.successful(optionRedirectUrl)
@@ -80,7 +100,7 @@ class AllowAccessAction(
         if (!validStatuses.contains(schemeStatus)) {
           errorHandler.onClientError(request, NOT_FOUND, message = "Allow access action - Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
         } else {
-          schemeDetailsConnector.checkForAssociation(request.idOrException, srn, getIdType(request))(hc, implicitly).flatMap {
+          allowAccess(srn, request).flatMap {
             case true =>
               associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
             case _ =>
@@ -98,14 +118,6 @@ class AllowAccessAction(
         controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version)))
       case Some(mf) =>
         minimalFlagsRedirect(mf, frontendAppConfig, request.schemeAdministratorType)
-    }
-  }
-
-  private def getIdType[A](request: DataRequest[A]):String = {
-    (request.psaId, request.pspId) match {
-      case (Some(_), _) => "psaId"
-      case (_, Some(_)) => "pspId"
-      case _ => throw new Exception("Unable to get ID from request")
     }
   }
 
@@ -136,15 +148,9 @@ class AllowAccessActionForIdentifierRequest(
                        )(
                          implicit val executionContext: ExecutionContext
                        )
-  extends ActionFilter[IdentifierRequest] with AllowAccessCommon {
+  extends ActionFilter[IdentifierRequest] with AllowAccessCommon with Logging {
 
-  private def getIdType[A](request: IdentifierRequest[A]):String = {
-    (request.psaId, request.pspId) match {
-      case (Some(_), _) => "psaId"
-      case (_, Some(_)) => "pspId"
-      case _ => throw new Exception("Unable to get ID from request")
-    }
-  }
+  //noinspection ScalaStyle
   override protected def filter[A](request: IdentifierRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromRequestAndSession(request, request.session)
@@ -155,17 +161,42 @@ class AllowAccessActionForIdentifierRequest(
         case None    => Future.successful(None)
       }
 
-    //TODO: Potentially add code for both associations
-    val accessAllowedFtr = optFtrToFtrOpt(srnOpt.map { srn =>
-      schemeDetailsConnector.checkForAssociation(request.idOrException, srn, getIdType(request))
-        .recover{ _ => false}
-    }).map(_.getOrElse(true))
+    case class AllowAccess(allow: Boolean, adminStatus: AdministratorOrPractitioner)
+
+    def allowAccess[T](srn: String, request: IdentifierRequest[T]) = {
+      def isAssociated(id: String, idType: String) =
+        schemeDetailsConnector
+          .checkForAssociation(id, srn, idType)
+          .recover { _ =>
+            logger.error("Association check failed")
+            false
+          }
+
+      def pspIsAssociated = request.pspId.map { pspId => isAssociated(pspId.id, "pspId").map(allow => AllowAccess(allow, adminStatus = Practitioner)) }
+        .getOrElse(Future.successful(AllowAccess(allow = false, adminStatus = Practitioner)))
+
+      request.psaId.map { psaId =>
+        isAssociated(psaId.id, "psaId").flatMap {
+          case false => pspIsAssociated
+          case true => Future.successful(AllowAccess(allow = true, adminStatus = Administrator))
+        }
+      }.getOrElse(pspIsAssociated)
+    }
+
+    val accessAllowedFtr = optFtrToFtrOpt(
+      srnOpt.map { srn =>
+        allowAccess(srn, request)
+      }
+    ).map(_.getOrElse(AllowAccess(allow = true, request.schemeAdministratorType)))
 
     accessAllowedFtr.flatMap {
-      case false => errorHandler.onClientError(request, NOT_FOUND).map(Some(_))
-      case true => minimalConnector.getMinimalDetails(implicitly, implicitly, request).map { minimalDetails =>
-        minimalFlagsRedirect(MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag),
-          frontendAppConfig, request.schemeAdministratorType) match {
+      case AllowAccess(false, _) => errorHandler.onClientError(request, NOT_FOUND).map(Some(_))
+      case AllowAccess(true, adminStatus) => minimalConnector.getMinimalDetails(implicitly, implicitly, request).map { minimalDetails =>
+        minimalFlagsRedirect(
+          MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag),
+          frontendAppConfig,
+          adminStatus
+        ) match {
           case optionRedirectUrl@Some(_) => optionRedirectUrl
           case _ => None
         }
@@ -173,6 +204,9 @@ class AllowAccessActionForIdentifierRequest(
         case _: DelimitedAdminException =>
           Future.successful(Some(Redirect(Call("GET", frontendAppConfig.delimitedPsaUrl))))
       }
+    } recoverWith { case err =>
+      logger.error("Check access allowed failed", err)
+      errorHandler.onClientError(request, NOT_FOUND).map(Some(_))
     }
   }
 }
@@ -185,7 +219,8 @@ trait AllowAccessActionProvider {
 class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
                                               errorHandler: ErrorHandler,
                                               frontendAppConfig: FrontendAppConfig,
-                                              schemeDetailsConnector: SchemeDetailsConnector)(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
+                                              schemeDetailsConnector: SchemeDetailsConnector)(implicit ec: ExecutionContext)
+    extends AllowAccessActionProvider {
   def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType) =
     new AllowAccessAction(srn, startDate, optionPage, version, accessType, aftConnector, errorHandler, frontendAppConfig, schemeDetailsConnector)
 }
@@ -196,11 +231,12 @@ trait AllowAccessActionProviderForIdentifierRequest {
 }
 
 class AllowAccessActionProviderForIdentifierRequestImpl @Inject()(
-  frontendAppConfig: FrontendAppConfig,
-  minimalConnector: MinimalConnector,
-  schemeDetailsConnector: SchemeDetailsConnector,
-  errorHandler: ErrorHandler
-)(implicit ec: ExecutionContext) extends AllowAccessActionProviderForIdentifierRequest {
+    frontendAppConfig: FrontendAppConfig,
+    minimalConnector: MinimalConnector,
+    schemeDetailsConnector: SchemeDetailsConnector,
+    errorHandler: ErrorHandler
+)(implicit ec: ExecutionContext)
+    extends AllowAccessActionProviderForIdentifierRequest {
   def apply(srn: Option[String]) =
     new AllowAccessActionForIdentifierRequest(frontendAppConfig, minimalConnector, schemeDetailsConnector, errorHandler, srn)
 }
