@@ -49,7 +49,7 @@ class PaymentsAndChargesController @Inject()(
     with I18nSupport
     with NunjucksSupport {
   private val logger = Logger(classOf[PaymentsAndChargesController])
-  def onPageLoad(srn: String, pstr: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+  def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
         val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFSDetail)
@@ -60,7 +60,7 @@ class PaymentsAndChargesController @Inject()(
         val totalUpcoming: BigDecimal = upcomingCharges.map(_.amountDue).sum
 
         if (paymentsCache.schemeFSDetail.nonEmpty) {
-          val table = paymentsAndChargesService.getPaymentsAndCharges(srn, pstr, paymentsCache.schemeFSDetail, journeyType)
+          val table = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
               fields =

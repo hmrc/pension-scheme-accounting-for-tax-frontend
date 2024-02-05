@@ -37,9 +37,9 @@ class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, pstr: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
-      navService.navFromSchemeDashboard(paymentsCache.schemeFSDetail, srn, pstr)
+      navService.navFromSchemeDashboard(paymentsCache.schemeFSDetail, srn)
     }
   }
 

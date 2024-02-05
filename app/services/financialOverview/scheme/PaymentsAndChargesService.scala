@@ -56,7 +56,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   case class IndexRef(chargeType: String, chargeReference: String, period: String)
 
   def getPaymentsAndCharges(srn: String,
-                            pstr: String,
                             schemeFSDetail: Seq[SchemeFSDetail],
                             chargeDetailsFilter: ChargeDetailsFilter
                            )
@@ -64,7 +63,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val filteredSchemeFSDetail = filteredSeqSchemeFsDetailNoCredits(schemeFSDetail)
 
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = filteredSchemeFSDetail.flatMap { paymentOrCharge =>
-      def data = paymentsAndChargesDetails(paymentOrCharge, srn, pstr, chargeDetailsFilter)
+      def data = paymentsAndChargesDetails(paymentOrCharge, srn, chargeDetailsFilter)
       paymentOrCharge.chargeType match {
         case x:PenaltyType if !PenaltyType.displayCharge(x) => Seq.empty
         case _ => data
@@ -113,11 +112,11 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  def getReturnUrl(srn: String, pstr: String, psaId: Option[PsaId], pspId: Option[PspId], config: FrontendAppConfig,
+  def getReturnUrl(srn: String, psaId: Option[PsaId], pspId: Option[PspId], config: FrontendAppConfig,
                    journeyType: ChargeDetailsFilter): String = {
     journeyType match {
       case All => config.schemeDashboardUrl(psaId, pspId).format(srn)
-      case _ => controllers.financialOverview.scheme.routes.PaymentsAndChargesController.onPageLoad(srn, pstr, journeyType).url
+      case _ => controllers.financialOverview.scheme.routes.PaymentsAndChargesController.onPageLoad(srn, journeyType).url
     }
   }
 
@@ -125,7 +124,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   private def paymentsAndChargesDetails(
                                          details: SchemeFSDetail,
                                          srn: String,
-                                         pstr: String,
                                          chargeDetailsFilter: ChargeDetailsFilter
                                        )(implicit messages: Messages): Seq[FinancialPaymentAndChargesDetails] = {
     val chargeType = getPaymentOrChargeType(details.chargeType)
@@ -150,7 +148,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           period = setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate),
           submittedDate = setSubmittedDate(submittedDate, details.chargeType),
           redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargeDetailsController.onPageLoad(
-            srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
+            srn, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
           visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", displayChargeReference(details.chargeReference)),
           id = displayChargeReference(details.chargeReference)
         )
@@ -170,7 +168,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
             status = InterestIsAccruing,
             period = setPeriod(interestChargeType, details.periodStartDate, details.periodEndDate),
             redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargesInterestController.onPageLoad(
-              srn, pstr, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
+              srn, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
             visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText"),
             id = s"${details.chargeReference}-interest"
           )

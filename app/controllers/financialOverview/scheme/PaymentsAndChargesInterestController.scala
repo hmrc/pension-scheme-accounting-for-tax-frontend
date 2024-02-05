@@ -55,14 +55,14 @@ class PaymentsAndChargesInterestController @Inject()(
     with I18nSupport
     with NunjucksSupport {
   private val logger = Logger(classOf[PaymentsAndChargesInterestController])
-  def onPageLoad(srn: String, pstr: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType,
+  def onPageLoad(srn: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType,
                  version: Option[Int], submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
           val schemeFSDetail: Seq[SchemeFSDetail] = getFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
 
-          buildPage(schemeFSDetail, period, index, paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, version, submittedDate, journeyType)
+          buildPage(schemeFSDetail, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType, version, submittedDate, journeyType)
         }
     }
 
@@ -81,7 +81,6 @@ class PaymentsAndChargesInterestController @Inject()(
                          index: String,
                          schemeName: String,
                          srn: String,
-                         pstr: String,
                          paymentOrChargeType: PaymentOrChargeType,
                          version: Option[Int],
                          submittedDate: Option[String],
@@ -91,11 +90,11 @@ class PaymentsAndChargesInterestController @Inject()(
                        ): Future[Result] = {
     filteredSchemeFS.find(_.index == index.toInt) match {
       case Some(schemeFs) =>
-        val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, period, index,
+        val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(srn, period, index,
           paymentOrChargeType, version, submittedDate, journeyType).url
         renderer.render(
           template = "financialOverview/scheme/paymentsAndChargeInterest.njk",
-          ctx = summaryListData(srn, pstr, request.psaId, request.pspId, schemeFs, schemeName, originalAmountUrl, version, journeyType)
+          ctx = summaryListData(srn, request.psaId, request.pspId, schemeFs, schemeName, originalAmountUrl, version, journeyType)
         ).map(Ok(_))
       case _ =>
         logger.warn(s"Scheme not found for index $index")
@@ -103,7 +102,7 @@ class PaymentsAndChargesInterestController @Inject()(
     }
   }
 
-  private def summaryListData(srn: String, pstr: String, psaId: Option[PsaId], pspId: Option[PspId], schemeFSDetail: SchemeFSDetail, schemeName: String,
+  private def summaryListData(srn: String, psaId: Option[PsaId], pspId: Option[PspId], schemeFSDetail: SchemeFSDetail, schemeName: String,
                               originalAmountUrl: String, version: Option[Int], journeyType: ChargeDetailsFilter)
                              (implicit messages: Messages): JsObject = {
 
@@ -130,7 +129,7 @@ class PaymentsAndChargesInterestController @Inject()(
       "insetText" -> htmlInsetText,
       "originalAmountUrl" -> originalAmountUrl,
       "returnLinkBasedOnJourney" -> paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-      "returnUrl" -> paymentsAndChargesService.getReturnUrl(srn, pstr, psaId, pspId, config, journeyType)
+      "returnUrl" -> paymentsAndChargesService.getReturnUrl(srn, psaId, pspId, config, journeyType)
     )
   }
 
