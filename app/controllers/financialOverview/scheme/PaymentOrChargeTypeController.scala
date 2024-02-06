@@ -51,7 +51,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   private def form(): Form[PaymentOrChargeType] = formProvider()
 
-  def onPageLoad(srn: String,  pstr: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+  def onPageLoad(srn: String,  pstr: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
       eventReportingConnector.getFeatureToggle("event-reporting").flatMap { toggleDetail =>
         val paymentsOrCharges = filterPaymentOrChargeTypesByFeatureToggle(getPaymentOrChargeTypes(cache.schemeFSDetail),toggleDetail.isEnabled)
@@ -69,7 +69,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
     }
   }
 
-  def onSubmit(srn: String,  pstr: String): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String,  pstr: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
       form().bindFromRequest().fold(
         formWithErrors => {

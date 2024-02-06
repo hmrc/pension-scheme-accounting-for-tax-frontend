@@ -43,7 +43,8 @@ class AmendQuartersController @Inject()(
                                          renderer: Renderer,
                                          config: FrontendAppConfig,
                                          quartersService: QuartersService,
-                                         schemeService: SchemeService
+                                         schemeService: SchemeService,
+                                         allowAccess: AllowAccessActionProviderForIdentifierRequest
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -59,7 +60,7 @@ class AmendQuartersController @Inject()(
     Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate)))
 
   def onPageLoad(srn: String, year: String): Action[AnyContent] =
-    identify.async {
+    (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         schemeService.retrieveSchemeDetails(
           psaId = request.idOrException,
@@ -93,7 +94,7 @@ class AmendQuartersController @Inject()(
     }
 
   def onSubmit(srn: String, year: String): Action[AnyContent] =
-    identify.async {
+    (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         schemeService.retrieveSchemeDetails(
           psaId = request.idOrException,

@@ -93,7 +93,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
   def onSubmit(chargeType: ChargeType,
                mode: Mode, srn: String, startDate: LocalDate,
                accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen  allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
         form(chargeTypeDescription)

@@ -44,11 +44,13 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
   private val aftConnector: AFTConnector = mock[AFTConnector]
   private val errorHandler: ErrorHandler = mock[ErrorHandler]
   private val mockMinimalConnector = mock[MinimalConnector]
+  private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
 
   private val version = 1
   private val pensionsSchemeConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
   private val sessionId = "1"
   private val optionLockedByName = Some(LockDetail("bob", psaId))
+  private val errorResultNotFound = NotFound("error")
 
   private def sessionData(sad: SessionAccessData) = SessionData(sessionId, optionLockedByName, sad)
 
@@ -82,8 +84,13 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
   }
 
-  class TestHarnessForIdentifierRequest()(implicit ec: ExecutionContext)
-    extends AllowAccessActionForIdentifierRequest(frontendAppConfig, mockMinimalConnector)(ec) {
+  class TestHarnessForIdentifierRequest(srn: Option[String] = None)(implicit ec: ExecutionContext)
+    extends AllowAccessActionForIdentifierRequest(
+      frontendAppConfig,
+      mockMinimalConnector,
+      mockSchemeDetailsConnector,
+      errorHandler,
+      srn)(ec) {
     def test(identifierRequest: IdentifierRequest[_]): Future[Option[Result]] = this.filter(identifierRequest)
   }
 
@@ -91,7 +98,9 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     reset(pensionsSchemeConnector)
     reset(errorHandler)
     reset(mockMinimalConnector)
+    reset(mockSchemeDetailsConnector)
     when(aftConnector.aftOverviewStartDate).thenReturn(QUARTER_START_DATE)
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), any())(any(), any())).thenReturn(Future.successful(true))
   }
 
   "Allow Access Action" must {
@@ -318,4 +327,91 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     }
   }
 
+  "must return found if PSA is associated with SRN" in {
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(true))
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(false))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequest())) {
+      _ mustBe None
+    }
+  }
+
+  "must return not found if PSA is not associated with SRN" in {
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(false))
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(true))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+    when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequest())) {
+      _ mustBe Some(errorResultNotFound)
+    }
+  }
+
+  "must return not found for PSA if scheme connector throws error" in {
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), any())(any(), any())).thenReturn(Future.failed(new RuntimeException()))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+    when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequest())) {
+      _ mustBe Some(errorResultNotFound)
+    }
+  }
+
+  "must return found if PSP is associated with SRN" in {
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(false))
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(true))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequestPsp())) {
+      _ mustBe None
+    }
+  }
+
+  "must return not found if PSP is not associated with SRN" in {
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(true))
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(false))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+    when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequestPsp())) {
+      _ mustBe Some(errorResultNotFound)
+    }
+  }
+
+  "must return not found for PSP if scheme connector throws error" in {
+    when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), any())(any(), any())).thenReturn(Future.failed(new RuntimeException()))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+    when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequestPsp())) {
+      _ mustBe Some(errorResultNotFound)
+    }
+  }
 }

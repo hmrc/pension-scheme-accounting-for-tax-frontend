@@ -56,7 +56,7 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   def onPageLoad(srn: String, period: String, index: String,
                  paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
-    (identify andThen allowAccess()).async {
+    (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 

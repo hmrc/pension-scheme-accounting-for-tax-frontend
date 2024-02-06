@@ -36,13 +36,14 @@ class AFTAmendController @Inject()(
     auditService: AuditService,
     schemeService: SchemeService,
     identify: IdentifierAction,
-    val controllerComponents: MessagesControllerComponents
+    val controllerComponents: MessagesControllerComponents,
+    allowAccess: AllowAccessActionProviderForIdentifierRequest
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,

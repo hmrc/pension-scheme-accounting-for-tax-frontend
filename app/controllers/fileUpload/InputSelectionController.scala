@@ -75,7 +75,7 @@ class InputSelectionController @Inject()(
     }
 
   def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
 
       implicit request => DataRetrievals.retrieveSchemeName { schemeName =>
         val ua = request.userAnswers
