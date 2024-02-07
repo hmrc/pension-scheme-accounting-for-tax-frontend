@@ -102,7 +102,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                version: Int,
                index: Index,
                schemeIndex: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
         form()

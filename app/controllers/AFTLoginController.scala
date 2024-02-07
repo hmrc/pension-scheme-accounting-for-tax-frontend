@@ -36,13 +36,14 @@ class AFTLoginController @Inject()(
                                     val controllerComponents: MessagesControllerComponents,
                                     auditService: AuditService,
                                     schemeService: SchemeService,
+                                    allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                     config: FrontendAppConfig)
                                   (implicit ec: ExecutionContext)
                                     extends FrontendBaseController
                                     with I18nSupport
                                     with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val defaultYear = StartYears.minYear(config)
     schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").map { schemeDetails =>
       auditService.sendEvent(StartNewAFTAuditEvent(request.idOrException, schemeDetails.pstr))

@@ -125,7 +125,8 @@ class TaxQuarterReportedAndPaidController @Inject()(
                version: Int,
                index: Index,
                schemeIndex: Option[Index]): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(fullYearRange) match {
         case Some(yearRange) =>
           schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
