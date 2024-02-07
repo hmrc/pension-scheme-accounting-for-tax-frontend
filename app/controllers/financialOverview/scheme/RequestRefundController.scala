@@ -43,7 +43,8 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
                                         psaSchemePartialService: PsaSchemePartialService,
                                         schemeService: SchemeService,
                                         minimalConnector: MinimalConnector,
-                                        financialInfoCreditAccessConnector: FinancialInfoCreditAccessConnector
+                                        financialInfoCreditAccessConnector: FinancialInfoCreditAccessConnector,
+                                        allowAccess: AllowAccessActionProviderForIdentifierRequest
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -77,7 +78,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
     }
   }
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     requestRefundURL(srn).flatMap { url =>
       creditAccess(srn).flatMap {
         case None => Future.successful(Redirect(Call("GET", url)))

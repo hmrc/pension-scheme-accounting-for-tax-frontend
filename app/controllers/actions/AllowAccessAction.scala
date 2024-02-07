@@ -26,6 +26,7 @@ import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.{DataRequest, IdentifierRequest}
 import models.{AccessType, AdministratorOrPractitioner, MinimalFlags}
 import pages._
+import play.api.Logging
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
 import play.api.mvc.{ActionFilter, Call, Result}
@@ -68,7 +69,7 @@ class AllowAccessAction(
                        )(
                          implicit val executionContext: ExecutionContext
                        )
-  extends ActionFilter[DataRequest] with AllowAccessCommon {
+  extends ActionFilter[DataRequest] with AllowAccessCommon with Logging {
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromRequestAndSession(request, request.session)
@@ -84,6 +85,7 @@ class AllowAccessAction(
             case true =>
               associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
             case _ =>
+              logger.warn("Potentially prevented unauthorised access")
               errorHandler.onClientError(request, NOT_FOUND, message = "Allow access action - PSA not associated: id is " + request.idOrException + " and srn is " + srn).map(Option(_))
           }
         }
@@ -129,23 +131,54 @@ class AllowAccessAction(
 
 class AllowAccessActionForIdentifierRequest(
                          frontendAppConfig: FrontendAppConfig,
-                         minimalConnector: MinimalConnector
+                         minimalConnector: MinimalConnector,
+                         schemeDetailsConnector: SchemeDetailsConnector,
+                         errorHandler: ErrorHandler,
+                         srnOpt: Option[String]
                        )(
                          implicit val executionContext: ExecutionContext
                        )
-  extends ActionFilter[IdentifierRequest] with AllowAccessCommon {
+  extends ActionFilter[IdentifierRequest] with AllowAccessCommon with Logging {
+
+  private def getIdType[A](request: IdentifierRequest[A]):String = {
+    (request.psaId, request.pspId) match {
+      case (Some(_), _) => "psaId"
+      case (_, Some(_)) => "pspId"
+      case _ => throw new Exception("Unable to get ID from request")
+    }
+  }
   override protected def filter[A](request: IdentifierRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-    minimalConnector.getMinimalDetails(implicitly, implicitly, request).map { minimalDetails =>
-      minimalFlagsRedirect(MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag),
-        frontendAppConfig, request.schemeAdministratorType) match {
-        case optionRedirectUrl@Some(_) => optionRedirectUrl
-        case _ => None
+
+    def optFtrToFtrOpt[T](x: Option[Future[T]]): Future[Option[T]] =
+      x match {
+        case Some(f) => f.map(Some(_))
+        case None    => Future.successful(None)
       }
-    } recoverWith {
-      case _: DelimitedAdminException =>
-        Future.successful(Some(Redirect(Call("GET", frontendAppConfig.delimitedPsaUrl))))
+    
+    val accessAllowedFtr = optFtrToFtrOpt(srnOpt.map { srn =>
+      schemeDetailsConnector.checkForAssociation(request.idOrException, srn, getIdType(request))
+        .recover { err =>
+          logger.error("Cannot check for association", err)
+          false
+        }
+    }).map(_.getOrElse(true))
+
+    accessAllowedFtr.flatMap {
+      case false =>
+        logger.warn("Potentially prevented unauthorised access")
+        errorHandler.onClientError(request, NOT_FOUND).map(Some(_))
+      case true => minimalConnector.getMinimalDetails(implicitly, implicitly, request).map { minimalDetails =>
+        minimalFlagsRedirect(MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag),
+          frontendAppConfig, request.schemeAdministratorType) match {
+          case optionRedirectUrl@Some(_) => optionRedirectUrl
+          case _ => None
+        }
+      } recoverWith {
+        case _: DelimitedAdminException =>
+          Future.successful(Some(Redirect(Call("GET", frontendAppConfig.delimitedPsaUrl))))
+      }
     }
   }
 }
@@ -165,12 +198,15 @@ class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
 
 @ImplementedBy(classOf[AllowAccessActionProviderForIdentifierRequestImpl])
 trait AllowAccessActionProviderForIdentifierRequest {
-  def apply(): ActionFilter[IdentifierRequest]
+  def apply(srn: Option[String] = None): ActionFilter[IdentifierRequest]
 }
 
 class AllowAccessActionProviderForIdentifierRequestImpl @Inject()(
   frontendAppConfig: FrontendAppConfig,
-  minimalConnector: MinimalConnector
+  minimalConnector: MinimalConnector,
+  schemeDetailsConnector: SchemeDetailsConnector,
+  errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext) extends AllowAccessActionProviderForIdentifierRequest {
-  def apply() = new AllowAccessActionForIdentifierRequest(frontendAppConfig, minimalConnector)
+  def apply(srn: Option[String]) =
+    new AllowAccessActionForIdentifierRequest(frontendAppConfig, minimalConnector, schemeDetailsConnector, errorHandler, srn)
 }

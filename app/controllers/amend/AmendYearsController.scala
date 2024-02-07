@@ -41,7 +41,8 @@ class AmendYearsController @Inject()(
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
                                       schemeService: SchemeService,
-                                      quartersService: QuartersService
+                                      quartersService: QuartersService,
+                                      allowAccess: AllowAccessActionProviderForIdentifierRequest
                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -51,7 +52,7 @@ class AmendYearsController @Inject()(
     Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year.toString)))
   private def futureSessionExpiredPage:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,
@@ -86,7 +87,7 @@ class AmendYearsController @Inject()(
     )
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,

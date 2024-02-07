@@ -40,7 +40,8 @@ class PsaSchemeDashboardPartialsController @Inject()(
     schemeService: SchemeService,
     financialStatementConnector: FinancialStatementConnector,
     service: PsaSchemePartialService,
-    renderer: Renderer
+    renderer: Renderer,
+    allowAccess: AllowAccessActionProviderForIdentifierRequest
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -49,7 +50,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
   private val logger = Logger(classOf[PsaSchemeDashboardPartialsController])
 
 
-  def psaSchemeDashboardAFTTilePartial(srn: String): Action[AnyContent] = identify.async {
+  def psaSchemeDashboardAFTTilePartial(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
           schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
               service.aftCardModel(schemeDetails, srn).flatMap { cards =>
@@ -64,7 +65,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
   }
 
 
-  def psaSchemeDashboardFinInfoPartial(srn: String): Action[AnyContent] = identify.async {
+  def psaSchemeDashboardFinInfoPartial(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
       schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
           getFinancialOverviewTile(srn, schemeDetails).flatMap { cards =>

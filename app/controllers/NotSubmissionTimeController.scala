@@ -17,7 +17,7 @@
 package controllers
 
 import config.FrontendAppConfig
-import controllers.actions.IdentifierAction
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.CommonQuarters
 import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
@@ -31,11 +31,12 @@ import scala.concurrent.ExecutionContext
 
 class NotSubmissionTimeController  @Inject()(renderer: Renderer,
                                              identify: IdentifierAction,
-                                             appConfig: FrontendAppConfig
+                                             appConfig: FrontendAppConfig,
+                                             allowAccess: AllowAccessActionProviderForIdentifierRequest
                                             )(implicit val executionContext: ExecutionContext) extends CommonQuarters {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = {
-    identify.async {
+    (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
 
         val json = Json.obj(
