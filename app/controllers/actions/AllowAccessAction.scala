@@ -26,6 +26,7 @@ import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.{DataRequest, IdentifierRequest}
 import models.{AccessType, AdministratorOrPractitioner, MinimalFlags}
 import pages._
+import play.api.Logging
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
 import play.api.mvc.{ActionFilter, Call, Result}
@@ -68,7 +69,7 @@ class AllowAccessAction(
                        )(
                          implicit val executionContext: ExecutionContext
                        )
-  extends ActionFilter[DataRequest] with AllowAccessCommon {
+  extends ActionFilter[DataRequest] with AllowAccessCommon with Logging {
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromRequestAndSession(request, request.session)
@@ -84,6 +85,7 @@ class AllowAccessAction(
             case true =>
               associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
             case _ =>
+              logger.warn("Potentially prevented unauthorised access")
               errorHandler.onClientError(request, NOT_FOUND, message = "Allow access action - PSA not associated: id is " + request.idOrException + " and srn is " + srn).map(Option(_))
           }
         }
@@ -136,7 +138,7 @@ class AllowAccessActionForIdentifierRequest(
                        )(
                          implicit val executionContext: ExecutionContext
                        )
-  extends ActionFilter[IdentifierRequest] with AllowAccessCommon {
+  extends ActionFilter[IdentifierRequest] with AllowAccessCommon with Logging {
 
   private def getIdType[A](request: IdentifierRequest[A]):String = {
     (request.psaId, request.pspId) match {
@@ -157,11 +159,16 @@ class AllowAccessActionForIdentifierRequest(
     
     val accessAllowedFtr = optFtrToFtrOpt(srnOpt.map { srn =>
       schemeDetailsConnector.checkForAssociation(request.idOrException, srn, getIdType(request))
-        .recover{ _ => false}
+        .recover { err =>
+          logger.error("Cannot check for association", err)
+          false
+        }
     }).map(_.getOrElse(true))
 
     accessAllowedFtr.flatMap {
-      case false => errorHandler.onClientError(request, NOT_FOUND).map(Some(_))
+      case false =>
+        logger.warn("Potentially prevented unauthorised access")
+        errorHandler.onClientError(request, NOT_FOUND).map(Some(_))
       case true => minimalConnector.getMinimalDetails(implicitly, implicitly, request).map { minimalDetails =>
         minimalFlagsRedirect(MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag),
           frontendAppConfig, request.schemeAdministratorType) match {
