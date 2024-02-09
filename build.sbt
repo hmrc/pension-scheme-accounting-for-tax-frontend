@@ -11,12 +11,12 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .settings(DefaultBuildSettings.scalaSettings: _*)
   .settings(DefaultBuildSettings.defaultSettings(): _*)
-  .settings(scalaVersion := "2.13.10")
+  .settings(scalaVersion := "2.13.12")
   .settings(
     Test / parallelExecution := true
   )
   .settings(inConfig(Test)(testSettings): _*)
-  .settings(majorVersion := 0, libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
+  .settings(majorVersion := 0)
   .settings(
     name := appName,
     RoutesKeys.routesImport ++= Seq("models._", "models.OptionBinder._", "models.LocalDateBinder._", "java.time.LocalDate",
