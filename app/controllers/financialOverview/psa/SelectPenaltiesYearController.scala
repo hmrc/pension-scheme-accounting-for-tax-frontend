@@ -114,8 +114,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       }
   }
 
-  private def erNavMethod(psaId: String)
-                          (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] =
+  private def erNavMethod(psaId: String): (Seq[PsaFSDetail], Int) => Future[Result] =
     (penalties, year) => {
       val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == EventReportingCharges)
       navService.navFromERYearsPage(filteredPenalties, year, psaId, EventReportingCharges)

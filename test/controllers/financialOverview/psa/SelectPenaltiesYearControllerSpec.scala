@@ -132,7 +132,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
         thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsERSeq)))
       when(mockPsaPenaltiesAndChargesService.getTypeParam(EventReportingCharges)).
         thenReturn(EventReportingCharges.toString)
-      when(mockNavigationService.navFromERYearsPage(any(), any(), any(), any())(any(), any()))
+      when(mockNavigationService.navFromERYearsPage(any(), any(), any(), any()))
         .thenReturn(Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(EventReportingCharges, year))))
 
       val result = route(application, httpPOSTRequest(erHttpPathPOST, valuesValid)).value

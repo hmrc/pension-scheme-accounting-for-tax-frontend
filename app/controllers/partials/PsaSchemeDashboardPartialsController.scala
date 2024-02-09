@@ -31,7 +31,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewmodels.CardViewModel
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class PsaSchemeDashboardPartialsController @Inject()(
     identify: IdentifierAction,
