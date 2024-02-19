@@ -96,7 +96,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                 Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false),
               "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
             )
-            renderer.render(template = "financialOverview/selectQuarter.njk", json).map(BadRequest(_))
+            renderer.render(template = "financialOverview/scheme/selectQuarter.njk", json).map(BadRequest(_))
 
           },
           value => {
