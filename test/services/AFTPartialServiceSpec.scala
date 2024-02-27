@@ -56,8 +56,8 @@ class AFTPartialServiceSpec
   private val paymentsAndChargesService = mock[PaymentsAndChargesService]
   private val documentLineItemDetails = Seq()
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(paymentsAndChargesService, aftConnector, aftCacheConnector)
   }
 

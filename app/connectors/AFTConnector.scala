@@ -49,6 +49,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
           case _ => handleErrorResponse("POST", url)(response)
         }
     } andThen {
+      case Failure(_: ReturnAlreadySubmittedException) => ()
       case Failure(t: Throwable) => logger.warn("Unable to post aft return", t)
     }
   }

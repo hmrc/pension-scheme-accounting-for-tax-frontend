@@ -225,14 +225,14 @@ chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of t
 
 chargeC = Authorised surplus payments charge
 chargeC.whatYouWillNeed.title = Authorised surplus payments charge
-chargeC.whatYouWillNeed.heading = Authorised surplus payments charge
-chargeC.whatYouWillNeed.p1 = To record an authorised surplus payments charge you will need the following for each sponsoring employer who received a payment:
+chargeC.whatYouWillNeed.heading = What you will need
+chargeC.whatYouWillNeed.p1 = To record an authorised surplus payments charge you will need to tell us the following for each sponsoring employer who received a payment:
 chargeC.whatYouWillNeed.li1 = the name of the sponsoring employer
 chargeC.whatYouWillNeed.li2 = their company number if the sponsoring employer is a company
 chargeC.whatYouWillNeed.li3 = their National Insurance number if the sponsoring employer is an individual
 chargeC.whatYouWillNeed.li4 = their registered address
 chargeC.whatYouWillNeed.li5 = the date of payment of the authorised surplus payment
-chargeC.whatYouWillNeed.li6 = the amount of tax due at 35% for this payment
+chargeC.whatYouWillNeed.li6 = the amount of tax due for this payment
 
 chargeC.whichTypeOfSponsoringEmployer.title = Which type of sponsoring employer received the authorised surplus payment?
 chargeC.whichTypeOfSponsoringEmployer.heading = Which type of sponsoring employer received the authorised surplus payment?
@@ -840,21 +840,21 @@ chargeC.paymentDate.error.date = The date the authorised surplus payment was mad
 chargeC.paymentDate.error.incomplete = The date the authorised surplus payment was made must include a day, month and year
 chargeC.paymentDate.error.future = The date the authorised surplus payment was made must be today or in the past
 
-chargeC.amountTaxDue.error.required = Enter the amount of tax due at 35%
-chargeC.amountTaxDue.error.invalid = The amount of tax due at 35% must be an amount of money, like 123 or 123.45
-chargeC.amountTaxDue.error.decimal = The amount of tax due at 35% must be whole numbers, like 123 or must include pence, like 123.45
+chargeC.amountTaxDue.error.required = Enter the amount of tax due
+chargeC.amountTaxDue.error.invalid = The amount of tax due must be an amount of money, like 123 or 123.45
+chargeC.amountTaxDue.error.decimal = The amount of tax due must be whole numbers, like 123 or must include pence, like 123.45
 chargeC.amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
 
 chargeC.paymentDate.label = Date authorised surplus payment was made
-chargeC.amountTaxDue.label = Amount of tax due at 35%
+chargeC.amountTaxDue.label = Amount of tax due
 chargeC.chargeDetails.heading = Authorised surplus payment charge details for {0}
 chargeC.chargeDetails.title = Authorised surplus payment charge details for {0}
 
 chargeC.paymentDate.checkYourAnswersLabel = Date authorised surplus payment was made
 chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel = the date when the authorised surplus payment was made
 
-chargeC.totalTaxDue.checkYourAnswersLabel = Amount of tax due at 35%
-chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the amount of tax due at 35%
+chargeC.totalTaxDue.checkYourAnswersLabel = Amount of tax due
+chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the amount of tax due
 
 chargeC.sponsoringIndividualName.checkYourAnswersLabel = Individual’s name
 chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel = the individual’s name
@@ -1469,8 +1469,8 @@ psa.financial.overview.h2.totalInterestAccruing  = Total interest accruing to da
 psa.financial.overview.h2.totalDuePenalties  = Total of due penalties and charges
 psa.financial.overview.h2.creditBalance  = Credit balance
 psa.financial.overview.h2.repaymentInterest  = Repayment interest
-psa.financial.overview.allOverdue.link  = View all overdue penalites and interest charges
-psa.financial.overview.allDue.link  = View all due penalites and charges
+psa.financial.overview.allOverdue.link  = View all overdue penalties and interest charges
+psa.financial.overview.allDue.link  = View all due penalties and charges
 psa.financial.overview.pastPenalties.link  = View all penalties and charges
 psa.financial.overview.overdue.title = Overdue penalties and interest charges
 psa.financial.overview.upcoming.title = Due penalties and charges
