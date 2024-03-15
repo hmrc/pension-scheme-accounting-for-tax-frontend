@@ -29,6 +29,7 @@ import org.mockito.Mockito.when
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{Action, AnyContent, BodyParsers}
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
@@ -248,11 +249,12 @@ class IdentifierActionSpec
           frontendAppConfig, mockSessionDataCacheConnector, bodyParsers
         )
         val controller = new Harness(authAction)
-        val result = controller.onPageLoad()(fakeRequest)
+        val result = controller.onPageLoad()(FakeRequest("GET", "/test"))
 
         status(result) mustBe SEE_OTHER
 
-        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad.url)
+        redirectLocation(result) mustBe
+          Some("http://localhost:9938/mdtp/uplift?origin=pods&confidenceLevel=250&completionURL=/test&failureURL=/manage-pension-scheme-accounting-for-tax/unauthorised")
       }
     }
 
@@ -306,6 +308,7 @@ class IdentifierActionSpec
         redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad.url)
       }
     }
+
   }
 }
 
