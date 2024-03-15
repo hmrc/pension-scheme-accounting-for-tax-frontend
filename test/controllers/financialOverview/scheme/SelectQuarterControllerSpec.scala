@@ -66,8 +66,8 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
   val formProvider = new QuartersFormProvider()
   val form: Form[AFTQuarter] = formProvider("selectChargesQuarter.error", quarters)
 
-  lazy val httpPathGET: String = routes.SelectQuarterController.onPageLoad(srn, pstr, year).url
-  lazy val httpPathPOST: String = routes.SelectQuarterController.onSubmit(srn, pstr, year).url
+  lazy val httpPathGET: String = routes.SelectQuarterController.onPageLoad(srn, year).url
+  lazy val httpPathPOST: String = routes.SelectQuarterController.onSubmit(srn, year).url
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
   private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
@@ -113,7 +113,7 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.AllPaymentsAndChargesController.onPageLoad(srn, pstr, q22020.startDate.toString, AccountingForTaxCharges).url)
+      redirectLocation(result) mustBe Some(routes.AllPaymentsAndChargesController.onPageLoad(srn, q22020.startDate.toString, AccountingForTaxCharges).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

@@ -98,9 +98,9 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
         "totalInterestAccruing" -> totalInterestAccruingFormatted ,
         "schemeName" -> schemeName,
         "requestRefundUrl" -> requestRefundUrl,
-        "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "overdue").url,
-        "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, schemeDetails.pstr, "upcoming").url,
-        "allPaymentLink" -> routes.PaymentOrChargeTypeController.onPageLoad(srn, schemeDetails.pstr).url,
+        "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, "overdue").url,
+        "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
+        "allPaymentLink" -> routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
         "creditBalanceFormatted" -> creditBalanceFormatted, "creditBalance" -> creditBalance)
     )(request).map(Ok(_))
   }

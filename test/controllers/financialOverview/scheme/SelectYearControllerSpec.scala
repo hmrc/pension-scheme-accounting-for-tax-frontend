@@ -66,8 +66,8 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
   val formProvider = new YearsFormProvider()
   val form: Form[Year] = formProvider()
 
-  lazy val httpPathGET: String = routes.SelectYearController.onPageLoad(srn, pstr, AccountingForTaxCharges).url
-  lazy val httpPathPOST: String = routes.SelectYearController.onSubmit(srn, pstr, AccountingForTaxCharges).url
+  lazy val httpPathGET: String = routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges).url
+  lazy val httpPathPOST: String = routes.SelectYearController.onSubmit(srn, AccountingForTaxCharges).url
 
   private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
     "form" -> form,
@@ -114,7 +114,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result) mustBe Some(routes.AllPaymentsAndChargesController
-        .onPageLoad(srn, pstr, QUARTER_START_DATE.toString, AccountingForTaxCharges).url)
+        .onPageLoad(srn, QUARTER_START_DATE.toString, AccountingForTaxCharges).url)
     }
 
     "redirect to next page when valid data is submitted and multiple quarters are found for the selected year" in {
@@ -126,7 +126,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.SelectQuarterController.onPageLoad(srn, pstr, year).url)
+      redirectLocation(result) mustBe Some(routes.SelectQuarterController.onPageLoad(srn, year).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

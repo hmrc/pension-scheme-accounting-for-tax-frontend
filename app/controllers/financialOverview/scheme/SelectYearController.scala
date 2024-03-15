@@ -56,7 +56,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     formProvider(errorMessage)(implicitly)
   }
 
-  def onPageLoad(srn: String, pstr: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
+  def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
       service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
         val typeParam: String = service.getTypeParam(paymentOrChargeType)
@@ -76,7 +76,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(srn: String, pstr: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
+  def onSubmit(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
       service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
         val typeParam: String = service.getTypeParam(paymentOrChargeType)
@@ -100,9 +100,9 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
             },
             value =>
               if (paymentOrChargeType == AccountingForTaxCharges) {
-                navService.navFromAFTYearsPage(paymentsCache.schemeFSDetail, value.year, srn, pstr)
+                navService.navFromAFTYearsPage(paymentsCache.schemeFSDetail, value.year, srn)
               } else {
-                Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, pstr, value.year.toString, paymentOrChargeType)))
+                Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
             }
           )
       }

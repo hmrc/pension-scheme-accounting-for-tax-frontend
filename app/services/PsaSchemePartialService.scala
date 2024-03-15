@@ -396,7 +396,7 @@ class PsaSchemePartialService @Inject()(
   private def viewAllPaymentsAndChargesLink(srn: String, pstr: String): Seq[Link] =
           Seq(Link(
         id = "past-payments-and-charges",
-        url = appConfig.financialPaymentsAndChargesUrl.format(srn,pstr),
+        url = appConfig.financialPaymentsAndChargesUrl.format(srn),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
         hiddenText = None
       ))

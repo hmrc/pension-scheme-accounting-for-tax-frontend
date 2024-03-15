@@ -53,7 +53,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
     routes.PaymentsAndChargesInterestController
-      .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+      .onPageLoad(srn, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
       .url
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
@@ -79,7 +79,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       .thenReturn("")
     when(mockPaymentsAndChargesService.getReturnLinkBasedOnJourney(any(), any())(any()))
       .thenReturn("")
-    when(mockPaymentsAndChargesService.getReturnUrl(any(), any(), any(), any(), any(), any()))
+    when(mockPaymentsAndChargesService.getReturnUrl(any(), any(), any(), any(), any()))
       .thenReturn("")
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
@@ -89,7 +89,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       s"<p class=govuk-body>${messages("paymentsAndCharges.interest.chargeReference.text1")}" +
         s" <span><a id='breakdown' class=govuk-link href=${
           routes.PaymentsAndChargeDetailsController
-            .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+            .onPageLoad(srn, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
             .url
         }>" +
         s" ${messages("paymentsAndCharges.interest.chargeReference.linkText")}</a></span>" +
@@ -129,7 +129,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       "chargeType" -> (chargeType + s" submission $version"),
       "insetText" -> insetText,
       "originalAmountUrl" -> routes.PaymentsAndChargeDetailsController
-        .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+        .onPageLoad(srn, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
         .url,
       "returnLinkBasedOnJourney" -> "",
       "returnUrl" -> ""

@@ -47,7 +47,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
   import PaymentsAndChargesControllerSpec._
 
   private def httpPathGET: String =
-    routes.PaymentsAndChargesController.onPageLoad(srn, pstr, Overdue).url
+    routes.PaymentsAndChargesController.onPageLoad(srn, Overdue).url
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
@@ -72,7 +72,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).
       thenReturn(Future.successful(paymentsCache(schemeFSResponseOverdue)))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
-      ArgumentMatchers.eq(pstr), any(), any())(any())).thenReturn(emptyChargesTable)
+      any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
@@ -110,8 +110,6 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
 object PaymentsAndChargesControllerSpec {
   private val srn = "test-srn"
-  private val pstr = "test-pstr"
-
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(
       index = 0,

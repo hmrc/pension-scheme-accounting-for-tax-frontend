@@ -141,11 +141,11 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
         s"return payments and charges table with two rows for the charge and interest accrued for $chargeType" in {
 
           val chargeLink: ChargeDetailsFilter => String = chargeDetailsFilter =>
-            PaymentsAndChargeDetailsController.onPageLoad(srn, pstr, QUARTER_START_DATE.toString, "1", AccountingForTaxCharges,
+            PaymentsAndChargeDetailsController.onPageLoad(srn, QUARTER_START_DATE.toString, "1", AccountingForTaxCharges,
               Some(versionInt), Some("2016-12-17"), chargeDetailsFilter).url
 
           val interestLink: ChargeDetailsFilter => String = chargeDetailsFilter =>
-            PaymentsAndChargesInterestController.onPageLoad(srn, pstr, QUARTER_START_DATE.toString, "1", AccountingForTaxCharges,
+            PaymentsAndChargesInterestController.onPageLoad(srn, QUARTER_START_DATE.toString, "1", AccountingForTaxCharges,
               Some(versionInt), Some("2016-12-17"), chargeDetailsFilter).url
 
           def expectedTable(chargeLink: String, interestLink: String): Table =
@@ -178,14 +178,12 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
           val result1 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
-            pstr = pstr,
             schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
             chargeDetailsFilter = Overdue
           )
 
           val result2 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
-            pstr = pstr,
             schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
             chargeDetailsFilter = Upcoming
           )
@@ -201,7 +199,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
       val result = paymentsAndChargesService.getPaymentsAndCharges(
         srn,
-        pstr,
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00).head._2,
         Overdue
       )

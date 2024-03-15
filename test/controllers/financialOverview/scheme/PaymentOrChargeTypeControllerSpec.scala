@@ -66,8 +66,8 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
   val formProvider = new PaymentOrChargeTypeFormProvider()
   val form: Form[PaymentOrChargeType] = formProvider()
 
-  lazy val httpPathGET: String = routes.PaymentOrChargeTypeController.onPageLoad(srn, pstr).url
-  lazy val httpPathPOST: String = routes.PaymentOrChargeTypeController.onSubmit(srn, pstr).url
+  lazy val httpPathGET: String = routes.PaymentOrChargeTypeController.onPageLoad(srn).url
+  lazy val httpPathPOST: String = routes.PaymentOrChargeTypeController.onSubmit(srn).url
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
@@ -115,7 +115,7 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.AllPaymentsAndChargesController.onPageLoad(srn, pstr, startDate.toString, AccountingForTaxCharges).url)
+      redirectLocation(result) mustBe Some(routes.AllPaymentsAndChargesController.onPageLoad(srn, startDate.toString, AccountingForTaxCharges).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

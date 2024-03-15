@@ -53,14 +53,14 @@ class PaymentsAndChargeDetailsController @Inject()(
     with NunjucksSupport {
   private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
 
-  def onPageLoad(srn: String, pstr: String, period: String, index: String,
+  def onPageLoad(srn: String, period: String, index: String,
                  paymentOrChargeType: PaymentOrChargeType, version: Option[Int],
                  submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
           val schemeFSDetail: Seq[SchemeFSDetail] = getFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType)
-          buildPage(schemeFSDetail, period, index, paymentsCache.schemeDetails.schemeName, srn, pstr, paymentOrChargeType, journeyType, submittedDate, version)
+          buildPage(schemeFSDetail, period, index, paymentsCache.schemeDetails.schemeName, srn, paymentOrChargeType, journeyType, submittedDate, version)
         }
     }
 
@@ -82,7 +82,6 @@ class PaymentsAndChargeDetailsController @Inject()(
                         index: String,
                         schemeName: String,
                         srn: String,
-                        pstr: String,
                         paymentOrChargeType: PaymentOrChargeType,
                         journeyType: ChargeDetailsFilter,
                         submittedDate: Option[String],
@@ -111,7 +110,7 @@ class PaymentsAndChargeDetailsController @Inject()(
         "insetText" -> setInsetText(isChargeAssigned, schemeFSDetail, interestUrl),
         "interest" -> schemeFSDetail.accruedInterestTotal,
         "returnLinkBasedOnJourney" -> paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
-        "returnUrl" -> paymentsAndChargesService.getReturnUrl(srn, pstr, request.psaId, request.pspId, config, journeyType)
+        "returnUrl" -> paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType)
       ) ++ returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)) ++ optHintText(schemeFSDetail)
     }
 
@@ -119,7 +118,7 @@ class PaymentsAndChargeDetailsController @Inject()(
     val optionSourceChargeInfo = optSchemeFsDetail.flatMap(_.sourceChargeInfo)
     (optSchemeFsDetail, optionSourceChargeInfo) match {
       case (Some(schemeFs), None) =>
-        val interestUrl = routes.PaymentsAndChargesInterestController.onPageLoad(srn, pstr, period, index,
+        val interestUrl = routes.PaymentsAndChargesInterestController.onPageLoad(srn, period, index,
           paymentOrChargeType, version, submittedDate, journeyType).url
         renderer.render(
           template = "financialOverview/scheme/paymentsAndChargeDetails.njk",
@@ -130,7 +129,6 @@ class PaymentsAndChargeDetailsController @Inject()(
           case Some(sourceChargePeriod) =>
             val originalAmountUrl = routes.PaymentsAndChargeDetailsController.onPageLoad(
               srn = srn,
-              pstr = pstr,
               period = sourceChargePeriod,
               index = sourceChargeInfo.index.toString,
               paymentsType = paymentOrChargeType,

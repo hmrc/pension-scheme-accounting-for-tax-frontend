@@ -59,7 +59,7 @@ class PaymentsAndChargeDetailsControllerSpec
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
     routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, pstr, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+      .onPageLoad(srn, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
       .url
 
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
@@ -88,7 +88,7 @@ class PaymentsAndChargeDetailsControllerSpec
       .thenReturn("")
     when(mockPaymentsAndChargesService.getReturnLinkBasedOnJourney(any(), any())(any()))
       .thenReturn("")
-    when(mockPaymentsAndChargesService.getReturnUrl(any(), any(), any(), any(), any(), any()))
+    when(mockPaymentsAndChargesService.getReturnUrl(any(), any(), any(), any(), any()))
       .thenReturn("")
     when(mockRenderer.render(any(), any())(any()))
       .thenReturn(Future.successful(play.twirl.api.Html("")))
@@ -110,7 +110,7 @@ class PaymentsAndChargeDetailsControllerSpec
         }<span>" +
         s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=${
           routes.PaymentsAndChargesInterestController
-            .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
+            .onPageLoad(srn, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
             .url
         }>" +
         s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
@@ -122,7 +122,7 @@ class PaymentsAndChargeDetailsControllerSpec
       s"<p class=govuk-body>${messages("financialPaymentsAndCharges.interest.chargeReference.text2", schemeFSDetail.chargeType.toString.toLowerCase())}</p>" +
         s"<p class=govuk-body><a id='breakdown' class=govuk-link href=${
           routes.PaymentsAndChargeDetailsController
-            .onPageLoad(srn, pstr, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), All)
+            .onPageLoad(srn, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), All)
             .url
         }>" +
         s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"

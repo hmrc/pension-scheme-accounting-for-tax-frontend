@@ -200,7 +200,7 @@ object PsaSchemePartialServiceSpec {
   private val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
   private val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
   private val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
-  private val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/pstr/past-payments-logic"
+  private val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/past-payments-logic"
   private val positiveNumberFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(900)}"
   private val zeroFormatted : String = s"${FormatHelper.formatCurrencyAmountAsString(0)}"
   private val documentLineItemDetails = Seq()

@@ -47,7 +47,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
   import AllPaymentsAndChargesControllerSpec._
 
   private def httpPathGET(startDate: String = startDate): String =
-    routes.AllPaymentsAndChargesController.onPageLoad(srn, pstr, startDate, AccountingForTaxCharges).url
+    routes.AllPaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges).url
 
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
@@ -73,7 +73,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
       .thenReturn(schemeFSResponse)
     when(mockPaymentsAndChargesService.getInterestCharges(any()))
       .thenReturn(schemeFSResponse)
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 

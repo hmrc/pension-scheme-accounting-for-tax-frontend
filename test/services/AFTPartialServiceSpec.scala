@@ -656,7 +656,7 @@ object AFTPartialServiceSpec {
   val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
   val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
   val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
-  val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/pstr/past-payments-logic"
+  val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/past-payments-logic"
 
   def startModel: AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,
