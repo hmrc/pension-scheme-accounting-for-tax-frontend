@@ -20,7 +20,6 @@ import base.SpecBase
 import forms.behaviours._
 import play.api.data.FormError
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
-import utils.DateHelper.dateFormatterDMY
 
 import java.time.LocalDate
 
@@ -30,7 +29,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
   private val dateKey = "dateOfEvent"
   private val tax25PercentKey = "taxAt25Percent"
   private val tax55PercentKey = "taxAt55Percent"
-  private val futureDateMsg: String = messages("dateOfEvent.error.future")
+  private val futureDateMsg: List[String] = List("dateOfEvent.error.future")
 
   private def chargeDetails(
                              date: LocalDate = QUARTER_START_DATE,
@@ -53,7 +52,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       val futureDate = LocalDate.now().plusYears(1)
       val result = form.bind(chargeDetails(date = futureDate))
 
-      result.errors must contain(FormError(dateKey, futureDateMsg))
+      result.errors must contain(FormError(dateKey, futureDateMsg, List()))
     }
 
     "fail to bind empty date" in {
