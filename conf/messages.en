@@ -515,6 +515,7 @@ dateOfEvent.error.required = Enter the date of the benefit crystallisation event
 dateOfEvent.error.date = The date of the benefit crystallisation event giving rise to the charge must be between {0} and {1}
 dateOfEvent.error.incomplete = The date of the benefit crystallisation event must include a day, month and year
 dateOfEvent.error.invalid = Enter a real date for the benefit crystallisation event giving rise to the charge
+dateOfEvent.error.future = The date cannot be in the future
 
 chargeDDetails.title = Lifetime allowance charge details for the member
 chargeDDetails.heading = Lifetime allowance charge details for {0}
