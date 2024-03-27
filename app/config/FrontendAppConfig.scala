@@ -233,9 +233,4 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val validLifetimeAllowanceHeader: String = configuration.get[String]("validLifetimeAllowanceHeader")
   lazy val validLifetimeAllowanceMcCloudHeader: String = configuration.get[String]("validLifetimeAllowanceMcCloudHeader")
   lazy val validOverseasTransferHeader: String = configuration.get[String]("validOverseasTransferHeader")
-  def identityValidationFrontEndEntry(relativeCompletionURL: RedirectUrl, relativeFailureURL: RedirectUrl): String = {
-    val url = loadConfig("urls.ivUpliftEntry")
-    val query = s"?origin=pods&confidenceLevel=250&completionURL=${relativeCompletionURL.get(OnlyRelative).url}&failureURL=${relativeFailureURL.get(OnlyRelative).url}"
-    url + query
-  }
 }

@@ -31,7 +31,6 @@ import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -62,7 +61,7 @@ class AuthenticatedIdentifierAction @Inject()(
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromRequestAndSession(request, request.session)
 
-    authorised((Enrolment("HMRC-PODS-ORG") or Enrolment("HMRC-PODSPP-ORG")) and ConfidenceLevel.L250).retrieve(
+    authorised(Enrolment("HMRC-PODS-ORG") or Enrolment("HMRC-PODSPP-ORG")).retrieve(
       Retrievals.externalId and Retrievals.allEnrolments
     ) {
       case Some(id) ~ enrolments if bothPsaAndPspEnrolmentsPresent(enrolments) =>
@@ -75,11 +74,6 @@ class AuthenticatedIdentifierAction @Inject()(
         block(IdentifierRequest(id, request, getPsaId(enrolments), getPspId(enrolments)))
       case _ => Future(Redirect(routes.UnauthorisedController.onPageLoad))
     } recover {
-      case _: InsufficientConfidenceLevel =>
-        val completionURL = RedirectUrl(request.uri)
-        val failureURL = RedirectUrl(routes.UnauthorisedController.onPageLoad.url)
-        val url = config.identityValidationFrontEndEntry(completionURL, failureURL)
-        SeeOther(url)
       case _: NoActiveSession =>
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))
       case e: AuthorisationException =>
