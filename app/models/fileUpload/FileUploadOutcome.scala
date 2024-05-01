@@ -16,7 +16,7 @@
 
 package models.fileUpload
 
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, Json, OFormat}
 
 case class FileUploadOutcome(
                               status: FileUploadOutcomeStatus,
@@ -25,5 +25,5 @@ case class FileUploadOutcome(
                             )
 
 object FileUploadOutcome {
-  implicit val format = Json.format[FileUploadOutcome]
+  implicit val format: OFormat[FileUploadOutcome] = Json.format[FileUploadOutcome]
 }
