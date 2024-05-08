@@ -16,10 +16,10 @@
 
 package models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 case class MinimalFlags(deceasedFlag:Boolean, rlsFlag: Boolean)
 
 object MinimalFlags {
-  implicit val format = Json.format[MinimalFlags]
+  implicit val format: OFormat[MinimalFlags] = Json.format[MinimalFlags]
 }
