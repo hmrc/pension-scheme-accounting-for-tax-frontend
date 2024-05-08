@@ -13,7 +13,6 @@ object AppDependencies {
     "com.google.inject.extensions"  %   "guice-multibindings"                    % "4.2.3",
     "uk.gov.hmrc"                   %%  "domain-play-30"                         % "9.0.0",
     "com.univocity"                 %   "univocity-parsers"                      % "2.9.1",
-    "com.fasterxml.jackson.module"  %%  "jackson-module-scala"                   % "2.17.0",
     "org.typelevel"                 %%  "cats-core"                              % "2.10.0"
   )
 
