@@ -25,7 +25,7 @@ case class MemberDetails (firstName: String, lastName: String, dob: LocalDate, n
 }
 
 object MemberDetails {
-  implicit val format = Json.format[MemberDetails]
+  implicit val format: OFormat[MemberDetails] = Json.format[MemberDetails]
 
   def applyDelete(firstName: String, lastName: String, dob: LocalDate, nino: String): MemberDetails = {
     MemberDetails(firstName, lastName, dob, nino)

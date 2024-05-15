@@ -23,7 +23,6 @@ import play.api.data.Forms.mapping
 import play.api.i18n.Messages
 import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
-import utils.DateHelper.formatDateDMY
 
 import java.time.LocalDate
 import javax.inject.Inject

@@ -21,6 +21,7 @@ import models.requests.IdentifierRequest
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.libs.json.Json
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http._
@@ -33,7 +34,7 @@ class MinimalConnectorSpec
 
   import MinimalConnector._
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
-  private implicit lazy val req = IdentifierRequest("id", FakeRequest("GET", "/"), Some(PsaId("A2100005")), None)
+  private implicit lazy val req: IdentifierRequest[AnyContentAsEmpty.type] = IdentifierRequest("id", FakeRequest("GET", "/"), Some(PsaId("A2100005")), None)
 
   override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
 
