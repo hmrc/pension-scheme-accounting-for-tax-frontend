@@ -1,0 +1,96 @@
+{% extends "includes/layout.njk" %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "macros/title.njk"                         import title %}
+
+{% block pageTitle %}
+  {{ title(messages("aftOverview.title")) }}
+{% endblock %}
+
+{% block mainContent %}
+
+  <div class="govuk-main-wrapper">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        <span class="govuk-caption-l">
+            {{ messages("aftOverview.schemeName") }}
+        </span>
+
+        <h1 class="govuk-heading-xl">
+          {{ messages("aftOverview.title") }}
+        </h1>
+
+        <p class="govuk-body govuk-!-margin-bottom-8">
+            <a class="govuk-link" href="/linkToStartNewAft">
+              {{ messages("aftOverview.startNewAft") }}
+            </a>
+        </p>
+
+        <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+            {{ messages("aftOverview.totalOutstanding") }}
+        </h3>
+
+        <p class="govuk-heading-l">
+            <strong>
+                {{ messages("aftOverview.outstandingAmount") }}
+            </strong>
+        </p>
+
+        <p class="govuk-body govuk-!-margin-bottom-6">
+            <a class="govuk-link" href="/linkToViewOutstandingPaymentsAndCharges">
+                {{ messages("aftOverview.viewOutstanding") }}
+            </a>
+        </p>
+
+        <hr>
+
+        <h3 class="govuk-heading-m govuk-!-margin-top-6">
+            {{ messages("aftOverview.inProgress") }}
+        </h3>
+
+        <p class="govuk-body govuk-!-margin-bottom-6">
+            <a class="govuk-link" href="/linkToViewInProgressAfts">
+                {{ messages("aftOverview.linkToInProgress") }}
+            </a>
+        </p>
+
+        <hr>
+
+        <h3 class="govuk-heading-m govuk-!-margin-top-6">
+            {{ messages("aftOverview.pastAftReturns") }}
+        </h3>
+
+        <h3 class="govuk-heading-s">
+            {{ messages("aftOverview.pastYearRange") }}
+        </h3>
+
+        <p class="govuk-body govuk-!-margin-bottom-6">
+            <a class="govuk-link" href="/linkToViewPastAfts">
+                {{ messages("aftOverview.linkToPastAfts") }}
+            </a>
+        </p>
+
+        <br>
+
+        <p class="govuk-body govuk-!-margin-bottom-6">
+            <a class="govuk-link" href="/linkToViewAllPastAfts">
+                {{ messages("aftOverview.allPastAftReturns") }}
+            </a>
+        </p>
+
+        <hr>
+
+        <p class="govuk-body">
+            <a href="/returnToLink" class="govuk-link">
+                {{ messages("return.to.link", messages("aftOverview.schemeName")) }}
+            </a>
+        </p>
+
+
+
+
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
