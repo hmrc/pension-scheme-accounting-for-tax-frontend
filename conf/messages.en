@@ -1643,7 +1643,6 @@ aftOverview.title               = AFT: overview
 aftOverview.startNewAft         = Start a new AFT return
 aftOverview.totalOutstanding    = Total outstanding AFT return payments:
 aftOverview.viewOutstanding     = View all outstanding payments and charges
-aftOverview.outstandingAmount   = £123.45
 aftOverview.inProgress          = In progress
 aftOverview.linkToInProgress    = 1 April to 30 June 2023 - hardcoded
 aftOverview.pastAftReturns      = Past AFT returns

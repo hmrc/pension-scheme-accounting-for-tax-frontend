@@ -17,7 +17,7 @@
 package controllers
 
 import config.FrontendAppConfig
-import controllers.AFTOverviewController.OverviewViewModel
+import controllers.AFTOverviewController.{OverviewViewModel, outstandingAmountStr}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json, OWrites}
@@ -50,10 +50,14 @@ class AFTOverviewController @Inject()(
         schemeIdType = "srn",
         srn = srn
       ).flatMap { sD =>
-        val json: JsObject = Json.obj(
-          "viewModel" -> OverviewViewModel(
+
+        // TODO: remove hardcoded value
+        val outstandingAmount: BigDecimal = 123.45
+
+        val json: JsObject = Json.obj("viewModel" -> OverviewViewModel(
             returnUrl = config.schemeDashboardUrl(request).format(srn),
-            schemeName = sD.schemeName
+            schemeName = sD.schemeName,
+            outstandingAmount = outstandingAmountStr(outstandingAmount)
           )
         )
         renderer.render("aftOverview.njk", json).map(Ok(_))
@@ -62,7 +66,14 @@ class AFTOverviewController @Inject()(
 }
 
 object AFTOverviewController {
-  case class OverviewViewModel(returnUrl: String, schemeName: String)
+
+  // TODO - remove "hardcoded" from string
+  private val outstandingAmountStr: BigDecimal => String = amount => s"£$amount - hardcoded"
+  case class OverviewViewModel(
+                                returnUrl: String,
+                                schemeName: String,
+                                outstandingAmount: String
+                              )
 
   object OverviewViewModel {
     implicit lazy val writes: OWrites[OverviewViewModel] = Json.writes[OverviewViewModel]
