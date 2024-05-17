@@ -84,7 +84,6 @@ class AFTOverviewController @Inject()(
 
 object AFTOverviewController {
 
-  // TODO - remove "hardcoded" from string
   private val outstandingAmountStr: BigDecimal => String = amount => s"£$amount"
   case class OverviewViewModel(
                                 returnUrl: String,

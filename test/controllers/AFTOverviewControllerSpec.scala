@@ -20,13 +20,20 @@ import controllers.base.ControllerSpecBase
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import services.SchemeService
+import services.financialOverview.scheme.PaymentsAndChargesService
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+
 
 class AFTOverviewControllerSpec extends ControllerSpecBase {
+  private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
+  private val mockSchemeService: SchemeService = mock[SchemeService]
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   "AFT Overview Controller" must {
 
@@ -53,5 +60,41 @@ class AFTOverviewControllerSpec extends ControllerSpecBase {
 
       application.stop()
     }
+
+    //"AFT Overview Controller" must {
+
+  "return InternalServerError when paymentsAndChargesService fails" in {
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any()))
+      .thenReturn(Future.failed(new RuntimeException("Test exception")))
+
+    val application = applicationBuilder(userAnswers = None).build()
+
+    val srn: String = "S2012345678"
+
+    val request = FakeRequest(GET, routes.AFTOverviewController.onPageLoad(srn).url)
+
+    val result = route(application, request).value
+
+    status(result) mustEqual INTERNAL_SERVER_ERROR
+
+    application.stop()
   }
+
+  "return InternalServerError when schemeService fails to retrieve scheme details" in {
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any()))
+      .thenReturn(Future.failed(new RuntimeException("Test exception")))
+
+    val application = applicationBuilder(userAnswers = None).build()
+
+    val srn: String = "S2012345678"
+
+    val request = FakeRequest(GET, routes.AFTOverviewController.onPageLoad(srn).url)
+
+    val result = route(application, request).value
+
+    status(result) mustEqual INTERNAL_SERVER_ERROR
+
+    application.stop()
+  }
+}
 }
