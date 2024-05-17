@@ -21,6 +21,8 @@ import controllers.AFTOverviewController.{OverviewViewModel, outstandingAmountSt
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSDetail
+import play.api.Logger
+import play.api.i18n.Lang.logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json, OWrites}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -62,22 +64,24 @@ class AFTOverviewController @Inject()(
         totalCharges
       }
 
-      payment
-
-        schemeService.retrieveSchemeDetails(
+      schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
         schemeIdType = "srn",
         srn = srn
       ).flatMap { sD =>
-          payment flatMap { p =>
-            val json: JsObject = Json.obj("viewModel" -> OverviewViewModel(
-              returnUrl = config.schemeDashboardUrl(request).format(srn),
-              schemeName = sD.schemeName,
-              outstandingAmount = outstandingAmountStr(p)
-              )
-            )
-            renderer.render("aftOverview.njk", json).map(Ok(_))
-          }
+        payment flatMap { p =>
+          val json: JsObject = Json.obj("viewModel" -> OverviewViewModel(
+            returnUrl = config.schemeDashboardUrl(request).format(srn),
+            schemeName = sD.schemeName,
+            outstandingAmount = outstandingAmountStr(p)
+          )
+          )
+          renderer.render("aftOverview.njk", json).map(Ok(_))
+        }
+      }.recover {
+        case e: Exception =>
+          logger.error("Failed to retrieve scheme details", e)
+          InternalServerError("An error occurred") // return an error response or handle the error appropriately
       }
   }
 }

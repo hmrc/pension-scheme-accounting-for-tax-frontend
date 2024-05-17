@@ -16,39 +16,85 @@
 
 package controllers
 
+import config.FrontendAppConfig
+import controllers.AFTOverviewControllerSpec.{paymentsCache, schemeFSResponse, srn}
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import org.mockito.ArgumentCaptor
+import data.SampleData.{dummyCall, emptyChargesTable, psaId, schemeDetails, schemeName}
+import matchers.JsonMatchers
+import models.SchemeDetails
+import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.financialStatement.SchemeFSDetail
+import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
-import play.api.test.FakeRequest
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.scalatest.BeforeAndAfterEach
+import play.api.Application
+import play.api.inject.bind
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.SchemeService
-import services.financialOverview.scheme.PaymentsAndChargesService
+import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
+import uk.gov.hmrc.nunjucks.NunjucksRenderer
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import scala.concurrent.Future
 
 
-class AFTOverviewControllerSpec extends ControllerSpecBase {
+class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+
+  private def httpPathGET(srn: String): String = {
+    routes.AFTOverviewController.onPageLoad(srn).url
+  }
+
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val mockSchemeService: SchemeService = mock[SchemeService]
-  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+  private val application: Application = new GuiceApplicationBuilder()
+    .overrides(
+      Seq[GuiceableModule](
+        bind[IdentifierAction].to[FakeIdentifierAction],
+        bind[NunjucksRenderer].toInstance(mockRenderer),
+        bind[FrontendAppConfig].toInstance(mockAppConfig),
+        bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
+        bind[SchemeService].toInstance(mockSchemeService),
+        bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
+      ): _*
+    )
+    .build()
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRenderer)
+    reset(mockPaymentsAndChargesService)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+
+    when(mockPaymentsAndChargesService.getDueCharges(any()))
+      .thenReturn(schemeFSResponse)
+    when(mockPaymentsAndChargesService.getInterestCharges(any()))
+      .thenReturn(schemeFSResponse)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(any(), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+
+
+  }
 
   "AFT Overview Controller" must {
 
     "must return OK and the correct view for a GET" in {
 
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("foo")))
+      val srn = "test-srn"
 
-      val application = applicationBuilder(userAnswers = None).build()
+      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
 
-      val srn: String = "S2012345678"
-
-      val request = FakeRequest(GET, routes.AFTOverviewController.onPageLoad(srn).url)
-
-      val result = route(application, request).value
+      val result = route(application, httpGETRequest(httpPathGET(srn))).value
 
       status(result) mustEqual OK
 
@@ -58,22 +104,19 @@ class AFTOverviewControllerSpec extends ControllerSpecBase {
 
       templateCaptor.getValue mustEqual "aftOverview.njk"
 
-      application.stop()
     }
 
-    //"AFT Overview Controller" must {
 
   "return InternalServerError when paymentsAndChargesService fails" in {
-    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any()))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.failed(new RuntimeException("Test exception")))
 
-    val application = applicationBuilder(userAnswers = None).build()
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+      .thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
 
     val srn: String = "S2012345678"
 
-    val request = FakeRequest(GET, routes.AFTOverviewController.onPageLoad(srn).url)
-
-    val result = route(application, request).value
+    val result = route(application, httpGETRequest(httpPathGET(srn))).value
 
     status(result) mustEqual INTERNAL_SERVER_ERROR
 
@@ -81,20 +124,55 @@ class AFTOverviewControllerSpec extends ControllerSpecBase {
   }
 
   "return InternalServerError when schemeService fails to retrieve scheme details" in {
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any()))
-      .thenReturn(Future.failed(new RuntimeException("Test exception")))
 
-    val application = applicationBuilder(userAnswers = None).build()
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+      .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
+
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+      .thenReturn(Future.failed(new RuntimeException("Test exception")))
 
     val srn: String = "S2012345678"
 
-    val request = FakeRequest(GET, routes.AFTOverviewController.onPageLoad(srn).url)
-
-    val result = route(application, request).value
+    val result = route(application, httpGETRequest(httpPathGET(srn))).value
 
     status(result) mustEqual INTERNAL_SERVER_ERROR
 
     application.stop()
   }
 }
+}
+
+object AFTOverviewControllerSpec {
+  private val startDate = "2020-04-01"
+  private val srn = "test-srn"
+
+  private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
+    SchemeFSDetail(
+      index = 0,
+      chargeReference = chargeReference,
+      chargeType = PSS_AFT_RETURN,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 56432.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      accruedInterestTotal = 0.00,
+      periodStartDate = Some(LocalDate.parse(startDate)),
+      periodEndDate = Some(LocalDate.parse(endDate)),
+      formBundleNumber = None,
+      version = None,
+      receiptDate = None,
+      sourceChargeRefForInterest = None,
+      sourceChargeInfo = None,
+      documentLineItemDetails = Nil
+    )
+  }
+
+  private val schemeFSResponse: Seq[SchemeFSDetail] = Seq(
+    createCharge(startDate = "2020-04-01", endDate = "2020-06-30", chargeReference = "XY002610150184"),
+    createCharge(startDate = "2020-01-01", endDate = "2020-03-31", chargeReference = "AYU3494534632"),
+    createCharge(startDate = "2021-04-01", endDate = "2021-06-30", chargeReference = "XY002610150185")
+  )
+
+  private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 }
