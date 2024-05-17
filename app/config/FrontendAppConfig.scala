@@ -191,6 +191,10 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   def featureToggleUrl(toggle: String): String =
     s"$aftUrl${configuration.underlying.getString("urls.featureToggle").format(toggle)}"
 
+  def pensionSchemeNewToggleUrl(toggle: String): String =
+    s"$pensionSchemeUrl${configuration.underlying.getString("urls.newFeatureToggle").format(toggle)}"
+
+
   lazy val addressLookUp = s"${servicesConfig.baseUrl("address-lookup")}"
   lazy val eventReportingUrl: String = servicesConfig.baseUrl("pension-scheme-event-reporting")
 
