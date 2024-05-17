@@ -19,14 +19,11 @@ package controllers
 import config.FrontendAppConfig
 import controllers.AFTOverviewController.{OverviewViewModel, outstandingAmountStr}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
-import models.financialStatement.SchemeFSDetail
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json, OWrites}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
-import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.nunjucks.NunjucksSupport
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -39,7 +36,6 @@ class AFTOverviewController @Inject()(
                                        allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                        config: FrontendAppConfig,
                                        schemeService: SchemeService,
-                                       paymentsAndChargesService: PaymentsAndChargesService,
                                        override val messagesApi: MessagesApi,
                                        val controllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
@@ -49,35 +45,22 @@ class AFTOverviewController @Inject()(
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
-
-      val payment = paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, "all").map { paymentsCache =>
-        val filteredPayments: Seq[SchemeFSDetail] =
-          paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
-
-        val dueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getDueCharges(filteredPayments)
-        val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
-        val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
-        val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
-        val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
-        totalCharges
-      }
-
-      payment
-
-        schemeService.retrieveSchemeDetails(
+      schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
         schemeIdType = "srn",
         srn = srn
       ).flatMap { sD =>
-          payment flatMap { p =>
-            val json: JsObject = Json.obj("viewModel" -> OverviewViewModel(
-              returnUrl = config.schemeDashboardUrl(request).format(srn),
-              schemeName = sD.schemeName,
-              outstandingAmount = outstandingAmountStr(p)
-              )
-            )
-            renderer.render("aftOverview.njk", json).map(Ok(_))
-          }
+
+        // TODO: remove hardcoded value
+        val outstandingAmount: BigDecimal = 123.45
+
+        val json: JsObject = Json.obj("viewModel" -> OverviewViewModel(
+            returnUrl = config.schemeDashboardUrl(request).format(srn),
+            schemeName = sD.schemeName,
+            outstandingAmount = outstandingAmountStr(outstandingAmount)
+          )
+        )
+        renderer.render("aftOverview.njk", json).map(Ok(_))
       }
   }
 }
@@ -85,7 +68,7 @@ class AFTOverviewController @Inject()(
 object AFTOverviewController {
 
   // TODO - remove "hardcoded" from string
-  private val outstandingAmountStr: BigDecimal => String = amount => s"£$amount"
+  private val outstandingAmountStr: BigDecimal => String = amount => s"£$amount - hardcoded"
   case class OverviewViewModel(
                                 returnUrl: String,
                                 schemeName: String,
