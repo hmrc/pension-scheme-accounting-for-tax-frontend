@@ -107,7 +107,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
     }
 
 
-  "return InternalServerError when paymentsAndChargesService fails" in {
+  "return Success page when paymentsAndChargesService fails" in {
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.failed(new RuntimeException("Test exception")))
 
@@ -118,7 +118,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
 
     val result = route(application, httpGETRequest(httpPathGET(srn))).value
 
-    status(result) mustEqual INTERNAL_SERVER_ERROR
+    status(result) mustEqual OK
 
     application.stop()
   }

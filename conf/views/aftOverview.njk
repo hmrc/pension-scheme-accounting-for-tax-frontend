@@ -20,21 +20,29 @@
           {{ messages("aftOverview.title") }}
         </h1>
 
-        <p class="govuk-body govuk-!-margin-bottom-8">
-            <a class="govuk-link" href="/linkToStartNewAft">
-              {{ messages("aftOverview.startNewAft") }}
-            </a>
-        </p>
+            <p class="govuk-body govuk-!-margin-bottom-8">
+                <a class="govuk-link" href="/linkToStartNewAft">
+                  {{ messages("aftOverview.startNewAft") }}
+                </a>
+            </p>
+        {% if viewModel.outstandingAmount != "Error Retrieving Payment Charges"  %}
+            <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                {{ messages("aftOverview.totalOutstanding") }}
+            </h3>
 
-        <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-            {{ messages("aftOverview.totalOutstanding") }}
-        </h3>
+            <p class="govuk-heading-l">
+                        <strong>
+                            {{ viewModel.outstandingAmount }}
+                        </strong>
+            </p>
 
-        <p class="govuk-heading-l">
-            <strong>
-                {{ viewModel.outstandingAmount }}
-            </strong>
-        </p>
+        {% else %}
+            <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                {{ messages("aftOverview.totalOutstandingNotAvailable") }}
+            </h3>
+        {% endif %}
+
+
 
         <p class="govuk-body govuk-!-margin-bottom-6">
             <a class="govuk-link" href="/linkToViewOutstandingPaymentsAndCharges">

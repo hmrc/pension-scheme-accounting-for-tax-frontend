@@ -61,7 +61,11 @@ class AFTOverviewController @Inject()(
         val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
         val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
         val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
-        totalCharges
+        outstandingAmountStr(totalCharges)
+      }.recover {
+        case e: Exception =>
+          logger.error("Failed to get payments for journey", e)
+          "Error Retrieving Payment Charges" // return a error value
       }
 
       schemeService.retrieveSchemeDetails(
@@ -73,7 +77,7 @@ class AFTOverviewController @Inject()(
           val json: JsObject = Json.obj("viewModel" -> OverviewViewModel(
             returnUrl = config.schemeDashboardUrl(request).format(srn),
             schemeName = sD.schemeName,
-            outstandingAmount = outstandingAmountStr(p)
+            outstandingAmount = p
           )
           )
           renderer.render("aftOverview.njk", json).map(Ok(_))
