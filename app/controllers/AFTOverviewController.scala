@@ -23,7 +23,7 @@ import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, g
 import models.financialStatement.SchemeFSDetail
 import play.api.Logger
 import play.api.i18n.Lang.logger
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json, OWrites}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -33,7 +33,7 @@ import uk.gov.hmrc.nunjucks.NunjucksSupport
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class AFTOverviewController @Inject()(
                                        identify: IdentifierAction,
@@ -52,21 +52,26 @@ class AFTOverviewController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
 
-      val payment = paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, "all").map { paymentsCache =>
-        val filteredPayments: Seq[SchemeFSDetail] =
-          paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
+      def getPayment()(implicit messages: Messages): Future[String] = {
+        paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, "all").map { paymentsCache =>
+          val filteredPayments: Seq[SchemeFSDetail] =
+            paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
 
-        val dueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getDueCharges(filteredPayments)
-        val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
-        val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
-        val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
-        val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
-        outstandingAmountStr(totalCharges)
-      }.recover {
-        case e: Exception =>
-          logger.error("Failed to get payments for journey", e)
-          "Error Retrieving Payment Charges" // return a error value
+          val dueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getDueCharges(filteredPayments)
+          val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
+          val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
+          val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
+          val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
+          outstandingAmountStr(totalCharges)
+        }.recover {
+          case e: Exception =>
+            logger.error("Failed to get payments for journey", e)
+            messages("aftOverview.totalOutstandingNotAvailable") // return a error value
+        }
       }
+
+
+      val payment = getPayment()
 
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
@@ -85,7 +90,7 @@ class AFTOverviewController @Inject()(
       }.recover {
         case e: Exception =>
           logger.error("Failed to retrieve scheme details", e)
-          InternalServerError("An error occurred") // return an error response or handle the error appropriately
+          InternalServerError("An error occurred") // return an error response
       }
   }
 }
