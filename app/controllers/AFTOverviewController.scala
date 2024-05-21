@@ -81,6 +81,7 @@ class AFTOverviewController @Inject()(
         val json: JsObject = Json.obj(
           viewModel -> OverviewViewModel(
             returnUrl = config.schemeDashboardUrl(request).format(srn),
+            newAft = controllers.routes.YearsController.onPageLoad(srn).url,
             schemeName = overviewInfo.schemeDetails.schemeName,
             outstandingAmount = outstandingAmountStr(outstandingAmount),
             quartersInProgress = overviewInfo.quartersInProgress.map(qIP =>
@@ -122,6 +123,7 @@ object AFTOverviewController {
                          )
   case class OverviewViewModel(
                                 returnUrl: String,
+                                newAft: String,
                                 schemeName: String,
                                 outstandingAmount: String,
                                 quartersInProgress: Seq[(String, String)] = Seq.empty,
