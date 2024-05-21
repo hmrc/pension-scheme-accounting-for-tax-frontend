@@ -32,7 +32,7 @@
 
         <p class="govuk-heading-l">
             <strong>
-                {{ viewModel.outstandingAmount) }}
+                {{ viewModel.outstandingAmount }}
             </strong>
         </p>
 
@@ -41,34 +41,48 @@
                 {{ messages("aftOverview.viewOutstanding") }}
             </a>
         </p>
-
         <hr>
 
-        <h3 class="govuk-heading-m govuk-!-margin-top-6">
-            {{ messages("aftOverview.inProgress") }}
-        </h3>
+        {% if viewModel.quartersInProgress.length > 0 %}
 
-        <p class="govuk-body govuk-!-margin-bottom-6">
-            <a class="govuk-link" href="/linkToViewInProgressAfts">
-                {{ messages("aftOverview.linkToInProgress") }}
-            </a>
-        </p>
+            <h3 class="govuk-heading-m govuk-!-margin-top-6">
+                {{ messages("aftOverview.inProgress") }}
+            </h3>
 
-        <hr>
+            <ul class="govuk-list">
+                {% for tuple in viewModel.quartersInProgress %}
+                    <li class="govuk-body">
+                        <a class="govuk-link" href="{{ tuple[1] }}">
+                            {{ tuple[0] }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <hr>
+        {% endif %}
 
-        <h3 class="govuk-heading-m govuk-!-margin-top-6">
-            {{ messages("aftOverview.pastAftReturns") }}
-        </h3>
+        {% if viewModel.pastYearsAndQuarters.length > 0 %}
+            <h3 class="govuk-heading-m govuk-!-margin-top-6">
+                {{ messages("aftOverview.pastAftReturns") }}
+            </h3>
 
-        <h3 class="govuk-heading-s">
-            {{ messages("aftOverview.pastYearRange") }}
-        </h3>
+            {% for tuple in viewModel.pastYearsAndQuarters %}
+                <h3 class="govuk-heading-s">
+                    {{ tuple[0] }} to {{ tuple[0] + 1 }}
+                </h3>
 
-        <p class="govuk-body govuk-!-margin-bottom-6">
-            <a class="govuk-link" href="/linkToViewPastAfts">
-                {{ messages("aftOverview.linkToPastAfts") }}
-            </a>
-        </p>
+                <ul class="govuk-list">
+                {% for item in tuple[1] %}
+                    <li class="govuk-body">
+                        <a class="govuk-link" href="{{ item[1] }}">
+                            {{ item[0] }}
+                        </a>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% endfor %}
+
+        {% endif %}
 
         <br>
 
