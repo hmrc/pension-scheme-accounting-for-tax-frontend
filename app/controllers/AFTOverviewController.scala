@@ -113,8 +113,7 @@ object AFTOverviewController {
   private val outstandingAmountStr: BigDecimal => String = amount => s"£$amount - hardcoded"
 
   private val linkForQuarter: (String, AFTQuarter) => String = (srn, aftQuarter) =>
-    controllers.financialOverview.scheme.routes.AllPaymentsAndChargesController
-      .onPageLoad(srn, aftQuarter.startDate.toString, AccountingForTaxCharges).url
+    controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, aftQuarter.startDate.toString).url
 
   private val displayYears: Seq[Int] => Seq[Int] = seq => seq.sorted.reverse.take(maxPastYearsToDisplay)
   private case class OverviewInfo(
