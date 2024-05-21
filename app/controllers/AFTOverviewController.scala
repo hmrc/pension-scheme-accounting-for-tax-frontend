@@ -19,7 +19,7 @@ package controllers
 import config.FrontendAppConfig
 import controllers.AFTOverviewController._
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
-import models.AFTQuarter.formatForDisplay
+import models.AFTQuarter.{formatForDisplayOneYear, monthDayStringFormat}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.{AFTQuarter, DisplayQuarter, SchemeDetails}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -81,16 +81,17 @@ class AFTOverviewController @Inject()(
         val json: JsObject = Json.obj(
           viewModel -> OverviewViewModel(
             returnUrl = config.schemeDashboardUrl(request).format(srn),
-            newAft = controllers.routes.YearsController.onPageLoad(srn).url,
+            newAftUrl = controllers.routes.YearsController.onPageLoad(srn).url,
+            paymentsAndChargesUrl = controllers.financialOverview.scheme.routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges).url,
             schemeName = overviewInfo.schemeDetails.schemeName,
             outstandingAmount = outstandingAmountStr(outstandingAmount),
             quartersInProgress = overviewInfo.quartersInProgress.map(qIP =>
-              (formatForDisplay(qIP.quarter), linkForQuarter(srn, qIP.quarter))
+              (formatForDisplayOneYear(qIP.quarter), linkForQuarter(srn, qIP.quarter))
             ),
             pastYearsAndQuarters = overviewInfo.pastYearsAndQuarters.map(pYAQ =>
               (pYAQ._1,
                 pYAQ._2.map(q =>
-                  (formatForDisplay(q.quarter), linkForQuarter(srn, q.quarter))
+                  (monthDayStringFormat(q.quarter), linkForQuarter(srn, q.quarter))
                 )
               )
             )
@@ -123,7 +124,8 @@ object AFTOverviewController {
                          )
   case class OverviewViewModel(
                                 returnUrl: String,
-                                newAft: String,
+                                newAftUrl: String,
+                                paymentsAndChargesUrl: String,
                                 schemeName: String,
                                 outstandingAmount: String,
                                 quartersInProgress: Seq[(String, String)] = Seq.empty,
