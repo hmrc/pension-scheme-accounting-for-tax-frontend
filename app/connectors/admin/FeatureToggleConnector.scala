@@ -21,14 +21,15 @@ import config.FrontendAppConfig
 import models.FeatureToggle
 import play.api.Logger
 import play.api.http.Status._
+import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpException, HttpResponse}
 import utils.HttpResponseHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
 
-class FeatureToggleConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
+class FeatureToggleConnector @Inject()(http: HttpClient, config: FrontendAppConfig) (implicit ec: ExecutionContext)
   extends HttpResponseHelper {
   private val logger = Logger(classOf[FeatureToggleConnector])
 
@@ -45,4 +46,31 @@ class FeatureToggleConnector @Inject()(http: HttpClient, config: FrontendAppConf
       case Failure(t: Throwable) => logger.warn("Unable to get toggle value", t)
     }
   }
+
+  def getNewPensionsSchemeFeatureToggle(toggleName: String)(implicit hc: HeaderCarrier): Future[ToggleDetails] = {
+    getNewFeatureToggle(config.pensionSchemeNewToggleUrl(toggleName), toggleName)
+  }
+
+  private def getNewFeatureToggle(configURL: String, toggleName: String)(implicit hc: HeaderCarrier): Future[ToggleDetails] = {
+    http.GET[HttpResponse](configURL)(implicitly, hc, implicitly).map { response =>
+      val toggleOpt = response.status match {
+        case NO_CONTENT => None
+        case OK =>
+          Some(response.json.as[ToggleDetails])
+        case _ =>
+          throw new HttpException(response.body, response.status)
+      }
+
+      toggleOpt match {
+        case None => ToggleDetails(toggleName, None, isEnabled = false)
+        case Some(a) => a
+      }
+    }
+  }
+}
+
+case class ToggleDetails(toggleName: String, toggleDescription: Option[String], isEnabled: Boolean)
+
+object ToggleDetails {
+  implicit val format: OFormat[ToggleDetails] = Json.format[ToggleDetails]
 }
