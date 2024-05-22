@@ -16,13 +16,14 @@
 
 package controllers
 
-import connectors.{AFTConnector, InterimDashboardConnector}
+import connectors.admin.{FeatureToggleConnector, ToggleDetails}
+import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData.{schemeDetails, srn}
 import matchers.JsonMatchers.containJson
 import models.viewModels.PastAftReturnsViewModel
-import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, Enumerable, PastAftReturnGroup, ReportLink, ToggleDetails}
+import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, Enumerable, PastAftReturnGroup, ReportLink}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -48,13 +49,13 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
   private val mockSchemeService = mock[SchemeService]
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
-  private val mockInterimDashboardConnector: InterimDashboardConnector = mock[InterimDashboardConnector]
+  private val mockFeatureToggleConnector: FeatureToggleConnector = mock[FeatureToggleConnector]
 
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[SchemeService].toInstance(mockSchemeService),
       bind[AFTConnector].toInstance(mockAFTConnector),
-      bind[InterimDashboardConnector].toInstance(mockInterimDashboardConnector)
+      bind[FeatureToggleConnector].toInstance(mockFeatureToggleConnector)
     )
 
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
@@ -81,7 +82,7 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
   "PastAftReturnsController" must {
     "successfully render correct view when fewer than 4 years of past AFT returns are available" in {
-      when(mockInterimDashboardConnector.getInterimDashboardToggle()(any(), any()))
+      when(mockFeatureToggleConnector.getNewPensionsSchemeFeatureToggle(any())(any()))
         .thenReturn(Future.successful(ToggleDetails("interim-dashboard", None, true)))
 
       val sampleData = generateSampleData(1)
@@ -105,7 +106,7 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSuppo
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(0, PastAftReturnsViewModel(groupedReturns)))
     }
     "successfully render correct view when more than 4 years of past AFT returns are available" in {
-      when(mockInterimDashboardConnector.getInterimDashboardToggle()(any(), any()))
+      when(mockFeatureToggleConnector.getNewPensionsSchemeFeatureToggle(any())(any()))
         .thenReturn(Future.successful(ToggleDetails("interim-dashboard", None, true)))
 
       val sampleData = generateSampleData(5)
@@ -129,7 +130,7 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSuppo
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(1, PastAftReturnsViewModel(groupedReturns)))
     }
     "redirect to Amend Years page if 'interim-dashboard' toggle is disabled" in {
-      when(mockInterimDashboardConnector.getInterimDashboardToggle()(any(), any()))
+      when(mockFeatureToggleConnector.getNewPensionsSchemeFeatureToggle(any())(any()))
         .thenReturn(Future.successful(ToggleDetails("interim-dashboard", None, false)))
 
       val result = route(application, httpGETRequest(httpPathGET)).value

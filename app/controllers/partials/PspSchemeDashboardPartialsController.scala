@@ -16,6 +16,7 @@
 
 package controllers.partials
 
+import connectors.admin.FeatureToggleConnector
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import models.financialStatement.SchemeFSDetail
@@ -38,6 +39,7 @@ class PspSchemeDashboardPartialsController @Inject()(
                                                       override val messagesApi: MessagesApi,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       schemeService: SchemeService,
+                                                      featureToggleConnector:FeatureToggleConnector,
                                                       financialStatementConnector: FinancialStatementConnector,
                                                       aftPartialService: AFTPartialService,
                                                       renderer: Renderer
@@ -57,7 +59,8 @@ class PspSchemeDashboardPartialsController @Inject()(
               val futureSeqHtml = for {
                 schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
                 schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
-                aftReturnsHtml <- pspDashboardAftReturnsPartial(idNumber, schemeDetails.pstr, psaId)
+                interimDashboard <- featureToggleConnector.getNewPensionsSchemeFeatureToggle("interim-dashboard").map(_.isEnabled)
+                aftReturnsHtml <- pspDashboardAftReturnsPartial(interimDashboard, idNumber, schemeDetails.pstr, psaId)
                 paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(idNumber, schemeFs.seqSchemeFSDetail, schemeDetails.pstr)
               }
               yield {
@@ -71,14 +74,18 @@ class PspSchemeDashboardPartialsController @Inject()(
       }
   }
 
-  private def pspDashboardAftReturnsPartial(idNumber: String, pstr: String, authorisingPsaId: String)(implicit
-                                                                                                      request: IdentifierRequest[AnyContent], hc: HeaderCarrier): Future[Html] = {
-    aftPartialService.retrievePspDashboardAftReturnsModel(idNumber, pstr, authorisingPsaId) flatMap {
-      viewModel =>
-        renderer.render(
-          template = "partials/pspDashboardAftReturnsCard.njk",
-          ctx = Json.obj("aft" -> Json.toJson(viewModel))
-        )
+  private def pspDashboardAftReturnsPartial(interimDashboard: Boolean, idNumber: String, pstr: String, authorisingPsaId: String)
+                                           (implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier): Future[Html] = {
+    if (interimDashboard) {
+      Future.successful(Html(""))
+    } else {
+      aftPartialService.retrievePspDashboardAftReturnsModel(idNumber, pstr, authorisingPsaId) flatMap {
+        viewModel =>
+          renderer.render(
+            template = "partials/pspDashboardAftReturnsCard.njk",
+            ctx = Json.obj("aft" -> Json.toJson(viewModel))
+          )
+      }
     }
   }
 

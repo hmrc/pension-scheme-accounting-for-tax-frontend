@@ -16,7 +16,8 @@
 
 package controllers
 
-import connectors.{AFTConnector, InterimDashboardConnector}
+import connectors.admin.FeatureToggleConnector
+import connectors.AFTConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.AFTQuarter.monthDayStringFormat
 import models.viewModels.PastAftReturnsViewModel
@@ -36,7 +37,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
                                          allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                          val controllerComponents: MessagesControllerComponents,
-                                         interimDashboardConnector: InterimDashboardConnector,
+//                                         interimDashboardConnector: InterimDashboardConnector,
+                                         featureToggleConnector: FeatureToggleConnector,
                                          identify: IdentifierAction,
                                          renderer: Renderer,
                                          schemeService: SchemeService
@@ -47,7 +49,7 @@ class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
 
   def onPageLoad(srn: String, page: Int): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
-      interimDashboardConnector.getInterimDashboardToggle().map(_.isEnabled).flatMap { toggleIsEnabled =>
+      featureToggleConnector.getNewPensionsSchemeFeatureToggle("interim-dashboard").map(_.isEnabled).flatMap { toggleIsEnabled =>
         if (toggleIsEnabled) {
           schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
             aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
