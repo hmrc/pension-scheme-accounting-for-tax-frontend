@@ -17,7 +17,7 @@
 package controllers
 
 import config.FrontendAppConfig
-import controllers.AFTOverviewControllerSpec.{paymentsCache, schemeFSResponse, srn}
+import controllers.AFTOverviewControllerSpec.{paymentsCache, schemeFSResponse}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData.{dummyCall, emptyChargesTable, psaId, schemeDetails, schemeName}
@@ -28,7 +28,7 @@ import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentCaptor
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -164,7 +164,6 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
 }
 
 object AFTOverviewControllerSpec {
-  private val startDate = "2020-04-01"
   private val srn = "test-srn"
 
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {

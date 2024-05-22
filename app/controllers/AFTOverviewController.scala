@@ -19,6 +19,7 @@ package controllers
 import config.FrontendAppConfig
 import controllers.AFTOverviewController._
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
+import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.AFTQuarter.{formatForDisplayOneYear, monthDayStringFormat}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSDetail
@@ -50,103 +51,77 @@ class AFTOverviewController @Inject()(
                                      )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-//scalastyle:off
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
-
       (for {
-
-        amount <- getPayment(srn)
-
-        schemeDetails <- schemeService.retrieveSchemeDetails(
-          psaId = request.idOrException,
-          schemeIdType = schemeIdType,
-          srn = srn
-        )
-
-        quartersInProgress <- quartersService.getInProgressQuarters(
-          srn = srn,
-          pstr = schemeDetails.pstr
-        )
-
-        allPastYears <- quartersService.getPastYears(
-          pstr = schemeDetails.pstr
-        )
-
+        outstandingAmount <- getOutstandingPaymentAmount(srn)
+        schemeDetails <- schemeService.retrieveSchemeDetails(psaId = request.idOrException, schemeIdType = schemeIdType, srn = srn)
+        quartersInProgress <- quartersService.getInProgressQuarters(srn = srn, pstr = schemeDetails.pstr)
+        allPastYears <- quartersService.getPastYears(pstr = schemeDetails.pstr)
         pastYearsAndQuarters <- Future.traverse(displayYears(allPastYears))(
-          year => quartersService.getPastQuarters(
-              pstr = schemeDetails.pstr,
-              year = year
-            ).flatMap(quarters => Future.successful(year, quarters))
+          year => quartersService.getPastQuarters(pstr = schemeDetails.pstr, year = year).flatMap(quarters => Future.successful(year, quarters))
         )
-
-      } yield OverviewInfo(schemeDetails, quartersInProgress, pastYearsAndQuarters, amount)
+      }
+      yield OverviewInfo(schemeDetails, quartersInProgress, pastYearsAndQuarters, outstandingAmount)
         ).flatMap { overviewInfo =>
-
-        val json: JsObject = Json.obj(
-          viewModel -> OverviewViewModel(
-            returnUrl = config.schemeDashboardUrl(request).format(srn),
-            newAftUrl = controllers.routes.YearsController.onPageLoad(srn).url,
-            paymentsAndChargesUrl = controllers.financialOverview.scheme.routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges).url,
-            schemeName = overviewInfo.schemeDetails.schemeName,
-            outstandingAmount = overviewInfo.outstandingAmount,
-            quartersInProgress = overviewInfo.quartersInProgress.map(qIP =>
-              (formatForDisplayOneYear(qIP.quarter), linkForQuarter(srn, qIP.quarter))
-            ),
-            pastYearsAndQuarters = overviewInfo.pastYearsAndQuarters.map(pYAQ =>
-              (pYAQ._1,
-                pYAQ._2.map(q =>
-                  (monthDayStringFormat(q.quarter), linkForQuarter(srn, q.quarter))
-                )
-              )
+        renderer.render(aftOverviewTemplate,
+          Json.obj(viewModel ->
+            OverviewViewModel(
+              returnUrl = config.schemeDashboardUrl(request).format(srn),
+              newAftUrl = controllers.routes.YearsController.onPageLoad(srn).url,
+              paymentsAndChargesUrl = controllers.financialOverview.scheme.routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges).url,
+              schemeName = overviewInfo.schemeDetails.schemeName,
+              outstandingAmount = overviewInfo.outstandingAmount,
+              quartersInProgress = overviewInfo.quartersInProgress.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)),
+              pastYearsAndQuarters = overviewInfo.pastYearsAndQuarters.map(pYAQ => (pYAQ._1, pYAQ._2.map(q => textAndLinkForQuarter(monthDayStringFormat, q, srn))))
             )
           )
-        )
-        renderer.render(template, json).map(Ok(_))
+        ).map(Ok(_))
       }.recover {
         case e: Exception =>
           logger.error("Failed to retrieve scheme details or past year details", e)
-          InternalServerError("An error occurred") // return an error response
+          InternalServerError("An error occurred")
       }
   }
 
-  private def getPayment(srn: String)(implicit messages: Messages, request:IdentifierRequest[AnyContent]): Future[String] = {
-    paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, "all").map { paymentsCache =>
-      val filteredPayments: Seq[SchemeFSDetail] =
-        paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
-
-      val dueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getDueCharges(filteredPayments)
-      val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
-      val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
-      val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
-      val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
-      outstandingAmountStr(totalCharges)
+  private def getOutstandingPaymentAmount(srn: String)(implicit messages: Messages, request: IdentifierRequest[AnyContent]): Future[String] = {
+    paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyTypeAll).map { paymentsCache =>
+      val filteredPayments: Seq[SchemeFSDetail] = paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
+      val totalDueCharges: BigDecimal = paymentsAndChargesService.getDueCharges(filteredPayments).map(_.amountDue).sum
+      val totalInterestCharges: BigDecimal = paymentsAndChargesService.getInterestCharges(filteredPayments).map(_.accruedInterestTotal).sum
+      formatCurrencyAmountAsString(totalDueCharges + totalInterestCharges)
     }.recover {
       case e: Exception =>
         logger.error("Failed to get payments for journey", e)
-        messages("aftOverview.totalOutstandingNotAvailable") // return a error value
+        messages("aftOverview.totalOutstandingNotAvailable")
     }
   }
 }
 
 object AFTOverviewController {
 
-  private val schemeIdType = "srn"
-  private val viewModel = "viewModel"
-  private val template = "aftOverview.njk"
-  private val maxPastYearsToDisplay = 3
+  private val schemeIdType: String = "srn"
+  private val viewModel: String = "viewModel"
+  private val aftOverviewTemplate: String = "aftOverview.njk"
+  private val maxPastYearsToDisplay: Int  = 3
+  private val journeyTypeAll: String  = "all"
 
-  private val outstandingAmountStr: BigDecimal => String = amount => s"£$amount"
+
+  private val displayYears: Seq[Int] => Seq[Int] = seq => seq.sorted.reverse.take(maxPastYearsToDisplay)
 
   private val linkForQuarter: (String, AFTQuarter) => String = (srn, aftQuarter) =>
     controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, aftQuarter.startDate.toString).url
 
-  private val displayYears: Seq[Int] => Seq[Int] = seq => seq.sorted.reverse.take(maxPastYearsToDisplay)
+  private val textAndLinkForQuarter: (AFTQuarter => String, DisplayQuarter, String) => (String, String) = (formatQuarter, displayQuarter, srn) =>
+    (formatQuarter(displayQuarter.quarter), linkForQuarter(srn, displayQuarter.quarter))
+
+
   private case class OverviewInfo(
-                           schemeDetails: SchemeDetails,
-                           quartersInProgress: Seq[DisplayQuarter],
-                           pastYearsAndQuarters: Seq[(Int, Seq[DisplayQuarter])],
-                           outstandingAmount: String)
+                                   schemeDetails: SchemeDetails,
+                                   quartersInProgress: Seq[DisplayQuarter],
+                                   pastYearsAndQuarters: Seq[(Int, Seq[DisplayQuarter])],
+                                   outstandingAmount: String
+                                 )
 
   case class OverviewViewModel(
                                 returnUrl: String,
