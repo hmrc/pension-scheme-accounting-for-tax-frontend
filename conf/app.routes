@@ -16,6 +16,8 @@ GET         /this-service-has-been-reset                                        
 
 GET         /:srn/:startDate/your-action-was-not-processed                                                                                           controllers.YourActionWasNotProcessedController.onPageLoad(srn: String, startDate: String)
 
+GET         /:srn/past-aft-returns/:page                                                                                                             controllers.PastAftReturnsController.onPageLoad(srn: String, page: Int)
+
 GET         /:srn/:startDate/:accessType/:version/charge-type                                                                                        controllers.ChargeTypeController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 POST        /:srn/:startDate/:accessType/:version/charge-type                                                                                        controllers.ChargeTypeController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
 

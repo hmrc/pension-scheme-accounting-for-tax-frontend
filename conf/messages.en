@@ -65,6 +65,10 @@ session_expired.heading = For your security, this service has been reset
 unauthorised.title = You can’t access this service with this account
 unauthorised.heading = You can’t access this service with this account
 
+pastAftReturns.title = Past AFT returns
+pastAftReturns.heading = Past AFT returns
+pastAftReturns.returnLink = Return to Accounting for Tax (AFT) overview
+
 #### Compliance statement
 
 ## section one
