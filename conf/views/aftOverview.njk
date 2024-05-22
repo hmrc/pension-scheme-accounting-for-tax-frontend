@@ -26,15 +26,22 @@
             </a>
         </p>
 
-        <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-            {{ messages("aftOverview.totalOutstanding") }}
-        </h3>
+         {% if viewModel.outstandingAmount != messages("aftOverview.totalOutstandingNotAvailable")  %}
+            <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                {{ messages("aftOverview.totalOutstanding") }}
+            </h3>
 
-        <p class="govuk-heading-l">
-            <strong>
-                {{ viewModel.outstandingAmount }}
-            </strong>
-        </p>
+            <p class="govuk-heading-l">
+                <strong>
+                    {{ viewModel.outstandingAmount }}
+                </strong>
+            </p>
+
+            {% else %}
+                <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                    {{ messages("aftOverview.totalOutstandingNotAvailable") }}
+                </h3>
+        {% endif %}
 
         <p class="govuk-body govuk-!-margin-bottom-6">
             <a class="govuk-link" href="{{ viewModel.paymentsAndChargesUrl }}">

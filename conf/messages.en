@@ -1641,6 +1641,7 @@ chargeAmountReported.cya.visuallyHidden.text = the {0} {1} amount reported for {
 aftOverview.title               = AFT: overview
 aftOverview.startNewAft         = Start a new AFT return
 aftOverview.totalOutstanding    = Total outstanding AFT return payments:
+aftOverview.totalOutstandingNotAvailable    = The amount outstanding is not currently available on this screen. You can view it using the link below.
 aftOverview.viewOutstanding     = View all outstanding payments and charges
 aftOverview.inProgress          = In progress
 aftOverview.linkToInProgress    = 1 April to 30 June 2023 - hardcoded

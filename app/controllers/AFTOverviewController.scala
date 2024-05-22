@@ -20,12 +20,16 @@ import config.FrontendAppConfig
 import controllers.AFTOverviewController._
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.AFTQuarter.{formatForDisplayOneYear, monthDayStringFormat}
-import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
+import models.financialStatement.SchemeFSDetail
+import models.requests.IdentifierRequest
 import models.{AFTQuarter, DisplayQuarter, SchemeDetails}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.Lang.logger
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json, OWrites}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.nunjucks.NunjucksSupport
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -40,6 +44,7 @@ class AFTOverviewController @Inject()(
                                        config: FrontendAppConfig,
                                        schemeService: SchemeService,
                                        quartersService: QuartersService,
+                                       paymentsAndChargesService: PaymentsAndChargesService,
                                        override val messagesApi: MessagesApi,
                                        val controllerComponents: MessagesControllerComponents
                                      )(implicit ec: ExecutionContext)
@@ -50,6 +55,9 @@ class AFTOverviewController @Inject()(
     implicit request =>
 
       (for {
+
+        amount <- getPayment(srn)
+
         schemeDetails <- schemeService.retrieveSchemeDetails(
           psaId = request.idOrException,
           schemeIdType = schemeIdType,
@@ -72,11 +80,8 @@ class AFTOverviewController @Inject()(
             ).flatMap(quarters => Future.successful(year, quarters))
         )
 
-      } yield OverviewInfo(schemeDetails, quartersInProgress, pastYearsAndQuarters)
+      } yield OverviewInfo(schemeDetails, quartersInProgress, pastYearsAndQuarters, amount)
         ).flatMap { overviewInfo =>
-
-        // TODO: remove hardcoded value
-        val outstandingAmount: BigDecimal = 123.45
 
         val json: JsObject = Json.obj(
           viewModel -> OverviewViewModel(
@@ -84,7 +89,7 @@ class AFTOverviewController @Inject()(
             newAftUrl = controllers.routes.YearsController.onPageLoad(srn).url,
             paymentsAndChargesUrl = controllers.financialOverview.scheme.routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges).url,
             schemeName = overviewInfo.schemeDetails.schemeName,
-            outstandingAmount = outstandingAmountStr(outstandingAmount),
+            outstandingAmount = overviewInfo.outstandingAmount,
             quartersInProgress = overviewInfo.quartersInProgress.map(qIP =>
               (formatForDisplayOneYear(qIP.quarter), linkForQuarter(srn, qIP.quarter))
             ),
@@ -98,7 +103,29 @@ class AFTOverviewController @Inject()(
           )
         )
         renderer.render(template, json).map(Ok(_))
+      }.recover {
+        case e: Exception =>
+          logger.error("Failed to retrieve scheme details or past year details", e)
+          InternalServerError("An error occurred") // return an error response
       }
+  }
+
+  private def getPayment(srn: String)(implicit messages: Messages, request:IdentifierRequest[AnyContent]): Future[String] = {
+    paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, "all").map { paymentsCache =>
+      val filteredPayments: Seq[SchemeFSDetail] =
+        paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
+
+      val dueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getDueCharges(filteredPayments)
+      val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
+      val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
+      val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
+      val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
+      outstandingAmountStr(totalCharges)
+    }.recover {
+      case e: Exception =>
+        logger.error("Failed to get payments for journey", e)
+        messages("aftOverview.totalOutstandingNotAvailable") // return a error value
+    }
   }
 }
 
@@ -109,8 +136,7 @@ object AFTOverviewController {
   private val template = "aftOverview.njk"
   private val maxPastYearsToDisplay = 3
 
-  // TODO - remove "hardcoded" from string
-  private val outstandingAmountStr: BigDecimal => String = amount => s"£$amount - hardcoded"
+  private val outstandingAmountStr: BigDecimal => String = amount => s"£$amount"
 
   private val linkForQuarter: (String, AFTQuarter) => String = (srn, aftQuarter) =>
     controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, aftQuarter.startDate.toString).url
@@ -119,8 +145,9 @@ object AFTOverviewController {
   private case class OverviewInfo(
                            schemeDetails: SchemeDetails,
                            quartersInProgress: Seq[DisplayQuarter],
-                           pastYearsAndQuarters: Seq[(Int, Seq[DisplayQuarter])]
-                         )
+                           pastYearsAndQuarters: Seq[(Int, Seq[DisplayQuarter])],
+                           outstandingAmount: String)
+
   case class OverviewViewModel(
                                 returnUrl: String,
                                 newAftUrl: String,
