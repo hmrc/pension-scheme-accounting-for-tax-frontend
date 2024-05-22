@@ -37,7 +37,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
                                          allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                          val controllerComponents: MessagesControllerComponents,
-//                                         interimDashboardConnector: InterimDashboardConnector,
                                          featureToggleConnector: FeatureToggleConnector,
                                          identify: IdentifierAction,
                                          renderer: Renderer,
