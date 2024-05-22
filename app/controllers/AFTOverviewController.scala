@@ -21,6 +21,7 @@ import controllers.AFTOverviewController.{OverviewViewModel, outstandingAmountSt
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSDetail
+import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.Lang.logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -52,26 +53,7 @@ class AFTOverviewController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
 
-      def getPayment()(implicit messages: Messages): Future[String] = {
-        paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, "all").map { paymentsCache =>
-          val filteredPayments: Seq[SchemeFSDetail] =
-            paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
-
-          val dueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getDueCharges(filteredPayments)
-          val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
-          val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
-          val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
-          val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
-          outstandingAmountStr(totalCharges)
-        }.recover {
-          case e: Exception =>
-            logger.error("Failed to get payments for journey", e)
-            messages("aftOverview.totalOutstandingNotAvailable") // return a error value
-        }
-      }
-
-
-      val payment = getPayment()
+      val payment = getPayment(srn: String)
 
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
@@ -92,6 +74,24 @@ class AFTOverviewController @Inject()(
           logger.error("Failed to retrieve scheme details", e)
           InternalServerError("An error occurred") // return an error response
       }
+  }
+
+  private def getPayment(srn: String)(implicit messages: Messages, request:IdentifierRequest[AnyContent]): Future[String] = {
+    paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, "all").map { paymentsCache =>
+      val filteredPayments: Seq[SchemeFSDetail] =
+        paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
+
+      val dueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getDueCharges(filteredPayments)
+      val totalDueCharges: BigDecimal = dueCharges.map(_.amountDue).sum
+      val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(filteredPayments)
+      val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
+      val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
+      outstandingAmountStr(totalCharges)
+    }.recover {
+      case e: Exception =>
+        logger.error("Failed to get payments for journey", e)
+        messages("aftOverview.totalOutstandingNotAvailable") // return a error value
+    }
   }
 }
 

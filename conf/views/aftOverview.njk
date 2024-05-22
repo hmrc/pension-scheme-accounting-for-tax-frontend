@@ -25,7 +25,7 @@
                   {{ messages("aftOverview.startNewAft") }}
                 </a>
             </p>
-        {% if viewModel.outstandingAmount != "Error Retrieving Payment Charges"  %}
+        {% if viewModel.outstandingAmount != messages("aftOverview.totalOutstandingNotAvailable")  %}
             <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
                 {{ messages("aftOverview.totalOutstanding") }}
             </h3>
