@@ -113,11 +113,10 @@ class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
       (0, PastAftReturnsViewModel(groupedReturns))
     }
 
-    // TODO - update return link to go to AFT overview page when available
     Json.obj(
       "page" -> pageNo,
       "schemeName" -> schemeName,
-      "returnLink" -> controllers.routes.PastAftReturnsController.onPageLoad(srn, 0).url,
+      "returnLink" -> controllers.routes.AFTOverviewController.onPageLoad(srn).url,
       "viewModel" -> viewModel,
       "firstPageLink" -> controllers.routes.PastAftReturnsController.onPageLoad(srn, 1).url,
       "secondPageLink" -> controllers.routes.PastAftReturnsController.onPageLoad(srn, 2).url

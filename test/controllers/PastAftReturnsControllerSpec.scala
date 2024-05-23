@@ -64,11 +64,10 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
   val templateToBeRendered = "past_aft_returns.njk"
 
-  // TODO - update return link to go to AFT overview page when available
   def jsonToPassToTemplate(pageNo: Int, viewModel: PastAftReturnsViewModel): JsObject = Json.obj(
     "page" -> pageNo,
     "schemeName" -> SampleData.schemeName,
-    "returnLink" -> controllers.routes.PastAftReturnsController.onPageLoad(srn, 0).url,
+    "returnLink" -> controllers.routes.AFTOverviewController.onPageLoad(srn).url,
     "viewModel" -> viewModel,
     "firstPageLink" -> controllers.routes.PastAftReturnsController.onPageLoad(srn, 1).url,
     "secondPageLink" -> controllers.routes.PastAftReturnsController.onPageLoad(srn, 2).url
