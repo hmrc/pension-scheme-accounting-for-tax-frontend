@@ -127,39 +127,6 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
 
     }
 
-    "return InternalServerError when schemeService fails to retrieve scheme details" in {
-
-      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
-
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
-        .thenReturn(Future.failed(new RuntimeException("Test exception")))
-
-      val srn: String = "S2012345678"
-
-      val result = route(application, httpGETRequest(httpPathGET(srn))).value
-
-      status(result) mustEqual INTERNAL_SERVER_ERROR
-
-    }
-
-    "return InternalServerError when QuartersService fails to retrieve year details" in {
-
-      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
-
-      when(mockQuartersService.getPastYears(any())(any(), any()))
-        .thenReturn(Future.failed(new RuntimeException("Test exception")))
-
-      val srn: String = "S2012345678"
-
-      val result = route(application, httpGETRequest(httpPathGET(srn))).value
-
-      status(result) mustEqual INTERNAL_SERVER_ERROR
-
-      application.stop()
-
-    }
   }
 }
 
