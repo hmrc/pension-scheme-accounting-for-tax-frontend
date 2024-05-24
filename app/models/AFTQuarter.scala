@@ -39,6 +39,6 @@ object AFTQuarter {
   }
 
   def formatForDisplayOneYear(aftQuarter: AFTQuarter): String = {
-    monthDayStringFormat(aftQuarter) + s"${aftQuarter.startDate.getYear}"
+    monthDayStringFormat(aftQuarter) + aftQuarter.startDate.getYear
   }
 }

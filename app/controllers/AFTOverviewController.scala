@@ -78,10 +78,11 @@ class AFTOverviewController @Inject()(
             )
           )
         ).map(Ok(_))
-      }.recover {
-        case e: Exception =>
-          logger.error("Failed to retrieve scheme details or past year details", e)
-          InternalServerError("An error occurred")
+      }.recoverWith {
+        case e: Exception => logger.error("Failed to retrieve scheme details or past year details", e)
+        renderer.render(
+          "error.njk"
+        ).map(Ok(_))
       }
   }
 
