@@ -1,0 +1,113 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "macros/title.njk"                         import title %}
+
+{% block pageTitle %}
+  {{ title(messages("aftOverview.title")) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        <span class="govuk-caption-l ">
+            {{ viewModel.schemeName }}
+        </span>
+
+        <h1 class="govuk-heading-xl">
+          {{ messages("aftOverview.title") }}
+        </h1>
+
+        <p class="govuk-body govuk-!-margin-bottom-8">
+            <a class="govuk-link" href="{{ viewModel.newAftUrl }}">
+              {{ messages("aftOverview.startNewAft") }}
+            </a>
+        </p>
+
+         {% if viewModel.outstandingAmount != messages("aftOverview.totalOutstandingNotAvailable")  %}
+            <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                {{ messages("aftOverview.totalOutstanding") }}
+            </h3>
+
+            <p class="govuk-heading-l">
+                <strong>
+                    {{ viewModel.outstandingAmount }}
+                </strong>
+            </p>
+
+            {% else %}
+                <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                    {{ messages("aftOverview.totalOutstandingNotAvailable") }}
+                </h3>
+        {% endif %}
+
+        <p class="govuk-body govuk-!-margin-bottom-6">
+            <a class="govuk-link" href="{{ viewModel.paymentsAndChargesUrl }}">
+                {{ messages("aftOverview.viewOutstanding") }}
+            </a>
+        </p>
+        <hr>
+
+        {% if viewModel.quartersInProgress.length > 0 %}
+
+            <h3 class="govuk-heading-m govuk-!-margin-top-6">
+                {{ messages("aftOverview.inProgress") }}
+            </h3>
+
+            <ul class="govuk-list">
+                {% for tuple in viewModel.quartersInProgress %}
+                    <li class="govuk-body">
+                        <a class="govuk-link" href="{{ tuple[1] }}">
+                            {{ tuple[0] }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <hr>
+        {% endif %}
+
+        {% if viewModel.pastYearsAndQuarters.length > 0 %}
+            <h3 class="govuk-heading-m govuk-!-margin-top-6">
+                {{ messages("aftOverview.pastAftReturns") }}
+            </h3>
+
+            {% for tuple in viewModel.pastYearsAndQuarters %}
+                <h3 class="govuk-heading-s">
+                    {{ tuple[0] }} to {{ tuple[0] + 1 }}
+                </h3>
+
+                <ul class="govuk-list">
+                {% for item in tuple[1] %}
+                    <li class="govuk-body">
+                        <a class="govuk-link" href="{{ item[1] }}">
+                            {{ item[0] }}
+                        </a>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% endfor %}
+
+        {% endif %}
+
+        <br>
+
+        <p class="govuk-body govuk-!-margin-bottom-6">
+            <a class="govuk-link" href={{viewModel.viewAllPastAftsUrl}}>
+                {{ messages("aftOverview.allPastAftReturns") }}
+            </a>
+        </p>
+
+        <hr>
+
+        <br>
+        <p class="govuk-body">
+            <a href={{viewModel.returnUrl}} class="govuk-link">
+                {{ messages("return.to.link", viewModel.schemeName) }}
+            </a>
+        </p>
+      </div>
+    </div>
+
+{% endblock %}

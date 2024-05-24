@@ -65,6 +65,10 @@ session_expired.heading = For your security, this service has been reset
 unauthorised.title = You can’t access this service with this account
 unauthorised.heading = You can’t access this service with this account
 
+pastAftReturns.title = Past AFT returns
+pastAftReturns.heading = Past AFT returns
+pastAftReturns.returnLink = Return to Accounting for Tax (AFT) overview
+
 #### Compliance statement
 
 ## section one
@@ -1637,3 +1641,12 @@ taxQuarterReportedAndPaid.cya.label = The quarter of {0} that this {1} {2} was r
 taxQuarterReportedAndPaid.cya.visuallyHidden.text = the quarter of {0} that this {1} {2} was reported and paid
 chargeAmountReported.cya.label = The {0} {1} amount reported for {2}
 chargeAmountReported.cya.visuallyHidden.text = the {0} {1} amount reported for {2}
+
+aftOverview.title                           = AFT: overview
+aftOverview.startNewAft                     = Start a new AFT return
+aftOverview.totalOutstanding                = Total outstanding AFT return payments:
+aftOverview.totalOutstandingNotAvailable    = The amount outstanding is not currently available on this screen. You can view it using the link below.
+aftOverview.viewOutstanding                 = View all outstanding payments and charges
+aftOverview.inProgress                      = In progress
+aftOverview.pastAftReturns                  = Past AFT returns
+aftOverview.allPastAftReturns               = View or change all past AFT returns
