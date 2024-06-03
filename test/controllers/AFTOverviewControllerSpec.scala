@@ -95,7 +95,6 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
 
       val srn = "test-srn"
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val aftOverviewTemplate = "aftOverview.njk"
 
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
@@ -106,17 +105,13 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
       val result = route(application, httpGETRequest(httpPathGET(srn))).value
       status(result) mustEqual OK
 
+      println("\n\n\n contentAsString(result): ", contentAsString(result))
+      
+      contentAsString(result) must include("""<tbc>"""")
+
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
       templateCaptor.getValue mustEqual aftOverviewTemplate
-
-      jsonCaptor.getValue must containJson(
-        Json.obj(
-          "viewModel" -> Json.obj(
-            "paymentsAndChargesUrl" -> "testUrl"
-          )
-        )
-      )
     }
 
 
