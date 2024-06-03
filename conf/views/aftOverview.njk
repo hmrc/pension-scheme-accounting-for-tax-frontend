@@ -45,7 +45,11 @@
 
         <p class="govuk-body govuk-!-margin-bottom-6">
             <a class="govuk-link" href="{{ viewModel.paymentsAndChargesUrl }}">
-                {{ messages("aftOverview.viewOutstanding") }}
+                {% if viewModel.outstandingAmount == "£0.00"  %}
+                    {{ messages("aftOverview.financialOverview") }}
+                {% else %}
+                    {{ messages("aftOverview.viewOutstanding") }}
+                {% endif %}
             </a>
         </p>
         <hr>
