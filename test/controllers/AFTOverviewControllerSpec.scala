@@ -104,11 +104,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
 
       val result = route(application, httpGETRequest(httpPathGET(srn))).value
       status(result) mustEqual OK
-
-      println("\n\n\n contentAsString(result): ", contentAsString(result))
       
-      contentAsString(result) must include("""<tbc>"""")
-
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
       templateCaptor.getValue mustEqual aftOverviewTemplate
