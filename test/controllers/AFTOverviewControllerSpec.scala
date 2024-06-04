@@ -33,6 +33,7 @@ import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
@@ -93,6 +94,8 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
     "must return OK and the correct view for a GET" in {
 
       val srn = "test-srn"
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val aftOverviewTemplate = "aftOverview.njk"
 
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
@@ -100,15 +103,11 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
 
       val result = route(application, httpGETRequest(httpPathGET(srn))).value
-
       status(result) mustEqual OK
-
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-
+      
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
-      templateCaptor.getValue mustEqual "aftOverview.njk"
-
+      templateCaptor.getValue mustEqual aftOverviewTemplate
     }
 
 

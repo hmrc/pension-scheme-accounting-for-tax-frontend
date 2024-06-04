@@ -69,7 +69,7 @@ class AFTOverviewController @Inject()(
             OverviewViewModel(
               returnUrl = config.schemeDashboardUrl(request).format(srn),
               newAftUrl = controllers.routes.YearsController.onPageLoad(srn).url,
-              paymentsAndChargesUrl = controllers.financialOverview.scheme.routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges).url,
+              paymentsAndChargesUrl = linkForOutstandingAmount(srn, overviewInfo.outstandingAmount),
               schemeName = overviewInfo.schemeDetails.schemeName,
               outstandingAmount = overviewInfo.outstandingAmount,
               quartersInProgress = overviewInfo.quartersInProgress.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)),
@@ -102,7 +102,7 @@ object AFTOverviewController {
   private val aftOverviewTemplate: String = "aftOverview.njk"
   private val maxPastYearsToDisplay: Int  = 3
   private val journeyTypeAll: String  = "all"
-
+  private val nothingOutstanding: String = "£0.00"
 
   private val displayYears: Seq[Int] => Seq[Int] = seq => seq.sorted.reverse.take(maxPastYearsToDisplay)
 
@@ -111,6 +111,13 @@ object AFTOverviewController {
 
   private val textAndLinkForQuarter: (AFTQuarter => String, DisplayQuarter, String) => (String, String) = (formatQuarter, displayQuarter, srn) =>
     (formatQuarter(displayQuarter.quarter), linkForQuarter(srn, displayQuarter.quarter))
+
+  private val linkForOutstandingAmount: (String, String) => String = (srn, outstandingAmount) =>
+    if (outstandingAmount == nothingOutstanding) {
+      controllers.financialOverview.scheme.routes.SchemeFinancialOverviewController.schemeFinancialOverview(srn).url
+    } else {
+      controllers.financialOverview.scheme.routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges).url
+    }
 
 
   private case class OverviewInfo(
