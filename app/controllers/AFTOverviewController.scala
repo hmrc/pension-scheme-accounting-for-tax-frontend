@@ -27,8 +27,9 @@ import models.requests.IdentifierRequest
 import models.{AFTQuarter, DisplayQuarter, SchemeDetails}
 import play.api.i18n.Lang.logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json, OWrites}
+import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.twirl.api.Html
 import renderer.Renderer
 import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{QuartersService, SchemeService}
@@ -97,7 +98,7 @@ class AFTOverviewController @Inject()(
   def getEROutstandingPaymentAmount(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
       getOutstandingPaymentAmount(srn, EventReportingCharges).map {
-        data => Ok(data)
+        data => Ok(Html(data))
       }
   }
 }
