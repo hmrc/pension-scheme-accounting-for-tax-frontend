@@ -21,14 +21,15 @@ import controllers.AFTOverviewController._
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.AFTQuarter.{formatForDisplayOneYear, monthDayStringFormat}
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
-import models.financialStatement.SchemeFSDetail
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, EventReportingCharges, getPaymentOrChargeType}
+import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import models.{AFTQuarter, DisplayQuarter, SchemeDetails}
 import play.api.i18n.Lang.logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json, OWrites}
+import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.twirl.api.Html
 import renderer.Renderer
 import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{QuartersService, SchemeService}
@@ -54,7 +55,7 @@ class AFTOverviewController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
       (for {
-        outstandingAmount <- getOutstandingPaymentAmount(srn)
+        outstandingAmount <- getOutstandingPaymentAmount(srn, AccountingForTaxCharges)
         schemeDetails <- schemeService.retrieveSchemeDetails(psaId = request.idOrException, schemeIdType = schemeIdType, srn = srn)
         quartersInProgress <- quartersService.getInProgressQuarters(srn = srn, pstr = schemeDetails.pstr)
         allPastYears <- quartersService.getPastYears(pstr = schemeDetails.pstr)
@@ -81,9 +82,9 @@ class AFTOverviewController @Inject()(
       }
   }
 
-  private def getOutstandingPaymentAmount(srn: String)(implicit messages: Messages, request: IdentifierRequest[AnyContent]): Future[String] = {
+  private def getOutstandingPaymentAmount(srn: String, chargeTypeVal: PaymentOrChargeType)(implicit messages: Messages, request: IdentifierRequest[AnyContent]): Future[String] = {
     paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyTypeAll).map { paymentsCache =>
-      val filteredPayments: Seq[SchemeFSDetail] = paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == AccountingForTaxCharges)
+      val filteredPayments: Seq[SchemeFSDetail] = paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == chargeTypeVal)
       val totalDueCharges: BigDecimal = paymentsAndChargesService.getDueCharges(filteredPayments).map(_.amountDue).sum
       val totalInterestCharges: BigDecimal = paymentsAndChargesService.getInterestCharges(filteredPayments).map(_.accruedInterestTotal).sum
       formatCurrencyAmountAsString(totalDueCharges + totalInterestCharges)
@@ -92,6 +93,13 @@ class AFTOverviewController @Inject()(
         logger.error("Failed to get payments for journey", e)
         messages("aftOverview.totalOutstandingNotAvailable")
     }
+  }
+
+  def getEROutstandingPaymentAmount(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
+    implicit request =>
+      getOutstandingPaymentAmount(srn, EventReportingCharges).map {
+        data => Ok(Html(data))
+      }
   }
 }
 
