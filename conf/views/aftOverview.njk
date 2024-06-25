@@ -12,11 +12,11 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
 
-        <span class="govuk-caption-l ">
+        <span class="govuk-caption-xl">
             {{ viewModel.schemeName }}
         </span>
 
-        <h1 class="govuk-heading-xl">
+        <h1 class="govuk-heading-xl govuk-!-margin-bottom-6">
           {{ messages("aftOverview.title") }}
         </h1>
 
@@ -56,9 +56,9 @@
 
         {% if viewModel.quartersInProgress.length > 0 %}
 
-            <h3 class="govuk-heading-m govuk-!-margin-top-6">
+            <h2 class="govuk-heading-l govuk-!-margin-top-6">
                 {{ messages("aftOverview.inProgress") }}
-            </h3>
+            </h2>
 
             <ul class="govuk-list">
                 {% for tuple in viewModel.quartersInProgress %}
@@ -73,9 +73,9 @@
         {% endif %}
 
         {% if viewModel.pastYearsAndQuarters.length > 0 %}
-            <h3 class="govuk-heading-m govuk-!-margin-top-6">
+            <h2 class="govuk-heading-l govuk-!-margin-top-6">
                 {{ messages("aftOverview.pastAftReturns") }}
-            </h3>
+            </h2>
 
             {% for tuple in viewModel.pastYearsAndQuarters %}
                 <h3 class="govuk-heading-s">
