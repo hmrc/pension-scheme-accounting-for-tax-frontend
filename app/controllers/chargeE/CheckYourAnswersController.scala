@@ -22,15 +22,16 @@ import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeEHelper, ChargeServiceHelper}
+import models.AmendedChargeStatus.Added
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.ViewOnlyAccessiblePage
-import pages.chargeE.{CheckYourAnswersPage, TotalChargeAmountPage}
+import pages.{QuestionPage, ViewOnlyAccessiblePage}
+import pages.chargeE.{CheckYourAnswersPage, MemberDetailsPage, TotalChargeAmountPage}
 import pages.mccloud.SchemePathHelper
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.{JsArray, JsPath, JsString, Json, KeyPathNode, PathNode}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
@@ -99,13 +100,28 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
   private def pensionsSchemeCount(userAnswers: UserAnswers, index: Int): Int = {
     SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
+  private def memberStatusPath[A](page: QuestionPage[A]): JsPath = {
+    val p = page.path.path
+    if (isMcCloudField(p)) {
+      JsPath(pathNodesAboveMcCloud(p) ++ List(KeyPathNode("memberStatus")))
+    } else {
+      JsPath(p.init ++ List(KeyPathNode("memberStatus")))
+    }
+  }
+  private val isPathNodeMcCloud: PathNode => Boolean = _.toJsonString.endsWith("mccloudRemedy")
+
+  private def isMcCloudField(p: List[PathNode]) = p.exists(isPathNodeMcCloud)
+
+  private def pathNodesAboveMcCloud(p: List[PathNode]): List[PathNode] = p.init.takeWhile(n => !isPathNodeMcCloud(n))
+
 
   def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         val totalAmount = chargeServiceHelper.totalAmount(request.userAnswers, "chargeEDetails")
         for {
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
+          updatedAnswersInProgress <- Future.fromTry(request.userAnswers.set(memberStatusPath(MemberDetailsPage(index)), JsString(Added.toString)))
+          updatedAnswers <- Future.fromTry(updatedAnswersInProgress.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAnnualAllowance))
           _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
         } yield {
