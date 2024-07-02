@@ -108,6 +108,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount).flatMap { ua =>
            ua.set(MemberFormCompleted(index), true)
           })
+          _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAnnualAllowance))
           _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
         } yield {
