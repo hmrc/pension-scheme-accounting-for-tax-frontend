@@ -18,9 +18,9 @@ package pages
 
 import play.api.libs.json.JsPath
 
-case class MemberFormCompleted(memberId: Int) extends QuestionPage[Boolean] {
+case class MemberFormCompleted(chargeType: String, memberId: Int) extends QuestionPage[Boolean] {
 
-  override def path: JsPath = JsPath \ "chargeEDetails" \ "members" \ memberId \ this.toString
+  override def path: JsPath = JsPath \ chargeType \ "members" \ memberId \ this.toString
 
   override def toString: String = "memberFormCompleted"
 }

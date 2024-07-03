@@ -106,7 +106,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         val totalAmount = chargeServiceHelper.totalAmount(request.userAnswers, "chargeEDetails")
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount).flatMap { ua =>
-           ua.set(MemberFormCompleted(index), true)
+           ua.set(MemberFormCompleted("chargeEDetails", index), true)
           })
           _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAnnualAllowance))
