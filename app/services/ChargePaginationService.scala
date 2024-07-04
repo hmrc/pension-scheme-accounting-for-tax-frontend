@@ -151,7 +151,9 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     val chargeItemsWithIndex = (ua.data \ nodeInfo.chargeRootNode \ nodeInfo.listNode).asOpt[JsArray].map(_.value).getOrElse(Nil).zipWithIndex
     val allItemsAsJsArray = chargeType match{
       case ChargeTypeAnnualAllowance | ChargeTypeLifetimeAllowance => chargeItemsWithIndex
-          .filter { case (item, _) => (item \ "memberFormCompleted").asOpt[Boolean].contains(true) }
+          .filter { case (item, _) => val formCompletionValue = (item \ "memberFormCompleted").asOpt[Boolean]
+                            formCompletionValue.fold(true){x => x == true}
+          }
           .filter { case (item, _) => !(item \ "memberStatus").asOpt[String].contains("Deleted") }
       case _ => chargeItemsWithIndex.filter { case (item, _) => !(item \ "memberStatus").asOpt[String].contains("Deleted") }
     }

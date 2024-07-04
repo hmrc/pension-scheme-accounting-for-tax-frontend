@@ -72,7 +72,8 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
             "firstName" -> "first",
             "lastName" -> "last",
             "nino" -> "AB123456C"
-          )
+          ),
+          "memberFormCompleted" -> false
         )
       )),
     "schemeName" -> "Big Scheme"

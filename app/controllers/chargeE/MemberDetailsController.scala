@@ -25,10 +25,11 @@ import forms.MemberDetailsFormProvider
 
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, NormalMode}
 import navigators.CompoundNavigator
+import pages.MemberFormCompleted
 import pages.chargeE.MemberDetailsPage
-import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -37,6 +38,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -108,7 +110,11 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(MemberDetailsPage(index), value, mode))
+                updatedAnswersInProgress <- Future.fromTry(userAnswersService.set(MemberDetailsPage(index), value, mode))
+                updatedAnswers <- Future.fromTry(mode match{
+                  case NormalMode => updatedAnswersInProgress.set(MemberFormCompleted("chargeEDetails",index), false)
+                  case _ => Success(updatedAnswersInProgress)
+                })
                 _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
                   chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
               } yield Redirect(navigator.nextPage(MemberDetailsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
