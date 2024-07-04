@@ -1,2 +1,2 @@
-<script src="{{ routes.controllers.Assets.versioned("javascripts/application.min.js").url }}"></script>
-<script>window.GOVUKFrontend.initAll();window.HMRCFrontend.initAll();</script>
+<script {{ params.nonce }} src="{{ routes.controllers.Assets.versioned("javascripts/application.min.js").url }}"></script>
+<script {{ params.nonce }}>window.GOVUKFrontend.initAll();window.HMRCFrontend.initAll();</script>
