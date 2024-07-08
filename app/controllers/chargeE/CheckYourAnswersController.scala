@@ -26,7 +26,7 @@ import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.ViewOnlyAccessiblePage
+import pages.{MemberFormCompleted, ViewOnlyAccessiblePage}
 import pages.chargeE.{CheckYourAnswersPage, TotalChargeAmountPage}
 import pages.mccloud.SchemePathHelper
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -105,7 +105,10 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       DataRetrievals.retrievePSTR { pstr =>
         val totalAmount = chargeServiceHelper.totalAmount(request.userAnswers, "chargeEDetails")
         for {
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount).flatMap { ua =>
+           ua.set(MemberFormCompleted("chargeEDetails", index), true)
+          })
+          _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAnnualAllowance), memberNo = Some(index.id))
           _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data, chargeType = Some(ChargeType.ChargeTypeAnnualAllowance))
           _ <- aftService.fileCompileReturn(pstr, updatedAnswers)
         } yield {

@@ -41,6 +41,7 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       ua.set(MemberStatusPage(memberNo), memberDetailsAmendedChargeStatus._2.toString).toOption.get
         .set(MemberAFTVersionPage(memberNo), SampleData.version.toInt).toOption.get
         .set(MemberDetailsPage(memberNo), memberDetailsAmendedChargeStatus._1).toOption.get.set(ChargeDetailsPage(memberNo), SampleData.chargeEDetails).toOption.get
+        .set(pages.MemberFormCompleted("chargeEDetails", memberNo), true).toOption.get
     }
   }
 
@@ -333,6 +334,7 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         .set(pages.chargeD.MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
         .set(pages.chargeD.MemberDetailsPage(0), SampleData.memberDetails).toOption.get
         .set(pages.chargeD.ChargeDetailsPage(0), SampleData.chargeDDetails).toOption.get
+        .set(pages.MemberFormCompleted("chargeDDetails", 0), true).toOption.get
 
       val expectedMembers: Seq[Member] = Seq(
         expectedMember(SampleData.memberDetails, index = 0, SampleData.chargeAmount3)

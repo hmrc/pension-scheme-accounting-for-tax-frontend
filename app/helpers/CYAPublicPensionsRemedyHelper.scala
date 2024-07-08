@@ -117,10 +117,10 @@ class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessTyp
                                wasAnotherPensionSchemeVal: Boolean): Seq[Row] = {
     {
       if (wasAnotherPensionSchemeVal) {
-        for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
+        for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary.filter(_.chargeAmountReported.nonEmpty))
           yield pensionsRemedySchemeSummaryDetails(index, pensionsRemedySchemeSummary)
       } else {
-        for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary)
+        for (pensionsRemedySchemeSummary <- pensionsRemedySummary.pensionsRemedySchemeSummary.filter(_.chargeAmountReported.nonEmpty))
           yield pensionsRemedySummaryDetails(index, pensionsRemedySchemeSummary, wasAnotherPensionSchemeVal = false)
       }
     }.flatten

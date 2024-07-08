@@ -30,7 +30,7 @@ import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, Norma
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
 import pages.mccloud.SchemePathHelper
-import pages.{PSTRQuery, QuarterPage, ViewOnlyAccessiblePage}
+import pages.{MemberFormCompleted, PSTRQuery, QuarterPage, ViewOnlyAccessiblePage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -131,9 +131,10 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           (for {
             ua1 <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
             ua2 <- Future.fromTry(ua1.set(ChargeDetailsPage(index), updatedChargeDetails))
-            _ <- userAnswersCacheConnector.savePartial(request.internalId, ua2.data, chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance))
+            ua3 <- Future.fromTry(ua2.set(MemberFormCompleted("chargeDDetails",index), true))
+            _ <- userAnswersCacheConnector.savePartial(request.internalId, ua3.data, chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance))
             _ <- userAnswersCacheConnector.savePartial(request.internalId,
-              ua2.data,
+              ua3.data,
               chargeType = Some(ChargeType.ChargeTypeLifetimeAllowance),
               memberNo = Some(index.id))
             _ <- aftService.fileCompileReturn(pstr, ua2)

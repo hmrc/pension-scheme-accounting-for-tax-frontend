@@ -30,7 +30,7 @@ import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeD.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsBoolean, JsObject, Json}
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -72,7 +72,8 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
             "firstName" -> "first",
             "lastName" -> "last",
             "nino" -> "AB123456C"
-          )
+          ),
+          "memberFormCompleted" -> false
         )
       )),
     "schemeName" -> "Big Scheme"

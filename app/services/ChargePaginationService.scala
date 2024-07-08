@@ -121,13 +121,13 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     nodeInfo(chargeType).flatMap { nodeInfo =>
       chargeType match {
         case ChargeTypeAnnualAllowance =>
-          getItemsPaginatedWithAmount[ChargeEDetails](pageNo, ua: UserAnswers, viewUrl, removeUrl, nodeInfo, _.chargeAmount)
+          getItemsPaginatedWithAmount[ChargeEDetails](pageNo, ua: UserAnswers, viewUrl, removeUrl, nodeInfo, _.chargeAmount, chargeType)
         case ChargeTypeAuthSurplus =>
-          getItemsPaginatedWithAmount[ChargeCDetails](pageNo, ua: UserAnswers, viewUrl, removeUrl, nodeInfo, _.amountTaxDue)
+          getItemsPaginatedWithAmount[ChargeCDetails](pageNo, ua: UserAnswers, viewUrl, removeUrl, nodeInfo, _.amountTaxDue, chargeType)
         case ChargeTypeLifetimeAllowance =>
-          getItemsPaginatedWithAmount[ChargeDDetails](pageNo, ua: UserAnswers, viewUrl, removeUrl, nodeInfo, _.total)
+          getItemsPaginatedWithAmount[ChargeDDetails](pageNo, ua: UserAnswers, viewUrl, removeUrl, nodeInfo, _.total, chargeType)
         case ChargeTypeOverseasTransfer =>
-          getItemsPaginatedWithAmount[ChargeAmounts](pageNo, ua: UserAnswers, viewUrl, removeUrl, nodeInfo, _.amountTaxDue)
+          getItemsPaginatedWithAmount[ChargeAmounts](pageNo, ua: UserAnswers, viewUrl, removeUrl, nodeInfo, _.amountTaxDue, chargeType)
         case _ => None
       }
     }
@@ -139,7 +139,8 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
                                               viewUrl: Int => Call,
                                               removeUrl: Int => Call,
                                               nodeInfo: NodeInfo,
-                                              amount: A => BigDecimal
+                                              amount: A => BigDecimal,
+                                              chargeType: ChargeType
                                             )(implicit reads: Reads[A]): Option[PaginatedMembersInfo] = {
     def extractAmount(item: JsValue): BigDecimal = (item \ nodeInfo.chargeDetailsNode).asOpt[A] match {
       case Some(chargeDetails) => amount(chargeDetails)
@@ -147,8 +148,16 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
     }
 
     val pageSize = config.membersPageSize
-    val allItemsAsJsArray = (ua.data \ nodeInfo.chargeRootNode \ nodeInfo.listNode).asOpt[JsArray].map(_.value).getOrElse(Nil).zipWithIndex
-      .filter { case (item, _) => !(item \ "memberStatus").asOpt[String].contains("Deleted") }
+    val chargeItemsWithIndex = (ua.data \ nodeInfo.chargeRootNode \ nodeInfo.listNode).asOpt[JsArray].map(_.value).getOrElse(Nil).zipWithIndex
+    val allItemsAsJsArray = chargeType match{
+      case ChargeTypeAnnualAllowance | ChargeTypeLifetimeAllowance => chargeItemsWithIndex
+          .filter { case (item, _) => val formCompletionValue = (item \ "memberFormCompleted").asOpt[Boolean]
+                            formCompletionValue.fold(true){x => x == true}
+          }
+          .filter { case (item, _) => !(item \ "memberStatus").asOpt[String].contains("Deleted") }
+      case _ => chargeItemsWithIndex.filter { case (item, _) => !(item \ "memberStatus").asOpt[String].contains("Deleted") }
+    }
+
     val pages = totalPages(allItemsAsJsArray.size, pageSize)
     val (start, end) = pageStartAndEnd(pageNo, allItemsAsJsArray.size, pageSize, pages)
     val pageItemsAsJsArray = allItemsAsJsArray.slice(start, end).reverse
