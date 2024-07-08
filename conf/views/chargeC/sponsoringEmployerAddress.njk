@@ -137,7 +137,7 @@
 {% endblock %}
 
 {% block pageScripts %}
-    <script src="{{ routes.controllers.Assets.versioned("javascripts/autocomplete/location-autocomplete.min.js").url }}"></script>
+    <script nonce="{{ config.nonce }}" src="{{ routes.controllers.Assets.versioned("javascripts/autocomplete/location-autocomplete.min.js").url }}"></script>
 {% endblock %}
 
 
