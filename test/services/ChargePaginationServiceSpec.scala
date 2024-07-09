@@ -305,7 +305,6 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       )
     }
 
-
     "return none when there are no members" in {
       chargePaginationService.getItemsPaginated(
         pageNo = 1,
@@ -325,6 +324,22 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
         chargeType = ChargeType.ChargeTypeAnnualAllowance
       ) mustBe None
     }
+
+    "return none when createMember throws RuntimeException" in {
+      val invalidUserAnswers = UserAnswers().set(pages.chargeE.MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
+
+      intercept[RuntimeException] {
+        chargePaginationService.getItemsPaginated(
+          pageNo = 1,
+          ua = invalidUserAnswers,
+          viewUrl = viewUrl,
+          removeUrl = removeUrl,
+          chargeType = ChargeType.ChargeTypeAnnualAllowance
+        ) mustBe None
+      }
+
+    }
+
   }
 
   "getItemsPaginated (using charge type D)" must {
@@ -417,4 +432,5 @@ class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with Before
       ) mustBe None
     }
   }
+
 }

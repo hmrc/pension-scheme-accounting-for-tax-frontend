@@ -46,15 +46,19 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
 
   private val createMember: (JsValue, Int, BigDecimal, String, String) => Either[Member, Employer] =
     (jsValueMemberRootNode, index, amount, viewUrl, removeUrl) => {
-      val member = (jsValueMemberRootNode \ "memberDetails").as[MemberDetails]
-      Left(Member(
-        index,
-        member.fullName,
-        member.nino,
-        amount,
-        viewUrl,
-        removeUrl
-      ))
+      (jsValueMemberRootNode \ "memberDetails").validate[MemberDetails] match {
+        case JsSuccess(memberDetails, _) =>
+          Left(Member(
+            index,
+            memberDetails.fullName,
+            memberDetails.nino,
+            amount,
+            viewUrl,
+            removeUrl
+          ))
+        case JsError(_) =>
+          throw new RuntimeException("Unable to parse member details")
+      }
     }
 
   private val createEmployer: (JsValue, Int, BigDecimal, String, String) => Either[Member, Employer] =
@@ -168,6 +172,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
       val startMember = (pageNo - 1) * pageSize + 1
 
       val items: Either[Seq[Member], Seq[Employer]] =
+
         toEitherSeq(
           pageItemsAsJsArray.map { case (item, index) =>
             nodeInfo.createItem(item, index, extractAmount(item), viewUrl(index).url, removeUrl(index).url)
