@@ -43,11 +43,22 @@ class MemberSearchService @Inject()(
 
   import MemberSearchService._
 
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit
-    request: DataRequest[AnyContent]): Seq[MemberRow] =
-      jsonSearch(searchText.toUpperCase, ua.data).fold[Seq[MemberRow]](Nil) { searchResults =>
-        listOfRows(listOfMembers(UserAnswers(searchResults.as[JsObject]), srn, startDate, accessType, version, ua), request.isViewOnly)
-      }
+  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int
+            )(implicit request: DataRequest[AnyContent]): Seq[MemberRow] = {
+    // Step 1: Filter Members Data which is incomplete
+    val filteredMembersArray = (ua.data \ "chargeEDetails" \ "members").as[JsArray].value
+      .filter(member => (member \ "memberDetails").asOpt[MemberDetails].isDefined)
+
+    // step2: Create a new UserAnswers instance with the updated Members JSON
+    val updatedUserAnswers = ua.copy(data = ua.data.as[JsObject] ++ Json.obj(
+      "chargeEDetails" -> Json.obj("members" -> JsArray(filteredMembersArray))
+    ))
+
+    jsonSearch(searchText.toUpperCase, updatedUserAnswers.data).fold[Seq[MemberRow]](Nil) { searchResults =>
+      // Step 3: Create MemberRow Instances
+      listOfRows(listOfMembers(UserAnswers(searchResults.as[JsObject]), srn, startDate, accessType, version, ua), request.isViewOnly)
+    }
+  }
 
   private def listOfRows(listOfMembers: Seq[MemberSummary], isViewOnly: Boolean): Seq[MemberRow] = {
     val allRows = listOfMembers.map { data =>
