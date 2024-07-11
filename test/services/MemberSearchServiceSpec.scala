@@ -88,16 +88,25 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
       memberSearchService.search(UserAnswers(uaJs), srn, startDate, "bloggs", accessType, versionInt) mustBe
         searchResultsMemberDetailsChargeE("Bill Bloggs", "CS121212C", BigDecimal("110.02"))
     }
+
     "return no results when nothing matches" in {
       memberSearchService.search(emptyUserAnswers, srn, startDate, "ZZ098765A", accessType, versionInt) mustBe Nil
     }
 
     "return valid results with no remove link when read only" in {
       val fakeDataRequest: DataRequest[AnyContent] = request(sessionAccessData = SampleData.sessionAccessData(accessMode = AccessMode.PageAccessModeViewOnly))
-
       List(memberSearchService.search(UserAnswers(uaJs), srn, startDate, "CS121212C", accessType, versionInt)(fakeDataRequest)(1)) mustBe
         searchResultsMemberDetailsChargeE("Bill Bloggs", "CS121212C", BigDecimal("110.02"), removeLink = false)
     }
+
+    "return no results when memberFormCompleted is false" in {
+      memberSearchService.search(UserAnswers(incompleteChargeDDetails), srn, startDate, "ZZ098765A", accessType, versionInt) mustBe Nil
+    }
+
+    "return no results when memberFormCompleted is not defined" in {
+      memberSearchService.search(UserAnswers(chargeDDetailsWithoutMemberFormCompletedFlag), srn, startDate, "ZZ098765A", accessType, versionInt) mustBe Nil
+    }
+
   }
 
 }
@@ -127,16 +136,7 @@ object MemberSearchServiceSpec {
       }
     ))
 
-  val chargeA: JsObject = Json.obj("chargeADetails" -> Json.obj(
-    "amendedVersion" -> 1,
-    "chargeDetails" -> Json.obj(
-      "totalAmtOfTaxDueAtHigherRate" -> 2500.02,
-      "totalAmount" -> 4500.04,
-      "numberOfMembers" -> 2,
-      "totalAmtOfTaxDueAtLowerRate" -> 2000.02
-    )
-  ))
-  val chargeD: JsObject = Json.obj("chargeDDetails" -> Json.obj(
+  val chargeDDetailsWithoutMemberFormCompletedFlag: JsObject = Json.obj("chargeDDetails" -> Json.obj(
     "totalChargeAmount" -> 2345.02,
     "members" -> Json.arr(
       Json.obj(
@@ -170,6 +170,89 @@ object MemberSearchServiceSpec {
     ),
     "amendedVersion" -> 1
   ))
+
+  val incompleteChargeDDetails: JsObject = Json.obj("chargeDDetails" -> Json.obj(
+    "totalChargeAmount" -> 2345.02,
+    "members" -> Json.arr(
+      Json.obj(
+        "memberStatus" -> "New",
+        "memberDetails" -> Json.obj(
+          "firstName" -> "Anne ",
+          "lastName" -> "Whizz",
+          "nino" -> "CS121212C"
+        ),
+        "memberAFTVersion" -> 1,
+        "chargeDetails" -> Json.obj(
+          "dateOfEvent" -> "2020-04-28",
+          "taxAt55Percent" -> 55.55,
+          "taxAt25Percent" -> 0.00
+        ),
+        "memberFormCompleted" -> "false"
+      ),
+      Json.obj(
+        "memberStatus" -> "New",
+        "memberDetails" -> Json.obj(
+          "firstName" -> "Sarah",
+          "lastName" -> "Smythe",
+          "nino" -> "nino4"
+        ),
+        "memberAFTVersion" -> 1,
+        "chargeDetails" -> Json.obj(
+          "dateOfEvent" -> "2020-04-28",
+          "taxAt55Percent" -> 45,
+          "taxAt25Percent" -> 300.01
+        ),
+        "memberFormCompleted" -> true
+      )
+    ),
+    "amendedVersion" -> 1
+  ))
+
+  val chargeA: JsObject = Json.obj("chargeADetails" -> Json.obj(
+    "amendedVersion" -> 1,
+    "chargeDetails" -> Json.obj(
+      "totalAmtOfTaxDueAtHigherRate" -> 2500.02,
+      "totalAmount" -> 4500.04,
+      "numberOfMembers" -> 2,
+      "totalAmtOfTaxDueAtLowerRate" -> 2000.02
+    )
+  ))
+  val chargeD: JsObject = Json.obj("chargeDDetails" -> Json.obj(
+    "totalChargeAmount" -> 2345.02,
+    "members" -> Json.arr(
+      Json.obj(
+        "memberStatus" -> "New",
+        "memberDetails" -> Json.obj(
+          "firstName" -> "Anne ",
+          "lastName" -> "Whizz",
+          "nino" -> "CS121212C"
+        ),
+        "memberAFTVersion" -> 1,
+        "chargeDetails" -> Json.obj(
+          "dateOfEvent" -> "2020-04-28",
+          "taxAt55Percent" -> 55.55,
+          "taxAt25Percent" -> 0.00
+        ),
+        "memberFormCompleted" -> true
+      ),
+      Json.obj(
+        "memberStatus" -> "New",
+        "memberDetails" -> Json.obj(
+          "firstName" -> "Sarah",
+          "lastName" -> "Smythe",
+          "nino" -> "nino4"
+        ),
+        "memberAFTVersion" -> 1,
+        "chargeDetails" -> Json.obj(
+          "dateOfEvent" -> "2020-04-28",
+          "taxAt55Percent" -> 45,
+          "taxAt25Percent" -> 300.01
+        ),
+        "memberFormCompleted" -> true
+      )
+    ),
+    "amendedVersion" -> 1
+  ))
   val chargeE: JsObject = Json.obj("chargeEDetails" -> Json.obj(
     "totalChargeAmount" -> 2345.02,
     "members" -> Json.arr(
@@ -185,7 +268,8 @@ object MemberSearchServiceSpec {
           "dateNoticeReceived" -> "2018-02-28",
           "isPaymentMandatory" -> true,
           "chargeAmount" -> 110.02
-        )
+        ),
+        "memberFormCompleted" -> true
       ),
       Json.obj(
         "memberStatus" -> "New",
@@ -199,7 +283,8 @@ object MemberSearchServiceSpec {
           "dateNoticeReceived" -> "2018-02-28",
           "isPaymentMandatory" -> true,
           "chargeAmount" -> 110.02
-        )
+        ),
+        "memberFormCompleted" -> true
       )
     ),
     "amendedVersion" -> 1
@@ -223,7 +308,8 @@ object MemberSearchServiceSpec {
         "chargeAmounts" -> Json.obj(
           "amountTaxDue" -> 10000,
           "amountTransferred" -> 10000
-        )
+        ),
+        "memberFormCompleted" -> true
       ),
       Json.obj(
         "memberStatus" -> "New",
@@ -241,7 +327,8 @@ object MemberSearchServiceSpec {
         "chargeAmounts" -> Json.obj(
           "amountTaxDue" -> 10000,
           "amountTransferred" -> 10000
-        )
+        ),
+        "memberFormCompleted" -> true
       )
     ),
     "amendedVersion" -> 1
@@ -264,7 +351,8 @@ object MemberSearchServiceSpec {
             "dateNoticeReceived" -> "2018-02-28",
             "isPaymentMandatory" -> true,
             "chargeAmount" -> 110.02
-          )
+          ),
+          "memberFormCompleted" -> true
         )
       ),
       "amendedVersion" -> 1
@@ -287,7 +375,8 @@ object MemberSearchServiceSpec {
             "dateOfEvent" -> "2020-04-28",
             "taxAt55Percent" -> 55.55,
             "taxAt25Percent" -> 0.00
-          )
+          ),
+          "memberFormCompleted" -> true
         )
       ),
       "amendedVersion" -> 1
@@ -308,7 +397,8 @@ object MemberSearchServiceSpec {
             "dateNoticeReceived" -> "2018-02-28",
             "isPaymentMandatory" -> true,
             "chargeAmount" -> 110.02
-          )
+          ),
+          "memberFormCompleted" -> true
         )
       ),
       "amendedVersion" -> 1
@@ -333,7 +423,8 @@ object MemberSearchServiceSpec {
           "chargeAmounts" -> Json.obj(
             "amountTaxDue" -> 10000,
             "amountTransferred" -> 10000
-          )
+          ),
+          "memberFormCompleted" -> true
         )
       ),
       "amendedVersion" -> 1

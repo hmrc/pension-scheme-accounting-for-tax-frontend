@@ -103,4 +103,8 @@ object ChargeType extends Enumerable.Implicits {
       case ChargeTypeLifetimeAllowance => "chargeDDetails"
       case _ => throw new RuntimeException(s"Invalid charge type $chargeType")
     }
+
+  val chargeTypeValues: Seq[String] =
+    Seq("chargeADetails", "chargeBDetails", "chargeCDetails", "chargeDDetails", "chargeEDetails", "chargeGDetails")
+
 }
