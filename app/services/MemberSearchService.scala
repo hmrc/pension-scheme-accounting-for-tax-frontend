@@ -43,21 +43,30 @@ class MemberSearchService @Inject()(
 
   import MemberSearchService._
 
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int
-            )(implicit request: DataRequest[AnyContent]): Seq[MemberRow] = {
-    // Step 1: Filter Members Data which is incomplete
-    val filteredMembersArray = (ua.data \ "chargeEDetails" \ "members").as[JsArray].value
-      .filter(member => (member \ "memberDetails").asOpt[MemberDetails].isDefined)
+  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)
+            (implicit request: DataRequest[AnyContent]): Seq[MemberRow] = {
 
-    // step2: Create a new UserAnswers instance with the updated Members JSON
-    val updatedUserAnswers = ua.copy(data = ua.data.as[JsObject] ++ Json.obj(
-      "chargeEDetails" -> Json.obj("members" -> JsArray(filteredMembersArray))
-    ))
+    // Step 1: Identify Charge Types
+    val chargeTypes = List("A", "B", "C", "D", "E", "F", "G")
 
-    jsonSearch(searchText.toUpperCase, updatedUserAnswers.data).fold[Seq[MemberRow]](Nil) { searchResults =>
-      // Step 3: Create MemberRow Instances
-      listOfRows(listOfMembers(UserAnswers(searchResults.as[JsObject]), srn, startDate, accessType, version, ua), request.isViewOnly)
+    // Step 2: Iterate Over Charge Types and Aggregate Results
+    val aggregatedSearchResults = chargeTypes.foldLeft(Json.obj()) { (acc, chargeType) =>
+      val chargeDetailKey = s"charge${chargeType}Details"
+      (ua.data \ chargeDetailKey \ "members").asOpt[JsArray].map { membersArray =>
+        val filteredMembers = membersArray.value.filter(member => (member \ "memberDetails").asOpt[MemberDetails].isDefined)
+        // Step 3: Perform Search on Updated Members JSON and ensure it's a JsObject before merging
+        val searchResult = jsonSearch(searchText.toUpperCase, Json.obj(chargeDetailKey -> Json.obj("members" -> JsArray(filteredMembers))))
+        val searchResultObj = searchResult.getOrElse(Json.obj()) match {
+          case jsObj: JsObject => jsObj
+          case _ => Json.obj()
+        }
+        acc ++ searchResultObj
+      }.getOrElse(acc)
     }
+
+    // Step 4: Create MemberRow Instances from Aggregated Results
+    if (aggregatedSearchResults == Json.obj()) Nil
+    else listOfRows(listOfMembers(UserAnswers(aggregatedSearchResults), srn, startDate, accessType, version, ua), request.isViewOnly)
   }
 
   private def listOfRows(listOfMembers: Seq[MemberSummary], isViewOnly: Boolean): Seq[MemberRow] = {
