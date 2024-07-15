@@ -46,19 +46,20 @@ class MemberSearchService @Inject()(
   def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)
             (implicit request: DataRequest[AnyContent]): Seq[MemberRow] = {
 
+    val upperSearchText = searchText.toUpperCase
     // Step 1: Iterate Over Charge Types and Aggregate Results
     val aggregatedSearchResults = ChargeType.chargeTypeValues.foldLeft(Json.obj()) { (acc, chargeType) =>
-      (ua.data \ chargeType \ "members").asOpt[JsArray].map { membersArray =>
-        // Step 2: Filter Members Array to only include those with memberFormCompleted = true
-        val filteredMembers = membersArray.value.filter(member => (member \ "memberFormCompleted").asOpt[Boolean].contains(true))
-        // Step 3: Perform Search on Updated Members JSON and ensure it's a JsObject before merging
-        val searchResult = jsonSearch(searchText.toUpperCase, Json.obj(chargeType -> Json.obj("members" -> JsArray(filteredMembers))))
-        val searchResultObj = searchResult.getOrElse(Json.obj()) match {
-          case jsObj: JsObject => jsObj
-          case _ => Json.obj()
-        }
-        acc ++ searchResultObj
-      }.getOrElse(acc)
+      ua.data \ chargeType \ "members" match {
+        case JsDefined(membersArray: JsArray) =>
+          // Step 2: Filter Members Array to only include those with memberFormCompleted is not defined or memberFormCompleted = true
+          val filteredMembers = membersArray.value.filter { member =>
+            (member \ "memberFormCompleted").asOpt[Boolean].getOrElse(true)
+          }
+          // Step 3: Perform Search on Updated Members JSON and ensure it's a JsObject before merging
+          val searchResult = jsonSearch(upperSearchText, Json.obj(chargeType -> Json.obj("members" -> JsArray(filteredMembers))))
+          acc ++ searchResult.getOrElse(Json.obj()).as[JsObject]
+        case _ => acc
+      }
     }
     // Step 4: Create MemberRow Instances from Aggregated Results
     if (aggregatedSearchResults == Json.obj()) Nil

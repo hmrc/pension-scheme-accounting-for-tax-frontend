@@ -22,9 +22,9 @@ import controllers.actions._
 import forms.YesNoFormProvider
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, UserAnswers}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.{IsPublicServicePensionsRemedyPage, QuarterPage}
+import pages.{IsPublicServicePensionsRemedyPage, MemberFormCompleted, QuarterPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -37,6 +37,7 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi: MessagesApi,
                                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -150,7 +151,12 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
           },
             value => {
               for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
+                updatedAnswersInProgress <- Future.fromTry(userAnswersService.set(IsPublicServicePensionsRemedyPage(chargeType, index), value, mode))
+                updatedAnswers <- Future.fromTry(mode match{
+                  case NormalMode => updatedAnswersInProgress.set(
+                    MemberFormCompleted(ChargeType.chargeTypeNode(chargeType), index.getOrElse(Index(0)).toInt), false)
+                  case _ => Success(updatedAnswersInProgress)
+                })
                 _ <- userAnswersCacheConnector
                   .savePartial(request.internalId, updatedAnswers.data, chargeType = Some(chargeType), memberNo = index.map(_.id))
               } yield {
@@ -158,7 +164,6 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
               }
             }
           )
-
       }
     }
 
