@@ -46,7 +46,7 @@ class YourActionWasNotProcessedController @Inject()(appConfig: FrontendAppConfig
         DataRetrievals.retrieveSchemeName { schemeName =>
           val json = Json.obj(
             "schemeName" -> schemeName,
-            "returnUrl" -> appConfig.managePensionsSchemeOverviewUrl
+            "returnUrl" -> appConfig.schemeDashboardUrl(request).format(srn)
           )
           renderer.render("yourActionWasNotProcessed.njk", json).map(Ok(_))
         }

@@ -21,6 +21,7 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.UserAnswers
+import models.requests.DataRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -48,7 +49,7 @@ class YourActionWasNotProcessedControllerSpec extends ControllerSpecBase with Mo
 
     "return OK and the correct view for a GET" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
+      when(mockAppConfig.schemeDashboardUrl(any():DataRequest[_])).thenReturn("")
       val application = applicationBuilder(userAnswers = data).overrides().build()
       val request = FakeRequest(GET, getRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
