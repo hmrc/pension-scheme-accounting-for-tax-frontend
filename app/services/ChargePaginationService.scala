@@ -40,44 +40,46 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
 
   private case class NodeInfo(chargeRootNode: String,
                               chargeDetailsNode: String,
-                              createItem: (JsValue, Int, BigDecimal, String, String) => Either[Member, Employer],
+                              createItem: (JsValue, Int, BigDecimal, String, String) => Option[Either[Member, Employer]],
                               listNode: String
                              )
 
-  private val createMember: (JsValue, Int, BigDecimal, String, String) => Either[Member, Employer] =
+  private val createMember: (JsValue, Int, BigDecimal, String, String) => Option[Either[Member, Employer]] =
     (jsValueMemberRootNode, index, amount, viewUrl, removeUrl) => {
-      val member = (jsValueMemberRootNode \ "memberDetails").as[MemberDetails]
-      Left(Member(
-        index,
-        member.fullName,
-        member.nino,
-        amount,
-        viewUrl,
-        removeUrl
-      ))
+      val member = (jsValueMemberRootNode \ "memberDetails").asOpt[MemberDetails]
+      member.map { m =>
+          Left(Member(
+          index,
+          m.fullName,
+          m.nino,
+          amount,
+          viewUrl,
+          removeUrl
+        ))
+      }
     }
 
-  private val createEmployer: (JsValue, Int, BigDecimal, String, String) => Either[Member, Employer] =
+  private val createEmployer: (JsValue, Int, BigDecimal, String, String) => Option[Either[Member, Employer]] =
     (jsValueEmployerRootNode, index, amount, viewUrl, removeUrl) =>
       (jsValueEmployerRootNode \ WhichTypeOfSponsoringEmployerPage.toString).as[SponsoringEmployerType] match {
         case SponsoringEmployerTypeIndividual =>
           val member = (jsValueEmployerRootNode \ SponsoringIndividualDetailsPage.toString).as[MemberDetails]
-          Right(Employer(
+          Some(Right(Employer(
             index,
             member.fullName,
             amount,
             viewUrl,
             removeUrl
-          ))
+          )))
         case SponsoringEmployerTypeOrganisation =>
           val member = (jsValueEmployerRootNode \ SponsoringOrganisationDetailsPage.toString).as[SponsoringOrganisationDetails]
-          Right(Employer(
+          Some(Right(Employer(
             index,
             member.name,
             amount,
             viewUrl,
             removeUrl
-          ))
+          )))
       }
 
 
@@ -149,13 +151,21 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
 
     val pageSize = config.membersPageSize
     val chargeItemsWithIndex = (ua.data \ nodeInfo.chargeRootNode \ nodeInfo.listNode).asOpt[JsArray].map(_.value).getOrElse(Nil).zipWithIndex
-    val allItemsAsJsArray = chargeType match{
-      case ChargeTypeAnnualAllowance | ChargeTypeLifetimeAllowance => chargeItemsWithIndex
-          .filter { case (item, _) => val formCompletionValue = (item \ "memberFormCompleted").asOpt[Boolean]
-                            formCompletionValue.fold(true){x => x == true}
+    val allItemsAsJsArray = chargeType match {
+      case ChargeTypeAnnualAllowance | ChargeTypeLifetimeAllowance =>
+        chargeItemsWithIndex
+          .filter {
+            case (item, _) =>
+              val formCompletionValue = (item \ "memberFormCompleted").asOpt[Boolean]
+              formCompletionValue.fold(true){x => x}
           }
-          .filter { case (item, _) => !(item \ "memberStatus").asOpt[String].contains("Deleted") }
-      case _ => chargeItemsWithIndex.filter { case (item, _) => !(item \ "memberStatus").asOpt[String].contains("Deleted") }
+          .filter {
+            case (item, _) => !(item \ "memberStatus").asOpt[String].contains("Deleted")
+          }
+      case _ =>
+        chargeItemsWithIndex.filter {
+          case (item, _) => !(item \ "memberStatus").asOpt[String].contains("Deleted")
+        }
     }
 
     val pages = totalPages(allItemsAsJsArray.size, pageSize)
@@ -169,7 +179,7 @@ class ChargePaginationService @Inject()(config: FrontendAppConfig) {
 
       val items: Either[Seq[Member], Seq[Employer]] =
         toEitherSeq(
-          pageItemsAsJsArray.map { case (item, index) =>
+          pageItemsAsJsArray.flatMap { case (item, index) =>
             nodeInfo.createItem(item, index, extractAmount(item), viewUrl(index).url, removeUrl(index).url)
           }.toSeq
         )

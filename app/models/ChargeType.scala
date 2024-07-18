@@ -103,4 +103,18 @@ object ChargeType extends Enumerable.Implicits {
       case ChargeTypeLifetimeAllowance => "chargeDDetails"
       case _ => throw new RuntimeException(s"Invalid charge type $chargeType")
     }
+
+  def chargeTypeNode(chargeType: ChargeType): String =
+    chargeType match {
+      case ChargeTypeAnnualAllowance    => "chargeEDetails"
+      case ChargeTypeLifetimeAllowance  => "chargeDDetails"
+      case ChargeTypeOverseasTransfer   => "chargeGDetails"
+      case ChargeTypeAuthSurplus        => "chargeCDetails"
+      case ChargeTypeDeRegistration     => "chargeFDetails"
+      case ChargeTypeShortService       => "chargeADetails"
+      case ChargeTypeLumpSumDeath       => "chargeBDetails"
+      case _ => throw new RuntimeException(s"Invalid charge type $chargeType")
+    }
+
+  val chargeTypeValues: Seq[String] = values.map(chargeTypeNode)
 }
