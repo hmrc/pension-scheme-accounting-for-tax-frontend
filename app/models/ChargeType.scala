@@ -117,9 +117,4 @@ object ChargeType extends Enumerable.Implicits {
     }
 
   val chargeTypeValues: Seq[String] = values.map(chargeTypeNode)
-
-//  val chargeTypeValues: Seq[String] =
-//    Seq("chargeADetails", "chargeBDetails", "chargeCDetails", "chargeDDetails", "chargeEDetails", "chargeFDetails", "chargeGDetails")
-
-
 }
