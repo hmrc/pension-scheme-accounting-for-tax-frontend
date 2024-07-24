@@ -19,7 +19,7 @@ package controllers
 import connectors.admin.FeatureToggleConnector
 import connectors.AFTConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
-import models.AFTQuarter.monthDayStringFormat
+import models.AFTQuarter.{formatForDisplayOneYear, monthDayStringFormat}
 import models.viewModels.PastAftReturnsViewModel
 import models.{AFTOverview, PastAftReturnGroup, Quarters, ReportLink}
 import play.api.i18n.I18nSupport
@@ -77,21 +77,17 @@ class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
 
   private def getGroupedReturns(srn: String, startDateRange: List[Int], aftOverview: Seq[AFTOverview]): List[PastAftReturnGroup] = {
     val groupedReturns: List[PastAftReturnGroup] = startDateRange.map(startDate => {
-      val returnsFromTaxYear = aftOverview.filter(aftReturn =>
-        (aftReturn.periodStartDate.getYear - 1 == startDate &&
-          monthDayStringFormat(Quarters.getQuarter(aftReturn.periodStartDate)) == "1 January to 31 March ") ||
-          (aftReturn.periodStartDate.getYear == startDate &&
-            monthDayStringFormat(Quarters.getQuarter(aftReturn.periodStartDate)) != "1 January to 31 March "))
+      val returnsFromTaxYear = aftOverview.filter(aftReturn => aftReturn.periodStartDate.getYear == startDate)
 
       val reportLinks = returnsFromTaxYear.map(aftReturn => ReportLink(
-        monthDayStringFormat(Quarters.getQuarter(aftReturn.periodStartDate)),
+        formatForDisplayOneYear(Quarters.getQuarter(aftReturn.periodStartDate)),
         controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, aftReturn.periodStartDate.toString).url
       )).toList
 
       if (returnsFromTaxYear.nonEmpty) {
-        PastAftReturnGroup(s"$startDate to ${startDate + 1}", reportLinks)
+        PastAftReturnGroup(s"$startDate", reportLinks)
       } else {
-        PastAftReturnGroup(s"$startDate to ${startDate + 1}", List.empty)
+        PastAftReturnGroup(s"$startDate", List.empty)
       }
     })
 
