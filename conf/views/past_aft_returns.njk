@@ -10,10 +10,15 @@
 {% block mainContent %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {{ hmrcPageHeading({
-        text: messages("pastAftReturns.heading"),
-        section: schemeName
-      }) }}
+
+        <span class="govuk-caption-xl">
+            {{ schemeName }}
+        </span>
+
+        <h1 class="govuk-heading-xl govuk-!-margin-bottom-6">
+          {{ messages("pastAftReturns.heading") }}
+        </h1>
+
 
       {% for returnGroup in viewModel.aftReturnGroup %}
         <h3 class="govuk-heading-s">{{ returnGroup.yearRange }}</h3>

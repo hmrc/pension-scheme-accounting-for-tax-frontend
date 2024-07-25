@@ -20,14 +20,14 @@
           {{ messages("aftOverview.title") }}
         </h1>
 
-        <p class="govuk-body govuk-!-margin-bottom-8">
+        <p class="govuk-body">
             <a class="govuk-link" href="{{ viewModel.newAftUrl }}">
               {{ messages("aftOverview.startNewAft") }}
             </a>
         </p>
 
          {% if viewModel.outstandingAmount != messages("aftOverview.totalOutstandingNotAvailable")  %}
-            <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+            <h3 class="govuk-caption-l govuk-!-margin-top-8 govuk-!-margin-bottom-2">
                 {{ messages("aftOverview.totalOutstanding") }}
             </h3>
 
@@ -38,7 +38,7 @@
             </p>
 
             {% else %}
-                <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                <h3 class="govuk-caption-l govuk-!-margin-top-8 govuk-!-margin-bottom-2">
                     {{ messages("aftOverview.totalOutstandingNotAvailable") }}
                 </h3>
         {% endif %}
@@ -97,11 +97,15 @@
 
         <br>
 
-        <p class="govuk-body govuk-!-margin-bottom-6">
-            <a class="govuk-link" href={{viewModel.viewAllPastAftsUrl}}>
-                {{ messages("aftOverview.allPastAftReturns") }}
-            </a>
-        </p>
+
+        {% if viewModel.pastYearsAndQuarters.length > 3 %}
+            <p class="govuk-body govuk-!-margin-bottom-6">
+                <a class="govuk-link" href={{viewModel.viewAllPastAftsUrl}}>
+                    {{ messages("aftOverview.allPastAftReturns") }}
+                </a>
+            </p>
+        {% endif %}
+
 
         <hr>
 
