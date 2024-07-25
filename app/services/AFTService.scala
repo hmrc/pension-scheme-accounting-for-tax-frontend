@@ -17,7 +17,7 @@
 package services
 
 import com.google.inject.Inject
-import connectors.AFTConnector
+import connectors.{AFTConnector, ReturnAlreadySubmittedException}
 import models.requests.DataRequest
 import models.{JourneyType, UserAnswers}
 import pages.AFTStatusQuery
@@ -43,6 +43,9 @@ class AFTService @Inject()(
     val journeyType = if (request.isAmendment) JourneyType.AFT_COMPILE_AMEND else JourneyType.AFT_COMPILE_RETURN
     aftConnector
       .fileAFTReturn(pstr, answers.setOrException(AFTStatusQuery, "Compiled"), journeyType)
+      .recover {
+        case _: ReturnAlreadySubmittedException => ()
+      }
   }
 
   def isSubmissionDisabled(quarterEndDate: String): Boolean = {
