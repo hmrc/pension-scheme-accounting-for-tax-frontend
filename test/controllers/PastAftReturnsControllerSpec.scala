@@ -172,16 +172,14 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
     val yearRange = Seq.range(currentYear - requiredYears, currentYear).toList.reverse
 
-    println(s"\n\n yearRange is: $yearRange")
-
     @tailrec
     def aux(years: List[Int], groupedReturns: List[PastAftReturnGroup]): List[PastAftReturnGroup] = {
       if (years.isEmpty) {
         groupedReturns
       } else {
         val quarterStartDate = getQuarterDates(years.head).startDate.toString
-        val reportLinks = List(ReportLink("1 January to 31 March ", controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, quarterStartDate).url))
-        val returnGroup = PastAftReturnGroup(s"${years.head - 1} to ${years.head}", reportLinks)
+        val reportLinks = List(ReportLink(s"1 January to 31 March ${years.head.toString}", controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, quarterStartDate).url))
+        val returnGroup = PastAftReturnGroup(s"${years.head}", reportLinks)
         aux(years.tail, groupedReturns ++ List(returnGroup))
       }
     }

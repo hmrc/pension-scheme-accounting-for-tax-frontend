@@ -74,7 +74,7 @@ class AFTOverviewController @Inject()(
               schemeName = overviewInfo.schemeDetails.schemeName,
               outstandingAmount = overviewInfo.outstandingAmount,
               quartersInProgress = overviewInfo.quartersInProgress.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)),
-              pastYearsAndQuarters = overviewInfo.pastYearsAndQuarters.map(pYAQ => (pYAQ._1, pYAQ._2.map(q => textAndLinkForQuarter(monthDayStringFormat, q, srn)))),
+              pastYearsAndQuarters = overviewInfo.pastYearsAndQuarters.map(pYAQ => (pYAQ._1, pYAQ._2.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)))),
               viewAllPastAftsUrl = controllers.routes.PastAftReturnsController.onPageLoad(srn, 0).url
             )
           )
