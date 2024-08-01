@@ -211,8 +211,8 @@ object ChargeENavigatorSpec {
   private val wasAnotherPensionSchemeNo = UserAnswers().setOrException(WasAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0), false)
   private val taxYearReported = UserAnswers().setOrException(TaxYearReportedAndPaidPage(ChargeTypeAnnualAllowance, 0, Some(0)), YearRange("2019"))
   private val chargeAmount = UserAnswers().setOrException(ChargeAmountReportedPage(ChargeTypeAnnualAllowance, 0, Some(0)), SampleData.chargeAmountReported)
-  private val isAnotherSchemeYes = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), true).toOption
-  private val isAnotherSchemeNo = UserAnswers().set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), false).toOption
-  private val enterPSTRValue = UserAnswers().set(EnterPstrPage(ChargeTypeAnnualAllowance, 0, 0), "20123456RQ").toOption
+  private val isAnotherSchemeYes = chargeAmount.set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), true).toOption
+  private val isAnotherSchemeNo = chargeAmount.set(AddAnotherPensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), false).toOption
+  private val enterPSTRValue = chargeAmount.set(EnterPstrPage(ChargeTypeAnnualAllowance, 0, 0), "20123456RQ").toOption
   private val removeSchemeNo = UserAnswers().set(RemovePensionSchemePage(ChargeTypeAnnualAllowance, 0, 0), false).toOption
 }

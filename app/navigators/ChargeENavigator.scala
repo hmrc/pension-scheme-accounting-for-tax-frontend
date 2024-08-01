@@ -293,8 +293,10 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       .readNullable[JsArray]
       .reads(userAnswers.data)
       .asOpt.flatten
-      .map(_.value.size)
-      .getOrElse(0)
+      .map(_.value.map { item =>
+        (item \ "chargeAmountReported").asOpt[BigDecimal]
+      }.count(_.isDefined)
+      ).getOrElse(0)
   }
 
   private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Call = {
