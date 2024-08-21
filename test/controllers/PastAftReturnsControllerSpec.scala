@@ -16,7 +16,6 @@
 
 package controllers
 
-import connectors.admin.{FeatureToggleConnector, ToggleDetails}
 import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData
@@ -49,13 +48,11 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
   private val mockSchemeService = mock[SchemeService]
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
-  private val mockFeatureToggleConnector: FeatureToggleConnector = mock[FeatureToggleConnector]
 
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[SchemeService].toInstance(mockSchemeService),
-      bind[AFTConnector].toInstance(mockAFTConnector),
-      bind[FeatureToggleConnector].toInstance(mockFeatureToggleConnector)
+      bind[AFTConnector].toInstance(mockAFTConnector)
     )
 
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
@@ -81,8 +78,6 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
   "PastAftReturnsController" must {
     "successfully render correct view when fewer than 4 years of past AFT returns are available" in {
-      when(mockFeatureToggleConnector.getNewPensionsSchemeFeatureToggle(any())(any()))
-        .thenReturn(Future.successful(ToggleDetails("interim-dashboard", None, true)))
 
       val sampleData = generateSampleData(1)
 
@@ -105,8 +100,6 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSuppo
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(0, PastAftReturnsViewModel(groupedReturns)))
     }
     "successfully render correct view when more than 4 years of past AFT returns are available" in {
-      when(mockFeatureToggleConnector.getNewPensionsSchemeFeatureToggle(any())(any()))
-        .thenReturn(Future.successful(ToggleDetails("interim-dashboard", None, true)))
 
       val sampleData = generateSampleData(5)
 
@@ -128,16 +121,7 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(1, PastAftReturnsViewModel(groupedReturns)))
     }
-    "redirect to Amend Years page if 'interim-dashboard' toggle is disabled" in {
-      when(mockFeatureToggleConnector.getNewPensionsSchemeFeatureToggle(any())(any()))
-        .thenReturn(Future.successful(ToggleDetails("interim-dashboard", None, false)))
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result) mustBe Some(controllers.amend.routes.AmendYearsController.onPageLoad(srn).url)
-    }
   }
 
   def getQuarterDates(year: Int): AFTQuarter = {

@@ -32,18 +32,13 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.Call
-import services.FeatureToggleService
 import utils.AFTConstants._
 
 import java.time.LocalDate
 
 class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with BeforeAndAfterEach {
 
-  override lazy val app: Application = new GuiceApplicationBuilder()
-    .overrides(
-      Seq[GuiceableModule](
-      ): _*
-    ).build()
+  override lazy val app: Application = new GuiceApplicationBuilder().build()
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
@@ -53,123 +48,6 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
 
   private val srn = "test-srn"
   private val startDate = QUARTER_START_DATE
-
-  private def optUA(ct: ChargeType): Option[UserAnswers] = SampleData.userAnswersWithSchemeNamePstrQuarter.set(ChargeTypePage, ct).toOption
-
-  private def aftSummaryYes: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, true).toOption
-
-  private def aftSummaryNo(quarter: AFTQuarter): Option[UserAnswers] =
-    Option(
-      UserAnswers()
-        .setOrException(AFTSummaryPage, false)
-        .setOrException(QuarterPage, quarter)
-    )
-
-  private def confirmSubmitAFTReturn(confirmSubmit: Boolean): Option[UserAnswers] =
-    Option(UserAnswers().setOrException(ConfirmSubmitAFTReturnPage, confirmSubmit))
-
-  private def confirmAmendAFTReturn(confirmAmend: Boolean): Option[UserAnswers] =
-    Option(UserAnswers().setOrException(ConfirmSubmitAFTAmendmentPage, confirmAmend))
-
-  "NormalMode" must {
-    def normalModeRoutes: TableFor3[Page, UserAnswers, Call] = {
-      import controllers._
-      Table(
-        ("Id", "UserAnswers", "Next Page"),
-        row(ChargeTypePage)(chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeShortService)),
-        row(ChargeTypePage)(chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeLumpSumDeath)),
-        row(ChargeTypePage)(chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeAuthSurplus)),
-        row(ChargeTypePage)(chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeDeRegistration)),
-        row(ChargeTypePage)(routes.SessionExpiredController.onPageLoad),
-        row(ConfirmSubmitAFTReturnPage)(DeclarationController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
-        row(ConfirmSubmitAFTReturnPage)(controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt),
-          confirmSubmitAFTReturn(confirmSubmit = false)),
-        row(ConfirmSubmitAFTAmendmentPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, versionInt)),
-        row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, versionInt))
-      )
-    }
-
-    def normalModeRoutesPsp: TableFor3[Page, UserAnswers, Call] = {
-      Table(
-        ("Id", "UserAnswers", "Next Page"),
-        row(ConfirmSubmitAFTReturnPage)(EnterPsaIdController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
-        row(ConfirmSubmitAFTReturnPage)(controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt),
-          confirmSubmitAFTReturn(confirmSubmit = false)),
-        row(ConfirmSubmitAFTAmendmentPage)(EnterPsaIdController.onPageLoad(srn, startDate, accessType, versionInt), confirmAmendAFTReturn(confirmAmend = true)),
-        row(EnterPsaIdPage)(DeclarationController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.userAnswersWithSchemeNamePstrQuarter))
-      )
-    }
-
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator,
-      normalModeRoutes,
-      srn,
-      startDate,
-      accessType,
-      versionInt,
-      request(pspId = None, psaId = Some(SampleData.psaId))
-    )
-
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator,
-      normalModeRoutesPsp,
-      srn,
-      startDate,
-      accessType,
-      versionInt,
-      request(pspId = Some(SampleData.pspId), psaId = None)
-    )
-  }
-
-  "NormalMode for AFT Summary Page" must {
-    def normalModeRoutes: TableFor5[Page, UserAnswers, Call, LocalDate, Int] =
-      Table(
-        ("Id", "UserAnswers", "Next Page", "Current Date", "Version"),
-        rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt),
-          aftSummaryYes, currentDate = LocalDate.now, version = 1),
-        rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad, currentDate = LocalDate.now, version = 1),
-
-        rowWithDateAndVersion(AFTSummaryPage)(
-          controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(srn, startDate),
-          aftSummaryNo(quarter = SampleData.q32020),
-          currentDate = SampleData.q32020.endDate.plusDays(1),
-          version = 1),
-
-        rowWithDateAndVersion(AFTSummaryPage)(
-          controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate, accessType, version = 2),
-          aftSummaryNo(quarter = SampleData.q32020),
-          currentDate = SampleData.q32020.endDate.plusDays(1),
-          version = 2),
-
-        rowWithDateAndVersion(AFTSummaryPage)(
-          controllers.routes.NotSubmissionTimeController.onPageLoad(srn, startDate),
-          aftSummaryNo(quarter = SampleData.q32020),
-          currentDate = SampleData.q32020.endDate,
-          version = 1)
-      )
-
-    behave like navigatorWithRoutesForModeDateAndVersion(NormalMode)(navigator, normalModeRoutes, srn, startDate, accessType, versionInt)
-  }
-}
-
-
-class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar with BeforeAndAfterEach {
-  private val mockFeatureToggleService = mock[FeatureToggleService]
-
-  override lazy val app: Application = new GuiceApplicationBuilder()
-    .overrides(
-      Seq[GuiceableModule](
-        bind[FeatureToggleService].toInstance(mockFeatureToggleService)
-      ): _*
-    ).build()
-
-  private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
-
-  override def beforeEach(): Unit = {
-    super.beforeEach()
-  }
-
-  private val srn = "test-srn"
-  private val startDate = QUARTER_START_DATE
-
 
   private def chargeEMemberExists(chargeType: ChargeType = ChargeTypeAnnualAllowance, version: Int = 1, memberStatus: String = "New"): Option[UserAnswers] =
     SampleData.chargeEMember.set(ChargeTypePage, chargeType).toOption.get
@@ -186,8 +64,7 @@ class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar w
       .set(pages.chargeG.MemberStatusPage(0), memberStatus).toOption.get
       .set(pages.chargeG.MemberAFTVersionPage(0), version).toOption
 
-
-  "NormalMode when bulk upload toggle is switched on" must {
+  "NormalMode" must {
     def normalModeRoutes: TableFor5[Page, UserAnswers, Call, AccessMode, Int] = {
       Table(
         ("Id", "UserAnswers", "Next Page", "AccessMode", "version"),
@@ -236,4 +113,5 @@ class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar w
       accessType,
       versionInt)
   }
+
 }

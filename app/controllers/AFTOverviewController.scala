@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.AFTOverviewController._
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import helpers.FormatHelper.formatCurrencyAmountAsString
-import models.AFTQuarter.{formatForDisplayOneYear, monthDayStringFormat}
+import models.AFTQuarter.formatForDisplayOneYear
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, EventReportingCharges, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
@@ -82,7 +82,9 @@ class AFTOverviewController @Inject()(
       }
   }
 
-  private def getOutstandingPaymentAmount(srn: String, chargeTypeVal: PaymentOrChargeType)(implicit messages: Messages, request: IdentifierRequest[AnyContent]): Future[String] = {
+  private def getOutstandingPaymentAmount(srn: String,
+                                          chargeTypeVal: PaymentOrChargeType
+                                         )(implicit messages: Messages, request: IdentifierRequest[AnyContent]): Future[String] = {
     paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyTypeAll).map { paymentsCache =>
       val filteredPayments: Seq[SchemeFSDetail] = paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == chargeTypeVal)
       val totalDueCharges: BigDecimal = paymentsAndChargesService.getDueCharges(filteredPayments).map(_.amountDue).sum

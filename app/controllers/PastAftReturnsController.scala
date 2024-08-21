@@ -16,10 +16,9 @@
 
 package controllers
 
-import connectors.admin.FeatureToggleConnector
 import connectors.AFTConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
-import models.AFTQuarter.{formatForDisplayOneYear, monthDayStringFormat}
+import models.AFTQuarter.formatForDisplayOneYear
 import models.viewModels.PastAftReturnsViewModel
 import models.{AFTOverview, PastAftReturnGroup, Quarters, ReportLink}
 import play.api.i18n.I18nSupport
@@ -32,44 +31,36 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
                                          allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                          val controllerComponents: MessagesControllerComponents,
-                                         featureToggleConnector: FeatureToggleConnector,
                                          identify: IdentifierAction,
                                          renderer: Renderer,
                                          schemeService: SchemeService
-                                   )
-                                        (implicit ec: ExecutionContext) extends FrontendBaseController
+                                   )(implicit ec: ExecutionContext) extends FrontendBaseController
   with I18nSupport
   with NunjucksSupport {
 
   def onPageLoad(srn: String, page: Int): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
-      featureToggleConnector.getNewPensionsSchemeFeatureToggle("interim-dashboard").map(_.isEnabled).flatMap { toggleIsEnabled =>
-        if (toggleIsEnabled) {
-          schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
-            aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-              val schemeName = schemeDetails.schemeName
+      schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+        aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
+          val schemeName = schemeDetails.schemeName
 
-              val currentYear = LocalDate.now().getYear
+          val currentYear = LocalDate.now().getYear
 
-              val startDateRange = Range.inclusive(currentYear - 7, currentYear).toList.reverse
+          val startDateRange = Range.inclusive(currentYear - 7, currentYear).toList.reverse
 
-              val groupedReturns = getGroupedReturns(srn, startDateRange, aftOverview)
+          val groupedReturns = getGroupedReturns(srn, startDateRange, aftOverview)
 
-              val ctxValues = getCtx(groupedReturns, page, schemeName, srn)
+          val ctxValues = getCtx(groupedReturns, page, schemeName, srn)
 
-              renderer.render(
-                "past_aft_returns.njk",
-                ctx = ctxValues
-              ).map(Ok(_))
-            }
-          }
-        } else {
-          Future.successful(Redirect(controllers.amend.routes.AmendYearsController.onPageLoad(srn)))
+          renderer.render(
+            "past_aft_returns.njk",
+            ctx = ctxValues
+          ).map(Ok(_))
         }
       }
   }
