@@ -26,12 +26,12 @@ import helpers.DeleteChargeHelper
 
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, GenericViewModel, AccessType, Mode, ChargeType}
+import models.{AccessType, ChargeType, GenericViewModel, Mode, Quarters, SchemeReferenceNumber}
 import models.chargeF.ChargeDetails
 import navigators.CompoundNavigator
 import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -67,7 +67,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     )
   }
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -98,7 +98,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 

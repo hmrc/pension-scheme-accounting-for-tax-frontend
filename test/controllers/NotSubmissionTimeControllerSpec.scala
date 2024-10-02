@@ -20,7 +20,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.SchemeDetails
+import models.{SchemeDetails, SchemeReferenceNumber}
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -42,7 +42,7 @@ import scala.concurrent.Future
 
 class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
   with JsonMatchers with OptionValues with TryValues {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   val startDate: LocalDate = QUARTER_START_DATE
 
   private val mockSchemeService = mock[SchemeService]

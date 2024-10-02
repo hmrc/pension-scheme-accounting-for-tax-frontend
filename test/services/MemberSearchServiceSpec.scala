@@ -22,7 +22,7 @@ import data.SampleData.{accessType, versionInt}
 import helpers.{DeleteChargeHelper, FormatHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessMode, UserAnswers}
+import models.{AccessMode, SchemeReferenceNumber, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -104,7 +104,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
 
 object MemberSearchServiceSpec {
   private val startDate = LocalDate.of(2020, 4, 1)
-  private val srn = "srn"
+  private val srn = SchemeReferenceNumber("srn")
 
   private def emptyUserAnswers: UserAnswers = UserAnswers()
 

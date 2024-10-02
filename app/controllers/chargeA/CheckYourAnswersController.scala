@@ -26,7 +26,7 @@ import helpers.{CYAChargeAHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
 import pages.{PSTRQuery, ViewOnlyAccessiblePage}
@@ -57,7 +57,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async {
       implicit request =>
@@ -90,14 +90,14 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         }
     }
 
-  private def getDeleteChargeUrl(srn: String, startDate: String, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): String =
+  private def getDeleteChargeUrl(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): String =
     if (deleteChargeHelper.isLastCharge(request.userAnswers) && request.isAmendment) {
       routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version).url
     } else {
       routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, version).url
     }
 
-  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onClick(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async {
       implicit request =>

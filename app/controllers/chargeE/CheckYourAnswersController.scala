@@ -24,7 +24,7 @@ import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeEHelper, ChargeServiceHelper}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, SchemeReferenceNumber, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{MemberFormCompleted, ViewOnlyAccessiblePage}
 import pages.chargeE.{CheckYourAnswersPage, TotalChargeAmountPage}
@@ -55,7 +55,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       DataRetrievals.cyaChargeE(index, srn, startDate, accessType, version) {
@@ -100,7 +100,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     SchemePathHelper.path(ChargeTypeAnnualAllowance, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 
-  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onClick(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         val totalAmount = chargeServiceHelper.totalAmount(request.userAnswers, "chargeEDetails")

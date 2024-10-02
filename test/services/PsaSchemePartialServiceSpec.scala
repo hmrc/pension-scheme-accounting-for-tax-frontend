@@ -186,7 +186,7 @@ object PsaSchemePartialServiceSpec {
   private val startDt: String = LocalDate.parse(startDate).format(dateFormatterStartDate)
   private val endDt: String = LocalDate.parse(endDate).format(dateFormatterDMY)
   private val smallDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")
-  private val srn = "srn"
+  private val srn = SchemeReferenceNumber("srn")
   private val pstr = "pstr"
   private val psaId = "A0000000"
   private val schemeDetails: SchemeDetails = SchemeDetails("test-name", pstr, "Open", None)

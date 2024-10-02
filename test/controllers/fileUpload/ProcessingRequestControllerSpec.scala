@@ -24,7 +24,7 @@ import data.SampleData.userAnswersWithSchemeName
 import matchers.JsonMatchers
 import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus._
-import models.{ChargeType, Draft, Enumerable, UserAnswers}
+import models.{ChargeType, Draft, Enumerable, SchemeReferenceNumber, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -51,7 +51,7 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private val startDate = "2020-04-01"
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val accessType = Draft
   private val versionInt = 1
 

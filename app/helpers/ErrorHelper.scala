@@ -17,6 +17,7 @@
 package helpers
 
 import connectors.ReturnAlreadySubmittedException
+import models.SchemeReferenceNumber
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.http.HttpReads.is5xx
@@ -26,7 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object ErrorHelper {
 
-  def recoverFrom5XX(srn: String, startDate: String)(implicit ec: ExecutionContext): PartialFunction[Throwable, Future[Result]] = {
+  def recoverFrom5XX(srn: SchemeReferenceNumber, startDate: String)(implicit ec: ExecutionContext): PartialFunction[Throwable, Future[Result]] = {
     case ReturnAlreadySubmittedException() =>
       Future.successful(Redirect(controllers.routes.CannotSubmitAFTController.onPageLoad(srn, startDate)))
     case e: UpstreamErrorResponse if(is5xx(e.statusCode)) =>

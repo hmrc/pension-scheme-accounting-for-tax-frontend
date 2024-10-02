@@ -19,7 +19,7 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
-import models.ChargeDetailsFilter
+import models.{ChargeDetailsFilter, SchemeReferenceNumber}
 import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
@@ -54,7 +54,7 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
 
-  def onPageLoad(srn: String, period: String, index: String,
+  def onPageLoad(srn: SchemeReferenceNumber, period: String, index: String,
                  paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
@@ -70,7 +70,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                          period: String,
                          index: String,
                          schemeName: String,
-                         srn: String,
+                         srn: SchemeReferenceNumber,
                          paymentOrChargeType: PaymentOrChargeType,
                          journeyType: ChargeDetailsFilter
                        )(
@@ -104,7 +104,7 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
-  private def summaryListData(srn: String, period: String, schemeFSDetail: SchemeFSDetail, schemeName: String,
+  private def summaryListData(srn: SchemeReferenceNumber, period: String, schemeFSDetail: SchemeFSDetail, schemeName: String,
                               returnUrl: String, paymentOrChargeType: PaymentOrChargeType, interestUrl: String)
                              (implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0) match {
@@ -153,7 +153,7 @@ class PaymentsAndChargeDetailsController @Inject()(
       Json.obj()
     }
 
-  private def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType): JsObject =
+  private def returnHistoryUrl(srn: SchemeReferenceNumber, period: String, paymentOrChargeType: PaymentOrChargeType): JsObject =
     if(paymentOrChargeType == AccountingForTaxCharges) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, LocalDate.parse(period)).url)
     } else {

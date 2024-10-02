@@ -19,6 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import config.FrontendAppConfig
 import models.CreditAccessType.{AccessedByLoggedInPsaOrPsp, AccessedByOtherPsa, AccessedByOtherPsp}
+import models.SchemeReferenceNumber
 import org.mockito.Mockito.reset
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
@@ -36,7 +37,7 @@ class FinancialInfoCreditAccessConnectorSpec extends AsyncWordSpec with Matchers
   override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
   private val psaPspId = "test-psa-id"
-  private val srn = "srn"
+  private val srn = SchemeReferenceNumber("srn")
 
   private val mockConfig = mock[FrontendAppConfig]
 

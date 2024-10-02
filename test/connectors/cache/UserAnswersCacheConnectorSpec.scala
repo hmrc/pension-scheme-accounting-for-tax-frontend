@@ -18,7 +18,7 @@ package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
-import models.{AccessMode, LockDetail, SessionAccessData}
+import models.{AccessMode, LockDetail, SchemeReferenceNumber, SessionAccessData}
 import org.scalatest._
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
@@ -215,7 +215,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with Matchers with Wir
           )
       )
 
-      connector.lockDetail(srn = "srn", startDate = "2020-04-01") map {
+      connector.lockDetail(srn = SchemeReferenceNumber("srn"), startDate = "2020-04-01") map {
         result =>
           result mustBe None
       }
@@ -232,7 +232,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with Matchers with Wir
           )
       )
 
-      connector.lockDetail(srn = "srn", startDate = "2020-04-01") map {
+      connector.lockDetail(srn = SchemeReferenceNumber("srn"), startDate = "2020-04-01") map {
         result =>
           result mustBe Some(expectedLockDetail)
       }
@@ -247,7 +247,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with Matchers with Wir
       )
 
       recoverToSucceededIf[HttpException] {
-        connector.lockDetail(srn = "srn", startDate = "2020-04-01")
+        connector.lockDetail(srn = SchemeReferenceNumber("srn"), startDate = "2020-04-01")
       }
 
     }

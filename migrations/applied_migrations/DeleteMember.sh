@@ -6,11 +6,11 @@ echo "Applying migration DeleteMember"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:srn/new-return/deleteMember                        controllers.chargeE.DeleteMemberController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/deleteMember                        controllers.chargeE.DeleteMemberController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/deleteMember                        controllers.chargeE.DeleteMemberController.onPageLoad(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/deleteMember                        controllers.chargeE.DeleteMemberController.onSubmit(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
-echo "GET        /:srn/new-return/changeDeleteMember                  controllers.chargeE.DeleteMemberController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/changeDeleteMember                  controllers.chargeE.DeleteMemberController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/changeDeleteMember                  controllers.chargeE.DeleteMemberController.onPageLoad(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/changeDeleteMember                  controllers.chargeE.DeleteMemberController.onSubmit(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en

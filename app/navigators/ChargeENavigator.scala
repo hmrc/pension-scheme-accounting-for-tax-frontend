@@ -27,7 +27,7 @@ import models.Index._
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
-import models.{AccessType, CheckMode, MemberDetails, Mode, NormalMode, UploadId, UserAnswers}
+import models.{AccessType, CheckMode, MemberDetails, Mode, NormalMode, SchemeReferenceNumber, UploadId, UserAnswers}
 import pages.chargeE._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
 import pages.mccloud._
@@ -46,7 +46,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   private def nextIndex(ua: UserAnswers): Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").size
 
-  private def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
+  private def addMembers(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
     val showPSRQuestions = enablePSR(ua)
     val addMembersPageVal = ua.get(AddMembersPage)
 
@@ -60,7 +60,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     }
   }
 
-  private def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+  private def deleteMemberRoutes(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(
     implicit request: DataRequest[AnyContent]): Call =
     if (deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
@@ -72,7 +72,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   //scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+  override protected def routeMap(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(
     implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua))
 
@@ -124,7 +124,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def routeFromIsPublicServicePensionsRemedyPage(userAnswers: UserAnswers,
                                                          mode: Mode,
-                                                         srn: String,
+                                                         srn: SchemeReferenceNumber,
                                                          startDate: LocalDate,
                                                          accessType: AccessType,
                                                          version: Int,
@@ -162,7 +162,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def routeFromIsChargeInAdditionReportedPage(userAnswers: UserAnswers,
                                                       mode: Mode,
-                                                      srn: String,
+                                                      srn: SchemeReferenceNumber,
                                                       startDate: LocalDate,
                                                       accessType: AccessType,
                                                       version: Int,
@@ -178,7 +178,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def routeFromWasAnotherPensionSchemePage(userAnswers: UserAnswers,
                                                    mode: Mode,
-                                                   srn: String,
+                                                   srn: SchemeReferenceNumber,
                                                    startDate: LocalDate,
                                                    accessType: AccessType,
                                                    version: Int,
@@ -196,7 +196,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def routeFromEnterPstrPage(userAnswers: UserAnswers,
                                      mode: Mode,
-                                     srn: String,
+                                     srn: SchemeReferenceNumber,
                                      startDate: LocalDate,
                                      accessType: AccessType,
                                      version: Int,
@@ -214,7 +214,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def routeFromTaxQuarterReportedAndPaidPage(userAnswers: UserAnswers,
                                                      mode: Mode,
-                                                     srn: String,
+                                                     srn: SchemeReferenceNumber,
                                                      startDate: LocalDate,
                                                      accessType: AccessType,
                                                      version: Int,
@@ -231,7 +231,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def routeFromChargeAmountReportedPage(userAnswers: UserAnswers,
                                                 mode: Mode,
-                                                srn: String,
+                                                srn: SchemeReferenceNumber,
                                                 startDate: LocalDate,
                                                 accessType: AccessType,
                                                 version: Int,
@@ -252,7 +252,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def routeFromAddAnotherPensionSchemePage(userAnswers: UserAnswers,
                                                    mode: Mode,
-                                                   srn: String,
+                                                   srn: SchemeReferenceNumber,
                                                    startDate: LocalDate,
                                                    accessType: AccessType,
                                                    version: Int,
@@ -269,7 +269,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   private def routeFromRemovePensionSchemePage(userAnswers: UserAnswers,
                                                mode: Mode,
-                                               srn: String,
+                                               srn: SchemeReferenceNumber,
                                                startDate: LocalDate,
                                                accessType: AccessType,
                                                version: Int,
@@ -297,7 +297,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       .getOrElse(0)
   }
 
-  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Call = {
+  private def inputSelectionNav(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Call = {
     val inputSelection = ua.get(InputSelectionPage(ChargeTypeAnnualAllowance))
     val showPSRQuestions = enablePSR(ua)
     (inputSelection, showPSRQuestions) match {
@@ -323,7 +323,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     }
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+  override protected def editRouteMap(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(
     implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case MemberDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)

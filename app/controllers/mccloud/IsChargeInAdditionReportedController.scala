@@ -21,7 +21,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.IsPublicServicePensionsRemedyPage
 import pages.mccloud.{IsChargeInAdditionReportedPage, SchemePathHelper}
@@ -58,7 +58,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
-                 srn: String,
+                 srn: SchemeReferenceNumber,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
@@ -94,7 +94,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
 
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
-               srn: String,
+               srn: SchemeReferenceNumber,
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,

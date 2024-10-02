@@ -19,7 +19,7 @@ package controllers.financialOverview.scheme
 import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
-import models.ChargeDetailsFilter
+import models.{ChargeDetailsFilter, SchemeReferenceNumber}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType.getInterestChargeTypeText
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
@@ -55,7 +55,7 @@ class PaymentsAndChargesInterestController @Inject()(
     with I18nSupport
     with NunjucksSupport {
   private val logger = Logger(classOf[PaymentsAndChargesInterestController])
-  def onPageLoad(srn: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType,
+  def onPageLoad(srn: SchemeReferenceNumber, period: String, index: String, paymentOrChargeType: PaymentOrChargeType,
                  version: Option[Int], submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
@@ -80,7 +80,7 @@ class PaymentsAndChargesInterestController @Inject()(
                          period: String,
                          index: String,
                          schemeName: String,
-                         srn: String,
+                         srn: SchemeReferenceNumber,
                          paymentOrChargeType: PaymentOrChargeType,
                          version: Option[Int],
                          submittedDate: Option[String],
@@ -102,7 +102,7 @@ class PaymentsAndChargesInterestController @Inject()(
     }
   }
 
-  private def summaryListData(srn: String, psaId: Option[PsaId], pspId: Option[PspId], schemeFSDetail: SchemeFSDetail, schemeName: String,
+  private def summaryListData(srn: SchemeReferenceNumber, psaId: Option[PsaId], pspId: Option[PspId], schemeFSDetail: SchemeFSDetail, schemeName: String,
                               originalAmountUrl: String, version: Option[Int], journeyType: ChargeDetailsFilter)
                              (implicit messages: Messages): JsObject = {
 

@@ -20,7 +20,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{AccessType, GenericViewModel, NormalMode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.ConfirmSubmitAFTReturnPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -51,7 +51,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
       requireData andThen allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission ).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
@@ -78,7 +78,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission ).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>

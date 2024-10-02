@@ -20,7 +20,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.UserAnswers
+import models.{SchemeReferenceNumber, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -38,7 +38,7 @@ import scala.concurrent.Future
 
 class YourActionWasNotProcessedControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
   with JsonMatchers with OptionValues with TryValues {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
 
   private val data = UserAnswers().set(SchemeNameQuery, schemeName).toOption
 

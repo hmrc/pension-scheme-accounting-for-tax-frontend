@@ -22,7 +22,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, Draft, GenericViewModel, Quarters}
+import models.{AFTQuarter, Draft, GenericViewModel, Quarters, SchemeReferenceNumber}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -54,7 +54,7 @@ class ContinueQuartersController @Inject()(
   private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("continueQuarters.error.required"), quarters)
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,
@@ -81,7 +81,7 @@ class ContinueQuartersController @Inject()(
     }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onSubmit(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,
@@ -126,7 +126,7 @@ class ContinueQuartersController @Inject()(
     }
   }
 
-  private def viewModel(srn: String, schemeName: String)(implicit request: IdentifierRequest[_]): GenericViewModel =
+  private def viewModel(srn: SchemeReferenceNumber, schemeName: String)(implicit request: IdentifierRequest[_]): GenericViewModel =
     GenericViewModel(
       submitUrl = routes.ContinueQuartersController.onSubmit(srn).url,
       returnUrl = config.schemeDashboardUrl(request).format(srn),

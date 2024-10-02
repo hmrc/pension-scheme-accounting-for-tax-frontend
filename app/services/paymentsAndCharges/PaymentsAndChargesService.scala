@@ -21,7 +21,7 @@ import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
 import controllers.financialStatement.paymentsAndCharges.routes.{PaymentsAndChargeDetailsController, PaymentsAndChargesInterestController}
 import helpers.FormatHelper._
-import models.ChargeDetailsFilter
+import models.{ChargeDetailsFilter, SchemeReferenceNumber}
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType._
@@ -48,7 +48,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                           financialInfoCacheConnector: FinancialInfoCacheConnector
                                          ) {
 
-  def getPaymentsAndCharges(srn: String, schemeFSDetail: Seq[SchemeFSDetail], chargeDetailsFilter: ChargeDetailsFilter,
+  def getPaymentsAndCharges(srn: SchemeReferenceNumber, schemeFSDetail: Seq[SchemeFSDetail], chargeDetailsFilter: ChargeDetailsFilter,
                             paymentOrChargeType: PaymentOrChargeType)
                            (implicit messages: Messages): Table = {
 
@@ -84,7 +84,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   //scalastyle:off cyclomatic.complexity
   private def paymentsAndChargesDetails(
                                          details: SchemeFSDetail,
-                                         srn: String,
+                                         srn: SchemeReferenceNumber,
                                          chargeRefs: Seq[String],
                                          chargeDetailsFilter: ChargeDetailsFilter,
                                          paymentOrChargeType: PaymentOrChargeType
@@ -292,7 +292,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  private def saveAndReturnPaymentsCache(loggedInId: String, srn: String)
+  private def saveAndReturnPaymentsCache(loggedInId: String, srn: SchemeReferenceNumber)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaymentsCache] =
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(loggedInId, srn, "srn")
@@ -301,7 +301,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       _ <- financialInfoCacheConnector.save(Json.toJson(paymentsCache))
     } yield paymentsCache
 
-  private def getPaymentsFromCache(loggedInId: String, srn: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
+  private def getPaymentsFromCache(loggedInId: String, srn: SchemeReferenceNumber)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
     financialInfoCacheConnector.fetch flatMap {
       case Some(jsValue) =>
         val cacheAuthenticated: PaymentsCache => Boolean = value => value.loggedInId == loggedInId && value.srn == srn
@@ -312,7 +312,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       case _ => saveAndReturnPaymentsCache(loggedInId, srn)
     }
 
-  def getPaymentsForJourney(loggedInId: String, srn: String, journeyType: ChargeDetailsFilter)
+  def getPaymentsForJourney(loggedInId: String, srn: SchemeReferenceNumber, journeyType: ChargeDetailsFilter)
                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
     getPaymentsFromCache(loggedInId, srn).map { cache =>
       journeyType match {
@@ -333,7 +333,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
 import models.SchemeDetails
 
-case class PaymentsCache(loggedInId: String, srn: String, schemeDetails: SchemeDetails, schemeFSDetail: Seq[SchemeFSDetail])
+case class PaymentsCache(loggedInId: String, srn: SchemeReferenceNumber, schemeDetails: SchemeDetails, schemeFSDetail: Seq[SchemeFSDetail])
 object PaymentsCache {
   implicit val format: OFormat[PaymentsCache] = Json.format[PaymentsCache]
 }

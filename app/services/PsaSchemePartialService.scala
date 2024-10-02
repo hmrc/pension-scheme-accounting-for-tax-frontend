@@ -23,7 +23,7 @@ import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSDetail
 import models.financialStatement.SchemeFSDetail.{endDate, startDate}
-import models.{AFTOverview, AFTOverviewOnPODS, Draft, Quarters, SchemeDetails}
+import models.{AFTOverview, AFTOverviewOnPODS, Draft, Quarters, SchemeDetails, SchemeReferenceNumber}
 import play.api.i18n.Messages
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -44,7 +44,7 @@ class PsaSchemePartialService @Inject()(
                                          aftCacheConnector: UserAnswersCacheConnector
                                        )(implicit ec: ExecutionContext) {
 
-  def aftCardModel(schemeDetails: SchemeDetails, srn: String)
+  def aftCardModel(schemeDetails: SchemeDetails, srn: SchemeReferenceNumber)
                   (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[CardViewModel]] =
     for {
       overview <- aftConnector.getAftOverview(schemeDetails.pstr)
@@ -62,7 +62,7 @@ class PsaSchemePartialService @Inject()(
       2. Any of the returns in their first compile have been zeroed out due to deletion of all charges
    */
 
-  private def getStartReturnLink(overview: Seq[AFTOverview], srn: String, pstr: String)
+  private def getStartReturnLink(overview: Seq[AFTOverview], srn: SchemeReferenceNumber, pstr: String)
                                 (implicit hc: HeaderCarrier): Future[Seq[Link]] = {
 
     val startLink: Link = Link(id = "aftLoginLink", url = appConfig.aftLoginUrl.format(srn),
@@ -100,7 +100,7 @@ class PsaSchemePartialService @Inject()(
     }
   }
 
-  private def getPastReturnsLink(overview: Seq[AFTOverview], srn: String): Seq[Link] = {
+  private def getPastReturnsLink(overview: Seq[AFTOverview], srn: SchemeReferenceNumber): Seq[Link] = {
     val pastReturns = overview.filter(_.versionDetails.isDefined)
       .map(_.toPodsReport).filter(!_.compiledVersionAvailable)
 
@@ -116,7 +116,7 @@ class PsaSchemePartialService @Inject()(
 
 
   private def getInProgressReturnsModel(overview: Seq[AFTOverview],
-                                        srn: String,
+                                        srn: SchemeReferenceNumber,
                                         pstr: String
                                        )(implicit hc: HeaderCarrier, messages: Messages): Future[(Seq[CardSubHeading], Seq[Link])] = {
     val inProgressReturns = overview.filter(_.versionDetails.isDefined)
@@ -143,7 +143,7 @@ class PsaSchemePartialService @Inject()(
   }
 
   private def modelForSingleInProgressReturn(
-                                              srn: String,
+                                              srn: SchemeReferenceNumber,
                                               startDate: LocalDate,
                                               endDate: LocalDate,
                                               overview: AFTOverviewOnPODS
@@ -179,7 +179,7 @@ class PsaSchemePartialService @Inject()(
   }
 
   private def modelForMultipleInProgressReturns(
-                                                 srn: String,
+                                                 srn: SchemeReferenceNumber,
                                                  pstr: String,
                                                  inProgressReturns: Seq[AFTOverviewOnPODS]
                                                )(implicit hc: HeaderCarrier,
@@ -206,7 +206,7 @@ class PsaSchemePartialService @Inject()(
       }
     }
 
-  def upcomingAftChargesModel(schemeFs: Seq[SchemeFSDetail], srn: String)
+  def upcomingAftChargesModel(schemeFs: Seq[SchemeFSDetail], srn: SchemeReferenceNumber)
                              (implicit messages: Messages): Seq[CardViewModel] = {
     val upcomingCharges: Seq[SchemeFSDetail] =
       paymentsAndChargesService.extractUpcomingCharges(schemeFs)
@@ -248,7 +248,7 @@ class PsaSchemePartialService @Inject()(
       Nil
     }
 
-  private def viewUpcomingLink(upcomingCharges: Seq[SchemeFSDetail], srn: String): Seq[Link] =
+  private def viewUpcomingLink(upcomingCharges: Seq[SchemeFSDetail], srn: SchemeReferenceNumber): Seq[Link] =
     if (upcomingCharges != Seq.empty) {
       val nonAftUpcomingCharges: Seq[SchemeFSDetail] = upcomingCharges.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
 
@@ -267,7 +267,7 @@ class PsaSchemePartialService @Inject()(
       Nil
     }
 
-  private def viewPastPaymentsAndChargesLink(pastCharges: Seq[SchemeFSDetail], srn: String): Seq[Link] =
+  private def viewPastPaymentsAndChargesLink(pastCharges: Seq[SchemeFSDetail], srn: SchemeReferenceNumber): Seq[Link] =
     if (pastCharges == Seq.empty) {
       Nil
     } else {
@@ -279,7 +279,7 @@ class PsaSchemePartialService @Inject()(
       ))
     }
 
-  def overdueAftChargesModel(schemeFs: Seq[SchemeFSDetail], srn: String)
+  def overdueAftChargesModel(schemeFs: Seq[SchemeFSDetail], srn: SchemeReferenceNumber)
                             (implicit messages: Messages): Seq[CardViewModel] = {
     val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFs)
     val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(schemeFs)
@@ -322,7 +322,7 @@ class PsaSchemePartialService @Inject()(
     }
   }
 
-  private def viewOverdueLink(schemeFs: Seq[SchemeFSDetail], srn: String): Seq[Link] = {
+  private def viewOverdueLink(schemeFs: Seq[SchemeFSDetail], srn: SchemeReferenceNumber): Seq[Link] = {
     val nonAftOverdueCharges: Seq[SchemeFSDetail] = schemeFs.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
     val linkText = if (schemeFs.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
       //messages associated with each scenario of links for the overdue charges tile
@@ -337,7 +337,7 @@ class PsaSchemePartialService @Inject()(
     Seq(Link("overdue-payments-and-charges", appConfig.overdueChargesUrl.format(srn), linkText, None))
   }
 
-  def paymentsAndCharges(schemeFsDetail: Seq[SchemeFSDetail], srn: String, pstr: String)
+  def paymentsAndCharges(schemeFsDetail: Seq[SchemeFSDetail], srn: SchemeReferenceNumber, pstr: String)
                         (implicit messages: Messages): Seq[CardViewModel] = {
     val overdueChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFsDetail.filter(_.amountDue > BigDecimal(0.00)))
     val upcomingChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFsDetail.filter(_.amountDue > BigDecimal(0.00)))
@@ -384,7 +384,7 @@ class PsaSchemePartialService @Inject()(
 
   }
 
-  private def viewFinancialOverviewLink(srn: String): Seq[Link] =
+  private def viewFinancialOverviewLink(srn: SchemeReferenceNumber): Seq[Link] =
       Seq(Link(
         id = "view-your-financial-overview",
         url = appConfig.financialOverviewUrl.format(srn),
@@ -393,7 +393,7 @@ class PsaSchemePartialService @Inject()(
       ))
 
 
-  private def viewAllPaymentsAndChargesLink(srn: String, pstr: String): Seq[Link] =
+  private def viewAllPaymentsAndChargesLink(srn: SchemeReferenceNumber, pstr: String): Seq[Link] =
           Seq(Link(
         id = "past-payments-and-charges",
         url = appConfig.financialPaymentsAndChargesUrl.format(srn),

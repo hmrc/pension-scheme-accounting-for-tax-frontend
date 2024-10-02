@@ -22,7 +22,7 @@ import controllers.actions._
 import forms.fileUpload.InputSelectionFormProvider
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.fileUpload.InputSelectionPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -53,7 +53,7 @@ class InputSelectionController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val preparedForm = request.userAnswers.get(InputSelectionPage(chargeType)).fold(form)(form.fill)
 
@@ -74,7 +74,7 @@ class InputSelectionController @Inject()(
       }
     }
 
-  def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
 
       implicit request => DataRetrievals.retrieveSchemeName { schemeName =>
@@ -103,7 +103,7 @@ class InputSelectionController @Inject()(
       }
     }
 
-  private def viewModel(schemeName: String, srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType) = GenericViewModel(
+  private def viewModel(schemeName: String, srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType) = GenericViewModel(
     submitUrl =  controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, version, chargeType).url,
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
     schemeName = schemeName

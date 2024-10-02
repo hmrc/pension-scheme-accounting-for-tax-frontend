@@ -25,7 +25,7 @@ import models.LocalDateBinder._
 import models.SubmitterType.PSA
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.requests.IdentifierRequest
-import models.{AFTOverview, AFTVersion, AccessType, Draft, LockDetail, Quarters, Submission, SubmitterDetails, VersionsWithSubmitter}
+import models.{AFTOverview, AFTVersion, AccessType, Draft, LockDetail, Quarters, SchemeReferenceNumber, Submission, SubmitterDetails, VersionsWithSubmitter}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -62,7 +62,7 @@ class ReturnHistoryController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val endDate = Quarters.getQuarter(startDate).endDate
     val internalId = s"$srn$startDate"
 
@@ -100,7 +100,7 @@ class ReturnHistoryController @Inject()(
     json.flatMap(renderer.render("amend/returnHistory.njk", _).map(Ok(_)))
   }
 
-  private def tableOfVersions(srn: String, versions: Seq[VersionsWithSubmitter], startDate: String, seqAftOverview: Seq[AFTOverview])
+  private def tableOfVersions(srn: SchemeReferenceNumber, versions: Seq[VersionsWithSubmitter], startDate: String, seqAftOverview: Seq[AFTOverview])
                              (implicit request: IdentifierRequest[AnyContent],
                               ec: ExecutionContext,
                               hc: HeaderCarrier): Future[JsObject] = {
@@ -170,7 +170,7 @@ class ReturnHistoryController @Inject()(
     Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
   )
 
-  private def getDisplayDetails(index: Int, aftVersion: AFTVersion, optionLockDetail: Option[LockDetail], srn: String)
+  private def getDisplayDetails(index: Int, aftVersion: AFTVersion, optionLockDetail: Option[LockDetail], srn: SchemeReferenceNumber)
                                (implicit request: IdentifierRequest[AnyContent]): Future[DisplayDetails] = {
     if (index == 0) {
       (optionLockDetail, aftVersion.reportStatus) match {
@@ -203,7 +203,7 @@ class ReturnHistoryController @Inject()(
   private val psaIdRegex: Regex = "^A[0-9]{7}$".r
   private val pspIdRegex: Regex = "^[0-9]{8}$".r
 
-  private def submittedBy(index: Int, aftVersion: AFTVersion, submitterDetails: Option[SubmitterDetails], srn: String)
+  private def submittedBy(index: Int, aftVersion: AFTVersion, submitterDetails: Option[SubmitterDetails], srn: SchemeReferenceNumber)
                          (implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier): Future[Content] =
   if((index == 0 && aftVersion.reportStatus.equalsIgnoreCase("Compiled")) || submitterDetails.isEmpty){
     Future(visuallyHidden("draft"))
@@ -233,7 +233,7 @@ class ReturnHistoryController @Inject()(
   def visuallyHidden(messageType: String)(implicit messages: Messages): Html =
     Html(s"<span class=govuk-visually-hidden>${messages(s"returnHistory.$messageType.visuallyHiddenText")}</span>")
 
-  private def getLockedBy(lockedBy: LockDetail, loggedInId: String, srn: String)
+  private def getLockedBy(lockedBy: LockDetail, loggedInId: String, srn: SchemeReferenceNumber)
                          (implicit hc: HeaderCarrier): Future[Option[String]] = {
     loggedInId match {
       case psaIdRegex(_*) => Future(Some(lockedBy.name))

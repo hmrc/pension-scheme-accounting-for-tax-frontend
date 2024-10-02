@@ -25,12 +25,12 @@ import helpers.DeleteChargeHelper
 
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{ChargeType, Mode, AccessType, GenericViewModel}
+import models.{AccessType, ChargeType, GenericViewModel, Mode, SchemeReferenceNumber}
 import models.chargeB.ChargeBDetails
 import navigators.CompoundNavigator
 import pages.chargeB.ChargeBDetailsPage
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -59,14 +59,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   private def form(minimumChargeValue:BigDecimal): Form[ChargeBDetails] =
     formProvider(minimumChargeValueAllowed = minimumChargeValue)
 
-  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, accessType: AccessType, version: Int): GenericViewModel =
+  private def viewModel(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, schemeName: String, accessType: AccessType, version: Int): GenericViewModel =
     GenericViewModel(
       submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -90,7 +90,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 

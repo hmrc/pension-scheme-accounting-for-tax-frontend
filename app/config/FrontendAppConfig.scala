@@ -21,7 +21,7 @@ import controllers.routes
 import models.AdministratorOrPractitioner.Administrator
 import models.ChargeType.toRoute
 import models.requests.{DataRequest, IdentifierRequest}
-import models.{AccessType, AdministratorOrPractitioner, ChargeType, JourneyType, UploadId}
+import models.{AccessType, AdministratorOrPractitioner, ChargeType, JourneyType, SchemeReferenceNumber, UploadId}
 import play.api.Configuration
 import play.api.i18n.Lang
 import play.api.mvc.Call
@@ -108,10 +108,10 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val isAftNonZero: String = s"$aftUrl${configuration.get[String](path = "urls.isAftNonZero")}"
   lazy val psaFinancialStatementUrl: String = s"$aftUrl${configuration.get[String](path = "urls.psaFinancialStatement")}"
 
-  def financialInfoCreditAccessSchemePsaUrl(psaId: String, srn: String): String =
+  def financialInfoCreditAccessSchemePsaUrl(psaId: String, srn: SchemeReferenceNumber): String =
     s"$aftUrl${configuration.get[String](path = "urls.financialInfoCreditAccessConnectorSchemePsa").format(psaId, srn)}"
 
-  def financialInfoCreditAccessSchemePspUrl(pspId: String, srn: String): String =
+  def financialInfoCreditAccessSchemePspUrl(pspId: String, srn: SchemeReferenceNumber): String =
     s"$aftUrl${configuration.get[String](path = "urls.financialInfoCreditAccessConnectorSchemePsp").format(pspId, srn)}"
 
   def financialInfoCreditAccessPsaUrl(psaId: String): String =
@@ -216,13 +216,13 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
 
   lazy val creditBalanceRefundLink: String = loadConfig("urls.creditBalanceRefundLink")
 
-  def successEndpointTarget(srn: String, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId):String   = {
+  def successEndpointTarget(srn: SchemeReferenceNumber, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId):String   = {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     loadConfig("upscan.success-endpoint")
       .format(srn, formatter.format(startDate), accessType.toString, version.toString, toRoute(chargeType), uploadId.value)
   }
 
-  def failureEndpointTarget(srn: String, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType):String   = {
+  def failureEndpointTarget(srn: SchemeReferenceNumber, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType):String   = {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     loadConfig("upscan.failure-endpoint")
       .format(srn, formatter.format(startDate), accessType.toString, version.toString, toRoute(chargeType))

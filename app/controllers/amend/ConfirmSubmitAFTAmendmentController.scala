@@ -25,7 +25,7 @@ import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, Draft, GenericViewModel, NormalMode, Quarters, UserAnswers, ValueChangeType}
+import models.{AccessType, Draft, GenericViewModel, NormalMode, Quarters, SchemeReferenceNumber, UserAnswers, ValueChangeType}
 import navigators.CompoundNavigator
 import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTAmendmentValueChangeTypePage}
 import play.api.data.Form
@@ -59,7 +59,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
       requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val preparedForm = request.userAnswers.get(ConfirmSubmitAFTAmendmentPage) match {
@@ -70,7 +70,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
       populateView(srn, startDate, request.userAnswers, preparedForm, Results.Status(OK), accessType, version)
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
       requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       form
@@ -92,7 +92,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
         )
     }
 
-  private def populateView(srn: String,
+  private def populateView(srn: SchemeReferenceNumber,
                            startDate: LocalDate,
                            ua: UserAnswers,
                            form: Form[Boolean],
@@ -140,7 +140,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
     }
   }
 
-  def getJson(srn: String, startDate: LocalDate, amendedVersion: Int, tableRowsUK: Seq[SummaryList.Row],
+  def getJson(srn: SchemeReferenceNumber, startDate: LocalDate, amendedVersion: Int, tableRowsUK: Seq[SummaryList.Row],
               tableRowsNonUK: Seq[SummaryList.Row], viewModel: GenericViewModel, form: Form[Boolean])
              (implicit request: DataRequest[AnyContent]): JsObject =
     Json.obj(

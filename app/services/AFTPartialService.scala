@@ -23,7 +23,7 @@ import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSDetail.{endDate, startDate}
 import models.financialStatement.{PsaFSDetail, SchemeFSDetail}
-import models.{AFTOverviewOnPODS, Draft, LockDetail, Quarters}
+import models.{AFTOverviewOnPODS, Draft, LockDetail, Quarters, SchemeReferenceNumber}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -45,7 +45,7 @@ class AFTPartialService @Inject()(
                                    aftCacheConnector: UserAnswersCacheConnector
                                  )(implicit ec: ExecutionContext) {
 
-  def retrievePspDashboardAftReturnsModel(srn: String, pstr: String, authorisingPsaId: String)
+  def retrievePspDashboardAftReturnsModel(srn: SchemeReferenceNumber, pstr: String, authorisingPsaId: String)
                                          (implicit hc: HeaderCarrier, messages: Messages): Future[DashboardAftViewModel] =
     for {
       overview <- aftConnector.getAftOverview(pstr)
@@ -66,7 +66,7 @@ class AFTPartialService @Inject()(
 
 
   // scalastyle:off method.length
-  def retrievePspDashboardUpcomingAftChargesModel(schemeFs: Seq[SchemeFSDetail], srn: String)
+  def retrievePspDashboardUpcomingAftChargesModel(schemeFs: Seq[SchemeFSDetail], srn: SchemeReferenceNumber)
                                                  (implicit messages: Messages): DashboardAftViewModel = {
 
     val upcomingCharges: Seq[SchemeFSDetail] =
@@ -131,7 +131,7 @@ class AFTPartialService @Inject()(
   }
 
   // scalastyle:off method.length
-  def retrievePspDashboardOverdueAftChargesModel(schemeFs: Seq[SchemeFSDetail], srn: String)
+  def retrievePspDashboardOverdueAftChargesModel(schemeFs: Seq[SchemeFSDetail], srn: SchemeReferenceNumber)
                                                 (implicit messages: Messages): DashboardAftViewModel = {
 
     val totalOverdue: BigDecimal = schemeFs.map(_.amountDue).sum
@@ -173,7 +173,7 @@ class AFTPartialService @Inject()(
     )
   }
 
-  def retrievePspDashboardPaymentsAndChargesModel(schemeFsDetail: Seq[SchemeFSDetail], srn: String, pstr: String)
+  def retrievePspDashboardPaymentsAndChargesModel(schemeFsDetail: Seq[SchemeFSDetail], srn: SchemeReferenceNumber, pstr: String)
                                                  (implicit messages: Messages): Seq[CardViewModel] = {
     val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(schemeFsDetail)
     val overdueChargesAbs: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFsDetail.filter(_.amountDue > BigDecimal(0.00)))
@@ -220,7 +220,7 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def viewFinancialOverviewLink(srn: String): Seq[Link] =
+  private def viewFinancialOverviewLink(srn: SchemeReferenceNumber): Seq[Link] =
       Seq(Link(
         id = "view-your-financial-overview",
         url = appConfig.financialOverviewUrl.format(srn),
@@ -229,7 +229,7 @@ class AFTPartialService @Inject()(
       ))
 
 
-  private def viewAllPaymentsAndChargesLink(srn: String, pstr: String): Seq[Link] =
+  private def viewAllPaymentsAndChargesLink(srn: SchemeReferenceNumber, pstr: String): Seq[Link] =
       Seq(Link(
         id = "past-payments-and-charges",
         url = appConfig.financialPaymentsAndChargesUrl.format(srn),
@@ -241,7 +241,7 @@ class AFTPartialService @Inject()(
   private def optionSubHeading(
                                 inProgressReturns: Seq[AFTOverviewOnPODS],
                                 schemePstr: String,
-                                srn: String,
+                                srn: SchemeReferenceNumber,
                                 authorisingPsaId: String
                               )(
                                 implicit hc: HeaderCarrier,
@@ -314,7 +314,7 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def getPastReturnsModelOpt(overview: Seq[AFTOverviewOnPODS], srn: String): Option[AFTViewModel] = {
+  private def getPastReturnsModelOpt(overview: Seq[AFTOverviewOnPODS], srn: SchemeReferenceNumber): Option[AFTViewModel] = {
     val pastReturns = overview.filter(!_.compiledVersionAvailable)
 
     if (pastReturns.nonEmpty) {
@@ -326,7 +326,7 @@ class AFTPartialService @Inject()(
 
   private def pspAftDashboardGetInProgressReturnsModel(
                                                         overview: Seq[AFTOverviewOnPODS],
-                                                        srn: String,
+                                                        srn: SchemeReferenceNumber,
                                                         pstr: String
                                                       )(
                                                         implicit
@@ -355,7 +355,7 @@ class AFTPartialService @Inject()(
   }
 
   private def pspAftDashboardSingleInProgressReturnLink(
-                                                         srn: String,
+                                                         srn: SchemeReferenceNumber,
                                                          startDate: LocalDate,
                                                          endDate: LocalDate,
                                                          overview: AFTOverviewOnPODS
@@ -387,7 +387,7 @@ class AFTPartialService @Inject()(
   }
 
   private def pspAftDashboardMultipleInProgressReturnLink(
-                                                           srn: String,
+                                                           srn: SchemeReferenceNumber,
                                                            pstr: String,
                                                            inProgressReturns: Seq[AFTOverviewOnPODS]
                                                          )(

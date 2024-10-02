@@ -22,7 +22,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, Draft, GenericViewModel, Quarters, SubmittedHint}
+import models.{AFTQuarter, Draft, GenericViewModel, Quarters, SchemeReferenceNumber, SubmittedHint}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -54,7 +54,7 @@ class QuartersController @Inject()(
   private def form(year: String, quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("quarters.error.required", year), quarters)
 
-  def onPageLoad(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: SchemeReferenceNumber, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,
@@ -81,7 +81,7 @@ class QuartersController @Inject()(
     }
   }
 
-  def onSubmit(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onSubmit(srn: SchemeReferenceNumber, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
@@ -136,7 +136,7 @@ class QuartersController @Inject()(
     }
   }
 
-  private def viewModel(srn: String, year: String, schemeName: String)
+  private def viewModel(srn: SchemeReferenceNumber, year: String, schemeName: String)
                        (implicit request: IdentifierRequest[_]): GenericViewModel =
     GenericViewModel(
       submitUrl = routes.QuartersController.onSubmit(srn, year).url,

@@ -24,14 +24,14 @@ import play.api.mvc.{AnyContent, Call}
 import java.time.LocalDate
 
 trait Navigator {
-  protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate,
+  protected def routeMap(userAnswers: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate,
                          accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call]
 
-  protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate,
+  protected def editRouteMap(userAnswers: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate,
                              accessType: AccessType, version: Int)
                             (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call]
 
-  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate,
+  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate,
                        accessType: AccessType, version: Int)
                       (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     mode match {

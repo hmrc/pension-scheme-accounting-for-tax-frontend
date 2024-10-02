@@ -52,7 +52,7 @@ class SchemeReferenceNumberSpec extends AnyWordSpec with Matchers with MockitoSu
 
     "implicit conversion from String" must {
       "return the correct SchemeReferenceNumber" in {
-        val x: SchemeReferenceNumber = "S0000000000"
+        val x = "S0000000000"
         x mustEqual SchemeReferenceNumber("S0000000000")
       }
     }

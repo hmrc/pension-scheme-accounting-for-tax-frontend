@@ -18,7 +18,7 @@ package controllers.actions
 
 import com.google.inject.ImplementedBy
 import connectors.cache.UserAnswersCacheConnector
-import models.UserAnswers
+import models.{SchemeReferenceNumber, UserAnswers}
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 import play.api.Logger
 import play.api.libs.json.JsObject
@@ -32,7 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 class DataRetrievalImpl(
-                         srn: String,
+                         srn: SchemeReferenceNumber,
                          startDate: LocalDate,
                          userAnswersCacheConnector: UserAnswersCacheConnector
                        )(implicit val executionContext: ExecutionContext)
@@ -62,7 +62,7 @@ class DataRetrievalImpl(
 class DataRetrievalActionImpl @Inject()(userAnswersCacheConnector: UserAnswersCacheConnector)
                                        (implicit val executionContext: ExecutionContext)
   extends DataRetrievalAction {
-  override def apply(srn: String, startDate: LocalDate): DataRetrieval =
+  override def apply(srn: SchemeReferenceNumber, startDate: LocalDate): DataRetrieval =
     new DataRetrievalImpl(srn, startDate, userAnswersCacheConnector)
 }
 
@@ -71,5 +71,5 @@ trait DataRetrieval extends ActionTransformer[IdentifierRequest, OptionalDataReq
 
 @ImplementedBy(classOf[DataRetrievalActionImpl])
 trait DataRetrievalAction {
-  def apply(srn: String, startDate: LocalDate): DataRetrieval
+  def apply(srn: SchemeReferenceNumber, startDate: LocalDate): DataRetrieval
 }

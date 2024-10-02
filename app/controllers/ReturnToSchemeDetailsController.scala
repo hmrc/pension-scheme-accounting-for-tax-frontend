@@ -19,7 +19,7 @@ package controllers
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
-import models.AccessType
+import models.{AccessType, SchemeReferenceNumber}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -38,7 +38,7 @@ class ReturnToSchemeDetailsController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  def returnToSchemeDetails(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def returnToSchemeDetails(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val id = s"$srn$startDate"
     userAnswersCacheConnector.removeAll(id).map(_ => Redirect(config.schemeDashboardUrl(request).format(srn)))
   }

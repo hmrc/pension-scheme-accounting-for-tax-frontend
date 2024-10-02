@@ -6,11 +6,11 @@ echo "Applying migration AddressList"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:srn/new-return/employerAddressResults                        controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/employerAddressResults                        controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/employerAddressResults                        controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/employerAddressResults                        controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
-echo "GET        /:srn/new-return/changeAddressList                  controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/changeAddressList                  controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/changeAddressList                  controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/changeAddressList                  controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en

@@ -23,7 +23,7 @@ import controllers.chargeB.{routes => _}
 import controllers.financialStatement.paymentsAndCharges.routes.{PaymentsAndChargeDetailsController, PaymentsAndChargesInterestController}
 import data.SampleData.{psaId, schemeDetails, schemeFSResponseAftAndOTC}
 import helpers.FormatHelper
-import models.ChargeDetailsFilter
+import models.{ChargeDetailsFilter, SchemeReferenceNumber}
 import models.ChargeDetailsFilter._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType._
@@ -306,7 +306,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
 
     "call FS API and save to cache if srn does not match the retrieved payload from cache" in {
-      when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache.copy(srn = "wrong-srn")))))
+      when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache.copy(srn = SchemeReferenceNumber("wrong-srn"))))))
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq(chargeWithCredit))))
       when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
@@ -366,7 +366,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 }
 
 object PaymentsAndChargesServiceSpec {
-  val srn = "S1234567"
+  val srn = SchemeReferenceNumber("S1234567")
   val startDate: String = QUARTER_START_DATE.format(dateFormatterStartDate)
   val endDate: String = QUARTER_END_DATE.format(dateFormatterDMY)
   val paymentsCache: PaymentsCache = PaymentsCache(psaId, srn, schemeDetails, schemeFSResponseAftAndOTC.seqSchemeFSDetail)

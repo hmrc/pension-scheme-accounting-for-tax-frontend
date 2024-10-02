@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.SchemeDetails
+import models.{SchemeDetails, SchemeReferenceNumber}
 import play.api.http.Status._
 import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
@@ -58,7 +58,7 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
     }
   }
 
-  def getPspSchemeDetails(pspId: String, srn: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
+  def getPspSchemeDetails(pspId: String, srn: SchemeReferenceNumber)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
     val url = config.pspSchemeDetailsUrl
     val schemeHc = hc.withExtraHeaders("srn" -> srn, "pspId" -> pspId)
@@ -78,7 +78,7 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
 
   def checkForAssociation(
                            psaId: String,
-                           srn: String,
+                           srn: SchemeReferenceNumber,
                            idType: String
                          )(
                            implicit headerCarrier: HeaderCarrier,
@@ -88,7 +88,7 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
     val url = config.checkAssociationUrl
 
     val headers: Seq[(String, String)] =
-      Seq((idType, psaId), ("schemeReferenceNumber", srn), ("Content-Type", "application/json"))
+      Seq((idType, psaId), ("schemeReferenceNumber", srn.id), ("Content-Type", "application/json"))
 
     implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 

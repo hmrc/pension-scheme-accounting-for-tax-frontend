@@ -19,7 +19,7 @@ package controllers.chargeE
 import controllers.actions._
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{AccessType, GenericViewModel, NormalMode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}
 import pages.chargeE.WhatYouWillNeedPage
@@ -45,7 +45,7 @@ class WhatYouWillNeedController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
       val psr = ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance, Some(index))) match {

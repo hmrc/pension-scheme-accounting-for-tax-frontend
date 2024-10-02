@@ -22,7 +22,7 @@ import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
 import models.chargeG.{MemberDetails => ChargeGMemberDetails}
 import models.viewModels.ViewAmendmentDetails
-import models.{AccessType, Member, UserAnswers}
+import models.{AccessType, Member, SchemeReferenceNumber, UserAnswers}
 import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberStatusPage}
 import play.api.i18n.Messages
 import play.api.mvc.Call
@@ -58,7 +58,7 @@ class ChargeGService {
       .flatten
   }
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
+  def viewUrl(index: Int, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Call =
     controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =

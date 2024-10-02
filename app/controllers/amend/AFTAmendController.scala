@@ -20,7 +20,7 @@ import audit.{AuditService, StartAmendAFTAuditEvent}
 import connectors.AFTConnector
 import controllers.actions._
 import models.LocalDateBinder._
-import models.Quarters
+import models.{Quarters, SchemeReferenceNumber}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.SchemeService
@@ -43,7 +43,7 @@ class AFTAmendController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,

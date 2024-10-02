@@ -21,7 +21,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, GenericViewModel, Quarters}
+import models.{AFTQuarter, GenericViewModel, Quarters, SchemeReferenceNumber}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -56,10 +56,10 @@ class AmendQuartersController @Inject()(
   private def futureSessionExpiredPage: Future[Result] =
     Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
-  private def futureReturnHistoryPage(srn: String, startDate: LocalDate): Future[Result] =
+  private def futureReturnHistoryPage(srn: SchemeReferenceNumber, startDate: LocalDate): Future[Result] =
     Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate)))
 
-  def onPageLoad(srn: String, year: String): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, year: String): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         schemeService.retrieveSchemeDetails(
@@ -93,7 +93,7 @@ class AmendQuartersController @Inject()(
         }
     }
 
-  def onSubmit(srn: String, year: String): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, year: String): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         schemeService.retrieveSchemeDetails(
@@ -132,7 +132,7 @@ class AmendQuartersController @Inject()(
         }
     }
 
-  private def viewModel(srn: String, year: String, schemeName: String)
+  private def viewModel(srn: SchemeReferenceNumber, year: String, schemeName: String)
                        (implicit request: IdentifierRequest[_]): GenericViewModel =
     GenericViewModel(
       submitUrl = routes.AmendQuartersController.onSubmit(srn, year).url,

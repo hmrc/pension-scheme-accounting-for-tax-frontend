@@ -45,7 +45,7 @@ object SchemeReferenceNumber {
   implicit def schemeReferenceNumberToString(srn: SchemeReferenceNumber): String =
     srn.id
 
-  implicit def stringToSchemeReferenceNumber(srn: String): SchemeReferenceNumber =
+  implicit def stringToSchemeReferenceNumber(srn: SchemeReferenceNumber): SchemeReferenceNumber =
     SchemeReferenceNumber(srn)
 
   case class InvalidSchemeReferenceNumberException() extends Exception

@@ -22,7 +22,7 @@ import controllers.actions._
 import forms.YesNoFormProvider
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, UserAnswers}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, SchemeReferenceNumber, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{IsPublicServicePensionsRemedyPage, QuarterPage}
 import play.api.data.Form
@@ -63,7 +63,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
-                 srn: String,
+                 srn: SchemeReferenceNumber,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
@@ -116,7 +116,7 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
   // scalastyle:off method.length
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
-               srn: String,
+               srn: SchemeReferenceNumber,
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,

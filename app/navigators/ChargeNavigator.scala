@@ -22,7 +22,7 @@ import helpers.ChargeServiceHelper
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, MemberDetails, NormalMode, UserAnswers}
+import models.{AccessType, ChargeType, MemberDetails, NormalMode, SchemeReferenceNumber, UserAnswers}
 import pages._
 import pages.fileUpload.ValidationPage
 import play.api.mvc.{AnyContent, Call}
@@ -37,7 +37,7 @@ class ChargeNavigator @Inject()(
                                ) extends Navigator {
 
   //scalastyle:off cyclomatic.complexity
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  override protected def routeMap(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case ChargeTypePage                 => chargeTypeNavigation(ua, srn, startDate, accessType, version)
     case AFTSummaryPage                 => aftSummaryNavigation(ua, srn, startDate, accessType, version)
@@ -55,13 +55,13 @@ class ChargeNavigator @Inject()(
       }
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  override protected def editRouteMap(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                      (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case ChargeTypePage => sessionExpiredPage
   }
 
   //scalastyle:off cyclomatic.complexity
-  private def chargeTypeNavigation(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  private def chargeTypeNavigation(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                   (implicit request: DataRequest[AnyContent])
   : Call = {
     val accessMode=request.sessionData.sessionAccessData.accessMode
@@ -112,7 +112,7 @@ class ChargeNavigator @Inject()(
   private def nextIndexChargeG(ua: UserAnswers) : Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").size
 
-  private def confirmSubmitNavigation(ua: UserAnswers, srn: String, startDate: LocalDate,
+  private def confirmSubmitNavigation(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate,
                                       accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]) = {
     ua.get(ConfirmSubmitAFTReturnPage) match {
       case Some(true) =>
@@ -128,7 +128,7 @@ class ChargeNavigator @Inject()(
     }
   }
 
-  private def confirmSubmitAmendmentNavigation(ua: UserAnswers, srn: String, startDate: LocalDate,
+  private def confirmSubmitAmendmentNavigation(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate,
                                                accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]) =
     (request.psaId, request.pspId) match {
       case (None, Some(_)) => controllers.routes.EnterPsaIdController.onPageLoad(srn, startDate, accessType, version)
@@ -136,7 +136,7 @@ class ChargeNavigator @Inject()(
       case _ =>  sessionExpiredPage
     }
 
-  private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate,
+  private def aftSummaryNavigation(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate,
                                    accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Call = {
     (ua.get(AFTSummaryPage), ua.get(QuarterPage)) match {
       case (Some(true), _) =>

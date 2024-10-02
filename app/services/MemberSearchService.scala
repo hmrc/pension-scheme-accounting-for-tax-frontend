@@ -21,7 +21,7 @@ import helpers.{DeleteChargeHelper, FormatHelper}
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance, ChargeTypeOverseasTransfer}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Member, MemberDetails, UserAnswers}
+import models.{AccessType, ChargeType, Member, MemberDetails, SchemeReferenceNumber, UserAnswers}
 import pages.{chargeD, chargeE, chargeG}
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
@@ -43,7 +43,7 @@ class MemberSearchService @Inject()(
 
   import MemberSearchService._
 
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit
+  def search(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit
     request: DataRequest[AnyContent]): Seq[MemberRow] =
       jsonSearch(searchText.toUpperCase, ua.data).fold[Seq[MemberRow]](Nil) { searchResults =>
         listOfRows(listOfMembers(UserAnswers(searchResults.as[JsObject]), srn, startDate, accessType, version, ua), request.isViewOnly)
@@ -201,7 +201,7 @@ class MemberSearchService @Inject()(
     }
   }
 
-  private def listOfMembers(searchResultsUa: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, originalUa: UserAnswers)
+  private def listOfMembers(searchResultsUa: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, originalUa: UserAnswers)
                                  (implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
 
     val viewChargeDUrl: Int => String = idx => controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, idx).url

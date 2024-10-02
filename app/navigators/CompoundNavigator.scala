@@ -18,7 +18,7 @@ package navigators
 
 import com.google.inject.Inject
 import models.requests.DataRequest
-import models.{AccessType, Mode, UserAnswers}
+import models.{AccessType, Mode, SchemeReferenceNumber, UserAnswers}
 import pages.Page
 import play.api.Logger
 import play.api.mvc.{AnyContent, Call}
@@ -31,7 +31,7 @@ trait CompoundNavigator {
                 id: Page,
                 mode: Mode,
                 userAnswers: UserAnswers,
-                srn: String,
+                srn: SchemeReferenceNumber,
                 startDate: LocalDate,
                 accessType: AccessType,
                 version: Int
@@ -52,7 +52,7 @@ class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator])
                 id: Page,
                 mode: Mode,
                 userAnswers: UserAnswers,
-                srn: String,
+                srn: SchemeReferenceNumber,
                 startDate: LocalDate,
                 accessType: AccessType,
                 version: Int
@@ -64,7 +64,7 @@ class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator])
                                 id: Page,
                                 mode: Mode,
                                 userAnswers: UserAnswers,
-                                srn: String,
+                                srn: SchemeReferenceNumber,
                                 startDate: LocalDate,
                                 accessType: AccessType,
                                 version: Int

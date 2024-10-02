@@ -18,7 +18,7 @@ package controllers.partials
 
 import connectors.FinancialStatementConnector
 import controllers.actions._
-import models.SchemeDetails
+import models.{SchemeDetails, SchemeReferenceNumber}
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -50,7 +50,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
   private val logger = Logger(classOf[PsaSchemeDashboardPartialsController])
 
 
-  def psaSchemeDashboardAFTTilePartial(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
+  def psaSchemeDashboardAFTTilePartial(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
           schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
               service.aftCardModel(schemeDetails, srn).flatMap { cards =>
@@ -65,7 +65,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
   }
 
 
-  def psaSchemeDashboardFinInfoPartial(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
+  def psaSchemeDashboardFinInfoPartial(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
       schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
           getFinancialOverviewTile(srn, schemeDetails).flatMap { cards =>
@@ -79,7 +79,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
       }
   }
 
-  private def getFinancialOverviewTile(srn: String, schemeDetails: SchemeDetails)(implicit request: IdentifierRequest[AnyContent]) = {
+  private def getFinancialOverviewTile(srn: SchemeReferenceNumber, schemeDetails: SchemeDetails)(implicit request: IdentifierRequest[AnyContent]) = {
     financialStatementConnector.getSchemeFS(schemeDetails.pstr).map { schemeFSDetail =>
       val paymentsAndCharges: Seq[CardViewModel] = service.paymentsAndCharges(schemeFSDetail.seqSchemeFSDetail, srn, schemeDetails.pstr)
       logger.debug(s"AFT service returned partial for psa scheme dashboard with aft tile- ${Json.toJson(paymentsAndCharges)}")

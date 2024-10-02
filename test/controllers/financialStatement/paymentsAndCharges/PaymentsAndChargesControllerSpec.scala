@@ -23,6 +23,7 @@ import controllers.financialStatement.paymentsAndCharges.routes._
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.All
+import models.SchemeReferenceNumber
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
@@ -105,7 +106,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
 object PaymentsAndChargesControllerSpec {
   private val startDate = "2020-04-01"
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
 
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(

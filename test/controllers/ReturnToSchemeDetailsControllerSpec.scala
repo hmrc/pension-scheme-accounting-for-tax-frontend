@@ -18,6 +18,7 @@ package controllers
 
 import controllers.base.ControllerSpecBase
 import data.SampleData
+import models.SchemeReferenceNumber
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -31,7 +32,7 @@ import scala.concurrent.Future
 
 class ReturnToSchemeDetailsControllerSpec extends ControllerSpecBase {
 
-  private val srn = "srn"
+  private val srn = SchemeReferenceNumber("srn")
   private val startDate = QUARTER_START_DATE.toString
   private val application = applicationBuilder().build()
 

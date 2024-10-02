@@ -6,11 +6,11 @@ echo "Applying migration ConfirmSubmitAFTReturn"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:srn/new-return/confirmSubmitAFTReturn                        controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/confirmSubmitAFTReturn                        controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/confirmSubmitAFTReturn                        controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/confirmSubmitAFTReturn                        controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
-echo "GET        /:srn/new-return/changeConfirmSubmitAFTReturn                  controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/changeConfirmSubmitAFTReturn                  controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/changeConfirmSubmitAFTReturn                  controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/changeConfirmSubmitAFTReturn                  controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en

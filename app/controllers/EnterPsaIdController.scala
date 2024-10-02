@@ -21,7 +21,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.EnterPsaIdFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{AccessType, GenericViewModel, NormalMode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.EnterPsaIdPage
 import play.api.data.Form
@@ -53,7 +53,7 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
 
   private def form(authorisingPsaId: Option[String]):Form[String] = formProvider(authorisingPSAID = authorisingPsaId)
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       DataRetrievals.retrieveSchemeName{ schemeName =>
@@ -79,7 +79,7 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName{ schemeName =>
         schemeDetailsConnector.getPspSchemeDetails(request.idOrException, srn).map(_.authorisingPSAID).flatMap{ authorisingPsaId =>

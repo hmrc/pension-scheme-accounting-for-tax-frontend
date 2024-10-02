@@ -20,7 +20,7 @@ import audit.{AuditService, StartNewAFTAuditEvent}
 import config.FrontendAppConfig
 import controllers.actions._
 import models.LocalDateBinder._
-import models.{Draft, Quarters, StartYears}
+import models.{Draft, Quarters, SchemeReferenceNumber, StartYears}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.SchemeService
@@ -43,7 +43,7 @@ class AFTLoginController @Inject()(
                                     with I18nSupport
                                     with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val defaultYear = StartYears.minYear(config)
     schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").map { schemeDetails =>
       auditService.sendEvent(StartNewAFTAuditEvent(request.idOrException, schemeDetails.pstr))

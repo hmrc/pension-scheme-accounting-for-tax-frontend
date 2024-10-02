@@ -24,7 +24,7 @@ import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, g
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFSChargeType, SchemeFSDetail, SchemeSourceChargeInfo}
 import models.requests.IdentifierRequest
-import models.{ChargeDetailsFilter, Submission}
+import models.{ChargeDetailsFilter, SchemeReferenceNumber, Submission}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -53,7 +53,7 @@ class PaymentsAndChargeDetailsController @Inject()(
     with NunjucksSupport {
   private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
 
-  def onPageLoad(srn: String, period: String, index: String,
+  def onPageLoad(srn: SchemeReferenceNumber, period: String, index: String,
                  paymentOrChargeType: PaymentOrChargeType, version: Option[Int],
                  submittedDate: Option[String], journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async {
@@ -81,7 +81,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                         period: String,
                         index: String,
                         schemeName: String,
-                        srn: String,
+                        srn: SchemeReferenceNumber,
                         paymentOrChargeType: PaymentOrChargeType,
                         journeyType: ChargeDetailsFilter,
                         submittedDate: Option[String],
@@ -223,7 +223,7 @@ class PaymentsAndChargeDetailsController @Inject()(
       Json.obj()
     }
 
-  private def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType, version: Int): JsObject =
+  private def returnHistoryUrl(srn: SchemeReferenceNumber, period: String, paymentOrChargeType: PaymentOrChargeType, version: Int): JsObject =
     if (paymentOrChargeType == AccountingForTaxCharges) {
       Json.obj("returnHistoryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, LocalDate.parse(period), Submission, version).url)
     } else {

@@ -22,7 +22,7 @@ import models.AccessMode.PageAccessModeCompile
 import models.ChargeType._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, UserAnswers}
+import models.{AccessType, ChargeType, SchemeReferenceNumber, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import play.twirl.api.{Html => TwirlHtml}
@@ -37,7 +37,7 @@ class AFTSummaryHelper extends NunjucksSupport {
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
   private def summaryDataUK(ua: UserAnswers,
-    srn: String,
+    srn: SchemeReferenceNumber,
     startDate: LocalDate,
     accessType: AccessType,
     version: Int): Seq[SummaryDetails] = Seq(
@@ -74,7 +74,7 @@ class AFTSummaryHelper extends NunjucksSupport {
   )
 
   private def summaryDataNonUK(ua: UserAnswers,
-    srn: String,
+    srn: SchemeReferenceNumber,
     startDate: LocalDate,
     accessType: AccessType,
     version: Int): Seq[SummaryDetails] = Seq(
@@ -86,7 +86,7 @@ class AFTSummaryHelper extends NunjucksSupport {
   )
 
   private def summaryRowsUK(ua: UserAnswers,
-                            srn: String,
+                            srn: SchemeReferenceNumber,
                             startDate: LocalDate,
                             accessType: AccessType,
                             version: Int)(implicit messages:Messages): Seq[SummaryList.Row] =
@@ -112,7 +112,7 @@ class AFTSummaryHelper extends NunjucksSupport {
   }
 
   private def summaryRowsNonUK(ua: UserAnswers,
-    srn: String,
+    srn: SchemeReferenceNumber,
     startDate: LocalDate,
     accessType: AccessType,
     version: Int)(implicit messages:Messages): Seq[SummaryList.Row] =
@@ -137,7 +137,7 @@ class AFTSummaryHelper extends NunjucksSupport {
     )
   }
 
-  def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages): Seq[Row] = {
+  def summaryListData(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages): Seq[Row] = {
 
     val totalRow: Seq[SummaryList.Row] = Seq(Row(
       key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
@@ -149,7 +149,7 @@ class AFTSummaryHelper extends NunjucksSupport {
     summaryRowsUK(ua, srn, startDate, accessType, version) ++ totalRow ++ summaryRowsNonUK(ua, srn, startDate, accessType, version)
   }
 
-  def viewAmendmentsLink(version: Int, srn: String, startDate: LocalDate, accessType: AccessType)
+  def viewAmendmentsLink(version: Int, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType)
                         (implicit messages: Messages, request: DataRequest[_]): TwirlHtml = {
 
     val linkText = if (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile) {

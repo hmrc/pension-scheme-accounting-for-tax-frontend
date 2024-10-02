@@ -24,7 +24,7 @@ import models.LocalDateBinder._
 import models.fileUpload.UploadCheckSelection
 import models.fileUpload.UploadCheckSelection.{No, Yes}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, FileUploadDataCache, GenericViewModel, UploadId}
+import models.{AccessType, ChargeType, FileUploadDataCache, GenericViewModel, SchemeReferenceNumber, UploadId}
 import pages.fileUpload.{UploadCheckPage, UploadedFileName}
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.Logger
@@ -61,7 +61,7 @@ class FileUploadCheckController @Inject()(
   private val form = formProvider()
   private val logger = Logger(classOf[FileUploadCheckController])
 
-  def onPageLoad(srn: String,
+  def onPageLoad(srn: SchemeReferenceNumber,
                  startDate: String,
                  accessType: AccessType,
                  version: Int,
@@ -114,7 +114,7 @@ class FileUploadCheckController @Inject()(
     ))
   }
 
-  private def renderPage(name: String, srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType,
+  private def renderPage(name: String, srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType,
                          uploadId: UploadId)
                         (implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
@@ -134,7 +134,7 @@ class FileUploadCheckController @Inject()(
       .map(Ok(_))
   }
 
-  def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         val ua = request.userAnswers
@@ -186,7 +186,7 @@ class FileUploadCheckController @Inject()(
   }
 
   private def viewModel(schemeName: String,
-                        srn: String,
+                        srn: SchemeReferenceNumber,
                         startDate: LocalDate,
                         accessType: AccessType,
                         version: Int,

@@ -23,7 +23,7 @@ import controllers.mccloud.TaxQuarterReportedAndPaidController.{filterQuarters, 
 import forms.QuartersFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
-import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, DisplayQuarter, GenericViewModel, Index, Mode, Quarters, YearRange, YearRangeMcCloud}
+import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, DisplayQuarter, GenericViewModel, Index, Mode, Quarters, SchemeReferenceNumber, YearRange, YearRangeMcCloud}
 import navigators.CompoundNavigator
 import pages.mccloud.{TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage}
 import play.api.data.Form
@@ -67,7 +67,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
   //scalastyle:off parameter.number
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
-                 srn: String,
+                 srn: SchemeReferenceNumber,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
@@ -119,7 +119,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
   // scalastyle:off method.length
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
-               srn: String,
+               srn: SchemeReferenceNumber,
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,

@@ -6,11 +6,11 @@ echo "Applying migration SponsoringIndividualDetails"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:srn/new-return/sponsoringIndividualDetails                        controllers.SponsoringIndividualDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/sponsoringIndividualDetails                        controllers.SponsoringIndividualDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/sponsoringIndividualDetails                        controllers.SponsoringIndividualDetailsController.onPageLoad(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/sponsoringIndividualDetails                        controllers.SponsoringIndividualDetailsController.onSubmit(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
-echo "GET        /:srn/new-return/changeSponsoringIndividualDetails                  controllers.SponsoringIndividualDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/changeSponsoringIndividualDetails                  controllers.SponsoringIndividualDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/changeSponsoringIndividualDetails                  controllers.SponsoringIndividualDetailsController.onPageLoad(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/changeSponsoringIndividualDetails                  controllers.SponsoringIndividualDetailsController.onSubmit(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en

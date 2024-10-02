@@ -25,7 +25,7 @@ import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.viewModels.ViewAmendmentDetails
-import models.{AmendedChargeStatus, Employer, MemberDetails, UserAnswers}
+import models.{AmendedChargeStatus, Employer, MemberDetails, SchemeReferenceNumber, UserAnswers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC._
@@ -36,7 +36,7 @@ import scala.collection.mutable.ArrayBuffer
 
 class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  val srn = "S1234567"
+  val srn = SchemeReferenceNumber("S1234567")
   val startDate: LocalDate = QUARTER_START_DATE
 
   val oneEmployerLastCharge: UserAnswers = UserAnswers()

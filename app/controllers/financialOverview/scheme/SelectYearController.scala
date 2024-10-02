@@ -21,7 +21,7 @@ import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
-import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
+import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, SchemeReferenceNumber, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -56,7 +56,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
     formProvider(errorMessage)(implicitly)
   }
 
-  def onPageLoad(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
       service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
         val typeParam: String = service.getTypeParam(paymentOrChargeType)
@@ -76,7 +76,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(srn: String, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, paymentOrChargeType: PaymentOrChargeType): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
       service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { paymentsCache =>
         val typeParam: String = service.getTypeParam(paymentOrChargeType)

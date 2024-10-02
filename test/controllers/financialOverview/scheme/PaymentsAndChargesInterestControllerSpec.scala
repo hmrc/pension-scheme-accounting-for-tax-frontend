@@ -24,6 +24,7 @@ import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
 import models.LocalDateBinder._
+import models.SchemeReferenceNumber
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
@@ -183,7 +184,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 }
 
 object PaymentsAndChargesInterestControllerSpec {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
 
   private def createCharge(index: Int, chargeReference: String, chargeType: SchemeFSChargeType): SchemeFSDetail = {
     SchemeFSDetail(

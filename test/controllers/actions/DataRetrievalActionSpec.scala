@@ -19,7 +19,7 @@ package controllers.actions
 import base.SpecBase
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData._
-import models.SessionData
+import models.{SchemeReferenceNumber, SessionData}
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito.when
@@ -41,7 +41,7 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutur
   private val request: IdentifierRequest[AnyContent] = IdentifierRequest("id", fakeRequest, Some(PsaId(psaId)), None)
   val id = s"$srn$startDate"
 
-  class Harness extends DataRetrievalImpl(srn, QUARTER_START_DATE, dataCacheConnector) {
+  class Harness extends DataRetrievalImpl(SchemeReferenceNumber(srn), QUARTER_START_DATE, dataCacheConnector) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }
 

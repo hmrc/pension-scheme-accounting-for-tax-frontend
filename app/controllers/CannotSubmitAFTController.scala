@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, DataRetrievalAction, IdentifierAction}
 import models.LocalDateBinder._
+import models.SchemeReferenceNumber
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -44,7 +45,7 @@ class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
           val json = Json.obj(
@@ -55,7 +56,7 @@ class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
         }
     }
 
-  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onClick(srn: SchemeReferenceNumber, startDate: LocalDate): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn)) andThen getData(srn, startDate)).async {
       implicit request =>
         userAnswersCacheConnector.removeAll(request.internalId).map { _ =>

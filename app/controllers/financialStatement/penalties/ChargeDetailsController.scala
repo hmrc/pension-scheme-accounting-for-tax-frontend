@@ -18,7 +18,7 @@ package controllers.financialStatement.penalties
 
 import config.Constants._
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
-import models.PenaltiesFilter
+import models.{PenaltiesFilter, SchemeReferenceNumber}
 import models.financialStatement.PsaFSDetail
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -54,7 +54,7 @@ class ChargeDetailsController @Inject()(
 
           if(chargeRefs.length > chargeReferenceIndex.toInt && penaltyOpt.nonEmpty) {
                 if (identifier.matches(srnRegex)) {
-                  schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") flatMap {
+                  schemeService.retrieveSchemeDetails(request.idOrException, SchemeReferenceNumber(identifier), "srn") flatMap {
                     schemeDetails =>
                       val json = Json.obj(
                         "psaName" -> penaltiesCache.psaName,

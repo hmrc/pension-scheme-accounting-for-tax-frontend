@@ -19,6 +19,7 @@ package controllers.partials
 import connectors.admin.FeatureToggleConnector
 import connectors.FinancialStatementConnector
 import controllers.actions._
+import models.SchemeReferenceNumber
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -57,7 +58,7 @@ class PspSchemeDashboardPartialsController @Inject()(
       (idNumber, schemeIdType, authorisingPsaId) match {
         case (Some(idNumber), Some(_), Some(psaId)) =>
               val futureSeqHtml = for {
-                schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
+                schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, SchemeReferenceNumber(idNumber), "srn")
                 schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
                 interimDashboard <- featureToggleConnector.getNewPensionsSchemeFeatureToggle("interim-dashboard").map(_.isEnabled)
                 aftReturnsHtml <- pspDashboardAftReturnsPartial(interimDashboard, idNumber, schemeDetails.pstr, psaId)
@@ -79,7 +80,7 @@ class PspSchemeDashboardPartialsController @Inject()(
     if (interimDashboard) {
       Future.successful(Html(""))
     } else {
-      aftPartialService.retrievePspDashboardAftReturnsModel(idNumber, pstr, authorisingPsaId) flatMap {
+      aftPartialService.retrievePspDashboardAftReturnsModel(SchemeReferenceNumber(idNumber), pstr, authorisingPsaId) flatMap {
         viewModel =>
           renderer.render(
             template = "partials/pspDashboardAftReturnsCard.njk",
@@ -95,7 +96,7 @@ class PspSchemeDashboardPartialsController @Inject()(
       Future.successful(Html(""))
     } else {
       val viewModel =
-        aftPartialService.retrievePspDashboardPaymentsAndChargesModel(schemeFs, idNumber, pstr)
+        aftPartialService.retrievePspDashboardPaymentsAndChargesModel(schemeFs, SchemeReferenceNumber(idNumber), pstr)
       renderer.render(
         template = "partials/pspSchemePaymentsAndChargesPartial.njk",
         ctx = Json.obj("cards" -> Json.toJson(viewModel))

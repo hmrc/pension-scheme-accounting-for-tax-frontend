@@ -27,7 +27,7 @@ import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.requests.DataRequest
-import models.{AccessMode, ChargeType, SessionAccessData, UserAnswers}
+import models.{AccessMode, ChargeType, SchemeReferenceNumber, SessionAccessData, UserAnswers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
@@ -53,7 +53,7 @@ class AFTSummaryHelperSpec extends SpecBase with Matchers with MockitoSugar with
     .setOrException(pages.chargeB.ChargeBDetailsPage, ChargeBDetails(1, BigDecimal(600.00)))
     .setOrException(pages.chargeG.TotalChargeAmountPage, BigDecimal(700.00))
 
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val startDate = LocalDate.now
 
   private def createRow(chargeType: ChargeType, amount: BigDecimal, href: Option[String]) = {

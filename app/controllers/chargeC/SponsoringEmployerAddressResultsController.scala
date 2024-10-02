@@ -24,12 +24,12 @@ import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
 import models.LocalDateBinder._
 
 import javax.inject.Inject
-import models.{TolerantAddress, GenericViewModel, AccessType, Mode, ChargeType, Index}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, SchemeReferenceNumber, TolerantAddress}
 import models.requests.DataRequest
 import navigators.CompoundNavigator
-import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressSearchPage, SponsoringEmployerAddressResultsPage}
+import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressResultsPage, SponsoringEmployerAddressSearchPage}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
@@ -59,12 +59,12 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onPageLoad(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       presentPage(mode, srn, startDate, index, form, Ok, accessType, version)
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       form
         .bindFromRequest()
@@ -111,7 +111,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
     "([0-9]+)".r.findAllIn(mkString(p)).map(n => Try(n.toInt).toOption).toSeq.reverse :+ None
 
 
-  private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status,
+  private def presentPage(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, index: Index, form:Form[Int], status:Status,
                           accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Future[Result] = {
     DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
       request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {

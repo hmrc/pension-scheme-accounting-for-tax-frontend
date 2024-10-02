@@ -24,7 +24,7 @@ import data.SampleData.{accessType, versionInt}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
-import models.{CheckMode, NormalMode, UserAnswers, YearRange}
+import models.{CheckMode, NormalMode, SchemeReferenceNumber, UserAnswers, YearRange}
 import org.scalatest.prop.TableFor3
 import pages._
 import pages.chargeD._
@@ -170,7 +170,7 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
 }
 
 object ChargeDNavigatorSpec {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val startDate = QUARTER_START_DATE
   private val index = 0
   private val schemeIndex = 0

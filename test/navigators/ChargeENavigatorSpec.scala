@@ -24,7 +24,7 @@ import data.SampleData.{accessType, versionInt}
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
-import models.{CheckMode, NormalMode, UserAnswers, YearRange}
+import models.{CheckMode, NormalMode, SchemeReferenceNumber, UserAnswers, YearRange}
 import org.scalatest.prop.TableFor3
 import pages.chargeE._
 import pages.fileUpload.InputSelectionPage
@@ -89,7 +89,7 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(AddMembersPage)(MemberDetailsController
           .onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), Some(addMembersYesAndPSRNo)),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),
-        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
+        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn.id)), zeroedCharge),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeEMember)),
         row(InputSelectionPage(ChargeTypeAnnualAllowance))(controllers.routes.IsPublicServicePensionsRemedyController
@@ -174,7 +174,7 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
 }
 
 object ChargeENavigatorSpec {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val startDate = QUARTER_START_DATE
   private val index = 0
   private val schemeIndex = 0

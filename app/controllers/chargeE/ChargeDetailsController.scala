@@ -23,7 +23,7 @@ import controllers.actions._
 import forms.chargeE.ChargeDetailsFormProvider
 import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
-import models.{AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
@@ -64,7 +64,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     )
   }
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onPageLoad(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 
@@ -95,7 +95,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 

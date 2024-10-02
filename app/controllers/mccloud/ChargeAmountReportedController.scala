@@ -23,7 +23,7 @@ import controllers.actions._
 import forms.mccloud.ChargeAmountReportedFormProvider
 import models.Index._
 import models.LocalDateBinder._
-import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode}
+import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.mccloud.{ChargeAmountReportedPage, TaxQuarterReportedAndPaidPage}
 import play.api.data.Form
@@ -65,7 +65,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
-                 srn: String,
+                 srn: SchemeReferenceNumber,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
@@ -112,7 +112,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
-               srn: String,
+               srn: SchemeReferenceNumber,
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,

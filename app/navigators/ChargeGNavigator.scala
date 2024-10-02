@@ -25,7 +25,7 @@ import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection.{FileUploadInput, ManualInput}
 import models.requests.DataRequest
-import models.{AccessType, MemberDetails, NormalMode, UploadId, UserAnswers}
+import models.{AccessType, MemberDetails, NormalMode, SchemeReferenceNumber, UploadId, UserAnswers}
 import pages.Page
 import pages.chargeG._
 import pages.fileUpload.{FileUploadPage, InputSelectionPage}
@@ -41,14 +41,14 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   def nextIndex(ua: UserAnswers) : Int =
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").size
 
-  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  def addMembers(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
   : Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
   }
 
-  def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  def deleteMemberRoutes(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                         (implicit request: DataRequest[AnyContent]): Call =
     if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
@@ -59,7 +59,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     }
 
   //scalastyle:off cyclomatic.complexity
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  override protected def routeMap(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage      => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua))
@@ -79,7 +79,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case DeleteMemberPage         => deleteMemberRoutes(ua, srn, startDate, accessType, version)
   }
 
-  private def inputSelectionNav(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
+  private def inputSelectionNav(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Call = {
     ua.get(InputSelectionPage(ChargeTypeOverseasTransfer)) match {
       case Some(ManualInput) =>
         controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, version)
@@ -89,7 +89,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     }
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  override protected def editRouteMap(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                      (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case MemberDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)

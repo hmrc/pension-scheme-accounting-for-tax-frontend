@@ -23,7 +23,7 @@ import controllers.actions._
 import forms.YesNoFormProvider
 import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode, UserAnswers}
+import models.{AccessType, GenericViewModel, NormalMode, SchemeReferenceNumber, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeA.{DeleteChargePage, ShortServiceRefundQuery}
 import play.api.data.Form
@@ -59,7 +59,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
   private def form(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteCharge.error.required", messages("chargeA").toLowerCase()))
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
@@ -83,7 +83,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
         }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form

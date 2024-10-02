@@ -17,7 +17,7 @@
 package controllers.actions
 
 import com.google.inject.ImplementedBy
-import models.AccessType
+import models.{AccessType, SchemeReferenceNumber}
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 import pages.Page
 import play.api.mvc.ActionTransformer
@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 
 class DataSetupImpl(
-                      srn: String,
+                      srn: SchemeReferenceNumber,
                       startDate: LocalDate,
                       version: Int,
                       accessType: AccessType,
@@ -50,7 +50,7 @@ class DataSetupActionImpl @Inject()(
                                       requestCreationService:RequestCreationService
                                     )(implicit val executionContext: ExecutionContext)
   extends DataSetupAction {
-  override def apply(srn: String, startDate: LocalDate, optionVersion: Int, accessType: AccessType, optionCurrentPage: Option[Page]): DataSetup =
+  override def apply(srn: SchemeReferenceNumber, startDate: LocalDate, optionVersion: Int, accessType: AccessType, optionCurrentPage: Option[Page]): DataSetup =
     new DataSetupImpl(srn, startDate, optionVersion, accessType, optionCurrentPage, requestCreationService)
 }
 
@@ -59,5 +59,5 @@ trait DataSetup extends ActionTransformer[IdentifierRequest, OptionalDataRequest
 
 @ImplementedBy(classOf[DataSetupActionImpl])
 trait DataSetupAction {
-  def apply(srn: String, startDate: LocalDate, version: Int, accessType: AccessType, optionCurrentPage: Option[Page]): DataSetup
+  def apply(srn: SchemeReferenceNumber, startDate: LocalDate, version: Int, accessType: AccessType, optionCurrentPage: Option[Page]): DataSetup
 }

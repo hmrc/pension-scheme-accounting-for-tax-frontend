@@ -20,7 +20,7 @@ import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
-import models.ChargeDetailsFilter
+import models.{ChargeDetailsFilter, SchemeReferenceNumber}
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, displayCharge, getPenaltyType}
@@ -224,7 +224,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
   private def getSchemeName(psaId: String, pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
     val res = for {
-      schemeDetails <- schemeService.retrieveSchemeDetails(psaId, pstr, "pstr")
+      schemeDetails <- schemeService.retrieveSchemeDetails(psaId, SchemeReferenceNumber(pstr), "pstr")
     } yield schemeDetails.schemeName
     res
   }

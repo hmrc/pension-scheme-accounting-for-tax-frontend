@@ -25,6 +25,7 @@ import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
+import models.SchemeReferenceNumber
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
@@ -319,7 +320,7 @@ class PaymentsAndChargeDetailsControllerSpec
 }
 
 object PaymentsAndChargeDetailsControllerSpec {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
 
   def psaFS(chargeReference: String): PsaFSDetail =
     PsaFSDetail(

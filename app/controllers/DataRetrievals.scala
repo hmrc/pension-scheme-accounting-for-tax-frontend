@@ -21,7 +21,7 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.mccloud.{PensionsRemedySchemeSummary, PensionsRemedySummary}
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, ChargeType, Index, MemberDetails, SponsoringEmployerType, UserAnswers, YearRange}
+import models.{AFTQuarter, AccessType, ChargeType, Index, MemberDetails, SchemeReferenceNumber, SponsoringEmployerType, UserAnswers, YearRange}
 import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
@@ -171,7 +171,7 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A], srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A], srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(
     block: (A, String) => Future[Result])(implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
     (
       request.userAnswers.get(chargeDetailsPage),
@@ -184,7 +184,7 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeC(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+  def cyaChargeC(index: Index, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(
     block: (SponsoringEmployerType,
       Either[models.MemberDetails, SponsoringOrganisationDetails],
       SponsoringEmployerAddress,
@@ -214,7 +214,7 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeD(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+  def cyaChargeD(index: Index, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(
     block: (models.MemberDetails, models.chargeD.ChargeDDetails, PensionsRemedySummary, String) => Future[Result])(
                   implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
@@ -272,7 +272,7 @@ object DataRetrievals {
     SchemePathHelper.path(chargeType, index).readNullable[JsArray].reads(userAnswers.data).asOpt.flatten.map(_.value.size).getOrElse(0)
   }
 
-  def cyaChargeE(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+  def cyaChargeE(index: Index, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(
     block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, PensionsRemedySummary, String) => Future[Result])(
                   implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
@@ -289,7 +289,7 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeG(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+  def cyaChargeG(index: Index, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(
     block: (models.chargeG.ChargeDetails, models.chargeG.MemberDetails, models.chargeG.ChargeAmounts, String) => Future[Result])(
                   implicit request: DataRequest[AnyContent]): Future[Result] = {
     (

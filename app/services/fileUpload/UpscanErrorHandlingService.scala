@@ -17,7 +17,7 @@
 package services.fileUpload
 
 import controllers.fileUpload.routes
-import models.AccessType
+import models.{AccessType, SchemeReferenceNumber}
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 
@@ -25,7 +25,7 @@ import scala.concurrent.Future
 
 class UpscanErrorHandlingService {
 
-  def handleFailureResponse(failureResponse: String,srn: String, startDate: String, accessType: AccessType,
+  def handleFailureResponse(failureResponse: String,srn: SchemeReferenceNumber, startDate: String, accessType: AccessType,
                                     version: Int): Future[Result]  = {
     failureResponse match {
       case "QUARANTINE" =>

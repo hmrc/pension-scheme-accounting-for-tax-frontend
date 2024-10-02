@@ -18,7 +18,7 @@ package controllers.financialOverview.psa
 
 import controllers.actions._
 import controllers.financialOverview.psa.routes.AllPenaltiesAndChargesController
-import models.ChargeDetailsFilter
+import models.{ChargeDetailsFilter, SchemeReferenceNumber}
 import models.ChargeDetailsFilter.All
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, EventReportingCharges, getPenaltyType}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, INTEREST_ON_CONTRACT_SETTLEMENT}
@@ -59,7 +59,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
        val penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.index.toString == index)
 
         if(penaltyOpt.nonEmpty) {
-          schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
+          schemeService.retrieveSchemeDetails(request.idOrException, SchemeReferenceNumber(identifier), "pstr") flatMap {
             schemeDetails =>
               val json = Json.obj(
                 "psaName" -> penaltiesCache.psaName,

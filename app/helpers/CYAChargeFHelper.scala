@@ -18,7 +18,7 @@ package helpers
 
 import models.LocalDateBinder._
 import models.chargeF.ChargeDetails
-import models.{AccessType, CheckMode}
+import models.{AccessType, CheckMode, SchemeReferenceNumber}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -26,7 +26,7 @@ import uk.gov.hmrc.viewmodels._
 
 import java.time.LocalDate
 
-class CYAChargeFHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
+class CYAChargeFHelper(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
   def chargeFDate(answer: ChargeDetails): Row =
     Row(

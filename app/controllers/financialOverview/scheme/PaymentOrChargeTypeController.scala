@@ -22,7 +22,7 @@ import controllers.actions._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
 import models.financialStatement.PaymentOrChargeType.{EventReportingCharges, getPaymentOrChargeType}
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
-import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
+import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue, SchemeReferenceNumber}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -51,7 +51,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   private def form(): Form[PaymentOrChargeType] = formProvider()
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
       eventReportingConnector.getFeatureToggle("event-reporting").flatMap { toggleDetail =>
         val paymentsOrCharges = filterPaymentOrChargeTypesByFeatureToggle(getPaymentOrChargeTypes(cache.schemeFSDetail),toggleDetail.isEnabled)
@@ -69,7 +69,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
     }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onSubmit(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
       form().bindFromRequest().fold(
         formWithErrors => {

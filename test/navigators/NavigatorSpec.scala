@@ -28,7 +28,7 @@ import utils.AFTConstants.QUARTER_START_DATE
 import java.time.LocalDate
 
 class NavigatorSpec extends SpecBase {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
 
   private case object DummyIdentifier extends Page
 
@@ -40,10 +40,10 @@ class NavigatorSpec extends SpecBase {
   }
 
   private val dummyNavigator: Navigator = new Navigator {
-    override protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+    override protected def routeMap(userAnswers: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                    (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = call1
 
-    override protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+    override protected def editRouteMap(userAnswers: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                        (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = call2
   }
 

@@ -22,7 +22,7 @@ import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeI
 import controllers.base.ControllerSpecBase
 import data.SampleData.{dummyCall, emptyChargesTable, psaId, schemeDetails, schemeName}
 import matchers.JsonMatchers
-import models.SchemeDetails
+import models.{SchemeDetails, SchemeReferenceNumber}
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
@@ -46,7 +46,7 @@ import scala.concurrent.Future
 
 class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
 
-  private def httpPathGET(srn: String): String = {
+  private def httpPathGET(srn: SchemeReferenceNumber): String = {
     routes.AFTOverviewController.onPageLoad(srn).url
   }
 
@@ -92,7 +92,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
 
     "must return OK and the correct view for a GET" in {
 
-      val srn = "test-srn"
+      val srn = SchemeReferenceNumber("test-srn")
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val aftOverviewTemplate = "aftOverview.njk"
 
@@ -117,7 +117,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
 
-      val srn: String = "S2012345678"
+      val srn: SchemeReferenceNumber = SchemeReferenceNumber("S2012345678")
 
       val result = route(application, httpGETRequest(httpPathGET(srn))).value
 
@@ -129,7 +129,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
 }
 
 object AFTOverviewControllerSpec {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
 
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(

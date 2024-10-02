@@ -17,7 +17,7 @@
 package controllers.actions
 
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import models.{AccessMode, AccessType, SessionAccessData, SessionData, UserAnswers}
+import models.{AccessMode, AccessType, SchemeReferenceNumber, SessionAccessData, SessionData, UserAnswers}
 import pages.Page
 
 import java.time.LocalDate
@@ -47,7 +47,7 @@ class MutableFakeDataSetupAction extends DataSetupAction {
     )
   }
 
-  override def apply(srn: String, startDate: LocalDate, version: Int, accessType: AccessType, optionPage: Option[Page]): DataSetup =
+  override def apply(srn: SchemeReferenceNumber, startDate: LocalDate, version: Int, accessType: AccessType, optionPage: Option[Page]): DataSetup =
     new MutableFakeDataSetup(storedSessionData, dataToReturn)
 }
 

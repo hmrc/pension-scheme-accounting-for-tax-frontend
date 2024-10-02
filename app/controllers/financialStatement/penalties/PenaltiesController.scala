@@ -22,7 +22,7 @@ import models.LocalDateBinder._
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
-import models.{PenaltiesFilter, Quarters}
+import models.{PenaltiesFilter, Quarters, SchemeReferenceNumber}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -60,7 +60,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
 
         val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
         val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
-          schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
+          schemeService.retrieveSchemeDetails(request.idOrException, SchemeReferenceNumber(identifier), "srn") map { schemeDetails =>
 
             val filteredPsaFS: Seq[PsaFSDetail] = penaltiesCache.penalties
               .filter(_.pstr == schemeDetails.pstr)
@@ -115,7 +115,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
       val title: Message = Message("penalties.nonAft.title", Message(s"penaltyType.${penaltyType.toString}"), year.toString)
       val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
       val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
-        schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
+        schemeService.retrieveSchemeDetails(request.idOrException, SchemeReferenceNumber(identifier), "srn") map { schemeDetails =>
 
           val filteredPsaFS: Seq[PsaFSDetail] = penaltiesCache.penalties
             .filter(_.pstr == schemeDetails.pstr)

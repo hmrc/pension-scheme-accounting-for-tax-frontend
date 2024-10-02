@@ -22,6 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
+import models.SchemeReferenceNumber
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
@@ -109,7 +110,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 }
 
 object PaymentsAndChargesControllerSpec {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(
       index = 0,

@@ -18,7 +18,7 @@ package controllers.actions
 
 import data.SampleData._
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import models.{SessionData, UserAnswers}
+import models.{SchemeReferenceNumber, SessionData, UserAnswers}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
@@ -26,7 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class FakeDataRetrievalAction(json: Option[UserAnswers],
                               sessionData: SessionData = FakeDataRetrievalAction.defaultSessionData
                              ) extends DataRetrievalAction {
-  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new FakeDataRetrieval(json, Some(sessionData))
+  override def apply(srn: SchemeReferenceNumber, startDate: LocalDate): DataRetrieval = new FakeDataRetrieval(json, Some(sessionData))
 }
 
 object FakeDataRetrievalAction {

@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.CreditAccessType
+import models.{CreditAccessType, SchemeReferenceNumber}
 import play.api.http.Status._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class FinancialInfoCreditAccessConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
-  def creditAccessForSchemePsa(psaId: String, srn: String)
+  def creditAccessForSchemePsa(psaId: String, srn: SchemeReferenceNumber)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CreditAccessType]] = {
 
     val url = config.financialInfoCreditAccessSchemePsaUrl(psaId, srn)
@@ -44,7 +44,7 @@ class FinancialInfoCreditAccessConnector @Inject()(http: HttpClient, config: Fro
     }
   }
 
-  def creditAccessForSchemePsp(pspId: String, srn: String)
+  def creditAccessForSchemePsp(pspId: String, srn: SchemeReferenceNumber)
                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[CreditAccessType]] = {
 
     val url = config.financialInfoCreditAccessSchemePspUrl(pspId, srn)

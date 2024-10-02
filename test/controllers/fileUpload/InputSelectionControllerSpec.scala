@@ -25,7 +25,7 @@ import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
 import models.fileUpload.InputSelection.FileUploadInput
-import models.{AccessType, ChargeType, GenericViewModel, UserAnswers}
+import models.{AccessType, ChargeType, GenericViewModel, SchemeReferenceNumber, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -156,7 +156,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSuppo
     }
   }
 
-  private def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType) = GenericViewModel(
+  private def viewModel(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType) = GenericViewModel(
     submitUrl = controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, version, chargeType).url,
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
     schemeName = schemeName

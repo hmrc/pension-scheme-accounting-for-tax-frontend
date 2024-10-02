@@ -19,6 +19,7 @@ package controllers.testonly
 import com.google.inject.{Inject, Singleton}
 import connectors.cache.UserAnswersCacheConnector
 import forms.mappings.Mappings
+import models.SchemeReferenceNumber
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, MessagesApi}

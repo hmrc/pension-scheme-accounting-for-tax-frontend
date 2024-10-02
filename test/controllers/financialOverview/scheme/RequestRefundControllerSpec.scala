@@ -23,6 +23,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.CreditAccessType.{AccessedByLoggedInPsaOrPsp, AccessedByOtherPsa, AccessedByOtherPsp}
+import models.SchemeReferenceNumber
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -159,7 +160,7 @@ class RequestRefundControllerSpec extends ControllerSpecBase with NunjucksSuppor
 }
 
 object RequestRefundControllerSpec {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val dummyURL = "/DUMMY"
 }
 

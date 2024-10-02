@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, StartYears, Year}
+import models.{GenericViewModel, SchemeReferenceNumber, StartYears, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -49,7 +49,7 @@ class YearsController @Inject()(
 
   private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()(StartYears.enumerable)
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,
@@ -67,7 +67,7 @@ class YearsController @Inject()(
     }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onSubmit(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     form(config)
       .bindFromRequest()
       .fold(
@@ -90,7 +90,7 @@ class YearsController @Inject()(
       )
   }
 
-  private def viewModel(schemeName: String, srn: String)(implicit request: IdentifierRequest[_]): GenericViewModel = {
+  private def viewModel(schemeName: String, srn: SchemeReferenceNumber)(implicit request: IdentifierRequest[_]): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.YearsController.onSubmit(srn).url,
       returnUrl = config.schemeDashboardUrl(request).format(srn),

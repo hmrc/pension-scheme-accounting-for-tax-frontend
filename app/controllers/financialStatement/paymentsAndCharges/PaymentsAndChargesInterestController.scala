@@ -19,7 +19,7 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
-import models.ChargeDetailsFilter
+import models.{ChargeDetailsFilter, SchemeReferenceNumber}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
@@ -56,7 +56,7 @@ class PaymentsAndChargesInterestController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesInterestController])
 
-  def onPageLoad(srn: String, period: String, index: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, period: String, index: String, paymentOrChargeType: PaymentOrChargeType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
@@ -79,7 +79,7 @@ class PaymentsAndChargesInterestController @Inject()(
                          period: String,
                          index: String,
                          schemeName: String,
-                         srn: String,
+                         srn: SchemeReferenceNumber,
                          paymentOrChargeType: PaymentOrChargeType,
                          journeyType: ChargeDetailsFilter
                        )(
@@ -112,7 +112,7 @@ class PaymentsAndChargesInterestController @Inject()(
 
   }
 
-  def summaryListData(srn: String, schemeFSDetail: SchemeFSDetail, schemeName: String,
+  def summaryListData(srn: SchemeReferenceNumber, schemeFSDetail: SchemeFSDetail, schemeName: String,
                       psaId: Option[PsaId], pspId: Option[PspId], originalAmountUrl: String)
                      (implicit messages: Messages): JsObject =
         Json.obj(

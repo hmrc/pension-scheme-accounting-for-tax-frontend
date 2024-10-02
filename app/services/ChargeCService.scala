@@ -23,7 +23,7 @@ import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.viewModels.ViewAmendmentDetails
-import models.{AccessType, Employer, UserAnswers}
+import models.{AccessType, Employer, SchemeReferenceNumber, UserAnswers}
 import pages.chargeC._
 import play.api.i18n.Messages
 import play.api.libs.json.JsArray
@@ -71,7 +71,7 @@ class ChargeCService {
     }.flatten
   }
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
+  def viewUrl(index: Int, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Call =
     controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
   def mapToTable(members: Seq[Employer], canChange: Boolean)

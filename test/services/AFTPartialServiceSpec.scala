@@ -530,7 +530,7 @@ object AFTPartialServiceSpec {
     LocalDate.parse(startDate, dateFormatterYMD).format(DateTimeFormatter.ofPattern("d MMMM"))
   private val formattedEndDate: String =
     LocalDate.parse(endDate, dateFormatterYMD).format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
-  private val srn = "srn"
+  private val srn = SchemeReferenceNumber("srn")
   private val pstr = "pstr"
   private val psaId = "A0000000"
   private val name = "test-name"

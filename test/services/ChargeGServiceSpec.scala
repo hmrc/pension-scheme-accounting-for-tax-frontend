@@ -25,7 +25,7 @@ import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
 import models.chargeG.MemberDetails
 import models.viewModels.ViewAmendmentDetails
-import models.{AmendedChargeStatus, Member, UserAnswers}
+import models.{AmendedChargeStatus, Member, SchemeReferenceNumber, UserAnswers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
@@ -35,7 +35,7 @@ import java.time.LocalDate
 
 class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  val srn = "S1234567"
+  val srn = SchemeReferenceNumber("S1234567")
   val startDate: LocalDate = QUARTER_START_DATE
 
   val allMembers: UserAnswers = UserAnswers()

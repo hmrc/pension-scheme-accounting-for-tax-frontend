@@ -19,7 +19,7 @@ package controllers.financialOverview.scheme
 import config.FrontendAppConfig
 import controllers.actions._
 import helpers.FormatHelper
-import models.ChargeDetailsFilter
+import models.{ChargeDetailsFilter, SchemeReferenceNumber}
 import models.ChargeDetailsFilter.Upcoming
 import models.financialStatement.SchemeFSDetail
 import play.api.Logger
@@ -49,7 +49,7 @@ class PaymentsAndChargesController @Inject()(
     with I18nSupport
     with NunjucksSupport {
   private val logger = Logger(classOf[PaymentsAndChargesController])
-  def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
         val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(paymentsCache.schemeFSDetail)

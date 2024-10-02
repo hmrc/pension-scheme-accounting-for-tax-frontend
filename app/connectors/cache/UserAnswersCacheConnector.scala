@@ -18,7 +18,7 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{ChargeType, SessionAccessData, LockDetail, SessionData}
+import models.{ChargeType, LockDetail, SchemeReferenceNumber, SessionAccessData, SessionData}
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.mvc.Result
@@ -151,7 +151,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
       }
   }
 
-  override def lockDetail(srn: String, startDate: String)
+  override def lockDetail(srn: SchemeReferenceNumber, startDate: String)
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[LockDetail]] = {
 
     val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("id", srn + startDate))
@@ -202,7 +202,7 @@ trait UserAnswersCacheConnector {
   def getSessionData(id: String)
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[SessionData]]
 
-  def lockDetail(srn: String, startDate: String)
+  def lockDetail(srn: SchemeReferenceNumber, startDate: String)
                 (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]]
 
   def saveAndLock(id: String, value: JsValue, sessionAccessData: SessionAccessData, lockReturn: Boolean = false)

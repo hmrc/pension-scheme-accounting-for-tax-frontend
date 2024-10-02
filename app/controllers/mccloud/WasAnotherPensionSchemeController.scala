@@ -21,7 +21,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, Mode, UserAnswers}
+import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, Mode, SchemeReferenceNumber, UserAnswers}
 import navigators.CompoundNavigator
 import pages.IsPublicServicePensionsRemedyPage
 import pages.mccloud.{IsChargeInAdditionReportedPage, SchemePathHelper, WasAnotherPensionSchemePage}
@@ -56,7 +56,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
-                 srn: String,
+                 srn: SchemeReferenceNumber,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
@@ -91,7 +91,7 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
     }
 
   def onSubmit(chargeType: ChargeType,
-               mode: Mode, srn: String, startDate: LocalDate,
+               mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate,
                accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen  allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>

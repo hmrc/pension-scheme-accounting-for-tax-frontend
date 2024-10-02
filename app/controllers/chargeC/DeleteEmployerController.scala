@@ -26,7 +26,7 @@ import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{AccessType, GenericViewModel, Index, NormalMode, SchemeReferenceNumber, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC._
 import play.api.data.Form
@@ -64,7 +64,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteEmployer.chargeC.error.required", memberName))
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, employerName, employerType) =>
         val viewModel = GenericViewModel(
@@ -87,7 +87,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, employerName, employerType) =>
         form(employerName)
@@ -131,7 +131,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
           )
       }
     }
-  private def removeCharge(index: Int, srn: String, startDate: String, accessType: AccessType, version: Int)
+  private def removeCharge(index: Int, srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int)
                           (implicit request: DataRequest[AnyContent]): Try[UserAnswers] = {
     val ua = request.userAnswers
     (ua.get(WhichTypeOfSponsoringEmployerPage(index)),

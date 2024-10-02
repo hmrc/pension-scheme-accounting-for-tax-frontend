@@ -21,7 +21,7 @@ import controllers.chargeC.routes._
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import models.LocalDateBinder._
-import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
+import models.{CheckMode, NormalMode, SchemeReferenceNumber, SponsoringEmployerType, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeC._
 import pages.{Page, chargeA, chargeB}
@@ -103,7 +103,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
 
 object ChargeCNavigatorSpec {
 
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val startDate = QUARTER_START_DATE
 
   private val addEmployersYes = UserAnswers().set(AddEmployersPage, true).toOption

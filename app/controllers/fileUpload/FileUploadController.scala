@@ -23,7 +23,7 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, FileUploadDataCache, GenericViewModel, UploadId}
+import models.{AccessType, ChargeType, FileUploadDataCache, GenericViewModel, SchemeReferenceNumber, UploadId}
 import pages.fileUpload.UploadedFileName
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.Logger
@@ -55,7 +55,7 @@ class FileUploadController @Inject()(
     with I18nSupport {
   private val logger = Logger(classOf[FileUploadController])
 
-  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       val uploadId = UploadId.generate
@@ -88,7 +88,7 @@ class FileUploadController @Inject()(
       }
     }
 
-  def showResult(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
+  def showResult(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         uploadProgressTracker

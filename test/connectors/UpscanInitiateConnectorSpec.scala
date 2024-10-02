@@ -22,7 +22,7 @@ import config.FrontendAppConfig
 import data.SampleData
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.requests.DataRequest
-import models.{AdministratorOrPractitioner, Draft, UploadId, UserAnswers}
+import models.{AdministratorOrPractitioner, Draft, SchemeReferenceNumber, UploadId, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify}
@@ -66,10 +66,10 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
   )
 
   ".initiateV2" must {
-    val successRedirectUrl = appConfig.successEndpointTarget("srn", startDate, Draft, 1, ChargeTypeAnnualAllowance, uploadId)
+    val successRedirectUrl = appConfig.successEndpointTarget(SchemeReferenceNumber("srn"), startDate, Draft, 1, ChargeTypeAnnualAllowance, uploadId)
 
     val errorRedirectUrl = appConfig
-      .failureEndpointTarget("srn", startDate, Draft, 1, ChargeTypeAnnualAllowance)
+      .failureEndpointTarget(SchemeReferenceNumber("srn"), startDate, Draft, 1, ChargeTypeAnnualAllowance)
 
     val response1 =
       s"""{

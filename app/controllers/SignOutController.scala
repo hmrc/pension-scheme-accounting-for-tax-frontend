@@ -19,6 +19,7 @@ package controllers
 import config.FrontendAppConfig
 import connectors.cache.{SessionDataCacheConnector, UserAnswersCacheConnector}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
+import models.SchemeReferenceNumber
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, BodyParsers, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -38,7 +39,7 @@ class SignOutController @Inject()(
   extends FrontendBaseController
     with I18nSupport{
 
-  def signOut(srn: Option[String], startDate: Option[String]): Action[AnyContent] = (identify andThen allowAccess(srn)).async {
+  def signOut(srn: Option[String], startDate: Option[String]): Action[AnyContent] = (identify andThen allowAccess(srn.map(SchemeReferenceNumber(_)))).async {
     implicit request =>
 
       sessionDataCacheConnector.removeAll(request.externalId).flatMap{ _ =>

@@ -30,7 +30,7 @@ import models.LocalDateBinder._
 import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, FileUploadDataCache, UploadId, UserAnswers}
+import models.{AccessType, ChargeType, FileUploadDataCache, SchemeReferenceNumber, UploadId, UserAnswers}
 import org.apache.commons.lang3.StringUtils.EMPTY
 import pages.{IsPublicServicePensionsRemedyPage, PSTRQuery}
 import play.api.Logger
@@ -116,7 +116,7 @@ class ValidationController @Inject()(
     }
 
   private def parseAndGetResult(
-                                 srn: String,
+                                 srn: SchemeReferenceNumber,
                                  startDate: LocalDate,
                                  chargeType: ChargeType,
                                  csvContent: Seq[Array[String]],
@@ -231,7 +231,7 @@ class ValidationController @Inject()(
   }
 
   private def downloadAndProcess(
-                                  srn: String,
+                                  srn: SchemeReferenceNumber,
                                   startDate: LocalDate,
                                   accessType: AccessType,
                                   version: Int,
@@ -276,7 +276,7 @@ class ValidationController @Inject()(
     }
   }
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         val psr = chargeType match {

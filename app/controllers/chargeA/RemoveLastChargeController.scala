@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions._
 import models.LocalDateBinder._
-import models.{AccessType, CheckMode, GenericViewModel}
+import models.{AccessType, CheckMode, GenericViewModel, SchemeReferenceNumber}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -44,7 +44,7 @@ class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>

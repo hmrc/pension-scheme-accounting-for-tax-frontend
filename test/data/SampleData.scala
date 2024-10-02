@@ -43,7 +43,7 @@ object SampleData {
   val userAnswersId = "id"
   val psaId = "A0000000"
   val pspId = "20000000"
-  val srn = "aa"
+  val srn = SchemeReferenceNumber("aa")
   val submittedDate = "2016-12-17"
   val startDate = QUARTER_START_DATE
   val accessType = Draft

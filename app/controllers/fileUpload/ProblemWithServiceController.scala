@@ -17,7 +17,7 @@
 package controllers.fileUpload
 
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.AccessType
+import models.{AccessType, SchemeReferenceNumber}
 import models.LocalDateBinder._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -40,7 +40,7 @@ class ProblemWithServiceController @Inject()(override val messagesApi: MessagesA
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         renderer.render(template = "fileUpload/problemWithService.njk",

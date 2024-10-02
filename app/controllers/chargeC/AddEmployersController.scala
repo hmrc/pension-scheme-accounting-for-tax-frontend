@@ -23,7 +23,7 @@ import handlers.ErrorHandler
 import helpers.{DeleteChargeHelper, FormatHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, ChargeType, Employer, GenericViewModel, NormalMode, UserAnswers}
+import models.{AFTQuarter, AccessType, ChargeType, Employer, GenericViewModel, NormalMode, SchemeReferenceNumber, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC.AddEmployersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
@@ -63,7 +63,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
 
   def form: Form[Boolean] = formProvider("chargeC.addEmployers.error")
 
-  private def renderPage(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int)(implicit
+  private def renderPage(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int)(implicit
     request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(quarter)) =>
@@ -75,13 +75,13 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
     }
   }
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       renderPage(srn, startDate, accessType, version, pageNumber = 1)
     }
 
-  def onPageLoadWithPageNo(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
+  def onPageLoadWithPageNo(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       renderPage(srn, startDate, accessType, version, pageNumber)
@@ -89,7 +89,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
 
   private def futureSessionExpired:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, pageNumber: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       form
@@ -114,7 +114,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
   }
 
   // scalastyle:off parameter.number
-  private def getJson(srn: String,
+  private def getJson(srn: SchemeReferenceNumber,
     startDate: LocalDate,
     form: Form[_],
     schemeName: String,
@@ -200,10 +200,10 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
         s"<span class= $hiddenTag>${messages(text)} ${messages(s"chargeC.addEmployers.visuallyHidden", name)}</span> </a>")
   }
 
-  private def viewUrl(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Int => Call =
+  private def viewUrl(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Int => Call =
     controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, _)
 
-  private def removeUrl(srn: String, startDate: LocalDate, ua: UserAnswers,
+  private def removeUrl(srn: SchemeReferenceNumber, startDate: LocalDate, ua: UserAnswers,
     accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int => Call =
     if (request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
       controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, _)

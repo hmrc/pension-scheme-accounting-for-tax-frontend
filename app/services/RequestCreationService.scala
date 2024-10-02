@@ -22,7 +22,7 @@ import connectors.{AFTConnector, MinimalConnector}
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import models.{AFTOverviewOnPODS, AccessMode, AccessType, Draft, MinimalFlags, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
+import models.{AFTOverviewOnPODS, AccessMode, AccessType, Draft, MinimalFlags, Quarters, SchemeDetails, SchemeReferenceNumber, SessionAccessData, UserAnswers}
 import pages._
 import play.api.Logger
 import play.api.libs.json._
@@ -43,7 +43,7 @@ class RequestCreationService @Inject()(
   private val logger = Logger(classOf[RequestCreationService])
 
   def retrieveAndCreateRequest[A](
-                                   srn: String,
+                                   srn: SchemeReferenceNumber,
                                    startDate: LocalDate,
                                    version: Int,
                                    accessType: AccessType,
@@ -70,7 +70,7 @@ class RequestCreationService @Inject()(
   }
 
   private def retrieveAFTRequiredDetails[A](
-                                             srn: String,
+                                             srn: SchemeReferenceNumber,
                                              startDate: LocalDate,
                                              version: Int,
                                              accessType: AccessType,
@@ -106,7 +106,7 @@ class RequestCreationService @Inject()(
   private def createSessionAccessData[A](
                                           versionInt: Int,
                                           seqAFTOverview: Seq[AFTOverviewOnPODS],
-                                          srn: String,
+                                          srn: SchemeReferenceNumber,
                                           startDate: LocalDate
                                         )(
                                           implicit hc: HeaderCarrier,

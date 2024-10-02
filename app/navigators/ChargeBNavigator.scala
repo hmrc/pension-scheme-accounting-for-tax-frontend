@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, NormalMode, UserAnswers}
+import models.{AccessType, NormalMode, SchemeReferenceNumber, UserAnswers}
 import pages.Page
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, DeleteChargePage, WhatYouWillNeedPage}
 import play.api.mvc.{AnyContent, Call}
@@ -31,7 +31,7 @@ import java.time.LocalDate
 class ChargeBNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig) extends Navigator {
 
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  override protected def routeMap(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage  => controllers.chargeB.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version)
     case ChargeBDetailsPage   => controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)
@@ -42,7 +42,7 @@ class ChargeBNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  override protected def editRouteMap(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                      (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case ChargeBDetailsPage => controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)
   }

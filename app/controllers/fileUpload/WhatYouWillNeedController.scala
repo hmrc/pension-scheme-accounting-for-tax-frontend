@@ -18,7 +18,7 @@ package controllers.fileUpload
 
 import controllers.actions._
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.fileUpload.WhatYouWillNeedPage
@@ -44,7 +44,7 @@ class WhatYouWillNeedController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
       val isPsr =  request.userAnswers.isPublicServicePensionsRemedy(chargeType)

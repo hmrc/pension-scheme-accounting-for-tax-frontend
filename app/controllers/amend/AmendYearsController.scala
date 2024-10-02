@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.amend.AmendYearsFormProvider
 import models.requests.IdentifierRequest
-import models.{AmendYears, GenericViewModel, Year}
+import models.{AmendYears, GenericViewModel, SchemeReferenceNumber, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -49,10 +49,10 @@ class AmendYearsController @Inject()(
     with NunjucksSupport {
 
   private def amendQuartersPage(srn:String, year:Int):Future[Result] =
-    Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year.toString)))
+    Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(SchemeReferenceNumber(srn), year.toString)))
   private def futureSessionExpiredPage:Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,
@@ -79,7 +79,7 @@ class AmendYearsController @Inject()(
 
   private def form(years: Seq[Int]): Form[Year] = formProvider(years)
 
-  private def viewModel(schemeName: String, srn: String)(implicit request: IdentifierRequest[_]): GenericViewModel = {
+  private def viewModel(schemeName: String, srn: SchemeReferenceNumber)(implicit request: IdentifierRequest[_]): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.AmendYearsController.onSubmit(srn).url,
       returnUrl = config.schemeDashboardUrl(request).format(srn),
@@ -87,7 +87,7 @@ class AmendYearsController @Inject()(
     )
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onSubmit(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,

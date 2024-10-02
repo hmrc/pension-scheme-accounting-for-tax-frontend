@@ -23,7 +23,7 @@ import helpers.ChargeTypeHelper
 import models.LocalDateBinder._
 import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, SessionExpired, Success, UpscanInvalidHeaderOrBody, UpscanUnknownError, ValidationErrorsLessThanMax, ValidationErrorsMoreThanOrEqualToMax}
-import models.{AccessType, ChargeType, NormalMode}
+import models.{AccessType, ChargeType, NormalMode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -49,7 +49,7 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] = {
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] = {
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         def headerContentAndRedirect(optionOutcome: Option[FileUploadOutcome]): (String, String, String) = {

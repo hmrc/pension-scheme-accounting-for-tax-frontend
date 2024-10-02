@@ -21,7 +21,7 @@ import controllers.chargeG.routes._
 import data.SampleData
 import data.SampleData.{accessType, versionInt}
 import models.LocalDateBinder._
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.{CheckMode, NormalMode, SchemeReferenceNumber, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeG._
 import pages.{Page, chargeA, chargeB}
@@ -68,7 +68,7 @@ class ChargeGNavigatorSpec extends NavigatorBehaviour {
 }
 
 object ChargeGNavigatorSpec {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val startDate = QUARTER_START_DATE
   private val index = 0
   private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption

@@ -22,7 +22,7 @@ import controllers.actions._
 import forms.YearRangeFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, YearRange, YearRangeMcCloud}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, SchemeReferenceNumber, YearRange, YearRangeMcCloud}
 import navigators.CompoundNavigator
 import pages.mccloud.TaxYearReportedAndPaidPage
 import play.api.data.Form
@@ -59,7 +59,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
-                 srn: String,
+                 srn: SchemeReferenceNumber,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
@@ -100,7 +100,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
-               srn: String,
+               srn: SchemeReferenceNumber,
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,

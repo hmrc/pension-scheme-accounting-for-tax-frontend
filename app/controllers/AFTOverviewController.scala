@@ -24,7 +24,7 @@ import models.AFTQuarter.{formatForDisplayOneYear, monthDayStringFormat}
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, EventReportingCharges, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, DisplayQuarter, SchemeDetails}
+import models.{AFTQuarter, DisplayQuarter, SchemeDetails, SchemeReferenceNumber}
 import play.api.i18n.Lang.logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{Json, OWrites}
@@ -52,7 +52,7 @@ class AFTOverviewController @Inject()(
                                      )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
+  def onPageLoad(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
       (for {
         outstandingAmount <- getOutstandingPaymentAmount(srn, AccountingForTaxCharges)
@@ -82,7 +82,7 @@ class AFTOverviewController @Inject()(
       }
   }
 
-  private def getOutstandingPaymentAmount(srn: String, chargeTypeVal: PaymentOrChargeType)(implicit messages: Messages, request: IdentifierRequest[AnyContent]): Future[String] = {
+  private def getOutstandingPaymentAmount(srn: SchemeReferenceNumber, chargeTypeVal: PaymentOrChargeType)(implicit messages: Messages, request: IdentifierRequest[AnyContent]): Future[String] = {
     paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyTypeAll).map { paymentsCache =>
       val filteredPayments: Seq[SchemeFSDetail] = paymentsCache.schemeFSDetail.filter(p => getPaymentOrChargeType(p.chargeType) == chargeTypeVal)
       val totalDueCharges: BigDecimal = paymentsAndChargesService.getDueCharges(filteredPayments).map(_.amountDue).sum
@@ -95,7 +95,7 @@ class AFTOverviewController @Inject()(
     }
   }
 
-  def getEROutstandingPaymentAmount(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
+  def getEROutstandingPaymentAmount(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
       getOutstandingPaymentAmount(srn, EventReportingCharges).map {
         data => Ok(Html(data))
@@ -115,16 +115,16 @@ object AFTOverviewController {
   private val displayYears: Seq[Int] => Seq[Int] = seq => seq.sorted.reverse.take(maxPastYearsToDisplay)
 
   private val linkForQuarter: (String, AFTQuarter) => String = (srn, aftQuarter) =>
-    controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, aftQuarter.startDate.toString).url
+    controllers.amend.routes.ReturnHistoryController.onPageLoad(SchemeReferenceNumber(srn), aftQuarter.startDate.toString).url
 
   private val textAndLinkForQuarter: (AFTQuarter => String, DisplayQuarter, String) => (String, String) = (formatQuarter, displayQuarter, srn) =>
     (formatQuarter(displayQuarter.quarter), linkForQuarter(srn, displayQuarter.quarter))
 
   private val linkForOutstandingAmount: (String, String) => String = (srn, outstandingAmount) =>
     if (outstandingAmount == nothingOutstanding) {
-      controllers.financialOverview.scheme.routes.SchemeFinancialOverviewController.schemeFinancialOverview(srn).url
+      controllers.financialOverview.scheme.routes.SchemeFinancialOverviewController.schemeFinancialOverview(SchemeReferenceNumber(srn)).url
     } else {
-      controllers.financialOverview.scheme.routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges).url
+      controllers.financialOverview.scheme.routes.SelectYearController.onPageLoad(SchemeReferenceNumber(srn), AccountingForTaxCharges).url
     }
 
 

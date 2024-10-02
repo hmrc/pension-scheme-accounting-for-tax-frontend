@@ -24,7 +24,7 @@ import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.SchemeStatus.{Open, Rejected, WoundUp}
 import models.requests.{DataRequest, IdentifierRequest}
-import models.{AccessMode, LockDetail, MinimalFlags, SessionAccessData, SessionData, UserAnswers}
+import models.{AccessMode, LockDetail, MinimalFlags, SchemeReferenceNumber, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -78,8 +78,8 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     DataRequest(request, "", None, Some(PspId(pspId)), ua, sessionData(sessionAccessDataViewOnly))
   }
 
-  class TestHarness(srn: String = srn, page: Option[Page] = None)(implicit ec: ExecutionContext)
-    extends AllowAccessAction(srn, QUARTER_START_DATE, page, versionInt, accessType, aftConnector, errorHandler,
+  class TestHarness(srn: SchemeReferenceNumber = SchemeReferenceNumber(srn), page: Option[Page] = None)(implicit ec: ExecutionContext)
+    extends AllowAccessAction(SchemeReferenceNumber(srn), QUARTER_START_DATE, page, versionInt, accessType, aftConnector, errorHandler,
       frontendAppConfig, pensionsSchemeConnector)(ec) {
     def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
   }
@@ -90,7 +90,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       mockMinimalConnector,
       mockSchemeDetailsConnector,
       errorHandler,
-      srn)(ec) {
+      srn.map(SchemeReferenceNumber(_)))(ec) {
     def test(identifierRequest: IdentifierRequest[_]): Future[Option[Result]] = this.filter(identifierRequest)
   }
 
@@ -127,7 +127,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
       val expectedResult: Result =
-        Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt))
+        Redirect(controllers.routes.AFTSummaryController.onPageLoad(SchemeReferenceNumber(srn), QUARTER_START_DATE, accessType, versionInt))
 
       when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(true))
@@ -151,7 +151,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val testHarness = new TestHarness(srn)
+      val testHarness = new TestHarness(SchemeReferenceNumber(srn))
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(errorResult)
@@ -170,7 +170,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val testHarness = new TestHarness(srn)
+      val testHarness = new TestHarness(SchemeReferenceNumber(srn))
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(errorResult)
@@ -185,7 +185,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(true))
 
-      val expectedResult = Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt))
+      val expectedResult = Redirect(controllers.routes.AFTSummaryController.onPageLoad(SchemeReferenceNumber(srn), QUARTER_START_DATE, accessType, versionInt))
 
       val testHarness = new TestHarness(page = Some(ChargeTypePage))
 
@@ -201,7 +201,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad)
 
-      val testHarness = new TestHarness(srn)
+      val testHarness = new TestHarness(SchemeReferenceNumber(srn))
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
@@ -216,7 +216,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad)
 
-      val testHarness = new TestHarness(srn)
+      val testHarness = new TestHarness(SchemeReferenceNumber(srn))
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
@@ -228,7 +228,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
         .setOrException(SchemeStatusQuery, Open)
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = true, rlsFlag = false))
 
-      val testHarness = new TestHarness(srn)
+      val testHarness = new TestHarness(SchemeReferenceNumber(srn))
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(Redirect(Call("GET", frontendAppConfig.youMustContactHMRCUrl)))
@@ -240,7 +240,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
         .setOrException(SchemeStatusQuery, Open)
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = true))
 
-      val testHarness = new TestHarness(srn)
+      val testHarness = new TestHarness(SchemeReferenceNumber(srn))
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(Redirect(Call("GET", frontendAppConfig.psaUpdateContactDetailsUrl)))
@@ -252,7 +252,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
         .setOrException(SchemeStatusQuery, Open)
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = true))
 
-      val testHarness = new TestHarness(srn)
+      val testHarness = new TestHarness(SchemeReferenceNumber(srn))
 
       whenReady(testHarness.test(dataRequestPsp(ua))) { result =>
         result mustBe Some(Redirect(Call("GET", frontendAppConfig.pspUpdateContactDetailsUrl)))
@@ -263,11 +263,11 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, Open)
 
-      val testHarness = new TestHarness(srn)
+      val testHarness = new TestHarness(SchemeReferenceNumber(srn))
 
       whenReady(testHarness.test(dataRequestPsp(ua))) { result =>
         result mustBe Some(Redirect(controllers.routes.ReturnToSchemeDetailsController
-          .returnToSchemeDetails(srn, startDate, accessType, version)))
+          .returnToSchemeDetails(SchemeReferenceNumber(srn), startDate, accessType, version)))
       }
     }
   }
@@ -327,10 +327,10 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     }
   }
 
-  "must return found if PSA is associated with SRN" in {
+  "must return found if PSA is associated with SchemeReferenceNumber(srn)" in {
     when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(true))
     when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(false))
-    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("SchemeReferenceNumber(srn)"))
 
     val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
 
@@ -342,10 +342,10 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     }
   }
 
-  "must return not found if PSA is not associated with SRN" in {
+  "must return not found if PSA is not associated with SchemeReferenceNumber(srn)" in {
     when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(false))
     when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(true))
-    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("SchemeReferenceNumber(srn)"))
 
     val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
     when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
@@ -359,7 +359,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
   "must return not found for PSA if scheme connector throws error" in {
     when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), any())(any(), any())).thenReturn(Future.failed(new RuntimeException()))
-    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("SchemeReferenceNumber(srn)"))
 
     val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
     when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
@@ -371,10 +371,10 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     }
   }
 
-  "must return found if PSP is associated with SRN" in {
+  "must return found if PSP is associated with SchemeReferenceNumber(srn)" in {
     when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(false))
     when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(true))
-    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("SchemeReferenceNumber(srn)"))
 
     val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
 
@@ -386,10 +386,10 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     }
   }
 
-  "must return not found if PSP is not associated with SRN" in {
+  "must return not found if PSP is not associated with SchemeReferenceNumber(srn)" in {
     when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("psaId"))(any(), any())).thenReturn(Future.successful(true))
     when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), ArgumentMatchers.eq("pspId"))(any(), any())).thenReturn(Future.successful(false))
-    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("SchemeReferenceNumber(srn)"))
 
     val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
     when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))
@@ -403,7 +403,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
   "must return not found for PSP if scheme connector throws error" in {
     when(mockSchemeDetailsConnector.checkForAssociation(any(), any(), any())(any(), any())).thenReturn(Future.failed(new RuntimeException()))
-    val testHarness = new TestHarnessForIdentifierRequest(Some("srn"))
+    val testHarness = new TestHarnessForIdentifierRequest(Some("SchemeReferenceNumber(srn)"))
 
     val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
     when(errorHandler.onClientError(any(), ArgumentMatchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResultNotFound))

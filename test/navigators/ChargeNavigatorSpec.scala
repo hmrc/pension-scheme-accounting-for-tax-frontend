@@ -23,7 +23,7 @@ import data.SampleData
 import data.SampleData._
 import models.ChargeType._
 import models.LocalDateBinder._
-import models.{AFTQuarter, AccessMode, ChargeType, NormalMode, UserAnswers}
+import models.{AFTQuarter, AccessMode, ChargeType, NormalMode, SchemeReferenceNumber, UserAnswers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.prop.{TableFor3, TableFor5}
 import org.scalatestplus.mockito.MockitoSugar
@@ -51,7 +51,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
     super.beforeEach()
   }
 
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val startDate = QUARTER_START_DATE
 
   private def optUA(ct: ChargeType): Option[UserAnswers] = SampleData.userAnswersWithSchemeNamePstrQuarter.set(ChargeTypePage, ct).toOption
@@ -167,7 +167,7 @@ class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar w
     super.beforeEach()
   }
 
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val startDate = QUARTER_START_DATE
 
 

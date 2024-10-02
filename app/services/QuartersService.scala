@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
-import models.{AFTQuarter, CommonQuarters, DisplayQuarter, InProgressHint, LockedHint, Quarters, SubmittedHint}
+import models.{AFTQuarter, CommonQuarters, DisplayQuarter, InProgressHint, LockedHint, Quarters, SchemeReferenceNumber, SubmittedHint}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -63,7 +63,7 @@ class QuartersService @Inject()(
     )
   }
 
-  def getInProgressQuarters(srn: String, pstr: String)
+  def getInProgressQuarters(srn: SchemeReferenceNumber, pstr: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
     aftConnector.getAftOverview(pstr).flatMap { aftOverview =>
       if (aftOverview.nonEmpty) {
@@ -110,7 +110,7 @@ class QuartersService @Inject()(
     }
   }
 
-  def getStartQuarters(srn: String, pstr: String, year: Int)
+  def getStartQuarters(srn: SchemeReferenceNumber, pstr: String, year: Int)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
     aftConnector.getAftOverview(pstr).flatMap { aftOverview =>
       if (aftOverview.nonEmpty) {

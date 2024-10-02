@@ -24,7 +24,7 @@ import helpers.{ChargeServiceHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.SponsoringEmployerType._
 import models.requests.DataRequest
-import models.{AccessType, CheckMode, NormalMode, UserAnswers}
+import models.{AccessType, CheckMode, NormalMode, SchemeReferenceNumber, UserAnswers}
 import pages.Page
 import pages.chargeC._
 import play.api.mvc.{AnyContent, Call}
@@ -41,7 +41,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   def nextIndex(ua: UserAnswers): Int =
     chargeCHelper.numberOfEmployersIncludingDeleted(ua)
 
-  def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  def addEmployers(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                   : Call = ua.get(AddEmployersPage) match {
     case Some(true) => WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, accessType, version,
       nextIndex(ua))
@@ -49,7 +49,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   //scalastyle:off cyclomatic.complexity
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  override protected def routeMap(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage =>
       WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, accessType, version,
@@ -96,7 +96,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   //scalastyle:on cyclomatic.complexity
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+  override protected def editRouteMap(ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                      (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeOrganisation) =>
       SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index)
@@ -117,7 +117,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
   }
 
-  private def editRoutesForSponsoringEmployerPages(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate,
+  private def editRoutesForSponsoringEmployerPages(index: Int, ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate,
                                                    accessType: AccessType, version: Int): Call = {
     ua.get(SponsoringEmployerAddressPage(index)) match {
       case Some(_) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
@@ -125,7 +125,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     }
   }
 
-  private def editRoutesForSponsoringEmployerAddress(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate,
+  private def editRoutesForSponsoringEmployerAddress(index: Int, ua: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate,
                                                      accessType: AccessType, version: Int): Call = {
     ua.get(ChargeCDetailsPage(index)) match {
       case Some(_) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)

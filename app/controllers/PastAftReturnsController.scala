@@ -21,7 +21,7 @@ import connectors.AFTConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.AFTQuarter.monthDayStringFormat
 import models.viewModels.PastAftReturnsViewModel
-import models.{AFTOverview, PastAftReturnGroup, Quarters, ReportLink}
+import models.{AFTOverview, PastAftReturnGroup, Quarters, ReportLink, SchemeReferenceNumber}
 import play.api.i18n.I18nSupport
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -46,7 +46,7 @@ class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
   with I18nSupport
   with NunjucksSupport {
 
-  def onPageLoad(srn: String, page: Int): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
+  def onPageLoad(srn: SchemeReferenceNumber, page: Int): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
       featureToggleConnector.getNewPensionsSchemeFeatureToggle("interim-dashboard").map(_.isEnabled).flatMap { toggleIsEnabled =>
         if (toggleIsEnabled) {
@@ -75,7 +75,7 @@ class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
   }
 
 
-  private def getGroupedReturns(srn: String, startDateRange: List[Int], aftOverview: Seq[AFTOverview]): List[PastAftReturnGroup] = {
+  private def getGroupedReturns(srn: SchemeReferenceNumber, startDateRange: List[Int], aftOverview: Seq[AFTOverview]): List[PastAftReturnGroup] = {
     val groupedReturns: List[PastAftReturnGroup] = startDateRange.map(startDate => {
       val returnsFromTaxYear = aftOverview.filter(aftReturn =>
         (aftReturn.periodStartDate.getYear - 1 == startDate &&
@@ -98,7 +98,7 @@ class PastAftReturnsController @Inject()(aftConnector: AFTConnector,
     groupedReturns.filter(pastReturn => pastReturn.reports.nonEmpty)
   }
 
-  private def getCtx(groupedReturns: List[PastAftReturnGroup], page: Int, schemeName: String, srn: String): JsObject = {
+  private def getCtx(groupedReturns: List[PastAftReturnGroup], page: Int, schemeName: String, srn: SchemeReferenceNumber): JsObject = {
     val (pageNo, viewModel) = if (groupedReturns.size > 4) {
       val splitReturns = groupedReturns.splitAt(4)
       val firstPageReturns = splitReturns._1

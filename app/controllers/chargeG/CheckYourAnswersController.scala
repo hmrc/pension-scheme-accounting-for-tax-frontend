@@ -20,21 +20,21 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{IdentifierAction, AllowAccessActionProvider, DataRetrievalAction, DataRequiredAction}
+import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeGHelper, ChargeServiceHelper}
 import models.LocalDateBinder._
-import models.{GenericViewModel, AccessType, NormalMode, ChargeType, Index}
+import models.{AccessType, ChargeType, GenericViewModel, Index, NormalMode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeG.{CheckYourAnswersPage, TotalChargeAmountPage}
-import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{SummaryList, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
@@ -55,7 +55,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       DataRetrievals.cyaChargeG(index, srn, startDate, accessType, version) { (chargeDetails, memberDetails, chargeAmounts, schemeName) =>
@@ -86,7 +86,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
     }
 
-  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onClick(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         val totalAmount = chargeServiceHelper.totalAmount(request.userAnswers, "chargeGDetails")

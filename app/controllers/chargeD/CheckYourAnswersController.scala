@@ -26,7 +26,7 @@ import helpers.{CYAChargeDHelper, ChargeServiceHelper}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
-import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, SchemeReferenceNumber, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
 import pages.mccloud.SchemePathHelper
@@ -58,7 +58,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       DataRetrievals.cyaChargeD(index, srn, startDate, accessType, version) { (memberDetails, chargeDetails, pensionsRemedySummary, schemeName) =>
@@ -118,7 +118,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       .getOrElse(0)
   }
 
-  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onClick(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage(index))) match {
         case (Some(pstr), Some(chargeDetails)) =>

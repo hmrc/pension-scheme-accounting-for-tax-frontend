@@ -20,7 +20,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.mccloud.AddAnotherPensionSchemePage
 import play.api.data.Form
@@ -51,7 +51,7 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
     with NunjucksSupport {
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
-                 srn: String,
+                 srn: SchemeReferenceNumber,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
@@ -91,7 +91,7 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
 
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
-               srn: String,
+               srn: SchemeReferenceNumber,
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,

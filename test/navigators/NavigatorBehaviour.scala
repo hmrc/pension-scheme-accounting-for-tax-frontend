@@ -18,7 +18,7 @@ package navigators
 
 import base.SpecBase
 import models.requests.DataRequest
-import models.{AccessMode, AccessType, Mode, SessionAccessData, UserAnswers}
+import models.{AccessMode, AccessType, Mode, SchemeReferenceNumber, SessionAccessData, UserAnswers}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.prop.{TableFor3, TableFor5}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -46,7 +46,7 @@ trait NavigatorBehaviour extends SpecBase with Matchers with ScalaCheckPropertyC
 
   protected def navigatorWithRoutesForMode(mode: Mode)(navigator: CompoundNavigator,
                                                        routes: TableFor3[Page, UserAnswers, Call],
-                                                       srn: String,
+                                                       srn: SchemeReferenceNumber,
                                                        startDate: LocalDate,
                                                        accessType: AccessType,
                                                        version: Int,
@@ -65,7 +65,7 @@ trait NavigatorBehaviour extends SpecBase with Matchers with ScalaCheckPropertyC
 
   protected def navigatorWithRoutesForModeDateAndVersion(mode: Mode)(navigator: CompoundNavigator,
                                                                      routes: TableFor5[Page, UserAnswers, Call, LocalDate, Int],
-                                                                     srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Unit = {
+                                                                     srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Unit = {
     forAll(routes) {
       (page: Page, userAnswers: UserAnswers, call: Call, currentDate: LocalDate, version: Int) =>
         s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString} and current date: $currentDate and version: $version" in {
@@ -79,7 +79,7 @@ trait NavigatorBehaviour extends SpecBase with Matchers with ScalaCheckPropertyC
   }
   protected def navigatorWithRoutesForModeAccessModeAndVersion(mode: Mode)(navigator: CompoundNavigator,
                                                                      routes: TableFor5[Page, UserAnswers, Call, AccessMode, Int],
-                                                                     srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Unit = {
+                                                                     srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Unit = {
     forAll(routes) {
       (page: Page, userAnswers: UserAnswers, call: Call, accessMode: AccessMode, version: Int) =>
         s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString} and AccessMode: $accessMode and version: $version" in {

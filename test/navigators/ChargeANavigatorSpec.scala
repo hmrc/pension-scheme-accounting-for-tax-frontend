@@ -19,7 +19,7 @@ package navigators
 import controllers.chargeA.routes.{ChargeDetailsController, CheckYourAnswersController}
 import data.SampleData.{accessType, versionInt}
 import models.LocalDateBinder._
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.{CheckMode, NormalMode, SchemeReferenceNumber, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
@@ -56,6 +56,6 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
 }
 
 object ChargeANavigatorSpec {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val startDate = QUARTER_START_DATE
 }

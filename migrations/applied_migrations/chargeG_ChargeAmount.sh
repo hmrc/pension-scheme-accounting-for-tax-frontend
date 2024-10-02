@@ -6,11 +6,11 @@ echo "Applying migration chargeG_ChargeAmount"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:srn/new-return/chargeG.ChargeAmount                        controllers.chargeG.ChargeAmountController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/chargeG.ChargeAmount                        controllers.chargeG.ChargeAmountController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/chargeG.ChargeAmount                        controllers.chargeG.ChargeAmountController.onPageLoad(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/chargeG.ChargeAmount                        controllers.chargeG.ChargeAmountController.onSubmit(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
-echo "GET        /:srn/new-return/changechargeG.ChargeAmount                  controllers.chargeG.ChargeAmountController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/changechargeG.ChargeAmount                  controllers.chargeG.ChargeAmountController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/changechargeG.ChargeAmount                  controllers.chargeG.ChargeAmountController.onPageLoad(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/changechargeG.ChargeAmount                  controllers.chargeG.ChargeAmountController.onSubmit(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en

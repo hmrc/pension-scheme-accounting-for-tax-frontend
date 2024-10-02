@@ -24,7 +24,7 @@ import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeBHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{AccessType, GenericViewModel, NormalMode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage}
@@ -54,7 +54,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async {
     implicit request =>
@@ -82,14 +82,14 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
     }
 
-  private def getDeleteChargeUrl(srn: String, startDate: String, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): String =
+  private def getDeleteChargeUrl(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): String =
     if(deleteChargeHelper.isLastCharge(request.userAnswers) && request.sessionData.sessionAccessData.version > 1) {
       routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version).url
     } else {
       routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, version).url
     }
 
-  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onClick(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async {
     implicit request =>

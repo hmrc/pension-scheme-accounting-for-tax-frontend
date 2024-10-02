@@ -21,7 +21,7 @@ import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{AccessType, Member, MemberDetails, UserAnswers}
+import models.{AccessType, Member, MemberDetails, SchemeReferenceNumber, UserAnswers}
 import pages.chargeD.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
 import play.api.i18n.Messages
 import play.api.mvc.Call
@@ -57,7 +57,7 @@ class ChargeDService {
       .flatten
   }
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
+  def viewUrl(index: Int, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Call =
     controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =

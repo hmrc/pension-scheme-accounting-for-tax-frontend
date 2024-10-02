@@ -17,7 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import models.SchemeDetails
+import models.{SchemeDetails, SchemeReferenceNumber}
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import play.api.libs.json.{JsBoolean, JsResultException, JsString, Json}
@@ -93,7 +93,7 @@ class SchemeDetailsConnectorSpec
 
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
-      connector.checkForAssociation(psaId, srn, "psaId").map(isPsaAssociated =>
+      connector.checkForAssociation(psaId, SchemeReferenceNumber(srn), "psaId").map(isPsaAssociated =>
         isPsaAssociated mustBe true
       )
     }
@@ -114,7 +114,7 @@ class SchemeDetailsConnectorSpec
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
       recoverToSucceededIf[JsResultException] {
-        connector.checkForAssociation(psaId, srn, "psaId")
+        connector.checkForAssociation(psaId, SchemeReferenceNumber(srn), "psaId")
       }
     }
 
@@ -129,7 +129,7 @@ class SchemeDetailsConnectorSpec
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
       recoverToSucceededIf[UpstreamErrorResponse] {
-        connector.checkForAssociation(psaId, srn, "psaId")
+        connector.checkForAssociation(psaId, SchemeReferenceNumber(srn), "psaId")
       }
     }
   }

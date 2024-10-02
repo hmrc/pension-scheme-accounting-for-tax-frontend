@@ -19,7 +19,7 @@ package helpers
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
-import models.{AccessType, CheckMode}
+import models.{AccessType, CheckMode, SchemeReferenceNumber}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -27,7 +27,7 @@ import uk.gov.hmrc.viewmodels._
 
 import java.time.LocalDate
 
-class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages)
+class CYAChargeDHelper(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages)
   extends CYAPublicPensionsRemedyHelper(srn, startDate, accessType, version, ChargeTypeLifetimeAllowance) {
 
   def chargeDMemberDetails(index: Int, answer: models.MemberDetails): Seq[Row] = {

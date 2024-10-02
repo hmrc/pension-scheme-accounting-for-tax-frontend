@@ -23,11 +23,11 @@ import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import models.LocalDateBinder._
 import models.chargeC.SponsoringEmployerAddress
-import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, SchemeReferenceNumber}
 import navigators.CompoundNavigator
 import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressResultsPage}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -80,7 +80,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
         acc ++ countryJsonElement(nextCountryTuple, countrySelected.contains(nextCountryTuple._1))
       }
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onPageLoad(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
     implicit request =>
       DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
@@ -114,7 +114,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
   private def addArgsToErrors(form: Form[SponsoringEmployerAddress], args: String*): Form[SponsoringEmployerAddress] =
     form copy (errors = form.errors.map(_ copy (args = args)))
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>

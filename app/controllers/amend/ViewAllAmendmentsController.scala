@@ -24,7 +24,7 @@ import helpers.AmendmentHelper
 import models.AccessMode.PageAccessModeCompile
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{AccessType, AmendedChargeStatus, Draft, GenericViewModel, UserAnswers}
+import models.{AccessType, AmendedChargeStatus, Draft, GenericViewModel, SchemeReferenceNumber, UserAnswers}
 import pages.ViewOnlyAccessiblePage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -54,7 +54,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
       requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeWithPSTR { (schemeName, pstr) =>

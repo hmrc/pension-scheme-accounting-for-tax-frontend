@@ -24,7 +24,7 @@ import models.AdministratorOrPractitioner.Administrator
 import models.LocalDateBinder._
 import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.{DataRequest, IdentifierRequest}
-import models.{AccessType, AdministratorOrPractitioner, MinimalFlags}
+import models.{AccessType, AdministratorOrPractitioner, MinimalFlags, SchemeReferenceNumber}
 import pages._
 import play.api.Logging
 import play.api.http.Status.NOT_FOUND
@@ -57,7 +57,7 @@ trait AllowAccessCommon {
 }
 
 class AllowAccessAction(
-                         srn: String,
+                         srn: SchemeReferenceNumber,
                          startDate: LocalDate,
                          optPage: Option[Page],
                          version: Int,
@@ -113,7 +113,7 @@ class AllowAccessAction(
 
   private val validStatuses = Seq(Open, WoundUp, Deregistered)
 
-  private def associatedPsaRedirection(srn: String,
+  private def associatedPsaRedirection(srn: SchemeReferenceNumber,
                                        startDate: String,
                                        optPage: Option[Page],
                                        version: Int,
@@ -134,7 +134,7 @@ class AllowAccessActionForIdentifierRequest(
                          minimalConnector: MinimalConnector,
                          schemeDetailsConnector: SchemeDetailsConnector,
                          errorHandler: ErrorHandler,
-                         srnOpt: Option[String]
+                         srnOpt: Option[SchemeReferenceNumber]
                        )(
                          implicit val executionContext: ExecutionContext
                        )
@@ -185,20 +185,20 @@ class AllowAccessActionForIdentifierRequest(
 
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])
 trait AllowAccessActionProvider {
-  def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType): ActionFilter[DataRequest]
+  def apply(srn: SchemeReferenceNumber, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType): ActionFilter[DataRequest]
 }
 
 class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
                                               errorHandler: ErrorHandler,
                                               frontendAppConfig: FrontendAppConfig,
                                               schemeDetailsConnector: SchemeDetailsConnector)(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
-  def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType) =
+  def apply(srn: SchemeReferenceNumber, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType) =
     new AllowAccessAction(srn, startDate, optionPage, version, accessType, aftConnector, errorHandler, frontendAppConfig, schemeDetailsConnector)
 }
 
 @ImplementedBy(classOf[AllowAccessActionProviderForIdentifierRequestImpl])
 trait AllowAccessActionProviderForIdentifierRequest {
-  def apply(srn: Option[String] = None): ActionFilter[IdentifierRequest]
+  def apply(srn: Option[SchemeReferenceNumber] = None): ActionFilter[IdentifierRequest]
 }
 
 class AllowAccessActionProviderForIdentifierRequestImpl @Inject()(
@@ -207,6 +207,6 @@ class AllowAccessActionProviderForIdentifierRequestImpl @Inject()(
   schemeDetailsConnector: SchemeDetailsConnector,
   errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext) extends AllowAccessActionProviderForIdentifierRequest {
-  def apply(srn: Option[String]) =
+  def apply(srn: Option[SchemeReferenceNumber] = None) =
     new AllowAccessActionForIdentifierRequest(frontendAppConfig, minimalConnector, schemeDetailsConnector, errorHandler, srn)
 }

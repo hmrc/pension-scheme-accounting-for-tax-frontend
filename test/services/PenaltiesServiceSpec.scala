@@ -29,7 +29,7 @@ import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges, EventReportingCharges, InformationNoticePenalties, PensionsPenalties}
 import models.financialStatement.PsaFSChargeType._
 import models.financialStatement.{DocumentLineItemDetail, FSClearingReason, PsaFS, PsaFSChargeType, PsaFSDetail}
-import models.{ListOfSchemes, ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
+import models.{ListOfSchemes, ListSchemeDetails, PenaltiesFilter, PenaltySchemes, SchemeReferenceNumber}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -433,7 +433,7 @@ object PenaltiesServiceSpec {
 
   val year: Int = 2020
   val startDate: String = "2020-04-01"
-  val srn: String = "S2400000041"
+  val srn: SchemeReferenceNumber = SchemeReferenceNumber("S2400000041")
   val dateNow: LocalDate = LocalDate.now()
   val chargeRefIndex: String => String = _ => "0"
 

@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.{FinancialInfoCreditAccessConnector, FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
 import models.AdministratorOrPractitioner.Administrator
-import models.CreditAccessType
+import models.{CreditAccessType, SchemeReferenceNumber}
 import models.CreditAccessType.{AccessedByLoggedInPsaOrPsp, AccessedByOtherPsa, AccessedByOtherPsp}
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -50,7 +50,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
     with I18nSupport
     with NunjucksSupport {
 
-  private def creditAccess(srn: String)(implicit request: IdentifierRequest[AnyContent]): Future[Option[CreditAccessType]] = {
+  private def creditAccess(srn: SchemeReferenceNumber)(implicit request: IdentifierRequest[AnyContent]): Future[Option[CreditAccessType]] = {
     val id = request.idOrException
     request.schemeAdministratorType match {
       case Administrator => financialInfoCreditAccessConnector.creditAccessForSchemePsa(id, srn)
@@ -58,7 +58,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
     }
   }
 
-  private def requestRefundURL(srn: String)(implicit request: IdentifierRequest[AnyContent]): Future[String] = {
+  private def requestRefundURL(srn: SchemeReferenceNumber)(implicit request: IdentifierRequest[AnyContent]): Future[String] = {
     for {
       psaOrPspName <- minimalConnector.getPsaOrPspName
       schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
@@ -78,7 +78,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
     }
   }
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     requestRefundURL(srn).flatMap { url =>
       creditAccess(srn).flatMap {
         case None => Future.successful(Redirect(Call("GET", url)))

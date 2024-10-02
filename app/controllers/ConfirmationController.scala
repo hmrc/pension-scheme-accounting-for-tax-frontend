@@ -28,7 +28,7 @@ import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel}
+import models.{AccessType, GenericViewModel, SchemeReferenceNumber}
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -66,7 +66,7 @@ class ConfirmationController @Inject()(
 
   private val logger = Logger(classOf[ConfirmationController])
 
-  private def checkIfFinancialInfoLinkDisplayable(srn: String, startDate: LocalDate)
+  private def checkIfFinancialInfoLinkDisplayable(srn: SchemeReferenceNumber, startDate: LocalDate)
                                                  (implicit request: DataRequest[AnyContent]): Future[Boolean] = {
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
@@ -81,7 +81,7 @@ class ConfirmationController @Inject()(
 
   }
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission).async {
       implicit request =>

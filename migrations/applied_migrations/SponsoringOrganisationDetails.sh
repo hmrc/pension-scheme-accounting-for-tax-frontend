@@ -6,11 +6,11 @@ echo "Applying migration SponsoringOrganisationDetails"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:srn/new-return/sponsoringOrganisationDetails                        controllers.chargeC.SponsoringOrganisationDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/sponsoringOrganisationDetails                        controllers.chargeC.SponsoringOrganisationDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/sponsoringOrganisationDetails                        controllers.chargeC.SponsoringOrganisationDetailsController.onPageLoad(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/sponsoringOrganisationDetails                        controllers.chargeC.SponsoringOrganisationDetailsController.onSubmit(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
-echo "GET        /:srn/new-return/changeSponsoringOrganisationDetails                  controllers.chargeC.SponsoringOrganisationDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/changeSponsoringOrganisationDetails                  controllers.chargeC.SponsoringOrganisationDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/changeSponsoringOrganisationDetails                  controllers.chargeC.SponsoringOrganisationDetailsController.onPageLoad(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/changeSponsoringOrganisationDetails                  controllers.chargeC.SponsoringOrganisationDetailsController.onSubmit(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en

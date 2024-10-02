@@ -19,7 +19,7 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.{AccessType, ChargeType, GenericViewModel}
+import models.{AccessType, ChargeType, GenericViewModel, SchemeReferenceNumber}
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -43,28 +43,28 @@ class UpscanErrorController @Inject()(
                                       with I18nSupport {
 
 
-  def quarantineError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
+  def quarantineError(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val json = Json.obj(
       "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
     renderer.render("fileUpload/error/quarantine.njk", json).map(Ok(_))
   }
 
-  def rejectedError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
+  def rejectedError(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val json = Json.obj(
       "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
     renderer.render("fileUpload/error/rejected.njk", json).map(Ok(_))
   }
 
-  def unknownError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
+  def unknownError(srn: SchemeReferenceNumber, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val json = Json.obj(
       "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
     renderer.render("fileUpload/error/unknown.njk", json).map(Ok(_))
   }
 
-  def invalidHeaderOrBodyError(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
+  def invalidHeaderOrBodyError(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn)) andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 

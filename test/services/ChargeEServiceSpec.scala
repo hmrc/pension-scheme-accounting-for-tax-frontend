@@ -24,7 +24,7 @@ import models.AmendedChargeStatus.{Added, Deleted}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{AmendedChargeStatus, Member, MemberDetails, UserAnswers}
+import models.{AmendedChargeStatus, Member, MemberDetails, SchemeReferenceNumber, UserAnswers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
@@ -35,7 +35,7 @@ import java.time.LocalDate
 
 class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  val srn = "S1234567"
+  val srn = SchemeReferenceNumber("S1234567")
   val startDate: LocalDate = QUARTER_START_DATE
 
   private def addMembers(memberDetailsToAdd: Seq[(MemberDetails, AmendedChargeStatus)]): UserAnswers = {

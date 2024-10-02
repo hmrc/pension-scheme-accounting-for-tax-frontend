@@ -18,7 +18,7 @@ package helpers
 
 import models.LocalDateBinder._
 import models.mccloud.{PensionsRemedySchemeSummary, PensionsRemedySummary}
-import models.{AFTQuarter, AccessType, ChargeType, CheckMode, YearRange}
+import models.{AFTQuarter, AccessType, ChargeType, CheckMode, SchemeReferenceNumber, YearRange}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -27,7 +27,7 @@ import uk.gov.hmrc.viewmodels._
 import java.time.LocalDate
 
 
-class CYAPublicPensionsRemedyHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType)
+class CYAPublicPensionsRemedyHelper(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType)
                                    (implicit messages: Messages) extends CYAHelper {
   val chargeTypeDescription: String = Messages(s"chargeType.description.$chargeType")
 

@@ -19,7 +19,7 @@ package navigators
 import base.SpecBase
 import data.SampleData.{accessType, versionInt}
 import models.requests.DataRequest
-import models.{AccessType, NormalMode, UserAnswers}
+import models.{AccessType, NormalMode, SchemeReferenceNumber, UserAnswers}
 import pages.Page
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, Call}
@@ -29,7 +29,7 @@ import java.time.LocalDate
 import scala.jdk.CollectionConverters.SetHasAsJava
 
 class CompoundNavigatorSpec extends SpecBase {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
 
   case object PageOne extends Page
 
@@ -38,10 +38,10 @@ class CompoundNavigatorSpec extends SpecBase {
   case object PageThree extends Page
 
   private def navigator(pp: PartialFunction[Page, Call]): Navigator = new Navigator {
-    override protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+    override protected def routeMap(userAnswers: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                    (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = pp
 
-    override protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+    override protected def editRouteMap(userAnswers: UserAnswers, srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int)
                                        (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = pp
   }
 

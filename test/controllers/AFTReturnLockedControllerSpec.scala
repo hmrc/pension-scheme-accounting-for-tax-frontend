@@ -20,7 +20,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{SchemeDetails, UserAnswers}
+import models.{SchemeDetails, SchemeReferenceNumber, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -42,7 +42,7 @@ import scala.concurrent.Future
 
 class AFTReturnLockedControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
   with JsonMatchers with OptionValues with TryValues {
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   val startDate = QUARTER_START_DATE
 
   private val mockSchemeService = mock[SchemeService]

@@ -18,7 +18,7 @@ package services
 
 import com.google.inject.Inject
 import connectors.SchemeDetailsConnector
-import models.SchemeDetails
+import models.{SchemeDetails, SchemeReferenceNumber}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -29,7 +29,7 @@ class SchemeService @Inject()(schemeDetailsConnector: SchemeDetailsConnector)  {
 
   private def isPsaId(s:String) = psaIdRegex.findFirstIn(s).isDefined
 
-  def retrieveSchemeDetails(psaId: String, srn: String, schemeIdType: String)
+  def retrieveSchemeDetails(psaId: String, srn: SchemeReferenceNumber, schemeIdType: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
     val futureSchemeDetails = if (isPsaId(psaId)) {
       schemeDetailsConnector.getSchemeDetails(

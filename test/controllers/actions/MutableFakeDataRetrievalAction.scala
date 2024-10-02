@@ -17,7 +17,7 @@
 package controllers.actions
 
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
+import models.{AccessMode, SchemeReferenceNumber, SessionAccessData, SessionData, UserAnswers}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
@@ -46,7 +46,7 @@ class MutableFakeDataRetrievalAction extends DataRetrievalAction {
     )
   }
 
-  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new MutableFakeDataRetrieval(storedSessionData, dataToReturn)
+  override def apply(srn: SchemeReferenceNumber, startDate: LocalDate): DataRetrieval = new MutableFakeDataRetrieval(storedSessionData, dataToReturn)
 }
 
 class MutableFakeDataRetrieval(sessionData: SessionData = MutableFakeDataRetrieval.sessionDataViewOnly, dataToReturn: Option[UserAnswers])

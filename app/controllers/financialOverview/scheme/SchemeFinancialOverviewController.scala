@@ -19,7 +19,7 @@ package controllers.financialOverview.scheme
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
-import models.SchemeDetails
+import models.{SchemeDetails, SchemeReferenceNumber}
 import models.financialStatement.{SchemeFS, SchemeFSDetail}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -49,7 +49,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
 
   private val logger = Logger(classOf[SchemeFinancialOverviewController])
 
-  def schemeFinancialOverview(srn: String): Action[AnyContent] = (identify andThen accessAction(Some(srn))).async {
+  def schemeFinancialOverview(srn: SchemeReferenceNumber): Action[AnyContent] = (identify andThen accessAction(Some(srn))).async {
     implicit request =>
       val response = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
@@ -62,7 +62,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
   }
 
   // scalastyle:off parameter.number
-  private def renderFinancialOverview(srn: String,
+  private def renderFinancialOverview(srn: SchemeReferenceNumber,
                                       schemeDetails: SchemeDetails,
                                       schemeFS: SchemeFS,
                                       request: RequestHeader,

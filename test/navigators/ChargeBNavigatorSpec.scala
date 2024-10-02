@@ -20,7 +20,7 @@ import controllers.chargeB.routes.{ChargeDetailsController, CheckYourAnswersCont
 import controllers.routes.AFTSummaryController
 import data.SampleData.{accessType, versionInt}
 import models.LocalDateBinder._
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.{CheckMode, NormalMode, SchemeReferenceNumber, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
@@ -29,7 +29,7 @@ import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeBNavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
-  private val srn = "test-srn"
+  private val srn = SchemeReferenceNumber("test-srn")
   private val startDate = QUARTER_START_DATE
 
   "NormalMode" must {

@@ -6,11 +6,11 @@ echo "Applying migration EnterPostcode"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:srn/new-return/employerAddressSearch                        controllers.chargeC.SponsoringEmployerAddressSearchController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/employerAddressSearch                        controllers.chargeC.SponsoringEmployerAddressSearchController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/employerAddressSearch                        controllers.chargeC.SponsoringEmployerAddressSearchController.onPageLoad(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/employerAddressSearch                        controllers.chargeC.SponsoringEmployerAddressSearchController.onSubmit(mode: Mode = NormalMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
-echo "GET        /:srn/new-return/changeEnterPostcode                  controllers.chargeC.SponsoringEmployerAddressSearchController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/changeEnterPostcode                  controllers.chargeC.SponsoringEmployerAddressSearchController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/changeEnterPostcode                  controllers.chargeC.SponsoringEmployerAddressSearchController.onPageLoad(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/changeEnterPostcode                  controllers.chargeC.SponsoringEmployerAddressSearchController.onSubmit(mode: Mode = CheckMode, srn: SchemeReferenceNumber)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en

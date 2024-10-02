@@ -22,7 +22,7 @@ import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
 import helpers.AFTSummaryHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
+import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, SchemeReferenceNumber, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{AFTSummaryPage, ChargeTypePage}
 import play.api.Logger
@@ -68,7 +68,7 @@ class AFTSummaryController @Inject()(
   private val form = formProvider()
   private val memberSearchForm = memberSearchFormProvider()
 
-  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(AFTSummaryPage)) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
       Try(request.userAnswers.data \ "chargeEDetails" \ "members" \\ "memberDetails") match {
@@ -98,7 +98,7 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  def onSearchMember(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSearchMember(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
 
@@ -146,7 +146,7 @@ class AFTSummaryController @Inject()(
       }
   }
 
-  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeAndQuarter { (schemeName, _) =>
@@ -173,7 +173,7 @@ class AFTSummaryController @Inject()(
 
   private def getJsonCommon(form: Form[Boolean],
                             formSearchText: Form[String],
-                            srn: String,
+                            srn: SchemeReferenceNumber,
                             startDate: LocalDate,
                             schemeName: String,
                             version: Int,
@@ -213,7 +213,7 @@ class AFTSummaryController @Inject()(
   private def getJson(form: Form[Boolean],
                       formSearchText: Form[String],
                       ua: UserAnswers,
-                      srn: String,
+                      srn: SchemeReferenceNumber,
                       startDate: LocalDate,
                       schemeName: String,
                       version: Int,
@@ -233,7 +233,7 @@ class AFTSummaryController @Inject()(
 
   }
 
-  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Int, accessType: AccessType): GenericViewModel = {
+  private def viewModel(mode: Mode, srn: SchemeReferenceNumber, startDate: LocalDate, schemeName: String, version: Int, accessType: AccessType): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, version).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,

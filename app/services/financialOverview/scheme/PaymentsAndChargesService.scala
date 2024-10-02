@@ -29,7 +29,7 @@ import models.financialStatement._
 import models.viewModels.financialOverview.{PaymentsAndChargesDetails => FinancialPaymentAndChargesDetails}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
-import models.{ChargeDetailsFilter, SchemeDetails}
+import models.{ChargeDetailsFilter, SchemeDetails, SchemeReferenceNumber}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
 import services.SchemeService
@@ -55,7 +55,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   case class IndexRef(chargeType: String, chargeReference: String, period: String)
 
-  def getPaymentsAndCharges(srn: String,
+  def getPaymentsAndCharges(srn: SchemeReferenceNumber,
                             schemeFSDetail: Seq[SchemeFSDetail],
                             chargeDetailsFilter: ChargeDetailsFilter
                            )
@@ -112,7 +112,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  def getReturnUrl(srn: String, psaId: Option[PsaId], pspId: Option[PspId], config: FrontendAppConfig,
+  def getReturnUrl(srn: SchemeReferenceNumber, psaId: Option[PsaId], pspId: Option[PspId], config: FrontendAppConfig,
                    journeyType: ChargeDetailsFilter): String = {
     journeyType match {
       case All => config.schemeDashboardUrl(psaId, pspId).format(srn)
@@ -123,7 +123,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   // scalastyle:off method.length
   private def paymentsAndChargesDetails(
                                          details: SchemeFSDetail,
-                                         srn: String,
+                                         srn: SchemeReferenceNumber,
                                          chargeDetailsFilter: ChargeDetailsFilter
                                        )(implicit messages: Messages): Seq[FinancialPaymentAndChargesDetails] = {
     val chargeType = getPaymentOrChargeType(details.chargeType)
@@ -417,7 +417,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   }
 
 
-  private def saveAndReturnPaymentsCache(loggedInId: String, srn: String)
+  private def saveAndReturnPaymentsCache(loggedInId: String, srn: SchemeReferenceNumber)
                                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaymentsCache] =
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(loggedInId, srn, "srn")
@@ -426,7 +426,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       _ <- financialInfoCacheConnector.save(Json.toJson(paymentsCache))
     } yield paymentsCache
 
-  private def getPaymentsFromCache(loggedInId: String, srn: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
+  private def getPaymentsFromCache(loggedInId: String, srn: SchemeReferenceNumber)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
     financialInfoCacheConnector.fetch flatMap {
       case Some(jsValue) =>
         val cacheAuthenticated: PaymentsCache => Boolean = value => value.loggedInId == loggedInId && value.srn == srn
@@ -437,7 +437,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       case _ => saveAndReturnPaymentsCache(loggedInId, srn)
     }
 
-  def getPaymentsForJourney(loggedInId: String, srn: String, journeyType: ChargeDetailsFilter)
+  def getPaymentsForJourney(loggedInId: String, srn: SchemeReferenceNumber, journeyType: ChargeDetailsFilter)
                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
     getPaymentsFromCache(loggedInId, srn).map { cache =>
       journeyType match {
@@ -491,7 +491,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   }
 }
 
-case class PaymentsCache(loggedInId: String, srn: String, schemeDetails: SchemeDetails, schemeFSDetail: Seq[SchemeFSDetail])
+case class PaymentsCache(loggedInId: String, srn: SchemeReferenceNumber, schemeDetails: SchemeDetails, schemeFSDetail: Seq[SchemeFSDetail])
 
 object PaymentsCache {
   implicit val format: OFormat[PaymentsCache] = Json.format[PaymentsCache]

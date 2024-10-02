@@ -21,7 +21,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, UserAnswers}
+import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, SchemeReferenceNumber, UserAnswers}
 import navigators.CompoundNavigator
 import pages.mccloud.{RemovePensionSchemePage, SchemePathHelper, WasAnotherPensionSchemePage}
 import play.api.data.Form
@@ -54,7 +54,7 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
     with NunjucksSupport {
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
-                 srn: String,
+                 srn: SchemeReferenceNumber,
                  startDate: LocalDate,
                  accessType: AccessType,
                  version: Int,
@@ -96,7 +96,7 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
   //scalastyle:off cyclomatic.complexity
   def onSubmit(chargeType: ChargeType,
                mode: Mode,
-               srn: String,
+               srn: SchemeReferenceNumber,
                startDate: LocalDate,
                accessType: AccessType,
                version: Int,

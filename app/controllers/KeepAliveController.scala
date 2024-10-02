@@ -18,6 +18,7 @@ package controllers
 
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
+import models.SchemeReferenceNumber
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -34,7 +35,7 @@ class KeepAliveController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  def keepAlive(srn: Option[String], startDate: Option[String]): Action[AnyContent] = (identify andThen allowAccess(srn)).async {
+  def keepAlive(srn: Option[String], startDate: Option[String]): Action[AnyContent] = (identify andThen allowAccess(srn.map(SchemeReferenceNumber(_)))).async {
     implicit request =>
       (srn, startDate) match {
         case (Some(sr), Some(startDt)) =>
