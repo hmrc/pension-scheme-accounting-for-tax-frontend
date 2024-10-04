@@ -37,7 +37,7 @@ class FinancialInfoCreditAccessConnectorSpec extends AsyncWordSpec with Matchers
   override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
   private val psaPspId = "test-psa-id"
-  private val srn = SchemeReferenceNumber("srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
 
   private val mockConfig = mock[FrontendAppConfig]
 

@@ -140,7 +140,7 @@ class QuartersController @Inject()(
                        (implicit request: IdentifierRequest[_]): GenericViewModel =
     GenericViewModel(
       submitUrl = routes.QuartersController.onSubmit(srn, year).url,
-      returnUrl = config.schemeDashboardUrl(request).format(srn),
+      returnUrl = config.schemeDashboardUrl(request).format(srn.id),
       schemeName = schemeName
     )
 

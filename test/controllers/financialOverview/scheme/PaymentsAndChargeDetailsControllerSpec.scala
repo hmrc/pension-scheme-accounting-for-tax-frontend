@@ -276,7 +276,7 @@ class PaymentsAndChargeDetailsControllerSpec
 }
 
 object PaymentsAndChargeDetailsControllerSpec {
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
 
   def psaFS(chargeReference: String): PsaFSDetail =
     PsaFSDetail(

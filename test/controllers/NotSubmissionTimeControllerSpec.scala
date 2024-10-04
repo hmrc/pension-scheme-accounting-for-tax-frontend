@@ -42,7 +42,7 @@ import scala.concurrent.Future
 
 class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
   with JsonMatchers with OptionValues with TryValues {
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   val startDate: LocalDate = QUARTER_START_DATE
 
   private val mockSchemeService = mock[SchemeService]

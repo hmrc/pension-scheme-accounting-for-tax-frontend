@@ -215,7 +215,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with Matchers with Wir
           )
       )
 
-      connector.lockDetail(srn = SchemeReferenceNumber("srn"), startDate = "2020-04-01") map {
+      connector.lockDetail(srn = SchemeReferenceNumber("S1234567890"), startDate = "2020-04-01") map {
         result =>
           result mustBe None
       }
@@ -232,7 +232,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with Matchers with Wir
           )
       )
 
-      connector.lockDetail(srn = SchemeReferenceNumber("srn"), startDate = "2020-04-01") map {
+      connector.lockDetail(srn = SchemeReferenceNumber("S1234567890"), startDate = "2020-04-01") map {
         result =>
           result mustBe Some(expectedLockDetail)
       }
@@ -247,7 +247,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with Matchers with Wir
       )
 
       recoverToSucceededIf[HttpException] {
-        connector.lockDetail(srn = SchemeReferenceNumber("srn"), startDate = "2020-04-01")
+        connector.lockDetail(srn = SchemeReferenceNumber("S1234567890"), startDate = "2020-04-01")
       }
 
     }

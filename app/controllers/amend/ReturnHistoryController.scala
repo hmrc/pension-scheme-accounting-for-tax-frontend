@@ -92,7 +92,7 @@ class ReturnHistoryController @Inject()(
         "startDate" -> Some(localDateToString(startDate)),
         "quarterStart" -> startDate.format(dateFormatterStartDate),
         "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
-        "returnUrl" -> config.schemeDashboardUrl(request).format(srn),
+        "returnUrl" -> config.schemeDashboardUrl(request).format(srn.id),
         "schemeName" -> schemeDetails.schemeName,
         "startYear"-> startDate.getYear.toString
       ) ++ table ++ paymentJson

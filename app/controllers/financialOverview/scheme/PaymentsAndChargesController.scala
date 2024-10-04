@@ -72,7 +72,7 @@ class PaymentsAndChargesController @Inject()(
               "totalOverdue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
               "totalInterestAccruing" -> s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
               "totalUpcoming" -> s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
-              "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+              "returnUrl" -> config.schemeDashboardUrl(request).format(srn.id)
             )
             renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
         } else {

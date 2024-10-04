@@ -40,7 +40,7 @@ class ReturnToSchemeDetailsController @Inject()(
 
   def returnToSchemeDetails(srn: SchemeReferenceNumber, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val id = s"$srn$startDate"
-    userAnswersCacheConnector.removeAll(id).map(_ => Redirect(config.schemeDashboardUrl(request).format(srn)))
+    userAnswersCacheConnector.removeAll(id).map(_ => Redirect(config.schemeDashboardUrl(request).format(srn.id)))
   }
 
 }

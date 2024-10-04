@@ -240,7 +240,7 @@ class AFTPartialServiceSpec
 
   "retrievePspDashboardOverdueAftCharges" must {
     "return a model for a single period overdue charges with no interest accruing" in {
-      service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseSinglePeriod(), srn) mustBe
+      service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseSinglePeriod(), srn.id) mustBe
         DashboardAftViewModel(
           subHeadings = Seq(
             Json.obj(
@@ -530,7 +530,7 @@ object AFTPartialServiceSpec {
     LocalDate.parse(startDate, dateFormatterYMD).format(DateTimeFormatter.ofPattern("d MMMM"))
   private val formattedEndDate: String =
     LocalDate.parse(endDate, dateFormatterYMD).format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
-  private val srn = SchemeReferenceNumber("srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val pstr = "pstr"
   private val psaId = "A0000000"
   private val name = "test-name"

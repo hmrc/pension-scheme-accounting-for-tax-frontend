@@ -106,7 +106,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
 object PaymentsAndChargesControllerSpec {
   private val startDate = "2020-04-01"
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
 
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(

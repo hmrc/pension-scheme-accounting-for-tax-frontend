@@ -33,7 +33,7 @@ import scala.concurrent.Future
 
 class SignOutControllerSpec extends ControllerSpecBase {
 
-  private val srn = SchemeReferenceNumber("srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val startDate = Some(QUARTER_START_DATE.toString)
 
   private def signOutRoute(startDate: Option[String] = startDate): String = controllers.routes.SignOutController.signOut(Some(srn), startDate).url

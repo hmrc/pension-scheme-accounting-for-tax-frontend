@@ -83,7 +83,7 @@ class PaymentsAndChargeDetailsController @Inject()(
     if (chargeRefs.size > index.toInt) {
       filteredCharges.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
-          val returnUrl = config.schemeDashboardUrl(request.psaId, request.pspId).format(srn)
+          val returnUrl = config.schemeDashboardUrl(request.psaId, request.pspId).format(srn.id)
           renderer.render(
             template = "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk",
             ctx = summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, interestUrl)

@@ -115,7 +115,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   def getReturnUrl(srn: SchemeReferenceNumber, psaId: Option[PsaId], pspId: Option[PspId], config: FrontendAppConfig,
                    journeyType: ChargeDetailsFilter): String = {
     journeyType match {
-      case All => config.schemeDashboardUrl(psaId, pspId).format(srn)
+      case All => config.schemeDashboardUrl(psaId, pspId).format(srn.id)
       case _ => controllers.financialOverview.scheme.routes.PaymentsAndChargesController.onPageLoad(srn, journeyType).url
     }
   }

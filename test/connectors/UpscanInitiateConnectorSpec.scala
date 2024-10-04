@@ -66,10 +66,10 @@ class UpscanInitiateConnectorSpec extends AsyncWordSpec with Matchers with WireM
   )
 
   ".initiateV2" must {
-    val successRedirectUrl = appConfig.successEndpointTarget(SchemeReferenceNumber("srn"), startDate, Draft, 1, ChargeTypeAnnualAllowance, uploadId)
+    val successRedirectUrl = appConfig.successEndpointTarget(SchemeReferenceNumber("S1234567890"), startDate, Draft, 1, ChargeTypeAnnualAllowance, uploadId)
 
     val errorRedirectUrl = appConfig
-      .failureEndpointTarget(SchemeReferenceNumber("srn"), startDate, Draft, 1, ChargeTypeAnnualAllowance)
+      .failureEndpointTarget(SchemeReferenceNumber("S1234567890"), startDate, Draft, 1, ChargeTypeAnnualAllowance)
 
     val response1 =
       s"""{

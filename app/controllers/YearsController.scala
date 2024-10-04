@@ -93,7 +93,7 @@ class YearsController @Inject()(
   private def viewModel(schemeName: String, srn: SchemeReferenceNumber)(implicit request: IdentifierRequest[_]): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.YearsController.onSubmit(srn).url,
-      returnUrl = config.schemeDashboardUrl(request).format(srn),
+      returnUrl = config.schemeDashboardUrl(request).format(srn.id),
       schemeName = schemeName
     )
   }

@@ -51,7 +51,7 @@ class ProcessingRequestControllerSpec extends ControllerSpecBase with NunjucksSu
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private val startDate = "2020-04-01"
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val accessType = Draft
   private val versionInt = 1
 

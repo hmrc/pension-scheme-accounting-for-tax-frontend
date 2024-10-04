@@ -130,7 +130,7 @@ class PaymentsAndChargesInterestController @Inject()(
             }
             ),
           "originalAmountUrl" -> originalAmountUrl,
-          "returnUrl" -> config.schemeDashboardUrl(psaId, pspId).format(srn)
+          "returnUrl" -> config.schemeDashboardUrl(psaId, pspId).format(srn.id)
         )
 
   private def getSummaryListRows(schemeFSDetail: SchemeFSDetail): Seq[SummaryList.Row] = {

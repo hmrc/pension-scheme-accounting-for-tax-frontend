@@ -75,7 +75,7 @@ class AllPaymentsAndChargesController @Inject()(
             "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "totalDue" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
-            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+            "returnUrl" -> config.schemeDashboardUrl(request).format(srn.id)
           )
           renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
         } else {

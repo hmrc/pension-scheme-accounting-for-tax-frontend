@@ -32,7 +32,7 @@ import scala.concurrent.Future
 
 class ReturnToSchemeDetailsControllerSpec extends ControllerSpecBase {
 
-  private val srn = SchemeReferenceNumber("srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val startDate = QUARTER_START_DATE.toString
   private val application = applicationBuilder().build()
 
@@ -49,7 +49,7 @@ class ReturnToSchemeDetailsControllerSpec extends ControllerSpecBase {
       status(result) mustBe SEE_OTHER
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(argCaptor.capture())(any(), any())
       argCaptor.getValue mustEqual s"$srn$startDate"
-      redirectLocation(result) mustBe Some(frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn))
+      redirectLocation(result) mustBe Some(frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn.id))
     }
   }
 }

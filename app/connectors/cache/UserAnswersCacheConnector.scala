@@ -154,7 +154,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
   override def lockDetail(srn: SchemeReferenceNumber, startDate: String)
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[LockDetail]] = {
 
-    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("id", srn + startDate))
+    val headers: Seq[(String, String)] = Seq(("Content-Type", "application/json"), ("id", srn.id + startDate))
     val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
     http.GET[HttpResponse](lockDetailUrl)(implicitly, hc, implicitly)

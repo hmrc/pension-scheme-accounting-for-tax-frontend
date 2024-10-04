@@ -42,7 +42,7 @@ class $className$Controller @Inject()(override val messagesApi: MessagesApi,
 
         val viewModel = GenericViewModel(
           submitUrl = routes.$className$Controller.onSubmit(mode, srn).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn.id),
           schemeName = schemeName)
 
         val json = Json.obj(
@@ -64,7 +64,7 @@ class $className$Controller @Inject()(override val messagesApi: MessagesApi,
 
             val viewModel = GenericViewModel(
               submitUrl = routes.$className$Controller.onSubmit(mode, srn).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn.id),
               schemeName = schemeName)
 
             val json = Json.obj(

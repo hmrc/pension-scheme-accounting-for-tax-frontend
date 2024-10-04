@@ -82,7 +82,7 @@ class AmendYearsController @Inject()(
   private def viewModel(schemeName: String, srn: SchemeReferenceNumber)(implicit request: IdentifierRequest[_]): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.AmendYearsController.onSubmit(srn).url,
-      returnUrl = config.schemeDashboardUrl(request).format(srn),
+      returnUrl = config.schemeDashboardUrl(request).format(srn.id),
       schemeName = schemeName
     )
   }

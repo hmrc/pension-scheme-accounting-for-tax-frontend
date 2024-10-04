@@ -174,7 +174,7 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
 }
 
 object ChargeENavigatorSpec {
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val startDate = QUARTER_START_DATE
   private val index = 0
   private val schemeIndex = 0

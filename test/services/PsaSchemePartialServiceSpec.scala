@@ -186,21 +186,21 @@ object PsaSchemePartialServiceSpec {
   private val startDt: String = LocalDate.parse(startDate).format(dateFormatterStartDate)
   private val endDt: String = LocalDate.parse(endDate).format(dateFormatterDMY)
   private val smallDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")
-  private val srn = SchemeReferenceNumber("srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val pstr = "pstr"
   private val psaId = "A0000000"
   private val schemeDetails: SchemeDetails = SchemeDetails("test-name", pstr, "Open", None)
   private val name = "test-name"
   val minimalPsaName: Option[String] = Some("John Doe Doe")
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
-  private val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
-  private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
-  private val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
-  private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
-  private val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
-  private val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
-  private val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
-  private val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/past-payments-logic"
+  private val aftLoginUrl: String = s"$aftUrl/S1234567890/new-return/aft-login"
+  private val amendUrl: String = s"$aftUrl/S1234567890/previous-return/amend-select"
+  private val aftSummaryUrl: String = s"$aftUrl/S1234567890/2020-10-01/draft/2/summary"
+  private val continueUrl: String = s"$aftUrl/S1234567890/new-return/select-quarter-in-progress"
+  private val viewUpcomingChargesUrl: String = s"$aftUrl/S1234567890/upcoming-payments-logic"
+  private val viewOverdueChargesUrl: String = s"$aftUrl/S1234567890/overdue-payments-logic"
+  private val viewPastChargesUrl: String = s"$aftUrl/S1234567890/past-payments-logic"
+  private val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/S1234567890/financial-overview/past-payments-logic"
   private val positiveNumberFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(900)}"
   private val zeroFormatted : String = s"${FormatHelper.formatCurrencyAmountAsString(0)}"
   private val documentLineItemDetails = Seq()
@@ -306,7 +306,7 @@ object PsaSchemePartialServiceSpec {
       hiddenText = None
     )
 
-  private val overviewurl: String = s"$aftUrl/srn/financial-overview"
+  private val overviewurl: String = s"$aftUrl/S1234567890/financial-overview"
 
 
 

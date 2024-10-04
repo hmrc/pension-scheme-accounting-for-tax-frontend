@@ -160,7 +160,7 @@ class RequestRefundControllerSpec extends ControllerSpecBase with NunjucksSuppor
 }
 
 object RequestRefundControllerSpec {
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val dummyURL = "/DUMMY"
 }
 

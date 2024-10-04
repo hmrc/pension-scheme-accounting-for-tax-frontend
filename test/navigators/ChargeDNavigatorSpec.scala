@@ -86,7 +86,7 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(AddMembersPage)(MemberDetailsController
           .onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index), Some(addMembersYesAndPSRNo)),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addMembersNo),
-        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
+        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn.id)), zeroedCharge),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeDMember)),
         row(InputSelectionPage(ChargeTypeLifetimeAllowance))(controllers.routes.IsPublicServicePensionsRemedyController
@@ -170,7 +170,7 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
 }
 
 object ChargeDNavigatorSpec {
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val startDate = QUARTER_START_DATE
   private val index = 0
   private val schemeIndex = 0

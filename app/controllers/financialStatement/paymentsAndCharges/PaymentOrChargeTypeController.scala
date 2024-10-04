@@ -57,7 +57,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
         "form" -> form(journeyType),
         "radios" -> PaymentOrChargeType.radios(form(journeyType), paymentsOrCharges),
         "schemeName" -> cache.schemeDetails.schemeName,
-        "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+        "returnUrl" -> config.schemeDashboardUrl(request).format(srn.id)
       )
 
       renderer.render(template = "financialStatement/paymentsAndCharges/paymentOrChargeType.njk", json).map(Ok(_))
@@ -73,7 +73,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
             "form" -> formWithErrors,
             "radios" -> PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail)),
             "schemeName" -> cache.schemeDetails.schemeName,
-            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+            "returnUrl" -> config.schemeDashboardUrl(request).format(srn.id)
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/paymentOrChargeType.njk", json).map(BadRequest(_))
         },

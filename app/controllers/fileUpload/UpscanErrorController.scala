@@ -70,7 +70,7 @@ class UpscanErrorController @Inject()(
 
         val viewModel = GenericViewModel(
           submitUrl = routes.FileUploadController.onPageLoad(srn, startDate.toString, accessType, version, chargeType).url,
-          returnUrl = config.schemeDashboardUrl(request).format(srn),
+          returnUrl = config.schemeDashboardUrl(request).format(srn.id),
           schemeName = schemeName
         )
         val isPsr = request.userAnswers.isPublicServicePensionsRemedy(chargeType)

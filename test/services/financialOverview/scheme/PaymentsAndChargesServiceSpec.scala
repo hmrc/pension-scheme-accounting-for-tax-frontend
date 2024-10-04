@@ -391,7 +391,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 }
 
 object PaymentsAndChargesServiceSpec {
-  val srn = SchemeReferenceNumber("S1234567")
+  val srn = SchemeReferenceNumber("S1234567890")
   val startDate: String = QUARTER_START_DATE.format(dateFormatterStartDate)
   val endDate: String = QUARTER_END_DATE.format(dateFormatterDMY)
   val paymentsCache: PaymentsCache = PaymentsCache(psaId, srn, schemeDetails, schemeFSResponseAftAndOTC.seqSchemeFSDetail)

@@ -36,7 +36,7 @@ import scala.collection.mutable.ArrayBuffer
 
 class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  val srn = SchemeReferenceNumber("S1234567")
+  val srn = SchemeReferenceNumber("S1234567890")
   val startDate: LocalDate = QUARTER_START_DATE
 
   val oneEmployerLastCharge: UserAnswers = UserAnswers()

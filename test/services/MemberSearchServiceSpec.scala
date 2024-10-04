@@ -104,7 +104,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
 
 object MemberSearchServiceSpec {
   private val startDate = LocalDate.of(2020, 4, 1)
-  private val srn = SchemeReferenceNumber("srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
 
   private def emptyUserAnswers: UserAnswers = UserAnswers()
 

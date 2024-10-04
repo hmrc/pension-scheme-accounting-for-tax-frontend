@@ -219,13 +219,13 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   def successEndpointTarget(srn: SchemeReferenceNumber, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId):String   = {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     loadConfig("upscan.success-endpoint")
-      .format(srn, formatter.format(startDate), accessType.toString, version.toString, toRoute(chargeType), uploadId.value)
+      .format(srn.id, formatter.format(startDate), accessType.toString, version.toString, toRoute(chargeType), uploadId.value)
   }
 
   def failureEndpointTarget(srn: SchemeReferenceNumber, startDate: LocalDate, accessType:AccessType, version: Int, chargeType: ChargeType):String   = {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     loadConfig("upscan.failure-endpoint")
-      .format(srn, formatter.format(startDate), accessType.toString, version.toString, toRoute(chargeType))
+      .format(srn.id, formatter.format(startDate), accessType.toString, version.toString, toRoute(chargeType))
   }
 
   lazy val maxUploadFileSize: Int = configuration.getOptional[Int]("upscan.maxUploadFileSizeMb").getOrElse(1)

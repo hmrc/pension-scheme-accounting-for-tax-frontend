@@ -29,7 +29,7 @@ import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeBNavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val startDate = QUARTER_START_DATE
 
   "NormalMode" must {

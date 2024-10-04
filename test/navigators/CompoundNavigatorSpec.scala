@@ -29,7 +29,7 @@ import java.time.LocalDate
 import scala.jdk.CollectionConverters.SetHasAsJava
 
 class CompoundNavigatorSpec extends SpecBase {
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
 
   case object PageOne extends Page
 

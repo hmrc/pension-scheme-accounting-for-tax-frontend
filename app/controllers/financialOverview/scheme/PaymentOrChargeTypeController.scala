@@ -61,7 +61,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
           "radios" -> PaymentOrChargeType.radios(form(), paymentsOrCharges,
             Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
           "schemeName" -> cache.schemeDetails.schemeName,
-          "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+          "returnUrl" -> config.schemeDashboardUrl(request).format(srn.id)
         )
 
         renderer.render(template = "financialOverview/scheme/paymentOrChargeType.njk", json).map(Ok(_))
@@ -78,7 +78,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
             "form" -> formWithErrors,
             "radios" -> PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail)),
             "schemeName" -> cache.schemeDetails.schemeName,
-            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+            "returnUrl" -> config.schemeDashboardUrl(request).format(srn.id)
           )
           renderer.render(template = "financialOverview/scheme/paymentOrChargeType.njk", json).map(BadRequest(_))
         },

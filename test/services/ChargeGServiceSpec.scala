@@ -35,7 +35,7 @@ import java.time.LocalDate
 
 class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  val srn = SchemeReferenceNumber("S1234567")
+  val srn = SchemeReferenceNumber("S1234567890")
   val startDate: LocalDate = QUARTER_START_DATE
 
   val allMembers: UserAnswers = UserAnswers()

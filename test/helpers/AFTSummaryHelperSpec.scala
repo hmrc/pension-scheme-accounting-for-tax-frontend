@@ -53,7 +53,7 @@ class AFTSummaryHelperSpec extends SpecBase with Matchers with MockitoSugar with
     .setOrException(pages.chargeB.ChargeBDetailsPage, ChargeBDetails(1, BigDecimal(600.00)))
     .setOrException(pages.chargeG.TotalChargeAmountPage, BigDecimal(700.00))
 
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val startDate = LocalDate.now
 
   private def createRow(chargeType: ChargeType, amount: BigDecimal, href: Option[String]) = {

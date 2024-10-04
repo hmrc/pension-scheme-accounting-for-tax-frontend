@@ -69,7 +69,7 @@ class PaymentsAndChargesController @Inject()(
               "titleMessage" -> title,
             "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
-            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+            "returnUrl" -> config.schemeDashboardUrl(request).format(srn.id)
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 

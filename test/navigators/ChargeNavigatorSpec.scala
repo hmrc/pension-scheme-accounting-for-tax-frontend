@@ -51,7 +51,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
     super.beforeEach()
   }
 
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val startDate = QUARTER_START_DATE
 
   private def optUA(ct: ChargeType): Option[UserAnswers] = SampleData.userAnswersWithSchemeNamePstrQuarter.set(ChargeTypePage, ct).toOption
@@ -167,7 +167,7 @@ class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar w
     super.beforeEach()
   }
 
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val startDate = QUARTER_START_DATE
 
 

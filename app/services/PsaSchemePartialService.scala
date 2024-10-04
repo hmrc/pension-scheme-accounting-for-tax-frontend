@@ -65,7 +65,7 @@ class PsaSchemePartialService @Inject()(
   private def getStartReturnLink(overview: Seq[AFTOverview], srn: SchemeReferenceNumber, pstr: String)
                                 (implicit hc: HeaderCarrier): Future[Seq[Link]] = {
 
-    val startLink: Link = Link(id = "aftLoginLink", url = appConfig.aftLoginUrl.format(srn),
+    val startLink: Link = Link(id = "aftLoginLink", url = appConfig.aftLoginUrl.format(srn.id),
       linkText = msg"aftPartial.start.link")
 
     val isReturnNotInitiatedForAnyQuarter: Boolean = {
@@ -107,7 +107,7 @@ class PsaSchemePartialService @Inject()(
     if (pastReturns.nonEmpty) {
       Seq(Link(
         id = "aftAmendLink",
-        url = appConfig.aftAmendUrl.format(srn),
+        url = appConfig.aftAmendUrl.format(srn.id),
         linkText = msg"aftPartial.view.change.past"))
     } else {
       Nil
@@ -159,7 +159,7 @@ class PsaSchemePartialService @Inject()(
         )))),
       Seq(Link(
         id = "aftSummaryLink",
-        url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
+        url = appConfig.aftSummaryPageUrl.format(srn.id, startDate, Draft, overview.numberOfVersions),
         linkText = linkText,
         hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
       ))
@@ -197,7 +197,7 @@ class PsaSchemePartialService @Inject()(
             )))),
           Seq(Link(
             id = "aftContinueInProgressLink",
-            url = appConfig.aftContinueReturnUrl.format(srn),
+            url = appConfig.aftContinueReturnUrl.format(srn.id),
             linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
             hiddenText = Some(msg"aftPartial.view.hidden")
           )))
@@ -261,7 +261,7 @@ class PsaSchemePartialService @Inject()(
         msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
       }
 
-      Seq(Link("upcoming-payments-and-charges", appConfig.upcomingChargesUrl.format(srn), linkText, None))
+      Seq(Link("upcoming-payments-and-charges", appConfig.upcomingChargesUrl.format(srn.id), linkText, None))
 
     } else {
       Nil
@@ -273,7 +273,7 @@ class PsaSchemePartialService @Inject()(
     } else {
       Seq(Link(
         id = "past-payments-and-charges",
-        url = appConfig.paymentsAndChargesUrl.format(srn),
+        url = appConfig.paymentsAndChargesUrl.format(srn.id),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
         hiddenText = None
       ))
@@ -334,7 +334,7 @@ class PsaSchemePartialService @Inject()(
       msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"
     }
 
-    Seq(Link("overdue-payments-and-charges", appConfig.overdueChargesUrl.format(srn), linkText, None))
+    Seq(Link("overdue-payments-and-charges", appConfig.overdueChargesUrl.format(srn.id), linkText, None))
   }
 
   def paymentsAndCharges(schemeFsDetail: Seq[SchemeFSDetail], srn: SchemeReferenceNumber, pstr: String)
@@ -387,7 +387,7 @@ class PsaSchemePartialService @Inject()(
   private def viewFinancialOverviewLink(srn: SchemeReferenceNumber): Seq[Link] =
       Seq(Link(
         id = "view-your-financial-overview",
-        url = appConfig.financialOverviewUrl.format(srn),
+        url = appConfig.financialOverviewUrl.format(srn.id),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
         hiddenText = None
       ))
@@ -396,7 +396,7 @@ class PsaSchemePartialService @Inject()(
   private def viewAllPaymentsAndChargesLink(srn: SchemeReferenceNumber, pstr: String): Seq[Link] =
           Seq(Link(
         id = "past-payments-and-charges",
-        url = appConfig.financialPaymentsAndChargesUrl.format(srn),
+        url = appConfig.financialPaymentsAndChargesUrl.format(srn.id),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
         hiddenText = None
       ))

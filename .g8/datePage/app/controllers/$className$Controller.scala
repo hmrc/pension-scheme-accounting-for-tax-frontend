@@ -41,7 +41,7 @@ class $className$Controller @Inject()(override val messagesApi: MessagesApi,
 
         val viewModel = GenericViewModel(
           submitUrl = routes.$className$Controller.onSubmit(mode, srn).url,
-          returnUrl = config.schemeDashboardUrl(any(): IdentifierRequest[_]).format(srn),
+          returnUrl = config.schemeDashboardUrl(any(): IdentifierRequest[_]).format(srn.id),
           schemeName = schemeName)
 
         val date = DateInput.localDate(preparedForm("value"))
@@ -64,7 +64,7 @@ class $className$Controller @Inject()(override val messagesApi: MessagesApi,
 
             val viewModel = GenericViewModel(
               submitUrl = routes.$className$Controller.onSubmit(mode, srn).url,
-              returnUrl = config.schemeDashboardUrl(request).format(srn),
+              returnUrl = config.schemeDashboardUrl(request).format(srn.id),
               schemeName = schemeName)
 
             val date = DateInput.localDate(formWithErrors("value"))

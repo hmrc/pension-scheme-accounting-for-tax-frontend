@@ -85,7 +85,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
             val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
             val vm = GenericViewModel(
               submitUrl = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-              returnUrl = config.schemeDashboardUrl(request).format(srn),
+              returnUrl = config.schemeDashboardUrl(request).format(srn.id),
               schemeName = schemeDetails.schemeName
             )
             val preparedForm: Form[AFTQuarter] = {
@@ -138,7 +138,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   val vm = GenericViewModel(
                     submitUrl = routes.TaxQuarterReportedAndPaidController
                       .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-                    returnUrl = config.schemeDashboardUrl(request).format(srn),
+                    returnUrl = config.schemeDashboardUrl(request).format(srn.id),
                     schemeName = schemeDetails.schemeName
                   )
                   lifetimeOrAnnual(chargeType) match {

@@ -68,7 +68,7 @@ class AFTOverviewController @Inject()(
         renderer.render(aftOverviewTemplate,
           Json.obj(viewModel ->
             OverviewViewModel(
-              returnUrl = config.schemeDashboardUrl(request).format(srn),
+              returnUrl = config.schemeDashboardUrl(request).format(srn.id),
               newAftUrl = controllers.routes.YearsController.onPageLoad(srn).url,
               paymentsAndChargesUrl = linkForOutstandingAmount(srn, overviewInfo.outstandingAmount),
               schemeName = overviewInfo.schemeDetails.schemeName,

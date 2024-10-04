@@ -92,7 +92,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
 
     "must return OK and the correct view for a GET" in {
 
-      val srn = SchemeReferenceNumber("test-srn")
+      val srn = SchemeReferenceNumber("S1234567890")
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val aftOverviewTemplate = "aftOverview.njk"
 
@@ -129,7 +129,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
 }
 
 object AFTOverviewControllerSpec {
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
 
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {
     SchemeFSDetail(

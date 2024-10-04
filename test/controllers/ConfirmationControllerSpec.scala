@@ -70,7 +70,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private def json(isAmendment: Boolean): JsObject = Json.obj(
-    fields = "srn" -> SampleData.srn,
+    fields = "srn" -> SampleData.srn.id,
     "panelHtml" -> Html(s"${
       Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
         .toString()
@@ -260,7 +260,7 @@ object ConfirmationControllerSpec {
   private val email = "test@test.com"
   private val versionNumber = 2
 
-  private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/${SampleData.startDate}/${SampleData.srn}/sign-out")
+  private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/${SampleData.startDate}/${SampleData.srn.id}/sign-out")
 
   private def rows(hasVersion: Boolean) = Seq(Row(
     key = Key(msg"confirmation.table.scheme.label", classes = Seq("govuk-!-font-weight-regular")),

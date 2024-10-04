@@ -257,7 +257,7 @@ class DataRetrievalsSpec extends AnyFreeSpec with Matchers with OptionValues {
         .getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, ua, SampleData.sessionData())
-      val res = DataRetrievals.cyaChargeC(index = 0, SchemeReferenceNumber("test-srn"), LocalDate.now(), Draft, 1)(result)(request)
+      val res = DataRetrievals.cyaChargeC(index = 0, SchemeReferenceNumber("S1234567890"), LocalDate.now(), Draft, 1)(result)(request)
       status(res) must be(OK)
     }
 
@@ -270,7 +270,7 @@ class DataRetrievalsSpec extends AnyFreeSpec with Matchers with OptionValues {
         .getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, ua, SampleData.sessionData())
-      val res = DataRetrievals.cyaChargeC(index = 0, SchemeReferenceNumber("test-srn"), LocalDate.now(), Draft, 1)(result)(request)
+      val res = DataRetrievals.cyaChargeC(index = 0, SchemeReferenceNumber("S1234567890"), LocalDate.now(), Draft, 1)(result)(request)
       status(res) must be(OK)
     }
 
@@ -282,15 +282,15 @@ class DataRetrievalsSpec extends AnyFreeSpec with Matchers with OptionValues {
         .getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, ua, SampleData.sessionData())
-      val res = DataRetrievals.cyaChargeC(index = 0, SchemeReferenceNumber("test-srn"), startDate, Draft, 1)(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad(SchemeReferenceNumber("test-srn"), "2020-01-01", accessType, versionInt).url
+      val res = DataRetrievals.cyaChargeC(index = 0, SchemeReferenceNumber("S1234567890"), startDate, Draft, 1)(result)(request)
+      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad(SchemeReferenceNumber("S1234567890"), "2020-01-01", accessType, versionInt).url
     }
 
     "return aft summary when there is no sponsoring employer details in user answers" in {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
         Some(PsaId("A2100000")), None, UserAnswers(), SampleData.sessionData())
-      val res = DataRetrievals.cyaChargeC(index = 0, SchemeReferenceNumber("test-srn"), startDate, Draft, 1)(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad(SchemeReferenceNumber("test-srn"), "2020-01-01", accessType, versionInt).url
+      val res = DataRetrievals.cyaChargeC(index = 0, SchemeReferenceNumber("S1234567890"), startDate, Draft, 1)(result)(request)
+      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad(SchemeReferenceNumber("S1234567890"), "2020-01-01", accessType, versionInt).url
     }
   }
 }

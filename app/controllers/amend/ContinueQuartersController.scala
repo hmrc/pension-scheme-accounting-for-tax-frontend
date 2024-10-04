@@ -129,7 +129,7 @@ class ContinueQuartersController @Inject()(
   private def viewModel(srn: SchemeReferenceNumber, schemeName: String)(implicit request: IdentifierRequest[_]): GenericViewModel =
     GenericViewModel(
       submitUrl = routes.ContinueQuartersController.onSubmit(srn).url,
-      returnUrl = config.schemeDashboardUrl(request).format(srn),
+      returnUrl = config.schemeDashboardUrl(request).format(srn.id),
       schemeName = schemeName
     )
 

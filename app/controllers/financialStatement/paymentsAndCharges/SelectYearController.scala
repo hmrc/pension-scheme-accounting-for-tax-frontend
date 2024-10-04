@@ -71,7 +71,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           "schemeName" -> paymentsCache.schemeDetails.schemeName,
           "form" -> form(journeyType, paymentOrChargeType, typeParam, config),
           "radios" -> FSYears.radios(form(journeyType, paymentOrChargeType, typeParam, config), years, isTaxYearFormat(paymentOrChargeType)),
-          "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+          "returnUrl" -> config.schemeDashboardUrl(request).format(srn.id)
         )
 
         renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(Ok(_))
@@ -96,7 +96,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                 "schemeName" -> paymentsCache.schemeDetails.schemeName,
                 "form" -> formWithErrors,
                 "radios" -> FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType)),
-                "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+                "returnUrl" -> config.schemeDashboardUrl(request).format(srn.id)
               )
               renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
             },

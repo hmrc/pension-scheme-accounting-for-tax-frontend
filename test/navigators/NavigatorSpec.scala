@@ -28,7 +28,7 @@ import utils.AFTConstants.QUARTER_START_DATE
 import java.time.LocalDate
 
 class NavigatorSpec extends SpecBase {
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
 
   private case object DummyIdentifier extends Page
 

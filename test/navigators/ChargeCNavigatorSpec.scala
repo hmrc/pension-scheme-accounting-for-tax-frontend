@@ -63,7 +63,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(AddEmployersPage)(
           controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addEmployersNo),
         row(DeleteEmployerPage)(
-          Call("GET",config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
+          Call("GET",config.managePensionsSchemeSummaryUrl.format(srn.id)), zeroedCharge),
         row(DeleteEmployerPage)(
           controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
         row(DeleteEmployerPage)(
@@ -103,7 +103,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
 
 object ChargeCNavigatorSpec {
 
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
   private val startDate = QUARTER_START_DATE
 
   private val addEmployersYes = UserAnswers().set(AddEmployersPage, true).toOption

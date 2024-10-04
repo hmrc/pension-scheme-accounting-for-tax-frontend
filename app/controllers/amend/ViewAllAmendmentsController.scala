@@ -68,7 +68,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
 
             val viewModel = GenericViewModel(
               submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, version).url,
-              returnUrl = config.schemeDashboardUrl(request).format(srn),
+              returnUrl = config.schemeDashboardUrl(request).format(srn.id),
               schemeName = schemeName
             )
 

@@ -184,7 +184,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 }
 
 object PaymentsAndChargesInterestControllerSpec {
-  private val srn = SchemeReferenceNumber("test-srn")
+  private val srn = SchemeReferenceNumber("S1234567890")
 
   private def createCharge(index: Int, chargeReference: String, chargeType: SchemeFSChargeType): SchemeFSDetail = {
     SchemeFSDetail(
