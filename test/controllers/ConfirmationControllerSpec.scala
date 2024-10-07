@@ -70,7 +70,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private def json(isAmendment: Boolean): JsObject = Json.obj(
-    fields = "srn" -> SampleData.srn.id,
+    fields = "srn" -> SampleData.srn,
     "panelHtml" -> Html(s"${
       Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
         .toString()
@@ -84,7 +84,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = SampleData.schemeName),
     "viewPaymentsUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController
-      .onPageLoad(srn, QUARTER_START_DATE, AccountingForTaxCharges, All).url
+      .onPageLoad(srn.id, QUARTER_START_DATE, AccountingForTaxCharges, All).url
   )
 
   private val schemeFSResponseWithDataForDifferentYear: SchemeFS =
@@ -145,6 +145,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
       templateCaptor.getValue mustEqual "confirmation.njk"
 
+      println(s"*********${jsonCaptor.getValue}*******")
       jsonCaptor.getValue must containJson(json(isAmendment = false))
     }
 

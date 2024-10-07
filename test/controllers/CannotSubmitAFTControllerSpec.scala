@@ -97,7 +97,7 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
       val result = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result) mustBe Some(s"dummy-return-url/$srn")
+      redirectLocation(result) mustBe Some(s"dummy-return-url/${srn.id}")
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
       application.stop()

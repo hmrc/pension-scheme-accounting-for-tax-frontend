@@ -147,7 +147,7 @@ class PaymentsAndChargeDetailsControllerSpec
       "interest" -> schemeFSDetail.accruedInterestTotal,
       "returnLinkBasedOnJourney" -> "",
       "returnUrl" -> "",
-      "returnHistoryURL" -> "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary"
+      "returnHistoryURL" -> "/manage-pension-scheme-accounting-for-tax/S1234567890/2020-04-01/submission/1/summary"
     )
     optHint match {
       case Some(_) => commonJson ++ Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))

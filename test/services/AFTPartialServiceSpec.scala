@@ -510,7 +510,7 @@ class AFTPartialServiceSpec
       linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
       hiddenText = None
     )
-  private val overviewurl: String = s"$aftUrl/srn/financial-overview"
+  private val overviewurl: String = s"$aftUrl/S1234567890/financial-overview"
   private def viewAllPaymentsAndChargesLink(): Link =
     Link(
       id = "past-payments-and-charges",
@@ -648,15 +648,15 @@ object AFTPartialServiceSpec {
 
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
 
-  val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
-  val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
-  val returnHistoryUrl: String = s"$aftUrl/srn/previous-return/2020-10-01/amend-previous"
-  val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
-  val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
-  val viewUpcomingChargesUrl: String = s"$aftUrl/srn/upcoming-payments-logic"
-  val viewOverdueChargesUrl: String = s"$aftUrl/srn/overdue-payments-logic"
-  val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
-  val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/past-payments-logic"
+  val aftLoginUrl: String = s"$aftUrl/S1234567890/new-return/aft-login"
+  val amendUrl: String = s"$aftUrl/S1234567890/previous-return/amend-select"
+  val returnHistoryUrl: String = s"$aftUrl/S1234567890/previous-return/2020-10-01/amend-previous"
+  val aftSummaryUrl: String = s"$aftUrl/S1234567890/2020-10-01/draft/2/summary"
+  val continueUrl: String = s"$aftUrl/S1234567890/new-return/select-quarter-in-progress"
+  val viewUpcomingChargesUrl: String = s"$aftUrl/S1234567890/upcoming-payments-logic"
+  val viewOverdueChargesUrl: String = s"$aftUrl/S1234567890/overdue-payments-logic"
+  val viewPastChargesUrl: String = s"$aftUrl/S1234567890/past-payments-logic"
+  val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/S1234567890/financial-overview/past-payments-logic"
 
   def startModel: AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,
