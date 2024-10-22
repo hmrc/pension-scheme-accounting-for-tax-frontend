@@ -54,12 +54,13 @@
         </p>
         <hr>
 
-        {% if viewModel.quartersInProgress.length > 0 %}
+
 
             <h2 class="govuk-heading-l govuk-!-margin-top-6">
                 {{ messages("aftOverview.inProgress") }}
             </h2>
 
+        {% if viewModel.quartersInProgress.length > 0 %}
             <ul class="govuk-list">
                 {% for tuple in viewModel.quartersInProgress %}
                     <li class="govuk-body">
@@ -70,13 +71,19 @@
                 {% endfor %}
             </ul>
             <hr>
+        {% else %}
+            <p class="govuk-body">
+                {{ messages("aftOverview.noReportsInProgress") }}
+            </p>
+            <br>
+            <hr>
         {% endif %}
 
-        {% if viewModel.pastYearsAndQuarters.length > 0 %}
             <h2 class="govuk-heading-l govuk-!-margin-top-6">
                 {{ messages("aftOverview.pastAftReturns") }}
             </h2>
 
+        {% if viewModel.pastYearsAndQuarters.length > 0 %}
             {% for tuple in viewModel.pastYearsAndQuarters %}
                 <h3 class="govuk-heading-s">
                     {{ tuple[0] }}
@@ -93,6 +100,10 @@
                 </ul>
             {% endfor %}
 
+        {% else %}
+            <p class="govuk-body">
+                {{ messages("aftOverview.noPastReturns") }}
+            </p>
         {% endif %}
 
         <br>

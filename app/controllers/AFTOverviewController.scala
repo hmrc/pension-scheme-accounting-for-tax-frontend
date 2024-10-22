@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.AFTOverviewController._
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import helpers.FormatHelper.formatCurrencyAmountAsString
-import models.AFTQuarter.{formatForDisplayOneYear, monthDayStringFormat}
+import models.AFTQuarter.formatForDisplayOneYear
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, EventReportingCharges, getPaymentOrChargeType}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
