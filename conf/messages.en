@@ -1648,5 +1648,7 @@ aftOverview.totalOutstandingNotAvailable    = The amount outstanding is not curr
 aftOverview.viewOutstanding                 = View outstanding payments and charges
 aftOverview.financialOverview               = View your financial overview
 aftOverview.inProgress                      = In progress
+aftOverview.noReportsInProgress             = There are no AFT returns in progress.
 aftOverview.pastAftReturns                  = Past AFT returns
+aftOverview.noPastReturns                   = There are no past AFT returns.
 aftOverview.allPastAftReturns               = View or change all past AFT returns
