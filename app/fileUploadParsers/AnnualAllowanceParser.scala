@@ -28,6 +28,7 @@ import forms.mappings.Constraints
 import models.chargeE.ChargeEDetails
 import models.{ChargeType, CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
+import play.api.Logger
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.Json
@@ -35,6 +36,8 @@ import play.api.libs.json.Json
 import java.time.LocalDate
 
 trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters {
+
+  private val logger = Logger(classOf[AnnualAllowanceParser])
   override val chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance
   protected val memberDetailsFormProvider: MemberDetailsFormProvider
 
@@ -120,7 +123,8 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
           ))
       }
     } catch {
-      case _: RuntimeException =>
+      case e: Exception =>
+        logger.error(s"Unable to parse key =$fieldValue , exception=${e.getMessage}")
         Invalid(Seq(ParserValidationError(index, fieldNoTaxYear, TaxYearErrorKeys.invalidKey, AnnualAllowanceFieldNames.taxYear)))
     }
   }

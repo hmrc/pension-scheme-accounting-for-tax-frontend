@@ -41,15 +41,19 @@ trait Constraints {
     Constraint {
       case year if year.isEmpty => Invalid(requiredKey)
       case year if year.toLowerCase.contains("to") =>
-        val Array(year1, "to", year2) = year.split(" ").map(_.trim)
-        if (year1.toInt > maxYear)
-          Invalid(maxKey)
-        else if (year1.toInt < minYear)
-          Invalid(minKey)
-        else if (year2.toInt - year1.toInt == 1)
-          Valid
-        else
-          Invalid(invalidKey)
+        year.split("to").map(_.trim) match {
+          case Array(year1, year2) =>
+            if (year1.toInt > maxYear)
+              Invalid(maxKey)
+            else if (year1.toInt < minYear)
+              Invalid(minKey)
+            else if (year2.toInt - year1.toInt == 1)
+              Valid
+            else {
+              Invalid(invalidKey)
+            }
+          case _ => Invalid(invalidKey)
+        }
       case year if year.length == 4 =>
         if (year.toInt > maxYear)
           Invalid(maxKey)
