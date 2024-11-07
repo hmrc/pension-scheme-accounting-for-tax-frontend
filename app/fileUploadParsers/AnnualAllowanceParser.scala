@@ -124,7 +124,7 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
       }
     } catch {
       case e: Exception =>
-        logger.error(s"Unable to parse key =$fieldValue , exception=${e.getMessage}")
+        logger.error(s"Unable to process the year field with exception=${e.getMessage}", e)
         Invalid(Seq(ParserValidationError(index, fieldNoTaxYear, TaxYearErrorKeys.invalidKey, AnnualAllowanceFieldNames.taxYear)))
     }
   }
