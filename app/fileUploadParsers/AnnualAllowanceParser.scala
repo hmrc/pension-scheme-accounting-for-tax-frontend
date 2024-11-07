@@ -103,19 +103,25 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
   private def validateTaxYear(startDate: LocalDate, index: Int,
                               columns: Seq[String], fieldValue: String): Validated[Seq[ParserValidationError], String] = {
     val minYearDefaultValue = 2011
-    year(
-      minYear = minYearDefaultValue,
-      maxYear = startDate.getYear,
-      requiredKey = TaxYearErrorKeys.requiredKey,
-      invalidKey = TaxYearErrorKeys.invalidKey,
-      minKey = TaxYearErrorKeys.minKey,
-      maxKey = TaxYearErrorKeys.maxKey
-    ).apply(fieldValue) match {
-      case play.api.data.validation.Valid =>
-        Valid(this.fieldValue(columns, fieldNoTaxYear))
-      case play.api.data.validation.Invalid(errors) => Invalid(errors.map(
-        error => ParserValidationError(index, fieldNoTaxYear, error.message, AnnualAllowanceFieldNames.taxYear)
-      ))
+    try {
+      year(
+        minYear = minYearDefaultValue,
+        maxYear = startDate.getYear,
+        requiredKey = TaxYearErrorKeys.requiredKey,
+        invalidKey = TaxYearErrorKeys.invalidKey,
+        minKey = TaxYearErrorKeys.minKey,
+        maxKey = TaxYearErrorKeys.maxKey
+      ).apply(fieldValue) match {
+        case play.api.data.validation.Valid =>
+          Valid(this.fieldValue(columns, fieldNoTaxYear))
+        case play.api.data.validation.Invalid(errors) =>
+          Invalid(errors.map(
+            error => ParserValidationError(index, fieldNoTaxYear, error.message, AnnualAllowanceFieldNames.taxYear)
+          ))
+      }
+    } catch {
+      case _: RuntimeException =>
+        Invalid(Seq(ParserValidationError(index, fieldNoTaxYear, TaxYearErrorKeys.invalidKey, AnnualAllowanceFieldNames.taxYear)))
     }
   }
 
