@@ -28,6 +28,7 @@ import forms.mappings.Constraints
 import models.chargeE.ChargeEDetails
 import models.{ChargeType, CommonQuarters, MemberDetails}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage}
+import play.api.Logger
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.Json
@@ -35,6 +36,8 @@ import play.api.libs.json.Json
 import java.time.LocalDate
 
 trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters {
+
+  private val logger = Logger(classOf[AnnualAllowanceParser])
   override val chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance
   protected val memberDetailsFormProvider: MemberDetailsFormProvider
 
@@ -103,19 +106,26 @@ trait AnnualAllowanceParser extends Parser with Constraints with CommonQuarters 
   private def validateTaxYear(startDate: LocalDate, index: Int,
                               columns: Seq[String], fieldValue: String): Validated[Seq[ParserValidationError], String] = {
     val minYearDefaultValue = 2011
-    year(
-      minYear = minYearDefaultValue,
-      maxYear = startDate.getYear,
-      requiredKey = TaxYearErrorKeys.requiredKey,
-      invalidKey = TaxYearErrorKeys.invalidKey,
-      minKey = TaxYearErrorKeys.minKey,
-      maxKey = TaxYearErrorKeys.maxKey
-    ).apply(fieldValue) match {
-      case play.api.data.validation.Valid =>
-        Valid(this.fieldValue(columns, fieldNoTaxYear))
-      case play.api.data.validation.Invalid(errors) => Invalid(errors.map(
-        error => ParserValidationError(index, fieldNoTaxYear, error.message, AnnualAllowanceFieldNames.taxYear)
-      ))
+    try {
+      year(
+        minYear = minYearDefaultValue,
+        maxYear = startDate.getYear,
+        requiredKey = TaxYearErrorKeys.requiredKey,
+        invalidKey = TaxYearErrorKeys.invalidKey,
+        minKey = TaxYearErrorKeys.minKey,
+        maxKey = TaxYearErrorKeys.maxKey
+      ).apply(fieldValue) match {
+        case play.api.data.validation.Valid =>
+          Valid(this.fieldValue(columns, fieldNoTaxYear))
+        case play.api.data.validation.Invalid(errors) =>
+          Invalid(errors.map(
+            error => ParserValidationError(index, fieldNoTaxYear, error.message, AnnualAllowanceFieldNames.taxYear)
+          ))
+      }
+    } catch {
+      case e: Exception =>
+        logger.error(s"Unable to process the year field with exception=${e.getMessage}", e)
+        Invalid(Seq(ParserValidationError(index, fieldNoTaxYear, TaxYearErrorKeys.invalidKey, AnnualAllowanceFieldNames.taxYear)))
     }
   }
 

@@ -193,6 +193,29 @@ Joe,Bloggs,AB123456C,2020-2021,268.28,01/01/2020,NO,NO,NO,,,,,,,,,,,,,,,"""
       ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear))
   }
 
+    "return correctly where McCloud errors - invalid Tax Year field" in {
+      val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
+        s"""$header
+Joe,Bloggs,AB123456C,2020 to someError,268.28,01/01/2020,NO,NO,NO,,,,,,,,,,,,,,,"""
+      )
+
+      val result = parser.parse(startDate, validCsvFile, UserAnswers())
+      result.isValid mustBe false
+
+      result.swap.toList.flatten mustBe Seq(
+        ParserValidationError(1, 3, "annualAllowanceYear.fileUpload.error.invalid", AnnualAllowanceFieldNames.taxYear))
+    }
+
+    "no validation error when year is 2020t02021" in {
+      val validCsvFile: Seq[Array[String]] = CsvLineSplitter.split(
+        s"""$header
+        Joe,Bloggs,AB123456C,2020to2021,268.28,01/01/2020,NO,NO,NO,,,,,,,,,,,,,,,""")
+
+      val result = parser.parse(startDate, validCsvFile, UserAnswers())
+      result.isValid mustBe true
+      result.swap.toList.flatten mustBe Seq()
+    }
+
     val extraErrorsExpectedForMcCloud: Int => Seq[ParserValidationError] = row => Seq(ParserValidationError(
       row = row,
       col = 7,
