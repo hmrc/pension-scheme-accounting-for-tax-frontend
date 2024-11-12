@@ -16,6 +16,7 @@
 
 package controllers.financialOverview.psa
 
+import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
 import controllers.financialOverview.psa
@@ -39,6 +40,7 @@ class PsaFinancialOverviewController @Inject()(
                                                 val controllerComponents: MessagesControllerComponents,
                                                 financialStatementConnector: FinancialStatementConnector,
                                                 service: AFTPartialService,
+                                                config: FrontendAppConfig,
                                                 renderer: Renderer,
                                                 minimalConnector: MinimalConnector
                                               )(implicit ec: ExecutionContext)
@@ -78,8 +80,14 @@ class PsaFinancialOverviewController @Inject()(
       routes.PsaRequestRefundController.onPageLoad.url
     }
 
+    val templateToRender = if(config.podsNewFinancialCredits) {
+      "financialOverview/psa/psaFinancialOverviewNew.njk"
+    } else {
+      "financialOverview/psa/psaFinancialOverview.njk"
+    }
+
     renderer.render(
-      template = "financialOverview/psa/psaFinancialOverview.njk",
+      template = templateToRender,
       ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1,
         "totalOverdueCharge" -> psaCharges._2,
         "totalInterestAccruing" -> psaCharges._3,
