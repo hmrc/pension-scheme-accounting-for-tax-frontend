@@ -89,10 +89,10 @@ class PsaFinancialOverviewControllerSpec
   "PsaFinancialOverviewController" when {
     "schemeFinancialOverview" must {
 
-      "return the html with information received from overview api" in {
+      "return old html with information received from overview api for new financial credits is false" in {
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
-
+        when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
         when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
           .thenReturn(Future.successful(psaFs))
         when(mockAFTPartialService.getCreditBalanceAmount(any()))
@@ -105,6 +105,25 @@ class PsaFinancialOverviewControllerSpec
         status(result) mustEqual OK
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
         templateCaptor.getValue mustEqual "financialOverview/psa/psaFinancialOverview.njk"
+        jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      }
+
+      "return new html with information received from overview api for new financial credits is true" in {
+        when(mockAFTPartialService.retrievePsaChargesAmount(any()))
+          .thenReturn(("10", "10", "10"))
+        when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
+        when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
+          .thenReturn(Future.successful(psaFs))
+        when(mockAFTPartialService.getCreditBalanceAmount(any()))
+          .thenReturn(BigDecimal("1000"))
+        when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
+          .thenReturn(Future.successful(psaName))
+
+        val result = route(application, httpGETRequest(getPartial)).value
+
+        status(result) mustEqual OK
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+        templateCaptor.getValue mustEqual "financialOverview/psa/psaFinancialOverviewNew.njk"
         jsonCaptor.getValue must containJson(jsonToPassToTemplate)
       }
     }
