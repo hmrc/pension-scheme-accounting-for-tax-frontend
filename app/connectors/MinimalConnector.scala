@@ -40,20 +40,20 @@ class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
 
     val hcWithId: HeaderCarrier =
       (request.psaId, request.pspId) match {
-        case (Some(psa), _) => hc.withExtraHeaders("psaId" -> psa.id)
-        case (_, Some(psp)) => hc.withExtraHeaders("pspId" -> psp.id)
+        case (Some(_), _) => hc.withExtraHeaders("loggedInAsPsa" -> "true")
+        case (_, Some(_)) => hc.withExtraHeaders("loggedInAsPsa" -> "false")
         case _ => throw new Exception("Could not retrieve ID from request")
       }
 
     minDetails(hcWithId)
   }
 
-  def getMinimalPsaDetails(psaId: String)
-                                    (implicit hc: HeaderCarrier,
-                                     ec: ExecutionContext
-                                    ): Future[MinimalDetails] = {
+  def getMinimalPsaDetails()
+                          (implicit hc: HeaderCarrier,
+                           ec: ExecutionContext
+                          ): Future[MinimalDetails] = {
 
-    val hcWithId: HeaderCarrier = hc.withExtraHeaders("psaId" -> psaId)
+    val hcWithId: HeaderCarrier = hc.withExtraHeaders("loggedInAsPsa" -> "true")
     minDetails(hcWithId)
   }
 
