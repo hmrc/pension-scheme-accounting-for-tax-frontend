@@ -1414,6 +1414,7 @@ return.to.fileupload = Return to file upload
 
 
 schemeFinancial.h1 = Your financial overview
+schemeFinancial.h1.new = Financial overview
 schemeFinancial.h2.overduePayments  = Total of overdue payments and charges
 schemeFinancial.h2.totalInterestAccruing  = Total interest accruing to date
 schemeFinancial.h2.totalDuePayment  = Total of due payments and charges
@@ -1424,6 +1425,7 @@ schemeFinancial.allOverdue.link  = View all overdue payments and interest charge
 schemeFinancial.allDue.link  = View all due payments and charges
 schemeFinancial.allPaymentCharges.link  = View all payments and charges
 schemeFinancial.title = Your financial overview
+schemeFinancial.title.new = Financial overview
 schemeFinancial.refund = Request a refund
 
 financialPaymentsAndCharges.overdue.title = Overdue payments and interest charges
@@ -1467,12 +1469,24 @@ schemeFinancial.refund = Request a refund
 
 
 psa.financial.overview.title = Your financial overview
+psa.financial.overview.title.new = Financial overview
 psa.financial.overview.h2.overdue  = Total of overdue penalties and charges
+psa.financial.overview.h2.overdue.new  = Total overdue penalties and charges:
+psa.financial.overview.h2.overdue.penalties.and.charges.new = Overdue penalties and charges
+psa.financial.overview.h2.overdue.penalties.and.charges.p1.new = Charges that are late and accruing interest.
 psa.financial.overview.h2.totalInterestAccruing  = Total interest accruing to date
+psa.financial.overview.h2.totalInterestAccruing.new  = Total interest to date:
 psa.financial.overview.h2.totalDuePenalties  = Total of due penalties and charges
+psa.financial.overview.h2.totalDuePenalties.new  = Total due penalties and charges:
+
+psa.financial.overview.due.penalties.and.charges.new = Due penalties and charges
+psa.financial.overview.due.penalties.and.charges.p1.new = Penalties and charges where the deadline has not passed.
 psa.financial.overview.h2.creditBalance  = Credit balance
+psa.financial.overview.h2.creditBalance.new  = Total credit balance:
+psa.financial.overview.h2.creditHeading.new  = Credits
 psa.financial.overview.h2.repaymentInterest  = Repayment interest
 psa.financial.overview.allOverdue.link  = View all overdue penalties and interest charges
+psa.financial.overview.allOverdue.link.new  = View complete list of overdue penalties and interest charges
 psa.financial.overview.allDue.link  = View all due penalties and charges
 psa.financial.overview.pastPenalties.link  = View all penalties and charges
 psa.financial.overview.overdue.title = Overdue penalties and interest charges
