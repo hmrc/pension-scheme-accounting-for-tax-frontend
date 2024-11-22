@@ -43,6 +43,7 @@
                                  <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalInterestAccruing }}</p>
                            </div>
                     </div>
+
                {% if totalOverdueCharge != "£0.00" %}
                 <p class="govuk-body-m govuk-!-margin-bottom-6">
                     <a id="allOverdue" class=govuk-link href="{{allOverduePenaltiesAndInterestLink}}"> {{ messages("psa.financial.overview.allOverdue.link.new") }}</a>
@@ -70,6 +71,7 @@
 
                     </div>
                 </div>
+
                 {% if totalUpcomingCharge != "£0.00" %}
                  <p class="govuk-body-m govuk-!-margin-bottom-6">
                         <a id="allDue" class=govuk-link href="{{duePaymentLink}}"> {{ messages("psa.financial.overview.allDue.link") }}</a>
@@ -79,7 +81,7 @@
 
                 <div class="govuk-grid-row">
                      <div class="govuk-grid-column-full">
-                        <h2 class="govuk-!-display-inline-block govuk-heading-l govuk-!-margin-bottom-2">
+                        <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
                              {{ messages("psa.financial.overview.h2.creditHeading.new") }}
                          </h2>
                          <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">

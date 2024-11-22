@@ -82,7 +82,7 @@ class SchemeFinancialOverviewControllerSpec
   "SchemeFinancial Controller" when {
     "schemeFinancialOverview" must {
 
-      "return the html with information received from overview api" in {
+      "return html with information received from overview api" in {
         when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
@@ -100,7 +100,7 @@ class SchemeFinancialOverviewControllerSpec
 
         status(result) mustEqual OK
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        templateCaptor.getValue mustEqual "financialOverview/scheme/schemeFinancialOverview.njk"
+        templateCaptor.getValue mustEqual "financialOverview/scheme/schemeFinancialOverviewNew.njk"
         val actualJson = jsonCaptor.getValue
         (actualJson \ "requestRefundUrl").asOpt[String] mustBe Some(routes.RequestRefundController.onPageLoad(srn).url)
       }
