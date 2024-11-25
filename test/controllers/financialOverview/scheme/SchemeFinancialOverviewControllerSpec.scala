@@ -100,7 +100,7 @@ class SchemeFinancialOverviewControllerSpec
 
         status(result) mustEqual OK
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        templateCaptor.getValue mustEqual "financialOverview/scheme/schemeFinancialOverviewNew.njk"
+        templateCaptor.getValue mustEqual "financialOverview/scheme/schemeFinancialOverview.njk"
         val actualJson = jsonCaptor.getValue
         (actualJson \ "requestRefundUrl").asOpt[String] mustBe Some(routes.RequestRefundController.onPageLoad(srn).url)
       }
