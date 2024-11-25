@@ -39,7 +39,7 @@ class MinimalConnectorSpec
   override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
 
   private lazy val connector: MinimalConnector = injector.instanceOf[MinimalConnector]
-  private val minimalPsaDetailsUrl = "/pension-administrator/get-minimal-psa"
+  private val minimalPsaDetailsUrl = "/pension-administrator/get-minimal-details-self"
   private val email = "test@test.com"
 
   private def validResponse(b:Boolean) =
