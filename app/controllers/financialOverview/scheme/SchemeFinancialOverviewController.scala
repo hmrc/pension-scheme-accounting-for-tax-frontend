@@ -95,7 +95,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     val templateToRender = if(config.podsNewFinancialCredits) {
       "financialOverview/scheme/schemeFinancialOverviewNew.njk"
     } else {
-      "financialOverview/scheme/schemeFinancialOverviewNew.njk"
+      "financialOverview/scheme/schemeFinancialOverview.njk"
     }
 
     renderer.render(
