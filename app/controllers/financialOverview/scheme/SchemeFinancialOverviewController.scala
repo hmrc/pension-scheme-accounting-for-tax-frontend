@@ -16,6 +16,7 @@
 
 package controllers.financialOverview.scheme
 
+import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
@@ -40,6 +41,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
                                                   schemeService: SchemeService,
                                                   financialStatementConnector: FinancialStatementConnector,
                                                   service: PaymentsAndChargesService,
+                                                  config: FrontendAppConfig,
                                                   renderer: Renderer,
                                                   accessAction: AllowAccessActionProviderForIdentifierRequest
                                                     )(implicit ec: ExecutionContext)
@@ -90,9 +92,14 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
       case false => routes.RequestRefundController.onPageLoad(srn).url
     }
 
+    val templateToRender = if(config.podsNewFinancialCredits) {
+      "financialOverview/scheme/schemeFinancialOverviewNew.njk"
+    } else {
+      "financialOverview/scheme/schemeFinancialOverview.njk"
+    }
 
     renderer.render(
-      template = "financialOverview/scheme/schemeFinancialOverview.njk",
+      template = templateToRender,
       ctx = Json.obj("totalUpcomingCharge" -> totalUpcomingChargeFormatted,
         "totalOverdueCharge" -> totalOverdueChargeFormatted,
         "totalInterestAccruing" -> totalInterestAccruingFormatted ,
