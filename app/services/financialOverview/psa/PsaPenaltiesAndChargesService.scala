@@ -356,7 +356,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   def saveAndReturnPenalties(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PenaltiesCache] =
     for {
       penalties <- fsConnector.getPsaFS(psaId)
-      minimalDetails <- minimalConnector.getMinimalPsaDetails(psaId)
+      minimalDetails <- minimalConnector.getMinimalPsaDetails()
       _ <- financialInfoCacheConnector.save(Json.toJson(PenaltiesCache(psaId, minimalDetails.name, penalties.seqPsaFSDetail)))
     } yield PenaltiesCache(psaId, minimalDetails.name, penalties.seqPsaFSDetail)
 

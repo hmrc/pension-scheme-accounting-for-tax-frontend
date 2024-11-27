@@ -82,7 +82,7 @@ class SchemeFinancialOverviewControllerSpec
   "SchemeFinancial Controller" when {
     "schemeFinancialOverview" must {
 
-      "return the html with information received from overview api" in {
+      "return html with information received from overview api" in {
         when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))

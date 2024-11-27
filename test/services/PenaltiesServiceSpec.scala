@@ -74,7 +74,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     super.beforeEach()
     reset(mockListOfSchemesConn)
     when(mockAppConfig.minimumYear).thenReturn(year)
-    when(mockMinimalConnector.getMinimalPsaDetails(any())(any(), any()))
+    when(mockMinimalConnector.getMinimalPsaDetails()(any(), any()))
       .thenReturn(Future(MinimalDetails("", isPsaSuspended = false, Some("psa-name"), None, rlsFlag = false, deceasedFlag = false)))
     when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse()))))
     when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future.successful(Right(listOfSchemes)))
