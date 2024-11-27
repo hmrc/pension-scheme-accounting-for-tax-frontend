@@ -613,6 +613,14 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     ))
   }
 
+  private def interestTaxPeriodRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
+    Seq(Row(
+      key = Key(msg"psa.pension.scheme.interest.tax.period.new", classes = Seq("govuk-!-width-one-half").toSeq),
+      value = Value(Literal(s"${formatDateDMY(data.periodStartDate) + " to " + formatDateDMY(data.periodEndDate)}"),
+        classes = Seq("govuk-!-width-one-half").toSeq)
+    ))
+  }
+
   private def chargeReferenceInterestRow: Seq[SummaryList.Row] = {
 
     Seq(
@@ -622,12 +630,23 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       ))
   }
 
+  private def chargeReferenceInterestRowNew: Seq[SummaryList.Row] = {
+    Seq(
+      Row(
+        key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-width-one-half").toSeq),
+        value = Value(msg"paymentsAndCharges.chargeReference.toBeAssigned", classes = Seq("govuk-!-width-one-half").toSeq)
+      ))
+  }
+
   private def displayChargeReference(chargeReference: String)(implicit messages: Messages): String = {
     if (chargeReference == "") messages("paymentsAndCharges.chargeReference.toBeAssigned") else chargeReference
   }
 
   def interestRows(data: PsaFSDetail): Seq[SummaryList.Row] =
     chargeReferenceInterestRow ++ totalInterestDueRow(data)
+
+  def interestRowsNew(data: PsaFSDetail): Seq[SummaryList.Row] =
+    chargeReferenceInterestRowNew ++ interestTaxPeriodRow(data)
 
 }
 
