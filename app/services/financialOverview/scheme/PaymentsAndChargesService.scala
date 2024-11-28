@@ -291,6 +291,19 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       stoodOverAmountChargeDetailsRow(schemeFSDetail) ++ totalAmountDueChargeDetailsRow(schemeFSDetail, journeyType)
   }
 
+  def getChargeDetailsForSelectedChargeV2(schemeFSDetail: SchemeFSDetail, schemeDetails: SchemeDetails, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
+  : Seq[SummaryList.Row] = {
+    pstrRow(schemeDetails) ++ chargeReferenceRow(schemeFSDetail)
+  }
+
+  private def pstrRow(schemeDetails: SchemeDetails): Seq[SummaryList.Row] = {
+    Seq(
+      Row(
+        key = Key(msg"psa.pension.scheme.tax.reference.new", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")),
+        value = Value(Literal(s"${schemeDetails.pstr}"), classes = Seq("govuk-!-width-one-half"))
+      ))
+  }
+
   private def dateSubmittedRow(chargeType: SchemeFSChargeType, submittedDate: Option[String]): Seq[SummaryList.Row] = {
     (chargeType, submittedDate) match {
       case (PSS_AFT_RETURN | PSS_OTC_AFT_RETURN, Some(date)) =>

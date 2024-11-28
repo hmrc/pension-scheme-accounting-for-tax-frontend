@@ -1679,3 +1679,7 @@ aftOverview.noReportsInProgress             = There are no AFT returns in progre
 aftOverview.pastAftReturns                  = Past AFT returns
 aftOverview.noPastReturns                   = There are no past AFT returns.
 aftOverview.allPastAftReturns               = View or change all past AFT returns
+
+scheme.paymentDueAmount.new = Payment due:
+scheme.paymentDueDate.new = Date due:
+psa.pension.scheme.tax.reference.new = Pension Scheme Tax Reference
