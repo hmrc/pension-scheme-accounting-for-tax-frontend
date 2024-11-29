@@ -92,8 +92,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   private def paymentTable(rows: Seq[Seq[Table.Cell]]): Table =
     Table(head = tableHead, rows = rows, attributes = Map("role" -> "table"))
 
-
-
   private def row(isInterestAccrued: Boolean,
                   chargeType: String,
                   displayChargeReference: String,
@@ -206,7 +204,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       result mustBe expectedTable
     }
   }
-
 
   "getChargeDetailsForSelectedCharge" must {
     "return the row for original charge amount, payments and credits, stood over amount and total amount due" in {
