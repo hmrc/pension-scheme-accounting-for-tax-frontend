@@ -376,11 +376,31 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       stoodOverAmountChargeDetailsRow(data) ++ totalAmountDueChargeDetailsRow(data, journeyType)
   }
 
+  def chargeDetailsRowsNew(data: PsaFSDetail): Seq[SummaryList.Row] = {
+    taxReferenceRow(data) ++ chargeReferenceRow(data) ++ taxPeriodRow(data)
+  }
+
+  private def taxReferenceRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
+    Seq(
+      Row(
+        key = Key(msg"psa.financial.overview.chargeDetails.taxReference", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq),
+        value = Value(Literal(s"${data.pstr}"), classes = Seq("govuk-!-width-one-quarter").toSeq)
+      ))
+  }
+
   private def chargeReferenceRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq),
         value = Value(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter").toSeq)
+      ))
+  }
+
+  private def taxPeriodRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
+    Seq(
+      Row(
+        key = Key(msg"psa.financial.overview.chargeDetails.taxPeriod", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq),
+        value = Value(Literal(s"${formatDateDMY(data.periodStartDate) + " to " + formatDateDMY(data.periodEndDate)}"), classes = Seq("govuk-!-width-one-half").toSeq)
       ))
   }
 

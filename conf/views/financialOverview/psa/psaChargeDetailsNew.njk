@@ -38,20 +38,31 @@
             <div class="govuk-grid-row">
                    <div class="govuk-grid-column-one-half">
                         <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                           {{ messages("penalties.chargeDetails.paymentDue") }}
+                           {{ messages("psa.financial.overview.chargeDetails.paymentDue") }}
                         </h3>
                         <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ amountDue }}</p>
                    </div>
                    <div class="govuk-grid-column-one-half">
                          <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                            {{ messages("penalties.chargeDetails.dateDue") }}
+                            {{ messages("psa.financial.overview.chargeDetails.dateDue") }}
                          </h3>
                          <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ dueDate }}</p>
                    </div>
             </div>
 
-            <h2 class="govuk-heading-m">{{ period }}</h2>
+            <p class="govuk-body">
+                {{ govukSummaryList({
+                    rows: list
+                }) }}
+            </p>
 
+           <div class="govuk-grid-row">
+                 <div class="govuk-grid-column-one-half">
+                      <h2 class="govuk-heading-l">
+                         {{ messages("psa.financial.overview.chargeDetails.heading") }}
+                      </h2>
+                 </div>
+             </div>
 
             <p class="govuk-body">
                 {{ govukSummaryList({

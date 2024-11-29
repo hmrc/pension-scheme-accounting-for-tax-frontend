@@ -1140,6 +1140,8 @@ penalties.interest.totalDueAsOf = Interest due as of {0}
 penalties.chargeDetails.totalDue = Amount due
 penalties.chargeDetails.paymentDue = Payment due:
 penalties.chargeDetails.dateDue = Date due:
+penalties.chargeDetails.taxReference = Pension scheme tax reference
+penalties.chargeDetails.taxPeriod = Tax Period
 penalties.chargeReference = Charge reference: {0}
 penalties.visuallyHiddenText = for charge reference {0}
 
@@ -1526,6 +1528,13 @@ psa.financial.overview.interest.late.payment.text = This interest charge was the
 psa.financial.overview.penalties.pstr.text = Pension Scheme Tax Reference: {0}
 psa.financial.overview.penalties.all.returnLink = your penalties and charges for {0}
 psa.financial.overview.penalties.all.aft.returnLink = your penalties for {0} to {1}
+psa.financial.overview.chargeDetails.dateDue = Date due:
+psa.financial.overview.chargeDetails.paymentDue = Payment due:
+psa.financial.overview.chargeDetails.taxReference = Pension scheme tax reference
+psa.financial.overview.chargeDetails.taxPeriod = Tax Period
+psa.financial.overview.chargeDetails.heading = Charge Details
+psa.financial.overview.chargeAmount = Charge amount
+psa.financial.overview.paymentReceived = Payment received
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format

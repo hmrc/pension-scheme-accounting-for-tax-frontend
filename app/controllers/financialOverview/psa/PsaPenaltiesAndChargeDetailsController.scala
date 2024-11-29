@@ -102,6 +102,18 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     }
   }
 
+  private def setInsetTextNew(psaFS: PsaFSDetail, interestUrl: String, originalChargeUrl: String)
+                          (implicit messages: Messages): Html = {
+    if (psaFS.chargeType == CONTRACT_SETTLEMENT && psaFS.accruedInterestTotal > 0) {
+      setInsetTextForContractCharge(psaFS, interestUrl, messages)
+    } else if (psaFS.chargeType == CONTRACT_SETTLEMENT_INTEREST) {
+      setInsetTextForContractInterest(psaFS, originalChargeUrl, messages)
+    }
+    else {
+      Html("")
+    }
+  }
+
   private def setInsetTextForContractInterest(psaFS: PsaFSDetail, originalChargeUrl: String, messages: Messages) = {
     Html(
       s"<p class=govuk-body>${messages("psa.financial.overview.interest.late.payment.text", psaFS.chargeType.toString.toLowerCase())}</p>" +
@@ -186,7 +198,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       "htmlInsetText" ->    setInsetText(psaFSDetail, interestUrl, originalChargeUrl),
       "returnUrl" ->        getReturnUrl(psaFSDetail, penaltyType, journeyType),
       "isInterestPresent" -> isInterestPresent,
-      "list" ->             psaPenaltiesAndChargesService.chargeDetailsRows(psaFSDetail, journeyType)
+      "list" ->             psaPenaltiesAndChargesService.chargeDetailsRowsNew(psaFSDetail)
     ) ++ getReturnUrlText(psaFSDetail, penaltyType, journeyType)
   }
 
