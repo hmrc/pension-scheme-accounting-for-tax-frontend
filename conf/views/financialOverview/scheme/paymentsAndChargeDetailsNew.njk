@@ -3,8 +3,8 @@
 {% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
 {% from "macros/title.njk"                         import title %}
 {% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
-{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
-
+{% from "govuk/components/inset-text/macro.njk"    import govukInsetText %}
+{% from "govuk/components/table/macro.njk"         import govukTable %}
 
 {% block pageTitle %}
   {{ title(chargeType) }}
@@ -23,24 +23,35 @@
           <div class="govuk-grid-row">
               <div class="govuk-grid-column-one-half">
                    <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
-                      {{ messages("scheme.paymentDueAmount.new") }}
+                      {{ messages("pension.scheme.paymentDueAmount.new") }}
                    </h3>
                    <p class="govuk-heading-m govuk-!-margin-top-0">{{ paymentDueAmount }}</p>
               </div>
               <div class="govuk-grid-column-one-half">
                     <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
-                       {{ messages("scheme.paymentDueDate.new") }}
+                       {{ messages("pension.scheme.paymentDueDate.new") }}
                     </h3>
                     <p class="govuk-heading-m govuk-!-margin-top-0">{{ paymentDueDate }}</p>
               </div>
           </div>
 
         {% if chargeDetailsList.length > 0 %}
-            <h2 id ="paymentAndChargeDetails" class="govuk-heading-m">{{tableHeader}}</h2>
               {{ govukSummaryList({
                  rows: chargeDetailsList
               }) }}
         {% endif %}
+
+         <div class="govuk-grid-row">
+             <div class="govuk-grid-column-one-half">
+                  <h2 class="govuk-heading-l">
+                     {{ messages("pension.scheme.charge.details.new") }}
+                  </h2>
+             </div>
+         </div>
+
+         <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
+              {{ govukTable(chargeAmountDetails) }}
+          </div>
 
         {% if insetText.length > 0 %}
             {{ govukInsetText({
