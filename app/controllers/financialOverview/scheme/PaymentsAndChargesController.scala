@@ -60,7 +60,7 @@ class PaymentsAndChargesController @Inject()(
         val totalUpcoming: BigDecimal = upcomingCharges.map(_.amountDue).sum
 
         if (paymentsCache.schemeFSDetail.nonEmpty) {
-          val table = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType)
+          val table = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType, config)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
               fields =

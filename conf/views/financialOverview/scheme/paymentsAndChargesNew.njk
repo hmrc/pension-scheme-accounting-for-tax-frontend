@@ -18,19 +18,21 @@
           section: schemeName
         }) }}
 
+    <div class="govuk-inset-text">
         <p class="govuk-body">{{ reflectChargeText }}</p>
+    </div>
 
     <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
         {% if journeyType == "overdue" %}
             <div class="govuk-grid-column-one-half">
                 <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
-                    {{ messages("schemeFinancial.h2.overduePayments") }}
+                    {{ messages("schemeFinancial.h2.overduePayments.new") }}
                 </h2>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalOverdue }}</p>
             </div>
             <div class="govuk-grid-column-one-half">
                <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
-                  {{ messages("schemeFinancial.h2.totalInterestAccruing") }}
+                  {{ messages("schemeFinancial.h2.totalInterestAccruing.new2") }}
                </h2>
                <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ totalInterestAccruing }}</p>
             </div>

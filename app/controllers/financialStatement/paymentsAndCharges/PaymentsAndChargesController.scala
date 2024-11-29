@@ -71,7 +71,14 @@ class PaymentsAndChargesController @Inject()(
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
-          renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
+
+          val paymentsAndChargesTemplate = if(config.podsNewFinancialCredits) {
+            "financialStatement/paymentsAndCharges/paymentsAndCharges.njk"
+          } else {
+            "financialStatement/paymentsAndCharges/paymentsAndChargesNew.njk"
+          }
+
+          renderer.render(template = paymentsAndChargesTemplate, json).map(Ok(_))
 
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
