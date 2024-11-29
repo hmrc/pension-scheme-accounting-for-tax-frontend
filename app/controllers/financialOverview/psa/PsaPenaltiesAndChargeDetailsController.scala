@@ -35,6 +35,9 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 
+import java.text.NumberFormat
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -181,6 +184,9 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
     val penaltyType = getPenaltyType(detailsChargeType)
 
+    val formattedDueDate = formatDateDMY(psaFSDetail.dueDate)
+    val formattedAmountDue = NumberFormat.getCurrencyInstance(Locale.UK).format(psaFSDetail.amountDue)
+
     val originalChargeUrl = psaFSDetail.psaSourceChargeInfo match {
       case Some(sourceChargeRef) =>
         routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(psaFSDetail.pstr, sourceChargeRef.index.toString, All).url
@@ -190,9 +196,8 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     Json.obj(
       "heading" ->   detailsChargeTypeHeading.toString,
       "isOverdue" ->        psaPenaltiesAndChargesService.isPaymentOverdue(psaFSDetail),
-      "dueDate" ->           psaFSDetail.dueDate,
-      "amountDue" ->           psaFSDetail.amountDue,
-      "period" ->           period,
+      "dueDate" ->           formattedDueDate,
+      "amountDue" ->           formattedAmountDue,
       "chargeReference" ->  psaFSDetail.chargeReference,
       "penaltyAmount" ->    psaFSDetail.totalAmount,
       "htmlInsetText" ->    setInsetText(psaFSDetail, interestUrl, originalChargeUrl),
