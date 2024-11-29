@@ -1,0 +1,73 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
+{% from "govuk/components/input/macro.njk"         import govukInput %}
+{% from "govuk/components/fieldset/macro.njk"      import govukFieldset %}
+
+{% from 'macros/inputSearch.njk'               import hmrcInputSearch with context %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+
+{% block pageTitle %}
+    {{ title(heading, form.errors) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+
+            {% if schemeAssociated %}
+                        {{ hmrcPageHeading({
+                              text: heading,
+                              section: schemeName
+                            }) }}
+                    {% else %}
+                    <h1 class="govuk-heading-xl">{{ heading }}</h1>
+                    {% endif %}
+
+            {% if isOverdue %}
+                <p class="govuk-body govuk-tag govuk-tag--red">
+                    {{ messages("penalties.status.paymentOverdue") }}
+                </p>
+            {% endif %}
+
+            <div class="govuk-grid-row">
+                   <div class="govuk-grid-column-one-half">
+                        <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                           {{ messages("penalties.chargeDetails.paymentDue") }}
+                        </h3>
+                        <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ amountDue }}</p>
+                   </div>
+                   <div class="govuk-grid-column-one-half">
+                         <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
+                            {{ messages("penalties.chargeDetails.dateDue") }}
+                         </h3>
+                         <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">{{ dueDate }}</p>
+                   </div>
+            </div>
+
+            <h2 class="govuk-heading-m">{{ period }}</h2>
+
+
+            <p class="govuk-body">
+                {{ govukSummaryList({
+                    rows: list
+                }) }}
+            </p>
+
+            {% if isInterestPresent %}
+                {{ govukInsetText({
+                    html: htmlInsetText
+                }) }}
+            {% endif %}
+
+        </div>
+    </div>
+
+<p class="govuk-body"><a id="return" href="{{ returnUrl }}" class="govuk-link">{{ messages("return.to.link", returnLinkBasedOnJourney) }}</a></p>
+
+{% endblock %}

@@ -1138,6 +1138,8 @@ penalties.chargeDetails.amountUnderReview = Amount under review (includes appeal
 penalties.chargeDetails.totalDueBy = Amount due by {0}
 penalties.interest.totalDueAsOf = Interest due as of {0}
 penalties.chargeDetails.totalDue = Amount due
+penalties.chargeDetails.paymentDue = Payment due:
+penalties.chargeDetails.dateDue = Date due:
 penalties.chargeReference = Charge reference: {0}
 penalties.visuallyHiddenText = for charge reference {0}
 

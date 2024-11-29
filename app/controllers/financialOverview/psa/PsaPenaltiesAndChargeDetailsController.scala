@@ -16,6 +16,7 @@
 
 package controllers.financialOverview.psa
 
+import config.FrontendAppConfig
 import controllers.actions._
 import controllers.financialOverview.psa.routes.AllPenaltiesAndChargesController
 import models.ChargeDetailsFilter
@@ -42,6 +43,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                                                         override val messagesApi: MessagesApi,
                                                         val controllerComponents: MessagesControllerComponents,
                                                         psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
+                                                        config: FrontendAppConfig,
                                                         schemeService: SchemeService,
                                                         renderer: Renderer
                                                       )(implicit ec: ExecutionContext)
@@ -61,13 +63,26 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
         if(penaltyOpt.nonEmpty) {
           schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
             schemeDetails =>
+
+              val jsonCommon = if (config.podsNewFinancialCredits) {
+                commonJsonNewV2(penaltyOpt.head, journeyType)
+              } else {
+                commonJson(penaltyOpt.head, journeyType)
+              }
+
               val json = Json.obj(
                 "psaName" -> penaltiesCache.psaName,
                 "schemeAssociated" -> true,
                 "schemeName" -> schemeDetails.schemeName
-              ) ++ commonJson(penaltyOpt.head, journeyType)
+              ) ++ jsonCommon
 
-              renderer.render(template = "financialOverview/psa/psaChargeDetails.njk", json).map(Ok(_))
+              val templateToRender = if(config.podsNewFinancialCredits) {
+                "financialOverview/psa/psaChargeDetailsNew.njk"
+              } else {
+                "financialOverview/psa/psaChargeDetails.njk"
+              }
+
+              renderer.render(template = templateToRender, json).map(Ok(_))
             }
           } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -134,6 +149,37 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     Json.obj(
       "heading" ->   detailsChargeTypeHeading.toString,
       "isOverdue" ->        psaPenaltiesAndChargesService.isPaymentOverdue(psaFSDetail),
+      "period" ->           period,
+      "chargeReference" ->  psaFSDetail.chargeReference,
+      "penaltyAmount" ->    psaFSDetail.totalAmount,
+      "htmlInsetText" ->    setInsetText(psaFSDetail, interestUrl, originalChargeUrl),
+      "returnUrl" ->        getReturnUrl(psaFSDetail, penaltyType, journeyType),
+      "isInterestPresent" -> isInterestPresent,
+      "list" ->             psaPenaltiesAndChargesService.chargeDetailsRows(psaFSDetail, journeyType)
+    ) ++ getReturnUrlText(psaFSDetail, penaltyType, journeyType)
+  }
+
+  private def commonJsonNewV2(psaFSDetail: PsaFSDetail,
+                         journeyType: ChargeDetailsFilter
+                        )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
+    val period = psaPenaltiesAndChargesService.setPeriod(psaFSDetail.chargeType, psaFSDetail.periodStartDate, psaFSDetail.periodEndDate)
+    val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(psaFSDetail.pstr, psaFSDetail.index.toString, journeyType).url
+    val isInterestPresent: Boolean = psaFSDetail.accruedInterestTotal > 0 || psaFSDetail.chargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST
+    val detailsChargeType = psaFSDetail.chargeType
+    val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
+    val penaltyType = getPenaltyType(detailsChargeType)
+
+    val originalChargeUrl = psaFSDetail.psaSourceChargeInfo match {
+      case Some(sourceChargeRef) =>
+        routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(psaFSDetail.pstr, sourceChargeRef.index.toString, All).url
+      case _ => ""
+    }
+
+    Json.obj(
+      "heading" ->   detailsChargeTypeHeading.toString,
+      "isOverdue" ->        psaPenaltiesAndChargesService.isPaymentOverdue(psaFSDetail),
+      "dueDate" ->           psaFSDetail.dueDate,
+      "amountDue" ->           psaFSDetail.amountDue,
       "period" ->           period,
       "chargeReference" ->  psaFSDetail.chargeReference,
       "penaltyAmount" ->    psaFSDetail.totalAmount,
