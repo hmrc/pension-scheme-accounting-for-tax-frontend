@@ -36,7 +36,6 @@ import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 
 import java.text.NumberFormat
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -68,7 +67,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
             schemeDetails =>
 
               val jsonCommon = if (config.podsNewFinancialCredits) {
-                commonJsonNewV2(penaltyOpt.head, journeyType)
+                commonJsonNewV3(penaltyOpt.head, journeyType)
               } else {
                 commonJson(penaltyOpt.head, journeyType)
               }
@@ -174,7 +173,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     ) ++ getReturnUrlText(psaFSDetail, penaltyType, journeyType)
   }
 
-  private def commonJsonNewV2(psaFSDetail: PsaFSDetail,
+  private def commonJsonNewV3(psaFSDetail: PsaFSDetail,
                          journeyType: ChargeDetailsFilter
                         )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
     val period = psaPenaltiesAndChargesService.setPeriod(psaFSDetail.chargeType, psaFSDetail.periodStartDate, psaFSDetail.periodEndDate)
