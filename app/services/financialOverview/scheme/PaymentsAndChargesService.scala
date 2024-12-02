@@ -62,13 +62,19 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     val filteredSchemeFSDetail = filteredSeqSchemeFsDetailNoCredits(schemeFSDetail)
 
     val seqPayments: Seq[FinancialPaymentAndChargesDetails] = filteredSchemeFSDetail.flatMap { paymentOrCharge =>
-      def data: Seq[FinancialPaymentAndChargesDetails] = paymentsAndChargesDetails(paymentOrCharge, srn, chargeDetailsFilter)
+      def data: Seq[FinancialPaymentAndChargesDetails] = paymentsAndChargesDetails(paymentOrCharge, srn, chargeDetailsFilter, config)
       paymentOrCharge.chargeType match {
         case x:PenaltyType if !PenaltyType.displayCharge(x) => Seq.empty
         case _ => data
       }
     }
-    mapToTable(seqPayments, chargeDetailsFilter, config)
+
+    if (config.podsNewFinancialCredits) {
+      mapToTableNew(seqPayments, chargeDetailsFilter, config)
+    } else {
+      mapToTable(seqPayments, chargeDetailsFilter)
+    }
+
   }
 
   val isPaymentOverdue: SchemeFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
@@ -123,7 +129,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   private def paymentsAndChargesDetails(
                                          details: SchemeFSDetail,
                                          srn: String,
-                                         chargeDetailsFilter: ChargeDetailsFilter
+                                         chargeDetailsFilter: ChargeDetailsFilter,
+                                         config: FrontendAppConfig
                                        )(implicit messages: Messages): Seq[FinancialPaymentAndChargesDetails] = {
     val chargeType = getPaymentOrChargeType(details.chargeType)
     val (version, receiptDate) = (details.version, details.receiptDate)
@@ -144,7 +151,11 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           originalChargeAmount = s"${formatCurrencyAmountAsString(details.totalAmount)}",
           paymentDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
           status = status,
-          period = setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate),
+          period = if(config.podsNewFinancialCredits) {
+            setPeriodNew(details.chargeType, details.periodStartDate, details.periodEndDate)
+          } else {
+            setPeriod(details.chargeType, details.periodStartDate, details.periodEndDate)
+          },
           submittedDate = setSubmittedDate(submittedDate, details.chargeType),
           redirectUrl = controllers.financialOverview.scheme.routes.PaymentsAndChargeDetailsController.onPageLoad(
             srn, periodValue, index, chargeType, version, submittedDate, chargeDetailsFilter).url,
@@ -194,7 +205,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       messages(s"paymentOrChargeType.${paymentType.toString}").toLowerCase()
     }
 
-  def setPeriod(chargeType: SchemeFSChargeType, periodStartDate: Option[LocalDate], periodEndDate: Option[LocalDate]): String = {
+  def setPeriodNew(chargeType: SchemeFSChargeType, periodStartDate: Option[LocalDate], periodEndDate: Option[LocalDate]): String = {
     chargeType match {
       case PSS_AFT_RETURN | PSS_OTC_AFT_RETURN | PSS_AFT_RETURN_INTEREST | PSS_OTC_AFT_RETURN_INTEREST
            | AFT_MANUAL_ASST | AFT_MANUAL_ASST_INTEREST | OTC_MANUAL_ASST | OTC_MANUAL_ASST_INTEREST =>
@@ -209,8 +220,22 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  private def htmlStatus(data: FinancialPaymentAndChargesDetails)
-                        (implicit messages: Messages): Html = {
+  def setPeriod(chargeType: SchemeFSChargeType, periodStartDate: Option[LocalDate], periodEndDate: Option[LocalDate]): String = {
+    chargeType match {
+      case PSS_AFT_RETURN | PSS_OTC_AFT_RETURN | PSS_AFT_RETURN_INTEREST | PSS_OTC_AFT_RETURN_INTEREST
+           | AFT_MANUAL_ASST | AFT_MANUAL_ASST_INTEREST | OTC_MANUAL_ASST | OTC_MANUAL_ASST_INTEREST =>
+        "Quarter: " + formatStartDate(periodStartDate) + " to " + formatDateDMY(periodEndDate)
+      case PSS_CHARGE | PSS_CHARGE_INTEREST | CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST =>
+        "Period: " + formatStartDate(periodStartDate) + " to " + formatDateDMY(periodEndDate)
+      case EXCESS_RELIEF_PAID =>
+        "Tax year: " + formatDateDMY(periodStartDate) + " to " + formatDateDMY(periodEndDate)
+      case EXCESS_RELIEF_INTEREST =>
+        "Tax period: " + formatDateDMY(periodStartDate) + " to " + formatDateDMY(periodEndDate)
+      case _ => ""
+    }
+  }
+
+  private def htmlStatus(data: FinancialPaymentAndChargesDetails)(implicit messages: Messages): Html = {
     val (classes, content) = (data.status, data.paymentDue) match {
       case (InterestIsAccruing, _) =>
         ("govuk-tag govuk-tag--blue", data.status.toString)
@@ -225,35 +250,17 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   }
 
 
-  private def mapToTable(allPayments: Seq[FinancialPaymentAndChargesDetails],
+  private def mapToTableNew(allPayments: Seq[FinancialPaymentAndChargesDetails],
                          chargeDetailsFilter: ChargeDetailsFilter,
                          config: FrontendAppConfig
                         )(implicit messages: Messages): Table = {
 
-    val chargeAmountColumnName = if(config.podsNewFinancialCredits){
-      msg"paymentsAndCharges.chargeDetails.originalChargeAmount.new"
-    } else {
-      msg"paymentsAndCharges.chargeDetails.originalChargeAmount"
-    }
-
-    val dateDueOrCRNColumnName = if(config.podsNewFinancialCredits){
-      msg"paymentsAndCharges.dateDue.table"
-    } else {
-      msg"paymentsAndCharges.chargeReference.table"
-    }
-
-    val statusOrInterestAccruingColumnName = if(config.podsNewFinancialCredits){
-      msg"paymentsAndCharges.interestAccruing.table"
-    } else {
-      msg""
-    }
-
     val head = Seq(
       Cell(msg"", classes = Seq("govuk-!-width-one-half")),
-      Cell(dateDueOrCRNColumnName, classes = Seq("govuk-!-font-weight-bold table-nowrap")),
-      Cell(chargeAmountColumnName, classes = Seq("govuk-!-font-weight-bold table-nowrap")),
+      Cell(msg"paymentsAndCharges.dateDue.table", classes = Seq("govuk-!-font-weight-bold table-nowrap")),
+      Cell(msg"paymentsAndCharges.chargeDetails.originalChargeAmount.new", classes = Seq("govuk-!-font-weight-bold table-nowrap")),
       Cell(msg"paymentsAndCharges.paymentDue.table", classes = Seq("govuk-!-font-weight-bold table-nowrap")),
-      Cell(statusOrInterestAccruingColumnName, classes = Seq("govuk-!-font-weight-bold table-nowrap"))
+      Cell(msg"paymentsAndCharges.interestAccruing.table", classes = Seq("govuk-!-font-weight-bold table-nowrap"))
     )
 
     val rows = allPayments.map { data =>
@@ -285,30 +292,78 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           )
       }
 
-      val dateDueOrSRNData = if(config.podsNewFinancialCredits){
-        Cell(Literal(s"${formatDateDMY(data.dateDue)}"), classes = Seq("govuk-!-padding-right-7", "table-nowrap"))
-      } else {
-        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-padding-right-7"))
-      }
-
-      val statusOrAccruedInterestData = if (config.podsNewFinancialCredits) {
-        Cell(Literal(s"${formatBigDecimal(data.accruedInterestTotal)}"), classes = Seq("govuk-table__cell", "govuk-table__cell--numeric", "table-nowrap"))
-      } else {
-        Cell(htmlStatus(data), classes = Nil)
-      }
-
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-one-third")),
-        dateDueOrSRNData,
+        Cell(Literal(s"${formatDateDMY(data.dateDue)}"), classes = Seq("govuk-!-padding-right-7", "table-nowrap")),
         if (data.originalChargeAmount.isEmpty) {
           Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
         } else {
           Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-table__cell", "govuk-table__cell--numeric", "table-nowrap"))
         },
         Cell(Literal(data.paymentDue), classes = Seq("govuk-table__cell", "govuk-table__cell--numeric", "table-nowrap")),
-        statusOrAccruedInterestData
+        Cell(Literal(s"${formatBigDecimal(data.accruedInterestTotal)}"), classes = Seq("govuk-table__cell", "govuk-table__cell--numeric", "table-nowrap"))
       )
     }
+
+    Table(
+      head = head,
+      rows = rows,
+      attributes = Map("role" -> "table")
+    )
+  }
+
+  private def mapToTable(allPayments: Seq[FinancialPaymentAndChargesDetails], chargeDetailsFilter: ChargeDetailsFilter)
+                        (implicit messages: Messages): Table = {
+
+    val head = Seq(
+      Cell(msg"paymentsAndCharges.chargeType.table", classes = Seq("govuk-!-width-one-half")),
+      Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-font-weight-bold")),
+      Cell(msg"paymentsAndCharges.chargeDetails.originalChargeAmount", classes = Seq("govuk-!-font-weight-bold")),
+      Cell(msg"paymentsAndCharges.paymentDue.table", classes = Seq("govuk-!-font-weight-bold")),
+      Cell(Html(
+        s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
+      ))
+    )
+
+    val rows = allPayments.map { data =>
+
+      val htmlChargeType = (chargeDetailsFilter, data.submittedDate) match {
+        case (All, Some(dateValue)) => Html(
+          s"<a id=${data.id} class=govuk-link href=" +
+            s"${data.redirectUrl}>" +
+            s"${data.chargeType} " +
+            s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
+            s"<p class=govuk-hint>" +
+            s"$dateValue</p>")
+        case (All, None) => Html(
+          s"<a id=${data.id} class=govuk-link href=" +
+            s"${data.redirectUrl}>" +
+            s"${data.chargeType} " +
+            s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
+        case _ =>
+          Html(
+            s"<a id=${data.id} class=govuk-link href=" +
+              s"${data.redirectUrl}>" +
+              s"${data.chargeType} " +
+              s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
+              s"<p class=govuk-hint>" +
+              s"${data.period}</p>")
+      }
+
+
+      Seq(
+        Cell(htmlChargeType, classes = Seq("govuk-!-width-one-third")),
+        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-padding-right-7")),
+        if (data.originalChargeAmount.isEmpty) {
+          Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
+        } else {
+          Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-padding-right-7 table-nowrap"))
+        },
+        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-padding-right-5 table-nowrap")),
+        Cell(htmlStatus(data), classes = Nil)
+      )
+    }
+
 
     Table(
       head = head,

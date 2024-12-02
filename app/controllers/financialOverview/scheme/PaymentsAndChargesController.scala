@@ -74,7 +74,14 @@ class PaymentsAndChargesController @Inject()(
               "totalUpcoming" -> s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
               "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
             )
-            renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
+
+          val paymentsAndChargesTemplate = if(config.podsNewFinancialCredits) {
+            "financialOverview/scheme/paymentsAndChargesNew.njk"
+          } else {
+            "financialOverview/scheme/paymentsAndCharges.njk"
+          }
+
+            renderer.render(template = paymentsAndChargesTemplate, json).map(Ok(_))
         } else {
           logger.warn("Empty payments cache")
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
