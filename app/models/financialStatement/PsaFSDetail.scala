@@ -30,7 +30,7 @@ object PsaFS {
 }
 
 case class PsaFSDetail(index: Int,
-                        chargeReference: String,
+                       chargeReference: String,
                        chargeType: PsaFSChargeType,
                        dueDate: Option[LocalDate],
                        totalAmount: BigDecimal,

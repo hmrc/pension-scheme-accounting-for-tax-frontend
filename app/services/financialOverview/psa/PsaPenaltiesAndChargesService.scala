@@ -453,7 +453,19 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         scala.collection.immutable.Seq()
       }
     }
-    Table(head = headRow, rows = rows, attributes = Map("role" -> "table"))
+
+    val stoodOverAmountRow = if (data.stoodOverAmount > 0) {
+      scala.collection.immutable.Seq(scala.collection.immutable.Seq(
+        Cell(msg"paymentsAndCharges.chargeDetails.stoodOverAmount", classes = scala.collection.immutable.Seq("govuk-!-font-weight-bold")),
+        Cell(Literal("")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.stoodOverAmount)}"),
+          classes = scala.collection.immutable.Seq("govuk-!-font-weight-regular", "govuk-!-text-align-left"))
+      ))
+    } else {
+      scala.collection.immutable.Seq(scala.collection.immutable.Seq())
+    }
+
+    Table(head = headRow, rows = rows ++ stoodOverAmountRow, attributes = Map("role" -> "table"))
   }
 
   private def getClearingDetailLabelNew(documentLineItemDetail: DocumentLineItemDetail): Option[Text.Message] = {
