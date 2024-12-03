@@ -16,8 +16,10 @@
 
 package controllers.financialOverview.psa
 
+import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import controllers.financialOverview.psa.routes.AllPenaltiesAndChargesController
+import helpers.FormatHelper
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.All
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
@@ -41,6 +43,7 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
                                                         allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                         override val messagesApi: MessagesApi,
                                                         val controllerComponents: MessagesControllerComponents,
+                                                        config: FrontendAppConfig,
                                                         psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                                         schemeService: SchemeService,
                                                         renderer: Renderer
@@ -61,13 +64,26 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
           if(penaltyOpt.nonEmpty) {
             schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
               schemeDetails =>
+
+                val jsonCommon = if (config.podsNewFinancialCredits) {
+                  commonJsonNewV2(penaltyOpt.head, journeyType)
+                } else {
+                  commonJson(penaltyOpt.head, journeyType)
+                }
+
                 val json = Json.obj(
                   "psaName" -> penaltiesCache.psaName,
                   "schemeAssociated" -> true,
                   "schemeName" -> schemeDetails.schemeName
-                ) ++ commonJson(penaltyOpt.head, journeyType)
+                ) ++ jsonCommon
 
-                renderer.render(template = "financialOverview/psa/psaInterestDetails.njk", json).map(Ok(_))
+                val templateToRender = if (config.podsNewFinancialCredits) {
+                  "financialOverview/psa/psaInterestDetailsNew.njk"
+                } else {
+                  "financialOverview/psa/psaInterestDetails.njk"
+                }
+
+                renderer.render(template = templateToRender, json).map(Ok(_))
             }
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -104,6 +120,37 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
       "htmlInsetText" -> htmlInsetText
     ) ++ getReturnUrlText(sourcePsaFSDetail, penaltyType, journeyType)
   }
+
+  private def commonJsonNewV2(
+                          sourcePsaFSDetail: PsaFSDetail,
+                          journeyType: ChargeDetailsFilter
+                        )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
+    val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(sourcePsaFSDetail.pstr, sourcePsaFSDetail.index.toString, journeyType).url
+    val detailsChargeType = sourcePsaFSDetail.chargeType
+    val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
+    val penaltyType = getPenaltyType(detailsChargeType)
+
+    val htmlInsetText =
+      Html(
+        s"<p class=govuk-body>${Messages("psa.financial.overview.hint1")}" +
+          s" <span><a id='breakdown' class=govuk-link href=$originalAmountURL>" +
+          s" ${Messages("psa.financial.overview.hintLink")}</a></span>" +
+          s" ${Messages("psa.financial.overview.hint2")}</p>"
+      )
+
+    Json.obj(
+      "heading" -> detailsChargeTypeHeading.toString,
+      "isOverdue" -> psaPenaltiesAndChargesService.isPaymentOverdue(sourcePsaFSDetail),
+      "chargeReference" -> Messages("penalties.column.chargeReference.toBeAssigned"),
+      "interestDueAmount" -> FormatHelper.formatCurrencyAmountAsString(sourcePsaFSDetail.accruedInterestTotal),
+      "penaltyAmount" -> sourcePsaFSDetail.totalAmount,
+      "returnUrl" -> getReturnUrl(sourcePsaFSDetail, penaltyType, journeyType),
+      "list" -> psaPenaltiesAndChargesService.interestRowsNew(sourcePsaFSDetail),
+      "htmlInsetText" -> htmlInsetText
+    ) ++ getReturnUrlText(sourcePsaFSDetail, penaltyType, journeyType)
+  }
+
+
 
   def getReturnUrl(fs: PsaFSDetail, penaltyType: PenaltyType,
                    journeyType: ChargeDetailsFilter): String = {
