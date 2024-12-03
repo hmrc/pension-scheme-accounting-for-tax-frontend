@@ -104,7 +104,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
     }
   }
 
-  private def setInsetTextNew(psaFS: PsaFSDetail, interestUrl: String, originalChargeUrl: String)
+  private def setInsetTextForDueChargesNew(psaFS: PsaFSDetail, interestUrl: String, originalChargeUrl: String)
                           (implicit messages: Messages): Html = {
     if (psaFS.chargeType == CONTRACT_SETTLEMENT && psaFS.accruedInterestTotal > 0) {
       setInsetTextForContractCharge(psaFS, interestUrl, messages)
