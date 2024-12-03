@@ -313,7 +313,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
 
     "return schemeName if journey is Overdue" in {
-      paymentsAndChargesService.getReturnLinkBasedOnJourney(Overdue, schemeName) mustBe "your overdue payments and charges"
+      paymentsAndChargesService.getReturnLinkBasedOnJourney(Overdue, schemeName) mustBe "your Overdue payments and charges"
     }
 
     "return schemeName if journey is Upcoming" in {
