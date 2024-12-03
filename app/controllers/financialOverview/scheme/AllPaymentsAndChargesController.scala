@@ -66,7 +66,7 @@ class AllPaymentsAndChargesController @Inject()(
         val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
 
         if (filteredPayments.nonEmpty) {
-          val tableOfPaymentsAndCharges = paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, journeyType)
+          val tableOfPaymentsAndCharges = paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, journeyType, config)
           val json = Json.obj(
             fields =
               "titleMessage" -> title,
