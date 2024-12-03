@@ -17,6 +17,7 @@
 package services.financialOverview.psa
 
 import base.SpecBase
+import config.FrontendAppConfig
 import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.financialOverview.psa.routes._
@@ -53,6 +54,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
   import PsaPenaltiesAndChargesServiceSpec._
 
+  val config: FrontendAppConfig = mock[FrontendAppConfig]
   val mockSchemeService: SchemeService = mock[SchemeService]
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
   val mockFinancialInfoCacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
@@ -180,9 +182,9 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
             ))
 
           val row1 = psaPenaltiesAndChargesService.getPenaltiesAndCharges(
-            pstr, psaFsSeq, Overdue)
+            pstr, psaFsSeq, Overdue, config)
           val row2 = psaPenaltiesAndChargesService.getPenaltiesAndCharges(
-            pstr, psaFsSeq, Upcoming)
+            pstr, psaFsSeq, Upcoming, config)
 
           row1 map {
             _ mustBe expectedTable(penaltyLink(Overdue), interestLink(Overdue))
