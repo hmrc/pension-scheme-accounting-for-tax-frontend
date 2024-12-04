@@ -191,7 +191,7 @@ class PaymentsAndChargeDetailsController @Inject()(
         "paymentDueDate" -> paymentDueDate(schemeFSDetail),
         "chargeAmountDetails" -> paymentsAndChargesService.chargeAmountDetailsRowsV2(schemeFSDetail),
         "paymentDueAmount" -> paymentDueAmountCharges(schemeFSDetail),
-        "insetText" -> setInsetText(isChargeAssigned, schemeFSDetail, interestUrl),
+        "insetText" -> setInsetTextV2(isChargeAssigned, schemeFSDetail, interestUrl),
         "interest" -> schemeFSDetail.accruedInterestTotal,
         "returnLinkBasedOnJourney" -> paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeDetails.schemeName),
         "returnUrl" -> paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType)
@@ -268,7 +268,55 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
+
   private def setInsetText(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): Html = {
+    (isChargeAssigned, schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0,
+      isQuarterApplicable(schemeFSDetail), isChargeTypeVowel(schemeFSDetail)) match {
+      case (false, Some(date), true, true, _, _) => // ACT
+        Html(
+          s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
+            s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
+            s" <span class=govuk-!-font-weight-bold>${
+              messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
+                schemeFSDetail.accruedInterestTotal)
+            }</span>" +
+            s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", date.format(dateFormatterDMY))}<span>" +
+            s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
+        )
+      case (true, _, _, _, true, _) => // EXP
+        Html(
+          s"<p class=govuk-body>${
+            messages("financialPaymentsAndCharges.interest.chargeReference.text2",
+              schemeFSDetail.chargeType.toString.toLowerCase())
+          }</p>" +
+            s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
+        )
+      case (true, _, _, _, false, true) =>
+        Html(
+          s"<p class=govuk-body>${
+            messages("financialPaymentsAndCharges.interest.chargeReference.text1_vowel",
+              schemeFSDetail.chargeType.toString.toLowerCase())
+          }</p>" +
+            s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
+        )
+      case (true, _, _, _, false, false) =>
+        Html(
+          s"<p class=govuk-body>${
+            messages("financialPaymentsAndCharges.interest.chargeReference.text1_consonant",
+              schemeFSDetail.chargeType.toString.toLowerCase())
+          }</p>" +
+            s"<p class=govuk-body><a id='breakdown' class=govuk-link href=$interestUrl>" +
+            s"${messages("financialPaymentsAndCharges.interest.chargeReference.linkText")}</a></p>"
+        )
+      case _ =>
+        Html("")
+    }
+  }
+
+  private def setInsetTextV2(isChargeAssigned: Boolean, schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): Html = {
     (isChargeAssigned, schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0,
       isQuarterApplicable(schemeFSDetail), isChargeTypeVowel(schemeFSDetail)) match {
       case (false, Some(date), true, true, _, _) => // ACT

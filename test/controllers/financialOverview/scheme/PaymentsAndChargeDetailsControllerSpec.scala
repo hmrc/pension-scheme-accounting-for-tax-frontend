@@ -16,6 +16,7 @@
 
 package controllers.financialOverview.scheme
 
+import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -40,6 +41,7 @@ import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
+import viewmodels.Table
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -56,7 +58,6 @@ class PaymentsAndChargeDetailsControllerSpec
   import PaymentsAndChargeDetailsControllerSpec._
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
-
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
     routes.PaymentsAndChargeDetailsController
       .onPageLoad(srn, startDate, index, AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
@@ -68,6 +69,7 @@ class PaymentsAndChargeDetailsControllerSpec
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[NunjucksRenderer].toInstance(mockRenderer),
+        bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
       ): _*
@@ -162,7 +164,7 @@ class PaymentsAndChargeDetailsControllerSpec
           createChargeWithAmountDueAndInterest(index = 1, "XY002610150183", amountDue = 1234.00),
           createChargeWithAmountDueAndInterest(index = 2, "XY002610150184", amountDue = 1234.00)
         ))))
-
+      when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
       val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150184", amountDue = 1234.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -249,6 +251,7 @@ class PaymentsAndChargeDetailsControllerSpec
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest(index = 1, "XY002610150187", interest = 0.00)))))
+      when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
       val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150187", interest = 0.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
