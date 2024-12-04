@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
+import helpers.FormatHelper
 import helpers.FormatHelper._
 import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
@@ -383,6 +384,69 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       stoodOverAmountChargeDetailsRow(schemeFSDetail) ++ totalAmountDueChargeDetailsRow(schemeFSDetail, journeyType)
   }
 
+  def getChargeDetailsForSelectedChargeV2(schemeFSDetail: SchemeFSDetail, schemeDetails: SchemeDetails, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
+  : Seq[SummaryList.Row] = {
+    pstrRow(schemeDetails) ++ chargeReferenceRow(schemeFSDetail) ++ getTaxPeriod(schemeFSDetail)
+  }
+
+  def chargeAmountDetailsRowsV2(schemeFSDetail: SchemeFSDetail): Table = {
+    val headRow = scala.collection.immutable.Seq(
+      Cell(msg"pension.scheme.chargeAmount.label.new"),
+      Cell(Literal("")),
+      Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.totalAmount)}"),
+        classes = scala.collection.immutable.Seq("govuk-!-font-weight-regular", "govuk-!-text-align-right"))
+    )
+
+    val rows = schemeFSDetail.documentLineItemDetails map {
+      documentLineItemDetail => {
+        if (documentLineItemDetail.clearedAmountItem > 0) {
+          getClearingDetailLabelV2(documentLineItemDetail) match {
+            case Some(clearingDetailsValue) =>
+              scala.collection.immutable.Seq(
+                Cell(clearingDetailsValue, classes = scala.collection.immutable.Seq("govuk-!-font-weight-bold", "govuk-!-width-one-half")),
+                Cell(Literal(getChargeDateV2(documentLineItemDetail))),
+                Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"),
+                  classes = scala.collection.immutable.Seq("govuk-!-font-weight-regular", "govuk-!-text-align-right"))
+              )
+            case _ => scala.collection.immutable.Seq()
+          }
+        } else {
+          scala.collection.immutable.Seq()
+        }
+      }
+    }
+
+    val stoodOverAmountRow = if (schemeFSDetail.stoodOverAmount > 0) {
+      scala.collection.immutable.Seq(scala.collection.immutable.Seq(
+        Cell(msg"paymentsAndCharges.chargeDetails.stoodOverAmount", classes = scala.collection.immutable.Seq("govuk-!-font-weight-bold")),
+        Cell(Literal("")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.stoodOverAmount)}"),
+          classes = scala.collection.immutable.Seq("govuk-!-font-weight-regular", "govuk-!-text-align-right"))
+      ))
+    } else {
+      scala.collection.immutable.Seq(scala.collection.immutable.Seq())
+    }
+
+    Table(head = headRow, rows = rows ++ stoodOverAmountRow, attributes = Map("role" -> "table"))
+  }
+
+  private def pstrRow(schemeDetails: SchemeDetails): Seq[SummaryList.Row] = {
+    Seq(
+      Row(
+        key = Key(msg"pension.scheme.tax.reference.new", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")),
+        value = Value(Literal(s"${schemeDetails.pstr}"), classes = Seq("govuk-!-width-one-half"))
+      ))
+  }
+
+  private def getTaxPeriod(schemeFSDetail: SchemeFSDetail): Seq[SummaryList.Row] = {
+    Seq(
+      Row(
+        key = Key(msg"pension.scheme.interest.tax.period.new", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")),
+        value = Value(Literal(formatDateDMY(schemeFSDetail.periodStartDate) + " to " +
+          formatDateDMY(schemeFSDetail.periodEndDate)), classes = Seq("govuk-!-width-one-half"))
+      ))
+  }
+
   private def dateSubmittedRow(chargeType: SchemeFSChargeType, submittedDate: Option[String]): Seq[SummaryList.Row] = {
     (chargeType, submittedDate) match {
       case (PSS_AFT_RETURN | PSS_OTC_AFT_RETURN, Some(date)) =>
@@ -567,6 +631,40 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           case OTHER_REASONS => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c6")
         }
       case _ => None
+    }
+  }
+
+  private def getClearingDetailLabelV2(documentLineItemDetail: DocumentLineItemDetail): Option[Text.Message] = {
+    (documentLineItemDetail.clearingReason, documentLineItemDetail.paymDateOrCredDueDate, documentLineItemDetail.clearingDate) match {
+      case (Some(clearingReason), _, _) =>
+        clearingReason match {
+          case CLEARED_WITH_PAYMENT => Some(msg"pension.scheme.financialPaymentsAndCharges.clearingReason.c1.new")
+          case CLEARED_WITH_DELTA_CREDIT => Some(msg"pension.scheme.financialPaymentsAndCharges.clearingReason.c2.new")
+          case REPAYMENT_TO_THE_CUSTOMER => Some(msg"pension.scheme.financialPaymentsAndCharges.clearingReason.c3.new")
+          case WRITTEN_OFF => Some(msg"pension.scheme.financialPaymentsAndCharges.clearingReason.c4.new")
+          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(msg"pension.scheme.financialPaymentsAndCharges.clearingReason.c5.new")
+          case OTHER_REASONS => Some(msg"pension.scheme.financialPaymentsAndCharges.clearingReason.c6.new")
+        }
+      case (Some(clearingReason), None, None) =>
+        clearingReason match {
+          case CLEARED_WITH_PAYMENT => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c1")
+          case CLEARED_WITH_DELTA_CREDIT => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c2")
+          case REPAYMENT_TO_THE_CUSTOMER => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c3")
+          case WRITTEN_OFF => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c4")
+          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(msg"financialPaymentsAndCharges.noClearingDate.clearingReason.c5")
+          case OTHER_REASONS => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c6")
+        }
+      case _ => None
+    }
+  }
+
+  private def getChargeDateV2(documentLineItemDetail: DocumentLineItemDetail): String = {
+    (documentLineItemDetail.paymDateOrCredDueDate, documentLineItemDetail.clearingDate) match {
+      case (Some(paymDateOrCredDueDate), _) =>
+        formatDateDMY(paymDateOrCredDueDate)
+      case (None, Some(clearingDate)) =>
+        formatDateDMY(clearingDate)
+      case _ => ""
     }
   }
 
