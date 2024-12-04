@@ -35,8 +35,7 @@ class SessionDataCacheConnectorSpec
   override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
 
   private lazy val connector: SessionDataCacheConnector = injector.instanceOf[SessionDataCacheConnector]
-  private val externalId = "test-value"
-  private val sessionDataCacheUrl = s"/pension-administrator/journey-cache/session-data/$externalId"
+  private val sessionDataCacheUrl = s"/pension-administrator/journey-cache/session-data-self"
 
   private def jsonAOP(aop:AdministratorOrPractitioner) =
     Json.obj("administratorOrPractitioner" -> aop.toString)
@@ -58,7 +57,7 @@ class SessionDataCacheConnectorSpec
           )
       )
 
-      connector.fetch(externalId) map {
+      connector.fetch() map {
         _ mustBe Some(Json.parse(validResponse("administrator")))
       }
     }
@@ -72,7 +71,7 @@ class SessionDataCacheConnectorSpec
           )
       )
 
-      connector.fetch(externalId) map {
+      connector.fetch() map {
         _ mustBe Some(jsonAOP(AdministratorOrPractitioner.Practitioner))
       }
     }
@@ -86,7 +85,7 @@ class SessionDataCacheConnectorSpec
           )
       )
 
-      connector.fetch(externalId) map {
+      connector.fetch() map {
         _ mustBe None
       }
     }
@@ -101,7 +100,7 @@ class SessionDataCacheConnectorSpec
       )
 
         recoverToSucceededIf[HttpException] {
-          connector.fetch(externalId)
+          connector.fetch()
         }
     }
   }
