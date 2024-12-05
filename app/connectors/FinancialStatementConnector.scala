@@ -76,7 +76,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, httpClientV2: Http
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
     httpClientV2
       .get(url)(schemeHc)
-      .transform(_.withRequestTimeout(Duration(40, SECONDS)))
+      .transform(_.withRequestTimeout(config.ifsTimeout))
       .execute[HttpResponse].map{ response => response.status match {
         case OK =>
           val schemeFS = response.json.as[SchemeFS]
