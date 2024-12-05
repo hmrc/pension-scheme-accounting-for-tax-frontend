@@ -103,7 +103,8 @@ class PsaPaymentsAndChargesController @Inject()(
           "reflectChargeText" -> getReflectChargeText(journeyType),
           "journeyType" -> journeyType.toString,
           "penaltiesTable" -> penaltiesTable,
-          "psaName" -> psaName)
+          "psaName" -> psaName,
+          "podsNewFinancialCredits" -> config.podsNewFinancialCredits)
       )(request).map(Ok(_))
     }
   }

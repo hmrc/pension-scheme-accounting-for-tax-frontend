@@ -23,8 +23,8 @@
                    <p class="govuk-body">{{ messages("psa.financial.overview.penalties.pstr.text", pstr) }}</br>
        {% endif %}
 
-    {% if config.podsNewFinancialCredits %}
-          {{ govukInsetText({
+    {% if podsNewFinancialCredits %}
+         {{ govukInsetText({
             text: reflectChargeText
           }) }}
      {% else %}
