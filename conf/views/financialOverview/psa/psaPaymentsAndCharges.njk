@@ -3,6 +3,7 @@
 {% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
 {% from "macros/title.njk"                         import title %}
 {% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 {% block pageTitle %}
   {{ title(messages(titleMessage)) }}
@@ -22,7 +23,14 @@
                    <p class="govuk-body">{{ messages("psa.financial.overview.penalties.pstr.text", pstr) }}</br>
        {% endif %}
 
-        <p class="govuk-body">{{ reflectChargeText }}</p>
+    {% if podsNewFinancialCredits %}
+         {{ govukInsetText({
+            text: reflectChargeText
+          }) }}
+     {% else %}
+      <p class="govuk-body">{{ reflectChargeText }}</p>
+     {% endif %}
+
 
     <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
         {% if journeyType == "overdue" %}
