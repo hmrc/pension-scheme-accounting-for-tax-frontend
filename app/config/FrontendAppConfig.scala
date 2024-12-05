@@ -107,11 +107,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val aftOverviewUrl: String = s"$aftUrl${configuration.get[String](path = "urls.aftOverview")}"
   lazy val isAftNonZero: String = s"$aftUrl${configuration.get[String](path = "urls.isAftNonZero")}"
   lazy val psaFinancialStatementUrl: String = s"$aftUrl${configuration.get[String](path = "urls.psaFinancialStatement")}"
-  lazy val podsNewFinancialCredits: Boolean = {
-
-    val bool = configuration.getOptional[Boolean]("pods.new.financial.credits").getOrElse(false)
-    bool
-  }
+  lazy val podsNewFinancialCredits: Boolean = configuration.getOptional[Boolean]("pods.new.financial.credits").getOrElse(false)
 
   def financialInfoCreditAccessSchemePsaUrl(psaId: String, srn: String): String =
     s"$aftUrl${configuration.get[String](path = "urls.financialInfoCreditAccessConnectorSchemePsa").format(psaId, srn)}"
