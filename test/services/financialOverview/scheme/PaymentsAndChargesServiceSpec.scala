@@ -17,6 +17,7 @@
 package services.financialOverview.scheme
 
 import base.SpecBase
+import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
@@ -92,8 +93,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   private def paymentTable(rows: Seq[Seq[Table.Cell]]): Table =
     Table(head = tableHead, rows = rows, attributes = Map("role" -> "table"))
 
-
-
   private def row(isInterestAccrued: Boolean,
                   chargeType: String,
                   displayChargeReference: String,
@@ -129,6 +128,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   }
 
   val mockSchemeService: SchemeService = mock[SchemeService]
+  val config: FrontendAppConfig = mock[FrontendAppConfig]
+
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
   val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
 
@@ -179,13 +180,15 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           val result1 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            chargeDetailsFilter = Overdue
+            chargeDetailsFilter = Overdue,
+            config = config
           )
 
           val result2 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFSDetail = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            chargeDetailsFilter = Upcoming
+            chargeDetailsFilter = Upcoming,
+            config = config
           )
           result1 mustBe expectedTable(chargeLink(Overdue), interestLink(Overdue))
           result2 mustBe expectedTable(chargeLink(Upcoming), interestLink(Upcoming))
@@ -200,13 +203,13 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       val result = paymentsAndChargesService.getPaymentsAndCharges(
         srn,
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00).head._2,
-        Overdue
+        Overdue,
+        config = config
       )
 
       result mustBe expectedTable
     }
   }
-
 
   "getChargeDetailsForSelectedCharge" must {
     "return the row for original charge amount, payments and credits, stood over amount and total amount due" in {
@@ -313,7 +316,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
 
     "return schemeName if journey is Overdue" in {
-      paymentsAndChargesService.getReturnLinkBasedOnJourney(Overdue, schemeName) mustBe "your overdue payments and charges"
+      paymentsAndChargesService.getReturnLinkBasedOnJourney(Overdue, schemeName) mustBe "your Overdue payments and charges"
     }
 
     "return schemeName if journey is Upcoming" in {

@@ -19,7 +19,7 @@ package controllers
 import connectors.admin.FeatureToggleConnector
 import connectors.AFTConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
-import models.AFTQuarter.{formatForDisplayOneYear, monthDayStringFormat}
+import models.AFTQuarter.formatForDisplayOneYear
 import models.viewModels.PastAftReturnsViewModel
 import models.{AFTOverview, PastAftReturnGroup, Quarters, ReportLink}
 import play.api.i18n.I18nSupport
