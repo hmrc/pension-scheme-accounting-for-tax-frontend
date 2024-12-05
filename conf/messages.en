@@ -1697,3 +1697,18 @@ aftOverview.noReportsInProgress             = There are no AFT returns in progre
 aftOverview.pastAftReturns                  = Past AFT returns
 aftOverview.noPastReturns                   = There are no past AFT returns.
 aftOverview.allPastAftReturns               = View or change all past AFT returns
+
+pension.scheme.paymentDueAmount.new = Payment due:
+pension.scheme.paymentDueDate.new = Date due:
+pension.scheme.tax.reference.new = Pension Scheme Tax Reference
+pension.scheme.interest.tax.period.new = Tax period
+pension.scheme.charge.details.new = Charge details
+pension.scheme.chargeAmount.label.new = Charge amount
+
+pension.scheme.financialPaymentsAndCharges.clearingReason.c1.new = Payment received
+pension.scheme.financialPaymentsAndCharges.clearingReason.c2.new = Credit applied
+pension.scheme.financialPaymentsAndCharges.clearingReason.c3.new = Repayment made
+pension.scheme.financialPaymentsAndCharges.clearingReason.c4.new = Written off
+pension.scheme.financialPaymentsAndCharges.clearingReason.c5.new = Transferred
+pension.scheme.financialPaymentsAndCharges.clearingReason.c6.new = Cleared
+pension.scheme.interest.dueAmount.new = Interest amount:
