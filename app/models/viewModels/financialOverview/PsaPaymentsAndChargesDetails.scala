@@ -21,7 +21,6 @@ import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import java.time.LocalDate
 
 case class PsaPaymentsAndChargesDetails(chargeType: PsaFSChargeType,
-                                        dueDate: String,
                                         chargeReference: String,
                                         originalChargeAmount: String,
                                         paymentDue: String,
@@ -32,4 +31,4 @@ case class PsaPaymentsAndChargesDetails(chargeType: PsaFSChargeType,
                                         period: String,
                                         schemeName: String,
                                         visuallyHiddenText: String,
-                                        dueDate2: Option[LocalDate])
+                                        dueDate: Option[LocalDate])

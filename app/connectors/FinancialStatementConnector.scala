@@ -26,7 +26,6 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, StringContextOps}
 import utils.HttpResponseHelper
 
-import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{ExecutionContext, Future}
 
 class FinancialStatementConnector @Inject()(http: HttpClient, httpClientV2: HttpClientV2, config: FrontendAppConfig)
