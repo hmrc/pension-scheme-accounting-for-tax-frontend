@@ -86,16 +86,27 @@ class PsaPaymentsAndChargesController @Inject()(
     logger.debug(s"AFT service returned InterestAccruing - ${psaCharges.interestAccruing}")
 
     psaPenaltiesAndChargesService.getPenaltiesAndCharges(psaId,
-      penaltiesCache.penalties, journeyType) flatMap { table =>
+      penaltiesCache.penalties, journeyType, config) flatMap { table =>
 
       val penaltiesTable = if (journeyType == Upcoming) {
         removePaymentStatusColumn(table)
       } else {
         table
       }
+      val psaPaymentsAndChargesTemplate = if(config.podsNewFinancialCredits) {
+        "financialOverview/psa/psaPaymentsAndChargesNew.njk"
+      } else {
+        "financialOverview/psa/psaPaymentsAndCharges.njk"
+      }
+
+      val reflectChargeText = if(config.podsNewFinancialCredits) {
+        s"psa.financial.overview.$journeyType.text.new"
+      } else {
+        s"psa.financial.overview.$journeyType.text"
+      }
 
       renderer.render(
-        template = "financialOverview/psa/psaPaymentsAndCharges.njk",
+        template = psaPaymentsAndChargesTemplate,
         ctx = Json.obj("totalUpcomingCharge" -> psaCharges.upcomingCharge,
           "totalOverdueCharge" -> psaCharges.overdueCharge,
           "totalInterestAccruing" -> psaCharges.interestAccruing,

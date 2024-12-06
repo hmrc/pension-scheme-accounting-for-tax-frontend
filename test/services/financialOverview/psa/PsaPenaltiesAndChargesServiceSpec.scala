@@ -130,7 +130,6 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
     )
   }
 
-
   private def penaltiesTable(rows: Seq[Seq[Table.Cell]]): Table =
     Table(head = tableHead.toSeq, rows = rows.map(_.toSeq).toSeq)
 
@@ -181,9 +180,9 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
             ))
 
           val row1 = psaPenaltiesAndChargesService.getPenaltiesAndCharges(
-            pstr, psaFsSeq, Overdue)
+            pstr, psaFsSeq, Overdue, config)
           val row2 = psaPenaltiesAndChargesService.getPenaltiesAndCharges(
-            pstr, psaFsSeq, Upcoming)
+            pstr, psaFsSeq, Upcoming, config)
 
           row1 map {
             _ mustBe expectedTable(penaltyLink(Overdue), interestLink(Overdue))
@@ -194,7 +193,6 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
           }
         }
     }
-
 
   }
 
