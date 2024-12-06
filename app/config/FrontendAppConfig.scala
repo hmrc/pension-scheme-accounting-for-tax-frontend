@@ -30,6 +30,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import scala.concurrent.duration.Duration
 
 @Singleton
 class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: ServicesConfig) {
@@ -51,6 +52,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val appName: String = configuration.get[String](path = "appName")
   val analyticsToken: String = configuration.get[String](s"google-analytics.token")
   val analyticsHost: String = configuration.get[String](s"google-analytics.host")
+
+  val ifsTimeout: Duration = configuration.get[Duration]("ifs.timeout")
 
   val reportAProblemPartialUrl: String = getConfigString("contact-frontend.report-problem-url.with-js")
   val reportAProblemNonJSUrl: String = getConfigString("contact-frontend.report-problem-url.non-js")
