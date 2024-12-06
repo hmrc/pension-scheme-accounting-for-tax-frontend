@@ -51,7 +51,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementConnector,
                                               financialInfoCacheConnector: FinancialInfoCacheConnector,
                                               schemeService: SchemeService,
-                                              minimalConnector: MinimalConnector) {
+                                              minimalConnector: MinimalConnector,
+                                              config: FrontendAppConfig) {
 
   val isPaymentOverdue: PsaFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
@@ -102,9 +103,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
           status =>
             PsaPaymentsAndChargesDetails(
               chargeType = tableChargeType,
+              dueDate = detail.dueDate.getOrElse("").toString,
               chargeReference = displayChargeReference(detail.chargeReference),
               originalChargeAmount = s"${formatCurrencyAmountAsString(detail.totalAmount)}",
               paymentDue = s"${formatCurrencyAmountAsString(detail.amountDue)}",
+              accruedInterestTotal = detail.accruedInterestTotal,
               status = status,
               pstr = detail.pstr,
               period =
@@ -125,9 +128,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             Seq(
               PsaPaymentsAndChargesDetails(
                 chargeType = INTEREST_ON_CONTRACT_SETTLEMENT,
+                dueDate = detail.dueDate.getOrElse("").toString,
                 chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
                 originalChargeAmount = "",
                 paymentDue = s"${formatCurrencyAmountAsString(detail.accruedInterestTotal)}",
+                accruedInterestTotal = detail.accruedInterestTotal,
                 status = InterestIsAccruing,
                 pstr = detail.pstr,
                 period =
@@ -192,9 +197,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
           status =>
             PsaPaymentsAndChargesDetails(
               chargeType = tableChargeType,
+              dueDate = detail.dueDate.getOrElse("").toString,
               chargeReference = if(detail.chargeReference == "") messages("paymentsAndCharges.chargeReference.toBeAssigned") else detail.chargeReference,
               originalChargeAmount = s"${formatCurrencyAmountAsString(detail.totalAmount)}",
               paymentDue = s"${formatCurrencyAmountAsString(detail.amountDue)}",
+              accruedInterestTotal = detail.accruedInterestTotal,
               status = status,
               pstr = detail.pstr,
               period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
@@ -210,9 +217,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             Seq(
               PsaPaymentsAndChargesDetails(
                 chargeType = INTEREST_ON_CONTRACT_SETTLEMENT,
+                dueDate = detail.dueDate.getOrElse("").toString,
                 chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
                 originalChargeAmount = "",
                 paymentDue = s"${formatCurrencyAmountAsString(detail.accruedInterestTotal)}",
+                accruedInterestTotal = detail.accruedInterestTotal,
                 status = InterestIsAccruing,
                 pstr = detail.pstr,
                 period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
@@ -254,16 +263,29 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   }
 
   private def getHeading()(implicit messages: Messages): Seq[Cell] = {
-    Seq(
-      Cell(msg"psa.financial.overview.penalty", classes = Seq("govuk-!-width-one-half").toSeq),
-      Cell(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-font-weight-bold").toSeq),
-      Cell(msg"psa.financial.overview.payment.amount", classes = Seq("govuk-!-font-weight-bold").toSeq),
-      Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold").toSeq),
-      Cell(
-        Html(
-          s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.paymentStatus")}</span>"
-        ))
-    )
+    if(config.podsNewFinancialCredits) {
+      Seq(
+        Cell(
+          Html(
+            s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penalty")}</span>"
+          )),
+        Cell(msg"psa.financial.overview.payment.dueDate", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(msg"psa.financial.overview.payment.charge.amount", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(msg"psa.financial.overview.payment.interest", classes = Seq("govuk-!-font-weight-bold").toSeq)
+      )
+    } else  {
+      Seq(
+        Cell(msg"psa.financial.overview.penalty", classes = Seq("govuk-!-width-one-half").toSeq),
+        Cell(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(msg"psa.financial.overview.payment.amount", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(
+          Html(
+            s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.paymentStatus")}</span>"
+          ))
+      )
+    }
   }
 
   private def getHeadingNew()(implicit messages: Messages): Seq[Cell] = {
@@ -322,17 +344,62 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               s"(${data.pstr})")
       }
 
-      Seq(
-        Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half").toSeq),
-        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter").toSeq),
-        if (data.originalChargeAmount.isEmpty) {
-          Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
-        } else {
-          Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-quarter").toSeq)
-        },
-        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-quarter").toSeq),
-        Cell(htmlStatus(data), classes = Nil)
-      )
+      val htmlChargeTypeV2 = (journeyType, getPenaltyType(data.chargeType)) match {
+        case (All, AccountingForTaxPenalties) =>
+          Html(
+            s"<a id=$linkId class=govuk-link href=" +
+              s"${data.redirectUrl}>" +
+              s"${data.chargeType} " +
+              s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
+        case (All, _) =>
+          Html(
+            s"<a id=$linkId class=govuk-link href=" +
+              s"${data.redirectUrl}>" +
+              s"${data.chargeType} " +
+              s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>" +
+              s"<p class=govuk-hint>" +
+              s"${data.period} </br>")
+        case _ =>
+          Html(
+            s"<a id=$linkId class=govuk-link href=" +
+              s"${data.redirectUrl}>" +
+              s"${data.chargeType} " +
+              s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a></br>" +
+              s"${data.schemeName} </br>" +
+              s"${data.chargeReference} </br>" +
+              s"${data.period}")
+      }
+
+      if(config.podsNewFinancialCredits) {
+        Seq(
+          Cell(htmlChargeTypeV2, classes = Seq("govuk-!-width-one-half").toSeq),
+          Cell(Literal(s"${data.dueDate}"), classes = Seq("govuk-!-width-one-quarter").toSeq),
+          if (data.originalChargeAmount.isEmpty) {
+            Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
+          } else {
+            Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-quarter").toSeq)
+          },
+          Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-quarter").toSeq),
+          if (data.status == InterestIsAccruing && data.accruedInterestTotal!=0) {
+            Cell(Literal(data.accruedInterestTotal.toString()), classes = Seq("govuk-!-width-one-quarter").toSeq)
+          } else {
+            Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
+          }
+        )
+      } else {
+        Seq(
+          Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half").toSeq),
+          Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter").toSeq),
+          if (data.originalChargeAmount.isEmpty) {
+            Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
+          } else {
+            Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-quarter").toSeq)
+          },
+          Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-quarter").toSeq),
+          Cell(htmlStatus(data), classes = Nil)
+        )
+      }
+
     }
 
     Table(
@@ -555,7 +622,19 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         scala.collection.immutable.Seq()
       }
     }
-    Table(head = headRow, rows = rows, attributes = Map("role" -> "table"))
+
+    val stoodOverAmountRow = if (data.stoodOverAmount > 0) {
+      scala.collection.immutable.Seq(scala.collection.immutable.Seq(
+        Cell(msg"paymentsAndCharges.chargeDetails.stoodOverAmount", classes = scala.collection.immutable.Seq("govuk-!-font-weight-bold")),
+        Cell(Literal("")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.stoodOverAmount)}"),
+          classes = scala.collection.immutable.Seq("govuk-!-font-weight-regular", "govuk-!-text-align-left"))
+      ))
+    } else {
+      scala.collection.immutable.Seq(scala.collection.immutable.Seq())
+    }
+
+    Table(head = headRow, rows = rows ++ stoodOverAmountRow, attributes = Map("role" -> "table"))
   }
 
   private def getClearingDetailLabelNew(documentLineItemDetail: DocumentLineItemDetail): Option[Text.Message] = {

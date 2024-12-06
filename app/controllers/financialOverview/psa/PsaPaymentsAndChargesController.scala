@@ -110,12 +110,29 @@ class PsaPaymentsAndChargesController @Inject()(
         ctx = Json.obj("totalUpcomingCharge" -> psaCharges.upcomingCharge,
           "totalOverdueCharge" -> psaCharges.overdueCharge,
           "totalInterestAccruing" -> psaCharges.interestAccruing,
-          "titleMessage" -> Message(s"psa.financial.overview.$journeyType.title"),
-          "reflectChargeText" -> Message(reflectChargeText),
+          "titleMessage" -> getTitleMessage(journeyType),
+          "reflectChargeText" -> getReflectChargeText(journeyType),
           "journeyType" -> journeyType.toString,
           "penaltiesTable" -> penaltiesTable,
-          "psaName" -> psaName)
+          "psaName" -> psaName,
+          "podsNewFinancialCredits" -> config.podsNewFinancialCredits)
       )(request).map(Ok(_))
+    }
+  }
+
+  private def getTitleMessage(journeyType: ChargeDetailsFilter) = {
+    if (config.podsNewFinancialCredits) {
+      Message(s"psa.financial.overview.$journeyType.title.v2")
+    } else {
+      Message(s"psa.financial.overview.$journeyType.title")
+    }
+  }
+
+  private def getReflectChargeText(journeyType: ChargeDetailsFilter) = {
+    if (config.podsNewFinancialCredits) {
+      Message(s"psa.financial.overview.$journeyType.text.v2")
+    } else {
+      Message(s"psa.financial.overview.$journeyType.text")
     }
   }
 

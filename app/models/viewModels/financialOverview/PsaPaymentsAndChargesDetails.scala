@@ -21,9 +21,11 @@ import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import java.time.LocalDate
 
 case class PsaPaymentsAndChargesDetails(chargeType: PsaFSChargeType,
+                                        dueDate: String,
                                         chargeReference: String,
                                         originalChargeAmount: String,
                                         paymentDue: String,
+                                        accruedInterestTotal: BigDecimal,
                                         status: PaymentAndChargeStatus,
                                         redirectUrl: String,
                                         pstr: String,

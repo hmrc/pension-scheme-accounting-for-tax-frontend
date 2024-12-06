@@ -62,9 +62,10 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
   val dateNow: LocalDate = LocalDate.now()
   val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  private def config: FrontendAppConfig = mock[FrontendAppConfig]
 
   private val psaPenaltiesAndChargesService = new PsaPenaltiesAndChargesService(fsConnector = mockFSConnector,
-    financialInfoCacheConnector = mockFinancialInfoCacheConnector, schemeService = mockSchemeService, minimalConnector = mockMinimalConnector)
+    financialInfoCacheConnector = mockFinancialInfoCacheConnector, schemeService = mockSchemeService, minimalConnector = mockMinimalConnector, config)
 
   private def htmlChargeType(penaltyType: String,
                              chargeReference: String,
@@ -94,7 +95,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
   private val tableHead = Seq(
     Cell(msg"psa.financial.overview.penalty", classes = Seq("govuk-!-width-one-half").toSeq),
     Cell(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-font-weight-bold").toSeq),
-    Cell(msg"psa.financial.overview.payment.amount", classes = Seq("govuk-!-font-weight-bold").toSeq),
+    Cell(msg"psa.financial.overview.payment.charge.amount", classes = Seq("govuk-!-font-weight-bold").toSeq),
     Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold").toSeq),
     Cell(Html(
       s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
@@ -154,7 +155,6 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
             PsaPenaltiesAndChargeDetailsController.onPageLoad(pstr, "0", chargeDetailsFilter).url
           val interestLink: ChargeDetailsFilter => String = chargeDetailsFilter =>
             PsaPaymentsAndChargesInterestController.onPageLoad(pstr, "0", chargeDetailsFilter).url
-
           def expectedTable(penaltyLink: String, interestLink: String): Table =
             penaltiesTable(Seq(
               row(
