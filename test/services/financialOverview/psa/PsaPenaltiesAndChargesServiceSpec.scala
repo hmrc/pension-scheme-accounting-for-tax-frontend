@@ -54,7 +54,6 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
   import PsaPenaltiesAndChargesServiceSpec._
 
-  val config: FrontendAppConfig = mock[FrontendAppConfig]
   val mockSchemeService: SchemeService = mock[SchemeService]
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
   val mockFinancialInfoCacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
@@ -131,7 +130,6 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
     )
   }
 
-
   private def penaltiesTable(rows: Seq[Seq[Table.Cell]]): Table =
     Table(head = tableHead.toSeq, rows = rows.map(_.toSeq).toSeq)
 
@@ -195,7 +193,6 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
           }
         }
     }
-
 
   }
 
