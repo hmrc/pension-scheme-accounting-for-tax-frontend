@@ -23,14 +23,15 @@ import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, StringContextOps}
 import utils.{DateHelper, HttpResponseHelper}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
 
-class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
+class AFTConnector @Inject()(http: HttpClient, httpClient2: HttpClientV2, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
   private val logger = Logger(classOf[AFTConnector])
@@ -75,35 +76,43 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
 
   def getIsAftNonZero(pstr: String, startDate: String, aftVersion: String)
                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Boolean] = {
-    val url = config.isAftNonZero
-    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
-    http.GET[HttpResponse](url)(implicitly, aftHc, implicitly).map { response =>
+    val url = url"${config.isAftNonZero}"
+    val headers: Seq[(String, String)] = Seq("pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
+    val aftHc = hc.withExtraHeaders(headers = headers:_*)
+    httpClient2
+      .get(url)(aftHc)
+      .setHeader(headers :_*)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map { response =>
       response.status match {
         case OK => response.json.as[Boolean]
-        case _ => handleErrorResponse("GET", url)(response)
+        case _ => handleErrorResponse("GET", url.toString)(response)
       }
     }
   }
 
   def getListOfVersions(pstr: String, startDate: String)
                        (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[VersionsWithSubmitter]] = {
-    val url = config.aftListOfVersions
+    val url = url"${config.aftListOfVersions}"
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> startDate)
-    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
-      response.status match {
-        case OK =>
-          Json.parse(response.body).validate[Seq[VersionsWithSubmitter]] match {
-            case JsSuccess(value, _) => value
-            case JsError(errors) => throw JsResultException(errors)
-          }
-        case NOT_FOUND =>
-          Seq.empty
-        case _ =>
-          handleErrorResponse("GET", url)(response)
-      }
-    } andThen {
+    httpClient2
+      .get(url)(schemeHc)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map{response =>
+        response.status match {
+          case OK =>
+            Json.parse(response.body).validate[Seq[VersionsWithSubmitter]] match {
+              case JsSuccess(value, _) => value
+              case JsError(errors) => throw JsResultException(errors)
+            }
+          case NOT_FOUND =>
+            Seq.empty
+          case _ =>
+            handleErrorResponse("GET", url.toString)(response)
+        }} andThen {
       case Failure(t: Throwable) => logger.warn("Unable to get list of versions", t)
     }
+
   }
 
   def getAftOverview(pstr: String, startDate: Option[String] = None, endDate: Option[String] = None)
