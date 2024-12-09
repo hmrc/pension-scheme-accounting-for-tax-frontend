@@ -311,9 +311,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         if (data.originalChargeAmount.isEmpty) {
           Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
         } else {
-          Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-table__cell", "govuk-table__cell--numeric", "table-nowrap"))
+          Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-table__cell", "govuk-!-padding-right-7", "table-nowrap"))
         },
-        Cell(Literal(data.paymentDue), classes = Seq("govuk-table__cell", "govuk-table__cell--numeric", "table-nowrap")),
+        Cell(Literal(data.paymentDue), classes = Seq("govuk-table__cell", "govuk-!-padding-right-7", "table-nowrap")),
         Cell(Literal(s"${formatBigDecimal(data.accruedInterestTotal)}"), classes = Seq("govuk-table__cell", "govuk-table__cell--numeric", "table-nowrap"))
       )
     }
@@ -362,7 +362,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
               s"<p class=govuk-hint>" +
               s"${data.period}</p>")
       }
-
 
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-one-third")),

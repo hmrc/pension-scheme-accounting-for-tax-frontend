@@ -60,12 +60,19 @@ class PaymentsAndChargesController @Inject()(
         val totalUpcoming: BigDecimal = upcomingCharges.map(_.amountDue).sum
 
         if (paymentsCache.schemeFSDetail.nonEmpty) {
+
+          val reflectChargeTextMsgKey = if(config.podsNewFinancialCredits) {
+            Message(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text.new")
+          } else {
+            Message(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text")
+          }
+
           val table = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType, config)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
               fields =
                 "titleMessage" -> Message(s"financialPaymentsAndCharges.$journeyType.title"),
-              "reflectChargeText" -> Message(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text"),
+              "reflectChargeText" -> reflectChargeTextMsgKey,
               "journeyType" -> journeyType.toString,
               "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
               "schemeName" -> paymentsCache.schemeDetails.schemeName,
