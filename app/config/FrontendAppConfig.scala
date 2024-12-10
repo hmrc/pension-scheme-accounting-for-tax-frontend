@@ -30,6 +30,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import scala.concurrent.duration.Duration
 
 @Singleton
 class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: ServicesConfig) {

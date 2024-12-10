@@ -68,7 +68,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
   def getSchemeFS(pstr: String)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeFS] = {
 
-    val url = config.schemeFinancialStatementUrl
+    val url = config.schemeFinancialStatementUrl //this url hits the timeout ifs link
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
