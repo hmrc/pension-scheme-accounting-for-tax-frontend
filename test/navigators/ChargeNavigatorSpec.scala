@@ -29,10 +29,8 @@ import org.scalatest.prop.{TableFor3, TableFor5}
 import org.scalatestplus.mockito.MockitoSugar
 import pages._
 import play.api.Application
-import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.Call
-import services.FeatureToggleService
 import utils.AFTConstants._
 
 import java.time.LocalDate
@@ -152,14 +150,9 @@ class ChargeNavigatorSpec extends NavigatorBehaviour with MockitoSugar with Befo
 
 
 class ChargeNavigatorToggleOnSpec extends NavigatorBehaviour with MockitoSugar with BeforeAndAfterEach {
-  private val mockFeatureToggleService = mock[FeatureToggleService]
 
   override lazy val app: Application = new GuiceApplicationBuilder()
-    .overrides(
-      Seq[GuiceableModule](
-        bind[FeatureToggleService].toInstance(mockFeatureToggleService)
-      ): _*
-    ).build()
+    .overrides(Seq[GuiceableModule](): _*).build()
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
