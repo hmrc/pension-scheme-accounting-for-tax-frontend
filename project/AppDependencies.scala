@@ -8,11 +8,11 @@ object AppDependencies {
     "uk.gov.hmrc"                   %%  "bootstrap-frontend-play-30"             % bootstrapVersion,
     "uk.gov.hmrc"                   %%  "play-nunjucks-viewmodel-play-30"        % "1.3.0",
     "org.webjars.npm"               %   "govuk-frontend"                         % "4.7.0",
-    "org.webjars.npm"               %   "hmrc-frontend"                          % "1.35.2",
     "com.google.inject.extensions"  %   "guice-multibindings"                    % "4.2.3",
     "uk.gov.hmrc"                   %%  "domain-play-30"                         % "9.0.0",
     "com.univocity"                 %   "univocity-parsers"                      % "2.9.1",
-    "org.typelevel"                 %%  "cats-core"                              % "2.10.0"
+    "org.typelevel"                 %%  "cats-core"                              % "2.10.0",
+    "uk.gov.hmrc"                   %% "play-frontend-hmrc-play-30"             % "8.5.0"
   )
 
   val test: Seq[ModuleID] = Seq(
