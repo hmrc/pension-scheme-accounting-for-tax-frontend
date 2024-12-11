@@ -19,16 +19,19 @@ package connectors
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.financialStatement._
+import play.api.Logger
 import play.api.http.Status._
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, StringContextOps}
 import utils.HttpResponseHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
+class FinancialStatementConnector @Inject()(http: HttpClient, httpClientV2: HttpClientV2, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
+  private val logger = Logger(classOf[FinancialStatementConnector])
 
   def getPsaFS(psaId: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PsaFS] = {
@@ -68,10 +71,12 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
   def getSchemeFS(pstr: String)
                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeFS] = {
 
-    val url = config.schemeFinancialStatementUrl //this url hits the timeout ifs link
+    val url = url"${config.schemeFinancialStatementUrl}"
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
-    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
-      response.status match {
+    httpClientV2
+      .get(url)(schemeHc)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map{ response => response.status match {
         case OK =>
           val schemeFS = response.json.as[SchemeFS]
           SchemeFS(
@@ -79,9 +84,9 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
             seqSchemeFSDetail = schemeFS.seqSchemeFSDetail.filterNot(_.chargeType == SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
           )
         case _ =>
-          handleErrorResponse("GET", url)(response)
+          handleErrorResponse("GET", url.toString)(response)
+        }
       }
-    }
   }
 
   def getSchemeFSPaymentOnAccount(pstr: String)

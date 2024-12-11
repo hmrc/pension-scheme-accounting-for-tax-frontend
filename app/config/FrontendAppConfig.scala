@@ -53,6 +53,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   val analyticsToken: String = configuration.get[String](s"google-analytics.token")
   val analyticsHost: String = configuration.get[String](s"google-analytics.host")
 
+  val ifsTimeout: Duration = configuration.get[Duration]("ifs.timeout")
+
   val reportAProblemPartialUrl: String = getConfigString("contact-frontend.report-problem-url.with-js")
   val reportAProblemNonJSUrl: String = getConfigString("contact-frontend.report-problem-url.non-js")
   val betaFeedbackUrl: String = getConfigString("contact-frontend.beta-feedback-url.authenticated")

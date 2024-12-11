@@ -31,12 +31,11 @@ class SessionDataCacheConnector  @Inject()(
   config: FrontendAppConfig,
   http: HttpClient
 ) {
-  private def url(cacheId:String) = s"${config.pensionsAdministratorUrl}/pension-administrator/journey-cache/session-data/$cacheId"
+  private def url() = s"${config.pensionsAdministratorUrl}/pension-administrator/journey-cache/session-data-self"
 
-  def fetch(id: String)
+  def fetch()
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Option[JsValue]] = {
-
-    http.GET[HttpResponse](url(id))
+    http.GET[HttpResponse](url())
       .recoverWith(mapExceptionsToStatus)
       .map { response =>
         response.status match {
@@ -52,7 +51,7 @@ class SessionDataCacheConnector  @Inject()(
 
   def removeAll(id: String)
     (implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Result] = {
-    http.DELETE[HttpResponse](url(id)).map { _ =>
+    http.DELETE[HttpResponse](url()).map { _ =>
       Ok
     }
   }

@@ -60,7 +60,7 @@ class PaymentsAndChargesController @Inject()(
         val totalUpcoming: BigDecimal = upcomingCharges.map(_.amountDue).sum
 
         if (paymentsCache.schemeFSDetail.nonEmpty) {
-          val table = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType)
+          val table = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType, config)
             val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
             val json = Json.obj(
               fields =
@@ -74,7 +74,14 @@ class PaymentsAndChargesController @Inject()(
               "totalUpcoming" -> s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
               "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
             )
-            renderer.render(template = "financialOverview/scheme/paymentsAndCharges.njk", json).map(Ok(_))
+
+          val paymentsAndChargesTemplate = if(config.podsNewFinancialCredits) {
+            "financialOverview/scheme/paymentsAndChargesNew.njk"
+          } else {
+            "financialOverview/scheme/paymentsAndCharges.njk"
+          }
+
+            renderer.render(template = paymentsAndChargesTemplate, json).map(Ok(_))
         } else {
           logger.warn(s"Empty payments cache for journey type: ${journeyType}")
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))

@@ -18,6 +18,8 @@ package models.viewModels.financialOverview
 
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 
+import java.time.LocalDate
+
 case class PaymentsAndChargesDetails(chargeType: String,
                                      chargeReference: String,
                                      originalChargeAmount: String,
@@ -27,5 +29,7 @@ case class PaymentsAndChargesDetails(chargeType: String,
                                      period: String,
                                      submittedDate: Option[String] = None,
                                      visuallyHiddenText: String,
-                                     id: String
+                                     id: String,
+                                     dateDue: Option[LocalDate],
+                                     accruedInterestTotal: BigDecimal
                                     )
