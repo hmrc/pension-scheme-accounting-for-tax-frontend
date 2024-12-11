@@ -41,7 +41,6 @@ import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
-import viewmodels.Table
 
 import java.time.LocalDate
 import scala.concurrent.Future
