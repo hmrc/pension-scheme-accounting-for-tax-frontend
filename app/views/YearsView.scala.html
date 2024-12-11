@@ -1,0 +1,33 @@
+@this(
+        layout: templates.Layout,
+        formHelper: FormWithCSRF,
+        govukErrorSummary: GovukErrorSummary,
+        govukButton: GovukButton,
+        govukRadios: GovukRadios
+)
+
+@(form: Form[_], submitCall: Call, schemeName: String, returnUrl: String, radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
+@layout(messages("year.title"), formHasErrors = form.hasErrors) {
+  <div>
+    <h1 class="govuk-heading-xl">@messages("messages__declaration__title")</h1>
+
+    @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+      @govukRadios(
+        RadiosViewModel(
+          form("value"),
+          radios,
+          Fieldset(
+            legend = Some(Legend(content = Text(messages("year.title")), isPageHeading = true,
+              classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4"
+            ))
+          )
+        )
+      )
+
+      @govukButton(
+        ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
+      )
+    }
+    <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
+  </div>
+}
