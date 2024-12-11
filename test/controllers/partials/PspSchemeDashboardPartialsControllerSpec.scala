@@ -17,7 +17,6 @@
 package controllers.partials
 
 import connectors.FinancialStatementConnector
-import connectors.admin.{FeatureToggleConnector, ToggleDetails}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -55,20 +54,16 @@ class PspSchemeDashboardPartialsControllerSpec
 
   private val mockAftPartialService: AFTPartialService = mock[AFTPartialService]
   private val mockSchemeService: SchemeService = mock[SchemeService]
-  private val mockFeatureToggleConnector = mock[FeatureToggleConnector]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
 
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[AFTPartialService].toInstance(mockAftPartialService),
       bind[SchemeService].toInstance(mockSchemeService),
-      bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
-      bind[FeatureToggleConnector].toInstance(mockFeatureToggleConnector)
+      bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
     )
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private val pspDashboardAftReturnsPartialJson: JsObject =
-    Json.obj("aft" -> Json.toJson(pspDashboardAftReturnsViewModel))
   private val pspDashboardPaymentsAndChargesPartialJson: JsObject =
     Json.obj("cards" -> Json.toJson(pspDashboardSchemePaymentsAndChargesViewModel))
 
@@ -109,7 +104,6 @@ class PspSchemeDashboardPartialsControllerSpec
     super.beforeEach()
     reset(mockAftPartialService)
     reset(mockRenderer)
-    reset(mockFeatureToggleConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.paymentsAndChargesUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
@@ -120,7 +114,9 @@ class PspSchemeDashboardPartialsControllerSpec
 
   "Psp Scheme Dashboard Partials Controller" must {
 
-    "return the html with the information for AFT returns and upcoming charges when interim-dashboard toggle is off" in {
+
+
+    "return the html with the information for upcoming charges" in {
       when(mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
 
@@ -132,45 +128,6 @@ class PspSchemeDashboardPartialsControllerSpec
 
       when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any(), any())(any()))
         .thenReturn(pspDashboardSchemePaymentsAndChargesViewModel)
-      when(mockFeatureToggleConnector.getNewPensionsSchemeFeatureToggle(any())(any()))
-        .thenReturn(Future.successful(ToggleDetails("interim-dashboard", Some("interim-dashboard"), false)))
-
-      val result = route(
-        app = application,
-        req = httpGETRequest(pspDashboardAftReturnsPartial)
-          .withHeaders(
-            "idNumber" -> SampleData.srn,
-            "schemeIdType" -> "srn",
-            "psaId" -> SampleData.pspId,
-            "authorisingPsaId" -> SampleData.psaId
-          )
-      ).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1))
-        .render(ArgumentMatchers.eq("partials/pspDashboardAftReturnsCard.njk"), jsonCaptor.capture())(any())
-      jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
-
-      verify(mockRenderer, times(1))
-        .render(ArgumentMatchers.eq("partials/pspSchemePaymentsAndChargesPartial.njk"), jsonCaptor.capture())(any())
-      jsonCaptor.getValue must containJson(pspDashboardPaymentsAndChargesPartialJson)
-    }
-
-    "return the html with the information for upcoming charges when interim-dashboard toggle is On" in {
-      when(mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
-
-      when(mockAftPartialService.retrievePspDashboardUpcomingAftChargesModel(any(), any())(any()))
-        .thenReturn(pspDashboardUpcomingAftChargesViewModel)
-
-      when(mockAftPartialService.retrievePspDashboardOverdueAftChargesModel(any(), any())(any()))
-        .thenReturn(pspDashboardOverdueAftChargesViewModel)
-
-      when(mockAftPartialService.retrievePspDashboardPaymentsAndChargesModel(any(), any(), any())(any()))
-        .thenReturn(pspDashboardSchemePaymentsAndChargesViewModel)
-      when(mockFeatureToggleConnector.getNewPensionsSchemeFeatureToggle(any())(any()))
-        .thenReturn(Future.successful(ToggleDetails("interim-dashboard", Some("interim-dashboard"), true)))
 
       val result = route(
         app = application,
