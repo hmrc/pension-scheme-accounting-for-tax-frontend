@@ -48,8 +48,18 @@ object DataRetrievals {
 
   def retrieveSchemeWithPSTR(block: (String, String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery)) match {
+
       case (Some(schemeName), Some(pstr)) => block(schemeName, pstr)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case (None, Some(_)) => {
+        logger.warn(s"Redirecting to session expired, failed to get schemeName, but retrieved pstr")
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      }
+      case (Some(_),None) => logger.warn(s"Redirecting to session expired, failed to get pstr, but retrieved schemeName")
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      case _ => {
+        logger.warn(s"Redirecting to session expired, failed to get schemeName and pstr")
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+      }
     }
   }
 
