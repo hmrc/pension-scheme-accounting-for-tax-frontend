@@ -29,7 +29,14 @@ object TwirlMigration extends Logging {
 
   def toTwirlRadios(nunjucksRadios: Seq[viewmodels.Radios.Item])(implicit messages: Messages): Seq[RadioItem] = {
     nunjucksRadios.map(radio => {
-      RadioItem(content = Text(radio.text.resolve), value = Some(radio.value), checked = radio.checked)
+      RadioItem(
+        content = Text(radio.text.resolve),
+        value = Some(radio.value),
+        checked = radio.checked,
+        label = radio.label.map(label =>
+          Label(classes = label.classes.mkString(" "))
+        )
+      )
     })
   }
 
