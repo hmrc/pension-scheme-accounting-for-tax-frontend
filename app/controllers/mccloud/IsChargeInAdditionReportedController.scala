@@ -33,6 +33,8 @@ import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import viewmodels.TwirlRadios
+import views.html.mccloud.IsChargeInAdditionReported
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -48,6 +50,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
                                                      requireData: DataRequiredAction,
                                                      formProvider: YesNoFormProvider,
                                                      val controllerComponents: MessagesControllerComponents,
+                                                     isChargeInAdditionReported: IsChargeInAdditionReported,
                                                      renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -68,27 +71,19 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
         DataRetrievals.retrieveSchemeName { schemeName =>
           val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
-          val viewModel = GenericViewModel(
-            submitUrl = routes.IsChargeInAdditionReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )
-
           val preparedForm = request.userAnswers.get(IsChargeInAdditionReportedPage(chargeType, index)) match {
             case None => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel,
-            "radios" -> Radios.yesNo(preparedForm("value")),
-            "chargeTypeDescription" -> Messages(s"chargeType.description.${chargeType.toString}")
-          )
-
-          renderer.render("mccloud/isChargeInAdditionReported.njk", json).map(Ok(_))
+          Future.successful(Ok(isChargeInAdditionReported(
+            form = preparedForm,
+            radios = TwirlRadios.yesNo(preparedForm("value")),
+            chargeTypeDesc = s"chargeType.description.${chargeType.toString}",
+            submitCall = routes.IsChargeInAdditionReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index),
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName = schemeName
+          )))
         }
     }
 
@@ -106,21 +101,14 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
           .bindFromRequest()
           .fold(
             formWithErrors => {
-
-              val viewModel = GenericViewModel(
-                submitUrl = routes.IsChargeInAdditionReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+              Future.successful(BadRequest(isChargeInAdditionReported(
+                form = formWithErrors,
+                radios = TwirlRadios.yesNo(formWithErrors("value")),
+                chargeTypeDesc = s"chargeType.description.${chargeType.toString}",
+                submitCall = routes.IsChargeInAdditionReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index),
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
-              )
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel,
-                "radios" -> Radios.yesNo(formWithErrors("value")),
-                "chargeTypeDescription" -> Messages(s"chargeType.description.${chargeType.toString}")
-              )
-              renderer.render("mccloud/isChargeInAdditionReported.njk", json).map(BadRequest(_))
+              )))
             },
             value =>
               if (value) {
