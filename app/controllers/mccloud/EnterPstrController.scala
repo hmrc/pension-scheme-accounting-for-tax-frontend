@@ -32,6 +32,7 @@ import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.mccloud.EnterPstr
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -47,6 +48,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                                     requireData: DataRequiredAction,
                                     formProvider: EnterPstrFormProvider,
                                     val controllerComponents: MessagesControllerComponents,
+                                    enterPstr: EnterPstr,
                                     renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -77,7 +79,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
           case None => form()
         }
 
-        (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
+        (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), twirlLifetimeOrAnnual(chargeType)) match {
           case (ordinalValue, Some(chargeTypeDesc)) =>
             val json = Json.obj(
               "srn" -> srn,
@@ -88,6 +90,15 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
               "chargeTypeDesc" -> chargeTypeDesc
             )
             renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
+
+            Future.successful(Ok(enterPstr(
+              form = preparedForm,
+              ordinal = ordinalValue,
+              chargeTypeDesc = chargeTypeDesc,
+              submitCall = routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              schemeName = schemeName
+            )))
           case _ =>
             renderer.render("badRequest.njk").map(BadRequest(_))
         }
@@ -109,24 +120,16 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-
-              val viewModel = GenericViewModel(
-                submitUrl = routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
+              (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), twirlLifetimeOrAnnual(chargeType)) match {
                 case (ordinalValue, Some(chargeTypeDesc)) =>
-                  val json = Json.obj(
-                    "srn" -> srn,
-                    "startDate" -> Some(localDateToString(startDate)),
-                    "form" -> formWithErrors,
-                    "viewModel" -> viewModel,
-                    "ordinal" -> ordinalValue,
-                    "chargeTypeDesc" -> chargeTypeDesc
-                  )
-                  renderer.render("mccloud/enterPstr.njk", json).map(BadRequest(_))
+                  Future.successful(BadRequest(enterPstr(
+                    formWithErrors,
+                    ordinalValue,
+                    chargeTypeDesc,
+                    routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+                    controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                    schemeName
+                  )))
                 case _ =>
                   renderer.render("badRequest.njk").map(BadRequest(_))
               }
