@@ -18,12 +18,22 @@ package viewmodels
 
 import play.api.data.Field
 import play.api.i18n.Messages
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Text}
 
 object Radios extends NunjucksSupport {
 
-
+  object Radio {
+    implicit def writes(implicit messages: Messages): OWrites[Radio] = (
+      (__ \ "label").write[Text] and
+        (__ \ "value").write[String] and
+        (__ \ "hint").writeNullable[Hint] and
+        (__ \ "classes").writeNullable[String]
+      ) { radio =>
+      (radio.label, radio.value, radio.hint, classes(radio.classes))
+    }
+  }
   final case class Radio(
                           label: Text,
                           value: String,
