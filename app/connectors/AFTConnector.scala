@@ -40,7 +40,7 @@ class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfi
                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
     val url = url"${config.aftFileReturn.format(journeyType.toString)}"
     val headers: Seq[(String, String)] = Seq("pstr" -> pstr)
-    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr)
+    val aftHc = hc.withExtraHeaders(headers = headers:_*)
 
     httpClient2
       .post(url)(aftHc)
