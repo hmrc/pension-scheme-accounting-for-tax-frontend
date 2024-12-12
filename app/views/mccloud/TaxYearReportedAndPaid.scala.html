@@ -22,9 +22,9 @@
     govukRadios: GovukRadios
 )
 
-@(form: Form[_], radios: Seq[RadioItem], year: String, ordinal: String, chargeTypeDesc: String, submitCall: Call, returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], radios: Seq[RadioItem], ordinal: String, chargeTypeDesc: String, submitCall: Call, returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(messages("taxQuarterReportedAndPaid.title", year, ordinal, chargeTypeDesc), formHasErrors = form.hasErrors) {
+@layout(messages("taxYearReportedAndPaid.title", ordinal, chargeTypeDesc), formHasErrors = form.hasErrors) {
     <div>
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
             @govukRadios(
@@ -34,7 +34,7 @@
                     Fieldset(
                         legend = Some(
                             Legend(
-                                content = Text(messages("taxQuarterReportedAndPaid.heading", year, ordinal, messages(chargeTypeDesc))),
+                                content = Text(messages("taxYearReportedAndPaid.heading", ordinal, messages(chargeTypeDesc))),
                                 isPageHeading = true,
                                 classes = "govuk-fieldset__legend--l"
                             )
