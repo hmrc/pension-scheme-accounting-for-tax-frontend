@@ -81,6 +81,8 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     val totalOverdueChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalOverdueCharge)}"
     val totalInterestAccruingFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}"
     val creditBalanceFormatted: String = creditBalanceAmountFormatted(creditSchemeFSDetail)
+    val isOverdueChargeAvailable = service.isOverdueChargeAvailable(schemeFSDetail)
+
     logger.debug(s"AFT service returned UpcomingCharge - $totalUpcomingCharge")
     logger.debug(s"AFT service returned OverdueCharge - $totalOverdueCharge")
     logger.debug(s"AFT service returned InterestAccruing - $totalInterestAccruing")
@@ -100,7 +102,8 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
 
     renderer.render(
       template = templateToRender,
-      ctx = Json.obj("totalUpcomingCharge" -> totalUpcomingChargeFormatted,
+      ctx = Json.obj(
+        "totalUpcomingCharge" -> totalUpcomingChargeFormatted,
         "totalOverdueCharge" -> totalOverdueChargeFormatted,
         "totalInterestAccruing" -> totalInterestAccruingFormatted ,
         "schemeName" -> schemeName,
@@ -108,7 +111,10 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
         "overduePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, "overdue").url,
         "duePaymentLink" -> routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
         "allPaymentLink" -> routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
-        "creditBalanceFormatted" -> creditBalanceFormatted, "creditBalance" -> creditBalance)
+        "creditBalanceFormatted" -> creditBalanceFormatted,
+        "creditBalance" -> creditBalance,
+        "isOverdueChargeAvailable" -> isOverdueChargeAvailable
+      )
     )(request).map(Ok(_))
   }
 

@@ -97,10 +97,11 @@
 
                          </div>
                     </div>
+                {% if isOverdueChargeAvailable %}
                     <p class="govuk-body-m">
-                                               <a id="allPaymentCharges" class=govuk-link href="{{ allPaymentLink }}"> {{ messages("schemeFinancial.allPaymentCharges.link") }}</a>
-                                       </p>
-
+                       <a id="allPaymentCharges" class=govuk-link href="{{ allPaymentLink }}"> {{ messages("schemeFinancial.allPaymentCharges.link") }}</a>
+                    </p>
+                {% endif %}
         </div>
     </div>
 

@@ -81,7 +81,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   }
 
-  val isPaymentOverdue: SchemeFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
+  val isPaymentOverdue: SchemeFSDetail => Boolean =
+    data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(DateHelper.today))
 
   val extractUpcomingCharges: Seq[SchemeFSDetail] => Seq[SchemeFSDetail] = schemeFSDetail =>
     schemeFSDetail.filter(charge => charge.dueDate.nonEmpty
@@ -89,7 +90,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       && charge.amountDue > BigDecimal(0.00))
 
   def getOverdueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] = {
-
     val withDueDate = schemeFSDetail.filter(_.dueDate.nonEmpty)
     logger.warn(s"After filtering non-empty due dates, ${withDueDate.size} items remain")
 
@@ -102,6 +102,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     withPositiveAmountDue
   }
 
+  def isOverdueChargeAvailable(schemeFSDetail: Seq[SchemeFSDetail]): Boolean = schemeFSDetail.exists(isPaymentOverdue)
 
   def getDueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
     schemeFSDetail
