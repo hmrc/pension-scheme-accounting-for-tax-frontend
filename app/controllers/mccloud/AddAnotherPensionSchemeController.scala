@@ -20,17 +20,17 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.AddAnotherPensionSchemePage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import viewmodels.TwirlRadios
+import views.html.mccloud.AddAnotherPensionScheme
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -45,10 +45,10 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
                                                   requireData: DataRequiredAction,
                                                   formProvider: YesNoFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
-                                                  renderer: Renderer)(implicit ec: ExecutionContext)
+                                                  renderer: Renderer,
+                                                  addAnotherPensionSchemeView: AddAnotherPensionScheme)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
@@ -62,27 +62,21 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
         DataRetrievals.retrieveSchemeName { schemeName =>
           val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
-          val viewModel = GenericViewModel(
-            submitUrl =
-              routes.AddAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )
-
           val preparedForm = request.userAnswers.get(AddAnotherPensionSchemePage(chargeType, index, schemeIndex)) match {
             case None        => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel,
-            "radios" -> Radios.yesNo(preparedForm("value"))
-          )
-          renderer.render("mccloud/addAnotherPensionScheme.njk", json).map(Ok(_))
-
+          Future.successful(Ok(
+            addAnotherPensionSchemeView(
+              form = preparedForm,
+              radios = TwirlRadios.yesNo(preparedForm("value")),
+              submitCall =
+                routes.AddAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              schemeName = schemeName
+            )
+          ))
         }
     }
 
@@ -104,21 +98,15 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val viewModel = GenericViewModel(
-                submitUrl =
-                  routes.AddAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel,
-                "radios" -> Radios.yesNo(formWithErrors("value"))
-              )
-              renderer.render("mccloud/addAnotherPensionScheme.njk", json).map(BadRequest(_))
+              Future.successful(BadRequest(
+                addAnotherPensionSchemeView(
+                  formWithErrors,
+                  TwirlRadios.yesNo(formWithErrors("value")),
+                  routes.AddAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+                  controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                  schemeName
+                )
+              ))
             },
             value =>
               for {
