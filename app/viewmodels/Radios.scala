@@ -20,6 +20,8 @@ import play.api.data.Field
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.govukfrontend.views.Aliases.RadioItem
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Text}
 
 object Radios extends NunjucksSupport {
@@ -82,9 +84,9 @@ object Radios extends NunjucksSupport {
     head.toSeq ++ tail
   }
 
-  def yesNo(field: Field): Seq[Item] = Seq(
-    Item(id = field.id, text = msg"site.yes", value = "true", checked = field.value.contains("true")),
-    Item(id = s"${field.id}-no", text = msg"site.no", value = "false", checked = field.value.contains("false"))
+  def yesNo(field: Field)(implicit messages: Messages): Seq[RadioItem]  = Seq(
+    RadioItem(id = Some(field.id), content = Text(Messages("site.yes")), value = Some("true"), checked = field.value.contains("true")),
+    RadioItem(id = Some(s"${field.id}-no"), content = Text(Messages("site.no")), value = Some("false"), checked = field.value.contains("false"))
   )
 
   private def classes(classes: Seq[String]): Option[String] =
