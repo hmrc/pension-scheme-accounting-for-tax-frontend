@@ -21,17 +21,18 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, UserAnswers}
+import models.{AccessType, ChargeType, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.mccloud.{RemovePensionSchemePage, SchemePathHelper, WasAnotherPensionSchemePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.JsArray
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import viewmodels.TwirlRadios
+import views.html.mccloud.RemovePensionScheme
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -48,7 +49,7 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
                                               requireData: DataRequiredAction,
                                               formProvider: YesNoFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
-                                              renderer: Renderer)(implicit ec: ExecutionContext)
+                                              removePensionScheme: RemovePensionScheme)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
@@ -65,27 +66,18 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
         DataRetrievals.retrieveSchemeName { schemeName =>
           val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
-          val viewModel = GenericViewModel(
-            submitUrl =
-              routes.RemovePensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )
-
           val preparedForm = request.userAnswers.get(RemovePensionSchemePage(chargeType, index, schemeIndex)) match {
             case None => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel,
-            "radios" -> Radios.yesNo(preparedForm("value"))
-          )
-          renderer.render("mccloud/removePensionScheme.njk", json).map(Ok(_))
-
+          Future.successful(Ok(removePensionScheme(
+            form = preparedForm,
+            radios = TwirlRadios.yesNo(preparedForm("value")),
+            submitCall = routes.RemovePensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName = schemeName
+          )))
         }
     }
 
@@ -109,21 +101,13 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val viewModel = GenericViewModel(
-                submitUrl =
-                  routes.RemovePensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+              Future.successful(BadRequest(removePensionScheme(
+                form = formWithErrors,
+                radios = TwirlRadios.yesNo(formWithErrors("value")),
+                submitCall = routes.RemovePensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
-              )
-
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel,
-                "radios" -> Radios.yesNo(formWithErrors("value"))
-              )
-              renderer.render("mccloud/removePensionScheme.njk", json).map(BadRequest(_))
+              )))
             },
             value =>
               if (value) {
