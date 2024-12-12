@@ -31,6 +31,7 @@ import models.viewModels.financialOverview.{PaymentsAndChargesDetails => Financi
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
 import models.{ChargeDetailsFilter, SchemeDetails}
+import play.api.Logger
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
 import services.SchemeService
@@ -52,6 +53,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                                           fsConnector: FinancialStatementConnector,
                                           financialInfoCacheConnector: FinancialInfoCacheConnector
                                          ) {
+
+  private val logger = Logger(classOf[PaymentsAndChargesService])
 
   case class IndexRef(chargeType: String, chargeReference: String, period: String)
 
@@ -85,11 +88,20 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       && (charge.dueDate.get.isEqual(DateHelper.today) || charge.dueDate.get.isAfter(DateHelper.today))
       && charge.amountDue > BigDecimal(0.00))
 
-  def getOverdueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
-    schemeFSDetail
-      .filter(_.dueDate.nonEmpty)
-      .filter(_.dueDate.get.isBefore(DateHelper.today))
-      .filter(_.amountDue > BigDecimal(0.00))
+  def getOverdueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] = {
+
+    val withDueDate = schemeFSDetail.filter(_.dueDate.nonEmpty)
+    logger.warn(s"After filtering non-empty due dates, ${withDueDate.size} items remain")
+
+    val overdue = withDueDate.filter(_.dueDate.get.isBefore(DateHelper.today))
+    logger.warn(s"After filtering overdue dates, ${overdue.size} items remain")
+
+    val withPositiveAmountDue = overdue.filter(_.amountDue > BigDecimal(0.00))
+    logger.warn(s"After filtering positive amount due, ${withPositiveAmountDue.size} items remain")
+
+    withPositiveAmountDue
+  }
+
 
   def getDueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] =
     schemeFSDetail
@@ -299,9 +311,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         if (data.originalChargeAmount.isEmpty) {
           Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
         } else {
-          Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-table__cell", "govuk-table__cell--numeric", "table-nowrap"))
+          Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-table__cell", "govuk-!-padding-right-7", "table-nowrap"))
         },
-        Cell(Literal(data.paymentDue), classes = Seq("govuk-table__cell", "govuk-table__cell--numeric", "table-nowrap")),
+        Cell(Literal(data.paymentDue), classes = Seq("govuk-table__cell", "govuk-!-padding-right-7", "table-nowrap")),
         Cell(Literal(s"${formatBigDecimal(data.accruedInterestTotal)}"), classes = Seq("govuk-table__cell", "govuk-table__cell--numeric", "table-nowrap"))
       )
     }
@@ -350,7 +362,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
               s"<p class=govuk-hint>" +
               s"${data.period}</p>")
       }
-
 
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-one-third")),
@@ -594,6 +605,8 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   def getPaymentsForJourney(loggedInId: String, srn: String, journeyType: ChargeDetailsFilter)
                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
     getPaymentsFromCache(loggedInId, srn).map { cache =>
+
+      logger.warn(s"schemeFSDetail had ${cache.schemeFSDetail.length} values. For journey type: ${journeyType}")
       journeyType match {
         case Overdue => cache.copy(schemeFSDetail = getOverdueCharges(cache.schemeFSDetail))
         case Upcoming => cache.copy(schemeFSDetail = extractUpcomingCharges(cache.schemeFSDetail))

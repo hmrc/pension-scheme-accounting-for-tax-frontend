@@ -36,10 +36,13 @@ class FinancialStatementConnector @Inject()(http: HttpClient, httpClientV2: Http
   def getPsaFS(psaId: String)
               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PsaFS] = {
 
-    val url = config.psaFinancialStatementUrl
+    val url = url"${config.psaFinancialStatementUrl}"
     val schemeHc = hc.withExtraHeaders("psaId" -> psaId)
 
-    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
+    httpClientV2
+      .get(url)(schemeHc)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map { response =>
       response.status match {
         case OK =>
           val psaFS = response.json.as[PsaFS]
@@ -47,7 +50,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, httpClientV2: Http
             inhibitRefundSignal = psaFS.inhibitRefundSignal,
             seqPsaFSDetail = psaFS.seqPsaFSDetail.filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT))
         case _ =>
-          handleErrorResponse("GET", url)(response)
+          handleErrorResponse("GET", url.toString)(response)
       }
     }
   }
@@ -55,15 +58,18 @@ class FinancialStatementConnector @Inject()(http: HttpClient, httpClientV2: Http
   def getPsaFSWithPaymentOnAccount(psaId: String)
                                   (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PsaFS] = {
 
-    val url = config.psaFinancialStatementUrl
+    val url = url"${config.psaFinancialStatementUrl}"
     val schemeHc = hc.withExtraHeaders("psaId" -> psaId)
 
-    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
+    httpClientV2
+      .get(url)(schemeHc)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map { response =>
       response.status match {
         case OK =>
           response.json.as[PsaFS]
         case _ =>
-          handleErrorResponse("GET", url)(response)
+          handleErrorResponse("GET", url.toString)(response)
       }
     }
   }
@@ -92,14 +98,17 @@ class FinancialStatementConnector @Inject()(http: HttpClient, httpClientV2: Http
   def getSchemeFSPaymentOnAccount(pstr: String)
                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeFS] = {
 
-    val url = config.schemeFinancialStatementUrl
+    val url = url"${config.schemeFinancialStatementUrl}"
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
-    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
+    httpClientV2
+      .get(url)(schemeHc)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map { response =>
       response.status match {
         case OK =>
           response.json.as[SchemeFS]
         case _ =>
-          handleErrorResponse("GET", url)(response)
+          handleErrorResponse("GET", url.toString)(response)
       }
     }
   }
