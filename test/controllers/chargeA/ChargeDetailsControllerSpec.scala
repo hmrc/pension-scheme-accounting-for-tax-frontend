@@ -35,6 +35,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.chargeA.ChargeDetailsView
 
 import scala.concurrent.Future
 
@@ -42,7 +43,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
-  private val templateToBeRendered = "chargeA/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
 
   private def httpPathGET: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt).url
@@ -87,20 +87,19 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      val request = httpGETRequest(httpPathGET)
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val view = application.injector.instanceOf[ChargeDetailsView].apply(
+        form,
+        controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt)
+      )(request, messages)
 
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      compareResultAndView(result, view)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {

@@ -27,17 +27,18 @@ import helpers.DeleteChargeHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
-import models.{ChargeType, Mode, AccessType, GenericViewModel}
+import models.{AccessType, ChargeType, GenericViewModel, Mode}
 import navigators.CompoundNavigator
 import pages.chargeA.ChargeDetailsPage
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.chargeA.ChargeDetailsView
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -53,6 +54,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         val controllerComponents: MessagesControllerComponents,
                                         deleteChargeHelper: DeleteChargeHelper,
                                         config: FrontendAppConfig,
+                                        view : ChargeDetailsView,
                                         renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -70,7 +72,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeName { _ =>
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
         def shouldPrepop(chargeDetails: ChargeDetails): Boolean =
@@ -81,14 +83,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           case _        => form(mininimumChargeValue)
         }
 
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, startDate, schemeName, accessType, version)
-        )
-
-        renderer.render(template = "chargeA/chargeDetails.njk", json).map(Ok(_))
+        Future.successful(Ok(view(preparedForm,
+          routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version))))
       }
     }
 
@@ -106,7 +102,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                 "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
                 "viewModel" -> viewModel(mode, srn, startDate, schemeName, accessType, version)
               )
-              renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
+//              renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
+              println("======> "+ formWithErrors.copy(errors = formWithErrors.errors.distinct))
+              Future.successful(BadRequest(view(formWithErrors.copy(errors = formWithErrors.errors.distinct),
+                routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version))))
             },
             value =>
               for {
