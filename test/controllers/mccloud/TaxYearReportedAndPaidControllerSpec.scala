@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, NormalMode, YearRange}
+import models.{GenericViewModel, NormalMode, YearRange, YearRangeMcCloud}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -40,7 +40,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper
+import utils.{DateHelper, TwirlMigration}
+import views.html.mccloud.TaxYearReportedAndPaid
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -63,10 +64,8 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
   private def httpPathPOST: String = routes.TaxYearReportedAndPaidController
     .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
 
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName)
+  private val submitCall = routes.TaxYearReportedAndPaidController
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex))
 
   private def userAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value
@@ -85,6 +84,18 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
       val result = route(application, request).value
 
       status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[TaxYearReportedAndPaid].apply(
+        form,
+        TwirlMigration.toTwirlRadios(YearRangeMcCloud.radios(form)),
+        "",
+        "chargeType.description.annualAllowance",
+        submitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "redirect to the next page when valid data is submitted" in {
@@ -119,6 +130,18 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
+
+      val view = application.injector.instanceOf[TaxYearReportedAndPaid].apply(
+        boundForm,
+        TwirlMigration.toTwirlRadios(YearRangeMcCloud.radios(boundForm)),
+        "",
+        "chargeType.description.annualAllowance",
+        submitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

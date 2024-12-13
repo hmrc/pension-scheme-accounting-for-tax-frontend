@@ -23,22 +23,23 @@ import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
-import models.{GenericViewModel, NormalMode}
-import org.mockito.ArgumentCaptor
+import models.NormalMode
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import viewmodels.TwirlRadios
+import views.html.mccloud.WasAnotherPensionScheme
 
 import scala.concurrent.Future
 
@@ -64,31 +65,17 @@ class WasAnotherPensionSchemeControllerSpec
       .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
       .url
 
-  private def httpPathPOSTAnnualAllowance: String =
-    routes.WasAnotherPensionSchemeController
-      .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
-      .url
+  private val annualAllowanceSubmitCall = routes.WasAnotherPensionSchemeController
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
 
   private def httpPathGETLifetimeAllowance: String =
     routes.WasAnotherPensionSchemeController
       .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
       .url
 
-  private def httpPathPOSTLifetimeAllowance: String =
-    routes.WasAnotherPensionSchemeController
-      .onSubmit(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
-      .url
+  private val lifetimeAllowanceSubmitCall = routes.WasAnotherPensionSchemeController
+    .onSubmit(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
 
-  private val viewModelAnnualAllowance = GenericViewModel(
-    submitUrl = httpPathPOSTAnnualAllowance,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName
-  )
-  private val viewModelLifetimeAllowance = GenericViewModel(
-    submitUrl = httpPathPOSTLifetimeAllowance,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName
-  )
 
   private def userAnswers =
     userAnswersWithSchemeNamePstrQuarter
@@ -110,6 +97,17 @@ class WasAnotherPensionSchemeControllerSpec
       val result = route(application, request).value
 
       status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[WasAnotherPensionScheme].apply(
+        form,
+        TwirlRadios.yesNo(form("value")),
+        "chargeType.description.annualAllowance",
+        annualAllowanceSubmitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
 
@@ -122,6 +120,17 @@ class WasAnotherPensionSchemeControllerSpec
       val result = route(application, request).value
 
       status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[WasAnotherPensionScheme].apply(
+        form,
+        TwirlRadios.yesNo(form("value")),
+        "chargeType.description.lifeTimeAllowance",
+        lifetimeAllowanceSubmitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "redirect to the next page when valid data is submitted for AnnualAllowance" in {

@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{ChargeType, CommonQuarters, GenericViewModel, Index, NormalMode}
+import models.{AFTQuarter, ChargeType, CommonQuarters, GenericViewModel, Index, NormalMode}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -40,6 +40,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.mccloud.ChargeAmountReported
 
 import scala.concurrent.Future
 
@@ -60,6 +61,9 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
 
   private def httpPathPOST: String = routes.ChargeAmountReportedController
     .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Index(0), Some(Index(0))).url
+
+  private val submitCall = routes.ChargeAmountReportedController
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Index(0), Some(Index(0)))
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
@@ -85,6 +89,18 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
       val result = route(application, request).value
 
       status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[ChargeAmountReported].apply(
+        form,
+        submitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName,
+        AFTQuarter.formatForDisplay(getQuarter(Q1, 2021)),
+        "",
+        "chargeType.description.annualAllowance"
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
     "redirect to the next page when valid data is submitted" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
@@ -112,11 +128,23 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
-//      val boundForm = form.bind(Map("value" -> ""))
+      val boundForm = form.bind(Map("value" -> ""))
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
+
+      val view = application.injector.instanceOf[ChargeAmountReported].apply(
+        boundForm,
+        submitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName,
+        AFTQuarter.formatForDisplay(getQuarter(Q1, 2021)),
+        "",
+        "chargeType.description.annualAllowance"
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

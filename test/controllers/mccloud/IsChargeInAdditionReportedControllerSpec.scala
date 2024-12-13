@@ -39,6 +39,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import viewmodels.TwirlRadios
+import views.html.mccloud.IsChargeInAdditionReported
 
 import scala.concurrent.Future
 
@@ -79,6 +81,12 @@ class IsChargeInAdditionReportedControllerSpec
       .onSubmit(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
       .url
 
+  private val annualAllowanceSubmitCall = routes.IsChargeInAdditionReportedController
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+
+  private val lifetimeAllowanceSubmitCall = routes.IsChargeInAdditionReportedController
+    .onSubmit(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+
   private val viewModelAnnualAllowance = GenericViewModel(
     submitUrl = httpPathPOSTAnnualAllowance,
     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
@@ -111,6 +119,17 @@ class IsChargeInAdditionReportedControllerSpec
       val result = route(application, request).value
 
       status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[IsChargeInAdditionReported].apply(
+        form,
+        TwirlRadios.yesNo(form("value")),
+        "chargeType.description.annualAllowance",
+        annualAllowanceSubmitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET for LifetimeAllowance" in {
@@ -122,6 +141,17 @@ class IsChargeInAdditionReportedControllerSpec
       val result = route(application, request).value
 
       status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[IsChargeInAdditionReported].apply(
+        form,
+        TwirlRadios.yesNo(form("value")),
+        "chargeType.description.lifeTimeAllowance",
+        lifetimeAllowanceSubmitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "redirect to the next page when valid data is submitted for AnnualAllowance" in {
@@ -203,6 +233,17 @@ class IsChargeInAdditionReportedControllerSpec
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
+
+      val view = application.injector.instanceOf[IsChargeInAdditionReported].apply(
+        boundForm,
+        TwirlRadios.yesNo(boundForm("value")),
+        "chargeType.description.annualAllowance",
+        annualAllowanceSubmitCall,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

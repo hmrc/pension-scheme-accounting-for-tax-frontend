@@ -80,16 +80,16 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
       status(result) mustEqual OK
 
-//      val view = app.injector.instanceOf[EnterPstr].apply(
-//        form,
-//        "",
-//        "chargeType.description.annualAllowance",
-//        submitCall,
-//        returnUrl,
-//        schemeName
-//      )(request, messages)
-//
-//      compareResultAndView(result, view)
+      val view = application.injector.instanceOf[EnterPstr].apply(
+        form,
+        "",
+        "chargeType.description.annualAllowance",
+        submitCall,
+        returnUrl,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET and correct ordinal for scheme index one" in {
@@ -147,16 +147,16 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
       status(result) mustEqual BAD_REQUEST
 
-//      val view = app.injector.instanceOf[EnterPstr].apply(
-//        boundForm,
-//        "",
-//        "chargeType.description.annualAllowance",
-//        submitCall,
-//        returnUrl,
-//        schemeName
-//      )(request, messages)
-//
-//      compareResultAndView(result, view)
+      val view = application.injector.instanceOf[EnterPstr].apply(
+        boundForm,
+        "",
+        "chargeType.description.annualAllowance",
+        submitCall,
+        returnUrl,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

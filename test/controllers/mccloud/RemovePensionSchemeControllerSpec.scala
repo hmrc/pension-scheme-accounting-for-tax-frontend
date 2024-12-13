@@ -105,15 +105,15 @@ class RemovePensionSchemeControllerSpec
 
       status(result) mustEqual OK
 
-//      val view = app.injector.instanceOf[RemovePensionScheme].apply(
-//        form,
-//        TwirlRadios.yesNo(form("value")),
-//        submitCallAnnualAllowance,
-//        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-//        schemeName
-//      )(request, messages)
-//
-//      compareResultAndView(result, view)
+      val view = application.injector.instanceOf[RemovePensionScheme].apply(
+        form,
+        TwirlRadios.yesNo(form("value")),
+        submitCallAnnualAllowance,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET for ChargeTypeLifetimeAllowance" in {
@@ -126,15 +126,15 @@ class RemovePensionSchemeControllerSpec
 
       status(result) mustEqual OK
 
-//      val view = app.injector.instanceOf[RemovePensionScheme].apply(
-//        form,
-//        TwirlRadios.yesNo(form("value")),
-//        submitCallLifetimeAllowance,
-//        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-//        schemeName
-//      )(request, messages)
-//
-//      compareResultAndView(result, view)
+      val view = application.injector.instanceOf[RemovePensionScheme].apply(
+        form,
+        TwirlRadios.yesNo(form("value")),
+        submitCallLifetimeAllowance,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired for a GET if no existing data is found for AnnualAllowance" in {
