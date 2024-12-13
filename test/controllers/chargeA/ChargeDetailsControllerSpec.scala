@@ -22,15 +22,13 @@ import data.SampleData._
 import forms.chargeA.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.chargeA.ChargeDetails
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeA.ChargeDetailsPage
 import play.api.Application
-import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
@@ -67,18 +65,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "totalAmtOfTaxDueAtHigherRate" -> Seq("0.00")
   )
 
-  private val jsonToPassToTemplate: Form[ChargeDetails] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      schemeName = schemeName)
-  )
-
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeDetailsPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
   }
@@ -91,7 +80,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       val view = application.injector.instanceOf[ChargeDetailsView].apply(
         form,
-        controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt)
+        schemeName,
+        controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
       )(request, messages)
 
       val result = route(application, request).value
