@@ -16,6 +16,7 @@
 
 package controllers.financialOverview.psa
 
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.PenaltyType._
@@ -24,12 +25,11 @@ import models.requests.IdentifierRequest
 import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import renderer.Renderer
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.financialOverview.psa.SelectYearView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,12 +39,12 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
                                               allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                               formProvider: YearsFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
-                                              renderer: Renderer,
+                                              appConfig: FrontendAppConfig,
+                                              selectYearView: SelectYearView,
                                               psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                               navService: PenaltiesNavigationService)
                                              (implicit ec: ExecutionContext) extends FrontendBaseController
-  with I18nSupport
-  with NunjucksSupport {
+  with I18nSupport {
 
   private def form(errorParameter: String)(implicit messages: Messages, ev: Enumerable[Year]): Form[Year] =
     formProvider(messages("selectPenaltiesYear.error", messages(errorParameter)))(implicitly)
@@ -57,16 +57,16 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       val years = getYears(penaltyType, penaltiesCache.penalties.toSeq)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
-      val json = Json.obj(
-        "psaName" -> penaltiesCache.psaName,
-        "typeParam" -> typeParam,
-        "form" -> form(typeParam),
-        "radios" -> FSYears.radios(form(typeParam), years)
-      )
-
-      renderer.render(template = "financialOverview/psa/selectYear.njk", json).map(Ok(_))
+      Future.successful(Ok(selectYearView(
+        form(typeParam),
+        routes.SelectPenaltiesYearController.onSubmit(penaltyType),
+        typeParam,
+        penaltiesCache.psaName,
+        appConfig.managePensionsSchemeOverviewUrl,
+        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form(typeParam), years)
+        )
+      )))
     }
-
   }
 
   def onSubmit(penaltyType: PenaltyType, journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
@@ -86,13 +86,15 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
 
       form(typeParam).bindFromRequest().fold(
         formWithErrors => {
-          val json = Json.obj(
-            "psaName" -> penaltiesCache.psaName,
-            "typeParam" -> typeParam,
-            "form" -> formWithErrors,
-            "radios" -> FSYears.radios(formWithErrors, getYears(penaltyType, penaltiesCache.penalties.toSeq))
-          )
-          renderer.render(template = "financialOverview/psa/selectYear.njk", json).map(BadRequest(_))
+          Future.successful(BadRequest(selectYearView(
+            formWithErrors,
+            routes.SelectPenaltiesYearController.onSubmit(penaltyType),
+            typeParam,
+            penaltiesCache.psaName,
+            appConfig.managePensionsSchemeOverviewUrl,
+            TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, years)
+            )
+          )))
         },
         value => navMethod(penaltiesCache.penalties.toSeq, value.year)
       )

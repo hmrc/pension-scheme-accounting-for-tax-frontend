@@ -16,11 +16,12 @@
 
 package controllers.financialOverview.psa
 
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.PsaFSDetail
-import models.{AFTQuarter, ChargeDetailsFilter, DisplayHint, DisplayQuarter, PaymentOverdue, Quarters}
+import models.{AFTQuarter, ChargeDetailsFilter, DisplayHint, DisplayQuarter, FSYears, PaymentOverdue, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -29,6 +30,8 @@ import renderer.Renderer
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.financialOverview.psa.SelectQuarterView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -40,13 +43,13 @@ class SelectPenaltiesQuarterController @Inject()(
                                                   allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   formProvider: QuartersFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
-                                                  renderer: Renderer,
+                                                  appConfig: FrontendAppConfig,
+                                                  selectQuarterView: SelectQuarterView,
                                                   psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                                   navService: PenaltiesNavigationService)
                                                 (implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("selectPenaltiesQuarter.error"), quarters)
@@ -56,17 +59,17 @@ class SelectPenaltiesQuarterController @Inject()(
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       val quarters: Seq[AFTQuarter] = getQuarters(filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt))
       if (quarters.nonEmpty) {
-        val json = Json.obj(
-          "psaName" -> penaltiesCache.psaName,
-          "form" -> form(quarters),
-          "radios" -> Quarters.radios(form(quarters),
+        Future.successful(Ok(selectQuarterView(
+          form(quarters),
+          routes.SelectPenaltiesQuarterController.onSubmit(year),
+          penaltiesCache.psaName,
+          appConfig.managePensionsSchemeOverviewUrl,
+          TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters),
             getDisplayQuarters(filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt)),
             Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
-            areLabelsBold = false),
-          "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
-          "year" -> year
-        )
-        renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(Ok(_))
+            areLabelsBold = false)),
+            year
+          )))
       } else {
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
       }
@@ -79,17 +82,17 @@ class SelectPenaltiesQuarterController @Inject()(
       if (quarters.nonEmpty) {
         form(quarters).bindFromRequest().fold(
           formWithErrors => {
-            val json = Json.obj(
-              "psaName" -> penaltiesCache.psaName,
-              "form" -> formWithErrors,
-              "radios" -> Quarters.radios(formWithErrors,
+            Future.successful(BadRequest(selectQuarterView(
+              formWithErrors,
+              routes.SelectPenaltiesQuarterController.onSubmit(year),
+              penaltiesCache.psaName,
+              appConfig.managePensionsSchemeOverviewUrl,
+              TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(formWithErrors,
                 getDisplayQuarters(filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt)),
                 Seq("govuk-tag govuk-!-display-inline govuk-tag--red"),
-                areLabelsBold = false),
-              "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
-              "year" -> year
-            )
-            renderer.render(template = "financialOverview/psa/selectQuarter.njk", json).map(BadRequest(_))
+                areLabelsBold = false)),
+              year
+            )))
           },
           value => navService.navFromQuartersPage(penaltiesCache.penalties, value.startDate, request.psaIdOrException.id)
         )
