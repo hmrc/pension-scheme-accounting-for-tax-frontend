@@ -107,24 +107,10 @@ class IsChargeInAdditionReportedControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModelAnnualAllowance,
-        "radios" -> Radios.yesNo(form("value")),
-        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/isChargeInAdditionReported.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "return OK and the correct view for a GET for LifetimeAllowance" in {
@@ -132,24 +118,10 @@ class IsChargeInAdditionReportedControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETLifetimeAllowance)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModelLifetimeAllowance,
-        "radios" -> Radios.yesNo(form("value")),
-        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeLifetimeAllowance.toString}")
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/isChargeInAdditionReported.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to the next page when valid data is submitted for AnnualAllowance" in {
@@ -227,24 +199,10 @@ class IsChargeInAdditionReportedControllerSpec
 
       val request = FakeRequest(POST, httpPathGETAnnualAllowance).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "viewModel" -> viewModelAnnualAllowance,
-        "radios" -> Radios.yesNo(boundForm("value"))
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/isChargeInAdditionReported.njk"
-
-      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

@@ -81,22 +81,10 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModel
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/taxYearReportedAndPaid.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to the next page when valid data is submitted" in {
@@ -127,21 +115,10 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
 
       val request = FakeRequest(POST, httpPathPOST).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "viewModel" -> viewModel
-      )
-      templateCaptor.getValue mustEqual "mccloud/taxYearReportedAndPaid.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

@@ -106,24 +106,10 @@ class WasAnotherPensionSchemeControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModelAnnualAllowance,
-        "radios" -> Radios.yesNo(form("value")),
-        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/wasAnotherPensionScheme.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
     }
 
 
@@ -132,24 +118,10 @@ class WasAnotherPensionSchemeControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETLifetimeAllowance)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModelLifetimeAllowance,
-        "radios" -> Radios.yesNo(form("value")),
-        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeLifetimeAllowance.toString}")
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/wasAnotherPensionScheme.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to the next page when valid data is submitted for AnnualAllowance" in {

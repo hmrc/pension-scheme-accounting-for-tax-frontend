@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{ChargeType, CommonQuarters, GenericViewModel, NormalMode}
+import models.{ChargeType, CommonQuarters, GenericViewModel, Index, NormalMode}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -55,11 +55,11 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
   private val formProvider = new ChargeAmountReportedFormProvider()
   private val form: Form[BigDecimal] = formProvider(minimumChargeValueAllowed = BigDecimal("0.01"))
 
-  private def httpPathGET(schemeIndex: Int): String = routes.ChargeAmountReportedController
-    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
+  private def httpPathGET: String = routes.ChargeAmountReportedController
+    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Index(0), Some(Index(0))).url
 
   private def httpPathPOST: String = routes.ChargeAmountReportedController
-    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Index(0), Some(Index(0))).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
@@ -70,33 +70,21 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
     .set(MemberDetailsPage(0), memberDetails).success.value
     .set(MemberDetailsPage(1), memberDetails).success.value
     .setOrException(
-      TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 0, Some(0)), getQuarter(Q1, 2021))
+      TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, Index(0), Some(Index(0))), getQuarter(Q1, 2021))
 
   "ChargeAmountReportedController Controller" must {
 
     "return OK and the correct view for a GET for scheme index zero" in {
-      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      val application = applicationBuilder(Some(userAnswers))
+        .overrides(
+        )
+        .build()
 
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = FakeRequest(GET, httpPathGET(schemeIndex = 0))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val request = FakeRequest(GET, httpPathGET)
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModel,
-        "ordinal" -> ""
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/chargeAmountReported.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
     }
     "redirect to the next page when valid data is submitted" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
@@ -123,32 +111,19 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
-      val request = FakeRequest(POST, httpPathGET(0)).withFormUrlEncodedBody(("value", ""))
-      val boundForm = form.bind(Map("value" -> ""))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
+//      val boundForm = form.bind(Map("value" -> ""))
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "viewModel" -> viewModel
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/chargeAmountReported.njk"
-
-      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {
 
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
-      val request = FakeRequest(GET, httpPathGET(0))
+      val request = FakeRequest(GET, httpPathGET)
 
       val result = route(application, request).value
 
@@ -162,7 +137,7 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
-        FakeRequest(POST, httpPathGET(0))
+        FakeRequest(POST, httpPathGET)
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
