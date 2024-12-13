@@ -97,7 +97,9 @@
 
                          </div>
                     </div>
-                {% if isOverdueChargeAvailable %}
+
+                <br> {# This extra line is mandatory #}
+                {% if true %}
                     <p class="govuk-body-m">
                        <a id="allPaymentCharges" class=govuk-link href="{{ allPaymentLink }}"> {{ messages("schemeFinancial.allPaymentCharges.link") }}</a>
                     </p>
