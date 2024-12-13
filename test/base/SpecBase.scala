@@ -20,14 +20,19 @@ import config.FrontendAppConfig
 import data.SampleData
 import models.requests.DataRequest
 import models.{SessionAccessData, UserAnswers}
+import org.scalatest.Assertion
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice._
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.Injector
-import play.api.mvc.AnyContent
+import play.api.mvc.{AnyContent, Result}
 import play.api.test.FakeRequest
+import play.twirl.api.Html
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
 
 trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
 
@@ -56,4 +61,25 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
       userAnswers = ua,
       sessionData = SampleData.sessionData(name = None, sessionAccessData = sessionAccessData)
     )
+
+
+  protected def compareResultAndView(
+                                      result: Future[Result],
+                                      view: Html
+                                    ): Assertion = {
+    org.scalatest.Assertions.assert(
+      play.api.test.Helpers.contentAsString(result)(1.seconds).removeAllNonces().filterAndTrim
+        == view.toString().filterAndTrim
+    )
+  }
+
+  implicit class StringOps(s: String) {
+
+    def filterAndTrim: String =
+      s.split("\n")
+        .filterNot(_.contains("csrfToken"))
+        .map(_.trim)
+        .mkString
+    def removeAllNonces(): String = s.replaceAll("""nonce="[^"]*"""", "")
+  }
 }
