@@ -75,14 +75,8 @@ class YearsController @Inject()(
             srn = srn,
             schemeIdType = "srn"
           ) flatMap { schemeDetails =>
-            val json = Json.obj(
-              fields = "srn" -> srn,
-              "startDate" -> None,
-              "form" -> formWithErrors,
-              "radios" -> StartYears.radios(formWithErrors)(config),
-              "viewModel" -> viewModel(schemeDetails.schemeName, srn)
-            )
-            renderer.render(template = "years.njk", json).map(BadRequest(_))
+            Future.successful(BadRequest(yearsView(formWithErrors, routes.YearsController.onSubmit(srn), schemeDetails.schemeName,
+              config.schemeDashboardUrl(request).format(srn), TwirlMigration.toTwirlRadios(StartYears.radios(form(config))(config)))))
         },
         value => Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.getYear.toString)))
       )

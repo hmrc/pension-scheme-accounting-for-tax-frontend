@@ -19,13 +19,13 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
+import data.SampleData
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
 import models.StartYears.enumerable
 import models.requests.IdentifierRequest
 import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, StartYears, UserAnswers, Year}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -35,11 +35,12 @@ import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Results
+import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.YearsView
 
 import scala.concurrent.Future
 
@@ -54,18 +55,18 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "years.njk"
   val formProvider = new YearsFormProvider()
   val form: Form[Year] = formProvider()
 
   lazy val httpPathGET: String = controllers.routes.YearsController.onPageLoad(srn).url
-  lazy val httpPathPOST: String = controllers.routes.YearsController.onSubmit(srn).url
+  private val submitCall: Call = controllers.routes.YearsController.onSubmit(srn)
+  lazy val httpPathPOST: String = submitCall.url
 
   private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
     "form" -> form,
     "radios" -> StartYears.radios(form),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.YearsController.onSubmit(srn).url,
+      submitUrl = submitCall.url,
       returnUrl = dummyCall.url,
       schemeName = schemeName)
   )
@@ -78,7 +79,6 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
@@ -89,18 +89,23 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
   "Year Controller" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+
+      val request = httpGETRequest(httpPathGET)
+      val result = route(application, request).value
+
+      val view = application.injector.instanceOf[YearsView].apply(
+        form,
+        submitCall,
+        SampleData.schemeName,
+        dummyCall.url,
+        TwirlMigration.toTwirlRadios(StartYears.radios(form)(mockAppConfig))
+      )(request, messages)
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      compareResultAndView(result, view)
     }
 
     "redirect to next page when valid data is submitted" in {
