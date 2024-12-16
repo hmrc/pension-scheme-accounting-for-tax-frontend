@@ -57,11 +57,10 @@ class PspSchemeDashboardPartialsController @Inject()(
               val futureSeqHtml = for {
                 schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
                 schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
-                aftReturnsHtml <- Future.successful(Html(""))
                 paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(idNumber, schemeFs.seqSchemeFSDetail, schemeDetails.pstr)
               }
               yield {
-                scala.collection.immutable.Seq(aftReturnsHtml, paymentsAndChargesHtml)
+                scala.collection.immutable.Seq(paymentsAndChargesHtml)
               }
               futureSeqHtml.map(HtmlFormat.fill).map(Ok(_))
         case _ =>
