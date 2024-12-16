@@ -24,28 +24,26 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, ChargeType, CommonQuarters, GenericViewModel, Index, NormalMode}
-import org.mockito.ArgumentCaptor
+import models.{AFTQuarter, ChargeType, CommonQuarters, Index, NormalMode}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.MemberDetailsPage
 import pages.mccloud.TaxQuarterReportedAndPaidPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import views.html.mccloud.ChargeAmountReported
 
 import scala.concurrent.Future
 
 class ChargeAmountReportedControllerSpec extends ControllerSpecBase
-  with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues with CommonQuarters {
+  with MockitoSugar with JsonMatchers with OptionValues with TryValues with CommonQuarters {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction,
@@ -64,11 +62,6 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
 
   private val submitCall = routes.ChargeAmountReportedController
     .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Index(0), Some(Index(0)))
-
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName)
 
   private def userAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value

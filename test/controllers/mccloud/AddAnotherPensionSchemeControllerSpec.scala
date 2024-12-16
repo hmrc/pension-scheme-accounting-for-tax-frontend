@@ -23,21 +23,18 @@ import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{GenericViewModel, NormalMode}
-import org.mockito.ArgumentCaptor
+import models.NormalMode
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import viewmodels.TwirlRadios
 import views.html.mccloud.AddAnotherPensionScheme
 
@@ -46,7 +43,6 @@ import scala.concurrent.Future
 class AddAnotherPensionSchemeControllerSpec
     extends ControllerSpecBase
     with MockitoSugar
-    with NunjucksSupport
     with JsonMatchers
     with OptionValues
     with TryValues {
@@ -79,12 +75,6 @@ class AddAnotherPensionSchemeControllerSpec
       startDate,
       accessType,
       versionInt).url
-
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName
-  )
 
   private def userAnswers =
     userAnswersWithSchemeNamePstrQuarter

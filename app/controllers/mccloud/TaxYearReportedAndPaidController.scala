@@ -30,7 +30,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 import views.html.mccloud.TaxYearReportedAndPaid
 
@@ -48,10 +47,9 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                                                  requireData: DataRequiredAction,
                                                  formProvider: YearRangeFormProvider,
                                                  val controllerComponents: MessagesControllerComponents,
-                                                 taxYearReportedAndPaid: TaxYearReportedAndPaid)(implicit ec: ExecutionContext)
+                                                 taxYearReportedAndPaidView: TaxYearReportedAndPaid)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport
     with CommonMcCloud {
 
   private def form: Form[YearRange] =
@@ -77,7 +75,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
           case Some(chargeTypeDesc) =>
             val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
 
-            Future.successful(Ok(taxYearReportedAndPaid(
+            Future.successful(Ok(taxYearReportedAndPaidView(
               form = preparedForm,
               radios = TwirlMigration.toTwirlRadios(YearRangeMcCloud.radios(preparedForm)),
               ordinal = ordinalValue,
@@ -110,7 +108,7 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                 case Some(chargeTypeDesc) =>
                   val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
 
-                  Future.successful(BadRequest(taxYearReportedAndPaid(
+                  Future.successful(BadRequest(taxYearReportedAndPaidView(
                     form = formWithErrors,
                     radios = TwirlMigration.toTwirlRadios(YearRangeMcCloud.radios(formWithErrors)),
                     ordinal = ordinalValue,

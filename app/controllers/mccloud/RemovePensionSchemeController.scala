@@ -30,7 +30,6 @@ import play.api.libs.json.JsArray
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewmodels.TwirlRadios
 import views.html.mccloud.RemovePensionScheme
 
@@ -49,10 +48,9 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
                                               requireData: DataRequiredAction,
                                               formProvider: YesNoFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
-                                              removePensionScheme: RemovePensionScheme)(implicit ec: ExecutionContext)
+                                              removePensionSchemeView: RemovePensionScheme)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
   def onPageLoad(chargeType: ChargeType,
                  mode: Mode,
                  srn: String,
@@ -71,7 +69,7 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
-          Future.successful(Ok(removePensionScheme(
+          Future.successful(Ok(removePensionSchemeView(
             form = preparedForm,
             radios = TwirlRadios.yesNo(preparedForm("value")),
             submitCall = routes.RemovePensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
@@ -101,7 +99,7 @@ class RemovePensionSchemeController @Inject()(override val messagesApi: Messages
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              Future.successful(BadRequest(removePensionScheme(
+              Future.successful(BadRequest(removePensionSchemeView(
                 form = formWithErrors,
                 radios = TwirlRadios.yesNo(formWithErrors("value")),
                 submitCall = routes.RemovePensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),

@@ -31,7 +31,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
 import services.{SchemeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.{DateHelper, TwirlMigration}
 import views.html.mccloud.TaxQuarterReportedAndPaid
 
@@ -52,11 +51,10 @@ class TaxQuarterReportedAndPaidController @Inject()(
                                                      schemeService: SchemeService,
                                                      userAnswersCacheConnector: UserAnswersCacheConnector,
                                                      userAnswersService: UserAnswersService,
-                                                     taxQuarterReportedAndPaid: TaxQuarterReportedAndPaid
+                                                     taxQuarterReportedAndPaidView: TaxQuarterReportedAndPaid
                                                    )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport
     with CommonMcCloud
     with CommonQuarters {
 
@@ -92,7 +90,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
             twirlLifetimeOrAnnual(chargeType) match {
               case Some(chargeTypeDesc) =>
                 val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                Future.successful(Ok(taxQuarterReportedAndPaid(
+                Future.successful(Ok(taxQuarterReportedAndPaidView(
                   form = preparedForm,
                   radios = TwirlMigration.toTwirlRadios(Quarters.radios(preparedForm, displayQuarters)),
                   year = yearRange.toString,
@@ -131,13 +129,14 @@ class TaxQuarterReportedAndPaidController @Inject()(
                   twirlLifetimeOrAnnual(chargeType) match {
                     case Some(chargeTypeDesc) =>
                       val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                      Future.successful(BadRequest(taxQuarterReportedAndPaid(
+                      Future.successful(BadRequest(taxQuarterReportedAndPaidView(
                         form = formWithErrors,
                         radios = TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, displayQuarters)),
                         year = yearRange.toString,
                         ordinal = ordinalValue,
                         chargeTypeDesc = chargeTypeDesc,
-                        submitCall = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+                        submitCall = routes.TaxQuarterReportedAndPaidController
+                          .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
                         returnUrl = config.schemeDashboardUrl(request).format(srn),
                         schemeName = schemeDetails.schemeName
                       )))

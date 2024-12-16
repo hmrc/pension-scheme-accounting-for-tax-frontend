@@ -21,18 +21,15 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, Index, Mode}
 import navigators.CompoundNavigator
 import pages.IsPublicServicePensionsRemedyPage
 import pages.mccloud.{IsChargeInAdditionReportedPage, SchemePathHelper}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import viewmodels.TwirlRadios
 import views.html.mccloud.IsChargeInAdditionReported
 
@@ -50,11 +47,9 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
                                                      requireData: DataRequiredAction,
                                                      formProvider: YesNoFormProvider,
                                                      val controllerComponents: MessagesControllerComponents,
-                                                     isChargeInAdditionReported: IsChargeInAdditionReported,
-                                                     renderer: Renderer)(implicit ec: ExecutionContext)
+                                                     isChargeInAdditionReportedView: IsChargeInAdditionReported)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("isChargeInAdditionReported.error.required", memberName))
@@ -76,7 +71,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
-          Future.successful(Ok(isChargeInAdditionReported(
+          Future.successful(Ok(isChargeInAdditionReportedView(
             form = preparedForm,
             radios = TwirlRadios.yesNo(preparedForm("value")),
             chargeTypeDesc = s"chargeType.description.${chargeType.toString}",
@@ -101,7 +96,7 @@ class IsChargeInAdditionReportedController @Inject()(override val messagesApi: M
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              Future.successful(BadRequest(isChargeInAdditionReported(
+              Future.successful(BadRequest(isChargeInAdditionReportedView(
                 form = formWithErrors,
                 radios = TwirlRadios.yesNo(formWithErrors("value")),
                 chargeTypeDesc = s"chargeType.description.${chargeType.toString}",

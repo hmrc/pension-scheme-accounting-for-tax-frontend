@@ -26,7 +26,6 @@ import pages.mccloud.AddAnotherPensionSchemePage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import viewmodels.TwirlRadios
@@ -45,7 +44,6 @@ class AddAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
                                                   requireData: DataRequiredAction,
                                                   formProvider: YesNoFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
-                                                  renderer: Renderer,
                                                   addAnotherPensionSchemeView: AddAnotherPensionScheme)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {

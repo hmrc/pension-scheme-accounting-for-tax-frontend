@@ -16,24 +16,20 @@
 
 package controllers.mccloud
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.ChargeAmountReportedFormProvider
 import models.Index._
 import models.LocalDateBinder._
-import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode}
+import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.{ChargeAmountReportedPage, TaxQuarterReportedAndPaidPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import views.html.mccloud.ChargeAmountReported
 
 import java.time.LocalDate
@@ -50,12 +46,9 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                                                requireData: DataRequiredAction,
                                                formProvider: ChargeAmountReportedFormProvider,
                                                val controllerComponents: MessagesControllerComponents,
-                                               config: FrontendAppConfig,
-                                               chargeAmountReported: ChargeAmountReported,
-                                               renderer: Renderer)(implicit ec: ExecutionContext)
+                                               chargeAmountReportedView: ChargeAmountReported)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport
     with CommonQuarters
     with CommonMcCloud {
 
@@ -89,7 +82,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
         (taxQuarterSelection, twirlLifetimeOrAnnual(chargeType)) match {
           case (Some(aftQuarter), Some(chargeTypeDesc)) =>
             val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-            Future.successful(Ok(chargeAmountReported(
+            Future.successful(Ok(chargeAmountReportedView(
               form = preparedForm,
               submitCall = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
@@ -126,7 +119,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
               (taxQuarterSelection, twirlLifetimeOrAnnual(chargeType)) match {
                 case (Some(aftQuarter), Some(chargeTypeDesc)) =>
                   val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                  Future.successful(BadRequest(chargeAmountReported(
+                  Future.successful(BadRequest(chargeAmountReportedView(
                     form = formWithErrors,
                     submitCall = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
                     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,

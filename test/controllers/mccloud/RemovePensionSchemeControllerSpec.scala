@@ -23,20 +23,18 @@ import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
-import models.{CheckMode, GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.ArgumentCaptor
+import models.{CheckMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import viewmodels.TwirlRadios
 import views.html.mccloud.RemovePensionScheme
 
@@ -45,7 +43,6 @@ import scala.concurrent.Future
 class RemovePensionSchemeControllerSpec
   extends ControllerSpecBase
     with MockitoSugar
-    with NunjucksSupport
     with JsonMatchers
     with OptionValues
     with TryValues {
