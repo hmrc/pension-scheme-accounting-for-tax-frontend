@@ -31,23 +31,30 @@ import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
 
-class AFTConnector @Inject()(http: HttpClient, httpClient2: HttpClientV2, config: FrontendAppConfig)
+class AFTConnector @Inject()(httpClient2: HttpClientV2, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
   private val logger = Logger(classOf[AFTConnector])
 
   def fileAFTReturn(pstr: String, answers: UserAnswers, journeyType: JourneyType.Name)
                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
-    val url = config.aftFileReturn.format(journeyType.toString)
-    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr)
-    http.POST[JsObject, HttpResponse](url, answers.data)(implicitly, implicitly, aftHc, implicitly).map {
+    val url = url"${config.aftFileReturn.format(journeyType.toString)}"
+    val headers: Seq[(String, String)] = Seq("pstr" -> pstr)
+    val aftHc = hc.withExtraHeaders(headers = headers:_*)
+
+    httpClient2
+      .post(url)(aftHc)
+      .setHeader(headers: _*)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .withBody(answers.data)
+      .execute[HttpResponse].map {
       response =>
         response.status match {
           case OK => ()
           case NO_CONTENT => throw ReturnAlreadySubmittedException()
           case FORBIDDEN  if response.body.contains("RETURN_ALREADY_SUBMITTED") =>
             throw ReturnAlreadySubmittedException()
-          case _ => handleErrorResponse("POST", url)(response)
+          case _ => handleErrorResponse("POST", url.toString)(response)
         }
     } andThen {
       case Failure(_: ReturnAlreadySubmittedException) => ()
@@ -57,17 +64,22 @@ class AFTConnector @Inject()(http: HttpClient, httpClient2: HttpClientV2, config
 
   def getAFTDetails(pstr: String, startDate: String, aftVersion: String)
                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    val url = config.getAftDetails
-    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
+    val url = url"${config.getAftDetails}"
+    val headers: Seq[(String, String)] = Seq("pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
+    val aftHc = hc.withExtraHeaders(headers = headers:_*)
     logger.info("Calling getAFT details")
-    http.GET[HttpResponse](url)(implicitly, aftHc, implicitly).map { response =>
+    httpClient2
+      .get(url)(aftHc)
+      .setHeader(headers :_*)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map { response =>
       response.status match {
         case OK =>
           logger.info("GetAFT details returned response with status OK")
           Json.parse(response.body)
         case _ =>
           logger.warn(s"GetAFT details returned response with status ${response.status}")
-          handleErrorResponse("GET", url)(response)
+          handleErrorResponse("GET", url.toString)(response)
       }
     } andThen {
       case Failure(t: Throwable) => logger.warn("Unable to get aft details", t)
@@ -117,14 +129,15 @@ class AFTConnector @Inject()(http: HttpClient, httpClient2: HttpClientV2, config
 
   def getAftOverview(pstr: String, startDate: Option[String] = None, endDate: Option[String] = None)
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
-    val url = config.aftOverviewUrl
-    val schemeHc = hc.withExtraHeaders(
-      "pstr" -> pstr,
-      "startDate" -> aftOverviewStartDate.toString,
-      "endDate" -> aftOverviewEndDate.toString
-    )
+    val url = url"${config.aftOverviewUrl}"
+    val headers: Seq[(String, String)] = Seq("pstr" -> pstr, "startDate" -> aftOverviewStartDate.toString, "endDate" -> aftOverviewEndDate.toString)
+    val schemeHc = hc.withExtraHeaders(headers = headers:_*)
 
-    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
+    httpClient2
+      .get(url)(schemeHc)
+      .setHeader(headers: _*)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map { response =>
       response.status match {
         case OK =>
           Json.parse(response.body).validate[Seq[AFTOverview]] match {
@@ -132,7 +145,7 @@ class AFTConnector @Inject()(http: HttpClient, httpClient2: HttpClientV2, config
             case JsError(errors) => throw JsResultException(errors)
           }
         case _ =>
-          handleErrorResponse("GET", url)(response)
+          handleErrorResponse("GET", url.toString)(response)
       }
     } andThen {
       case Failure(t: Throwable) => logger.warn("Unable to get aft overview", t)

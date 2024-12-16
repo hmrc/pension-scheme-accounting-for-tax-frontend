@@ -22,18 +22,19 @@ import models.SchemeDetails
 import play.api.http.Status._
 import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HttpClient, _}
 import utils.HttpResponseHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
+class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
   def getSchemeDetails(psaId: String, idNumber: String, schemeIdType: String)
                       (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
-    val url = config.schemeDetailsUrl
+    val url = url"${config.schemeDetailsUrl}"
 
     val headers: Seq[(String, String)] =
       Seq(
@@ -44,7 +45,11 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
 
     implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.GET[HttpResponse](url)(implicitly, hc, implicitly) map {
+    httpClientV2
+      .get(url)(hc)
+      .setHeader(headers: _*)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map {
       response =>
         response.status match {
           case OK =>
@@ -53,17 +58,22 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
               case JsError(errors) => throw JsResultException(errors)
             }
           case _ =>
-            handleErrorResponse("GET", url)(response)
+            handleErrorResponse("GET", url.toString)(response)
         }
     }
   }
 
   def getPspSchemeDetails(pspId: String, srn: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
-    val url = config.pspSchemeDetailsUrl
-    val schemeHc = hc.withExtraHeaders("srn" -> srn, "pspId" -> pspId)
+    val url = url"${config.pspSchemeDetailsUrl}"
+    val headers: Seq[(String, String)] = Seq("srn" -> srn, "pspId" -> pspId)
+    val schemeHc = hc.withExtraHeaders(headers:_*)
 
-    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly) map { response =>
+    httpClientV2
+      .get(url)(schemeHc)
+      .setHeader(headers: _*)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map { response =>
         response.status match {
           case OK =>
             Json.parse(response.body).validate[SchemeDetails](SchemeDetails.readsPsp) match {
@@ -71,7 +81,7 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
               case JsError(errors) => throw JsResultException(errors)
             }
           case _ =>
-            handleErrorResponse("GET", url)(response)
+            handleErrorResponse("GET", url.toString)(response)
         }
     }
   }
@@ -85,14 +95,18 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
                            ec: ExecutionContext
                          ): Future[Boolean] = {
 
-    val url = config.checkAssociationUrl
+    val url = url"${config.checkAssociationUrl}"
 
     val headers: Seq[(String, String)] =
       Seq((idType, psaId), ("schemeReferenceNumber", srn), ("Content-Type", "application/json"))
 
     implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.GET[HttpResponse](url)(implicitly, hc, implicitly).map {
+    httpClientV2
+      .get(url)(hc)
+      .setHeader(headers: _*)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map {
       response =>
         response.status match {
           case OK =>
@@ -101,7 +115,7 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
               case JsError(errors) => throw JsResultException(errors)
             }
           case _ =>
-            handleErrorResponse("GET", url)(response)
+            handleErrorResponse("GET", url.toString)(response)
         }
     }
   }
