@@ -22,8 +22,7 @@ import data.SampleData._
 import forms.amend.AmendYearsFormProvider
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{AmendYears, Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, Year}
-import org.mockito.ArgumentCaptor
+import models.{AmendYears, Enumerable, SchemeDetails, SchemeStatus, Year}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -32,16 +31,16 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.amend.AmendYearsView
 
 import scala.concurrent.Future
 
-class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class AmendYearsControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -60,15 +59,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   lazy val httpPathGET: String = controllers.amend.routes.AmendYearsController.onPageLoad(srn).url
   lazy val httpPathPOST: String = controllers.amend.routes.AmendYearsController.onSubmit(srn).url
-
-  private def jsonToPassToTemplate(years: Seq[Int]): Form[Year] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> AmendYears.radios(form, years),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.amend.routes.AmendYearsController.onSubmit(srn).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
-  )
+  private val submitCall = controllers.amend.routes.AmendYearsController.onSubmit(srn)
 
   private val year = "2020"
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
@@ -87,18 +78,21 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   "AmendYears Controller" must {
     "return OK and the correct view for a GET when more than one year" in {
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val yearsForm = form(displayYears)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
+      val view = application.injector.instanceOf[AmendYearsView].apply(
+        yearsForm,
+        TwirlMigration.toTwirlRadios(AmendYears.radios(yearsForm, displayYears)),
+        submitCall,
+        dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(displayYears).apply(form(displayYears)))
+      compareResultAndView(result, view)
     }
 
     "redirect to amend quarters page when only one year" in {
