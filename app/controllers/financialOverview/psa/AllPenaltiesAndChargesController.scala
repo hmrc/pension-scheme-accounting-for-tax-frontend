@@ -44,8 +44,8 @@ class AllPenaltiesAndChargesController @Inject()(
                                                   allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                                  renderer: Renderer
-                                                )(implicit ec: ExecutionContext)
+                                                  renderer: Renderer,
+                                              )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {

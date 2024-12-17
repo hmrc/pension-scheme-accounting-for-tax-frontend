@@ -19,17 +19,15 @@ package controllers.financialOverview.psa
 import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
-import controllers.financialOverview.psa
 import helpers.FormatHelper
 import models.financialStatement.{PsaFS, PsaFSChargeType, PsaFSDetail}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.psa.PsaFinancialOverviewNewView
+import views.html.financialOverview.psa.PsaFinancialOverviewView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,30 +39,33 @@ class PsaFinancialOverviewController @Inject()(
                                                 financialStatementConnector: FinancialStatementConnector,
                                                 service: AFTPartialService,
                                                 config: FrontendAppConfig,
-                                                renderer: Renderer,
-                                                minimalConnector: MinimalConnector
+                                                minimalConnector: MinimalConnector,
+                                                psaFinancialOverviewNew: PsaFinancialOverviewNewView,
+                                                psaFinancialOverview: PsaFinancialOverviewView
                                               )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val logger = Logger(classOf[PsaFinancialOverviewController])
 
-  def psaFinancialOverview: Action[AnyContent] = identify.async {
-    implicit request =>
+  def psaFinancialOverview: Action[AnyContent] = identify.async { implicit request =>
       val response = for {
         psaOrPspName <- minimalConnector.getPsaOrPspName
         psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
       } yield {
         val psaFSWithoutPaymentOnAccount: Seq[PsaFSDetail] = psaFSWithPaymentOnAccount.seqPsaFSDetail
           .filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
-        renderFinancialOverview(psaOrPspName, psaFSWithoutPaymentOnAccount, request, psaFSWithPaymentOnAccount)
+
+        renderFinancialOverview(psaOrPspName, psaFSWithoutPaymentOnAccount, psaFSWithPaymentOnAccount)
       }
-      response.flatten
+    response.flatten
   }
 
-  private def renderFinancialOverview(psaName: String, psaFSDetail: Seq[PsaFSDetail],
-                                      request: RequestHeader, creditPsaFS: PsaFS): Future[Result] = {
+  private def renderFinancialOverview(
+                                       psaName: String,
+                                       psaFSDetail: Seq[PsaFSDetail],
+                                       creditPsaFS: PsaFS
+                                     )(implicit request: Request[_]): Future[Result] = {
     val creditPsaFSDetails = creditPsaFS.seqPsaFSDetail
     val psaCharges: (String, String, String) = service.retrievePsaChargesAmount(psaFSDetail)
     val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)
@@ -80,22 +81,42 @@ class PsaFinancialOverviewController @Inject()(
       routes.PsaRequestRefundController.onPageLoad.url
     }
 
-    val templateToRender = if(config.podsNewFinancialCredits) {
-      "financialOverview/psa/psaFinancialOverviewNew.njk"
+    val allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url
+    val duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url
+    val allPaymentLink = routes.PenaltyTypeController.onPageLoad().url
+    val returnUrl = config.managePensionsSchemeOverviewUrl
+
+    val templateToRender = if (config.podsNewFinancialCredits) {
+      psaFinancialOverviewNew(
+        psaName = psaName,
+        totalUpcomingCharge = psaCharges._1,
+        totalOverdueCharge = psaCharges._2,
+        totalInterestAccruing = psaCharges._3,
+        requestRefundUrl = requestRefundUrl,
+        allOverduePenaltiesAndInterestLink = allOverduePenaltiesAndInterestLink,
+        duePaymentLink = duePaymentLink,
+        allPaymentLink = allPaymentLink,
+        creditBalanceFormatted = creditBalanceFormatted,
+        creditBalance = creditBalance,
+        returnUrl = returnUrl
+      )
     } else {
-      "financialOverview/psa/psaFinancialOverview.njk"
+      psaFinancialOverview(
+        psaName = psaName,
+        totalUpcomingCharge = psaCharges._1,
+        totalOverdueCharge = psaCharges._2,
+        totalInterestAccruing = psaCharges._3,
+        requestRefundUrl = requestRefundUrl,
+        allOverduePenaltiesAndInterestLink = allOverduePenaltiesAndInterestLink,
+        duePaymentLink = duePaymentLink,
+        allPaymentLink = allPaymentLink,
+        creditBalanceFormatted = creditBalanceFormatted,
+        creditBalance = creditBalance,
+        returnUrl = returnUrl
+      )
     }
 
-    renderer.render(
-      template = templateToRender,
-      ctx = Json.obj("totalUpcomingCharge" -> psaCharges._1,
-        "totalOverdueCharge" -> psaCharges._2,
-        "totalInterestAccruing" -> psaCharges._3,
-        "psaName" -> psaName, "requestRefundUrl" -> requestRefundUrl,
-        "allOverduePenaltiesAndInterestLink" -> routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
-        "duePaymentLink" -> routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
-        "allPaymentLink" -> psa.routes.PenaltyTypeController.onPageLoad().url,
-        "creditBalanceFormatted" -> creditBalanceFormatted, "creditBalance" -> creditBalance)
-    )(request).map(Ok(_))
+    Future.successful(Ok(templateToRender))
+
   }
 }

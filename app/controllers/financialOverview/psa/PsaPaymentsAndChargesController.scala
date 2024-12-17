@@ -56,15 +56,15 @@ class PsaPaymentsAndChargesController @Inject()(
 
   def onPageLoad(journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
-        val response = for {
-          psaName <- minimalConnector.getPsaOrPspName
-          psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
-          penaltiesCache <- psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType)
-        } yield {
-          renderFinancialOverdueAndInterestCharges(psaName, request.psaIdOrException.id,
-            request, psaFSWithPaymentOnAccount.seqPsaFSDetail, journeyType, penaltiesCache)
-        }
-        response.flatten
+      val response = for {
+        psaName <- minimalConnector.getPsaOrPspName
+        psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
+        penaltiesCache <- psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType)
+      } yield {
+        renderFinancialOverdueAndInterestCharges(psaName, request.psaIdOrException.id,
+          request, psaFSWithPaymentOnAccount.seqPsaFSDetail, journeyType, penaltiesCache)
+      }
+      response.flatten
     }
 
   //scalastyle:off parameter.number

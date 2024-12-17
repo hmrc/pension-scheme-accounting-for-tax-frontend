@@ -122,9 +122,9 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
   }
 
   private def commonJsonNewV2(
-                          sourcePsaFSDetail: PsaFSDetail,
-                          journeyType: ChargeDetailsFilter
-                        )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
+                               sourcePsaFSDetail: PsaFSDetail,
+                               journeyType: ChargeDetailsFilter
+                             )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
     val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(sourcePsaFSDetail.pstr, sourcePsaFSDetail.index.toString, journeyType).url
     val detailsChargeType = sourcePsaFSDetail.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType

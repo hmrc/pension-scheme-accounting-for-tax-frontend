@@ -15,11 +15,11 @@
  *@
 
 @this(
-layout: templates.Layout,
-formHelper: FormWithCSRF,
-govukErrorSummary: GovukErrorSummary,
-govukButton: GovukButton,
-govukRadios: GovukRadios
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    govukButton: GovukButton,
+    govukRadios: GovukRadios
 )
 
 @(form: Form[_], submitCall: Call, psaName: String, returnUrl: String, radios: Seq[RadioItem], Year: String)(implicit request: Request[_], messages: Messages)
