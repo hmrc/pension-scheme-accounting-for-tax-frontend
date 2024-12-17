@@ -17,7 +17,6 @@
 package controllers.financialOverview.psa
 
 import config.FrontendAppConfig
-import connectors.EventReportingConnector
 import controllers.actions._
 import forms.financialStatement.PenaltyTypeFormProvider
 import models.financialStatement.PenaltyType.getPenaltyType
@@ -26,9 +25,7 @@ import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
-import uk.gov.hmrc.nunjucks.NunjucksSupport
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.TwirlMigration
 import views.html.financialOverview.psa.PenaltyTypeView

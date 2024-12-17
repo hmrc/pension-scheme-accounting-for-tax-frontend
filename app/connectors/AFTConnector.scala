@@ -24,7 +24,7 @@ import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 import utils.{DateHelper, HttpResponseHelper}
 
 import java.time.LocalDate

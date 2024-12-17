@@ -23,7 +23,7 @@ import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HttpClient, _}
+import uk.gov.hmrc.http._
 import utils.HttpResponseHelper
 
 import scala.concurrent.{ExecutionContext, Future}

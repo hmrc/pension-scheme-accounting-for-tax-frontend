@@ -24,12 +24,10 @@ import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 import views.html.financialOverview.scheme.SelectYearView
 

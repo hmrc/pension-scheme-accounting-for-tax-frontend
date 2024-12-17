@@ -24,11 +24,9 @@ import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeTyp
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 import views.html.financialOverview.scheme.PaymentOrChargeTypeView
 
@@ -42,7 +40,6 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
                                               val controllerComponents: MessagesControllerComponents,
                                               config: FrontendAppConfig,
                                               service: PaymentsAndChargesService,
-                                              eventReportingConnector: EventReportingConnector,
                                               paymentOrChargeTypeView: PaymentOrChargeTypeView,
                                               navService: PaymentsNavigationService)
                                              (implicit ec: ExecutionContext) extends FrontendBaseController
