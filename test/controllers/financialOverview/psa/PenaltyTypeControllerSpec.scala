@@ -17,7 +17,7 @@
 package controllers.financialOverview.psa
 
 import config.FrontendAppConfig
-import connectors.{EventReportingConnector, ListOfSchemesConnector}
+import connectors.ListOfSchemesConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.psa.SelectSchemeControllerSpec.penaltySchemes
@@ -27,7 +27,7 @@ import matchers.JsonMatchers
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
 import models.financialStatement.{DisplayPenaltyType, PenaltyType}
 import models.requests.IdentifierRequest
-import models.{Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue, ToggleDetails}
+import models.{Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -51,7 +51,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
-  private val mockEventReportingConnector = mock[EventReportingConnector]
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   implicit val config: FrontendAppConfig = mockAppConfig
   private val mockNavigationService = mock[PenaltiesNavigationService]
@@ -59,8 +58,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
-    bind[ListOfSchemesConnector].toInstance(mockListOfSchemesConn),
-    bind[EventReportingConnector].toInstance(mockEventReportingConnector)
+    bind[ListOfSchemesConnector].toInstance(mockListOfSchemesConn)
   )
 
   private val displayPenalties: Seq[DisplayPenaltyType] = Seq(
@@ -101,9 +99,6 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
     when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
       thenReturn(Future.successful(penaltySchemes))
     when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
-    when(mockEventReportingConnector.getFeatureToggle(any())(any(), any())).thenReturn(
-      Future.successful(ToggleDetails("event-reporting", None, isEnabled = true))
-    )
   }
 
   "PenaltyTypeController" must {

@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.EventReportingConnector
 import controllers.actions._
 import forms.financialStatement.PenaltyTypeFormProvider
-import models.financialStatement.PenaltyType.{EventReportingCharges, getPenaltyType}
+import models.financialStatement.PenaltyType.getPenaltyType
 import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
@@ -44,7 +44,6 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
                                       val controllerComponents: MessagesControllerComponents,
                                       penaltyTypeView: PenaltyTypeView,
                                       psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                      eventReportingConnector: EventReportingConnector,
                                       navService: PenaltiesNavigationService)
                                      (implicit ec: ExecutionContext) extends FrontendBaseController
   with I18nSupport {
@@ -53,8 +52,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-      eventReportingConnector.getFeatureToggle("event-reporting").flatMap { toggleDetail =>
-        val penaltyTypes = filterPenaltyTypesByFeatureToggle(getPenaltyTypes(penaltiesCache.penalties.toSeq), toggleDetail.isEnabled)
+        val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties.toSeq)
 
         Future.successful(Ok(
           penaltyTypeView(
@@ -97,9 +95,5 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
 
       DisplayPenaltyType(category, hint)
 
-    }
-
-  private def filterPenaltyTypesByFeatureToggle(seqDisplayPenaltyType : Seq[DisplayPenaltyType], isEnabled: Boolean): Seq[DisplayPenaltyType] = {
-    if(isEnabled) seqDisplayPenaltyType else seqDisplayPenaltyType.filter(category => {category.penaltyType != EventReportingCharges})
     }
 }

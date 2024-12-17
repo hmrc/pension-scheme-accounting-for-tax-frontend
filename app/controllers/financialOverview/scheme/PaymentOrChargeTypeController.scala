@@ -17,10 +17,9 @@
 package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
-import connectors.EventReportingConnector
 import controllers.actions._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
-import models.financialStatement.PaymentOrChargeType.{EventReportingCharges, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.getPaymentOrChargeType
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
@@ -53,8 +52,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
-      eventReportingConnector.getFeatureToggle("event-reporting").flatMap { toggleDetail =>
-        val paymentsOrCharges = filterPaymentOrChargeTypesByFeatureToggle(getPaymentOrChargeTypes(cache.schemeFSDetail),toggleDetail.isEnabled)
+        val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail)
 
         Future.successful(Ok(paymentOrChargeTypeView(
           form = form,
@@ -96,9 +94,4 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
       DisplayPaymentOrChargeType(category, hint)
     }
-
-  private def filterPaymentOrChargeTypesByFeatureToggle(seqDisplayPaymentOrChargeType: Seq[DisplayPaymentOrChargeType],
-                                                        isEnabled: Boolean): Seq[DisplayPaymentOrChargeType] = {
-    if (isEnabled) seqDisplayPaymentOrChargeType else seqDisplayPaymentOrChargeType.filter(category => {category.chargeType != EventReportingCharges})
-  }
 }

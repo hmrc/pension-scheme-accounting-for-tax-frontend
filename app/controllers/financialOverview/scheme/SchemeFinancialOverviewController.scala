@@ -82,6 +82,8 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     val totalInterestAccruingFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}"
     val creditBalanceFormatted: String = creditBalanceAmountFormatted(creditSchemeFSDetail)
     val returnUrl = config.managePensionsSchemeOverviewUrl
+    val isOverdueChargeAvailable = service.isOverdueChargeAvailable(schemeFSDetail)
+
     logger.debug(s"AFT service returned UpcomingCharge - $totalUpcomingCharge")
     logger.debug(s"AFT service returned OverdueCharge - $totalOverdueCharge")
     logger.debug(s"AFT service returned InterestAccruing - $totalInterestAccruing")
@@ -119,11 +121,13 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
         allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
         creditBalanceFormatted = creditBalanceFormatted,
         creditBalance = creditBalance,
+        isOverdueChargeAvailable -> isOverdueChargeAvailable,
         returnUrl = returnUrl
       )
     }
 
     Future.successful(Ok(templateToRender))
+
   }
 
     def getCreditBalanceAmount(schemeFs: Seq[SchemeFSDetail]): BigDecimal = {
