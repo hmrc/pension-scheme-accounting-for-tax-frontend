@@ -587,11 +587,11 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(loggedInId, srn, "srn")
       schemeFSDetail <- fsConnector.getSchemeFS(schemeDetails.pstr)
-      paymentsCache = PaymentsCache(loggedInId, srn, schemeDetails, schemeFSDetail.seqSchemeFSDetail)
+      paymentsCache = PaymentsCache(loggedInId, srn, schemeDetails, schemeFSDetail.seqSchemeFSDetail,schemeFSDetail.inhibitRefundSignal)
       _ <- financialInfoCacheConnector.save(Json.toJson(paymentsCache))
     } yield paymentsCache
 
-  private def getPaymentsFromCache(loggedInId: String, srn: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
+  def getPaymentsFromCache(loggedInId: String, srn: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
     financialInfoCacheConnector.fetch flatMap {
       case Some(jsValue) =>
         val cacheAuthenticated: PaymentsCache => Boolean = value => value.loggedInId == loggedInId && value.srn == srn
@@ -692,7 +692,11 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   }
 }
 
-case class PaymentsCache(loggedInId: String, srn: String, schemeDetails: SchemeDetails, schemeFSDetail: Seq[SchemeFSDetail])
+case class PaymentsCache(loggedInId: String,
+                         srn: String,
+                         schemeDetails: SchemeDetails,
+                         schemeFSDetail: Seq[SchemeFSDetail],
+                         inhibitRefundSignal: Boolean = false)
 
 object PaymentsCache {
   implicit val format: OFormat[PaymentsCache] = Json.format[PaymentsCache]
