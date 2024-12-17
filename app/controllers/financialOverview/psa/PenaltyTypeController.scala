@@ -65,7 +65,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
         ))
       }
     }
-  }
+
 
   def onSubmit(journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>

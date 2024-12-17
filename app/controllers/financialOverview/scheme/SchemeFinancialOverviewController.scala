@@ -107,6 +107,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
         allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
         creditBalanceFormatted = creditBalanceFormatted,
         creditBalance = creditBalance,
+        isOverdueChargeAvailable = isOverdueChargeAvailable,
         returnUrl = returnUrl
       )
     } else {
@@ -121,7 +122,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
         allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
         creditBalanceFormatted = creditBalanceFormatted,
         creditBalance = creditBalance,
-        isOverdueChargeAvailable -> isOverdueChargeAvailable,
+        isOverdueChargeAvailable = isOverdueChargeAvailable,
         returnUrl = returnUrl
       )
     }

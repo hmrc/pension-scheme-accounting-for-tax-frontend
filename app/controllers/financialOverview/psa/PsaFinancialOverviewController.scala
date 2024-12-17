@@ -49,15 +49,15 @@ class PsaFinancialOverviewController @Inject()(
   private val logger = Logger(classOf[PsaFinancialOverviewController])
 
   def psaFinancialOverview: Action[AnyContent] = identify.async { implicit request =>
-      val response = for {
-        psaOrPspName <- minimalConnector.getPsaOrPspName
-        psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
-      } yield {
-        val psaFSWithoutPaymentOnAccount: Seq[PsaFSDetail] = psaFSWithPaymentOnAccount.seqPsaFSDetail
-          .filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
+    val response = for {
+      psaOrPspName <- minimalConnector.getPsaOrPspName
+      psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
+    } yield {
+      val psaFSWithoutPaymentOnAccount: Seq[PsaFSDetail] = psaFSWithPaymentOnAccount.seqPsaFSDetail
+        .filterNot(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
 
-        renderFinancialOverview(psaOrPspName, psaFSWithoutPaymentOnAccount, psaFSWithPaymentOnAccount)
-      }
+      renderFinancialOverview(psaOrPspName, psaFSWithoutPaymentOnAccount, psaFSWithPaymentOnAccount)
+    }
     response.flatten
   }
 
