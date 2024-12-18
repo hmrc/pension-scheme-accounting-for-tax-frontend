@@ -28,7 +28,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
-import services.financialOverview.scheme.PaymentsAndChargesService
+import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -40,7 +40,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   schemeService: SchemeService,
                                                   financialStatementConnector: FinancialStatementConnector,
-                                                  service: PaymentsAndChargesService,
+                                                  paymentsAndChargesService: PaymentsAndChargesService,
                                                   config: FrontendAppConfig,
                                                   renderer: Renderer,
                                                   accessAction: AllowAccessActionProviderForIdentifierRequest
@@ -55,7 +55,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     implicit request =>
       val response = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
-        schemeFS <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
+        schemeFS <- paymentsAndChargesService.getPaymentsFromCache(loggedInId = request.idOrException , srn = srn)
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {
         renderFinancialOverview(srn, schemeDetails, schemeFS, request, creditSchemeFS.seqSchemeFSDetail)
@@ -66,16 +66,16 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
   // scalastyle:off parameter.number
   private def renderFinancialOverview(srn: String,
                                       schemeDetails: SchemeDetails,
-                                      schemeFS: SchemeFS,
+                                      schemeFSCache: PaymentsCache,
                                       request: RequestHeader,
                                       creditSchemeFSDetail: Seq[SchemeFSDetail]): Future[Result] = {
-    val schemeFSDetail = schemeFS.seqSchemeFSDetail
+    val schemeFSDetail = schemeFSCache.schemeFSDetail
     val schemeName = schemeDetails.schemeName
-    val overdueCharges: Seq[SchemeFSDetail] = service.getOverdueCharges(schemeFSDetail)
-    val interestCharges: Seq[SchemeFSDetail] = service.getInterestCharges(schemeFSDetail)
+    val overdueCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getOverdueCharges(schemeFSDetail)
+    val interestCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.getInterestCharges(schemeFSDetail)
     val totalOverdueCharge: BigDecimal = overdueCharges.map(_.amountDue).sum
     val totalInterestAccruing: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
-    val upcomingCharges: Seq[SchemeFSDetail] = service.extractUpcomingCharges(schemeFSDetail)
+    val upcomingCharges: Seq[SchemeFSDetail] = paymentsAndChargesService.extractUpcomingCharges(schemeFSDetail)
     val totalUpcomingCharge : BigDecimal = upcomingCharges.map(_.amountDue).sum
     val totalUpcomingChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalUpcomingCharge)}"
     val totalOverdueChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalOverdueCharge)}"
@@ -86,10 +86,11 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     logger.debug(s"AFT service returned UpcomingCharge - $totalUpcomingCharge")
     logger.debug(s"AFT service returned OverdueCharge - $totalOverdueCharge")
     logger.debug(s"AFT service returned InterestAccruing - $totalInterestAccruing")
+    logger.warn(s"${srn} SchemeFinancialOverviewController totalUpcomingCharge: ${totalUpcomingChargeFormatted}")
 
     val creditBalance = getCreditBalanceAmount(creditSchemeFSDetail)
 
-    val requestRefundUrl = schemeFS.inhibitRefundSignal match {
+    val requestRefundUrl = schemeFSCache.inhibitRefundSignal match {
       case true => controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
       case false => routes.RequestRefundController.onPageLoad(srn).url
     }
