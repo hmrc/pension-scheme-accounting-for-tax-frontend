@@ -32,7 +32,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import views.html.chargeA.ChargeDetailsView
 
 import java.time.LocalDate
@@ -53,8 +52,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         config: FrontendAppConfig,
                                         view : ChargeDetailsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(minimumChargeValue:BigDecimal)(implicit messages: Messages): Form[ChargeDetails] =
     formProvider(minimumChargeValueAllowed = minimumChargeValue)
