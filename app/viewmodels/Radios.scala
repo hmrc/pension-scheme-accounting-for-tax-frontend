@@ -24,14 +24,6 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Text}
 
 object Radios extends NunjucksSupport {
 
-
-  final case class Radio(
-                          label: Text,
-                          value: String,
-                          hint: Option[Hint] = None,
-                          classes: Seq[String] = Seq.empty,
-                          labelClasses: Option[LabelClasses] = None)
-
   object Radio {
     implicit def writes(implicit messages: Messages): OWrites[Radio] = (
       (__ \ "label").write[Text] and
@@ -42,6 +34,12 @@ object Radios extends NunjucksSupport {
       (radio.label, radio.value, radio.hint, classes(radio.classes))
     }
   }
+  final case class Radio(
+                          label: Text,
+                          value: String,
+                          hint: Option[Hint] = None,
+                          classes: Seq[String] = Seq.empty,
+                          labelClasses: Option[LabelClasses] = None)
 
   final case class Item(id: String, text: Text, value: String, checked: Boolean, hint: Option[Hint] = None, classes: Seq[String] = Seq.empty,
                         label: Option[LabelClasses] = None)

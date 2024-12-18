@@ -68,6 +68,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val psaUpdateContactDetailsUrl: String = loadConfig("urls.psaUpdateContactDetails")
   lazy val pspUpdateContactDetailsUrl: String = loadConfig("urls.pspUpdateContactDetails")
 
+  //TODO: Change to int after nunjucks migration
   lazy val timeoutSeconds: String = configuration.get[String]("session.timeoutSeconds")
   lazy val countdownSeconds: String = configuration.get[String]("session.countdownSeconds")
 

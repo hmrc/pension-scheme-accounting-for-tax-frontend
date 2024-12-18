@@ -19,8 +19,8 @@ package models
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json._
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import viewmodels.Radios
 import utils.DateHelper
 
 import java.time.{LocalDate, Month}
@@ -53,7 +53,8 @@ trait YearRangeCommon extends Enumerable.Implicits {
 
   def getLabel(yr: YearRange)(implicit messages: Messages): Literal = {
     val startYear = yr.toString
-    Literal(msg"yearRangeRadio".withArgs(startYear, (startYear.toInt + 1).toString).resolve)
+    val yearRangeMsg = Message("yearRangeRadio").withArgs(startYear, (startYear.toInt + 1).toString).resolve
+    Literal(yearRangeMsg)
   }
 
   def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] =

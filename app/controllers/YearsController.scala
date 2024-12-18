@@ -29,6 +29,8 @@ import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.YearsView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -41,7 +43,8 @@ class YearsController @Inject()(
                                 val controllerComponents: MessagesControllerComponents,
                                 renderer: Renderer,
                                 config: FrontendAppConfig,
-                                schemeService: SchemeService
+                                schemeService: SchemeService,
+                                yearsView: YearsView
                             )(implicit ec: ExecutionContext)
                                 extends FrontendBaseController
                                 with I18nSupport
@@ -54,16 +57,11 @@ class YearsController @Inject()(
       psaId = request.idOrException,
       srn = srn,
       schemeIdType = "srn"
-    ) flatMap { schemeDetails =>
-      val json = Json.obj(
-        "srn" -> srn,
-        "startDate" -> None,
-        "form" -> form(config),
-        "radios" -> StartYears.radios(form(config))(config),
-        "viewModel" -> viewModel(schemeDetails.schemeName, srn)
-      )
+    ) map { schemeDetails =>
 
-      renderer.render(template = "years.njk", json).map(Ok(_))
+      Ok(
+        yearsView(form(config), routes.YearsController.onSubmit(srn), schemeDetails.schemeName, config.schemeDashboardUrl(request).format(srn), TwirlMigration.toTwirlRadios(StartYears.radios(form(config))(config)))
+      )
     }
   }
 
