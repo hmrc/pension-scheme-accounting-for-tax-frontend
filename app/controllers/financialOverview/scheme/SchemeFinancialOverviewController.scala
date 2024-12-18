@@ -81,7 +81,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     val totalOverdueChargeFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalOverdueCharge)}"
     val totalInterestAccruingFormatted= s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}"
     val creditBalanceFormatted: String = creditBalanceAmountFormatted(creditSchemeFSDetail)
-    val isOverdueChargeAvailable = service.isOverdueChargeAvailable(schemeFSDetail)
+    val isOverdueChargeAvailable = paymentsAndChargesService.isOverdueChargeAvailable(schemeFSDetail)
 
     logger.debug(s"AFT service returned UpcomingCharge - $totalUpcomingCharge")
     logger.debug(s"AFT service returned OverdueCharge - $totalOverdueCharge")
