@@ -1,0 +1,96 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import controllers.routes
+@import config.FrontendAppConfig
+@import uk.gov.hmrc.hmrcfrontend.views.config.StandardBetaBanner
+@import views.html.helper.CSPNonce
+
+@this(
+    appConfig: FrontendAppConfig,
+    govukLayout: GovukLayout,
+    hmrcHead: HmrcHead,
+    hmrcTimeoutDialogHelper: HmrcTimeoutDialogHelper,
+    hmrcStandardFooter: HmrcStandardFooter,
+    hmrcStandardHeader: HmrcStandardHeader,
+    standardBetaBanner: StandardBetaBanner,
+    defaultMainContentLayout: TwoThirdsMainContent,
+    hmrcScripts: HmrcScripts,
+    govukBackLink: GovukBackLink,
+    hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper
+)
+
+@(
+    pageTitle: String,
+    timeoutEnabled: Boolean = true,
+    canSignOut: Boolean = true,
+    showBackLink: Boolean = true,
+    fullWidthLayout: Boolean = false,
+    formHasErrors: Boolean = false
+)(mainContent: Html)(implicit request: Request[_], messages: Messages)
+
+@headScripts = {
+    @if(timeoutEnabled) {
+        @hmrcTimeoutDialogHelper(
+            signOutUrl = controllers.routes.SignOutController.signOut(None, None).url,
+            keepAliveUrl = Some(controllers.routes.KeepAliveController.keepAlive(None, None).url),
+            timeout = Some(appConfig.timeoutSeconds.toInt),
+            countdown = Some(appConfig.countdownSeconds.toInt)
+        )
+    }
+    <!--[if lte IE 8]><link href="@controllers.routes.Assets.versioned("stylesheets/application-ie-8.css").url" rel="stylesheet" type="text/css" /><![endif]-->
+        <!--[if gt IE 8]><!--><link href="@controllers.routes.Assets.versioned("stylesheets/application.css").url" media="all" rel="stylesheet" type="text/css" /><!--<![endif]-->
+}
+
+@beforeContentBlock = {
+    @if(showBackLink) {
+        @govukBackLink(BackLink(
+            attributes = Map("id" -> "back-link"), classes = "js-enabled", href = "javascript:history.back()", content = HtmlContent(messages("site.back"))
+        ))
+    }
+}
+
+@scripts = {
+    <script @CSPNonce.attr src="@routes.Assets.versioned("javascripts/application.min.js").url"></script>
+    <script @CSPNonce.attr>window.GOVUKFrontend.initAll();window.HMRCFrontend.initAll();</script>
+}
+
+@mainContentWithGetHelp = {
+    @mainContent
+    <div class="govuk-!-margin-top-8">
+        @hmrcReportTechnicalIssueHelper()
+    </div>
+    <div style="color:red"><b>DEV ONLY: TWIRL MIGRATION</b></div>
+}
+
+@titlePrefix = @{if(formHasErrors) { messages("error.title.prefix") + " " } else { "" } }
+
+@_pageTitle = @{titlePrefix + pageTitle + " " + Messages("site.title.suffix")}
+
+@govukLayout(
+    pageTitle = Some(_pageTitle),
+    headBlock = Some(hmrcHead(headBlock = Some(headScripts))),
+    headerBlock = Some(hmrcStandardHeader(
+        serviceName = Some(messages("site.service_name")),
+        serviceUrl = Some(appConfig.managePensionsSchemeOverviewUrl),
+        signOutUrl = if(canSignOut) Some(controllers.routes.SignOutController.signOut(None,None).url) else None,
+        phaseBanner = Some(standardBetaBanner(url = appConfig.betaFeedbackUnauthenticatedUrl))
+    )),
+    beforeContentBlock = Some(beforeContentBlock),
+    scriptsBlock = Some(scripts),
+    mainContentLayout = if(fullWidthLayout) None else Some(defaultMainContentLayout(_)),
+    footerBlock = Some(hmrcStandardFooter())
+)(mainContentWithGetHelp)

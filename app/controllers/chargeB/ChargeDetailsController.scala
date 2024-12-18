@@ -16,28 +16,26 @@
 
 package controllers.chargeB
 
-import java.time.LocalDate
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeB.ChargeDetailsFormProvider
 import helpers.DeleteChargeHelper
-
-import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{ChargeType, Mode, AccessType, GenericViewModel}
 import models.chargeB.ChargeBDetails
+import models.{AccessType, ChargeType, Mode}
 import navigators.CompoundNavigator
 import pages.chargeB.ChargeBDetailsPage
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, I18nSupport}
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.chargeB.ChargeDetailsView
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
@@ -51,7 +49,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         deleteChargeHelper: DeleteChargeHelper,
-                                        renderer: Renderer)(implicit ec: ExecutionContext)
+                                        view : ChargeDetailsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
@@ -59,12 +57,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   private def form(minimumChargeValue:BigDecimal): Form[ChargeBDetails] =
     formProvider(minimumChargeValueAllowed = minimumChargeValue)
 
-  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, accessType: AccessType, version: Int): GenericViewModel =
-    GenericViewModel(
-      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-      schemeName = schemeName
-    )
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
@@ -79,14 +71,11 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           case _        => form(mininimumChargeValue)
         }
 
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, startDate, schemeName, accessType, version)
-        )
-
-        renderer.render(template = "chargeB/chargeDetails.njk", json).map(Ok(_))
+        Future.successful(Ok(view(preparedForm,
+          schemeName,
+          routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+        )))
       }
     }
 
@@ -100,13 +89,11 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel(mode, srn, startDate, schemeName, accessType, version)
-              )
-              renderer.render(template = "chargeB/chargeDetails.njk", json).map(BadRequest(_))
+              Future.successful(BadRequest(view(formWithErrors.copy(errors = formWithErrors.errors.distinct),
+                schemeName,
+                routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version),
+                controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+              )))
             },
             value =>
               for {
