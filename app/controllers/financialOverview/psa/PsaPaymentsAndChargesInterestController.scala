@@ -32,6 +32,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
 import services.financialOverview.psa.PsaPenaltiesAndChargesService
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{formatDateDMY, formatStartDate}
@@ -109,6 +110,18 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
           s" ${Messages("psa.financial.overview.hint2")}</p>"
       )
 
+//    val htmlInsetText: HtmlContent = HtmlContent(
+//      s"""<p class="govuk-body">
+//         ${Messages("psa.financial.overview.hint1")}
+//         <span>
+//           <a id="breakdown" class="govuk-link" href="$originalAmountURL">
+//             ${Messages("psa.financial.overview.hintLink")}
+//           </a>
+//         </span>
+//         ${Messages("psa.financial.overview.hint2")}
+//      </p>"""
+//    )
+
     Json.obj(
       "heading" -> detailsChargeTypeHeading.toString,
       "isOverdue" -> psaPenaltiesAndChargesService.isPaymentOverdue(sourcePsaFSDetail),
@@ -137,6 +150,18 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
           s" ${Messages("psa.financial.overview.hintLink")}</a></span>" +
           s" ${Messages("psa.financial.overview.hint2")}</p>"
       )
+
+    //    val htmlInsetText: HtmlContent = HtmlContent(
+    //      s"""<p class="govuk-body">
+    //         ${Messages("psa.financial.overview.hint1")}
+    //         <span>
+    //           <a id="breakdown" class="govuk-link" href="$originalAmountURL">
+    //             ${Messages("psa.financial.overview.hintLink")}
+    //           </a>
+    //         </span>
+    //         ${Messages("psa.financial.overview.hint2")}
+    //      </p>"""
+    //    )
 
     Json.obj(
       "heading" -> detailsChargeTypeHeading.toString,

@@ -54,6 +54,7 @@ class SelectPenaltiesQuarterController @Inject()(
   def onPageLoad(year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
 
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
+
       val quarters: Seq[AFTQuarter] = getQuarters(filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt))
       if (quarters.nonEmpty) {
         Future.successful(Ok(selectQuarterView(

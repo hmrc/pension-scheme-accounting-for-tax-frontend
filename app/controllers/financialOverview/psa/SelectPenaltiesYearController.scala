@@ -60,7 +60,6 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       Future.successful(Ok(selectYearView(
         form(typeParam),
         routes.SelectPenaltiesYearController.onSubmit(penaltyType),
-        typeParam,
         penaltiesCache.psaName,
         appConfig.managePensionsSchemeOverviewUrl,
         TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form(typeParam), years)
@@ -89,7 +88,6 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
           Future.successful(BadRequest(selectYearView(
             formWithErrors,
             routes.SelectPenaltiesYearController.onSubmit(penaltyType),
-            typeParam,
             penaltiesCache.psaName,
             appConfig.managePensionsSchemeOverviewUrl,
             TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, years)

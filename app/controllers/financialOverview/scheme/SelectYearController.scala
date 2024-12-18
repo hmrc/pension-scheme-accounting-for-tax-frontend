@@ -25,7 +25,6 @@ import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOve
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
-import renderer.Renderer
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.TwirlMigration
@@ -39,7 +38,6 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                                      allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                      formProvider: YearsFormProvider,
                                      val controllerComponents: MessagesControllerComponents,
-                                     renderer: Renderer,
                                      config: FrontendAppConfig,
                                      service: PaymentsAndChargesService,
                                      selectYearView: SelectYearView,
