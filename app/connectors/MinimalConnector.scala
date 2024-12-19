@@ -22,12 +22,13 @@ import models.requests.IdentifierRequest
 import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HttpClient, _}
 import utils.HttpResponseHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
+class MinimalConnector @Inject()(httpClientV2: HttpClientV2, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
   import MinimalConnector._
@@ -63,9 +64,13 @@ class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   private def minDetails(hcWithId: HeaderCarrier)
                         (implicit ec: ExecutionContext): Future[MinimalDetails] = {
 
-    val url = config.minimalPsaDetailsUrl
+    val url = url"${config.minimalPsaDetailsUrl}"
 
-    http.GET[HttpResponse](url)(implicitly, hcWithId, implicitly) map {
+    httpClientV2
+      .get(url)(hcWithId)
+      .setHeader(hcWithId.extraHeaders: _*)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map {
       response =>
         response.status match {
           case OK =>
@@ -75,7 +80,7 @@ class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
             }
           case FORBIDDEN if response.body.contains(delimitedErrorMsg) => throw new DelimitedAdminException
           case _ =>
-            handleErrorResponse("GET", url)(response)
+            handleErrorResponse("GET", url.toString)(response)
         }
     }
   }

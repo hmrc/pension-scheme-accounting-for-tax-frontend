@@ -23,12 +23,10 @@ import models.requests.IdentifierRequest
 import models.{GenericViewModel, StartYears, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 import views.html.YearsView
 
@@ -47,8 +45,7 @@ class YearsController @Inject()(
                                 yearsView: YearsView
                             )(implicit ec: ExecutionContext)
                                 extends FrontendBaseController
-                                with I18nSupport
-                                with NunjucksSupport {
+                                with I18nSupport {
 
   private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()(StartYears.enumerable)
 
