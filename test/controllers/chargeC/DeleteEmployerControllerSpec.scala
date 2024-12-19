@@ -23,11 +23,11 @@ import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
+import models.UserAnswers
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, UserAnswers}
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
@@ -36,18 +36,17 @@ import play.api.Application
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.DeleteAFTChargeService
 import uk.gov.hmrc.http.UpstreamErrorResponse
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import views.html.chargeC.DeleteEmployerView
 
 import scala.concurrent.Future
 
-class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers with OptionValues with TryValues {
 
   val userAnswersWithSchemeNameAndTwoIndividuals: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
@@ -89,77 +88,52 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
   private def httpPathGET: String = routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
 
-  private def httpPathPOST: String = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, versionInt, 0).url
-
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName)
-
   "DeleteEmployer Controller" must {
 
     "return OK and the correct view for a GET on deleting an individual" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersIndividual))
+      val request = httpGETRequest(httpPathGET)
 
-      val request = FakeRequest(GET, httpPathGET)
-
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val view = application.injector.instanceOf[DeleteEmployerView].apply(
+        form,
+        schemeName,
+        submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, versionInt, 0),
+        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        employerNameIndividual,
+        Messages(s"chargeC.employerType.individual"),
+        utils.Radios.yesNo(form("value"))
+      )(request, messages)
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(form("value")),
-        "employerName" -> employerNameIndividual,
-        "employerType" -> Messages(s"chargeC.employerType.individual")
-      )
-
-      templateCaptor.getValue mustEqual "chargeC/deleteEmployer.njk"
-
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET on deleting an organisation" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
 
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersOrg))
 
-      val request = FakeRequest(GET, httpPathGET)
+      val request = httpGETRequest(httpPathGET)
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val view = application.injector.instanceOf[DeleteEmployerView].apply(
+        form,
+        schemeName,
+        submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, versionInt, 0),
+        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        employerNameOrg,
+        Messages(s"chargeC.employerType.organisation"),
+        utils.Radios.yesNo(form("value"))
+      )(request, messages)
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(form("value")),
-        "employerName" -> employerNameOrg,
-        "employerType" -> Messages(s"chargeC.employerType.organisation")
-      )
-
-      templateCaptor.getValue mustEqual "chargeC/deleteEmployer.njk"
-
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted individual marked as deleted" in {
