@@ -33,6 +33,7 @@ object TwirlMigration extends Logging {
         content = Text(radio.text.resolve),
         value = Some(radio.value),
         checked = radio.checked,
+        id = Some(radio.id),
         label = radio.label.map(label =>
           Label(classes = label.classes.mkString(" "))
         )
