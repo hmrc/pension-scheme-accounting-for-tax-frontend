@@ -25,7 +25,7 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.SponsoringEmployerAddress
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
+import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -33,22 +33,20 @@ import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
-import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
-import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
+import views.html.chargeC.SponsoringEmployerAddressView
 
 import scala.concurrent.Future
 
 class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with MockitoSugar
-  with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+  with JsonMatchers with OptionValues with TryValues {
   private val userAnswersIndividual: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndIndividual)
   private val userAnswersOrganisation: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndOrganisation)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
-  private val templateToBeRendered = "chargeC/sponsoringEmployerAddress.njk"
   private val form = new SponsoringEmployerAddressFormProvider()()
   private val index = 0
 
@@ -87,69 +85,63 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     "postcode" -> Seq("ZZ1 1ZZ")
   )
 
-  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false, sponsorType: SponsoringEmployerType):
-  Form[SponsoringEmployerAddress] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.
-        onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      schemeName = schemeName),
-    "sponsorName" -> sponsorName,
-    "employerType" -> Messages(s"chargeC.employerType.${sponsorType.toString}"),
-    "countries" -> Seq(
-      Json.obj(
-        "value" -> "",
-        "text" -> ""
-      ),
-      Json.obj(
-        "value" -> "UK",
-        "text" -> "country.UK"
-      ) ++ (if (isSelected) Json.obj("selected" -> true) else Json.obj())
-    )
-  )
-
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.validCountryCodes).thenReturn(Seq("UK"))
   }
 
-
   "SponsoringEmployerAddress Controller with individual sponsor" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersIndividual)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val request = httpGETRequest(httpPathGET)
+      val submitCall = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[SponsoringEmployerAddressView].apply(
+        form,
+        schemeName,
+        submitCall,
+        returnUrl,
+        "First Last",
+        Messages(s"chargeC.employerType.${SponsoringEmployerTypeIndividual.toString}"),
+        Seq(SelectItem(Some("")), SelectItem(Some("UK"), "country.UK"))
+      )(request, messages)
+
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = "First Last", sponsorType = SponsoringEmployerTypeIndividual).apply(form))
+      compareResultAndView(result, view)
     }
+
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       val ua = userAnswersIndividual.map(_.set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress)).get.toOption.get
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val request = httpGETRequest(httpPathGET)
+      val submitCall = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[SponsoringEmployerAddressView].apply(
+        form.fill(sponsoringEmployerAddress),
+        schemeName,
+        submitCall,
+        returnUrl,
+        "First Last",
+        Messages(s"chargeC.employerType.${SponsoringEmployerTypeIndividual.toString}"),
+        Seq(SelectItem(Some("")), SelectItem(Some("UK"), "country.UK"))
+      )(request, messages)
+
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      templateCaptor.getValue mustEqual templateToBeRendered
-      val expected = jsonToPassToTemplate(sponsorName = "First Last", isSelected = true,
-        sponsorType = SponsoringEmployerTypeIndividual)(form.fill(sponsoringEmployerAddress))
-      jsonCaptor.getValue must containJson(expected)
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
@@ -166,37 +158,53 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
   "SponsoringEmployerAddress Controller with organisation sponsor" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val request = httpGETRequest(httpPathGET)
+      val submitCall = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[SponsoringEmployerAddressView].apply(
+        form,
+        schemeName,
+        submitCall,
+        returnUrl,
+        companyName,
+        Messages(s"chargeC.employerType.${SponsoringEmployerTypeOrganisation.toString}"),
+        Seq(SelectItem(Some("")), SelectItem(Some("UK"), "country.UK"))
+      )(request, messages)
+
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName, sponsorType = SponsoringEmployerTypeOrganisation).apply(form))
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       val ua = userAnswersOrganisation.map(_.set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress)).get.toOption.get
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val request = httpGETRequest(httpPathGET)
+      val submitCall = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+
+      val view = application.injector.instanceOf[SponsoringEmployerAddressView].apply(
+        form.fill(sponsoringEmployerAddress),
+        schemeName,
+        submitCall,
+        returnUrl,
+        companyName,
+        Messages(s"chargeC.employerType.${SponsoringEmployerTypeOrganisation.toString}"),
+        Seq(SelectItem(Some("")), SelectItem(Some("UK"), "country.UK"))
+      )(request, messages)
+
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      compareResultAndView(result, view)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName, isSelected = true,
-        sponsorType = SponsoringEmployerTypeOrganisation)(form.fill(sponsoringEmployerAddress)))
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
