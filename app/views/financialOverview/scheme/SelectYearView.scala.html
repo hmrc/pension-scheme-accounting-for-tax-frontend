@@ -22,9 +22,9 @@
     govukRadios: GovukRadios
 )
 
-@(form: Form[Year], titleMessage: String, submitCall: Call, typeParam: String, schemeName: String, returnUrl: String, radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
+@(form: Form[_], penaltyType: String, submitCall: Call, schemeName: String, returnUrl: String, radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
 
-@layout(messages(titleMessage), formHasErrors = form.hasErrors) {
+@layout(messages("selectChargesTaxYear.all.title", penaltyType), formHasErrors = form.hasErrors) {
 
 <div>
 
@@ -34,7 +34,7 @@
                 form("value"),
                 radios,
                 Fieldset(
-                    legend = Some(Legend(content = Text(titleMessage), isPageHeading = true,
+                    legend = Some(Legend(content = Text(messages("selectChargesTaxYear.all.title", penaltyType)), isPageHeading = true,
                         classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4"
                 ))
             )

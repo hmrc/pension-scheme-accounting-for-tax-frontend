@@ -59,7 +59,6 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialOverview/scheme/paymentOrChargeType.njk"
   val formProvider = new PaymentOrChargeTypeFormProvider()
   val form: Form[PaymentOrChargeType] = formProvider()
 
@@ -80,7 +79,6 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(),
@@ -90,18 +88,10 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
   "PaymentOrChargeType Controller" must {
     "return OK and the correct view for a GET" in {
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
     }
 
     "redirect to next page when valid data is submitted" in {

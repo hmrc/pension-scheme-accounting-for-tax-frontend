@@ -22,7 +22,7 @@ import forms.YearsFormProvider
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
-import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
+import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, StartYears, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
@@ -49,10 +49,12 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
   private def form(errorParameter: String)(implicit messages: Messages, ev: Enumerable[Year]): Form[Year] =
     formProvider(messages("selectPenaltiesYear.error", messages(errorParameter)))(implicitly)
 
+//  private def form(implicit appConfig: FrontendAppConfig): Form[Year] =
+//    formProvider()(StartYears.enumerable)
+
   def onPageLoad(penaltyType: PenaltyType, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
 
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-
       val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
       val years = getYears(penaltyType, penaltiesCache.penalties.toSeq)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
@@ -61,6 +63,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
         form(typeParam),
         routes.SelectPenaltiesYearController.onSubmit(penaltyType),
         penaltiesCache.psaName,
+        typeParam,
         appConfig.managePensionsSchemeOverviewUrl,
         TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form(typeParam), years)
         )
@@ -89,6 +92,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
             formWithErrors,
             routes.SelectPenaltiesYearController.onSubmit(penaltyType),
             penaltiesCache.psaName,
+            penaltyType = typeParam,
             appConfig.managePensionsSchemeOverviewUrl,
             TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, years)
             )
@@ -130,6 +134,5 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
                              (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] = {
     (penalties, year) => navService.navFromNonAftYearsPage(penalties, year, request.idOrException, penaltyType)
   }
-
 
 }

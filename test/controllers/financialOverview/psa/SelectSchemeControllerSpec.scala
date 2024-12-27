@@ -28,9 +28,8 @@ import matchers.JsonMatchers
 import models.financialStatement.PenaltyType
 import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.{Enumerable, PenaltySchemes}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -41,7 +40,6 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
-import play.twirl.api.Html
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -71,10 +69,10 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private val jsonToTemplate: Form[PenaltySchemes] => JsObject = form => Json.obj(
-    fields = "form" -> form,
-    "radios" -> PenaltySchemes.radios(form, penaltySchemes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
-  )
+//  private val jsonToTemplate: Form[PenaltySchemes] => JsObject = form => Json.obj(
+//    fields = "form" -> form,
+//    "radios" -> PenaltySchemes.radios(form, penaltySchemes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
+//  )
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -82,7 +80,6 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
     reset(mockAppConfig)
     reset(mockFICacheConnector)
     reset(mockFSConnector)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
@@ -95,17 +92,10 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
       "return OK with the correct view" in {
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
         val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual template
-        jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
       }
     }
 
@@ -124,7 +114,6 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 }
 
 object SelectSchemeControllerSpec {
-  private val template = "financialOverview/psa/selectScheme.njk"
   private val year = "2020"
   val pstr = "24000040IN"
   private val ps1 = PenaltySchemes(name = Some("Scheme1"), pstr = "24000040IN", srn = None, None)

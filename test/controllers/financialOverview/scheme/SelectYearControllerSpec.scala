@@ -24,7 +24,7 @@ import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
 import models.StartYears.enumerable
-import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
+import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
@@ -80,7 +80,6 @@ class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockPaymentsAndChargesService.getTypeParam(AccountingForTaxCharges)).thenReturn("bar")
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))
@@ -89,14 +88,17 @@ class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
   "SelectYear Controller" must {
     "return OK and the correct view for a GET" in {
 
+      val typeParam = mockPaymentsAndChargesService.getTypeParam(AccountingForTaxCharges)
+
       val request = httpGETRequest(httpPathGET)
       val result = route(application, httpGETRequest(httpPathGET)).value
 
+      status(result) mustEqual OK
+
       val view = application.injector.instanceOf[SelectYearView].apply(
         form = form,
-        titleMessage = "Which year do you want to view Accounting For Tax Charges for?",
+        penaltyType = typeParam,
         submitCall = submitCall,
-        typeParam = mockPaymentsAndChargesService.getTypeParam(AccountingForTaxCharges),
         schemeName = SampleData.schemeName,
         returnUrl = dummyCall.url,
         radios = TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form, years))

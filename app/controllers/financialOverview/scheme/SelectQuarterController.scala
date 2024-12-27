@@ -60,7 +60,6 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
         Future.successful(Ok(selectQuarterView(
           form = form(quarters, year),
-          titleMessage = s"selectChargesQuarter.all.title",
           submitCall = routes.SelectQuarterController.onSubmit(srn, year),
           schemeName = paymentsCache.schemeDetails.schemeName,
           returnUrl = config.schemeDashboardUrl(request).format(srn),
@@ -86,7 +85,6 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
             Future.successful(BadRequest(selectQuarterView(
               form = formWithErrors,
-              titleMessage = s"selectChargesQuarter.all.title",
               submitCall = routes.SelectQuarterController.onSubmit(srn, year),
               schemeName = paymentsCache.schemeDetails.schemeName,
               returnUrl = config.schemeDashboardUrl(request).format(srn),

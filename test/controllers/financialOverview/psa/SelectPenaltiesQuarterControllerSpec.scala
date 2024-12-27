@@ -35,10 +35,10 @@ import play.api.data.Form
 import play.api.http.Status.{BAD_REQUEST, OK, SEE_OTHER}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
-import play.twirl.api.Html
+import services.PenaltiesServiceSpec.penaltiesCache
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
@@ -95,6 +95,7 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
   "SelectPenaltiesQuarter Controller" must {
     "return OK and the correct view for a GET" in {
 
+      val request = httpGETRequest(httpPathGET)
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
@@ -102,13 +103,18 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
       val view = application.injector.instanceOf[SelectQuarterView].apply(
         form = form,
         submitCall = submitCall,
-        psaName = "psa-name",
-        returnUrl = dummyCall.url,
-        radios = TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form, displayQuarters)),
+        psaName = penaltiesCache.psaName,
+        returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+        radios = TwirlMigration.toTwirlRadiosWithHintText(
+          Quarters.radios(
+            form,
+            displayQuarters,
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
+            areLabelsBold = false
+          )
+        ),
         year
-      )(httpGETRequest(httpPathGET), messages)
-
-      status(result) mustEqual OK
+      )(request, messages)
 
       compareResultAndView(result, view)
     }
