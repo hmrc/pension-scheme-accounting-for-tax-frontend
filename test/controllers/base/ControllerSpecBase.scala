@@ -60,6 +60,9 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
     Mockito.reset(mockAllowAccessActionProvider)
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
     when(mockAllowAccessActionProviderForIdentifierRequest.apply(any())).thenReturn(FakeActionFilterForIdentifierRequest)
+    when(mockAppConfig.timeoutSeconds).thenReturn("900")
+    when(mockAppConfig.countdownSeconds).thenReturn("120")
+    when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("someurl")
   }
 
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]

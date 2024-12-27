@@ -62,7 +62,6 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
       sessionData = SampleData.sessionData(name = None, sessionAccessData = sessionAccessData)
     )
 
-
   protected def compareResultAndView(
                                       result: Future[Result],
                                       view: Html

@@ -23,12 +23,10 @@ import models.requests.IdentifierRequest
 import models.{GenericViewModel, StartYears, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 import views.html.YearsView
 
@@ -47,8 +45,7 @@ class YearsController @Inject()(
                                 yearsView: YearsView
                             )(implicit ec: ExecutionContext)
                                 extends FrontendBaseController
-                                with I18nSupport
-                                with NunjucksSupport {
+                                with I18nSupport {
 
   private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()(StartYears.enumerable)
 
@@ -75,14 +72,8 @@ class YearsController @Inject()(
             srn = srn,
             schemeIdType = "srn"
           ) flatMap { schemeDetails =>
-            val json = Json.obj(
-              fields = "srn" -> srn,
-              "startDate" -> None,
-              "form" -> formWithErrors,
-              "radios" -> StartYears.radios(formWithErrors)(config),
-              "viewModel" -> viewModel(schemeDetails.schemeName, srn)
-            )
-            renderer.render(template = "years.njk", json).map(BadRequest(_))
+            Future.successful(BadRequest(yearsView(formWithErrors, routes.YearsController.onSubmit(srn), schemeDetails.schemeName,
+              config.schemeDashboardUrl(request).format(srn), TwirlMigration.toTwirlRadios(StartYears.radios(form(config))(config)))))
         },
         value => Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.getYear.toString)))
       )
