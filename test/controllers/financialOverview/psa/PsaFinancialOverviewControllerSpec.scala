@@ -60,18 +60,8 @@ class PsaFinancialOverviewControllerSpec
     )
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private val psaName = "John Doe"
+  private val psaName = "psa-name"
   val requestRefundUrl = s"test.com?requestType=3&psaName=$psaName&availAmt=1000"
-
-//  private val jsonToPassToTemplate: JsObject = Json.obj(
-//    "totalUpcomingCharge" -> "10",
-//    "totalOverdueCharge" -> "10",
-//    "totalInterestAccruing" -> "10",
-//    "psaName" -> "John Doe",
-//    "requestRefundUrl" -> routes.PsaRequestRefundController.onPageLoad.url,
-//    "creditBalanceFormatted" -> "£1,000.00",
-//    "creditBalance" -> 1000
-//  )
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -82,9 +72,7 @@ class PsaFinancialOverviewControllerSpec
       .thenReturn(Future.successful(psaFs))
   }
 
-  "PsaFinancialOverviewController" when {
-    "schemeFinancialOverview" must {
-
+  "PsaFinancialOverviewController" must {
       "return old html with information received from overview api for new financial credits is false" in {
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
@@ -102,7 +90,7 @@ class PsaFinancialOverviewControllerSpec
         status(result) mustEqual OK
 
         val view = application.injector.instanceOf[PsaFinancialOverviewView].apply(
-          psaName = "John Doe",
+          psaName = psaName,
           totalUpcomingCharge = "10",
           totalOverdueCharge = "10",
           totalInterestAccruing = "10",
@@ -130,15 +118,27 @@ class PsaFinancialOverviewControllerSpec
         when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
           .thenReturn(Future.successful(psaName))
 
+        val request = httpGETRequest(getPartial)
         val result = route(application, httpGETRequest(getPartial)).value
 
         status(result) mustEqual OK
-//        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-//        templateCaptor.getValue mustEqual "financialOverview/psa/psaFinancialOverviewNew.njk"
-//        jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+        val view = application.injector.instanceOf[PsaFinancialOverviewView].apply(
+          psaName = psaName,
+          totalUpcomingCharge = "10",
+          totalOverdueCharge = "10",
+          totalInterestAccruing = "10",
+          requestRefundUrl = routes.PsaRequestRefundController.onPageLoad.url,
+          allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
+          duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
+          allPaymentLink = routes.PenaltyTypeController.onPageLoad().url,
+          creditBalanceFormatted = "1000",
+          creditBalance = 1000,
+          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
+        )(messages, request)
+
+        compareResultAndView(result, view)
       }
     }
 
   }
-
-}

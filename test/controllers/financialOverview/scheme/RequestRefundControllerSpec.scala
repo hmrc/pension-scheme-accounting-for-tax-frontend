@@ -33,14 +33,12 @@ import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
-import play.twirl.api.Html
 import services.{PsaSchemePartialService, SchemeService}
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.RequestRefundView
 
 import scala.concurrent.Future
 
-class RequestRefundControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class RequestRefundControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   import RequestRefundControllerSpec._
 
@@ -57,7 +55,6 @@ class RequestRefundControllerSpec extends ControllerSpecBase with NunjucksSuppor
       Seq[GuiceableModule](
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest),
         bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
         bind[PsaSchemePartialService].toInstance(mockPsaSchemePartialService),
@@ -70,7 +67,6 @@ class RequestRefundControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
     reset(mockAppConfig)
     reset(mockFinancialStatementConnector)
     reset(mockPsaSchemePartialService)
@@ -78,7 +74,6 @@ class RequestRefundControllerSpec extends ControllerSpecBase with NunjucksSuppor
     reset(mockMinimalConnector)
     reset(mockFinancialInfoCreditAccessConnector)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
     when(mockPsaSchemePartialService.getCreditBalanceAmount(any())).thenReturn(BigDecimal(44.4))
@@ -89,63 +84,54 @@ class RequestRefundControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockAppConfig.creditBalanceRefundLink).thenReturn(dummyURL)
   }
 
-  private def expectedJson(heading: String, p1: String, continueUrl: String): JsObject = Json.obj(
-    "heading" -> heading,
-    "p1" -> p1,
-    "continueUrl" -> continueUrl
-  )
-
   "RequestRefundController" must {
 
     "when accessed by same PSA return OK and render correct content on page" in {
       when(mockFinancialInfoCreditAccessConnector.creditAccessForSchemePsa(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(AccessedByLoggedInPsaOrPsp)))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val request = httpGETRequest(httpPathGET)
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "financialOverview/requestRefund.njk"
-      jsonCaptor.getValue must containJson(expectedJson(
+      val view = application.injector.instanceOf[RequestRefundView].apply(
         heading = "requestRefund.youAlready.h1",
         p1 = "requestRefund.youAlready.p1",
-        continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4"))
+        continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4")(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "when accessed by different PSA return OK and render correct content on page" in {
       when(mockFinancialInfoCreditAccessConnector.creditAccessForSchemePsa(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(AccessedByOtherPsa)))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val request = httpGETRequest(httpPathGET)
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "financialOverview/requestRefund.njk"
-      jsonCaptor.getValue must containJson(expectedJson(
+      val view = application.injector.instanceOf[RequestRefundView].apply(
         heading = "requestRefund.psaAlready.h1",
         p1 = "requestRefund.psaAlready.p1",
-        continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4"))
+        continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4")(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "when accessed by different PSP return OK and render correct content on page" in {
       when(mockFinancialInfoCreditAccessConnector.creditAccessForSchemePsa(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(AccessedByOtherPsp)))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val request = httpGETRequest(httpPathGET)
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "financialOverview/requestRefund.njk"
-      jsonCaptor.getValue must containJson(expectedJson(
+      val view = application.injector.instanceOf[RequestRefundView].apply(
         heading = "requestRefund.pspAlready.h1",
         p1 = "requestRefund.pspAlready.p1",
-        continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4"))
+        continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4")(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "when not accessed return redirect to correct page" in {
