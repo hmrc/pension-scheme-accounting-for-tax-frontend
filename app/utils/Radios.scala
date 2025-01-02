@@ -14,12 +14,29 @@
  * limitations under the License.
  */
 
-package models
+package utils
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.data.Field
+import play.api.i18n.Messages
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 
-case class ToggleDetails(toggleName: String, toggleDescription: Option[String], isEnabled: Boolean)
+object Radios {
+  def yesNo(
+             field: Field
+           )(implicit messages: Messages): Seq[RadioItem] = {
 
-object ToggleDetails {
-  implicit val format: OFormat[ToggleDetails] = Json.format[ToggleDetails]
+    Seq(
+      RadioItem(
+        id = Some(field.id),
+        value = Some("true"),
+        content = Text(messages("site.yes"))
+      ),
+      RadioItem(
+        id = Some(s"${field.id}-no"),
+        value = Some("false"),
+        content = Text(messages("site.no"))
+      )
+    )
+  }
 }

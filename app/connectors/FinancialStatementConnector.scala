@@ -28,7 +28,7 @@ import utils.HttpResponseHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FinancialStatementConnector @Inject()(http: HttpClient, httpClientV2: HttpClientV2, config: FrontendAppConfig)
+class FinancialStatementConnector @Inject()(httpClientV2: HttpClientV2, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
   private val logger = Logger(classOf[FinancialStatementConnector])

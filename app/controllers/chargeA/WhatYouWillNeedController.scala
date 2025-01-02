@@ -21,15 +21,15 @@ import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{AccessType, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.chargeA.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.chargeA.WhatYouWillNeedView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -46,29 +46,18 @@ class WhatYouWillNeedController @Inject()(
     renderer: Renderer,
     schemeDetailsConnector: SchemeDetailsConnector,
     userAnswersCacheConnector: UserAnswersCacheConnector,
-    navigator: CompoundNavigator
+    navigator: CompoundNavigator,
+    view: WhatYouWillNeedView
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)) { implicit request =>
       val ua = request.userAnswers
       val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version)
-
-      val viewModel = GenericViewModel(submitUrl = "",
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url, schemeName = schemeName)
-
-      renderer
-        .render(
-          template = "chargeA/whatYouWillNeed.njk",
-          Json.obj(fields = "srn" -> srn,
-                   "startDate" -> Some(localDateToString(startDate)),
-                   "schemeName" -> schemeName,
-                   "nextPage" -> nextPage.url,
-                   "viewModel" -> viewModel)
-        )
-        .map(Ok(_))
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+      Ok(view(nextPage.url, schemeName, returnUrl))
     }
 }

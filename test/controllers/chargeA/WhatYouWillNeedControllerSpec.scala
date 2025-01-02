@@ -18,61 +18,47 @@ package controllers.chargeA
 
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
+import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, UserAnswers}
+import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
-import pages.chargeA.WhatYouWillNeedPage
+import org.mockito.Mockito.when
 import play.api.Application
-import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.Call
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
-
-import scala.concurrent.Future
+import views.html.chargeA.WhatYouWillNeedView
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
-  private val templateToBeRendered = "chargeA/whatYouWillNeed.njk"
 
   private def httpPathGET: String = controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  private val jsonToPassToTemplate: JsObject = Json.obj(
-    fields = "schemeName" -> schemeName, "nextPage" -> dummyCall.url, "viewModel" -> GenericViewModel(
-      submitUrl = "",
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      schemeName = schemeName))
-
-  override def beforeEach(): Unit = {
-    super.beforeEach()
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-  }
+  private val continueCall: Call = Call("GET", "continueUrl")
 
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(continueCall)
 
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val request = httpGETRequest(httpPathGET)
+      val result = route(application, request).value
 
-      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val view = application.injector.instanceOf[WhatYouWillNeedView].apply(
+        continueCall.url,
+        SampleData.schemeName,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url
+      )(request, messages)
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      compareResultAndView(result, view)
     }
   }
 }

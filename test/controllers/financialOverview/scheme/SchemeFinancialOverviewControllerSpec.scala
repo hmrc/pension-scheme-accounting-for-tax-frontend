@@ -21,7 +21,8 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-import org.mockito.ArgumentCaptor
+import models.financialStatement.SchemeFSDetail
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -34,6 +35,7 @@ import play.api.libs.json.JsObject
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
+import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
@@ -54,13 +56,15 @@ class SchemeFinancialOverviewControllerSpec
   private val mockPsaSchemePartialService: PsaSchemePartialService = mock[PsaSchemePartialService]
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val mockMinimalPsaConnector: MinimalConnector = mock[MinimalConnector]
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[PsaSchemePartialService].toInstance(mockPsaSchemePartialService),
       bind[SchemeService].toInstance(mockSchemeService),
       bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
-      bind[MinimalConnector].toInstance(mockMinimalPsaConnector)
+      bind[MinimalConnector].toInstance(mockMinimalPsaConnector),
+      bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
     )
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
@@ -76,6 +80,20 @@ class SchemeFinancialOverviewControllerSpec
       .thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
+
+    reset(mockPaymentsAndChargesService)
+    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(),any())(any(),any())).
+      thenReturn(Future.successful(schemeToFinancial(schemeFSResponseAftAndOTC)))
+    when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).
+      thenReturn(Future.successful(schemeToFinancial(schemeFSResponseAftAndOTC)))
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
+      any(), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseAftAndOTC.seqSchemeFSDetail)
+    when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseAftAndOTC.seqSchemeFSDetail)
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseAftAndOTC.seqSchemeFSDetail)
+
+
 
   }
 

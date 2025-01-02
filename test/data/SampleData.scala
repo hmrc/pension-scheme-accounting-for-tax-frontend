@@ -32,6 +32,7 @@ import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 import play.api.mvc.Call
 import services.paymentsAndCharges.PaymentsCache
+import services.financialOverview.scheme.{PaymentsCache => FinancialOverviewPaymentsCache}
 import utils.AFTConstants._
 import viewmodels.Table
 
@@ -438,6 +439,13 @@ object SampleData {
 
   val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
   val emptyChargesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
+
+  def schemeToFinancial(schemeFS: SchemeFS):FinancialOverviewPaymentsCache =
+    FinancialOverviewPaymentsCache(loggedInId = "loggedInId",
+      srn = srn,
+      schemeDetails = schemeDetails,
+      schemeFSDetail = schemeFS.seqSchemeFSDetail,
+      inhibitRefundSignal = schemeFS.inhibitRefundSignal)
 
   val schemeFSResponseAftAndOTC: SchemeFS =
     SchemeFS(

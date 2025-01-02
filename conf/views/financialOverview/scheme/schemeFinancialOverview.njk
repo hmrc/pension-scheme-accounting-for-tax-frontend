@@ -54,7 +54,7 @@
                     </p>
                  {% endif %}
                          <hr class="govuk-section-break govuk-section-break--xl govuk-section-break--visible">
-<div class="govuk-grid-row">
+                    <div class="govuk-grid-row">
                          <div class="govuk-grid-column-full">
                              <h2 class=" govuk-heading-m govuk-!-font-weight-regular">
                                                     {{ messages("schemeFinancial.h2.creditBalance") }}
@@ -67,11 +67,14 @@
                             {% endif %}
 
                          </div>
-</div>
-                    <p class="govuk-body-m">
-                                               <a id="allPaymentCharges" class=govuk-link href="{{ allPaymentLink }}"> {{ messages("schemeFinancial.allPaymentCharges.link") }}</a>
-                                       </p>
+                    </div>
 
+                <br> {# This extra line is mandatory #}
+                {% if isOverdueChargeAvailable %}
+                    <p class="govuk-body-m">
+                        <a id="allPaymentCharges" class=govuk-link href="{{ allPaymentLink }}"> {{ messages("schemeFinancial.allPaymentCharges.link") }}</a>
+                    </p>
+                {% endif %}
         </div>
     </div>
 
