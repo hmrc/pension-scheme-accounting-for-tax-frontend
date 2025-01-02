@@ -28,22 +28,22 @@ import models.ChargeType.ChargeTypeDeRegistration
 import models.LocalDateBinder.localDateToString
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{AccessMode, GenericViewModel}
-import org.mockito.ArgumentCaptor
+import models.AccessMode
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.AFTConstants.QUARTER_START_DATE
-import viewmodels.Table
-import viewmodels.Table.Cell
+import views.html.amend.ViewAllAmendmentsView
 
 import scala.concurrent.Future
 
@@ -89,40 +89,25 @@ class ViewAllAmendmentsControllerSpec
   private def table(caption: String, allAmendments: Seq[ViewAmendmentDetails]): Table = {
     val tableHeadingRows =
       Seq(
-        Cell(msg"allAmendments.memberDetails.h1", classes = Seq("govuk-!-width-one-quarter")),
-        Cell(msg"allAmendments.chargeType.h1", classes = Seq("govuk-!-width-one-quarter")),
-        Cell(msg"allAmendments.chargeAmount.h1", classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric", "govuk-!-font-weight-bold"))
+        HeadCell(Text(Messages("allAmendments.memberDetails.h1")), classes = "govuk-!-width-one-quarter"),
+        HeadCell(Text(Messages("allAmendments.chargeType.h1")), classes = "govuk-!-width-one-quarter"),
+        HeadCell(Text(Messages("allAmendments.chargeAmount.h1")), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric govuk-!-font-weight-bold")
       )
 
     val tableRows = allAmendments.map { data =>
       Seq(
-        Cell(Literal(data.memberDetails), classes = Seq("govuk-!-width-one-quarter"), attributes = Map("role" -> "cell")),
-        Cell(msg"allAmendments.charge.type.${data.chargeType}", classes = Seq("govuk-!-width-one-quarter"), attributes = Map("role" -> "cell")),
-        Cell(Literal(data.chargeAmount), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"), attributes = Map("role" -> "cell"))
+        TableRow(Text(data.memberDetails), classes = "govuk-!-width-one-quarter", attributes = Map("role" -> "cell")),
+        TableRow(Text(Messages(s"allAmendments.charge.type.${data.chargeType}")), classes = "govuk-!-width-one-quarter", attributes = Map("role" -> "cell")),
+        TableRow(Text(data.chargeAmount), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric", attributes = Map("role" -> "cell"))
       )
     }
 
     Table(
-      head = tableHeadingRows,
       rows = tableRows,
+      head = Some(tableHeadingRows),
       attributes = Map("role" -> "table", "aria-describedby" -> messages(s"allAmendments.table.caption.$caption").toLowerCase)
     )
   }
-
-  private def expectedJson: JsObject = Json.obj(
-    fields = "srn" -> srn,
-    "startDate" -> Some(localDateToString(startDate)),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version = 3).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName
-    ),
-    "versionNumber" -> versionNumber,
-    "isDraft" -> true,
-    "addedTable" -> table("added", Nil),
-    "deletedTable" -> table("deleted", Nil),
-    "updatedTable" -> table("updated", allAmendments)
-  )
 
   mutableFakeDataRetrievalAction.setSessionData(
     SampleData.sessionData(sessionAccessData = sessionAccessData(versionNumber, AccessMode.PageAccessModeCompile)))
@@ -130,16 +115,23 @@ class ViewAllAmendmentsControllerSpec
   "ViewAllAmendments Controller" must {
 
     "return OK and the correct view for a GET" in {
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
       val result = route(application, httpGETRequest(httpPathGET)).value
+      val request = httpGETRequest(httpPathGET)
+      val view = application.injector.instanceOf[ViewAllAmendmentsView].apply(
+        pageTitle = Messages("allAmendments.draft.title"),
+        isDraft = true,
+        versionNumber = versionNumber,
+        addedTable = table("added", Nil),
+        deletedTable = table("deleted", Nil),
+        updatedTable = table("updated", allAmendments),
+        submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version = 3).url,
+        returnUrl = dummyCall.url,
+        schemeName = schemeName
+      )(request, messages)
+
       status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "amend/viewAllAmendments.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to session expired page when no mandatory data in user answers" in {
