@@ -36,6 +36,7 @@ import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{PsaSchemePartialService, SchemeService}
 import viewmodels.Radios.MessageInterpolators
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
+import views.html.financialOverview.scheme.SchemeFinancialOverviewView
 
 import scala.concurrent.Future
 
@@ -102,9 +103,27 @@ class SchemeFinancialOverviewControllerSpec
         when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
           .thenReturn(Future.successful("John Doe"))
 
+        val request = httpGETRequest(getPartial)
         val result = route(application, httpGETRequest(getPartial)).value
 
         status(result) mustEqual OK
+
+//        val view = application.injector.instanceOf[SchemeFinancialOverviewView].apply(
+//          schemeName = schemeName,
+//          totalUpcomingCharge = "10",
+//          totalOverdueCharge = "10",
+//          totalInterestAccruing = "10",
+//          requestRefundUrl = routes.RequestRefundController.onPageLoad.url,
+//          allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
+//          duePaymentLink = routes.PaymentsAndChargesController.onPageLoad("upcoming").url,
+//          allPaymentLink = routes.PenaltyTypeController.onPageLoad().url,
+//          creditBalanceFormatted = "1000",
+//          creditBalance = 1000,
+//          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
+//        )(messages, request)
+//
+//        compareResultAndView(result, view)
+
       }
     }
 

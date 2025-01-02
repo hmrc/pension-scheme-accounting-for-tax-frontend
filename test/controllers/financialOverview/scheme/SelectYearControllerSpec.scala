@@ -24,7 +24,7 @@ import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
 import models.StartYears.enumerable
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}

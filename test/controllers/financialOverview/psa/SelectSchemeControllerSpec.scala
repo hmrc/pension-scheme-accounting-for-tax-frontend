@@ -89,7 +89,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
       "return OK with the correct view" in {
 
         val request = httpGETRequest(httpPathGET)
-        val result = route(application, httpGETRequest(httpPathGET)).value
+        val result = route(application, request).value
 
         status(result) mustEqual OK
 

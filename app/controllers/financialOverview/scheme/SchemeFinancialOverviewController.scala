@@ -21,16 +21,13 @@ import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.SchemeDetails
-import models.financialStatement.{SchemeFS, SchemeFSDetail}
+import models.financialStatement.SchemeFSDetail
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.SchemeService
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import views.html.financialOverview.scheme.{SchemeFinancialOverviewNewView, SchemeFinancialOverviewView}
 
 import javax.inject.Inject

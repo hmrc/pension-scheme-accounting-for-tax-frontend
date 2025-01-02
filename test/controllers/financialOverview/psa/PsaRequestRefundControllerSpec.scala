@@ -25,15 +25,13 @@ import matchers.JsonMatchers
 import models.CreditAccessType.AccessedByLoggedInPsaOrPsp
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import services.AFTPartialService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import views.html.financialOverview.RequestRefundView
 
 import scala.concurrent.Future

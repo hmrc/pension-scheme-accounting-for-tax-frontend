@@ -34,7 +34,7 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}

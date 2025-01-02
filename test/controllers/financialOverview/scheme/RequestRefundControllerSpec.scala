@@ -24,14 +24,13 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.CreditAccessType.{AccessedByLoggedInPsaOrPsp, AccessedByOtherPsa, AccessedByOtherPsp}
 import models.requests.IdentifierRequest
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import services.{PsaSchemePartialService, SchemeService}
 import views.html.financialOverview.RequestRefundView
@@ -95,8 +94,8 @@ class RequestRefundControllerSpec extends ControllerSpecBase with JsonMatchers w
       status(result) mustEqual OK
 
       val view = application.injector.instanceOf[RequestRefundView].apply(
-        heading = "requestRefund.youAlready.h1",
-        p1 = "requestRefund.youAlready.p1",
+        heading = Messages(s"requestRefund.youAlready.h1"),
+        p1 = Messages(s"requestRefund.youAlready.p1"),
         continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4")(request, messages)
 
       compareResultAndView(result, view)
@@ -111,8 +110,8 @@ class RequestRefundControllerSpec extends ControllerSpecBase with JsonMatchers w
       status(result) mustEqual OK
 
       val view = application.injector.instanceOf[RequestRefundView].apply(
-        heading = "requestRefund.psaAlready.h1",
-        p1 = "requestRefund.psaAlready.p1",
+        heading = Messages(s"requestRefund.psaAlready.h1"),
+        p1 = Messages(s"requestRefund.psaAlready.p1"),
         continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4")(request, messages)
 
       compareResultAndView(result, view)
@@ -127,8 +126,8 @@ class RequestRefundControllerSpec extends ControllerSpecBase with JsonMatchers w
       status(result) mustEqual OK
 
       val view = application.injector.instanceOf[RequestRefundView].apply(
-        heading = "requestRefund.pspAlready.h1",
-        p1 = "requestRefund.pspAlready.p1",
+        heading = Messages(s"requestRefund.pspAlready.h1"),
+        p1 = Messages(s"requestRefund.pspAlready.p1"),
         continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4")(request, messages)
 
       compareResultAndView(result, view)
