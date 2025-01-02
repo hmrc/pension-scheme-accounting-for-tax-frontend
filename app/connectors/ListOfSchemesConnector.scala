@@ -23,7 +23,8 @@ import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, StringContextOps}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,7 +40,7 @@ trait ListOfSchemesConnector {
 
 @Singleton
 class ListOfSchemesConnectorImpl @Inject()(
-                                            http: HttpClient,
+                                            httpClient2: HttpClientV2,
                                             config: FrontendAppConfig
                                           ) extends ListOfSchemesConnector {
 
@@ -59,7 +60,12 @@ class ListOfSchemesConnectorImpl @Inject()(
 
   private def listOfSchemes(url: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
-    http.GET[HttpResponse](url).map { response =>
+
+    httpClient2
+      .get(url"${url}")
+      .setHeader(hc.extraHeaders: _*)
+      .transform(_.withRequestTimeout(config.ifsTimeout))
+      .execute[HttpResponse].map{ response =>
       response.status match {
         case OK => val json = Json.parse(response.body)
           json.validate[ListOfSchemes] match {

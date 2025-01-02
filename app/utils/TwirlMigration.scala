@@ -16,11 +16,13 @@
 
 package utils
 
+import models.TolerantAddress
 import play.api.Logging
 import play.api.i18n.Messages
 import uk.gov.hmrc
 import uk.gov.hmrc.govukfrontend.views.Aliases._
 import uk.gov.hmrc.govukfrontend.views.html.components.{Hint => GovukHint}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.Key
 import viewmodels.Hint
 
@@ -33,6 +35,7 @@ object TwirlMigration extends Logging {
         content = Text(radio.text.resolve),
         value = Some(radio.value),
         checked = radio.checked,
+        id = Some(radio.id),
         label = radio.label.map(label =>
           Label(classes = label.classes.mkString(" "))
         )
@@ -98,6 +101,16 @@ object TwirlMigration extends Logging {
             )}
           )
         )
+      )
+    }
+  }
+
+  def convertToRadioItems(addresses: Seq[TolerantAddress]): Seq[RadioItem] = {
+    addresses.zipWithIndex.map { case (address, index) =>
+      RadioItem(
+        content = Text(address.print),
+        label = Some(Label(content = Text(address.print))),
+        value = Some(index.toString)
       )
     }
   }

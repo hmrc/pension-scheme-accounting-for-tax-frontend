@@ -17,10 +17,9 @@
 package controllers.financialOverview.scheme
 
 import config.FrontendAppConfig
-import connectors.EventReportingConnector
 import controllers.actions._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
-import models.financialStatement.PaymentOrChargeType.{EventReportingCharges, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.getPaymentOrChargeType
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
@@ -43,7 +42,6 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
                                               renderer: Renderer,
                                               config: FrontendAppConfig,
                                               service: PaymentsAndChargesService,
-                                              eventReportingConnector: EventReportingConnector,
                                               navService: PaymentsNavigationService)
                                              (implicit ec: ExecutionContext) extends FrontendBaseController
   with I18nSupport
@@ -53,19 +51,17 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
-      eventReportingConnector.getFeatureToggle("event-reporting").flatMap { toggleDetail =>
-        val paymentsOrCharges = filterPaymentOrChargeTypesByFeatureToggle(getPaymentOrChargeTypes(cache.schemeFSDetail),toggleDetail.isEnabled)
-        val json = Json.obj(
-          "titleMessage" -> s"paymentOrChargeType.all.title",
-          "form" -> form(),
-          "radios" -> PaymentOrChargeType.radios(form(), paymentsOrCharges,
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
-          "schemeName" -> cache.schemeDetails.schemeName,
-          "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-        )
+      val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail)
+      val json = Json.obj(
+        "titleMessage" -> s"paymentOrChargeType.all.title",
+        "form" -> form(),
+        "radios" -> PaymentOrChargeType.radios(form(), paymentsOrCharges,
+          Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
+        "schemeName" -> cache.schemeDetails.schemeName,
+        "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+      )
 
-        renderer.render(template = "financialOverview/scheme/paymentOrChargeType.njk", json).map(Ok(_))
-      }
+      renderer.render(template = "financialOverview/scheme/paymentOrChargeType.njk", json).map(Ok(_))
     }
   }
 
@@ -95,9 +91,4 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
       DisplayPaymentOrChargeType(category, hint)
     }
-
-  private def filterPaymentOrChargeTypesByFeatureToggle(seqDisplayPaymentOrChargeType: Seq[DisplayPaymentOrChargeType],
-                                                        isEnabled: Boolean): Seq[DisplayPaymentOrChargeType] = {
-    if (isEnabled) seqDisplayPaymentOrChargeType else seqDisplayPaymentOrChargeType.filter(category => {category.chargeType != EventReportingCharges})
-  }
 }
