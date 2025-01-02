@@ -21,22 +21,19 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringOrganisationDetailsFormProvider
-
-import javax.inject.Inject
-import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
 import models.LocalDateBinder._
+import models.{AccessType, ChargeType, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeC.SponsoringOrganisationDetailsPage
-import play.api.i18n.{MessagesApi, I18nSupport}
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.chargeC.SponsoringOrganisationDetailsView
 
-import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDate
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class SponsoringOrganisationDetailsController @Inject()(override val messagesApi: MessagesApi,
                                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -49,10 +46,9 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
                                                         formProvider: SponsoringOrganisationDetailsFormProvider,
                                                         val controllerComponents: MessagesControllerComponents,
                                                         config: FrontendAppConfig,
-                                                        renderer: Renderer)(implicit ec: ExecutionContext)
+                                                        view: SponsoringOrganisationDetailsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val form = formProvider()
 
@@ -63,21 +59,9 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
           case None        => form
           case Some(value) => form.fill(value)
         }
-
-        val viewModel = GenericViewModel(
-          submitUrl = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel
-        )
-
-        renderer.render("chargeC/sponsoringOrganisationDetails.njk", json).map(Ok(_))
+        val submitCall = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, startDate, accessType, version, index)
+        val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+        Future.successful(Ok(view(preparedForm, schemeName, submitCall, returnUrl)))
       }
     }
 
@@ -88,21 +72,9 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
           .bindFromRequest()
           .fold(
             formWithErrors => {
-
-              val viewModel = GenericViewModel(
-                submitUrl = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel
-              )
-
-              renderer.render("chargeC/sponsoringOrganisationDetails.njk", json).map(BadRequest(_))
+              val submitCall = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, startDate, accessType, version, index)
+              val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+              Future.successful(BadRequest(view(formWithErrors, schemeName, submitCall, returnUrl)))
             },
             value =>
               for {
