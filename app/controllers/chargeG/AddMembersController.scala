@@ -42,6 +42,7 @@ import viewmodels.Table
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.chargeG.AddMembersView
 
 class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -55,7 +56,8 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      chargePaginationService: ChargePaginationService,
                                      deleteChargeHelper: DeleteChargeHelper,
                                      errorHandler:ErrorHandler,
-                                     renderer: Renderer)(implicit ec: ExecutionContext)
+                                     renderer: Renderer,
+                                     addMembersView: AddMembersView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {

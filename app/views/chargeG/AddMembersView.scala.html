@@ -22,7 +22,7 @@
     govukRadios: GovukRadios
 )
 
-@(form: Form[_], radios: Seq[RadioItem], submitCall: Call, returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
+@(form: Form[_], quarterStart, quarterEnd, radios: Seq[RadioItem], submitCall: Call, returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
 
 @layout(messages("chargeG.addMembers.title", quarterStart, quarterEnd), formHasErrors = form.hasErrors) {
     <div>
@@ -31,9 +31,9 @@
 
             <form action="@submitUrl" method="post" autocomplete="off" novalidate >
 
-                {% for i in range(0, members.length) -%}
-                {{ members[i].name }}
-                {%- endfor %}
+                @for(i <- range(0, members.length)) {
+                    members[i].name
+                }
                 <div role="region" aria-labelledby="chargeG_h1" class="govuk-!-margin-bottom-7">
                     @govukTable(table)
                 </div>
@@ -45,43 +45,44 @@
 
                         <nav class="govuk-margin-top-5" aria-label="page">
                             <ul class="govuk-list">
-                                {% for link in pageLinksSeq %}
-                                @if(link.url) {
-                                    <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
-                                        <a href='@{link.url}' id='@{link.id}' class="govuk-link">
+                                @for(link <- pageLinksSeq) {
+                                    @if(link.url) {
+                                        <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
+                                            <a href=@link.url id=@link.id class="govuk-link">
+                                                @messages(link.linkText)
+                                            </a>
+                                        </li>
+                                    } else {
+                                        <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
                                             @messages(link.linkText)
-                                        </a>
-                                    </li>
-                                } else {
-                                    <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
-                                        @messages(link.linkText)
-                                    </li>
+                                        </li>
+                                    }
                                 }
-                                {% endfor %}
                             </ul>
                         </nav>
                     </div>
                 }
 
                 @if(canChange) {
-                    @govukRadios({
-                        classes: "govuk-radios--inline",
-                        name: 'value',
-                        fieldset: {
-                            legend: {
-                                text: messages('chargeG.addMembers.label'),
-                                isPageHeading: false,
-                                classes: "govuk-fieldset__legend--s"
-                            }
-                        },
-                        items: radios,
-                        errorMessage: form.value.error
-                    })
+                    @govukRadios(
+                        RadiosViewModel(
+                            form("value"),
+                            radios,
+                            Fieldset(
+                                legend = Some(
+                                    Legend(
+                                        content = Text(messages('chargeG.addMembers.label')),
+                                        isPageHeading = false,
+                                        classes = "govuk-fieldset__legend--s"
+                                    )
+                                )
+                            )
+                        )
+                    )
 
-                    @govukButton({
-                    text: messages("site.continue"),
-                    attributes: {id: "submit"}
-                    })
+                    @govukButton(
+                        ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
+                    )
                 }
 
             </form>
