@@ -14,11 +14,15 @@
  * limitations under the License.
  *@
 
+@import config.FrontendAppConfig
+@import views.html.components._
+
 @this(
 layout: templates.Layout,
 govukBackLink: GovukBackLink,
 govukButton: GovukButton,
 govukTable: GovukTable,
+config: FrontendAppConfig
 )
 
 @(
@@ -37,7 +41,7 @@ paymentAndChargesTable: Table,
 returnUrl: String
 )(implicit messages: Messages, request: Request[_])
 
-@layout(messages("psa.financial.overview.title.new"), formHasErrors = false) {
+@layout(messages(titleMessage)) {
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
