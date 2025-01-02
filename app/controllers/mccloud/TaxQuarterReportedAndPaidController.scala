@@ -23,18 +23,16 @@ import controllers.mccloud.TaxQuarterReportedAndPaidController.{filterQuarters, 
 import forms.QuartersFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
-import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, DisplayQuarter, GenericViewModel, Index, Mode, Quarters, YearRange, YearRangeMcCloud}
+import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, DisplayQuarter, Index, Mode, Quarters, YearRange, YearRangeMcCloud}
 import navigators.CompoundNavigator
 import pages.mccloud.{TaxQuarterReportedAndPaidPage, TaxYearReportedAndPaidPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.{SchemeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper
+import utils.{DateHelper, TwirlMigration}
+import views.html.mccloud.TaxQuarterReportedAndPaid
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -49,15 +47,14 @@ class TaxQuarterReportedAndPaidController @Inject()(
                                                      navigator: CompoundNavigator,
                                                      formProvider: QuartersFormProvider,
                                                      val controllerComponents: MessagesControllerComponents,
-                                                     renderer: Renderer,
                                                      config: FrontendAppConfig,
                                                      schemeService: SchemeService,
                                                      userAnswersCacheConnector: UserAnswersCacheConnector,
-                                                     userAnswersService: UserAnswersService
+                                                     userAnswersService: UserAnswersService,
+                                                     taxQuarterReportedAndPaidView: TaxQuarterReportedAndPaid
                                                    )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport
     with CommonMcCloud
     with CommonQuarters {
 
@@ -83,11 +80,6 @@ class TaxQuarterReportedAndPaidController @Inject()(
             schemeIdType = "srn"
           ) flatMap { schemeDetails =>
             val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
-            val vm = GenericViewModel(
-              submitUrl = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-              returnUrl = config.schemeDashboardUrl(request).format(srn),
-              schemeName = schemeDetails.schemeName
-            )
             val preparedForm: Form[AFTQuarter] = {
               val quarters = displayQuarters.map(_.quarter)
               request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))) match {
@@ -95,20 +87,19 @@ class TaxQuarterReportedAndPaidController @Inject()(
                 case None => form(quarters)
               }
             }
-            lifetimeOrAnnual(chargeType) match {
+            twirlLifetimeOrAnnual(chargeType) match {
               case Some(chargeTypeDesc) =>
                 val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                val json = Json.obj(
-                  "srn" -> srn,
-                  "startDate" -> Some(localDateToString(startDate)),
-                  "form" -> preparedForm,
-                  "radios" -> Quarters.radios(preparedForm, displayQuarters),
-                  "viewModel" -> vm,
-                  "year" -> yearRange.toString,
-                  "ordinal" -> ordinalValue,
-                  "chargeTypeDesc" -> chargeTypeDesc
-                )
-                renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(Ok(_))
+                Future.successful(Ok(taxQuarterReportedAndPaidView(
+                  form = preparedForm,
+                  radios = TwirlMigration.toTwirlRadios(Quarters.radios(preparedForm, displayQuarters)),
+                  year = yearRange.toString,
+                  ordinal = ordinalValue,
+                  chargeTypeDesc = chargeTypeDesc,
+                  submitCall = routes.TaxQuarterReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+                  returnUrl = config.schemeDashboardUrl(request).format(srn),
+                  schemeName = schemeDetails.schemeName
+                )))
               case _ => sessionExpired
             }
           }
@@ -135,26 +126,20 @@ class TaxQuarterReportedAndPaidController @Inject()(
               .bindFromRequest()
               .fold(
                 formWithErrors => {
-                  val vm = GenericViewModel(
-                    submitUrl = routes.TaxQuarterReportedAndPaidController
-                      .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-                    returnUrl = config.schemeDashboardUrl(request).format(srn),
-                    schemeName = schemeDetails.schemeName
-                  )
-                  lifetimeOrAnnual(chargeType) match {
+                  twirlLifetimeOrAnnual(chargeType) match {
                     case Some(chargeTypeDesc) =>
                       val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                      val json = Json.obj(
-                        fields = "srn" -> srn,
-                        "startDate" -> None,
-                        "form" -> formWithErrors,
-                        "radios" -> Quarters.radios(formWithErrors, displayQuarters),
-                        "viewModel" -> vm,
-                        "year" -> yearRange.toString,
-                        "ordinal" -> ordinalValue,
-                        "chargeTypeDesc" -> chargeTypeDesc
-                      )
-                      renderer.render(template = "mccloud/taxQuarterReportedAndPaid.njk", json).map(BadRequest(_))
+                      Future.successful(BadRequest(taxQuarterReportedAndPaidView(
+                        form = formWithErrors,
+                        radios = TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, displayQuarters)),
+                        year = yearRange.toString,
+                        ordinal = ordinalValue,
+                        chargeTypeDesc = chargeTypeDesc,
+                        submitCall = routes.TaxQuarterReportedAndPaidController
+                          .onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+                        returnUrl = config.schemeDashboardUrl(request).format(srn),
+                        schemeName = schemeDetails.schemeName
+                      )))
                     case _ => sessionExpired
                   }
                 },

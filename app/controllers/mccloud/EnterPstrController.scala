@@ -21,17 +21,16 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.EnterPstrFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode}
+import models.{AccessType, ChargeType, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.EnterPstrPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.mccloud.EnterPstr
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -47,10 +46,10 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                                     requireData: DataRequiredAction,
                                     formProvider: EnterPstrFormProvider,
                                     val controllerComponents: MessagesControllerComponents,
+                                    enterPstrView: EnterPstr,
                                     renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport
     with CommonMcCloud {
 
   private def form(): Form[String] = formProvider()
@@ -65,29 +64,21 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                  schemeIndex: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-
-        val viewModel = GenericViewModel(
-          submitUrl = routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
-
         val preparedForm = request.userAnswers.get(EnterPstrPage(chargeType, index, schemeIndex)) match {
           case Some(value) => form().fill(value)
           case None => form()
         }
 
-        (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
+        (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), twirlLifetimeOrAnnual(chargeType)) match {
           case (ordinalValue, Some(chargeTypeDesc)) =>
-            val json = Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(localDateToString(startDate)),
-              "form" -> preparedForm,
-              "viewModel" -> viewModel,
-              "ordinal" -> ordinalValue,
-              "chargeTypeDesc" -> chargeTypeDesc
-            )
-            renderer.render("mccloud/enterPstr.njk", json).map(Ok(_))
+            Future.successful(Ok(enterPstrView(
+              form = preparedForm,
+              ordinal = ordinalValue,
+              chargeTypeDesc = chargeTypeDesc,
+              submitCall = routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              schemeName = schemeName
+            )))
           case _ =>
             renderer.render("badRequest.njk").map(BadRequest(_))
         }
@@ -109,24 +100,16 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-
-              val viewModel = GenericViewModel(
-                submitUrl = routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), lifetimeOrAnnual(chargeType)) match {
+              (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), twirlLifetimeOrAnnual(chargeType)) match {
                 case (ordinalValue, Some(chargeTypeDesc)) =>
-                  val json = Json.obj(
-                    "srn" -> srn,
-                    "startDate" -> Some(localDateToString(startDate)),
-                    "form" -> formWithErrors,
-                    "viewModel" -> viewModel,
-                    "ordinal" -> ordinalValue,
-                    "chargeTypeDesc" -> chargeTypeDesc
-                  )
-                  renderer.render("mccloud/enterPstr.njk", json).map(BadRequest(_))
+                  Future.successful(BadRequest(enterPstrView(
+                    formWithErrors,
+                    ordinalValue,
+                    chargeTypeDesc,
+                    routes.EnterPstrController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+                    controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                    schemeName
+                  )))
                 case _ =>
                   renderer.render("badRequest.njk").map(BadRequest(_))
               }

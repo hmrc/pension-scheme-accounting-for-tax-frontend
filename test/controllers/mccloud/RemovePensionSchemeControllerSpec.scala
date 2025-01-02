@@ -23,27 +23,26 @@ import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
-import models.{CheckMode, GenericViewModel, UserAnswers}
-import org.mockito.ArgumentCaptor
+import models.{CheckMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import viewmodels.TwirlRadios
+import views.html.mccloud.RemovePensionScheme
 
 import scala.concurrent.Future
 
 class RemovePensionSchemeControllerSpec
   extends ControllerSpecBase
     with MockitoSugar
-    with NunjucksSupport
     with JsonMatchers
     with OptionValues
     with TryValues {
@@ -77,17 +76,11 @@ class RemovePensionSchemeControllerSpec
       .onSubmit(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, 0, schemeIndex)
       .url
 
-  private val viewModelAnnualAllowance = GenericViewModel(
-    submitUrl = httpPathPOSTAnnualAllowance,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName
-  )
+  private def submitCallAnnualAllowance = routes.RemovePensionSchemeController
+    .onSubmit(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, versionInt, 0, schemeIndex)
 
-  private val viewModelLifetimeAllowance = GenericViewModel(
-    submitUrl = httpPathPOSTLifetimeAllowance,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName
-  )
+  private def submitCallLifetimeAllowance = routes.RemovePensionSchemeController
+    .onSubmit(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, 0, schemeIndex)
 
   private def userAnswersOneSchemeAnnual: UserAnswers = uaWithPSPRAndOneSchemeAnnual
 
@@ -104,23 +97,20 @@ class RemovePensionSchemeControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersOneSchemeAnnual))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[RemovePensionScheme].apply(
+        form,
+        TwirlRadios.yesNo(form("value")),
+        submitCallAnnualAllowance,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModelAnnualAllowance,
-        "radios" -> Radios.yesNo(form("value"))
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/removePensionScheme.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET for ChargeTypeLifetimeAllowance" in {
@@ -128,23 +118,20 @@ class RemovePensionSchemeControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersOneSchemeLifetime))
       val request = FakeRequest(GET, httpPathGETLifetimeAllowance)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[RemovePensionScheme].apply(
+        form,
+        TwirlRadios.yesNo(form("value")),
+        submitCallLifetimeAllowance,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModelLifetimeAllowance,
-        "radios" -> Radios.yesNo(form("value"))
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/removePensionScheme.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired for a GET if no existing data is found for AnnualAllowance" in {
