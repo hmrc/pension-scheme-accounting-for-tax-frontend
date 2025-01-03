@@ -22,17 +22,17 @@ import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, Ident
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.Upcoming
 import models.financialStatement.PsaFSDetail
+import models.requests.IdentifierRequest
 import play.api.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import renderer.Renderer
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
-import viewmodels.Table
+import views.html.financialOverview.psa.{PsaPaymentsAndChargesNewView, PsaPaymentsAndChargesView}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -46,7 +46,9 @@ class PsaPaymentsAndChargesController @Inject()(
                                                  financialStatementConnector: FinancialStatementConnector,
                                                  minimalConnector: MinimalConnector,
                                                  renderer: Renderer,
-                                                 config: FrontendAppConfig
+                                                 config: FrontendAppConfig,
+                                                 view: PsaPaymentsAndChargesView,
+                                                 newView: PsaPaymentsAndChargesNewView
                                                )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -55,7 +57,7 @@ class PsaPaymentsAndChargesController @Inject()(
   private val logger = Logger(classOf[PsaPaymentsAndChargesController])
 
   def onPageLoad(journeyType: ChargeDetailsFilter): Action[AnyContent] =
-    (identify andThen allowAccess()).async { implicit request =>
+    (identify andThen allowAccess()).async { implicit request: IdentifierRequest[AnyContent] =>
       val response = for {
         psaName <- minimalConnector.getPsaOrPspName
         psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
@@ -72,11 +74,11 @@ class PsaPaymentsAndChargesController @Inject()(
   //scalastyle:off cyclomatic.complexity
   private def renderFinancialOverdueAndInterestCharges(psaName: String,
                                                        psaId: String,
-                                                       request: RequestHeader,
+                                                       requestHeader: RequestHeader,
                                                        creditPsaFS: Seq[PsaFSDetail],
                                                        journeyType: ChargeDetailsFilter,
                                                        penaltiesCache: PenaltiesCache)
-                                                      (implicit messages: Messages, headerCarrier: HeaderCarrier): Future[Result] = {
+                                                      (implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
 
     val psaCharges = psaPenaltiesAndChargesService.retrievePsaChargesAmount(creditPsaFS)
 
@@ -88,15 +90,10 @@ class PsaPaymentsAndChargesController @Inject()(
     psaPenaltiesAndChargesService.getPenaltiesAndCharges(psaId,
       penaltiesCache.penalties, journeyType, config) flatMap { table =>
 
-      val penaltiesTable = if (journeyType == Upcoming) {
+      val penaltiesTable: Table = if (journeyType == Upcoming) {
         removePaymentStatusColumn(table)
       } else {
         table
-      }
-      val psaPaymentsAndChargesTemplate = if(config.podsNewFinancialCredits) {
-        "financialOverview/psa/psaPaymentsAndChargesNew.njk"
-      } else {
-        "financialOverview/psa/psaPaymentsAndCharges.njk"
       }
 
       val reflectChargeText = if(config.podsNewFinancialCredits) {
@@ -105,26 +102,42 @@ class PsaPaymentsAndChargesController @Inject()(
         s"psa.financial.overview.$journeyType.text"
       }
 
-      renderer.render(
-        template = psaPaymentsAndChargesTemplate,
-        ctx = Json.obj("totalUpcomingCharge" -> psaCharges.upcomingCharge,
-          "totalOverdueCharge" -> psaCharges.overdueCharge,
-          "totalInterestAccruing" -> psaCharges.interestAccruing,
-          "titleMessage" -> getTitleMessage(journeyType),
-          "reflectChargeText" -> getReflectChargeText(journeyType),
-          "journeyType" -> journeyType.toString,
-          "penaltiesTable" -> penaltiesTable,
-          "psaName" -> psaName,
-          "podsNewFinancialCredits" -> config.podsNewFinancialCredits)
-      )(request).map(Ok(_))
+      val messages = request2Messages
+      if(config.podsNewFinancialCredits) {
+        Future.successful(Ok(newView(titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
+          psaName = psaName,
+          pstr = "",
+          reflectChargeText = reflectChargeText,
+          totalOverdueCharge = psaCharges.overdueCharge,
+          totalInterestAccruing =  psaCharges.interestAccruing,
+          totalUpcomingCharge=  "",
+          totalOutstandingCharge= "",
+          penaltiesTable =  penaltiesTable,
+          paymentAndChargesTable = penaltiesTable //TODO make it optional
+        )))
+      } else  {
+        Future.successful(Ok(view(titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
+          schemeName ="",
+          psaName = psaName,
+          pstr = "",
+          reflectChargeText = reflectChargeText,
+          totalOverdueCharge = psaCharges.overdueCharge,
+          totalInterestAccruing =  psaCharges.interestAccruing,
+          totalUpcomingCharge=  "",
+          totalOutstandingCharge= "",
+          penaltiesTable =  penaltiesTable,
+          paymentAndChargesTable = penaltiesTable, //TODO make it optional and remove from here?
+          returnUrl = ""
+        )))
+      }
     }
   }
 
-  private def getTitleMessage(journeyType: ChargeDetailsFilter) = {
+  private def getTitleMessage(journeyType: ChargeDetailsFilter): String = {
     if (config.podsNewFinancialCredits) {
-      Message(s"psa.financial.overview.$journeyType.title.v2")
+      s"psa.financial.overview.$journeyType.title.v2"
     } else {
-      Message(s"psa.financial.overview.$journeyType.title")
+      s"psa.financial.overview.$journeyType.title"
     }
   }
 
@@ -136,10 +149,14 @@ class PsaPaymentsAndChargesController @Inject()(
     }
   }
 
-  private val removePaymentStatusColumn: Table => Table = table =>
-    Table(table.caption, table.captionClasses, table.firstCellIsHeader,
-      table.head.take(table.head.size - 1),
-      table.rows.map(p => p.take(p.size - 1)), table.classes, table.attributes
+  private val removePaymentStatusColumn: Table => Table = table => {
+    Table(caption = table.caption,
+      captionClasses = table.captionClasses,
+      firstCellIsHeader = table.firstCellIsHeader,
+      head = Some(table.head.getOrElse(Seq()).take(table.head.size - 1)),
+      rows = table.rows.map(p => p.take(p.size - 1)),
+      classes = table.classes,
+      attributes = table.attributes
     )
+  }
 }
-

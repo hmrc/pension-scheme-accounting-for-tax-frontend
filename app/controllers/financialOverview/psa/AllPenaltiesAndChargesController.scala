@@ -35,7 +35,6 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 class AllPenaltiesAndChargesController @Inject()(
