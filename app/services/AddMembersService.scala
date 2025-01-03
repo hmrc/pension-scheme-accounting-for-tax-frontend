@@ -85,7 +85,7 @@ object AddMembersService {
     val head: Seq[HeadCell] = Seq(
       HeadCell(Text(Messages("addMembers.members.header"))),
         HeadCell(Text(Messages("addMembers.nino.header"))),
-        HeadCell(Text(Messages("addMembers.$chargeName.amount.header")), classes = "govuk-table__header--numeric"),
+        HeadCell(Text(Messages(s"addMembers.$chargeName.amount.header")), classes = "govuk-table__header--numeric"),
         HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addMember.link.hiddenText.header.viewMember")}</span>"""))
     ) ++ (
       if (canChange)
