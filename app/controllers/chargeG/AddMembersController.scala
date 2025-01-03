@@ -30,7 +30,7 @@ import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
-import services.AddMembersService.mapChargeXMembersToTable
+import services.AddMembersService.mapChargeXMembersToTableTwirlMigration
 import services.ChargePaginationService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -154,7 +154,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   }
   private def mapToTable(members: Seq[Member], canChange: Boolean, totalAmount:BigDecimal)(implicit messages: Messages): Table =
-    mapChargeXMembersToTable("chargeG", members, canChange, Some(totalAmount))
+    mapChargeXMembersToTableTwirlMigration("chargeG", members, canChange, Some(totalAmount))
 
   private def viewUrl(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Int => Call =
     controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, _)

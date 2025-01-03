@@ -71,7 +71,7 @@
                 @if(viewModel.canChange) {
                     @govukRadios(
                         RadiosViewModel(
-                            form("value"),
+                            viewModel.form("value"),
                             viewModel.radios,
                             Fieldset(
                                 legend = Some(

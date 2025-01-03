@@ -17,7 +17,6 @@
 package controllers.chargeG
 
 import java.time.LocalDate
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
@@ -39,6 +38,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.chargeG.ChargeDetailsView
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -50,7 +50,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         requireData: DataRequiredAction,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
-                                        config: FrontendAppConfig,
+                                        chargeDetailsView: ChargeDetailsView,
                                         renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -85,6 +85,13 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         )
 
         renderer.render("chargeG/chargeDetails.njk", json).map(Ok(_))
+        Future.successful(Ok(chargeDetailsView(
+          preparedForm,
+          memberName,
+          routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName
+        )))
       }
     }
 
