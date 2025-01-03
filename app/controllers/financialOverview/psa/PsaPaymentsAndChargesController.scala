@@ -45,14 +45,12 @@ class PsaPaymentsAndChargesController @Inject()(
                                                  psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                                  financialStatementConnector: FinancialStatementConnector,
                                                  minimalConnector: MinimalConnector,
-                                                 renderer: Renderer,
                                                  config: FrontendAppConfig,
                                                  view: PsaPaymentsAndChargesView,
                                                  newView: PsaPaymentsAndChargesNewView
                                                )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val logger = Logger(classOf[PsaPaymentsAndChargesController])
 
@@ -82,7 +80,6 @@ class PsaPaymentsAndChargesController @Inject()(
 
     val psaCharges = psaPenaltiesAndChargesService.retrievePsaChargesAmount(creditPsaFS)
 
-
     logger.debug(s"AFT service returned UpcomingCharge - ${psaCharges.upcomingCharge}")
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges.overdueCharge}")
     logger.debug(s"AFT service returned InterestAccruing - ${psaCharges.interestAccruing}")
@@ -103,27 +100,28 @@ class PsaPaymentsAndChargesController @Inject()(
       }
 
       val messages = request2Messages
+
       if(config.podsNewFinancialCredits) {
         Future.successful(Ok(newView(titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
           psaName = psaName,
           pstr = "",
-          reflectChargeText = reflectChargeText,
+          reflectChargeText = messages(reflectChargeText),
           totalOverdueCharge = psaCharges.overdueCharge,
           totalInterestAccruing =  psaCharges.interestAccruing,
-          totalUpcomingCharge=  "",
-          totalOutstandingCharge= "",
+          totalUpcomingCharge =  psaCharges.upcomingCharge,
+          totalOutstandingCharge = "",
           penaltiesTable =  penaltiesTable,
           paymentAndChargesTable = penaltiesTable //TODO make it optional
         )))
       } else  {
         Future.successful(Ok(view(titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
-          schemeName ="",
+          schemeName = "",
           psaName = psaName,
           pstr = "",
-          reflectChargeText = reflectChargeText,
+          reflectChargeText = messages(reflectChargeText),
           totalOverdueCharge = psaCharges.overdueCharge,
           totalInterestAccruing =  psaCharges.interestAccruing,
-          totalUpcomingCharge=  "",
+          totalUpcomingCharge=  psaCharges.upcomingCharge,
           totalOutstandingCharge= "",
           penaltiesTable =  penaltiesTable,
           paymentAndChargesTable = penaltiesTable, //TODO make it optional and remove from here?
@@ -141,13 +139,13 @@ class PsaPaymentsAndChargesController @Inject()(
     }
   }
 
-  private def getReflectChargeText(journeyType: ChargeDetailsFilter) = {
-    if (config.podsNewFinancialCredits) {
-      Message(s"psa.financial.overview.$journeyType.text.v2")
-    } else {
-      Message(s"psa.financial.overview.$journeyType.text")
-    }
-  }
+//  private def getReflectChargeText(journeyType: ChargeDetailsFilter) = {
+//    if (config.podsNewFinancialCredits) {
+//      Message(s"psa.financial.overview.$journeyType.text.v2")
+//    } else {
+//      Message(s"psa.financial.overview.$journeyType.text")
+//    }
+//  }
 
   private val removePaymentStatusColumn: Table => Table = table => {
     Table(caption = table.caption,

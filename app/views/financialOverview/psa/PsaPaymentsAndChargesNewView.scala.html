@@ -24,14 +24,23 @@ govukTable: GovukTable,
 config: FrontendAppConfig
 )
 
-@(journeyType: String, psaName: String, titleMessage: String, pstr: String, reflectChargeText: String,
-totalOverdueCharge: String, totalInterestAccruing: String, totalUpcomingCharge: String,
-totalOutstandingCharge: String, penaltiesTable: Table, paymentAndChargesTable: Table)(implicit request: Request[_], messages: Messages)
+@(
+    journeyType: String,
+    psaName: String,
+    titleMessage: String,
+    pstr: String,
+    reflectChargeText: String,
+    totalOverdueCharge: String,
+    totalInterestAccruing: String,
+    totalUpcomingCharge: String,
+    totalOutstandingCharge: String,
+    penaltiesTable: Table,
+    paymentAndChargesTable: Table
+)(implicit request: Request[_], messages: Messages)
 
 @layout(messages(titleMessage)) {
 
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+<div>
 
         @hmrcPageHeading(PageHeading(
         text = messages(titleMessage),
@@ -79,29 +88,24 @@ totalOutstandingCharge: String, penaltiesTable: Table, paymentAndChargesTable: T
             }
         </div>
 
-    </div>
 </div>
 
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
+<div class="govuk-grid-column-full">
         @if(penaltiesTable.rows.nonEmpty) {
         <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
         <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
             @govukTable(penaltiesTable)
         </div>
         }
-    </div>
 </div>
 
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
+<div class="govuk-grid-column-full">
         @if(paymentAndChargesTable.rows.nonEmpty) {
         <span id="paymentAndCharges_h3" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
         <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
             @govukTable(paymentAndChargesTable)
         </div>
         }
-    </div>
 </div>
 
 <p class="govuk-body">

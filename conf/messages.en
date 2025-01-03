@@ -1527,6 +1527,7 @@ psa.financial.overview.pastPenalties.link  = View all penalties and charges
 psa.financial.overview.overdue.title = Overdue penalties and interest charges
 psa.financial.overview.overdue.title.v2 = Overdue penalties and charges
 psa.financial.overview.upcoming.title = Due penalties and charges
+psa.financial.overview.upcoming.title.v2 = Due penalties and charges
 psa.financial.overview.overdue.text = The information may not reflect payments made in the last 3 days.
 psa.financial.overview.overdue.text.new = The information may not reflect payments made in the last 3 days.
 psa.financial.overview.overdue.text.v2 = This information may not reflect payments made in the last 3 days.
@@ -1555,6 +1556,11 @@ psa.financial.overview.interest.late.payment.text = This interest charge was the
 psa.financial.overview.penalties.pstr.text = Pension Scheme Tax Reference: {0}
 psa.financial.overview.penalties.all.returnLink = your penalties and charges for {0}
 psa.financial.overview.penalties.all.aft.returnLink = your penalties for {0} to {1}
+psa.financial.overview.all.title = All penalties and charges
+psa.financial.overview.all.title.v2 = All penalties and charges
+psa.financial.overview.all.text = The information may not reflect payments made in the last 3 days.
+psa.financial.overview.all.text.new = The information may not reflect payments made in the last 3 days.
+
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format

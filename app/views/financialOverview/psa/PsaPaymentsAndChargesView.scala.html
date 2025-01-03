@@ -18,27 +18,27 @@
 @import views.html.components._
 
 @this(
-layout: templates.Layout,
-govukBackLink: GovukBackLink,
-govukButton: GovukButton,
-govukTable: GovukTable,
-config: FrontendAppConfig
+    layout: templates.Layout,
+    govukBackLink: GovukBackLink,
+    govukButton: GovukButton,
+    govukTable: GovukTable,
+    config: FrontendAppConfig
 )
 
 @(
-titleMessage: String,
-journeyType: String,
-schemeName: String,
-psaName: String,
-pstr: String,
-reflectChargeText: String,
-totalOverdueCharge: String,
-totalInterestAccruing: String,
-totalUpcomingCharge: String,
-totalOutstandingCharge: String,
-penaltiesTable: Table,
-paymentAndChargesTable: Table,
-returnUrl: String
+    titleMessage: String,
+    journeyType: String,
+    schemeName: String,
+    psaName: String,
+    pstr: String,
+    reflectChargeText: String,
+    totalOverdueCharge: String,
+    totalInterestAccruing: String,
+    totalUpcomingCharge: String,
+    totalOutstandingCharge: String,
+    penaltiesTable: Table,
+    paymentAndChargesTable: Table,
+    returnUrl: String
 )(implicit messages: Messages, request: Request[_])
 
 @layout(messages(titleMessage)) {
