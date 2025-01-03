@@ -20,13 +20,12 @@ import config.FrontendAppConfig
 import connectors.{FinancialInfoCreditAccessConnector, FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
 import models.requests.IdentifierRequest
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.RequestRefundView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,15 +34,14 @@ class PsaRequestRefundController @Inject()(appConfig: FrontendAppConfig,
                                            identify: IdentifierAction,
                                            override val messagesApi: MessagesApi,
                                            val controllerComponents: MessagesControllerComponents,
-                                           renderer: Renderer,
+                                           requestRefundView: RequestRefundView,
                                            financialStatementConnector: FinancialStatementConnector,
                                            service: AFTPartialService,
                                            minimalConnector: MinimalConnector,
                                            financialInfoCreditAccessConnector: FinancialInfoCreditAccessConnector
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def requestRefundURL(implicit request: IdentifierRequest[AnyContent]): Future[String] = {
     for {
@@ -69,13 +67,13 @@ class PsaRequestRefundController @Inject()(appConfig: FrontendAppConfig,
     }
   }
 
-  private def renderPage(continueUrl: String)(implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
+  private def renderPage(continueUrl: String)(implicit request: IdentifierRequest[AnyContent], messages: Messages): Future[Result] = {
 
-    val json = Json.obj(
-      "heading" -> "requestRefund.youAlready.h1",
-      "p1" -> "requestRefund.youAlready.psa.p1",
-      "continueUrl" -> continueUrl
-    )
-    renderer.render("financialOverview/requestRefund.njk", json).map(Ok(_))
+    Future.successful(Ok(requestRefundView(
+      heading = "requestRefund.youAlready.h1",
+      p1 = "requestRefund.youAlready.psa.p1",
+      continueUrl = continueUrl
+    )(request, messages)))
+
   }
 }

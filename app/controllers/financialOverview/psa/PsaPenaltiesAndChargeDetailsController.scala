@@ -40,13 +40,13 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierAction,
-                                                        allowAccess: AllowAccessActionProviderForIdentifierRequest,
-                                                        override val messagesApi: MessagesApi,
-                                                        val controllerComponents: MessagesControllerComponents,
-                                                        psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                                        config: FrontendAppConfig,
-                                                        schemeService: SchemeService,
-                                                        renderer: Renderer
+                                                       allowAccess: AllowAccessActionProviderForIdentifierRequest,
+                                                       override val messagesApi: MessagesApi,
+                                                       val controllerComponents: MessagesControllerComponents,
+                                                       psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
+                                                       config: FrontendAppConfig,
+                                                       schemeService: SchemeService,
+                                                       renderer: Renderer
                                                       )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -56,41 +56,41 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                  index: String,
                  journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async {
-    implicit request =>
-      psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
+      implicit request =>
+        psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
-       val penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.index.toString == index)
+          val penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.index.toString == index)
 
-        if(penaltyOpt.nonEmpty) {
-          schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
-            schemeDetails =>
-              val jsonCommon = if(config.podsNewFinancialCredits) {
-                commonJsonNewV2(penaltyOpt.head, journeyType)
-              } else {
-                commonJson(penaltyOpt.head, journeyType)
-              }
+          if(penaltyOpt.nonEmpty) {
+            schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
+              schemeDetails =>
+                val jsonCommon = if(config.podsNewFinancialCredits) {
+                  commonJsonNewV2(penaltyOpt.head, journeyType)
+                } else {
+                  commonJson(penaltyOpt.head, journeyType)
+                }
 
-              val json = Json.obj(
-                "psaName" -> penaltiesCache.psaName,
-                "schemeAssociated" -> true,
-                "schemeName" -> schemeDetails.schemeName
-              ) ++ jsonCommon
+                val json = Json.obj(
+                  "psaName" -> penaltiesCache.psaName,
+                  "schemeAssociated" -> true,
+                  "schemeName" -> schemeDetails.schemeName
+                ) ++ jsonCommon
 
-              val templateToRender = if(config.podsNewFinancialCredits) {
-                "financialOverview/psa/psaChargeDetailsNew.njk"
-              } else {
-                "financialOverview/psa/psaChargeDetails.njk"
-              }
-              renderer.render(template =templateToRender, json).map(Ok(_))
+                val templateToRender = if(config.podsNewFinancialCredits) {
+                  "financialOverview/psa/psaChargeDetailsNew.njk"
+                } else {
+                  "financialOverview/psa/psaChargeDetails.njk"
+                }
+                renderer.render(template =templateToRender, json).map(Ok(_))
             }
           } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+          }
         }
-      }
-  }
+    }
 
   private def setInsetText(psaFS: PsaFSDetail, interestUrl: String, originalChargeUrl: String)
-                           (implicit messages: Messages): Html = {
+                          (implicit messages: Messages): Html = {
     if (psaFS.chargeType == CONTRACT_SETTLEMENT && psaFS.accruedInterestTotal > 0) {
       setInsetTextForContractCharge(psaFS, interestUrl, messages)
     } else if (psaFS.chargeType == CONTRACT_SETTLEMENT_INTEREST) {
@@ -102,7 +102,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
   }
 
   private def setInsetTextNew(psaFS: PsaFSDetail, interestUrl: String, originalChargeUrl: String)
-                          (implicit messages: Messages): Html = {
+                             (implicit messages: Messages): Html = {
     if (psaFS.chargeType == CONTRACT_SETTLEMENT && psaFS.accruedInterestTotal > 0) {
       setInsetTextForContractChargeNew(psaFS, interestUrl, messages)
     } else if (psaFS.chargeType == CONTRACT_SETTLEMENT_INTEREST) {
@@ -159,8 +159,8 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
   }
 
   private def commonJsonNewV2(psaFSDetail: PsaFSDetail,
-                         journeyType: ChargeDetailsFilter
-                        )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
+                              journeyType: ChargeDetailsFilter
+                             )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
     val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(psaFSDetail.pstr, psaFSDetail.index.toString, journeyType).url
     val isInterestPresent: Boolean = psaFSDetail.accruedInterestTotal > 0 || psaFSDetail.chargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST
     val detailsChargeType = psaFSDetail.chargeType

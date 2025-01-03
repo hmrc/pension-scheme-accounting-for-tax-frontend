@@ -35,7 +35,6 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 class AllPenaltiesAndChargesController @Inject()(
@@ -44,8 +43,8 @@ class AllPenaltiesAndChargesController @Inject()(
                                                   allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                                  renderer: Renderer
-                                                )(implicit ec: ExecutionContext)
+                                                  renderer: Renderer,
+                                              )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {

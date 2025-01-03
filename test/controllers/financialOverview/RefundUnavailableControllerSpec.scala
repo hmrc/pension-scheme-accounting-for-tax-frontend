@@ -17,12 +17,12 @@
 package controllers.financialOverview
 
 import controllers.base.ControllerSpecBase
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import views.html.financialOverview.RefundUnavailableView
 
 import scala.concurrent.Future
 
@@ -43,11 +43,12 @@ class RefundUnavailableControllerSpec extends ControllerSpecBase {
 
       status(result) mustEqual OK
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val view = application.injector.instanceOf[RefundUnavailableView].apply(
+        request, messages
+      )
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
+      compareResultAndView(result, view)
 
-      templateCaptor.getValue mustEqual "financialOverview/refundUnavailable.njk"
     }
   }
 }

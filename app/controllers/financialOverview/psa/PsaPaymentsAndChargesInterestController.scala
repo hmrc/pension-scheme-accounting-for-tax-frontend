@@ -109,6 +109,18 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
           s" ${Messages("psa.financial.overview.hint2")}</p>"
       )
 
+//    val htmlInsetText: HtmlContent = HtmlContent(
+//      s"""<p class="govuk-body">
+//         ${Messages("psa.financial.overview.hint1")}
+//         <span>
+//           <a id="breakdown" class="govuk-link" href="$originalAmountURL">
+//             ${Messages("psa.financial.overview.hintLink")}
+//           </a>
+//         </span>
+//         ${Messages("psa.financial.overview.hint2")}
+//      </p>"""
+//    )
+
     Json.obj(
       "heading" -> detailsChargeTypeHeading.toString,
       "isOverdue" -> psaPenaltiesAndChargesService.isPaymentOverdue(sourcePsaFSDetail),
@@ -122,9 +134,9 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
   }
 
   private def commonJsonNewV2(
-                          sourcePsaFSDetail: PsaFSDetail,
-                          journeyType: ChargeDetailsFilter
-                        )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
+                               sourcePsaFSDetail: PsaFSDetail,
+                               journeyType: ChargeDetailsFilter
+                             )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
     val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(sourcePsaFSDetail.pstr, sourcePsaFSDetail.index.toString, journeyType).url
     val detailsChargeType = sourcePsaFSDetail.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
@@ -137,6 +149,18 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
           s" ${Messages("psa.financial.overview.hintLink")}</a></span>" +
           s" ${Messages("psa.financial.overview.hint2")}</p>"
       )
+
+    //    val htmlInsetText: HtmlContent = HtmlContent(
+    //      s"""<p class="govuk-body">
+    //         ${Messages("psa.financial.overview.hint1")}
+    //         <span>
+    //           <a id="breakdown" class="govuk-link" href="$originalAmountURL">
+    //             ${Messages("psa.financial.overview.hintLink")}
+    //           </a>
+    //         </span>
+    //         ${Messages("psa.financial.overview.hint2")}
+    //      </p>"""
+    //    )
 
     Json.obj(
       "heading" -> detailsChargeTypeHeading.toString,

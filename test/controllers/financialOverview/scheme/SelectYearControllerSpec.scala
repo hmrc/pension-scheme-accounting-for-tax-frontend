@@ -19,6 +19,7 @@ package controllers.financialOverview.scheme
 import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
+import data.SampleData
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
@@ -27,7 +28,6 @@ import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -36,22 +36,24 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Results
+import play.api.libs.json.Json
+import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import utils.TwirlMigration
+import views.html.financialOverview.scheme.SelectYearView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
   val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
+  val mockSelectYearController: SelectYearController = mock[SelectYearController]
+
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
   )
@@ -62,18 +64,12 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialOverview/scheme/selectYear.njk"
   val formProvider = new YearsFormProvider()
   val form: Form[Year] = formProvider()
 
   lazy val httpPathGET: String = routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges).url
-  lazy val httpPathPOST: String = routes.SelectYearController.onSubmit(srn, AccountingForTaxCharges).url
-
-  private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> FSYears.radios(form, years),
-    "schemeName" -> schemeName
-  )
+  private val submitCall: Call = routes.SelectYearController.onSubmit(srn, AccountingForTaxCharges)
+  lazy val httpPathPOST: String = submitCall.url
 
   private val year = "2020"
 
@@ -83,7 +79,6 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
@@ -93,18 +88,23 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
   "SelectYear Controller" must {
     "return OK and the correct view for a GET" in {
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val typeParam = mockPaymentsAndChargesService.getTypeParam(AccountingForTaxCharges)
 
+      val request = httpGETRequest(httpPathGET)
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[SelectYearView].apply(
+        form = form,
+        penaltyType = typeParam,
+        submitCall = submitCall,
+        schemeName = SampleData.schemeName,
+        returnUrl = dummyCall.url,
+        radios = TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form, years))
+      )(request, messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      compareResultAndView(result, view)
     }
 
     "redirect to next page when valid data is submitted and a single quarter is found for the selected year" in {
