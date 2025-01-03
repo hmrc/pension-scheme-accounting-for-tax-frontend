@@ -14,47 +14,52 @@
  * limitations under the License.
  *@
 
+@import viewmodels.Link
+@import models.chargeG.AddMembersViewModel
+
 @this(
     layout: templates.Layout,
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukButton: GovukButton,
-    govukRadios: GovukRadios
+    govukRadios: GovukRadios,
+    govukTable: GovukTable
 )
 
-@(form: Form[_], quarterStart, quarterEnd, radios: Seq[RadioItem], submitCall: Call, returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
+@(viewModel: AddMembersViewModel,
+    submitCall: Call,
+    returnUrl: String,
+    schemeName: String
+)(implicit request: Request[_], messages: Messages)
 
-@layout(messages("chargeG.addMembers.title", quarterStart, quarterEnd), formHasErrors = form.hasErrors) {
+@layout(messages("chargeG.addMembers.title", viewModel.quarterStart, viewModel.quarterEnd), formHasErrors = viewModel.form.hasErrors) {
     <div>
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
-            <h1 id="chargeG_h1" class="govuk-heading-xl">@messages('chargeG.addMembers.heading', quarterStart, quarterEnd)</h1>
+            <h1 id="chargeG_h1" class="govuk-heading-xl">@messages("chargeG.addMembers.heading", viewModel.quarterStart, viewModel.quarterEnd)</h1>
 
-            <form action="@submitUrl" method="post" autocomplete="off" novalidate >
+            <form action="@submitCall" method="post" autocomplete="off" novalidate >
 
-                @for(i <- range(0, members.length)) {
-                    members[i].name
-                }
                 <div role="region" aria-labelledby="chargeG_h1" class="govuk-!-margin-bottom-7">
-                    @govukTable(table)
+                    @govukTable(viewModel.table)
                 </div>
 
-                @if(pageLinksSeq.length > 0) {
+                @if(viewModel.pageLinksSeq.length > 0) {
                     <div class="govuk-!-margin-bottom-9">
-                        <p class="govuk-body">@messages('paginationForMembers.pagerSummary', paginationStatsStartMember,
-                            paginationStatsLastMember, paginationStatsTotalMembers) </p>
+                        <p class="govuk-body">@messages("paginationForMembers.pagerSummary", viewModel.paginationStatsStartMember,
+                            viewModel.paginationStatsLastMember, viewModel.paginationStatsTotalMembers) </p>
 
                         <nav class="govuk-margin-top-5" aria-label="page">
                             <ul class="govuk-list">
-                                @for(link <- pageLinksSeq) {
+                                @for(link <- viewModel.pageLinksSeq) {
                                     @if(link.url) {
                                         <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
                                             <a href=@link.url id=@link.id class="govuk-link">
-                                                @messages(link.linkText)
+                                                @messages(link.linkText.resolve)
                                             </a>
                                         </li>
                                     } else {
                                         <li class="govuk-!-display-inline govuk-!-margin-left-1 govuk-!-margin-right-1">
-                                            @messages(link.linkText)
+                                            @messages(link.linkText.resolve)
                                         </li>
                                     }
                                 }
@@ -63,15 +68,15 @@
                     </div>
                 }
 
-                @if(canChange) {
+                @if(viewModel.canChange) {
                     @govukRadios(
                         RadiosViewModel(
                             form("value"),
-                            radios,
+                            viewModel.radios,
                             Fieldset(
                                 legend = Some(
                                     Legend(
-                                        content = Text(messages('chargeG.addMembers.label')),
+                                        content = Text(messages("chargeG.addMembers.label")),
                                         isPageHeading = false,
                                         classes = "govuk-fieldset__legend--s"
                                     )
