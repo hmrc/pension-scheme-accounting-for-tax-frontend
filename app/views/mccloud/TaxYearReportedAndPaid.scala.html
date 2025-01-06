@@ -24,7 +24,7 @@
 
 @(form: Form[_], radios: Seq[RadioItem], ordinal: String, chargeTypeDesc: String, submitCall: Call, returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(messages("taxYearReportedAndPaid.title", ordinal, chargeTypeDesc), formHasErrors = form.hasErrors) {
+@layout(messages("taxYearReportedAndPaid.title", ordinal, messages(chargeTypeDesc)), formHasErrors = form.hasErrors) {
     <div>
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
             @govukRadios(
