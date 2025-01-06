@@ -119,12 +119,12 @@ class AllPenaltiesAndChargesController @Inject()(
             val json = Json.obj(
               fields =
                 "titleMessage" -> title,
-              "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
-              "journeyType" -> journeyType.toString,
-              "paymentAndChargesTable" -> table,
-              "totalOutstandingCharge" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
-              "pstr" -> pstr,
-              "psaName" -> penaltiesCache.psaName
+                "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
+                "journeyType" -> journeyType.toString,
+                "paymentAndChargesTable" -> table,
+                "totalOutstandingCharge" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+                "pstr" -> pstr,
+                "psaName" -> penaltiesCache.psaName
             )
             renderer.render(template = "financialOverview/psa/psaPaymentsAndCharges.njk", json).map(Ok(_))
           }
