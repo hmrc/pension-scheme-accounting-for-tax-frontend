@@ -26,12 +26,9 @@ import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
-import renderer.Renderer
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Text.Message
 import views.html.financialOverview.psa.{PsaPaymentsAndChargesNewView, PsaPaymentsAndChargesView}
 
 import javax.inject.Inject

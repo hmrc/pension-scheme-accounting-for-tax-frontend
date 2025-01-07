@@ -35,6 +35,7 @@ import services.financialOverview.psa.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{formatDateDMY, formatStartDate}
+import views.html.financialOverview.psa.{PsaInterestDetailsNewView, PsaInterestDetailsView}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -46,6 +47,8 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
                                                         config: FrontendAppConfig,
                                                         psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                                         schemeService: SchemeService,
+                                                        view: PsaInterestDetailsView,
+                                                        newView: PsaInterestDetailsNewView,
                                                         renderer: Renderer
                                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -83,7 +86,7 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
                   "financialOverview/psa/psaInterestDetails.njk"
                 }
 
-                renderer.render(template = templateToRender, json).map(Ok(_))
+                Future.successful(Ok(templateToRender))
             }
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
