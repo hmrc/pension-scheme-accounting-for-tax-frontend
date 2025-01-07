@@ -108,7 +108,7 @@ class PsaPaymentsAndChargesController @Inject()(
           totalUpcomingCharge =  psaCharges.upcomingCharge,
           totalOutstandingCharge = "",
           penaltiesTable =  penaltiesTable,
-          paymentAndChargesTable = penaltiesTable //TODO make it optional
+          paymentAndChargesTable = penaltiesTable //TODO make it optional //because sometimes passed and sometimes not
         )))
       } else  {
         Future.successful(Ok(view(titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,

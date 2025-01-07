@@ -76,6 +76,11 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                   "schemeName" -> schemeDetails.schemeName
                 ) ++ jsonCommon
 
+                //case class
+
+
+                //inject into view
+
                 val templateToRender = if(config.podsNewFinancialCredits) {
                   "financialOverview/psa/psaChargeDetailsNew.njk"
                 } else {
@@ -155,9 +160,11 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
         )
       case _ =>
         Html("")
+        //HtmlContent
     }
   }
 
+  //
   private def commonJsonNewV2(psaFSDetail: PsaFSDetail,
                               journeyType: ChargeDetailsFilter
                              )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
@@ -173,6 +180,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       case _ => ""
     }
 
+    //case class - separate viewmodel
     Json.obj(
       "heading" -> detailsChargeTypeHeading.toString,
       "isOverdue" -> psaPenaltiesAndChargesService.isPaymentOverdue(psaFSDetail),
