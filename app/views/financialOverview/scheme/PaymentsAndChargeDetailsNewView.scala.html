@@ -78,9 +78,13 @@
             @govukTable(chargeAmountDetails)
         </div>
 
+        @if(insetText.nonEmpty) {
         @insetText
+        }
 
-        @hintText
+        @hintText.map { text =>
+        <p class="govuk-body">@text</p>
+        }
 
     </div>
 </div>

@@ -101,14 +101,13 @@ class PsaPaymentsAndChargesController @Inject()(
       if(config.podsNewFinancialCredits) {
         Future.successful(Ok(newView(titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
           psaName = psaName,
-          pstr = "",
           reflectChargeText = messages(reflectChargeText),
           totalOverdueCharge = psaCharges.overdueCharge,
           totalInterestAccruing =  psaCharges.interestAccruing,
           totalUpcomingCharge =  psaCharges.upcomingCharge,
           totalOutstandingCharge = "",
           penaltiesTable =  penaltiesTable,
-          paymentAndChargesTable = penaltiesTable //TODO make it optional //because sometimes passed and sometimes not
+          paymentAndChargesTable = penaltiesTable
         )))
       } else  {
         Future.successful(Ok(view(titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
@@ -121,7 +120,7 @@ class PsaPaymentsAndChargesController @Inject()(
           totalUpcomingCharge=  psaCharges.upcomingCharge,
           totalOutstandingCharge= "",
           penaltiesTable =  penaltiesTable,
-          paymentAndChargesTable = penaltiesTable, //TODO make it optional and remove from here?
+          paymentAndChargesTable = penaltiesTable,
           returnUrl = ""
         )))
       }

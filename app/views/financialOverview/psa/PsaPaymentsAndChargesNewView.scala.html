@@ -28,7 +28,7 @@ config: FrontendAppConfig
     journeyType: String,
     psaName: String,
     titleMessage: String,
-    pstr: String,
+    pstr: Option[String] = None,
     reflectChargeText: String,
     totalOverdueCharge: String,
     totalInterestAccruing: String,
@@ -47,8 +47,8 @@ config: FrontendAppConfig
         section = Some(psaName)
         ))
 
-        @if(journeyType == "all") {
-        <p class="govuk-body">@messages("psa.financial.overview.penalties.pstr.text", pstr)</p>
+        @if(journeyType == "all" && pstr.isDefined) {
+        <p class="govuk-body">@messages("psa.financial.overview.penalties.pstr.text", pstr.get)</p>
         }
 
         <div class="govuk-inset-text">
