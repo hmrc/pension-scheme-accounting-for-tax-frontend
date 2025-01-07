@@ -22,17 +22,16 @@ import controllers.actions._
 import forms.YearRangeFormProvider
 import models.Index.indexToInt
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, YearRange, YearRangeMcCloud}
+import models.{AccessType, ChargeType, Index, Mode, YearRange, YearRangeMcCloud}
 import navigators.CompoundNavigator
 import pages.mccloud.TaxYearReportedAndPaidPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.mccloud.TaxYearReportedAndPaid
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -48,10 +47,9 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
                                                  requireData: DataRequiredAction,
                                                  formProvider: YearRangeFormProvider,
                                                  val controllerComponents: MessagesControllerComponents,
-                                                 renderer: Renderer)(implicit ec: ExecutionContext)
+                                                 taxYearReportedAndPaidView: TaxYearReportedAndPaid)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport
     with CommonMcCloud {
 
   private def form: Form[YearRange] =
@@ -73,26 +71,19 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
           case None => form
         }
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
-
-
-        lifetimeOrAnnual(chargeType) match {
+        twirlLifetimeOrAnnual(chargeType) match {
           case Some(chargeTypeDesc) =>
             val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-            val json = Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(localDateToString(startDate)),
-              "form" -> preparedForm,
-              "radios" -> YearRangeMcCloud.radios(preparedForm),
-              "viewModel" -> viewModel,
-              "ordinal" -> ordinalValue,
-              "chargeTypeDesc" -> chargeTypeDesc
-            )
-            renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(Ok(_))
+
+            Future.successful(Ok(taxYearReportedAndPaidView(
+              form = preparedForm,
+              radios = TwirlMigration.toTwirlRadios(YearRangeMcCloud.radios(preparedForm)),
+              ordinal = ordinalValue,
+              chargeTypeDesc = chargeTypeDesc,
+              submitCall = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              schemeName = schemeName
+            )))
           case _ => sessionExpired
         }
       }
@@ -113,26 +104,20 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val viewModel = GenericViewModel(
-                submitUrl = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController
-                  .returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              lifetimeOrAnnual(chargeType) match {
+              twirlLifetimeOrAnnual(chargeType) match {
                 case Some(chargeTypeDesc) =>
                   val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                  val json = Json.obj(
-                    "srn" -> srn,
-                    "startDate" -> Some(localDateToString(startDate)),
-                    "form" -> formWithErrors,
-                    "radios" -> YearRangeMcCloud.radios(formWithErrors),
-                    "viewModel" -> viewModel,
-                    "ordinal" -> ordinalValue,
-                    "chargeTypeDesc" -> chargeTypeDesc
-                  )
-                  renderer.render(template = "mccloud/taxYearReportedAndPaid.njk", json).map(BadRequest(_))
+
+                  Future.successful(BadRequest(taxYearReportedAndPaidView(
+                    form = formWithErrors,
+                    radios = TwirlMigration.toTwirlRadios(YearRangeMcCloud.radios(formWithErrors)),
+                    ordinal = ordinalValue,
+                    chargeTypeDesc = chargeTypeDesc,
+                    submitCall = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
+                    returnUrl = controllers.routes.ReturnToSchemeDetailsController
+                      .returnToSchemeDetails(srn, startDate, accessType, version).url,
+                    schemeName = schemeName
+                  )))
                 case _ => sessionExpired
               }
             },
