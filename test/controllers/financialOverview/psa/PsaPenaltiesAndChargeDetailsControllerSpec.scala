@@ -91,7 +91,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
     reset(mockRenderer)
-    when(mockPsaPenaltiesAndChargesService.chargeDetailsRows(any(), any())).thenReturn(rows)
+//    when(mockPsaPenaltiesAndChargesService.chargeDetailsRows(any(), any())).thenReturn(rows)
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))

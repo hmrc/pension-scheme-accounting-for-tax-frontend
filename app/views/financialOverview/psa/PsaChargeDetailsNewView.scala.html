@@ -18,19 +18,17 @@
     layout: templates.Layout,
     govukButton: GovukButton,
     govukSummaryList: GovukSummaryList,
+    govukTable: GovukTable,
     govukInsetText: components.inset_text
 )
 
 @(
-    psaName: String,
     schemeAssociated: Boolean,
     schemeName: String,
     heading: String,
     isOverdue: Boolean,
     paymentDueAmount: String,
     paymentDueDate: String,
-    chargeReference: String,
-    penaltyAmount: BigDecimal,
     htmlInsetText: HtmlContent,
     returnUrl: String,
     isInterestPresent: Boolean,
@@ -90,5 +88,5 @@
 </div>
 
 <p class="govuk-body"><a id="@returnUrl" class="govuk-link" href="@returnUrl">
-    @messages("return.to.link", psaName)</a></p>
+    @messages("return.to.link", returnUrlText)</a></p>
 }

@@ -27,16 +27,12 @@
 
 @(
     heading: String,
-    psaName: String,
     schemeAssociated: Boolean,
     schemeName: String,
-    isOverDue: Boolean,
-    chargeReference: String,
     interestDueAmount: String,
-    penaltyAmount: BigDecimal,
-    returnUrl: String,
     list: Seq[SummaryListRow],
     htmlInsetText: HtmlContent,
+    returnUrl: String,
     returnUrlText: String
 )(implicit messages: Messages, request: Request[_])
 

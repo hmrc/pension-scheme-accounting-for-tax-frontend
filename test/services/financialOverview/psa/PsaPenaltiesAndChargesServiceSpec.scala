@@ -47,7 +47,7 @@ import viewmodels.Table
 import viewmodels.Table.Cell
 
 import java.time.LocalDate
-import scala.collection.Seq
+import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {

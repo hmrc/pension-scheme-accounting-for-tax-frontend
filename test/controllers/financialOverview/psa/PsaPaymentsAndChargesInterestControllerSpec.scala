@@ -89,7 +89,7 @@ class PsaPaymentsAndChargesInterestControllerSpec
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
     reset(mockRenderer)
-    when(mockPsaPenaltiesAndChargesService.interestRows(any())).thenReturn(rows)
+//    when(mockPsaPenaltiesAndChargesService.interestRows(any())).thenReturn(rows)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesFromCache(any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", interestPsaFSResponse)))
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).

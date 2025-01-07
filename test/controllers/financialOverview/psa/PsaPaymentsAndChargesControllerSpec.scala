@@ -80,8 +80,8 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     super.beforeEach()
     reset(mockRenderer)
     reset(mockPsaPenaltiesAndChargesService)
-    when(mockPsaPenaltiesAndChargesService.getPenaltiesAndCharges(any(), any(), any(), any())(any(), any(), any())).
-      thenReturn(Future.successful(penaltiesTable))
+//    when(mockPsaPenaltiesAndChargesService.getPenaltiesAndCharges(any(), any(), any(), any())(any(), any(), any())).
+//      thenReturn(Future.successful(penaltiesTable))
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
