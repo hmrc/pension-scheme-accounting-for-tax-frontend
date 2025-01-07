@@ -16,27 +16,24 @@
 
 package controllers.chargeG
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeG.MemberDetailsFormProvider
 
 import javax.inject.Inject
-import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
+import models.{AccessType, ChargeType, Index, Mode}
 import models.LocalDateBinder._
 import navigators.CompoundNavigator
 import pages.chargeG.MemberDetailsPage
-import play.api.i18n.{MessagesApi, I18nSupport}
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.chargeG.MemberDetailsView
 
 class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -48,12 +45,9 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         requireData: DataRequiredAction,
                                         formProvider: MemberDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
-                                        config: FrontendAppConfig,
-                                        renderer: Renderer)(implicit ec: ExecutionContext)
+                                        memberDetailsView: MemberDetailsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
-
+    with I18nSupport {
   private val form = formProvider()
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
@@ -64,22 +58,13 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
           case Some(value) => form.fill(value)
         }
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "date" -> DateInput.localDate(preparedForm("dob")),
-          "chargeName" -> "chargeG"
-        )
-
-        renderer.render("chargeG/memberDetails.njk", json).map(Ok(_))
+        Future.successful(Ok(memberDetailsView(
+          preparedForm,
+          "chargeG",
+          routes.MemberDetailsController.onSubmit(mode, srn, startDate, accessType, version, index),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName
+        )))
       }
     }
 
@@ -90,23 +75,13 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-
-              val viewModel = GenericViewModel(
-                submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel,
-                "date" -> DateInput.localDate(formWithErrors("dob")),
-                "chargeName" -> "chargeG"
-              )
-
-              renderer.render("chargeG/memberDetails.njk", json).map(BadRequest(_))
+              Future.successful(BadRequest(memberDetailsView(
+                formWithErrors,
+                "chargeG",
+                routes.MemberDetailsController.onSubmit(mode, srn, startDate, accessType, version, index),
+                controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName
+              )))
             },
             value =>
               for {
