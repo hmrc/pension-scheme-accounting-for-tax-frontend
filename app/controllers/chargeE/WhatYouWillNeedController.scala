@@ -50,11 +50,6 @@ class WhatYouWillNeedController @Inject()(
         case Some(true) => Some("chargeE.whatYouWillNeed.li7")
         case _ => None
       }
-      val viewModel = GenericViewModel(
-        submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version).url,
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-        schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      )
 
       val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
       val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version).url

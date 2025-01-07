@@ -15,7 +15,7 @@
  *@
 
 @import viewmodels.Link
-@import models.AddEmployersViewModel
+@import models.AddMembersViewModel
 
 @this(
     layout: templates.Layout,
@@ -25,17 +25,17 @@
     govukTable: GovukTable,
     govukRadios: GovukRadios
 )
-@(form: Form[_], viewModel: AddEmployersViewModel, submitUrl: play.api.mvc.Call, table: Table,pageLinksSeq: Seq[Link])(implicit request: Request[_], messages: Messages)
+@(form: Form[_], viewModel: AddMembersViewModel, submitUrl: play.api.mvc.Call, table: Table,pageLinksSeq: Seq[Link])(implicit request: Request[_], messages: Messages)
 
-@layout(messages("chargeE.addMembers.title", viewModel.quarterStart, viewModel.quarterEnd), formHasErrors = form.hasErrors) {
+@layout(messages("chargeD.addMembers.title", viewModel.quarterStart, viewModel.quarterEnd), formHasErrors = form.hasErrors) {
 @if(form.errors.nonEmpty) {
     @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
 }
-<h1 id="chargeE_h1" class="govuk-heading-xl">@messages("chargeE.addMembers.heading", viewModel.quarterStart, viewModel.quarterEnd)</h1>
+<h1 id="chargeD_h1" class="govuk-heading-xl">@messages("chargeD.addMembers.heading", viewModel.quarterStart, viewModel.quarterEnd)</h1>
 
 @formHelper(action = submitUrl, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "true") {
 
-<div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-7">
+<div role="region" aria-labelledby="chargeD_h1" class="govuk-!-margin-bottom-7">
     @govukTable(table)
 </div>
 
@@ -69,7 +69,7 @@
             field = form("value"),
             items = viewModel.radios,
             fieldset =Fieldset(
-                legend = Some(Legend(content = Text(messages("chargeE.addMembers.label")),
+                legend = Some(Legend(content = Text(messages("chargeD.addMembers.label")),
                 isPageHeading = false,
                 classes = "govuk-fieldset__legend--s"))
             )

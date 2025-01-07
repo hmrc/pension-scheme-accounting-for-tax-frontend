@@ -16,28 +16,25 @@
 
 package controllers.chargeD
 
-import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeD.ChargeDetailsFormProvider
-
-import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, GenericViewModel, AccessType, Mode, ChargeType, Index}
 import models.chargeD.ChargeDDetails
+import models.{AccessType, ChargeType, Index, Mode, Quarters}
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import views.html.chargeD.ChargeDetailsView
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
@@ -51,10 +48,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
-                                        renderer: Renderer)(implicit ec: ExecutionContext)
+                                        view: ChargeDetailsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(minimumChargeValue:BigDecimal, startDate: LocalDate)(implicit messages: Messages): Form[ChargeDDetails] = {
     val endDate = Quarters.getQuarter(startDate).endDate
@@ -65,17 +61,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     )
   }
 
-  private def viewModel(mode: Mode, srn: String, startDate: LocalDate,
-                        accessType: AccessType, version: Int, index: Index, schemeName: String): GenericViewModel =
-    GenericViewModel(
-      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-      schemeName = schemeName
-    )
-
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
+      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName: String, memberName: String) =>
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
@@ -84,16 +72,15 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           case None        => form(mininimumChargeValue, startDate)
         }
 
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, startDate, accessType, version, index, schemeName),
-          "date" -> DateInput.localDate(preparedForm("dateOfEvent")),
-          "memberName" -> memberName
-        )
+        val submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index)
+        val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
 
-        renderer.render(template = "chargeD/chargeDetails.njk", json).map(Ok(_))
+        Future.successful(Ok(view(preparedForm,
+          schemeName,
+          submitUrl,
+          returnUrl,
+          memberName)
+        ))
       }
     }
 
@@ -108,15 +95,15 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           .fold(
             formWithErrors => {
 
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel(mode, srn, startDate, accessType, version, index, schemeName),
-                "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
-                "memberName" -> memberName
-              )
-              renderer.render(template = "chargeD/chargeDetails.njk", json).map(BadRequest(_))
+              val submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index)
+              val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+
+              Future.successful(BadRequest(view(formWithErrors,
+                schemeName,
+                submitUrl,
+                returnUrl,
+                memberName)
+              ))
             },
             value => {
               for {
