@@ -14,58 +14,54 @@
  * limitations under the License.
  *@
 
+@import viewmodels.InterestDetailsViewModel
+
 @this(
     layout: templates.Layout,
     govukBackLink: GovukBackLink,
     govukButton: GovukButton,
     govukSummaryList: GovukSummaryList,
-    govukInsetText: components.inset_text
+    govukInsetText: GovukInsetText
 )
 
-@(
-    heading: String,
-    isOverdue: Boolean,
-    schemeAssociated: Boolean,
-    schemeName: String,
-    period: String,
-    chargeReference: String,
-    penaltyAmount: BigDecimal,
-    returnUrl: String,
-    list: Seq[SummaryListRow],
-    htmlInsetText: HtmlContent,
-    returnUrlText: String
-)(implicit messages: Messages, request: Request[_])
+@(model: InterestDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
 @layout(messages("psa.financial.overview.title.new")) {
 
 <div>
 
-        @if(schemeAssociated) {
-        <h1 class="hmrc-caption govuk-caption-xl">@heading</h1>
-        <h1 class="govuk-heading-xl">@schemeName</h1>
+        @if(model.schemeAssociated) {
+        <h1 class="hmrc-caption govuk-caption-xl">@{model.heading}</h1>
+        <h1 class="govuk-heading-xl">@{model.schemeName}</h1>
         } else {
-        <h1 class="govuk-heading-xl">@heading</h1>
+        <h1 class="govuk-heading-xl">@{model.heading}</h1>
         }
 
         <p class="govuk-body govuk-tag govuk-tag--blue">
             @messages("penalties.status.interestAccruing")
         </p>
 
-        <h2 class="govuk-heading-m">@period</h2>
+        @if(model.period.isDefined) {
+            <h2 class="govuk-heading-m">@{model.period.get}</h2>
+        }
 
         <p class="govuk-body">
             @govukSummaryList(
-                SummaryList(rows = list)
+                SummaryList(rows = model.list)
             )
         </p>
 
-        @govukInsetText = htmlInsetText
+    @govukInsetText(
+        InsetText(
+            content = model.htmlInsetText
+        )
+    )
 
 </div>
 
 <p class="govuk-body">
-    <a id="return" href="@returnUrl" class="govuk-link">
-        @messages("return.to.link", returnUrlText)
+    <a id="return" href="@{model.returnUrl}" class="govuk-link">
+        @messages("return.to.link", model.returnUrlText)
     </a>
 </p>
 

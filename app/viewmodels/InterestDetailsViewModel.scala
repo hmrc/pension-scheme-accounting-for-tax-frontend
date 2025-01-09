@@ -16,16 +16,17 @@
 
 package viewmodels
 
-import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 
 case class InterestDetailsViewModel(
+                                   psaName: String,
                                    heading: String,
                                    isOverdue: Boolean,
-                                   schemeAssociated: Boolean,
+                                   schemeAssociated: Boolean = true,
                                    schemeName: String,
-                                   period: String,
+                                   interestDueAmount: Option[String] = None,
+                                   period: Option[String] = None,
                                    chargeReference: String,
                                    penaltyAmount: BigDecimal,
                                    returnUrl: String,

@@ -214,7 +214,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       insetText = setInsetText(psaFSDetail, interestUrl, originalChargeUrl)(messages),
       isInterestPresent = isInterestPresent,
       chargeHeaderDetails = psaPenaltiesAndChargesService.chargeHeaderDetailsRows(psaFSDetail)(messages),
-      chargeAmountDetails = psaPenaltiesAndChargesService.chargeAmountDetailsRows(psaFSDetail)(messages),
+      chargeAmountDetails = Seq(psaPenaltiesAndChargesService.chargeAmountDetailsRows(psaFSDetail)(messages)),
       returnUrl = getReturnUrl(psaFSDetail, penaltyType, journeyType),
       returnUrlText = getReturnUrlText(psaFSDetail, penaltyType, journeyType)(messages)
     )

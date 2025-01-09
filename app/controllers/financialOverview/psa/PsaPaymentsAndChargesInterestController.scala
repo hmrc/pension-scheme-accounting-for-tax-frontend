@@ -29,12 +29,14 @@ import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import services.SchemeService
 import services.financialOverview.psa.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{formatDateDMY, formatStartDate}
-import viewmodels.{InterestDetailsNewViewModel, InterestDetailsViewModel}
+import viewmodels.InterestDetailsViewModel
 import views.html.financialOverview.psa.{PsaInterestDetailsNewView, PsaInterestDetailsView}
 
 import javax.inject.Inject
@@ -66,31 +68,20 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
             schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
               schemeDetails =>
 
-                val viewModel = if (config.podsNewFinancialCredits) {
-                  createInterestDetailsNewViewModel(penaltyOpt.head, journeyType)
+                val modelObject = if (config.podsNewFinancialCredits) {
+                  commonJsonNewV2(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType)
                 } else {
-                  createInterestDetailsViewModel(penaltyOpt.head, journeyType)
+                  commonJson(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType)
                 }
 
-//                val templateToRender = if (config.podsNewFinancialCredits) {
-//                  newView(
-//                    heading =
-//                  )
-//                } else {
-//                  view(
-//                    heading = viewModel.heading,
-//                    isOverdue = viewModel.isOverdue,
-//                    period = viewModel.period,
-//                    chargeReference = viewModel.chargeReference,
-//                    penaltyAmount = viewModel.penaltyAmount,
-//                    returnUrl = viewModel.returnUrl,
-//                    list = viewModel.list,
-//                    htmlInsetText = viewModel.htmlInsetText,
-//                    returnUrlText = viewModel.returnUrlR
-//                  )
-//                }
 
-                Future.successful(Ok("templateToRender"))
+                val templateToRender = if (config.podsNewFinancialCredits) {
+                  newView(modelObject)
+                } else {
+                  view(modelObject)
+                }
+
+                Future.successful(Ok(templateToRender))
             }
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -98,9 +89,10 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
         }
     }
 
-  private def createInterestDetailsViewModel(
-                          sourcePsaFSDetail: PsaFSDetail,
-                          journeyType: ChargeDetailsFilter
+  private def commonJson(psaName: String,
+                         schemeName: String,
+                         sourcePsaFSDetail: PsaFSDetail,
+                         journeyType: ChargeDetailsFilter
                         )(implicit request: IdentifierRequest[AnyContent]): InterestDetailsViewModel = {
     val period = psaPenaltiesAndChargesService.setPeriod(sourcePsaFSDetail.chargeType, sourcePsaFSDetail.periodStartDate, sourcePsaFSDetail.periodEndDate)
     val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(sourcePsaFSDetail.pstr, sourcePsaFSDetail.index.toString, journeyType).url
@@ -117,11 +109,11 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
       )
 
     InterestDetailsViewModel(
+      psaName = psaName,
       heading = detailsChargeTypeHeading.toString,
       isOverdue = psaPenaltiesAndChargesService.isPaymentOverdue(sourcePsaFSDetail),
-      schemeAssociated = true,
-      schemeName = "",
-      period = period,
+      schemeName = schemeName,
+      period = Some(period),
       chargeReference = Messages("penalties.column.chargeReference.toBeAssigned"),
       penaltyAmount = sourcePsaFSDetail.totalAmount,
       returnUrl = getReturnUrl(sourcePsaFSDetail, penaltyType, journeyType),
@@ -131,10 +123,11 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
     )
   }
 
-  private def createInterestDetailsNewViewModel(
-                               sourcePsaFSDetail: PsaFSDetail,
-                               journeyType: ChargeDetailsFilter
-                             )(implicit request: IdentifierRequest[AnyContent]): InterestDetailsNewViewModel = {
+  private def commonJsonNewV2(psaName: String,
+                              schemeName: String,
+                              sourcePsaFSDetail: PsaFSDetail,
+                              journeyType: ChargeDetailsFilter
+                             )(implicit request: IdentifierRequest[AnyContent]): InterestDetailsViewModel = {
     val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(sourcePsaFSDetail.pstr, sourcePsaFSDetail.index.toString, journeyType).url
     val detailsChargeType = sourcePsaFSDetail.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
@@ -148,13 +141,13 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
           s" ${Messages("psa.financial.overview.hint2")}</p>"
       )
 
-    InterestDetailsNewViewModel(
+    InterestDetailsViewModel(
+      psaName = psaName,
       heading = detailsChargeTypeHeading.toString,
       isOverdue = psaPenaltiesAndChargesService.isPaymentOverdue(sourcePsaFSDetail),
-      schemeAssociated = true,
-      schemeName = "",
+      schemeName = schemeName,
       chargeReference = Messages("penalties.column.chargeReference.toBeAssigned"),
-      interestDueAmount = FormatHelper.formatCurrencyAmountAsString(sourcePsaFSDetail.accruedInterestTotal),
+      interestDueAmount = Some(FormatHelper.formatCurrencyAmountAsString(sourcePsaFSDetail.accruedInterestTotal)),
       penaltyAmount = sourcePsaFSDetail.totalAmount,
       returnUrl = getReturnUrl(sourcePsaFSDetail, penaltyType, journeyType),
       list = psaPenaltiesAndChargesService.interestRowsNew(sourcePsaFSDetail),
@@ -178,16 +171,16 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
   }
 
   private def getReturnUrlText(fs: PsaFSDetail, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter)
-                              (implicit messages: Messages): JsObject = {
+                              (implicit messages: Messages): String = {
     (journeyType, penaltyType) match {
       case (All, AccountingForTaxPenalties) =>
         val startDate = formatStartDate(fs.periodStartDate)
         val endDate = formatDateDMY(fs.periodEndDate)
-        Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.aft.returnLink", startDate, endDate))
+          messages("psa.financial.overview.penalties.all.aft.returnLink", startDate, endDate)
       case (All, _) =>
-        Json.obj("returnLinkBasedOnJourney" -> messages("psa.financial.overview.penalties.all.returnLink", fs.periodStartDate.getYear.toString))
+          messages("psa.financial.overview.penalties.all.returnLink", fs.periodStartDate.getYear.toString)
       case _ =>
-        Json.obj("returnLinkBasedOnJourney" -> messages("financialPaymentsAndCharges.returnLink." +s"${journeyType.toString}"))
+          messages(s"financialPaymentsAndCharges.returnLink.${journeyType.toString}")
     }
   }
 }

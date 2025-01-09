@@ -595,7 +595,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
   def chargeAmountDetailsRows(data: PsaFSDetail)(implicit messages: Messages): Table = {
 
-    val headRow = scala.collection.immutable.Seq(
+    val headRow = Seq(
       HeadCell(Text(Messages("psa.pension.scheme.chargeAmount.label.new"))),
       HeadCell(Text("")),
       HeadCell(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"), classes = "govuk-!-font-weight-regular")
@@ -605,27 +605,27 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       if (documentLineItemDetail.clearedAmountItem > 0) {
         getClearingDetailLabelNew(documentLineItemDetail) match {
           case Some(clearingDetailsValue) =>
-            scala.collection.immutable.Seq(
+            Seq(
               TableRow(clearingDetailsValue, classes = "govuk-!-font-weight-bold"),
               TableRow(Text(getChargeDateNew(documentLineItemDetail))),
               TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"))
             )
-          case _ =>  scala.collection.immutable.Seq()
+          case _ =>  Seq()
         }
       } else {
-        scala.collection.immutable.Seq()
+        Seq()
       }
     }
 
     val stoodOverAmountRow = if (data.stoodOverAmount > 0) {
-      scala.collection.immutable.Seq(scala.collection.immutable.Seq(
+      Seq(Seq(
         TableRow(Text(Messages("paymentsAndCharges.chargeDetails.stoodOverAmount")), classes = "govuk-!-font-weight-bold"),
         TableRow(Text("")),
         TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.stoodOverAmount)}"),
           classes = "govuk-!-font-weight-regular,govuk-!-text-align-left")
       ))
     } else {
-      scala.collection.immutable.Seq(scala.collection.immutable.Seq())
+      Seq(Seq())
     }
 
     Table(head = Some(headRow), rows = rows ++ stoodOverAmountRow, attributes = Map("role" -> "table"))
