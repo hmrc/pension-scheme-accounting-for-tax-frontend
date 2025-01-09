@@ -27,12 +27,15 @@
 
 @(
     heading: String,
+    isOverdue: Boolean,
     schemeAssociated: Boolean,
     schemeName: String,
+    chargeReference: String,
     interestDueAmount: String,
+    penaltyAmount: BigDecimal,
+    returnUrl: String,
     list: Seq[SummaryListRow],
     htmlInsetText: HtmlContent,
-    returnUrl: String,
     returnUrlText: String
 )(implicit messages: Messages, request: Request[_])
 

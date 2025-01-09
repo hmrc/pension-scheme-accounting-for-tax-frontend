@@ -23,17 +23,19 @@
 )
 
 @(
+    heading: String,
     schemeAssociated: Boolean,
     schemeName: String,
-    heading: String,
     isOverdue: Boolean,
-    paymentDueAmount: String,
-    paymentDueDate: String,
-    htmlInsetText: HtmlContent,
-    returnUrl: String,
+    paymentDueAmount: Option[String],
+    paymentDueDate: Option[String],
+    chargeReference: String,
+    penaltyAmount: BigDecimal,
+    insetText: HtmlContent,
     isInterestPresent: Boolean,
     chargeHeaderDetails: Seq[SummaryListRow],
-    chargeAmountDetails: Table,
+    chargeAmountDetails: Seq[Table],
+    returnUrl: String,
     returnUrlText: String
 )(implicit messages: Messages, request: Request[_])
 
@@ -78,7 +80,7 @@
         </div>
 
         <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
-            @govukTable(chargeAmountDetails)
+            @govukTable = chargeAmountDetails
         </div>
 
         @if(isInterestPresent) {

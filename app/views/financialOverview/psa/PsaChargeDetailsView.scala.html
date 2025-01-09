@@ -22,15 +22,17 @@ govukInsetText: components.inset_text
 )
 
 @(
-schemeAssociated: Boolean,
-schemeName: String,
-heading: String,
-isOverdue: Boolean,
-period: String,
-isInterestPresent: Boolean,
-htmlInsetText: HtmlContent,
-list: Seq[SummaryListRow],
-returnUrl: String,
+    heading: String,
+    schemeAssociated: Boolean,
+    schemeName: String,
+    isOverdue: Boolean,
+    period: String,
+    chargeReference: String,
+    penaltyAmount: BigDecimal,
+    insetText: HtmlContent,
+    isInterestPresent: Boolean,
+    list: Seq[SummaryListRow],
+    returnUrl: String,
 returnUrlText: String
 )(implicit messages: Messages, request: Request[_])
 
