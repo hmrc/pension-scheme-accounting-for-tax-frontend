@@ -24,7 +24,6 @@ import models.{GenericViewModel, StartYears, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.TwirlMigration
@@ -39,7 +38,6 @@ class YearsController @Inject()(
                                 allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                 formProvider: YearsFormProvider,
                                 val controllerComponents: MessagesControllerComponents,
-                                renderer: Renderer,
                                 config: FrontendAppConfig,
                                 schemeService: SchemeService,
                                 yearsView: YearsView

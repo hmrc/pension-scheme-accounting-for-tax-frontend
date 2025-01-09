@@ -27,27 +27,28 @@ import models.SubmitterType.{PSA, PSP}
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFS
 import models.requests.IdentifierRequest
-import models.{AFTOverview, AFTOverviewVersion, AFTVersion, AccessType, Draft, Submission, SubmitterDetails, VersionsWithSubmitter}
-import org.mockito.ArgumentCaptor
+import models.{AFTOverview, AFTOverviewVersion, AFTVersion, AccessType, Draft, Quarters, Submission, SubmitterDetails, VersionsWithSubmitter}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsArray, JsObject, Json}
 import play.api.mvc.Results._
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.SchemeService
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import views.html.amend.ReturnHistoryView
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import scala.concurrent.Future
 
 class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-
-  private val templateToBeRendered = "amend/returnHistory.njk"
-
   private def httpPathGET: String = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
 
   private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
@@ -87,6 +88,47 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
 
+  private val paymentsAndChargesUrl = controllers
+    .financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges, All).url
+
+  private val tableHead = Seq(
+    HeadCell(Text(Messages("returnHistory.version")), classes = "govuk-!-width-one-quarter"),
+    HeadCell(Text(Messages("returnHistory.status")), classes = "govuk-!-width-one-half"),
+    HeadCell(Text(Messages("returnHistory.submittedBy")), classes = "govuk-!-width-one-quarter"),
+    HeadCell(
+      HtmlContent(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>""")
+    )
+  )
+
+  private def link(version: AFTVersion, linkText: String, accessType: AccessType) =
+    s"<a id= report-version-${version.reportVersion} class=govuk-link href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version.reportVersion)}>" +
+      s"<span aria-hidden=true>${linkText}</span>" +
+      s"<span class=govuk-visually-hidden> ${linkText} " +
+      s"${messages(s"returnHistory.visuallyHidden", version.reportVersion.toString)}</span></a>"
+
+  private val tableRows = Seq(
+    Seq(
+      TableRow(Text("Draft"), classes = "govuk-!-width-one-quarter"),
+      TableRow(Text("In progress"), classes = "govuk-!-width-one-half"),
+      TableRow(HtmlContent("<span class=govuk-visually-hidden>not yet submitted</span>"), classes = "govuk-!-width-one-quarter"),
+      TableRow(HtmlContent(link(version3, "Change", Draft)), classes = "govuk-!-width-one-quarter", attributes = Map("role" -> "cell"))
+    ),
+    Seq(
+      TableRow(Text(version2.reportVersion.toString), classes = "govuk-!-width-one-quarter"),
+      TableRow(Text(Messages("returnHistory.submittedOn", version2.date.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))),
+        classes = "govuk-!-width-one-half"),
+      TableRow(Text(submitter2.submitterName), classes = "govuk-!-width-one-quarter"),
+      TableRow(HtmlContent(link(version2, "View", Submission)), classes = "govuk-!-width-one-quarter", attributes = Map("role" -> "cell"))
+    ),
+    Seq(
+      TableRow(Text(version1.reportVersion.toString), classes = "govuk-!-width-one-quarter"),
+      TableRow(Text(Messages("returnHistory.submittedOn", version1.date.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))),
+        classes = "govuk-!-width-one-half"),
+      TableRow(Text(submitter1.submitterName), classes = "govuk-!-width-one-quarter"),
+      TableRow(HtmlContent(link(version1, "View", Submission)), classes = "govuk-!-width-one-quarter", attributes = Map("role" -> "cell"))
+    )
+  )
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
@@ -101,76 +143,26 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   "ReturnHistory Controller" must {
     "return OK and the correct view for a GET" in {
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
-      templateCaptor.getValue mustEqual templateToBeRendered
+      val view = application.injector.instanceOf[ReturnHistoryView].apply(
+        startDate.format(dateFormatterStartDate),
+        Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+        Table(head = Some(tableHead), rows = tableRows, attributes = Map("role" -> "table")),
+        paymentsAndCharges = false,
+        paymentsAndChargesUrl,
+        startDate.getYear.toString,
+        dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
 
-      val actual = jsonCaptor.getValue
-
-      val actualColumnTextTitles: Option[IndexedSeq[String]] =
-        (actual \ "versions" \ "head").validate[JsArray].asOpt
-          .map(_.value.toIndexedSeq.flatMap(
-            jsValue => (jsValue \ "text").validate[String].asOpt.toSeq))
-
-      val actualColumnHtmlTitles: Option[IndexedSeq[String]] =
-        (actual \ "versions" \ "head").validate[JsArray].asOpt
-          .map(_.value.toIndexedSeq.flatMap(
-            jsValue => (jsValue \ "html").validate[String].asOpt.toSeq))
-
-      val actualColumnValues: Option[IndexedSeq[String]] =
-        (actual \ "versions" \ "rows").validate[JsArray].asOpt
-          .map(_.value.toIndexedSeq.flatMap(_.validate[JsArray].asOpt.toSeq
-            .flatMap(_.value.flatMap { jsValue =>
-              ((jsValue \ "text").validate[String].asOpt match {
-                case None => (jsValue \ "html").validate[String].asOpt
-                case t => t
-              }).toSeq
-            })))
-
-      actualColumnTextTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status"), messages("returnHistory.submittedBy")))
-
-      actualColumnHtmlTitles mustBe Some(Seq(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
-
-      def anchor(startDate: String, version: Int, linkContent: String, accessType: AccessType): String =
-        s"<a id= report-version-$version class=govuk-link href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}>" +
-          s"<span aria-hidden=true>$linkContent</span>" +
-          s"<span class=govuk-visually-hidden> $linkContent ${messages("returnHistory.visuallyHidden", version)}</span></a>"
-
-      val expectedStartDate = "2020-04-01"
-
-      actualColumnValues mustBe Some(
-        Seq(
-          messages("returnHistory.versionDraft"),
-          messages("returnHistory.compiledStatus"),
-          "<span class=govuk-visually-hidden>not yet submitted</span>",
-          anchor(expectedStartDate, 3, messages("site.change"), Draft),
-          "2",
-          messages("returnHistory.submittedOn", "17 May 2020"),
-          "Submitter 2",
-          anchor(expectedStartDate, 2, messages("site.view"), Submission),
-          "1",
-          messages("returnHistory.submittedOn", "17 April 2020"),
-          "Submitter 1",
-          anchor(expectedStartDate, 1, messages("site.view"), Submission)
-        )
-      )
-
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view with payment and charges URL for a GET where there is scheme fin info" in {
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(SampleData.schemeFSResponseAftAndOTC))
 
@@ -178,18 +170,18 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
+      val view = application.injector.instanceOf[ReturnHistoryView].apply(
+        startDate.format(dateFormatterStartDate),
+        Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+        Table(head = Some(tableHead), rows = tableRows, attributes = Map("role" -> "table")),
+        paymentsAndCharges = true,
+        paymentsAndChargesUrl,
+        startDate.getYear.toString,
+        dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      val actual = jsonCaptor.getValue
-
-      val expectedJson =
-        Json.obj("paymentsAndChargesUrl" -> controllers.financialStatement.paymentsAndCharges.routes
-          .PaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges, All).url)
-
-      actual must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
   }
 }
