@@ -26,12 +26,9 @@ import models.financialStatement.SchemeFSDetail
 import models.{AFTQuarter, ChargeDetailsFilter, DisplayHint, DisplayQuarter, PaymentOverdue, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 
 import java.time.LocalDate
@@ -45,13 +42,11 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                                                   allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   formProvider: QuartersFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
-                                                  renderer: Renderer,
                                                   selectQuarterView: SelectQuarterView,
                                                   service: PaymentsAndChargesService)
                                                   (implicit ec: ExecutionContext)
                                                   extends FrontendBaseController
-                                                  with I18nSupport
-                                                  with NunjucksSupport {
+                                                  with I18nSupport {
 
   private def form(quarters: Seq[AFTQuarter], year: String, journeyType: ChargeDetailsFilter)
                   (implicit messages: Messages): Form[AFTQuarter] =
@@ -68,7 +63,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
             form(quarters, year, journeyType),
             s"selectChargesQuarter.$journeyType.title",
             year,
-            TwirlMigration.toTwirlRadios(Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
+            TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
             routes.SelectQuarterController.onSubmit(srn, year,  journeyType),
             config.schemeDashboardUrl(request).format(srn),
@@ -90,17 +85,6 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
           form(quarters, year, journeyType).bindFromRequest().fold(
               formWithErrors => {
-
-                  val json = Json.obj(
-                    "titleMessage" -> s"selectChargesQuarter.$journeyType.title",
-                    "schemeName" -> paymentsCache.schemeDetails.schemeName,
-                    "year" -> year,
-                    "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
-                      Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false),
-                    "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-                  )
-                  renderer.render(template = "financialStatement/paymentsAndCharges/selectQuarter.njk", json).map(BadRequest(_))
                 Future.successful(BadRequest(selectQuarterView(
                   formWithErrors,
                   s"selectChargesQuarter.$journeyType.title",
