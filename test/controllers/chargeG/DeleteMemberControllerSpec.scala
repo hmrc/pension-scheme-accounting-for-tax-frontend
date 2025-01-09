@@ -46,8 +46,6 @@ import views.html.chargeG.DeleteMemberView
 
 import scala.concurrent.Future
 
-// TODO - remove NunjucksSupport
-// TODO - delete nunjucks files
 class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers with OptionValues with TryValues {
   private val mockDeleteAFTChargeService: DeleteAFTChargeService = mock[DeleteAFTChargeService]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
