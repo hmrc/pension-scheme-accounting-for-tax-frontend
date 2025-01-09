@@ -27,13 +27,12 @@ import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
-import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
+import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargeDetailsView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -46,11 +45,10 @@ class PaymentsAndChargeDetailsController @Inject()(
                                                     val controllerComponents: MessagesControllerComponents,
                                                     config: FrontendAppConfig,
                                                     paymentsAndChargesService: PaymentsAndChargesService,
-                                                    renderer: Renderer
+                                                    paymentsAndChargeDetailsView: PaymentsAndChargeDetailsView
                                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
 
@@ -84,10 +82,19 @@ class PaymentsAndChargeDetailsController @Inject()(
       filteredCharges.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
           val returnUrl = config.schemeDashboardUrl(request.psaId, request.pspId).format(srn)
-          renderer.render(
-            template = "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk",
-            ctx = summaryListData(srn, period, schemeFs, schemeName, returnUrl, paymentOrChargeType, interestUrl)
-          ).map(Ok(_))
+          Future.successful(Ok(paymentsAndChargeDetailsView(
+            chargeType = schemeFs.chargeType.toString,
+            isPaymentOverdue = isPaymentOverdue(schemeFs),
+            tableHeader = tableHeader(schemeFs),
+            chargeReferenceTextMessage = chargeReferenceTextMessage(schemeFs),
+            chargeDetailsList = paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFs),
+            interest = schemeFs.accruedInterestTotal,
+            insetText = getHtmlInsetText(schemeFs, interestUrl),
+            hintText = optHintText(schemeFs),
+            returnHistoryURL = returnHistoryUrl(srn, period, paymentOrChargeType),
+            returnUrl = returnUrl,
+            schemeName
+          )))
         case _ =>
           logger.warn(
             s"No Payments and Charge details found for the " +
@@ -104,38 +111,23 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
-  private def summaryListData(srn: String, period: String, schemeFSDetail: SchemeFSDetail, schemeName: String,
-                              returnUrl: String, paymentOrChargeType: PaymentOrChargeType, interestUrl: String)
-                             (implicit messages: Messages): JsObject = {
-    val htmlInsetText = (schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0) match {
+  private def getHtmlInsetText(schemeFSDetail: SchemeFSDetail, interestUrl: String)(implicit messages: Messages): HtmlContent = {
+    (schemeFSDetail.dueDate, schemeFSDetail.accruedInterestTotal > 0, schemeFSDetail.amountDue > 0) match {
       case (Some(_), true, true) =>
-        Html(
+        HtmlContent(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
             s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate")}" +
             s" <span><a id='breakdown' class=govuk-link href=$interestUrl>" +
             s"${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
         )
       case (Some(date), true, false) =>
-        Html(
+        HtmlContent(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccrued")}</h2>" +
             s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.paid.after.dueDate", date.format(dateFormatterDMY))}</p>"
         )
       case _ =>
-        Html("")
+        HtmlContent("")
     }
-
-    Json.obj(
-      "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFSDetail),
-      "tableHeader" -> tableHeader(schemeFSDetail),
-      "schemeName" -> schemeName,
-      "chargeType" -> schemeFSDetail.chargeType.toString,
-      "chargeReferenceTextMessage" -> chargeReferenceTextMessage(schemeFSDetail),
-      "isPaymentOverdue" -> isPaymentOverdue(schemeFSDetail),
-      "insetText" -> htmlInsetText,
-      "interest" -> schemeFSDetail.accruedInterestTotal,
-      "returnUrl" -> returnUrl
-    ) ++ returnHistoryUrl(srn, period, paymentOrChargeType) ++ optHintText(schemeFSDetail)
-
   }
 
   private def chargeReferenceTextMessage(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): String =
@@ -146,18 +138,18 @@ class PaymentsAndChargeDetailsController @Inject()(
       messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFSDetail.chargeReference)
     }
 
-  private def optHintText(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): JsObject =
+  private def optHintText(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): String =
     if (schemeFSDetail.chargeType == PSS_AFT_RETURN_INTEREST && schemeFSDetail.amountDue == BigDecimal(0.00)) {
-      Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
+      messages("paymentsAndCharges.interest.hint")
     } else {
-      Json.obj()
+      ""
     }
 
-  private def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType): JsObject =
+  private def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType): String =
     if(paymentOrChargeType == AccountingForTaxCharges) {
-      Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, LocalDate.parse(period)).url)
+      controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, LocalDate.parse(period)).url
     } else {
-      Json.obj()
+      ""
     }
 
   private def isPaymentOverdue(schemeFSDetail: SchemeFSDetail): Boolean =

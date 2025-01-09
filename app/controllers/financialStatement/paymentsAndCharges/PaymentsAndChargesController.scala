@@ -28,11 +28,11 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.Table
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -59,7 +59,7 @@ class PaymentsAndChargesController @Inject()(
         val (title, filteredPayments): (String, Seq[SchemeFSDetail]) =
           getTitleAndFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType, journeyType)
         if (filteredPayments.nonEmpty) {
-          val tableOfPaymentsAndCharges: Table = {
+          val tableOfPaymentsAndCharges = {
             val table = paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, journeyType, paymentOrChargeType)
             if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
           }
@@ -113,9 +113,16 @@ class PaymentsAndChargesController @Inject()(
       (title, filteredPayments)
     }
 
-  private val removePaymentStatusColumn: Table => Table = table =>
-    Table(table.caption, table.captionClasses, table.firstCellIsHeader,
-      table.head.take(table.head.size - 1),
-      table.rows.map(p => p.take(p.size - 1)), table.classes, table.attributes
+  private val removePaymentStatusColumn: Table => Table = table => {
+    val header = table.head.map(headCells => headCells.dropRight(1))
+    Table(
+      caption = table.caption,
+      captionClasses = table.captionClasses,
+      firstCellIsHeader = table.firstCellIsHeader,
+      head = header,
+      rows = table.rows.map(p => p.take(p.size - 1)),
+      classes = table.classes,
+      attributes = table.attributes
     )
+  }
 }
