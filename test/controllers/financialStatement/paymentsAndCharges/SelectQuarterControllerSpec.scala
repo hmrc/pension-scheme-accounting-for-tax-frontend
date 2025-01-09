@@ -41,6 +41,8 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.financialStatement.paymentsAndCharges.SelectQuarterView
 
 import scala.concurrent.Future
 
@@ -91,19 +93,21 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   "SelectQuarter Controller" must {
     "return OK and the correct view for a GET" in {
-
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       val result = route(application, httpGETRequest(httpPathGET)).value
 
+      val view = application.injector.instanceOf[SelectQuarterView].apply(
+        form,
+        "Which quarter of 2020 do you want to view the Accounting for Tax charges for?",
+        year,
+        TwirlMigration.toTwirlRadiosWithHintText(
+          Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+        routes.SelectQuarterController.onSubmit(srn, year, All),
+        returnUrl = dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
+
       status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      compareResultAndView(result, view)
     }
 
     "redirect to next page when valid data is submitted" in {

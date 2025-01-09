@@ -24,12 +24,9 @@ import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.paymentsAndCharges.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 
 import javax.inject.Inject
@@ -41,14 +38,12 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                                      allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                      formProvider: YearsFormProvider,
                                      val controllerComponents: MessagesControllerComponents,
-                                     renderer: Renderer,
                                      selectYearView: SelectYearView,
                                      config: FrontendAppConfig,
                                      service: PaymentsAndChargesService,
                                      navService: PaymentsNavigationService)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(journeyType: ChargeDetailsFilter, paymentOrChargeType: PaymentOrChargeType, typeParam: String, config: FrontendAppConfig)(
       implicit messages: Messages,
@@ -73,7 +68,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           getTitle(typeParam, paymentOrChargeType, journeyType),
           TwirlMigration.toTwirlRadiosWithHintText(
             FSYears.radios(form(journeyType, paymentOrChargeType, typeParam, config), years, isTaxYearFormat(paymentOrChargeType))),
-          routes.SelectYearController.onPageLoad(srn, paymentOrChargeType,  journeyType),
+          routes.SelectYearController.onSubmit(srn, paymentOrChargeType,  journeyType),
           config.schemeDashboardUrl(request).format(srn),
           paymentsCache.schemeDetails.schemeName
         )))
@@ -96,7 +91,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                 getTitle(typeParam, paymentOrChargeType, journeyType),
                 TwirlMigration.toTwirlRadiosWithHintText(
                   FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType))),
-                routes.SelectYearController.onPageLoad(srn, paymentOrChargeType,  journeyType),
+                routes.SelectYearController.onSubmit(srn, paymentOrChargeType,  journeyType),
                 config.schemeDashboardUrl(request).format(srn),
                 paymentsCache.schemeDetails.schemeName
               )))

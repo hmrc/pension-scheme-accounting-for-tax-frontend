@@ -35,16 +35,16 @@ import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.{PenaltiesCache, SchemeService}
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.Table
-import viewmodels.Table.Cell
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -59,7 +59,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                               chargeReference: String,
                               redirectUrl: String,
                               visuallyHiddenText: String
-                            ) = {
+                            ): HtmlContent = {
     val linkId =
       chargeReference match {
         case "To be assigned" => "to-be-assigned"
@@ -67,22 +67,22 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
         case _ => chargeReference
       }
 
-    Html(
+    HtmlContent(
       s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +
         s"$chargeType " +
         s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>")
   }
 
-  private val tableHead = Seq(
-    Cell(msg"paymentsAndCharges.chargeType.table"),
-    Cell(msg"paymentsAndCharges.totalDue.table", classes = Seq("govuk-!-font-weight-bold")),
-    Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-font-weight-bold")),
-    Cell(Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"))
+  private def tableHead()(implicit messages: Messages): Seq[HeadCell] = Seq(
+    HeadCell(Text(messages("paymentsAndCharges.chargeType.table"))),
+    HeadCell(Text(messages("paymentsAndCharges.totalDue.table")), classes = "govuk-!-font-weight-bold"),
+    HeadCell(Text(messages("paymentsAndCharges.chargeReference.table")), classes = "govuk-!-font-weight-bold"),
+    HeadCell(HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"))
   )
 
-  private def paymentTable(rows: Seq[Seq[Table.Cell]]): Table =
-    Table(head = tableHead, rows = rows, attributes = Map("role" -> "table"))
+  private def paymentTable(rows: Seq[Seq[TableRow]]): uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table =
+    Table(head = Some(tableHead), rows = rows, attributes = Map("role" -> "table"))
 
   private def row(chargeType: String,
                   chargeReference: String,
@@ -91,22 +91,22 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                   redirectUrl: String,
                   visuallyHiddenText: String,
                   paymentAndChargeStatus: PaymentAndChargeStatus = NoStatus
-                 ): Seq[Table.Cell] = {
+                 ): Seq[TableRow] = {
     val statusHtml = paymentAndChargeStatus match {
-      case InterestIsAccruing => Html(s"<span class='govuk-tag govuk-tag--blue'>${paymentAndChargeStatus.toString}</span>")
-      case PaymentOverdue => Html(s"<span class='govuk-tag govuk-tag--red'>${paymentAndChargeStatus.toString}</span>")
+      case InterestIsAccruing => HtmlContent(s"<span class='govuk-tag govuk-tag--blue'>${paymentAndChargeStatus.toString}</span>")
+      case PaymentOverdue => HtmlContent(s"<span class='govuk-tag govuk-tag--red'>${paymentAndChargeStatus.toString}</span>")
       case _ => if (amountDue == "£0.00") {
-        Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
+        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
       } else {
-        Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
+        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
       }
     }
 
     Seq(
-      Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText), classes = Seq("govuk-!-padding-right-7")),
-      Cell(Literal(amountDue), classes = Seq("govuk-!-padding-right-7")),
-      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-padding-right-7")),
-      Cell(statusHtml)
+      TableRow(htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText), classes = "govuk-!-padding-right-7"),
+      TableRow(Text(amountDue), classes = "govuk-!-padding-right-7"),
+      TableRow(Text(s"$chargeReference"), classes = "govuk-!-padding-right-7"),
+      TableRow(statusHtml)
     )
   }
 
@@ -128,7 +128,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           val interestLink: ChargeDetailsFilter => String = chargeDetailsFilter =>
             PaymentsAndChargesInterestController.onPageLoad(srn, QUARTER_START_DATE.toString, "0", AccountingForTaxCharges, chargeDetailsFilter).url
 
-          def expectedTable(chargeLink: String, interestLink: String): Table =
+          def expectedTable(chargeLink: String, interestLink: String) =
             paymentTable(Seq(
               row(
                 chargeType = chargeType.toString,
@@ -233,14 +233,12 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       val result = paymentsAndChargesService.getChargeDetailsForSelectedCharge(chargeWithCredit)
 
       result mustBe Seq(
-        Row(
+        SummaryListRow(
           key =
-            Key(msg"paymentsAndCharges.chargeDetails.originalChargeAmount", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
+            Key(Text(messages("paymentsAndCharges.chargeDetails.originalChargeAmount")), classes = "govuk-!-padding-left-0 govuk-!-width-three-quarters"),
           value = Value(
-            Literal(s"${FormatHelper.formatCurrencyAmountAsString(20000.00)} ${messages("paymentsAndCharges.credit")}"),
-            classes = Nil
-          ),
-          actions = Nil
+            Text(s"${FormatHelper.formatCurrencyAmountAsString(20000.00)} ${messages("paymentsAndCharges.credit")}"),
+          )
         ))
     }
   }
@@ -429,54 +427,50 @@ object PaymentsAndChargesServiceSpec {
     )
   )
 
-  private def originalAmountRow: Seq[SummaryList.Row] = {
+  private def originalAmountRow()(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"paymentsAndCharges.chargeDetails.originalChargeAmount", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
+      SummaryListRow(
+        key = Key(Text(messages("paymentsAndCharges.chargeDetails.originalChargeAmount")), classes = "govuk-!-padding-left-0 govuk-!-width-three-quarters"),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(56432.00)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
-        ),
-        actions = Nil
+          Text(s"${FormatHelper.formatCurrencyAmountAsString(56432.00)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"
+        )
       ))
   }
 
-  private def paymentsAndCreditsRow: Seq[SummaryList.Row] = {
+  private def paymentsAndCreditsRow()(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"paymentsAndCharges.chargeDetails.payments", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
+      SummaryListRow(
+        key = Key(Text(messages("paymentsAndCharges.chargeDetails.payments")), classes = "govuk-!-padding-left-0 govuk-!-width-three-quarters"),
         value = Value(
-          Literal(s"-${FormatHelper.formatCurrencyAmountAsString(30313.87)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
-        ),
-        actions = Nil
+          Text(s"-${FormatHelper.formatCurrencyAmountAsString(30313.87)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"
+        )
       ))
   }
 
-  private def stoodOverAmountRow: Seq[SummaryList.Row] = {
+  private def stoodOverAmountRow()(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"paymentsAndCharges.chargeDetails.stoodOverAmount", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
+      SummaryListRow(
+        key = Key(Text(messages("paymentsAndCharges.chargeDetails.stoodOverAmount")), classes = "govuk-!-padding-left-0 govuk-!-width-three-quarters"),
         value = Value(
-          Literal(s"-${FormatHelper.formatCurrencyAmountAsString(25089.08)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+          Text(s"-${FormatHelper.formatCurrencyAmountAsString(25089.08)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"
         ),
-        actions = Nil
       ))
   }
 
-  private def totalAmountDueRow: Seq[SummaryList.Row] = {
+  private def totalAmountDueRow()(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
+      SummaryListRow(
         key = Key(
-          msg"paymentsAndCharges.chargeDetails.amountDue".withArgs(LocalDate.parse("2020-05-15").format(dateFormatterDMY)),
-          classes = Seq("govuk-table__cell--numeric", "govuk-!-padding-right-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
+          Text(messages("paymentsAndCharges.chargeDetails.amountDue", LocalDate.parse("2020-05-15").format(dateFormatterDMY))),
+          classes = "govuk-table__cell--numeric govuk-!-padding-right-0 govuk-!-width-three-quarters govuk-!-font-weight-bold"
         ),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")
-        ),
-        actions = Nil
+          Text(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric govuk-!-font-weight-bold"
+        )
       ))
   }
 }

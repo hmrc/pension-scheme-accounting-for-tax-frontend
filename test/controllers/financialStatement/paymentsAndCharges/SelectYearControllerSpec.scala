@@ -43,6 +43,8 @@ import play.twirl.api.Html
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import utils.TwirlMigration
+import views.html.financialStatement.paymentsAndCharges.SelectYearView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -67,12 +69,6 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
   lazy val httpPathGET: String = routes.SelectYearController.onPageLoad(srn, AccountingForTaxCharges, All).url
   lazy val httpPathPOST: String = routes.SelectYearController.onSubmit(srn, AccountingForTaxCharges, All).url
 
-  private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> FSYears.radios(form, years),
-    "schemeName" -> schemeName
-  )
-
   private val year = "2020"
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
@@ -90,19 +86,20 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   "SelectYear Controller" must {
     "return OK and the correct view for a GET" in {
-
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       val result = route(application, httpGETRequest(httpPathGET)).value
+
+      val view = application.injector.instanceOf[SelectYearView].apply(
+        form,
+        "Which year do you want to view null for?",
+        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form, years)),
+        routes.SelectYearController.onSubmit(srn, AccountingForTaxCharges, All),
+        dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      compareResultAndView(result, view)
     }
 
     "redirect to next page when valid data is submitted and a single quarter is found for the selected year" in {
