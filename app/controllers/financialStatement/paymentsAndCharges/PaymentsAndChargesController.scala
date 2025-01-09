@@ -24,19 +24,17 @@ import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargesView
 
 class PaymentsAndChargesController @Inject()(
                                               override val messagesApi: MessagesApi,
@@ -45,11 +43,10 @@ class PaymentsAndChargesController @Inject()(
                                               val controllerComponents: MessagesControllerComponents,
                                               config: FrontendAppConfig,
                                               paymentsAndChargesService: PaymentsAndChargesService,
-                                              renderer: Renderer
+                                              paymentsAndChargesView: PaymentsAndChargesView
                                             )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val logger = Logger(classOf[PaymentsAndChargesController])
 
@@ -63,16 +60,12 @@ class PaymentsAndChargesController @Inject()(
             val table = paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, journeyType, paymentOrChargeType)
             if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
           }
-
-          val json = Json.obj(
-            fields =
-              "titleMessage" -> title,
-            "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
-            "schemeName" -> paymentsCache.schemeDetails.schemeName,
-            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-          )
-          renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
-
+          Future.successful(Ok(paymentsAndChargesView(
+            title,
+            tableOfPaymentsAndCharges,
+            config.schemeDashboardUrl(request).format(srn),
+            paymentsCache.schemeDetails.schemeName
+          )))
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
