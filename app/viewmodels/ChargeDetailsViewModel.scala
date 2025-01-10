@@ -16,20 +16,26 @@
 
 package viewmodels
 
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 
 case class ChargeDetailsViewModel(
                                    heading: String,
-                                   schemeAssociated: Boolean,
+                                   schemeAssociated: Boolean = true,
+                                   psaName: String,
                                    schemeName: String,
                                    isOverdue: Boolean,
-                                   period: String,
+                                   period: Option[String] = None,
+                                   paymentDueAmount: Option[String] = None,
+                                   paymentDueDate: Option[String] = None,
                                    chargeReference: String,
                                    penaltyAmount: BigDecimal,
                                    insetText: HtmlContent,
                                    isInterestPresent: Boolean,
-                                   list: Seq[SummaryListRow],
+                                   list: Option[Seq[SummaryListRow]] = None,
+                                   chargeHeaderDetails: Option[Seq[SummaryListRow]] = None,
+                                   chargeAmountDetails: Option[Seq[Table]] = None,
                                    returnUrl: String,
                                    returnUrlText: String
                                  )

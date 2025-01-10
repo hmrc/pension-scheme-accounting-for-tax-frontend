@@ -14,40 +14,27 @@
  * limitations under the License.
  *@
 
+@import viewmodels.ChargeDetailsViewModel
+
 @this(
     layout: templates.Layout,
     govukButton: GovukButton,
     govukSummaryList: GovukSummaryList,
     govukTable: GovukTable,
-    govukInsetText: components.inset_text
+    govukInsetText: GovukInsetText
 )
 
-@(
-    heading: String,
-    schemeAssociated: Boolean,
-    schemeName: String,
-    isOverdue: Boolean,
-    paymentDueAmount: Option[String],
-    paymentDueDate: Option[String],
-    chargeReference: String,
-    penaltyAmount: BigDecimal,
-    insetText: HtmlContent,
-    isInterestPresent: Boolean,
-    chargeHeaderDetails: Seq[SummaryListRow],
-    chargeAmountDetails: Seq[Table],
-    returnUrl: String,
-    returnUrlText: String
-)(implicit messages: Messages, request: Request[_])
+@(model: ChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
-@layout(messages(heading)) {
+@layout(messages({model.heading})) {
 
 <div class="govuk-grid-row">
 
-        @if(schemeAssociated) {
-        <h1 class="hmrc-caption govuk-caption-xl">@heading</h1>
-        <h1 class="govuk-heading-xl">@schemeName</h1>
+        @if(model.schemeAssociated) {
+        <h1 class="hmrc-caption govuk-caption-xl">@{model.heading}</h1>
+        <h1 class="govuk-heading-xl">@{model.schemeName}</h1>
         } else {
-        <h1 class="govuk-heading-xl">@heading</h1>
+        <h1 class="govuk-heading-xl">@{model.heading}</h1>
         }
 
         <div class="govuk-grid-row">
@@ -55,21 +42,23 @@
                 <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
                     @messages("psa.scheme.paymentDueAmount.new")
                 </h3>
-                <p class="govuk-heading-m govuk-!-margin-top-0">@paymentDueAmount</p>
+                <p class="govuk-heading-m govuk-!-margin-top-0">@{model.paymentDueAmount}</p>
             </div>
             <div class="govuk-grid-column-one-half">
                 <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
                     @messages("psa.scheme.paymentDueDate.new")
                 </h3>
-                <p class="govuk-heading-m govuk-!-margin-top-0">@paymentDueDate</p>
+                <p class="govuk-heading-m govuk-!-margin-top-0">@{model.paymentDueDate}</p>
             </div>
         </div>
 
+    <p class="govuk-body">
         @govukSummaryList(
-            SummaryListViewModel(
-                rows = chargeHeaderDetails
+            SummaryList(
+                rows = model.chargeHeaderDetails.getOrElse(Seq.empty)
             )
         )
+    </p>
 
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-one-half">
@@ -80,15 +69,25 @@
         </div>
 
         <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
-            @govukTable = chargeAmountDetails
+            @govukTable(
+                Table(
+                    rows = model.chargeAmountDetails
+                        .getOrElse(Seq.empty)
+                        .flatMap(_.rows)
+                )
+            )
         </div>
 
-        @if(isInterestPresent) {
-            @govukInsetText = htmlInsetText
+        @if(model.isInterestPresent) {
+            @govukInsetText(
+                InsetText(
+                    content = model.insetText
+                )
+            )
         }
 
 </div>
 
-<p class="govuk-body"><a id="@returnUrl" class="govuk-link" href="@returnUrl">
-    @messages("return.to.link", returnUrlText)</a></p>
+<p class="govuk-body"><a id="return" class="govuk-link" href="@{model.returnUrl}">
+    @messages("return.to.link", model.returnUrlText)</a></p>
 }
