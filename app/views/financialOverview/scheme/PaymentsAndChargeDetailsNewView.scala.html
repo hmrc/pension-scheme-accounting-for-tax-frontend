@@ -14,56 +14,42 @@
  * limitations under the License.
  *@
 
+@import viewmodels.ChargeDetailsViewModel
+
 @this(
     layout: templates.Layout,
-    formHelper: FormWithCSRF,
-    govukErrorSummary: GovukErrorSummary,
     govukButton: GovukButton,
-    govukInput: GovukInput,
     govukSummaryList: GovukSummaryList,
     govukTable: GovukTable,
-    govukInsetText: components.inset_text
+    govukInsetText: GovukInsetText
 )
 
-@(
-    chargeType: String,
-    schemeName: String,
-    paymentDueAmount: String,
-    paymentDueDate: String,
-    chargeDetailsList: Seq[SummaryListRow],
-    chargeAmountDetails: Table,
-    insetText: Option[Html],
-    hintText: Option[String],
-    returnHistoryUrl: Option[String],
-    versionValue: String,
-    returnUrl: String,
-    returnLinkBasedOnJourney: String
-)(implicit messages: Messages, request: Request[_])
+@(model: ChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
-@layout(messages(chargeType)) {
+@layout(messages({model.chargeType})) {
+
 <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
 
-        <h1 class="hmrc-caption govuk-caption-xl">@chargeType</h1>
-        <h1 class="govuk-heading-xl">Some(schemeName)</h1>
+        <h1 class="hmrc-caption govuk-caption-xl">@{model.chargeType}</h1>
+        <h1 class="govuk-heading-xl">@{model.schemeName}</h1>
 
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-one-half">
                 <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
                     @messages("pension.scheme.paymentDueAmount.new")
                 </h3>
-                <p class="govuk-heading-m govuk-!-margin-top-0">@paymentDueAmount</p>
+                <p class="govuk-heading-m govuk-!-margin-top-0">@{model.paymentDueAmount}</p>
             </div>
             <div class="govuk-grid-column-one-half">
                 <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
                     @messages("pension.scheme.paymentDueDate.new")
                 </h3>
-                <p class="govuk-heading-m govuk-!-margin-top-0">@paymentDueDate</p>
+                <p class="govuk-heading-m govuk-!-margin-top-0">@{model.paymentDueDate}</p>
             </div>
         </div>
 
-        @if(chargeDetailsList.nonEmpty) {
-        @govukSummaryList(SummaryList(rows = chargeDetailsList))
+        @if(model.chargeDetailsList.nonEmpty) {
+            @govukSummaryList(SummaryList(rows = model.chargeDetailsList))
         }
 
         <div class="govuk-grid-row">
@@ -75,31 +61,36 @@
         </div>
 
         <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
-            @govukTable(chargeAmountDetails)
+            @govukTable(
+                Table(
+                    rows = model.chargeAmountDetails
+                        .getOrElse(Seq.empty)
+                        .flatMap(_.rows)
+                )
+            )
         </div>
 
-        @if(insetText.nonEmpty) {
-        @insetText
+        @if(model.insetText.nonEmpty) {
+            @{model.insetText}
         }
 
-        @hintText.map { text =>
+        @model.hintText.map { text =>
         <p class="govuk-body">@text</p>
         }
 
-    </div>
 </div>
 
-@if(returnHistoryUrl.isDefined && versionValue.nonEmpty) {
+@if(model.returnHistoryUrl.nonEmpty && model.versionValue.nonEmpty) {
 <p class="govuk-body">
-    <a id="return-history" href="@returnHistoryUrl.get" class="govuk-link">
-        @messages("financialPaymentsAndCharges.viewReturnHistory", versionValue)
+    <a id="return-history" href="@model.returnHistoryUrl" class="govuk-link">
+        @messages("financialPaymentsAndCharges.viewReturnHistory", model.versionValue)
     </a>
 </p>
 }
 
 <p class="govuk-body">
-    <a id="return" href="@returnUrl" class="govuk-link">
-        @messages("return.to.link", returnLinkBasedOnJourney)
+    <a id="return" href="@model.returnUrl" class="govuk-link">
+        @messages("return.to.link", model.returnLinkBasedOnJourney)
     </a>
 </p>
 }

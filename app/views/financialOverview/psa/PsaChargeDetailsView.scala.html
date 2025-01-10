@@ -14,7 +14,7 @@
  * limitations under the License.
  *@
 
-@import viewmodels.ChargeDetailsViewModel
+@import viewmodels.PsaChargeDetailsViewModel
 
 @this(
 layout: templates.Layout,
@@ -23,7 +23,7 @@ govukSummaryList: GovukSummaryList,
 govukInsetText: GovukInsetText
 )
 
-@(model: ChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
+@(model: PsaChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
 @layout(messages({model.heading})) {
 

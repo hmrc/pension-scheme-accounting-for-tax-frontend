@@ -33,7 +33,7 @@ import services.financialOverview.psa.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
-import viewmodels.ChargeDetailsViewModel
+import viewmodels.PsaChargeDetailsViewModel
 import views.html.financialOverview.psa.{PsaChargeDetailsNewView, PsaChargeDetailsView}
 
 import javax.inject.Inject
@@ -161,7 +161,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                          schemeName: String,
                          psaFSDetail: PsaFSDetail,
                          journeyType: ChargeDetailsFilter
-                        )(implicit request: IdentifierRequest[AnyContent]): ChargeDetailsViewModel = {
+                        )(implicit request: IdentifierRequest[AnyContent]): PsaChargeDetailsViewModel = {
     val period = psaPenaltiesAndChargesService.setPeriod(psaFSDetail.chargeType, psaFSDetail.periodStartDate, psaFSDetail.periodEndDate)
     val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(psaFSDetail.pstr, psaFSDetail.index.toString, journeyType).url
     val isInterestPresent: Boolean = psaFSDetail.accruedInterestTotal > 0 || psaFSDetail.chargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST
@@ -175,7 +175,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       case _ => ""
     }
 
-    ChargeDetailsViewModel(
+    PsaChargeDetailsViewModel(
       heading = detailsChargeTypeHeading.toString,
       schemeName = schemeName,
       psaName = psaName,
@@ -194,7 +194,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
                               schemeName: String,
                               psaFSDetail: PsaFSDetail,
                               journeyType: ChargeDetailsFilter
-                             )(implicit request: IdentifierRequest[AnyContent]): ChargeDetailsViewModel = {
+                             )(implicit request: IdentifierRequest[AnyContent]): PsaChargeDetailsViewModel = {
     val interestUrl = routes.PsaPaymentsAndChargesInterestController.onPageLoad(psaFSDetail.pstr, psaFSDetail.index.toString, journeyType).url
     val isInterestPresent: Boolean = psaFSDetail.accruedInterestTotal > 0 || psaFSDetail.chargeType == PsaFSChargeType.CONTRACT_SETTLEMENT_INTEREST
     val detailsChargeType = psaFSDetail.chargeType
@@ -207,7 +207,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       case _ => ""
     }
 
-    ChargeDetailsViewModel(
+    PsaChargeDetailsViewModel(
       heading = detailsChargeTypeHeading.toString,
       psaName = psaName,
       schemeName = schemeName,

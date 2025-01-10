@@ -20,20 +20,22 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 
-case class ChargeDetailsViewModel(
-                                   chargeDetailsList: Seq[SummaryListRow],
-                                   tableHeader: Option[String] = None,
+case class PsaChargeDetailsViewModel(
+                                   heading: String,
+                                   schemeAssociated: Boolean = true,
+                                   psaName: String,
                                    schemeName: String,
-                                   chargeType: String,
-                                   versionValue: Option[String],
-                                   isPaymentOverdue: Boolean,
-                                   insetText: Option[HtmlContent],
-                                   interest: Option[BigDecimal],
-                                   returnLinkBasedOnJourney: String,
-                                   returnUrl: String,
-                                   returnHistoryUrl: String,
+                                   isOverdue: Boolean,
+                                   period: Option[String] = None,
                                    paymentDueAmount: Option[String] = None,
                                    paymentDueDate: Option[String] = None,
+                                   chargeReference: String,
+                                   penaltyAmount: BigDecimal,
+                                   insetText: HtmlContent,
+                                   isInterestPresent: Boolean,
+                                   list: Option[Seq[SummaryListRow]] = None,
+                                   chargeHeaderDetails: Option[Seq[SummaryListRow]] = None,
                                    chargeAmountDetails: Option[Seq[Table]] = None,
-                                   hintText: Option[String] = None,
+                                   returnUrl: String,
+                                   returnUrlText: String
                                  )

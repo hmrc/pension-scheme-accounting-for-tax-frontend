@@ -745,7 +745,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   private def totalAmountDueChargeDetailsRow(data: PsaFSDetail, journeyType: ChargeDetailsFilter)(implicit messages: Messages): Seq[SummaryListRow] = {
     val amountDueKey: Content = (data.dueDate, data.amountDue > 0) match {
       case (Some(date), true) =>
-        Text(Messages("financialPaymentsAndCharges.paymentDue.${journeyType.toString}.dueDate",date.format(dateFormatterDMY)))
+        Text(Messages("financialPaymentsAndCharges.paymentDue.${journeyType.toString}.dueDate", date.format(dateFormatterDMY)))
       case _ =>
         Text(Messages("financialPaymentsAndCharges.paymentDue.noDueDate"))
     }
