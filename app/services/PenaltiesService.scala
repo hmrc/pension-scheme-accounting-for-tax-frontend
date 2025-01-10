@@ -52,8 +52,8 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
   val isPaymentOverdue: PsaFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
   //PENALTIES
-  def getPsaFsJson(penalties: Seq[PsaFSDetail], identifier: String, chargeRefsIndex: String => String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
-                  (implicit messages: Messages): JsObject = {
+  def getPsaFsTable(penalties: Seq[PsaFSDetail], identifier: String, chargeRefsIndex: String => String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
+                   (implicit messages: Messages): Table = {
 
     val head: Seq[HeadCell] = Seq(
       HeadCell(Text(messages(s"penalties.column.${if(penaltyType == ContractSettlementCharges) "chargeType" else "penaltyType"}"))),
@@ -87,9 +87,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
       (Seq(charge) ++ Seq(interest)).filterNot(_.isEmpty)
     }
-    Json.obj(
-      "penaltyTable" -> Table(head = Some(head), rows = rows, attributes = Map("role" -> "table"))
-    )
+    Table(head = Some(head), rows = rows, attributes = Map("role" -> "table"))
   }
 
   private def chargeTypeLink(identifier: String, data: PsaFSDetail, chargeRefsIndex: String, journeyType: PenaltiesFilter)

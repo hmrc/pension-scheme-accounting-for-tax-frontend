@@ -104,7 +104,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
         accruedInterestTotal = BigDecimal(123.45), chargeType = CONTRACT_SETTLEMENT
       )
 
-      penaltiesService.getPsaFsJson(
+      penaltiesService.getPsaFsTable(
         Seq(charge),
         srn, chargeRefIndex, ContractSettlementCharges, PenaltiesFilter.All
       ) mustBe
@@ -115,7 +115,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for paymentOverdue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")),
+      penaltiesService.getPsaFsTable(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")),
         srn, chargeRefIndex, AccountingForTaxPenalties, All) mustBe
         penaltyTables(
           rows = rows(
@@ -128,7 +128,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for noPaymentDue" in {
-      penaltiesService.getPsaFsJson(
+      penaltiesService.getPsaFsTable(
         psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, chargeRefIndex, AccountingForTaxPenalties, All) mustBe
         penaltyTables(
           rows(
@@ -141,7 +141,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for paymentIsDue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, chargeRefIndex, AccountingForTaxPenalties, All) mustBe
+      penaltiesService.getPsaFsTable(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, chargeRefIndex, AccountingForTaxPenalties, All) mustBe
         penaltyTables(
           rows(
             link = aftLink(),

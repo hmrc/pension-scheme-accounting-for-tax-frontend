@@ -83,7 +83,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
     super.beforeEach()
     reset(mockPenaltiesService)
     reset(mockRenderer)
-    when(mockPenaltiesService.getPsaFsJson(any(), any(), any(), any(), any())(any()))
+    when(mockPenaltiesService.getPsaFsTable(any(), any(), any(), any(), any())(any()))
       .thenReturn(penaltyTables)
     when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any()))
       .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
