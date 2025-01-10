@@ -17,21 +17,19 @@
 package controllers.financialStatement.penalties
 
 import config.Constants._
+import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.PenaltiesFilter
 import models.financialStatement.PsaFSDetail
-import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.financialStatement.penalties.InterestView
 
 class InterestController @Inject()(
                                          identify: IdentifierAction,
@@ -40,12 +38,13 @@ class InterestController @Inject()(
                                          val controllerComponents: MessagesControllerComponents,
                                          penaltiesService: PenaltiesService,
                                          schemeService: SchemeService,
-                                         renderer: Renderer
+                                         interestView: InterestView,
+                                         config: FrontendAppConfig
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
+  //noinspection ScalaStyle
   def onPageLoad(identifier: String, chargeReferenceIndex: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>
@@ -54,24 +53,39 @@ class InterestController @Inject()(
           def penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
 
           if(chargeRefs.length > chargeReferenceIndex.toInt && penaltyOpt.nonEmpty) {
-                if (identifier.matches(srnRegex)) {
+            val fs = penaltyOpt.head
+            val psaFS = penaltiesCache.penalties
+            val chargeTypeDescription = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString.toLowerCase
+
+            if (identifier.matches(srnRegex)) {
                   schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") flatMap {
                     schemeDetails =>
-                      val json = Json.obj(
-                        "psaName" -> penaltiesCache.psaName,
-                        "schemeAssociated" -> true,
-                        "schemeName" -> schemeDetails.schemeName
-                      ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex, identifier)
-
-                      renderer.render(template = "financialStatement/penalties/interest.njk", json).map(Ok(_))
+                      Future.successful(Ok(interestView(
+                        heading(Messages("penalties.column.chargeType.interestOn", chargeTypeDescription)),
+                        schemeAssociated = true,
+                        Some(schemeDetails.schemeName),
+                        period = Messages("penalties.period", fs.periodStartDate.format(dateFormatterStartDate), fs.periodEndDate.format(dateFormatterDMY)),
+                        chargeReference = Messages("penalties.column.chargeReference.toBeAssigned"),
+                        list = penaltiesService.interestRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
+                        originalAmountURL = controllers.financialStatement.penalties.routes.ChargeDetailsController
+                          .onPageLoad(identifier, chargeReferenceIndex, PenaltiesFilter.All).url,
+                        returnUrl = config.managePensionsSchemeOverviewUrl,
+                        psaName = penaltiesCache.psaName
+                      )))
                   }
                 } else {
-                  val json = Json.obj(
-                    "psaName" -> penaltiesCache.psaName,
-                    "schemeAssociated" -> false
-                  ) ++ commonJson(penaltyOpt.head, penaltiesCache.penalties, chargeRefs, chargeReferenceIndex, identifier)
-
-                  renderer.render(template = "financialStatement/penalties/interest.njk", json).map(Ok(_))
+                  Future.successful(Ok(interestView(
+                    heading(Messages("penalties.column.chargeType.interestOn", chargeTypeDescription)),
+                    schemeAssociated = false,
+                    None,
+                    period = Messages("penalties.period", fs.periodStartDate.format(dateFormatterStartDate), fs.periodEndDate.format(dateFormatterDMY)),
+                    chargeReference = Messages("penalties.column.chargeReference.toBeAssigned"),
+                    list = penaltiesService.interestRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
+                    originalAmountURL = controllers.financialStatement.penalties.routes.ChargeDetailsController
+                      .onPageLoad(identifier, chargeReferenceIndex, PenaltiesFilter.All).url,
+                    returnUrl = config.managePensionsSchemeOverviewUrl,
+                    psaName = penaltiesCache.psaName
+                  )))
                 }
 
         } else {
@@ -80,24 +94,6 @@ class InterestController @Inject()(
 
       }
 
-  }
-
-  private def commonJson(
-                          fs: PsaFSDetail,
-                          psaFS: Seq[PsaFSDetail],
-                          chargeRefs: Seq[String],
-                          chargeReferenceIndex: String,
-                          identifier: String
-                        )(implicit request: IdentifierRequest[AnyContent]): JsObject = {
-    val chargeTypeDescription = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString.toLowerCase
-    Json.obj(
-      "heading" ->   heading(Messages("penalties.column.chargeType.interestOn", chargeTypeDescription)),
-      "period" ->           Messages("penalties.period", fs.periodStartDate.format(dateFormatterStartDate), fs.periodEndDate.format(dateFormatterDMY)),
-      "chargeReference" ->  Messages("penalties.column.chargeReference.toBeAssigned"),
-      "list" ->             penaltiesService.interestRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
-      "originalAmountURL" -> controllers.financialStatement.penalties.routes.ChargeDetailsController
-        .onPageLoad(identifier, chargeReferenceIndex, PenaltiesFilter.All).url
-    )
   }
 
   private val heading: String => String = s => if (s.contains('(')) s.substring(0, s.indexOf('(')) else s

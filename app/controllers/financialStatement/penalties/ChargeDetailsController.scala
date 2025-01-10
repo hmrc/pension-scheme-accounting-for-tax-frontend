@@ -21,14 +21,10 @@ import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.PenaltiesFilter
 import models.financialStatement.PsaFSDetail
-import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import javax.inject.Inject
@@ -42,13 +38,11 @@ class ChargeDetailsController @Inject()(
                                          val controllerComponents: MessagesControllerComponents,
                                          penaltiesService: PenaltiesService,
                                          schemeService: SchemeService,
-                                         renderer: Renderer,
                                          chargeDetailsView: ChargeDetailsView,
                                          config: FrontendAppConfig
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   //noinspection ScalaStyle
   def onPageLoad(identifier: String, chargeReferenceIndex: String, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
@@ -78,7 +72,7 @@ class ChargeDetailsController @Inject()(
                 } else {
                   Future.successful(Ok(chargeDetailsView(
                     heading(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString),
-                    schemeAssociated = true,
+                    schemeAssociated = false,
                     None,
                     isOverdue = penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
                     period = Messages("penalties.period", fs.periodStartDate.format(dateFormatterStartDate), fs.periodEndDate.format(dateFormatterDMY)),
