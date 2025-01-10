@@ -29,14 +29,13 @@ import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
 import play.api.Logger
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, JsSuccess, Json, OFormat}
+import play.api.libs.json.{JsSuccess, Json, OFormat}
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.dateFormatterDMY
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{Content, HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow, Table}
 
 import java.time.LocalDate
