@@ -38,7 +38,6 @@ import services.{ChargePaginationService, PaginatedMembersInfo, PaginationStats}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
@@ -48,7 +47,7 @@ import views.html.chargeD.AddMembersView
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
 

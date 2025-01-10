@@ -34,7 +34,6 @@ import services.AddMembersService.mapChargeXMembersToTableTwirlMigration
 import services.ChargePaginationService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.TwirlRadios
 import views.html.chargeD.AddMembersView
@@ -57,8 +56,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      errorHandler:ErrorHandler,
                                      view: AddMembersView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def form: Form[Boolean] = formProvider("chargeD.addMembers.error")
 

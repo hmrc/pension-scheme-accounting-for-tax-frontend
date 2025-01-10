@@ -29,7 +29,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 import views.html.chargeE.AnnualAllowanceYearView
 
@@ -49,8 +48,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
                                               val controllerComponents: MessagesControllerComponents,
                                               view: AnnualAllowanceYearView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def form: Form[YearRange] =
     formProvider("annualAllowanceYear.error.required")
