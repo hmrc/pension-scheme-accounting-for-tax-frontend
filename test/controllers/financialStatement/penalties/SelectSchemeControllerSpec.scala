@@ -28,32 +28,29 @@ import models.PenaltiesFilter.All
 import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{Enumerable, PenaltySchemes}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.{PenaltiesCache, PenaltiesService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.financialStatement.penalties.SelectSchemeView
 
 import scala.concurrent.Future
 
-class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   import SelectSchemeControllerSpec._
 
   private val mockPenaltyService = mock[PenaltiesService]
-  private val mockFICacheConnector = mock[FinancialInfoCacheConnector]
-  private val mockFSConnector = mock[FinancialStatementConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
 
   private def form: Form[PenaltySchemes] =
@@ -61,47 +58,39 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
       messages("selectScheme.error", messages(s"penaltyType.${penaltyType.toString}").toLowerCase()))
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[PenaltiesService].toInstance(mockPenaltyService),
-    bind[FinancialInfoCacheConnector].toInstance(mockFICacheConnector),
-    bind[FinancialStatementConnector].toInstance(mockFSConnector)
+    bind[PenaltiesService].toInstance(mockPenaltyService)
   )
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private val jsonToTemplate: Form[PenaltySchemes] => JsObject = form => Json.obj(
-    fields = "form" -> form,
-    "radios" -> PenaltySchemes.radios(form, penaltySchemes)
-  )
-
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPenaltyService)
-    reset(mockAppConfig)
-    reset(mockFICacheConnector)
-    reset(mockFSConnector)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPenaltyService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).thenReturn(Future.successful(penaltySchemes))
     when(mockPenaltyService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
+    when(mockPenaltyService.getTypeParam(any())(any())).thenReturn(messages(s"penaltyType.ContractSettlementCharges"))
   }
 
   "SelectScheme Controller" when {
     "on a GET" must {
-
       "return OK with the correct view and call the penalties service" in {
-
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
         val result = route(application, httpGETRequest(httpPathGETVersion)).value
+
+        val typeParam = messages(s"penaltyType.${penaltyType.toString}")
+
+        val view = application.injector.instanceOf[SelectSchemeView].apply(
+          form,
+          typeParam,
+          radios = TwirlMigration.toTwirlRadios(PenaltySchemes.radios(form, penaltySchemes)),
+          submitCall = routes.SelectSchemeController.onSubmit(penaltyType, year, All),
+          returnUrl = "",
+          psaName = "psa-name"
+        )(httpGETRequest(httpPathGETVersion), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual template
-        jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
+        compareResultAndView(result,  view)
       }
-
     }
 
     "on a POST" must {
@@ -111,12 +100,9 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
         status(result) mustEqual SEE_OTHER
 
         redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadContract(year, srn, All).url)
-
       }
 
       "redirect to penalties page when valid data with unassociated scheme is submitted" in {
-
-
         val pstrIndex: String = psaFS.as[Seq[PsaFSDetail]].map(_.pstr).indexOf(ps2.pstr).toString
 
         val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq(ps2.pstr)))).value
@@ -124,22 +110,18 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
         status(result) mustEqual SEE_OTHER
 
         redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoadContract(year, pstrIndex, All).url)
-
       }
 
       "return a BAD REQUEST when invalid data is submitted" in {
-
         val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq("")))).value
 
         status(result) mustEqual BAD_REQUEST
-
       }
     }
   }
 }
 
 object SelectSchemeControllerSpec {
-  private val template = "financialStatement/penalties/selectScheme.njk"
   private val year = "2020"
   private val ps1 = PenaltySchemes(name = Some("Assoc scheme"), pstr = "24000040IN", srn = Some(srn), None)
   private val ps2 = PenaltySchemes(name = None, pstr = "24000041IN", srn = None, None)

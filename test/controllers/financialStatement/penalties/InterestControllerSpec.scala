@@ -40,6 +40,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.cookiebanner.Message
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, _}
+import views.html.financialStatement.penalties.InterestView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -79,13 +80,8 @@ class InterestControllerSpec
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-  private val templateToBeRendered = "financialStatement/penalties/interest.njk"
-  private val commonJson: JsObject = Json.obj(
-    "heading" -> "Interest on accounting for tax late filing penalty",
-    "period" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
-    "chargeReference" -> chargeRef,
-    "list" -> getRows()
-  )
+
+  private val period = messages("penalties.period", "1 April", "30 June 2020")
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -102,46 +98,47 @@ class InterestControllerSpec
     "on a GET" must {
 
       "render the correct view with penalty tables for associated" in {
-
         when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETAssociated("0"))).value
-        val json = Json.obj(
-          "schemeAssociated" -> true,
-          "schemeName" -> schemeDetails.schemeName,
-          "originalAmountURL" -> controllers.financialStatement.penalties.routes.ChargeDetailsController
-            .onPageLoad(srn, "0", PenaltiesFilter.All).url
-        )
+
+        val view = application.injector.instanceOf[InterestView].apply(
+          "Interest on accounting for tax late filing penalty",
+          schemeAssociated = true,
+          Some(schemeDetails.schemeName),
+          period,
+          chargeRef,
+          getRows(),
+          controllers.financialStatement.penalties.routes.ChargeDetailsController
+            .onPageLoad(srn, "0", PenaltiesFilter.All).url,
+          "",
+          "psa-name"
+        )(httpGETRequest(httpPathGETAssociated("0")), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+        compareResultAndView(result,  view)
       }
 
       "render the correct view with penalty tables for unassociated" in {
-
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETUnassociated)).value
-        val json = Json.obj(
-          "schemeAssociated" -> false,
-          "originalAmountURL" -> controllers.financialStatement.penalties.routes.ChargeDetailsController
-            .onPageLoad("0", "0", PenaltiesFilter.All).url
-        )
+
+        val view = application.injector.instanceOf[InterestView].apply(
+          "Interest on accounting for tax late filing penalty",
+          schemeAssociated = false,
+          Some(schemeDetails.schemeName),
+          period,
+          chargeRef,
+          getRows(),
+          controllers.financialStatement.penalties.routes.ChargeDetailsController
+            .onPageLoad("0", "0", PenaltiesFilter.All).url,
+          "",
+          "psa-name"
+        )(httpGETRequest(httpPathGETAssociated("0")), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+        compareResultAndView(result,  view)
       }
 
       "catch IndexOutOfBoundsException" in {

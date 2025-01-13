@@ -41,6 +41,7 @@ import services.{PenaltiesCache, PenaltiesService, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, _}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import views.html.financialStatement.penalties.ChargeDetailsView
 
 import scala.concurrent.Future
 
@@ -105,42 +106,45 @@ class ChargeDetailsControllerSpec
     "on a GET" must {
 
       "render the correct view with penalty tables for associated" in {
-
         when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETAssociated("0"))).value
-        val json = Json.obj(
-          "schemeAssociated" -> true,
-          "schemeName" -> schemeDetails.schemeName
-        )
+
+        val view = application.injector.instanceOf[ChargeDetailsView].apply(
+          "Accounting for Tax Late Filing Penalty",
+          schemeAssociated = true,
+          Some(schemeDetails.schemeName),
+          isOverdue = true,
+          period = messages("penalties.period", "1 April", "30 June 2020"),
+          chargeRef,
+          getRows(),
+          "",
+          "psa-name"
+        )(httpGETRequest(httpPathGETAssociated("0")), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+        compareResultAndView(result, view)
       }
 
       "render the correct view with penalty tables for unassociated" in {
-
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETUnassociated)).value
-        val json = Json.obj(
-          "schemeAssociated" -> false
-        )
+
+        val view = application.injector.instanceOf[ChargeDetailsView].apply(
+          "Accounting for Tax Late Filing Penalty",
+          schemeAssociated = false,
+          Some(schemeDetails.schemeName),
+          isOverdue = true,
+          period = messages("penalties.period", "1 April", "30 June 2020"),
+          chargeRef,
+          getRows(),
+          "",
+          "psa-name"
+        )(httpGETRequest(httpPathGETUnassociated), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+        compareResultAndView(result, view)
       }
 
       "catch IndexOutOfBoundsException" in {

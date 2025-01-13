@@ -84,6 +84,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+    when(mockPenaltiesService.getTypeParam(any())(any())).thenReturn(messages(s"penaltyType.AccountingForTaxPenalties"))
   }
 
   "SelectYear Controller" must {
@@ -96,8 +97,8 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
         typeParam,
         TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form, years)),
         routes.SelectPenaltiesYearController.onSubmit(penaltyAft, All),
-        dummyCall.url,
-        schemeName
+        "",
+        "psa-name"
       )(httpGETRequest(aftHttpPathGET), messages)
 
       status(result) mustEqual OK

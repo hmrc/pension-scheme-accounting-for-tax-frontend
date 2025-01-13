@@ -62,12 +62,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   def penaltyTables(
                      rows: Seq[Seq[TableRow]],
                      head: Seq[HeadCell] = headForChargeType("penalties.column.penaltyType")
-                   ): JsObject = {
-    Json.obj(
-      "penaltyTable" -> Table(head = Some(head), rows = rows,
-        attributes = Map("role" -> "table"))
-    )
-  }
+                   ): Table = Table(head = Some(head), rows = rows, attributes = Map("role" -> "table"))
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -536,7 +531,7 @@ object PenaltiesServiceSpec {
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
   private def headForChargeType(firstColumnMessageKey: String)(implicit messages: Messages) = Seq(
-    HeadCell(Text(messages("$firstColumnMessageKey"))),
+    HeadCell(Text(messages(s"$firstColumnMessageKey"))),
     HeadCell(Text(messages("penalties.column.amount"))),
     HeadCell(Text(messages("penalties.column.chargeReference"))),
     HeadCell(HtmlContent(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
