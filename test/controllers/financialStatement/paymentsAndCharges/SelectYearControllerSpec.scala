@@ -27,7 +27,6 @@ import models.StartYears.enumerable
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -36,12 +35,11 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
 import utils.TwirlMigration
 import views.html.financialStatement.paymentsAndCharges.SelectYearView
@@ -49,7 +47,7 @@ import views.html.financialStatement.paymentsAndCharges.SelectYearView
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig

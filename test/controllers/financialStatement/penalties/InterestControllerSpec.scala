@@ -23,23 +23,20 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.{Enumerable, PenaltiesFilter, SchemeDetails}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.{PenaltiesCache, PenaltiesService, SchemeService}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.cookiebanner.Message
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, _}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import views.html.financialStatement.penalties.InterestView
 
 import java.time.LocalDate
@@ -47,7 +44,6 @@ import scala.concurrent.Future
 
 class InterestControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with Enumerable.Implicits

@@ -41,13 +41,12 @@ import play.api.mvc.Results
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{PenaltiesCache, PenaltiesService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 import views.html.financialStatement.penalties.SelectYearView
 
 import scala.concurrent.Future
 
-class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig

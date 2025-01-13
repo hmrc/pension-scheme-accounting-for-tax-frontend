@@ -22,18 +22,15 @@ import data.SampleData._
 import forms.chargeF.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.chargeF.ChargeDetails
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeF.ChargeDetailsPage
 import play.api.Application
-import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
-import uk.gov.hmrc.viewmodels.DateInput
 import utils.AFTConstants._
 import views.html.chargeF.ChargeDetailsView
 

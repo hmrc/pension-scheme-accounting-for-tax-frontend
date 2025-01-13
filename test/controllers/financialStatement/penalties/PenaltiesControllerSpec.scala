@@ -23,20 +23,17 @@ import matchers.JsonMatchers
 import models.PenaltiesFilter.All
 import models.financialStatement.PenaltiesViewModel
 import models.{Enumerable, SchemeDetails}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.{PenaltiesCache, PenaltiesService, SchemeService}
-import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, _}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import views.html.financialStatement.penalties.PenaltiesView
@@ -44,7 +41,7 @@ import views.html.financialStatement.penalties.PenaltiesView
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class PenaltiesControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   import PenaltiesControllerSpec._
@@ -67,19 +64,6 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-
-  private val templateToBeRendered = "financialStatement/penalties/penalties.njk"
-  private val jsonToPassToTemplateAssociatedScheme: JsObject = Json.obj(
-    "pstr" -> pstr,
-    "schemeAssociated" -> true,
-    "schemeName" -> Json.arr(schemeDetails.schemeName),
-    "table" -> penaltyTables)
-
-  private val jsonToPassToTemplateUnassociatedScheme: JsObject = Json.obj(
-    "pstr" -> pstr,
-    "schemeAssociated" -> false,
-    "schemeName" -> Json.arr(),
-    "table" -> penaltyTables)
 
   override def beforeEach(): Unit = {
     super.beforeEach()

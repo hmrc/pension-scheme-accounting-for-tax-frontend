@@ -26,7 +26,6 @@ import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.requests.IdentifierRequest
 import models.{AFTQuarter, DisplayQuarter, Enumerable, PaymentOverdue, Quarters}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -35,18 +34,17 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 import views.html.financialStatement.paymentsAndCharges.SelectQuarterView
 
 import scala.concurrent.Future
 
-class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectQuarterControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -70,13 +68,6 @@ class SelectQuarterControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   lazy val httpPathGET: String = routes.SelectQuarterController.onPageLoad(srn, year, All).url
   lazy val httpPathPOST: String = routes.SelectQuarterController.onSubmit(srn, year, All).url
-
-  private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
-    "schemeName" -> schemeName,
-    "year" -> year
-  )
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q22020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))

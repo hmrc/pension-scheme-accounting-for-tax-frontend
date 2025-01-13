@@ -82,7 +82,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   )
 
   private def paymentTable(rows: Seq[Seq[TableRow]]): uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table =
-    Table(head = Some(tableHead), rows = rows, attributes = Map("role" -> "table"))
+    Table(head = Some(tableHead()), rows = rows, attributes = Map("role" -> "table"))
 
   private def row(chargeType: String,
                   chargeReference: String,
@@ -226,7 +226,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       val result =
         paymentsAndChargesService.getChargeDetailsForSelectedCharge(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05))
 
-      result mustBe originalAmountRow ++ paymentsAndCreditsRow ++ stoodOverAmountRow ++ totalAmountDueRow
+      result mustBe originalAmountRow() ++ paymentsAndCreditsRow() ++ stoodOverAmountRow() ++ totalAmountDueRow()
     }
 
     "return the row for original charge amount credit, no payments and credits , no stood over amount and no total amount due" in {

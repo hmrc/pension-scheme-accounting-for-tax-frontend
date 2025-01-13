@@ -16,9 +16,7 @@
 
 package controllers.financialStatement.penalties
 
-import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
