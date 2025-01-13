@@ -24,21 +24,21 @@ import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers
 import pages.chargeG.WhatYouWillNeedPage
 import play.api.Application
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.chargeG.WhatYouWillNeedView
 
 import scala.concurrent.Future
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
-  private val templateToBeRendered = "chargeG/whatYouWillNeed.njk"
 
   private def httpPathGET: String = controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt).url
 
@@ -60,20 +60,20 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+
+      val view = application.injector.instanceOf[WhatYouWillNeedView].apply(
+        dummyCall.url,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      compareResultAndView(result, view)
     }
   }
 }
