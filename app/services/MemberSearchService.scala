@@ -28,9 +28,8 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads.JsObjectReducer
 import play.api.libs.json._
 import play.api.mvc.AnyContent
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Key, SummaryListRow, Value}
 
 import java.time.LocalDate
 import javax.inject.Singleton
@@ -44,7 +43,7 @@ class MemberSearchService @Inject()(
   import MemberSearchService._
 
   def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)
-            (implicit request: DataRequest[AnyContent]): Seq[MemberRow] = {
+            (implicit request: DataRequest[AnyContent], messages: Messages): Seq[MemberRow] = {
 
     val upperSearchText = searchText.toUpperCase
     // Step 1: Iterate Over Charge Types and Aggregate Results
@@ -66,34 +65,34 @@ class MemberSearchService @Inject()(
     else listOfRows(listOfMembers(UserAnswers(aggregatedSearchResults), srn, startDate, accessType, version, ua), request.isViewOnly)
   }
 
-  private def listOfRows(listOfMembers: Seq[MemberSummary], isViewOnly: Boolean): Seq[MemberRow] = {
+  private def listOfRows(listOfMembers: Seq[MemberSummary], isViewOnly: Boolean)(implicit messages: Messages): Seq[MemberRow] = {
     val allRows = listOfMembers.map { data =>
       val rowNino =
         Seq(
-          Row(
-            key = Key(msg"memberDetails.nino", classes = Seq("govuk-!-width-one-half")),
-            value = Value(Literal(s"${data.nino}"), classes = Seq("govuk-!-width-one-half"))
+          SummaryListRow(
+            key = Key(Text(messages("memberDetails.nino")), classes = "govuk-!-width-one-half"),
+            value = Value(Text(s"${data.nino}"), classes = "govuk-!-width-one-half")
           ))
 
       val rowChargeType =
         Seq(
-          Row(
-            key = Key(msg"aft.summary.search.chargeType", classes = Seq("govuk-!-width-one-half")),
-            value = Value(Message(s"${getDescriptionMessageKeyFromChargeType(data.chargeType)}"), classes = Seq("govuk-!-width-one-half"))
+          SummaryListRow(
+            key = Key(Text(messages("aft.summary.search.chargeType")), classes = "govuk-!-width-one-half"),
+            value = Value(Text(messages(s"${getDescriptionMessageKeyFromChargeType(data.chargeType)}")), classes = "govuk-!-width-one-half")
           ))
       val rowAmount =
         Seq(
-          Row(
-            key = Key(msg"aft.summary.search.amount", classes = Seq("govuk-!-width-one-half")),
-            value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-half"))
+          SummaryListRow(
+            key = Key(Text(messages("aft.summary.search.amount")), classes = "govuk-!-width-one-half"),
+            value = Value(Text(messages(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}")), classes = "govuk-!-width-one-half")
           ))
 
       val removeAction = if (isViewOnly) {
         Nil
       } else {
         List(
-          Action(
-            content = msg"site.remove",
+          ActionItem(
+            content = Text(messages("site.remove")),
             href = data.removeLink,
             visuallyHiddenText = None
           )
@@ -101,8 +100,8 @@ class MemberSearchService @Inject()(
       }
 
       val actions = List(
-        Action(
-          content = msg"site.view",
+        ActionItem(
+          content = Text(messages("site.view")),
           href = data.viewLink,
           visuallyHiddenText = None
         )
@@ -263,7 +262,7 @@ object MemberSearchService {
       case _ => "aft.summary.lifeTimeAllowance.description"
     }
 
-  case class MemberRow(name: String, rows: Seq[Row], actions: Seq[Action])
+  case class MemberRow(name: String, rows: Seq[SummaryListRow], actions: Seq[ActionItem])
 
   private case class MemberSummary(index: Int,
                                    name: String,
@@ -283,8 +282,8 @@ object MemberSearchService {
 
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =
       ((JsPath \ "name").write[String] and
-        (JsPath \ "rows").write[Seq[Row]] and
-        (JsPath \ "actions").write[Seq[Action]]) (mr => Tuple3(mr.name, mr.rows, mr.actions))
+        (JsPath \ "rows").write[Seq[SummaryListRow]] and
+        (JsPath \ "actions").write[Seq[ActionItem]]) (mr => Tuple3(mr.name, mr.rows, mr.actions))
   }
 
   private object MemberSummary {

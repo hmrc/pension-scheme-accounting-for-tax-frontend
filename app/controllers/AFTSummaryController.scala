@@ -207,6 +207,7 @@ class AFTSummaryController @Inject()(
       "canChange" -> request.isEditable,
       "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version).url
     ) ++ returnHistoryURL ++ getLegendHtml
+
   }
 
   //scalastyle:off parameter.number
