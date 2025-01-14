@@ -42,9 +42,9 @@ govukRadios: GovukRadios
     <li>@messages(e)</li>
     }
 </ul>
-    @govukButton(
-    ButtonViewModel(content = Text(messages("return.to.fileupload"))) .withAttribute(("id", "submit")).asLink(returnToFileUploadURL)
-    )
+@govukButton(
+ButtonViewModel(content = Text(messages("return.to.fileupload"))) .withAttribute(("id", "submit")).asLink(returnToFileUploadURL)
+)
 
 @templates.ReturnLink(schemeName, returnUrl)
 }

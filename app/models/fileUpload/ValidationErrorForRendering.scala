@@ -16,10 +16,9 @@
 
 package models.fileUpload
 
-import org.apache.commons.lang3.StringUtils.EMPTY
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, Reads}
-case class ValidationErrorForRendering(cell: String, error: String, columnName: String = EMPTY)
+case class ValidationErrorForRendering(cell: String, error: String)
 
 object ValidationErrorForRendering {
   private val readsErrorDetails: Reads[ValidationErrorForRendering] = (

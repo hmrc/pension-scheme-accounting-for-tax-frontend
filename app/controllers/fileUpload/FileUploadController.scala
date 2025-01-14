@@ -68,7 +68,6 @@ class FileUploadController @Inject()(
       logger.info("FileUploadController.onPageLoad BF upscanInitiate")
       upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl), chargeType).flatMap { uir =>
         uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap { _ =>
-          println("********* chargeType=>"+ chargeType)
           val submitUrl = Call("POST", uir.postTarget)
           val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
 
@@ -79,18 +78,6 @@ class FileUploadController @Inject()(
             ChargeType.fileUploadText(chargeType), submitUrl, returnUrl,getErrorCode(request),
             uir.formFields
           )))
-//          schemeName: String, chargeTypeText: String, submitUrl: play.api.mvc.Call,returnUrl: String
-//          renderer.render(template = "fileUpload/fileupload.njk",
-//            Json.obj(
-//              "chargeType" -> chargeType.toString,
-//              "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-//              "srn" -> srn,
-//              "startDate" -> Some(startDate),
-//              "formFields" -> uir.formFields.toList,
-//              "error" -> getErrorCode(request),
-//              "maxFileUploadSize" -> appConfig.maxUploadFileSize,
-//              "viewModel" -> viewModel))
-//            .map(Ok(_))
         }
       }
     }

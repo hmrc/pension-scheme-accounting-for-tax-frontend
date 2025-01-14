@@ -55,13 +55,11 @@ class ValidationErrorsAllControllerSpec extends ControllerSpecBase with JsonMatc
       "errors" -> Json.arr(
         Json.obj(
           "cell" -> "A1",
-          "error" -> "error1",
-          "columnName" -> "column1"
+          "error" -> "error1"
         ),
         Json.obj(
           "cell" -> "B2",
-          "error" -> "error2",
-          "columnName" -> "column2"
+          "error" -> "error2"
         )
       )
     )
@@ -91,8 +89,8 @@ class ValidationErrorsAllControllerSpec extends ControllerSpecBase with JsonMatc
       when(mockAppConfig.failureEndpointTarget(any(), any(), any(), any(), any())).thenReturn(dummyCall.url)
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       val dummyErrors = Seq(
-        ValidationErrorForRendering(cell = "A1", error = "error1", columnName = "column1"),
-        ValidationErrorForRendering(cell = "B2", error = "error2", columnName = "column2")
+        ValidationErrorForRendering(cell = "A1", error = "error1"),
+        ValidationErrorForRendering(cell = "B2", error = "error2")
       )
       val view = application.injector.instanceOf[InvalidView].apply(
         ChargeType.fileUploadText(chargeType), schemeName, returnToSchemeDetails, dummyCall.url, fileDownloadInstructionLink, dummyErrors,

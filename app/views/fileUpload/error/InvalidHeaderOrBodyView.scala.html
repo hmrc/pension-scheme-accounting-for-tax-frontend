@@ -42,7 +42,7 @@ govukButton: GovukButton
             @messages("fileupload.error.invalidHeaderOrBody.p3")</p>
 
         @govukButton(
-        ButtonViewModel(content = Text(messages("site.continue"))) .withAttribute(("id", "submit")).asLink(submitUrl)
+            ButtonViewModel(content = Text(messages("site.continue"))) .withAttribute(("id", "submit")).asLink(submitUrl)
         )
 @templates.ReturnLink(schemeName, returnUrl)
 }

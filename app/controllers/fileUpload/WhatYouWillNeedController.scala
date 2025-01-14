@@ -46,13 +46,12 @@ class WhatYouWillNeedController @Inject()(
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
-        val isPsr =  request.userAnswers.isPublicServicePensionsRemedy(chargeType)
+      val isPsr = request.userAnswers.isPublicServicePensionsRemedy(chargeType)
       val (templateDownloadLink, instructionsDownloadLink) =
-        (controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url,
-          controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url)
-        val submitUrl = navigator.nextPage(WhatYouWillNeedPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url
-        val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
-        val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
+        (controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url, controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url)
+      val submitUrl = navigator.nextPage(WhatYouWillNeedPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+      val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       Future.successful(Ok(view(chargeType.toString, ChargeType.fileUploadText(chargeType), submitUrl, schemeName,
         returnUrl, isPsr.getOrElse(false), templateDownloadLink, instructionsDownloadLink)))
     }
