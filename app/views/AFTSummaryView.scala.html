@@ -30,27 +30,29 @@
 @(aftSummaryURL: String,
     btnText: String,
     canChange: Boolean,
-    form: Form[_],
-    formSearchText: Form[String],
-    list: Seq[MemberRow],
+    form: Form[Boolean],
+    memberSearchForm: Form[String],
+    summaryList: Seq[SummaryListRow],
+    membersList: Seq[MemberRow],
     quarterEndDate: String,
     quarterStartDate: String,
     radios: Seq[RadioItem],
     returnHistoryURL: String,
     returnUrl: String,
     searchHint: Hint,
+    searchUrl: Call,
     schemeName: String,
     submissionNumber: String,
     submitCall: Call,
     summarySearchHeadingText: String,
-    viewAllAmendmentsLink: String
+    viewAllAmendmentsLink: Option[Html]
 )(implicit request: Request[_], messages: Messages)
 
 @resultText = {
-    @if(list.length == 1) {
-        messages("aft.summary.search.result")
+    @if(membersList.length == 1) {
+        @messages("aft.summary.search.result")
     } else {
-        messages("aft.summary.search.results")
+        @messages("aft.summary.search.results")
     }
 }
 
@@ -63,16 +65,16 @@
             )
         )
 
-        @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+        @formHelper(action = searchUrl, Symbol("autoComplete") -> "off") {
             @inputSearch(
                 id = "searchText",
-                value = formSearchText.value,
-                errorMessage = formSearchText("searchText").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
+                value = memberSearchForm.value,
+                errorMessage = memberSearchForm("searchText").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
                 btnText = btnText,
                 searchHint = searchHint
             )
 
-            @if(formSearchText.value) {
+            @if(memberSearchForm.value) {
                 <p class="govuk-body  govuk-!-margin-bottom-6">
                     <a class="govuk-link" href=@aftSummaryURL>
                         @messages("aft.summary.search.clearSearch")
@@ -80,8 +82,8 @@
                 </p>
             }
 
-            @if(formSearchText.value) {
-                @if(list.length == 0) {
+            @if(memberSearchForm.value) {
+                @if(summaryList.length == 0) {
                     <div class="govuk-form-group" role="status">
                         <h3 class="govuk-heading-m">
                             @messages("aft.summary.search.noResults.h2")
@@ -94,19 +96,22 @@
                     </div>
                 } else {
 
-                    <p class="govuk-body govuk-!-margin-bottom-6" role="status">@{list.length} @resultText</p>
+                    <p class="govuk-body govuk-!-margin-bottom-6" role="status">@{membersList.length} @resultText</p>
 
-                    @for(row <- list) {
+                    @for(row <- membersList) {
                         <div class="govuk-form-group">
                             <h2 class="govuk-heading-m">@{row.name}</h2>
                             @govukSummaryList(SummaryList(row.rows))
 
                             <p class="govuk-body">
-                                @for(item <- row.actions) {
-                                    <a class="govuk-link govuk-!-margin-right-3"
-                                       href=@item.href><span aria-hidden="true">@item.content</span>
-                                        <span class="govuk-visually-hidden">@{item.content} @{row.name}</span>
-                                    </a>
+                                @for(actions <- row.actions) {
+                                    @for(item <- actions.items) {
+                                        <a class="govuk-link govuk-!-margin-right-3"
+                                           href=@{item.href}><span aria-hidden="true">@{item.content.asHtml}</span>
+                                            <span class="govuk-visually-hidden">@{item.content.asHtml} @{row.name}</span>
+                                        </a>
+
+                                    }
                                 }
                             </p>
                         </div>
@@ -123,11 +128,11 @@
                 </p>
             }
 
-            @formSearchText.value match
-                case Some(_) => @if(list.length > 0) {
-                    @govukSummaryList(SummaryList(list.rows))
+            @if(!memberSearchForm.value) {
+                @if(summaryList.length > 0) {
+                    @govukSummaryList(SummaryList(summaryList))
                 }
-
+            }
 
             @if(canChange) {
                 @govukRadios(

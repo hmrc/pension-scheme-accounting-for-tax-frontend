@@ -26,6 +26,7 @@ import models.{AccessType, ChargeType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import play.twirl.api.{Html => TwirlHtml}
+import services.MemberSearchService.MemberRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
 
@@ -119,7 +120,7 @@ class AFTSummaryHelper {
     version: Int)(implicit messages:Messages): Seq[SummaryListRow] =
     summaryDataNonUK(ua, srn, startDate, accessType, version).map { data =>
       SummaryListRow(
-      key = Key(Text(messages("aft.summary.${data.chargeType.toString}.row")), classes = "govuk-!-width-three-quarters"),
+      key = Key(Text(messages(s"aft.summary.${data.chargeType.toString}.row")), classes = "govuk-!-width-three-quarters"),
       value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
         classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"),
       actions = if (data.totalAmount > BigDecimal(0)) {
@@ -161,7 +162,6 @@ class AFTSummaryHelper {
       messages("allAmendments.view.changes.submission.link")
     }
     val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, version).url
-    TwirlHtml(
-      s"${TwirlHtml(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin).toString()}")
+    TwirlHtml(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin)
   }
 }

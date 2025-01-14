@@ -28,8 +28,8 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads.JsObjectReducer
 import play.api.libs.json._
 import play.api.mvc.AnyContent
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Key, SummaryListRow, Value}
 
 import java.time.LocalDate
 import javax.inject.Singleton
@@ -65,7 +65,7 @@ class MemberSearchService @Inject()(
     else listOfRows(listOfMembers(UserAnswers(aggregatedSearchResults), srn, startDate, accessType, version, ua), request.isViewOnly)
   }
 
-  private def listOfRows(listOfMembers: Seq[MemberSummary], isViewOnly: Boolean)(implicit messages: Messages): Seq[MemberRow] = {
+  private def listOfRows(listOfMembers: Seq[MemberSummary], isViewOnly: Boolean)(implicit messages: Messages) = {
     val allRows = listOfMembers.map { data =>
       val rowNino =
         Seq(
@@ -91,19 +91,23 @@ class MemberSearchService @Inject()(
         Nil
       } else {
         List(
-          ActionItem(
-            content = Text(messages("site.remove")),
-            href = data.removeLink,
-            visuallyHiddenText = None
+          Actions(
+            items = Seq(ActionItem(
+              content = Text(messages("site.remove")),
+              href = data.removeLink,
+              visuallyHiddenText = None
+            ))
           )
         )
       }
 
       val actions = List(
-        ActionItem(
-          content = Text(messages("site.view")),
-          href = data.viewLink,
-          visuallyHiddenText = None
+        Actions(
+          items = Seq(ActionItem(
+            content = Text(messages("site.view")),
+            href = data.viewLink,
+            visuallyHiddenText = None
+          ))
         )
       ) ++ removeAction
 
@@ -155,70 +159,70 @@ class MemberSearchService @Inject()(
 
   private val chargeDMembers: (UserAnswers, Int => String, Int => String) => Seq[MemberSummary] = (searchResultsUa, viewLink,removeLink) =>
     searchResultsUa.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails")
-    .zipWithIndex.flatMap { case (member, index) =>
-    searchResultsUa.get(chargeD.MemberStatusPage(index)) match {
-      case Some(status) if status == "Deleted" => Nil
-      case _ =>
-        (searchResultsUa.get(chargeD.ChargeDetailsPage(index)), searchResultsUa.get(chargeD.SearchIndexPage(index))) match {
-          case (Some(chargeDetails), Some(idx)) =>
-            Seq(MemberSummary(
-              idx,
-              member.fullName,
-              member.nino,
-              ChargeTypeLifetimeAllowance,
-              chargeDetails.total,
-              viewLink(idx),
-              removeLink(idx)
-            ))
-          case _ => Nil
+      .zipWithIndex.flatMap { case (member, index) =>
+        searchResultsUa.get(chargeD.MemberStatusPage(index)) match {
+          case Some(status) if status == "Deleted" => Nil
+          case _ =>
+            (searchResultsUa.get(chargeD.ChargeDetailsPage(index)), searchResultsUa.get(chargeD.SearchIndexPage(index))) match {
+              case (Some(chargeDetails), Some(idx)) =>
+                Seq(MemberSummary(
+                  idx,
+                  member.fullName,
+                  member.nino,
+                  ChargeTypeLifetimeAllowance,
+                  chargeDetails.total,
+                  viewLink(idx),
+                  removeLink(idx)
+                ))
+              case _ => Nil
+            }
         }
-    }
-  }
+      }
 
   private val chargeEMembers: (UserAnswers, Int => String, Int => String) => Seq[MemberSummary] = (searchResultsUa, viewLink,removeLink) =>
     searchResultsUa.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").zipWithIndex.flatMap { case (member, index) =>
-    searchResultsUa.get(chargeE.MemberStatusPage(index)) match {
-      case Some(status) if status == "Deleted" => Nil
-      case _ =>
-        (searchResultsUa.get(chargeE.ChargeDetailsPage(index)), searchResultsUa.get(chargeE.SearchIndexPage(index))) match {
-          case (Some(chargeDetails), Some(idx)) =>
-            Seq(MemberSummary(
-              idx,
-              member.fullName,
-              member.nino,
-              ChargeTypeAnnualAllowance,
-              chargeDetails.chargeAmount,
-              viewLink(idx),
-              removeLink(idx)
-            ))
-          case _ => Nil
-        }
+      searchResultsUa.get(chargeE.MemberStatusPage(index)) match {
+        case Some(status) if status == "Deleted" => Nil
+        case _ =>
+          (searchResultsUa.get(chargeE.ChargeDetailsPage(index)), searchResultsUa.get(chargeE.SearchIndexPage(index))) match {
+            case (Some(chargeDetails), Some(idx)) =>
+              Seq(MemberSummary(
+                idx,
+                member.fullName,
+                member.nino,
+                ChargeTypeAnnualAllowance,
+                chargeDetails.chargeAmount,
+                viewLink(idx),
+                removeLink(idx)
+              ))
+            case _ => Nil
+          }
+      }
     }
-  }
 
   private val chargeGMembers: (UserAnswers, Int => String, Int => String) => Seq[MemberSummary] = (searchResultsUa, viewLink,removeLink) =>
     searchResultsUa.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").zipWithIndex.flatMap { case (member, index) =>
-    searchResultsUa.get(chargeG.MemberStatusPage(index)) match {
-      case Some(status) if status == "Deleted" => Nil
-      case _ =>
-        (searchResultsUa.get(chargeG.ChargeAmountsPage(index)), searchResultsUa.get(chargeG.SearchIndexPage(index))) match {
-          case (Some(chargeAmounts), Some(idx)) =>
-            Seq(MemberSummary(
-              idx,
-              member.fullName,
-              member.nino,
-              ChargeTypeOverseasTransfer,
-              chargeAmounts.amountTaxDue,
-              viewLink(idx),
-              removeLink(idx)
-            ))
-          case _ => Nil
-        }
+      searchResultsUa.get(chargeG.MemberStatusPage(index)) match {
+        case Some(status) if status == "Deleted" => Nil
+        case _ =>
+          (searchResultsUa.get(chargeG.ChargeAmountsPage(index)), searchResultsUa.get(chargeG.SearchIndexPage(index))) match {
+            case (Some(chargeAmounts), Some(idx)) =>
+              Seq(MemberSummary(
+                idx,
+                member.fullName,
+                member.nino,
+                ChargeTypeOverseasTransfer,
+                chargeAmounts.amountTaxDue,
+                viewLink(idx),
+                removeLink(idx)
+              ))
+            case _ => Nil
+          }
+      }
     }
-  }
 
   private def listOfMembers(searchResultsUa: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, originalUa: UserAnswers)
-                                 (implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
+                           (implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
 
     val viewChargeDUrl: Int => String = idx => controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, idx).url
     val viewChargeEUrl: Int => String = idx => controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, idx).url
@@ -262,7 +266,7 @@ object MemberSearchService {
       case _ => "aft.summary.lifeTimeAllowance.description"
     }
 
-  case class MemberRow(name: String, rows: Seq[SummaryListRow], actions: Seq[ActionItem])
+  case class MemberRow(name: String, rows: Seq[SummaryListRow], actions: Seq[Actions])
 
   private case class MemberSummary(index: Int,
                                    name: String,
@@ -283,7 +287,7 @@ object MemberSearchService {
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =
       ((JsPath \ "name").write[String] and
         (JsPath \ "rows").write[Seq[SummaryListRow]] and
-        (JsPath \ "actions").write[Seq[ActionItem]]) (mr => Tuple3(mr.name, mr.rows, mr.actions))
+        (JsPath \ "actions").write[Seq[Actions]]) (mr => Tuple3(mr.name, mr.rows, mr.actions))
   }
 
   private object MemberSummary {
