@@ -33,9 +33,14 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import services._
+import uk.gov.hmrc.govukfrontend.views.Aliases.Content
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.TwirlMigration
+import viewmodels.Hint
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -82,7 +87,8 @@ class AFTSummaryController @Inject()(
         srn = srn,
         schemeIdType = "srn"
       ) flatMap { schemeDetails =>
-        val json =
+        val hint = TwirlMigration.convertHint(Some(Hint(msg"aft.summary.search.hint", id = "searchHint")))
+        val json = {
           getJson(
             form,
             memberSearchForm,
@@ -93,7 +99,7 @@ class AFTSummaryController @Inject()(
             version,
             accessType
           )
-
+        }
         renderer.render(nunjucksTemplate, json).map(Ok(_))
       }
     }

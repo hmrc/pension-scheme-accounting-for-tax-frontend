@@ -23,34 +23,34 @@
     govukButton: GovukButton,
     govukRadios: GovukRadios,
     govukSummaryList: GovukSummaryList,
-    hmrcPageHeading: HmrcPageHeading
+    hmrcPageHeading: HmrcPageHeading,
+    inputSearch: InputSearch
 )
 
-@(form: Form[_],
-    summarySearchHeadingText: String,
-    submissionNumber: String,
+@(aftSummaryURL: String,
+    btnText: String,
+    canChange: Boolean,
+    form: Form[_],
     formSearchText: Form[String],
-    aftSummaryURL: String,
     list: Seq[MemberRow],
-    viewAllAmendmentsLink: String,
-    quarterStartDate: String,
     quarterEndDate: String,
-    submitCall: Call
+    quarterStartDate: String,
+    radios: Seq[RadioItem],
+    returnHistoryURL: String,
+    returnUrl: String,
+    searchHint: Hint,
+    schemeName: String,
+    submissionNumber: String,
+    submitCall: Call,
+    summarySearchHeadingText: String,
+    viewAllAmendmentsLink: String
 )(implicit request: Request[_], messages: Messages)
 
 @resultText = {
     @if(list.length == 1) {
-        messages('aft.summary.search.result')
+        messages("aft.summary.search.result")
     } else {
-        messages('aft.summary.search.results')
-    }
-}
-
-@btnText = {
-    @if(formSearchText.value) {
-        messages('aft.summary.searchAgain.button')
-    } else {
-        messages('aft.summary.search.button')
+        messages("aft.summary.search.results")
     }
 }
 
@@ -64,6 +64,14 @@
         )
 
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+            @inputSearch(
+                id = "searchText",
+                value = formSearchText.value,
+                errorMessage = formSearchText("searchText").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
+                btnText = btnText,
+                searchHint = searchHint
+            )
+
             @if(formSearchText.value) {
                 <p class="govuk-body  govuk-!-margin-bottom-6">
                     <a class="govuk-link" href=@aftSummaryURL>
