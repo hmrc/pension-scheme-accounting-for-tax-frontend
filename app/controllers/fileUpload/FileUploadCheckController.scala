@@ -24,19 +24,17 @@ import models.LocalDateBinder._
 import models.fileUpload.UploadCheckSelection
 import models.fileUpload.UploadCheckSelection.{No, Yes}
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, FileUploadDataCache, GenericViewModel, UploadId}
+import models.{AccessType, ChargeType, FileUploadDataCache, UploadId}
 import pages.fileUpload.{UploadCheckPage, UploadedFileName}
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import renderer.Renderer
 import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.fileUpload.FileUploadResultView
 
-import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -47,16 +45,15 @@ class FileUploadCheckController @Inject()(
                                            allowAccess: AllowAccessActionProvider,
                                            requireData: DataRequiredAction,
                                            val controllerComponents: MessagesControllerComponents,
-                                           renderer: Renderer,
                                            formProvider: UploadCheckSelectionFormProvider,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            uploadProgressTracker: UploadProgressTracker,
                                            upscanErrorHandlingService: UpscanErrorHandlingService,
-                                           auditService: AuditService
+                                           auditService: AuditService,
+                                           view: FileUploadResultView
                                          )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val form = formProvider()
   private val logger = Logger(classOf[FileUploadCheckController])
@@ -120,18 +117,10 @@ class FileUploadCheckController @Inject()(
     val ua = request.userAnswers
     val preparedForm = ua.get(UploadCheckPage(chargeType)).fold(form)(form.fill)
     val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-    renderer
-      .render(
-        template = "fileUpload/fileUploadResult.njk",
-        Json.obj(
-          "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-          "fileName" -> name,
-          "radios" -> UploadCheckSelection.radios(preparedForm),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version, chargeType, uploadId)
-        )
-      )
-      .map(Ok(_))
+    val submitUrl = routes.FileUploadCheckController.onSubmit(srn, startDate, accessType, version, chargeType, uploadId)
+    val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+    Future.successful(Ok(view(preparedForm, schemeName, ChargeType.fileUploadText(chargeType), submitUrl, returnUrl,
+      name, TwirlMigration.toTwirlRadios(UploadCheckSelection.radios(preparedForm)))))
   }
 
   def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
@@ -148,14 +137,10 @@ class FileUploadCheckController @Inject()(
               .bindFromRequest()
               .fold(
                 formWithErrors => {
-                  val json = Json.obj(
-                    fields = "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-                    "fileName" -> fileName,
-                    "form" -> formWithErrors,
-                    "radios" -> UploadCheckSelection.radios(formWithErrors),
-                    "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version, chargeType, uploadId)
-                  )
-                  renderer.render(template = "fileUpload/fileUploadResult.njk", json).map(BadRequest(_))
+                  val submitUrl = routes.FileUploadCheckController.onSubmit(srn, startDate, accessType, version, chargeType, uploadId)
+                  val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+                  Future.successful(BadRequest(view(formWithErrors, schemeName, ChargeType.fileUploadText(chargeType), submitUrl, returnUrl,
+                    fileName, TwirlMigration.toTwirlRadios(UploadCheckSelection.radios(formWithErrors)))))
                 },
                 value =>
                   for {
@@ -183,19 +168,5 @@ class FileUploadCheckController @Inject()(
           case _ => "No File Found"
         }
     }.getOrElse("No File Found")
-  }
-
-  private def viewModel(schemeName: String,
-                        srn: String,
-                        startDate: LocalDate,
-                        accessType: AccessType,
-                        version: Int,
-                        chargeType: ChargeType,
-                        uploadId: UploadId): GenericViewModel = {
-    GenericViewModel(
-      submitUrl = routes.FileUploadCheckController.onSubmit(srn, startDate, accessType, version, chargeType, uploadId).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-      schemeName = schemeName
-    )
   }
 }
