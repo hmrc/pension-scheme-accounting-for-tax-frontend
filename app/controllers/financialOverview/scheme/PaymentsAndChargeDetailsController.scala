@@ -30,7 +30,6 @@ import models.requests.IdentifierRequest
 import models.{ChargeDetailsFilter, SchemeDetails, Submission}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -102,7 +101,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                         isChargeAssigned: Boolean
                        ): ChargeDetailsViewModel = {
 
-      val template = ChargeDetailsViewModel(
+    ChargeDetailsViewModel(
         chargeDetailsList = paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFSDetail, journeyType, submittedDate),
         tableHeader = Some(tableHeader(schemeFSDetail)),
         schemeName = schemeName,
@@ -115,15 +114,13 @@ class PaymentsAndChargeDetailsController @Inject()(
           case _ => None
         },
         isPaymentOverdue = isPaymentOverdue(schemeFSDetail),
-        insetText = Some(setInsetText(isChargeAssigned, schemeFSDetail, interestUrl)),
+        insetText = setInsetText(isChargeAssigned, schemeFSDetail, interestUrl),
         interest = Some(schemeFSDetail.accruedInterestTotal),
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
         returnUrl = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
-        returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)).toString(),
-        hintText = Some(optHintText(schemeFSDetail).toString)
+        returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
+        hintText = Some(optHintText(schemeFSDetail))
       )
-
-      template
     }
 
     val optSchemeFsDetail = filteredCharges.find(_.index == index.toInt)
@@ -180,7 +177,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                         version: Option[Int],
                         isChargeAssigned: Boolean
                        ): ChargeDetailsViewModel = {
-      val template = ChargeDetailsViewModel(
+      ChargeDetailsViewModel(
         chargeDetailsList = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetail, schemeDetails, journeyType, submittedDate),
         schemeName = schemeDetails.schemeName,
         chargeType = version match {
@@ -195,15 +192,14 @@ class PaymentsAndChargeDetailsController @Inject()(
         paymentDueDate = Some(paymentDueDate(schemeFSDetail)),
         chargeAmountDetails = Some(Seq(paymentsAndChargesService.chargeAmountDetailsRowsV2(schemeFSDetail))),
         paymentDueAmount = Some(paymentDueAmountCharges(schemeFSDetail)),
-        insetText = Some(setInsetTextV2(isChargeAssigned, schemeFSDetail, interestUrl)),
+        insetText = setInsetTextV2(isChargeAssigned, schemeFSDetail, interestUrl),
         interest = Some(schemeFSDetail.accruedInterestTotal),
         returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeDetails.schemeName),
         returnUrl = paymentsAndChargesService.getReturnUrl(srn, request.psaId, request.pspId, config, journeyType),
-        returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)).toString(),
-        hintText = Some(optHintText(schemeFSDetail).toString)
+        returnHistoryUrl = returnHistoryUrl(srn, period, paymentOrChargeType, version.getOrElse(0)),
+        hintText = Some(optHintText(schemeFSDetail))
       )
 
-      template
     }
 
     val optSchemeFsDetail = filteredCharges.find(_.index == index.toInt)
@@ -367,18 +363,18 @@ class PaymentsAndChargeDetailsController @Inject()(
   }
 
 
-  private def optHintText(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): JsObject =
+  private def optHintText(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): String =
     if (schemeFSDetail.chargeType == PSS_AFT_RETURN_INTEREST && schemeFSDetail.amountDue == BigDecimal(0.00)) {
-      Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
+      messages("paymentsAndCharges.interest.hint")
     } else {
-      Json.obj()
+      ""
     }
 
-  private def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType, version: Int): JsObject =
+  private def returnHistoryUrl(srn: String, period: String, paymentOrChargeType: PaymentOrChargeType, version: Int): String =
     if (paymentOrChargeType == AccountingForTaxCharges) {
-      Json.obj("returnHistoryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, LocalDate.parse(period), Submission, version).url)
+      controllers.routes.AFTSummaryController.onPageLoad(srn, LocalDate.parse(period), Submission, version).url
     } else {
-      Json.obj()
+      ""
     }
 
   private def isPaymentOverdue(schemeFSDetail: SchemeFSDetail): Boolean =

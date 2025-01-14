@@ -51,10 +51,6 @@ class AllPenaltiesAndChargesController @Inject()(
   def onPageLoadAFT(startDate: LocalDate, pstr: String, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
 
-      val title: Message = Message("penalties.aft.title").withArgs(
-        startDate.format(dateFormatterStartDate),
-        Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY))
-
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
         val filteredPenalties: Seq[PsaFSDetail] = penaltiesCache.penalties
@@ -66,6 +62,11 @@ class AllPenaltiesAndChargesController @Inject()(
         val interestCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getInterestCharges(filteredPenalties)
         val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
         val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
+        val messages = request2Messages
+
+        val title = messages("penalties.aft.title",
+          startDate.format(dateFormatterStartDate),
+          Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY))
 
         if (filteredPenalties.nonEmpty) {
 
@@ -73,11 +74,11 @@ class AllPenaltiesAndChargesController @Inject()(
             request.idOrException, filteredPenalties, All) flatMap { table =>
 
             Future.successful(Ok(view(
-              journeyType = journeyType.toString,
+              journeyType = journeyType,
               psaName = penaltiesCache.psaName,
-              titleMessage = title.toString,
+              titleMessage = title,
               pstr = Some(pstr),
-              reflectChargeText = Message(s"paymentsAndCharges.reflect.charge.text").toString,
+              reflectChargeText = messages(s"paymentsAndCharges.reflect.charge.text"),
               totalOverdueCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
               totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestCharges)}",
               totalUpcomingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",

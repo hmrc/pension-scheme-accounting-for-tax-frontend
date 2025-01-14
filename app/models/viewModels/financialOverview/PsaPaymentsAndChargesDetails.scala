@@ -31,4 +31,4 @@ case class PsaPaymentsAndChargesDetails(chargeType: PsaFSChargeType,
                                         period: String,
                                         schemeName: String,
                                         visuallyHiddenText: String,
-                                        dueDate: Option[LocalDate])
+                                        dueDate: Option[String])

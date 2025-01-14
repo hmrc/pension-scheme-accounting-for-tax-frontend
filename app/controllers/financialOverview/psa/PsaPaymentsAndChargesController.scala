@@ -135,14 +135,6 @@ class PsaPaymentsAndChargesController @Inject()(
     }
   }
 
-//  private def getReflectChargeText(journeyType: ChargeDetailsFilter) = {
-//    if (config.podsNewFinancialCredits) {
-//      Message(s"psa.financial.overview.$journeyType.text.v2")
-//    } else {
-//      Message(s"psa.financial.overview.$journeyType.text")
-//    }
-//  }
-
   private val removePaymentStatusColumn: Table => Table = table => {
     Table(caption = table.caption,
       captionClasses = table.captionClasses,

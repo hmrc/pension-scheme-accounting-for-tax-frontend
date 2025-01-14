@@ -73,13 +73,14 @@ class PaymentsAndChargesController @Inject()(
               val table: Table = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType, config)
               val tableOfPaymentsAndCharges = if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
 
+              val messages = request2Messages
+
               val paymentsAndChargesTemplate = if (config.podsNewFinancialCredits) {
                 newView(
-                  journeyType = journeyType.toString,
+                  titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
                   schemeName = paymentsCache.schemeDetails.schemeName,
-                  titleMessage = Message(s"financialPaymentsAndCharges.$journeyType.title").toString,
                   pstr = "",
-                  reflectChargeText = reflectChargeTextMsgKey.toString,
+                  reflectChargeText = messages(reflectChargeTextMsgKey.key),
                   totalOverdue = s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
                   totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
                   totalUpcoming = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
@@ -90,11 +91,10 @@ class PaymentsAndChargesController @Inject()(
                 )
               } else {
                 view(
-                  titleMessage = Message(s"financialPaymentsAndCharges.$journeyType.title").toString,
-                  journeyType = journeyType.toString,
+                  titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
                   schemeName = paymentsCache.schemeDetails.schemeName,
                   pstr = "",
-                  reflectChargeText = reflectChargeTextMsgKey.toString,
+                  reflectChargeText = messages(reflectChargeTextMsgKey.key),
                   totalDue = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
                   totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
                   totalUpcoming = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
@@ -111,6 +111,14 @@ class PaymentsAndChargesController @Inject()(
             }
         }
     }
+
+  private def getTitleMessage(journeyType: ChargeDetailsFilter): String = {
+    if (config.podsNewFinancialCredits) {
+      s"schemeFinancial.overview.$journeyType.title.v2"
+    } else {
+      s"schemeFinancial.overview.$journeyType.title"
+    }
+  }
 
   private val removePaymentStatusColumn: Table => Table = table => {
     Table(caption = table.caption,

@@ -39,10 +39,9 @@
     returnUrl: String
 )(implicit messages: Messages, request: Request[_])
 
-@layout(messages(titleMessage)) {
+@layout(messages(titleMessage), fullWidthLayout = true) {
 
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+<div>
 
         <h1 class="hmrc-caption govuk-caption-xl">@titleMessage</h1>
         <h1 class="govuk-heading-xl">@schemeName</h1>
@@ -86,18 +85,6 @@
             }
         </div>
 
-    </div>
-</div>
-
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
-        @if(paymentAndChargesTable.rows.nonEmpty) {
-        <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">@messages(titleMessage)</span>
-        <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
-            @govukTable(paymentAndChargesTable)
-        </div>
-        }
-    </div>
 </div>
 
 <div class="govuk-grid-row">

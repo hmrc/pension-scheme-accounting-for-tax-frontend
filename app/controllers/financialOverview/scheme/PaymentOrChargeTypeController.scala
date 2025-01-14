@@ -51,9 +51,11 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
         val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail)
 
+        val messages = request2Messages
+
         Future.successful(Ok(paymentOrChargeTypeView(
           form = form,
-          titleMessage = s"paymentOrChargeType.all.title",
+          titleMessage = messages(s"paymentOrChargeType.all.title"),
           submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
           schemeName = cache.schemeDetails.schemeName,
           returnUrl = config.schemeDashboardUrl(request).format(srn),

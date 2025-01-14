@@ -25,7 +25,7 @@ govukInsetText: GovukInsetText
 
 @(model: PsaChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
-@layout(messages({model.heading})) {
+@layout(messages({model.heading}), fullWidthLayout = true) {
 
 <div>
         @if(model.schemeAssociated) {

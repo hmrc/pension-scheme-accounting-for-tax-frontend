@@ -41,10 +41,9 @@
     returnUrl: String
 )(implicit messages: Messages, request: Request[_])
 
-@layout(messages(titleMessage)) {
+@layout(messages(titleMessage), fullWidthLayout = true) {
 
 <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
 
         <h1 class="hmrc-caption govuk-caption-xl">@psaName</h1>
         <h1 class="govuk-heading-xl">@schemeName</h1>

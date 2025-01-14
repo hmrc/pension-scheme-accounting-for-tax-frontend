@@ -117,7 +117,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 .onPageLoad(detail.pstr, detail.index.toString, journeyType)
                 .url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", displayChargeReference(detail.chargeReference)),
-              dueDate = detail.dueDate
+              dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
             )
 
         val seqInterestCharge: Seq[PsaPaymentsAndChargesDetails] =
@@ -140,7 +140,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
                   .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText"),
-                dueDate = detail.dueDate
+                dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
               ))
           } else {
             Nil
@@ -204,7 +204,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               redirectUrl = controllers.financialOverview.psa.routes.PsaPenaltiesAndChargeDetailsController
                 .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", detail.chargeReference),
-              dueDate = detail.dueDate
+              dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
             )
 
         val seqInterestCharge: Seq[PsaPaymentsAndChargesDetails] =
@@ -223,7 +223,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
                   .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText"),
-                dueDate = detail.dueDate
+                dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
               ))
           } else {
             Nil
@@ -367,7 +367,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       if(config.podsNewFinancialCredits) {
         Seq(
           TableRow(htmlChargeTypeV2, classes = "govuk-!-width-one-half"),
-          TableRow(Text(s"${data.dueDate}"), classes = "govuk-!-width-one-quarter"),
+          TableRow(Text(s"${data.dueDate.get.format(dateFormatterDMY)}"), classes = "govuk-!-width-one-quarter"),
           if (data.originalChargeAmount.isEmpty) {
             TableRow(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
           } else {
@@ -450,7 +450,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
       Seq(
         TableRow(htmlChargeType, classes = "govuk-!-width-one-half"),
-        TableRow(Text(s"${formatDateDMY(data.dueDate)}"), classes = "govuk-!-width-one-quarter"),
+        TableRow(Text(s"${data.dueDate.get.format(dateFormatterDMY)}"), classes = "govuk-!-width-one-quarter"),
         if (data.originalChargeAmount.isEmpty) {
           TableRow(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
         } else {

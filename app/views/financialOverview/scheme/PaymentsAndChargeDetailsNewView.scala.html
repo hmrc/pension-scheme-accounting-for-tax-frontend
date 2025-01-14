@@ -26,9 +26,9 @@
 
 @(model: ChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
-@layout(messages({model.chargeType})) {
+@layout(messages({model.chargeType}), fullWidthLayout = true) {
 
-<div class="govuk-grid-row">
+<div>
 
         <h1 class="hmrc-caption govuk-caption-xl">@{model.chargeType}</h1>
         <h1 class="govuk-heading-xl">@{model.schemeName}</h1>
@@ -52,26 +52,33 @@
             @govukSummaryList(SummaryList(rows = model.chargeDetailsList))
         }
 
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-one-half">
-                <h2 class="govuk-heading-l">
-                    @messages("pension.scheme.charge.details.new")
-                </h2>
-            </div>
-        </div>
+        @if(model.chargeAmountDetails.nonEmpty) {
 
-        <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
-            @govukTable(
-                Table(
-                    rows = model.chargeAmountDetails
-                        .getOrElse(Seq.empty)
-                        .flatMap(_.rows)
-                )
-            )
-        </div>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-half">
+                    <h2 class="govuk-heading-l">
+                        @messages("pension.scheme.charge.details.new")
+                    </h2>
+                </div>
+            </div>
+
+            <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
+                    @govukTable(
+                        Table(
+                            rows = model.chargeAmountDetails
+                                .getOrElse(Seq.empty)
+                                .flatMap(_.rows)
+                        )
+                    )
+                </div>
+        }
 
         @if(model.insetText.nonEmpty) {
-            @{model.insetText}
+            @govukInsetText(
+                InsetText(
+                    content = model.insetText
+                )
+            )
         }
 
         @model.hintText.map { text =>

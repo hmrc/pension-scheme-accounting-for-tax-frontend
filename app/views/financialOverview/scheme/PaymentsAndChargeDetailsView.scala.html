@@ -26,10 +26,9 @@
 
 @(model: ChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
-@layout(messages({model.chargeType})) {
+@layout(messages({model.chargeType}), fullWidthLayout = true) {
 
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+<div>
 
         <h1 class="hmrc-caption govuk-caption-xl">@{model.chargeType}</h1>
         <h1 class="govuk-heading-xl">@{model.schemeName}</h1>
@@ -57,7 +56,6 @@
         <p class="govuk-body">@text</p>
         }
 
-    </div>
 </div>
 
 @if(model.returnHistoryUrl.nonEmpty && model.versionValue.nonEmpty) {

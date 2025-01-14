@@ -28,11 +28,10 @@
 @(model: InterestDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
 
-@layout(messages(model.chargeType)) {
+@layout(messages(model.chargeType), fullWidthLayout = true) {
 <p>HEADING CURRENTLY INCORRECT. FIND OUT HOW TO CHANGE pageTitle = title(heading, form.errors))</p>
 
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+<div>
 
         <h1 class="hmrc-caption govuk-caption-xl">@model.chargeType</h1>
         <h1 class="govuk-heading-xl">model.schemeName</h1>
@@ -50,13 +49,18 @@
 
         @if(model.chargeDetailsList.nonEmpty) {
         <h2 id="paymentAndChargeDetails" class="govuk-heading-m">@model.tableHeader</h2>
-        @govukSummaryList(SummaryList(rows = model.chargeDetailsList))
+        @govukSummaryList(
+            SummaryList(
+                rows = model.chargeDetailsList
+            ))
         }
 
-        @model.insetText
+        @govukInsetText(
+            InsetText(
+                content = model.insetText
+            )
+        )
 
-
-    </div>
 </div>
 
 <p class="govuk-body">

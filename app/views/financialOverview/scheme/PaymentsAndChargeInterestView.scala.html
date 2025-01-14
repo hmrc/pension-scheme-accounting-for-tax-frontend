@@ -27,7 +27,7 @@
 
 @(model: InterestDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
-@layout(messages(model.chargeType)) {
+@layout(messages(model.chargeType), fullWidthLayout = true) {
 
 <div>
 
@@ -42,12 +42,18 @@
 
     @if(model.chargeDetailsList.nonEmpty) {
     <h2 id="paymentAndChargeDetails" class="govuk-heading-m">@model.tableHeader</h2>
-    @govukSummaryList(SummaryList(rows = model.chargeDetailsList))
+    @govukSummaryList(
+        SummaryList(
+            rows = model.chargeDetailsList
+        ))
     }
 
-    @model.insetText
+    @govukInsetText(
+        InsetText(
+            content = model.insetText
+        )
+    )
 
-</div>
 </div>
 
 <p class="govuk-body">

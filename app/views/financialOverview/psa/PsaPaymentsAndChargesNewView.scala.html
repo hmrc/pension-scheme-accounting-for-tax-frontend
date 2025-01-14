@@ -38,7 +38,7 @@ config: FrontendAppConfig
     paymentAndChargesTable: Table
 )(implicit request: Request[_], messages: Messages)
 
-@layout(messages(titleMessage)) {
+@layout(messages(titleMessage), fullWidthLayout = true) {
 
 <div>
 
@@ -90,7 +90,7 @@ config: FrontendAppConfig
 
 </div>
 
-<div class="govuk-grid-column-full">
+<div>
         @if(penaltiesTable.rows.nonEmpty) {
         <span id="paymentAndCharges_h2" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
         <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">
@@ -99,7 +99,7 @@ config: FrontendAppConfig
         }
 </div>
 
-<div class="govuk-grid-column-full">
+<div>
         @if(paymentAndChargesTable.rows.nonEmpty) {
         <span id="paymentAndCharges_h3" aria-hidden="true" class="govuk-visually-hidden">messages(titleMessage)</span>
         <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7">

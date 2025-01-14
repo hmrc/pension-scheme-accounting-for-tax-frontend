@@ -27,7 +27,7 @@ case class ChargeDetailsViewModel(
                                    chargeType: String,
                                    versionValue: Option[String],
                                    isPaymentOverdue: Boolean,
-                                   insetText: Option[HtmlContent],
+                                   insetText: HtmlContent,
                                    interest: Option[BigDecimal],
                                    returnLinkBasedOnJourney: String,
                                    returnUrl: String,

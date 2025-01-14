@@ -67,12 +67,14 @@ class AllPaymentsAndChargesController @Inject()(
         if (filteredPayments.nonEmpty) {
           val tableOfPaymentsAndCharges = paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, journeyType, config)
 
+          val messages = request2Messages
+
           Future.successful(Ok(view(
             journeyType = journeyType.toString,
             schemeName = paymentsCache.schemeDetails.schemeName,
             titleMessage = title,
             pstr = paymentsCache.schemeDetails.pstr,
-            reflectChargeText = Message(s"paymentsAndCharges.reflect.charge.text").toString,
+            reflectChargeText = messages(s"paymentsAndCharges.reflect.charge.text"),
             totalOverdue = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",
             totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestCharges)}",
             totalUpcoming = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",

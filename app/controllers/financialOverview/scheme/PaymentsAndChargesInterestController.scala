@@ -29,7 +29,8 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.domain.{PsaId, PspId}
-import uk.gov.hmrc.govukfrontend.views.Aliases.{HtmlContent, Key, Text, Value}
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, Text, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper
@@ -125,6 +126,7 @@ class PaymentsAndChargesInterestController @Inject()(
           s" ${messages("paymentsAndCharges.interest.chargeReference.linkText")}</a></span>" +
           s" ${messages("paymentsAndCharges.interest.chargeReference.text2")}</p>"
       )
+
     val interestChargeType= getInterestChargeTypeText(schemeFSDetail.chargeType)
 
     InterestDetailsViewModel(
@@ -156,6 +158,7 @@ class PaymentsAndChargesInterestController @Inject()(
           s" ${messages("paymentsAndCharges.interest.chargeReference.linkText")}</a></span>" +
           s" ${messages("paymentsAndCharges.interest.chargeReference.text2")}</p>"
       )
+
     val interestChargeType = getInterestChargeTypeText(schemeFSDetail.chargeType)
 
     InterestDetailsViewModel(

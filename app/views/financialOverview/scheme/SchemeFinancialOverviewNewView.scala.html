@@ -38,8 +38,7 @@ returnUrl: String
 
 @layout(messages("psa.financial.overview.title.new"), fullWidthLayout = true) {
 
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+<div>
 
         <h1 class="hmrc-caption govuk-caption-xl">@schemeName</h1>
         <h1 class="govuk-heading-xl">@messages("psa.financial.overview.title.new")</h1>
@@ -137,7 +136,6 @@ returnUrl: String
         <p class="govuk-body"><a id="@returnUrl" class="govuk-link" href="@returnUrl">
             @messages("return.to.link", schemeName)</a></p>
 
-    </div>
 </div>
 
 }
