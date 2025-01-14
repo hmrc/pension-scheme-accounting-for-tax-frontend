@@ -22,7 +22,7 @@ import forms.YearsFormProvider
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
-import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, StartYears, Year}
+import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}

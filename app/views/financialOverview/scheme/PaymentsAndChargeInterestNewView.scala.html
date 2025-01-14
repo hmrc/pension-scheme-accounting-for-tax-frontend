@@ -14,41 +14,28 @@
  * limitations under the License.
  *@
 
-@import config.FrontendAppConfig
-@import views.html.components._
+@import viewmodels.InterestDetailsViewModel
 
 @this(
     layout: templates.Layout,
-    formHelper: FormWithCSRF,
     govukBackLink: GovukBackLink,
     govukButton: GovukButton,
     govukSummaryList: GovukSummaryList,
-    govukInput: GovukInput,
-    govukFieldset: GovukFieldset,
     govukTable: GovukTable,
-    govukInsetText: components.inset_text
+    govukInsetText: GovukInsetText
 )
 
-@(
-    chargeType: String,
-    schemeName: String,
-    interestDueAmount: String,
-    chargeDetailsList: Seq[SummaryListRow],
-    tableHeader: String,
-    insetText: Html,
-    returnUrl: String,
-    returnLinkBasedOnJourney: String
-)(implicit messages: Messages, request: Request[_])
+@(model: InterestDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
 
-@layout(messages(chargeType)) {
+@layout(messages(model.chargeType)) {
 <p>HEADING CURRENTLY INCORRECT. FIND OUT HOW TO CHANGE pageTitle = title(heading, form.errors))</p>
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
 
-        <h1 class="hmrc-caption govuk-caption-xl">@chargeType</h1>
-        <h1 class="govuk-heading-xl">Some(schemeName)</h1>
+        <h1 class="hmrc-caption govuk-caption-xl">@model.chargeType</h1>
+        <h1 class="govuk-heading-xl">model.schemeName</h1>
 
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-one-half">
@@ -56,25 +43,25 @@
                     @messages("pension.scheme.interest.dueAmount.new")
                 </h3>
                 <p class="govuk-heading-m govuk-!-margin-top-0">
-                    @interestDueAmount
+                    @model.interestDueAmount
                 </p>
             </div>
         </div>
 
-        @if(chargeDetailsList.nonEmpty) {
-        <h2 id="paymentAndChargeDetails" class="govuk-heading-m">@tableHeader</h2>
-        @govukSummaryList(SummaryList(rows = chargeDetailsList))
+        @if(model.chargeDetailsList.nonEmpty) {
+        <h2 id="paymentAndChargeDetails" class="govuk-heading-m">@model.tableHeader</h2>
+        @govukSummaryList(SummaryList(rows = model.chargeDetailsList))
         }
 
-        @insetText
+        @model.insetText
 
 
     </div>
 </div>
 
 <p class="govuk-body">
-    <a id="return" href="@returnUrl" class="govuk-link">
-        @messages("return.to.link", returnLinkBasedOnJourney)
+    <a id="return" href="@model.returnUrl" class="govuk-link">
+        @messages("return.to.link", model.returnLinkBasedOnJourney)
     </a>
 </p>
 }

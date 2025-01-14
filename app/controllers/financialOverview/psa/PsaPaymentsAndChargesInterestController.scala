@@ -27,16 +27,13 @@ import models.financialStatement.PsaFSChargeType.INTEREST_ON_CONTRACT_SETTLEMENT
 import models.financialStatement.{PenaltyType, PsaFSChargeType, PsaFSDetail}
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.SchemeService
 import services.financialOverview.psa.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{formatDateDMY, formatStartDate}
-import viewmodels.InterestDetailsViewModel
+import viewmodels.PsaInterestDetailsViewModel
 import views.html.financialOverview.psa.{PsaInterestDetailsNewView, PsaInterestDetailsView}
 
 import javax.inject.Inject
@@ -93,7 +90,7 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
                          schemeName: String,
                          sourcePsaFSDetail: PsaFSDetail,
                          journeyType: ChargeDetailsFilter
-                        )(implicit request: IdentifierRequest[AnyContent]): InterestDetailsViewModel = {
+                        )(implicit request: IdentifierRequest[AnyContent]): PsaInterestDetailsViewModel = {
     val period = psaPenaltiesAndChargesService.setPeriod(sourcePsaFSDetail.chargeType, sourcePsaFSDetail.periodStartDate, sourcePsaFSDetail.periodEndDate)
     val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(sourcePsaFSDetail.pstr, sourcePsaFSDetail.index.toString, journeyType).url
     val detailsChargeType = sourcePsaFSDetail.chargeType
@@ -108,7 +105,7 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
           s" ${Messages("psa.financial.overview.hint2")}</p>"
       )
 
-    InterestDetailsViewModel(
+    PsaInterestDetailsViewModel(
       psaName = psaName,
       heading = detailsChargeTypeHeading.toString,
       isOverdue = psaPenaltiesAndChargesService.isPaymentOverdue(sourcePsaFSDetail),
@@ -127,7 +124,7 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
                               schemeName: String,
                               sourcePsaFSDetail: PsaFSDetail,
                               journeyType: ChargeDetailsFilter
-                             )(implicit request: IdentifierRequest[AnyContent]): InterestDetailsViewModel = {
+                             )(implicit request: IdentifierRequest[AnyContent]): PsaInterestDetailsViewModel = {
     val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(sourcePsaFSDetail.pstr, sourcePsaFSDetail.index.toString, journeyType).url
     val detailsChargeType = sourcePsaFSDetail.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
@@ -141,7 +138,7 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
           s" ${Messages("psa.financial.overview.hint2")}</p>"
       )
 
-    InterestDetailsViewModel(
+    PsaInterestDetailsViewModel(
       psaName = psaName,
       heading = detailsChargeTypeHeading.toString,
       isOverdue = psaPenaltiesAndChargesService.isPaymentOverdue(sourcePsaFSDetail),

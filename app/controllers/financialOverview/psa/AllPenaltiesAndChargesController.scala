@@ -24,14 +24,12 @@ import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.financialOverview.psa.PsaPenaltiesAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -43,11 +41,10 @@ class AllPenaltiesAndChargesController @Inject()(
                                                   allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                                  renderer: Renderer,
-                                              )(implicit ec: ExecutionContext)
+                                                  view: PsaPaymentsAndChargesNewView
+                                                )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val logger = Logger(classOf[AllPenaltiesAndChargesController])
 
@@ -75,17 +72,19 @@ class AllPenaltiesAndChargesController @Inject()(
           psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
             request.idOrException, filteredPenalties, All) flatMap { table =>
 
-            val json = Json.obj(
-              fields =
-                "titleMessage" -> title,
-              "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
-              "journeyType" -> journeyType.toString,
-              "paymentAndChargesTable" -> table,
-              "totalOutstandingCharge" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
-              "pstr" -> pstr,
-              "psaName" -> penaltiesCache.psaName
-            )
-            renderer.render(template = "financialOverview/psa/psaPaymentsAndCharges.njk", json).map(Ok(_))
+            Future.successful(Ok(view(
+              journeyType = journeyType.toString,
+              psaName = penaltiesCache.psaName,
+              titleMessage = title.toString,
+              pstr = Some(pstr),
+              reflectChargeText = Message(s"paymentsAndCharges.reflect.charge.text").toString,
+              totalOverdueCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+              totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestCharges)}",
+              totalUpcomingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",
+              totalOutstandingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+              penaltiesTable = table,
+              paymentAndChargesTable = table,
+            )))
           }
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $startDate")
@@ -116,17 +115,19 @@ class AllPenaltiesAndChargesController @Inject()(
           psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
             request.idOrException, filteredPenalties, All) flatMap { table =>
 
-            val json = Json.obj(
-              fields =
-                "titleMessage" -> title,
-                "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
-                "journeyType" -> journeyType.toString,
-                "paymentAndChargesTable" -> table,
-                "totalOutstandingCharge" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
-                "pstr" -> pstr,
-                "psaName" -> penaltiesCache.psaName
-            )
-            renderer.render(template = "financialOverview/psa/psaPaymentsAndCharges.njk", json).map(Ok(_))
+            Future.successful(Ok(view(
+              journeyType = journeyType.toString,
+              psaName = penaltiesCache.psaName,
+              titleMessage = title.toString,
+              pstr = Some(pstr),
+              reflectChargeText = Message(s"paymentsAndCharges.reflect.charge.text").toString,
+              totalOverdueCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+              totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestCharges)}",
+              totalUpcomingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",
+              totalOutstandingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+              penaltiesTable = table,
+              paymentAndChargesTable = table,
+            )))
           }
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $year")

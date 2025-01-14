@@ -21,7 +21,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.PsaFSDetail
-import models.{AFTQuarter, ChargeDetailsFilter, DisplayHint, DisplayQuarter, FSYears, PaymentOverdue, Quarters}
+import models.{AFTQuarter, ChargeDetailsFilter, DisplayHint, DisplayQuarter, PaymentOverdue, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

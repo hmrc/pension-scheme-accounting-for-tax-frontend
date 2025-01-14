@@ -35,7 +35,8 @@ config: FrontendAppConfig
     totalUpcoming: String,
     totalDue: String,
     penaltiesTable: Table,
-    paymentAndChargesTable: Table
+    paymentAndChargesTable: Table,
+    returnUrl: String
 )(implicit request: Request[_], messages: Messages)
 
 @layout(messages(titleMessage)) {

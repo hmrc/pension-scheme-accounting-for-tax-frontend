@@ -21,7 +21,6 @@ import connectors.{FinancialInfoCreditAccessConnector, FinancialStatementConnect
 import controllers.actions._
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController

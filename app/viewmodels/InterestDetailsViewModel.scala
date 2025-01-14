@@ -20,17 +20,14 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 
 case class InterestDetailsViewModel(
-                                   psaName: String,
-                                   heading: String,
-                                   isOverdue: Boolean,
-                                   schemeAssociated: Boolean = true,
-                                   schemeName: String,
-                                   interestDueAmount: Option[String] = None,
-                                   period: Option[String] = None,
-                                   chargeReference: String,
-                                   penaltyAmount: BigDecimal,
-                                   returnUrl: String,
-                                   list: Seq[SummaryListRow],
-                                   htmlInsetText: HtmlContent,
-                                   returnUrlText: String
+                                     chargeType: String,
+                                     schemeName: String,
+                                     interestDueAmount: Option[String] = None,
+                                     accruedInterest: BigDecimal,
+                                     chargeDetailsList: Seq[SummaryListRow],
+                                     originalAmountUrl: String,
+                                     tableHeader: Option[String] = None,
+                                     insetText: HtmlContent,
+                                     returnUrl: String,
+                                     returnLinkBasedOnJourney: String
                                    )
