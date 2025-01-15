@@ -53,8 +53,6 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
 
   private val mockNavigationService = mock[PenaltiesNavigationService]
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
-  private val mockFICacheConnector = mock[FinancialInfoCacheConnector]
-  private val mockFSConnector = mock[FinancialStatementConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
 
   private def form: Form[PenaltySchemes] =
@@ -63,8 +61,6 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
-    bind[FinancialInfoCacheConnector].toInstance(mockFICacheConnector),
-    bind[FinancialStatementConnector].toInstance(mockFSConnector),
     bind[PenaltiesNavigationService].toInstance(mockNavigationService)
   )
 
@@ -73,14 +69,11 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
-    reset(mockAppConfig)
-    reset(mockFICacheConnector)
-    reset(mockFSConnector)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
       thenReturn(Future.successful(penaltySchemes))
-
+    when(mockPsaPenaltiesAndChargesService.getTypeParam(any())(any())).thenReturn(messages(s"penaltyType.ContractSettlementCharges")) //this message needs to be updated
   }
 
   "SelectSchemeController" when {

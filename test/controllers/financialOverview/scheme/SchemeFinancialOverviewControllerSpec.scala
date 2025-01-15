@@ -78,8 +78,8 @@ class SchemeFinancialOverviewControllerSpec
       thenReturn(Future.successful(schemeToFinancial(schemeFSResponseAftAndOTC)))
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).
       thenReturn(Future.successful(schemeToFinancial(schemeFSResponseAftAndOTC)))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
-      any(), any(), any())(any())).thenReturn(emptyChargesTable)
+//    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
+//      any(), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseAftAndOTC.seqSchemeFSDetail)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseAftAndOTC.seqSchemeFSDetail)
     when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseAftAndOTC.seqSchemeFSDetail)

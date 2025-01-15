@@ -98,8 +98,9 @@ class AllPenaltiesAndChargesController @Inject()(
     (identify andThen allowAccess()).async { implicit request =>
 
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
+        val messages = request2Messages
 
-        val title: Message = Message("penalties.nonAft.title", Message(s"penaltyType.${penaltyType.toString}"), year)
+        val title = messages("penalties.nonAft.title", messages(s"penaltyType.${penaltyType.toString}"), year)
         val filteredPenalties: Seq[PsaFSDetail] = penaltiesCache.penalties
           .filter(_.periodEndDate.getYear == year.toInt)
           .filter(_.pstr == pstr)
@@ -119,9 +120,9 @@ class AllPenaltiesAndChargesController @Inject()(
             Future.successful(Ok(view(
               journeyType = journeyType.toString,
               psaName = penaltiesCache.psaName,
-              titleMessage = title.toString,
+              titleMessage = title,
               pstr = Some(pstr),
-              reflectChargeText = Message(s"paymentsAndCharges.reflect.charge.text").toString,
+              reflectChargeText = messages(s"paymentsAndCharges.reflect.charge.text"),
               totalOverdueCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
               totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestCharges)}",
               totalUpcomingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",

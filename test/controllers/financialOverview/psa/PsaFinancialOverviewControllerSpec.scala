@@ -31,6 +31,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.AFTPartialService
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import views.html.financialOverview.psa.PsaFinancialOverviewView
 
 import scala.concurrent.Future
@@ -58,6 +59,8 @@ class PsaFinancialOverviewControllerSpec
 
   private val psaName = "psa-name"
   val requestRefundUrl = s"test.com?requestType=3&psaName=$psaName&availAmt=1000"
+
+  val emptyChargesTable: Table = Table()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
