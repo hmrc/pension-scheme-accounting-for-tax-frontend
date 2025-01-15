@@ -24,19 +24,17 @@ import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.Table
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargesView
 
 class PaymentsAndChargesController @Inject()(
                                               override val messagesApi: MessagesApi,
@@ -45,11 +43,10 @@ class PaymentsAndChargesController @Inject()(
                                               val controllerComponents: MessagesControllerComponents,
                                               config: FrontendAppConfig,
                                               paymentsAndChargesService: PaymentsAndChargesService,
-                                              renderer: Renderer
+                                              paymentsAndChargesView: PaymentsAndChargesView
                                             )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val logger = Logger(classOf[PaymentsAndChargesController])
 
@@ -59,20 +56,16 @@ class PaymentsAndChargesController @Inject()(
         val (title, filteredPayments): (String, Seq[SchemeFSDetail]) =
           getTitleAndFilteredPayments(paymentsCache.schemeFSDetail, period, paymentOrChargeType, journeyType)
         if (filteredPayments.nonEmpty) {
-          val tableOfPaymentsAndCharges: Table = {
+          val tableOfPaymentsAndCharges = {
             val table = paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, journeyType, paymentOrChargeType)
             if (journeyType == Upcoming) removePaymentStatusColumn(table) else table
           }
-
-          val json = Json.obj(
-            fields =
-              "titleMessage" -> title,
-            "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
-            "schemeName" -> paymentsCache.schemeDetails.schemeName,
-            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-          )
-          renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
-
+          Future.successful(Ok(paymentsAndChargesView(
+            title,
+            tableOfPaymentsAndCharges,
+            config.schemeDashboardUrl(request).format(srn),
+            paymentsCache.schemeDetails.schemeName
+          )))
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $period")
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -113,9 +106,16 @@ class PaymentsAndChargesController @Inject()(
       (title, filteredPayments)
     }
 
-  private val removePaymentStatusColumn: Table => Table = table =>
-    Table(table.caption, table.captionClasses, table.firstCellIsHeader,
-      table.head.take(table.head.size - 1),
-      table.rows.map(p => p.take(p.size - 1)), table.classes, table.attributes
+  private val removePaymentStatusColumn: Table => Table = table => {
+    val header = table.head.map(headCells => headCells.dropRight(1))
+    Table(
+      caption = table.caption,
+      captionClasses = table.captionClasses,
+      firstCellIsHeader = table.firstCellIsHeader,
+      head = header,
+      rows = table.rows.map(p => p.take(p.size - 1)),
+      classes = table.classes,
+      attributes = table.attributes
     )
+  }
 }

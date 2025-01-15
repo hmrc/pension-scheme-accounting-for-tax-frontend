@@ -36,12 +36,11 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Table.Cell
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, _}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
 
@@ -61,14 +60,9 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   private val penaltiesService = new PenaltiesService(mockFSConnector, mockFIConnector, mockListOfSchemesConn, mockMinimalConnector)
 
   def penaltyTables(
-                     rows: Seq[Seq[Cell]],
-                     head: Seq[Cell] = headForChargeType("penalties.column.penaltyType")
-                   ): JsObject = {
-    Json.obj(
-      "penaltyTable" -> Table(head = head, rows = rows,
-        attributes = Map("role" -> "table"))
-    )
-  }
+                     rows: Seq[Seq[TableRow]],
+                     head: Seq[HeadCell] = headForChargeType("penalties.column.penaltyType")
+                   ): Table = Table(head = Some(head), rows = rows, attributes = Map("role" -> "table"))
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -104,7 +98,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
         accruedInterestTotal = BigDecimal(123.45), chargeType = CONTRACT_SETTLEMENT
       )
 
-      penaltiesService.getPsaFsJson(
+      penaltiesService.getPsaFsTable(
         Seq(charge),
         srn, chargeRefIndex, ContractSettlementCharges, PenaltiesFilter.All
       ) mustBe
@@ -115,7 +109,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for paymentOverdue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")),
+      penaltiesService.getPsaFsTable(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")),
         srn, chargeRefIndex, AccountingForTaxPenalties, All) mustBe
         penaltyTables(
           rows = rows(
@@ -128,7 +122,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for noPaymentDue" in {
-      penaltiesService.getPsaFsJson(
+      penaltiesService.getPsaFsTable(
         psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, chargeRefIndex, AccountingForTaxPenalties, All) mustBe
         penaltyTables(
           rows(
@@ -141,7 +135,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the penalty tables based on API response for paymentIsDue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, chargeRefIndex, AccountingForTaxPenalties, All) mustBe
+      penaltiesService.getPsaFsTable(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, chargeRefIndex, AccountingForTaxPenalties, All) mustBe
         penaltyTables(
           rows(
             link = aftLink(),
@@ -537,80 +531,80 @@ object PenaltiesServiceSpec {
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
   private def headForChargeType(firstColumnMessageKey: String)(implicit messages: Messages) = Seq(
-    Cell(msg"$firstColumnMessageKey"),
-    Cell(msg"penalties.column.amount"),
-    Cell(msg"penalties.column.chargeReference"),
-    Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
+    HeadCell(Text(messages(s"$firstColumnMessageKey"))),
+    HeadCell(Text(messages("penalties.column.amount"))),
+    HeadCell(Text(messages("penalties.column.chargeReference"))),
+    HeadCell(HtmlContent(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
   )
 
-  private def penaltiesRow(link: Html,
+  private def penaltiesRow(link: HtmlContent,
                            statusClass: String,
                            statusMessageKey: String,
                            amountDue: String,
                            chargeRef: String
                           )(implicit messages: Messages) = Seq(
-    Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
-    Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(Literal(chargeRef), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
+    TableRow(link, classes = "govuk-!-width-two-thirds-quarter"),
+    TableRow(Text(s"£$amountDue"), classes = "govuk-!-width-one-quarter"),
+    TableRow(Text(chargeRef), classes = "govuk-!-width-one-quarter"),
+    TableRow(HtmlContent(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
   )
 
-  private def rows(link: Html,
+  private def rows(link: HtmlContent,
                    statusClass: String,
                    statusMessageKey: String,
                    amountDue: String,
-                   link2: Html = otcLink()
+                   link2: HtmlContent = otcLink()
                   )(implicit messages: Messages) = Seq(
     penaltiesRow(link, statusClass, statusMessageKey, amountDue, "XY002610150184"),
     penaltiesRow(link2, statusClass, statusMessageKey, amountDue, "XY002610150185"),
     penaltiesRow(otcLink("XY002610150186"), statusClass, statusMessageKey, amountDue, "XY002610150186")
   )
 
-  def aftLink(chargeReference: String = "XY002610150184"): Html = Html(
+  def aftLink(chargeReference: String = "XY002610150184"): HtmlContent = HtmlContent(
     s"<a id=$chargeReference class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0", All).url}>" +
       s"Accounting for Tax Late Filing Penalty<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
-  def contractSettlementLink(chargeReference: String = "XY002610150184"): Html = Html(
+  def contractSettlementLink(chargeReference: String = "XY002610150184"): HtmlContent = HtmlContent(
     s"<a id=$chargeReference class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0", PenaltiesFilter.All).url}>" +
       s"Contract Settlement<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
-  def interestOnContractSettlementLink(chargeReference: String = "XY002610150184"): Html = Html(
+  def interestOnContractSettlementLink(chargeReference: String = "XY002610150184"): HtmlContent = HtmlContent(
     s"<a id=$chargeReference-interest class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.InterestController.onPageLoad(srn, "0").url}>" +
       s"Interest on contract settlement<span class=govuk-visually-hidden>for charge reference to come</span> </a>")
 
-  def otcLink(chargeReference: String = "XY002610150185"): Html = Html(
+  def otcLink(chargeReference: String = "XY002610150185"): HtmlContent = HtmlContent(
     s"<a id=$chargeReference class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, "0", All).url}>" +
       s"Overseas Transfer Charge 6 Months Late Payment Penalty<span class=govuk-visually-hidden>for charge reference $chargeReference</span> </a>")
 
 
-  def totalAmount(amount: BigDecimal = BigDecimal(80000.00)): Row = Row(
-    key = Key(Literal("Accounting for Tax Late Filing Penalty"), classes = Seq("govuk-!-width-three-quarters")),
-    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+  def totalAmount(amount: BigDecimal = BigDecimal(80000.00)): SummaryListRow = SummaryListRow(
+    key = Key(Text("Accounting for Tax Late Filing Penalty"), classes = "govuk-!-width-three-quarters"),
+    value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
   )
 
-  def paymentAmount(amount: BigDecimal = BigDecimal(53881.87)): Row = Row(
-    key = Key(msg"penalties.chargeDetails.payments", classes = Seq("govuk-!-width-three-quarters")),
-    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+  def paymentAmount(amount: BigDecimal = BigDecimal(53881.87))(implicit messages: Messages): SummaryListRow = SummaryListRow(
+    key = Key(Text(messages("penalties.chargeDetails.payments")), classes = "govuk-!-width-three-quarters"),
+    value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
   )
 
-  def reviewAmount(amount: BigDecimal = BigDecimal(25089.08)): Row = Row(
-    key = Key(msg"penalties.chargeDetails.amountUnderReview", classes = Seq("govuk-!-width-three-quarters")),
-    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+  def reviewAmount(amount: BigDecimal = BigDecimal(25089.08))(implicit messages: Messages): SummaryListRow = SummaryListRow(
+    key = Key(Text(messages("penalties.chargeDetails.amountUnderReview")), classes = "govuk-!-width-three-quarters"),
+    value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
   )
 
-  def totalDueAmount(amount: BigDecimal = BigDecimal(1029.05), date: String = formattedDateNow): Row = Row(
-    key = Key(msg"penalties.chargeDetails.totalDueBy".withArgs(date), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+  def totalDueAmount(amount: BigDecimal = BigDecimal(1029.05), date: String = formattedDateNow)(implicit messages: Messages): SummaryListRow = SummaryListRow(
+    key = Key(Text(messages("penalties.chargeDetails.totalDueBy", date)), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+    value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
   )
 
-  def totalDueAmountWithoutDate(amount: BigDecimal = BigDecimal(1029.05)): Row = Row(
-    key = Key(msg"penalties.chargeDetails.totalDue", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"),
-      classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+  def totalDueAmountWithoutDate(amount: BigDecimal = BigDecimal(1029.05))(implicit messages: Messages): SummaryListRow = SummaryListRow(
+    key = Key(Text(messages("penalties.chargeDetails.totalDue")), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+    value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"),
+      classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
   )
 
   val penaltySchemes: Seq[PenaltySchemes] = Seq(

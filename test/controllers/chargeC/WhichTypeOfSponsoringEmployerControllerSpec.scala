@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
+import models.{NormalMode, SponsoringEmployerType, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{OptionValues, TryValues}
@@ -58,11 +58,6 @@ class WhichTypeOfSponsoringEmployerControllerSpec
   private val form = formProvider()
 
   private def httpPathGET: String = routes.WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url
-
-  private def httpPathPOST: String = routes.WhichTypeOfSponsoringEmployerController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url
-
-  private def viewModel = GenericViewModel(submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url, schemeName = schemeName)
 
   "IsSponsoringEmployerIndividual Controller" must {
 
