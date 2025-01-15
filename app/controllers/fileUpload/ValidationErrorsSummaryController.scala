@@ -65,7 +65,7 @@ class ValidationErrorsSummaryController @Inject()(appConfig: FrontendAppConfig,
     }
 
   private def generateAllErrors(fileUploadOutcome: FileUploadOutcome): (Seq[String], Int) = {
-    val numOfErrorsReads = (JsPath \ "totalErrors").read[Int]
+    val numOfErrorsReads = (JsPath \ "totalError").read[Int]
     val readsErrors = (JsPath \ "errors").read[Seq[String]](JsPath.read[Seq[String]](__.read(Reads.seq[String])))
 
     val numberOfErrors = numOfErrorsReads.reads(fileUploadOutcome.json) match {
