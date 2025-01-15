@@ -20,8 +20,6 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 
 case class PenaltiesViewModel(
                              title: String,
-//                             titleFirstParam: String,
-//                             titleSecondParam: String,
                              schemeAssociated: Boolean,
                              schemeName: Option[String],
                              pstr: String,

@@ -44,7 +44,6 @@ class ChargeDetailsController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  //noinspection ScalaStyle
   def onPageLoad(identifier: String, chargeReferenceIndex: String, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>

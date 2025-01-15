@@ -44,7 +44,6 @@ class InterestController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  //noinspection ScalaStyle
   def onPageLoad(identifier: String, chargeReferenceIndex: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penaltiesCache =>

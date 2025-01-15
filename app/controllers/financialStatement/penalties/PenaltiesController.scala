@@ -125,7 +125,6 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
 
   }
 
-  //noinspection ScalaStyle
   private def onPageLoad(year: Int, identifier: String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
                         (implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
     penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
