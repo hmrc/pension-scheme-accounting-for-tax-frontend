@@ -70,13 +70,13 @@ object ChargeType extends Enumerable.Implicits {
 
     val field = form("value")
     val items = Seq(
-      RadioItem(Text(messages("chargeType.radio.annualAllowance")), value = Some(ChargeTypeAnnualAllowance.toString)),
-      RadioItem(Text(messages("chargeType.radio.authSurplus")), value = Some(ChargeTypeAuthSurplus.toString)),
-      RadioItem(Text(messages("chargeType.radio.deRegistration")), value = Some(ChargeTypeDeRegistration.toString)),
-      RadioItem(Text(messages("chargeType.radio.lifeTimeAllowance")), value = Some(ChargeTypeLifetimeAllowance.toString)),
-      RadioItem(Text(messages("chargeType.radio.overseasTransfer")), value = Some(ChargeTypeOverseasTransfer.toString)),
-      RadioItem(Text(messages("chargeType.radio.shortService")), value = Some(ChargeTypeShortService.toString)),
-      RadioItem(Text(messages("chargeType.radio.lumpSumDeath")), value = Some(ChargeTypeLumpSumDeath.toString))
+      RadioItem(Text(messages("chargeType.radio.annualAllowance")), id = Some("value"), value = Some(ChargeTypeAnnualAllowance.toString)),
+      RadioItem(Text(messages("chargeType.radio.authSurplus")), id = Some("value_1"), value = Some(ChargeTypeAuthSurplus.toString)),
+      RadioItem(Text(messages("chargeType.radio.deRegistration")), id = Some("value_2"), value = Some(ChargeTypeDeRegistration.toString)),
+      RadioItem(Text(messages("chargeType.radio.lifeTimeAllowance")), id = Some("value_3"), value = Some(ChargeTypeLifetimeAllowance.toString)),
+      RadioItem(Text(messages("chargeType.radio.overseasTransfer")), id = Some("value_4"), value = Some(ChargeTypeOverseasTransfer.toString)),
+      RadioItem(Text(messages("chargeType.radio.shortService")), id = Some("value_5"), value = Some(ChargeTypeShortService.toString)),
+      RadioItem(Text(messages("chargeType.radio.lumpSumDeath")), id = Some("value_6"), value = Some(ChargeTypeLumpSumDeath.toString))
     )
 
     items
