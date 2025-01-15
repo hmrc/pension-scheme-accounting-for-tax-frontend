@@ -22,7 +22,7 @@ import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
 import helpers.AFTSummaryHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
+import models.{AccessType, NormalMode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{AFTSummaryPage, ChargeTypePage}
 import play.api.Logger
@@ -33,11 +33,11 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import services._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import utils.TwirlMigration
 import uk.gov.hmrc.govukfrontend.views.html.components.{Hint => GovukHint}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
-import viewmodels.Radios
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import viewmodels.{AFTSummaryViewModel, Radios}
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -94,6 +94,24 @@ class AFTSummaryController @Inject()(
     }
   }
 
+  private def getAftSummaryViewModel(
+                                      srn: String,
+                                      startDate: LocalDate,
+                                      version: Int,
+                                      accessType: AccessType,
+                                      schemeName: String
+                                    )(implicit messages: Messages) = {
+    AFTSummaryViewModel(
+      aftSummaryURL = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
+      returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+      searchHint = hint(),
+      searchUrl = controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version),
+      schemeName = schemeName,
+      submitCall = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, version),
+    )
+  }
+
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(AFTSummaryPage)) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
@@ -108,8 +126,8 @@ class AFTSummaryController @Inject()(
         srn = srn,
         schemeIdType = "srn"
       ) flatMap { schemeDetails =>
+        val viewModel = getAftSummaryViewModel(srn, startDate, version, accessType, schemeDetails.schemeName)
         Future.successful(Ok(aftSummaryView(
-          aftSummaryURL = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
           btnText = btnText(memberSearchForm),
           canChange = request.isEditable,
           form = form,
@@ -117,17 +135,12 @@ class AFTSummaryController @Inject()(
           summaryList = aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate, accessType, version),
           membersList = Seq(),
           quarterEndDate = Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
-          quarterStartDate = startDate.format(dateFormatterDMY),
+          quarterStartDate = startDate.format(dateFormatterStartDate),
           radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
-          returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          searchHint = hint,
-          searchUrl = controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version),
-          schemeName = schemeDetails.schemeName,
           submissionNumber = getSubmissionNumber(schemeDetails.schemeName, version),
-          submitCall = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, version),
           summarySearchHeadingText = summarySearchHeadingText(memberSearchForm),
-          viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType)
+          viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType),
+          viewModel
         )))
       }
     }
@@ -149,10 +162,11 @@ class AFTSummaryController @Inject()(
           .bindFromRequest()
           .fold(
             formWithErrors => {
+              val viewModel = getAftSummaryViewModel(srn, startDate, version, accessType, schemeDetails.schemeName)
+
               logger.warn("AFT summary controller on search member -- errors")
               logger.warn("AFT summary controller on search member -- got json")
               Future.successful(BadRequest(aftSummaryView(
-                aftSummaryURL = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
                 btnText = btnText(formWithErrors),
                 canChange = request.isEditable,
                 form = form,
@@ -160,17 +174,12 @@ class AFTSummaryController @Inject()(
                 summaryList = aftSummaryHelper.summaryListData(ua, srn, startDate, accessType, version),
                 membersList = Seq(),
                 quarterEndDate = Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
-                quarterStartDate = startDate.format(dateFormatterDMY),
+                quarterStartDate = startDate.format(dateFormatterStartDate),
                 radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
-                returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                searchHint = hint,
-                searchUrl = controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version),
-                schemeName = schemeDetails.schemeName,
                 submissionNumber = getSubmissionNumber(schemeDetails.schemeName, version),
-                submitCall = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, version),
                 summarySearchHeadingText = summarySearchHeadingText(formWithErrors),
-                viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType)
+                viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType),
+                viewModel
               )))
             },
             value => {
@@ -184,9 +193,9 @@ class AFTSummaryController @Inject()(
                   action.items
                 )
               )
-              // TODO - update listValue
+              val viewModel = getAftSummaryViewModel(srn, startDate, version, accessType, schemeDetails.schemeName)
+
               Future.successful(Ok(aftSummaryView(
-                aftSummaryURL = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
                 btnText = btnText(preparedForm),
                 canChange = request.isEditable,
                 form = form,
@@ -194,25 +203,18 @@ class AFTSummaryController @Inject()(
                 summaryList = aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate, accessType, version),
                 membersList = memberSearchService.search(ua, srn, startDate, value, accessType, version),
                 quarterEndDate = Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
-                quarterStartDate = startDate.format(dateFormatterDMY),
+                quarterStartDate = startDate.format(dateFormatterStartDate),
                 radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
-                returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                searchHint = hint,
-                searchUrl = controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version),
-                schemeName = schemeDetails.schemeName,
                 submissionNumber = getSubmissionNumber(schemeDetails.schemeName, version),
-                submitCall = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, version),
                 summarySearchHeadingText = summarySearchHeadingText(preparedForm),
-                viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType)
+                viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType),
+                viewModel
               )))
             }
           )
       }
     }
 
-
-  //TODO - need 2 different submitCall values?
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
@@ -223,9 +225,9 @@ class AFTSummaryController @Inject()(
           .fold(
             formWithErrors => {
               val ua = request.userAnswers
+              val viewModel = getAftSummaryViewModel(srn, startDate, version, accessType, schemeName)
 
               Future.successful(BadRequest(aftSummaryView(
-                aftSummaryURL = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
                 btnText = btnText(memberSearchForm),
                 canChange = request.isEditable,
                 form = formWithErrors,
@@ -233,17 +235,12 @@ class AFTSummaryController @Inject()(
                 summaryList = aftSummaryHelper.summaryListData(ua, srn, startDate, accessType, version),
                 membersList = Seq(),
                 quarterEndDate = Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
-                quarterStartDate = startDate.format(dateFormatterDMY),
+                quarterStartDate = startDate.format(dateFormatterStartDate),
                 radios = TwirlMigration.toTwirlRadios(Radios.yesNo(formWithErrors("value"))),
-                returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                searchHint = hint,
-                searchUrl = controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version),
-                schemeName = schemeName,
                 submissionNumber = getSubmissionNumber(schemeName, version),
-                submitCall = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, version),
                 summarySearchHeadingText = summarySearchHeadingText(memberSearchForm),
-                viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType)
+                viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType),
+                viewModel
               )))
             },
             value => {
@@ -266,4 +263,6 @@ class AFTSummaryController @Inject()(
       case _ => "Submission" + ' ' + version
     }
   }
+
+
 }

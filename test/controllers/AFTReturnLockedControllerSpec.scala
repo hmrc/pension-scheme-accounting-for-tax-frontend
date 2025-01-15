@@ -37,6 +37,7 @@ import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import views.html.AFTReturnLockedView
 
 import scala.concurrent.Future
 
@@ -67,24 +68,18 @@ class AFTReturnLockedControllerSpec extends ControllerSpecBase with MockitoSugar
 
       val application = applicationBuilder(userAnswers = data, extraModules).overrides().build()
       val request = FakeRequest(GET, getRoute)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[AFTReturnLockedView].apply(
+        controllers.routes.AFTLoginController.onPageLoad(srn).url,
+        controllers.routes.AFTReturnLockedController.onClick(srn, startDate).url,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "schemeName" -> schemeName,
-        "selectAnotherUrl" -> controllers.routes.AFTLoginController.onPageLoad(srn).url,
-        "returnUrl" -> controllers.routes.AFTReturnLockedController.onClick(srn, startDate).url
-      )
-
-      templateCaptor.getValue mustEqual "aftReturnLocked.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
+      compareResultAndView(result, view)
       application.stop()
     }
 

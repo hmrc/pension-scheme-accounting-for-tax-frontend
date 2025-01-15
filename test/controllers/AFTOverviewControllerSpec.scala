@@ -39,6 +39,7 @@ import services.{QuartersService, SchemeService}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.{AFTOverviewView, AccessibilityView}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -90,10 +91,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
   "AFT Overview Controller" must {
 
     "must return OK and the correct view for a GET" in {
-
       val srn = "test-srn"
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val aftOverviewTemplate = "aftOverview.njk"
 
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
@@ -102,10 +100,19 @@ class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport
 
       val result = route(application, httpGETRequest(httpPathGET(srn))).value
       status(result) mustEqual OK
-      
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
-      templateCaptor.getValue mustEqual aftOverviewTemplate
+      val view = application.injector.instanceOf[AFTOverviewView].apply(
+        schemeName = schemeDetails.schemeName,
+        newAftUrl = routes.YearsController.onPageLoad(srn).url,
+        outstandingAmount = "£3,087.15",
+        paymentsAndChargesUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/financial-overview/accounting-for-tax/select-charges-year",
+        quartersInProgress = Seq(),
+        pastYearsAndQuarters = Seq(),
+        viewAllPastAftsUrl = "",
+        returnUrl = dummyCall.url
+      )(httpGETRequest(httpPathGET(srn)), messages)
+
+      compareResultAndView(result, view)
     }
 
 

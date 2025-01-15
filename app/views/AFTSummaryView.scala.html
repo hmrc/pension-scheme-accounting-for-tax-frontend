@@ -15,6 +15,7 @@
  *@
 
 @import services.MemberSearchService.MemberRow
+@import viewmodels.AFTSummaryViewModel
 
 @this(
     layout: templates.Layout,
@@ -27,7 +28,7 @@
     inputSearch: InputSearch
 )
 
-@(aftSummaryURL: String,
+@(
     btnText: String,
     canChange: Boolean,
     form: Form[Boolean],
@@ -37,15 +38,10 @@
     quarterEndDate: String,
     quarterStartDate: String,
     radios: Seq[RadioItem],
-    returnHistoryURL: String,
-    returnUrl: String,
-    searchHint: Hint,
-    searchUrl: Call,
-    schemeName: String,
     submissionNumber: String,
-    submitCall: Call,
     summarySearchHeadingText: String,
-    viewAllAmendmentsLink: Option[Html]
+    viewAllAmendmentsLink: Option[Html],
+    viewModel: AFTSummaryViewModel
 )(implicit request: Request[_], messages: Messages)
 
 @resultText = {
@@ -65,18 +61,18 @@
             )
         )
 
-        @formHelper(action = searchUrl, Symbol("autoComplete") -> "off") {
+        @formHelper(action = viewModel.searchUrl, Symbol("autoComplete") -> "off") {
             @inputSearch(
                 id = "searchText",
                 value = memberSearchForm.value,
                 errorMessage = memberSearchForm("searchText").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
                 btnText = btnText,
-                searchHint = searchHint
+                searchHint = viewModel.searchHint
             )
 
             @if(memberSearchForm.value) {
                 <p class="govuk-body  govuk-!-margin-bottom-6">
-                    <a class="govuk-link" href=@aftSummaryURL>
+                    <a class="govuk-link" href=@{viewModel.aftSummaryURL}>
                         @messages("aft.summary.search.clearSearch")
                     </a>
                 </p>
@@ -110,7 +106,6 @@
                                            href=@{item.href}><span aria-hidden="true">@{item.content.asHtml}</span>
                                             <span class="govuk-visually-hidden">@{item.content.asHtml} @{row.name}</span>
                                         </a>
-
                                     }
                                 }
                             </p>
@@ -121,7 +116,7 @@
             }
         }
 
-        @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+        @formHelper(action = viewModel.submitCall, Symbol("autoComplete") -> "off") {
             @if(viewAllAmendmentsLink) {
                 <p class="govuk-body">
                     @viewAllAmendmentsLink
@@ -157,12 +152,12 @@
             }
         }
 
-        @if(returnHistoryURL) {
+        @if(viewModel.returnHistoryURL) {
             <p class="govuk-body govuk-!-margin-bottom-5">
-                <a href=@returnHistoryURL class="govuk-link">@messages("viewAllSubmissionsForReturn")</a>
+                <a href=@{viewModel.returnHistoryURL} class="govuk-link">@messages("viewAllSubmissionsForReturn")</a>
             </p>
         }
 
-        <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
+        <p class="govuk-body"> <a href=@{viewModel.returnUrl} class="govuk-link">@messages("return.to.link", viewModel.schemeName)</a>
     </div>
 }
