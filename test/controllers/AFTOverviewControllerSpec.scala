@@ -27,8 +27,7 @@ import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -38,13 +37,12 @@ import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import views.html.{AFTOverviewView, AccessibilityView}
+import views.html.AFTOverviewView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AFTOverviewControllerSpec extends ControllerSpecBase  with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   private def httpPathGET(srn: String): String = {
     routes.AFTOverviewController.onPageLoad(srn).url

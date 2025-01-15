@@ -41,7 +41,6 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow}
 
 import java.time.LocalDate
-import scala.reflect.internal.util.NoSourceFile.content
 
 class AFTSummaryHelperSpec extends SpecBase with Matchers with MockitoSugar with BeforeAndAfterEach {
 

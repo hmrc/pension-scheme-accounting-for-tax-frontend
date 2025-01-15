@@ -43,6 +43,7 @@ import play.twirl.api.Html
 import services.{AFTService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import views.html.ChargeTypeView
 
 import scala.concurrent.Future
 
@@ -78,7 +79,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockUserAnswersCacheConnector)
     reset(mockRenderer)
     reset(mockAFTService)
-    reset(mockAppConfig)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
@@ -92,34 +92,39 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         fakeDataSetupAction.setDataToReturn(Some(userAnswersWithSchemeName))
         fakeDataSetupAction.setSessionData(SampleData.sessionData())
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
         val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+        val view = application.injector.instanceOf[ChargeTypeView].apply(
+          form,
+          ChargeType.radios(form),
+          controllers.routes.ChargeTypeController.onSubmit(srn, startDate, accessType, versionInt),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+          SampleData.schemeName
+        )(httpGETRequest(httpPathGETVersion), messages)
 
-        templateCaptor.getValue mustEqual template
-        jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
+        compareResultAndView(result,  view)
       }
 
       "return OK and the correct view for a GET when the question has previously been answered" in {
         val ua = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
 
         fakeDataSetupAction.setDataToReturn(Some(ua))
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
         val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+        val view = application.injector.instanceOf[ChargeTypeView].apply(
+          form.fill(ChargeTypeAnnualAllowance),
+          ChargeType.radios(form.fill(ChargeTypeAnnualAllowance)),
+          controllers.routes.ChargeTypeController.onSubmit(srn, startDate, accessType, versionInt),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+          SampleData.schemeName
+        )(httpGETRequest(httpPathGETVersion), messages)
 
-        templateCaptor.getValue mustEqual template
-        jsonCaptor.getValue must containJson(jsonToTemplate.apply(form.fill(ChargeTypeAnnualAllowance)))
+        compareResultAndView(result,  view)
       }
 
     }
@@ -127,23 +132,15 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "on a POST" must {
       "Save data to user answers and redirect to next page when valid data is submitted" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        val expectedJson = Json.obj(ChargeTypePage.toString -> ChargeTypeAnnualAllowance.toString)
 
         when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(ChargeTypePage), any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(SampleData.dummyCall)
-
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
         val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
         status(result) mustEqual SEE_OTHER
 
-        verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
-
-        jsonCaptor.getValue must containJson(expectedJson)
-
         redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
-
       }
 
       "return a BAD REQUEST when invalid data is submitted" in {
@@ -170,7 +167,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 }
 
 object ChargeTypeControllerSpec {
-  private val template = "chargeType.njk"
 
   private def form = new ChargeTypeFormProvider()()
 

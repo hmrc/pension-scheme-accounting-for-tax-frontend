@@ -25,17 +25,16 @@ import helpers.{AFTSummaryHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, AccessMode, GenericViewModel, MemberDetails, Quarters, UserAnswers}
+import models.{AFTQuarter, AccessMode, MemberDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import pages._
-import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.{Html => TwirlHtml}
@@ -43,13 +42,12 @@ import services.MemberSearchService.MemberRow
 import services.{AFTService, MemberSearchService, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.AFTConstants.QUARTER_END_DATE
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.{AFTSummaryViewModel, Radios}
 import views.html.AFTSummaryView
 import uk.gov.hmrc.govukfrontend.views.html.components.{Hint => GovukHint}
 import utils.TwirlMigration
-import helpers.AFTSummaryHelper
 
 import scala.concurrent.Future
 

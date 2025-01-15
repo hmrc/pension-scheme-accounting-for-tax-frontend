@@ -19,7 +19,8 @@ package models
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.mvc.JavascriptLiteral
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 
 sealed trait ChargeType
 
@@ -65,20 +66,20 @@ object ChargeType extends Enumerable.Implicits {
     ChargeTypeLumpSumDeath
   )
 
-  def radios(form: Form[_]): Seq[Radios.Item] = {
+  def radios(form: Form[_])(implicit messages: Messages): Seq[RadioItem] = {
 
     val field = form("value")
     val items = Seq(
-      Radios.Radio(msg"chargeType.radio.annualAllowance", ChargeTypeAnnualAllowance.toString),
-      Radios.Radio(msg"chargeType.radio.authSurplus", ChargeTypeAuthSurplus.toString),
-      Radios.Radio(msg"chargeType.radio.deRegistration", ChargeTypeDeRegistration.toString),
-      Radios.Radio(msg"chargeType.radio.lifeTimeAllowance", ChargeTypeLifetimeAllowance.toString),
-      Radios.Radio(msg"chargeType.radio.overseasTransfer", ChargeTypeOverseasTransfer.toString),
-      Radios.Radio(msg"chargeType.radio.shortService", ChargeTypeShortService.toString),
-      Radios.Radio(msg"chargeType.radio.lumpSumDeath", ChargeTypeLumpSumDeath.toString)
+      RadioItem(Text(messages("chargeType.radio.annualAllowance")), value = Some(ChargeTypeAnnualAllowance.toString)),
+      RadioItem(Text(messages("chargeType.radio.authSurplus")), value = Some(ChargeTypeAuthSurplus.toString)),
+      RadioItem(Text(messages("chargeType.radio.deRegistration")), value = Some(ChargeTypeDeRegistration.toString)),
+      RadioItem(Text(messages("chargeType.radio.lifeTimeAllowance")), value = Some(ChargeTypeLifetimeAllowance.toString)),
+      RadioItem(Text(messages("chargeType.radio.overseasTransfer")), value = Some(ChargeTypeOverseasTransfer.toString)),
+      RadioItem(Text(messages("chargeType.radio.shortService")), value = Some(ChargeTypeShortService.toString)),
+      RadioItem(Text(messages("chargeType.radio.lumpSumDeath")), value = Some(ChargeTypeLumpSumDeath.toString))
     )
 
-    Radios(field, items)
+    items
   }
 
   def fileUploadText(chargeType: ChargeType)(implicit messages: Messages): String = {
