@@ -23,7 +23,7 @@ import forms.chargeC.SponsoringIndividualDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, MemberDetails, NormalMode, UserAnswers}
+import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -31,7 +31,6 @@ import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.SponsoringIndividualDetailsPage
 import play.api.Application
-import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import views.html.chargeC.SponsoringIndividualDetailsView

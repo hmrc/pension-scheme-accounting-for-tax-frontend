@@ -27,12 +27,13 @@
 @(chargeName: String,
     list: Seq[SummaryListRow],
     canChange: Boolean,
-    removeChargeUrl: Option[String],
-    showAnotherSchemeBtn: Boolean,
-    selectAnotherSchemeUrl: String,
-    returnToSummaryLink: String,
+    removeChargeUrl: Option[String] = None,
+    showAnotherSchemeBtn: Boolean = false,
+    selectAnotherSchemeUrl: String = "",
+    returnToSummaryLink: String = "",
     returnUrl: String,
-    schemeName: String
+    schemeName: String,
+    submitUrl: String
 )(implicit request: Request[_], messages: Messages)
 
 @layout(messages("checkYourAnswers.title", messages(chargeName).toLowerCase())) {
@@ -66,7 +67,9 @@
             }
 
             @govukButton(
-                ButtonViewModel(Text(messages("site.save_charge_and_continue"))).asFormSubmit
+                ButtonViewModel(Text(messages("site.save_charge_and_continue")))
+                    .asLink(submitUrl)
+                    .withAttribute(("id", "submit"))
             )
 
         } else {

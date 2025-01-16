@@ -24,19 +24,18 @@ import forms.ChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{ChargeType, Enumerable, GenericViewModel, UserAnswers}
+import models.{ChargeType, Enumerable, UserAnswers}
 import models.requests.IdentifierRequest
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.ChargeTypePage
 import play.api.Application
-import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers._
 import play.twirl.api.Html
@@ -65,14 +64,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private val jsonToTemplate: Form[ChargeType] => JsObject = form => Json.obj(
-    fields = "form" -> form,
-    "radios" -> ChargeType.radios(form),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.ChargeTypeController.onSubmit(srn, startDate, accessType, versionInt).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      schemeName = SampleData.schemeName)
-  )
 
   override def beforeEach(): Unit = {
     super.beforeEach()

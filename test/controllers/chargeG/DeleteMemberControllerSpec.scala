@@ -61,8 +61,6 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
 
-  private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, startDate, accessType, versionInt, 0).url
-
   private val pstr = "test pstr"
 
   private def userAnswers = userAnswersWithSchemeNamePstrQuarter

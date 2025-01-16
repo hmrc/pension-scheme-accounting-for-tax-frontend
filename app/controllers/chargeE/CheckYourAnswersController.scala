@@ -76,14 +76,14 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             "chargeE",
             helper.rows(request.isViewOnly, seqRows),
             !request.isViewOnly,
-            None,
             showAnotherSchemeBtn = (pensionsSchemeSize < 5 && wasAnotherPensionSchemeVal),
-            controllers.mccloud.routes.AddAnotherPensionSchemeController
+            selectAnotherSchemeUrl = controllers.mccloud.routes.AddAnotherPensionSchemeController
               .onPageLoad(ChargeType.ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsSchemeSize - 1)
               .url,
-            controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
-            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName
+            returnToSummaryLink = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName = schemeName,
+            submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version, index).url
           )))
       }
     }

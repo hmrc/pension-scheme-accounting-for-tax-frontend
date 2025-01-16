@@ -21,7 +21,6 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-import models.financialStatement.SchemeFSDetail
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -92,9 +91,6 @@ class SchemeFinancialOverviewControllerSpec
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseAftAndOTC.seqSchemeFSDetail)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseAftAndOTC.seqSchemeFSDetail)
-
-
-
   }
 
   "SchemeFinancial Controller" when {

@@ -34,7 +34,6 @@ import pages._
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.{Html => TwirlHtml}
@@ -78,42 +77,13 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
     reset(mockUserAnswersCacheConnector)
     reset(mockRenderer)
     reset(mockAFTService)
-//    reset(mockAppConfig)
     reset(mockMemberSearchService)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(TwirlHtml("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(testManagePensionsUrl.url)
     when(mockAFTSummaryHelper.summaryListData(any(), any(), any(), any(), any())(any())).thenReturn(Nil)
-    when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(emptyHtml)
   }
-
-//  private def jsonToPassToTemplate(version: Option[String], includeReturnHistoryLink: Boolean, isAmendment: Boolean): Form[Boolean] => JsObject = { form =>
-//    val returnHistoryJson = if (includeReturnHistoryLink) {
-//      Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
-//    } else {
-//      Json.obj()
-//    }
-//
-//    val amendmentsLink = if (isAmendment) Json.obj("viewAllAmendmentsLink" -> emptyHtml.toString()) else Json.obj()
-//
-//    Json.obj(
-//      "srn" -> srn,
-//      "startDate" -> Some(localDateToString(startDate)),
-//      "form" -> form,
-//      "list" -> Nil,
-//      "isAmendment" -> isAmendment,
-//      "viewModel" -> GenericViewModel(
-//        submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url,
-//        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-//        schemeName = SampleData.schemeName
-//      ),
-//      "quarterStartDate" -> startDate.format(dateFormatterStartDate),
-//      "quarterEndDate" -> QUARTER_END_DATE.format(dateFormatterDMY),
-//      "canChange" -> true,
-//      "radios" -> Radios.yesNo(form("value"))
-//    ) ++ returnHistoryJson ++ amendmentsLink
-//  }
 
   private val viewModel = AFTSummaryViewModel(
     aftSummaryURL = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt).url,
@@ -200,6 +170,13 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
       }
 
       "include the view all amendments link in json passed to page when there are submitted versions available" in {
+        val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, version2Int).url
+
+        val linkText = messages("allAmendments.view.changes.draft.link")
+
+        val viewAllAmendmentsLink = TwirlHtml(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin)
+
+        when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(viewAllAmendmentsLink)
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataSetupAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataSetupAction.setSessionData(
@@ -213,14 +190,6 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
         )
 
         val result = route(application, httpGETRequest(httpPathGET)).value
-
-        val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, version2Int).url
-
-        val linkText = messages("allAmendments.view.changes.draft.link")
-
-        val viewAllAmendmentsLink = TwirlHtml(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin)
-
-        when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(viewAllAmendmentsLink)
 
         val view = application.injector.instanceOf[AFTSummaryView].apply(
           btnText = messages("aft.summary.search.button"),
@@ -249,6 +218,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
       "redirect to next page when user selects yes" in {
         when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(SampleData.dummyCall)
+        when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(emptyHtml)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
         fakeDataSetupAction.setDataToReturn(userAnswers)
@@ -338,10 +308,6 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
         )(httpGETRequest(httpPathGET), messages)
 
         compareResultAndView(result, view)
-
-        val expectedJson = Json.obj(
-          "list" ->
-            Json.toJson(searchResult))
       }
     }
   }

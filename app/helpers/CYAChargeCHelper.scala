@@ -64,7 +64,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
     Seq(
       SummaryListRow(
         key = Key(Text(messages("chargeC.sponsoringIndividualName.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
-        value = Value(Text("${answer.fullName}")),
+        value = Value(Text(s"${answer.fullName}")),
         actions = Some(
           Actions(
             items = Seq(ActionItem(
@@ -79,7 +79,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
       ),
       SummaryListRow(
         key = Key(Text(messages("chargeC.sponsoringIndividualNino.checkYourAnswersLabel", answer.fullName)), classes = "govuk-!-width-one-half"),
-        value = Value(Text("${answer.nino}")),
+        value = Value(Text(s"${answer.nino}")),
         actions = Some(
           Actions(
             items = Seq(ActionItem(
@@ -99,7 +99,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
     Seq(
       SummaryListRow(
         key = Key(Text(messages("chargeC.sponsoringOrganisationName.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
-        value = Value(Text("${answer.name}")),
+        value = Value(Text(s"${answer.name}")),
         actions = Some(
           Actions(
             items = Seq(ActionItem(
@@ -114,7 +114,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
       ),
       SummaryListRow(
         key = Key(Text(messages("chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel", answer.name)), classes = "govuk-!-width-one-half"),
-        value = Value(Text("${answer.crn}")),
+        value = Value(Text(s"${answer.crn}")),
         actions = Some(
           Actions(
             items = Seq(ActionItem(

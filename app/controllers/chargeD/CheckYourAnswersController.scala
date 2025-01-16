@@ -26,15 +26,14 @@ import helpers.{CYAChargeDHelper, ChargeServiceHelper}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
-import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{AccessType, ChargeType, CheckMode, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
 import pages.mccloud.SchemePathHelper
 import pages.{MemberFormCompleted, PSTRQuery, QuarterPage, ViewOnlyAccessiblePage}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.JsArray
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -54,7 +53,6 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            config: FrontendAppConfig,
                                            val controllerComponents: MessagesControllerComponents,
                                            chargeServiceHelper: ChargeServiceHelper,
-                                           renderer: Renderer,
                                            checkYourAnswersView: CheckYourAnswersView)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -76,38 +74,18 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           helper.psprSchemesChargeDetails(index, pensionsRemedySummary, wasAnotherPensionSchemeVal)
         ).flatten
 
-        renderer
-          .render(
-            "check-your-answers.njk",
-            Json.obj(
-              "list" -> helper.rows(request.isViewOnly, seqRows),
-              "viewModel" -> GenericViewModel(
-                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              ),
-              "selectAnotherSchemeUrl" -> controllers.mccloud.routes.AddAnotherPensionSchemeController
-                .onPageLoad(ChargeType.ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsSchemeSize - 1)
-                .url,
-              "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
-              "chargeName" -> "chargeD",
-              "showAnotherSchemeBtn" -> (pensionsSchemeSize < 5 && wasAnotherPensionSchemeVal),
-              "canChange" -> !request.isViewOnly
-            )
-          )
-          .map(Ok(_))
         Future.successful(Ok(checkYourAnswersView(
           "chargeD",
           helper.rows(request.isViewOnly, seqRows),
           !request.isViewOnly,
-          None,
-          pensionsSchemeSize < 5 && wasAnotherPensionSchemeVal,
-          controllers.mccloud.routes.AddAnotherPensionSchemeController
+          showAnotherSchemeBtn = pensionsSchemeSize < 5 && wasAnotherPensionSchemeVal,
+          selectAnotherSchemeUrl = controllers.mccloud.routes.AddAnotherPensionSchemeController
             .onPageLoad(ChargeType.ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsSchemeSize - 1)
             .url,
-          controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
-          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName
+          returnToSummaryLink = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName = schemeName,
+          submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version, index).url
         )))
       }
     }

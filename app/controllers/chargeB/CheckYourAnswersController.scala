@@ -62,11 +62,10 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             helper.rows(request.isViewOnly, seqRows),
             !request.isViewOnly,
             Some(getDeleteChargeUrl(srn, startDate, accessType, version)),
-            showAnotherSchemeBtn = false,
-            "",
-            controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
-            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName
+            returnToSummaryLink = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName = schemeName,
+            submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version).url
           )))
       }
     }
