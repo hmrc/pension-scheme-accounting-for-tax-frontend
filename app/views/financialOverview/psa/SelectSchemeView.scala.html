@@ -28,22 +28,20 @@
 
 <div>
 
+    <h1 class = "govuk-fieldset__legend--l govuk-!-margin-bottom-4">@messages("selectScheme.title", typeParam)</h1>
+
     @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
         @govukRadios(
             RadiosViewModel(
                 form("value"),
                 radios,
                 Fieldset(
-                    legend = Some(Legend(content = Text(messages("selectScheme.title", typeParam)), isPageHeading = true,
-                        classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4"
+                    legend = Some(Legend(content = Text(messages("selectScheme.text")), isPageHeading = false,
+                        classes = "govuk-body govuk-!-margin-bottom-4"
                 ))
             )
         )
     )
-
-    <p class="govuk-body">@messages("selectScheme.text")</p>
-    <p class="govuk-body">This is not permanent and must be adjusted.</p>
-
 
     @govukButton(
         ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
