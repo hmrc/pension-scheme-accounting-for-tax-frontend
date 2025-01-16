@@ -18,7 +18,7 @@ package controllers.financialOverview.psa
 
 import controllers.actions._
 import helpers.FormatHelper
-import models.ChargeDetailsFilter.All
+import models.ChargeDetailsFilter.{All, Upcoming}
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, Quarters}
@@ -26,8 +26,8 @@ import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.financialOverview.psa.PsaPenaltiesAndChargesService
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
 
@@ -73,6 +73,12 @@ class AllPenaltiesAndChargesController @Inject()(
           psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
             request.idOrException, filteredPenalties, All) flatMap { table =>
 
+            val penaltiesTable: Table = if (journeyType == Upcoming) {
+              removePaymentStatusColumn(table)
+            } else {
+              table
+            }
+
             Future.successful(Ok(view(
               journeyType = journeyType,
               psaName = penaltiesCache.psaName,
@@ -83,8 +89,8 @@ class AllPenaltiesAndChargesController @Inject()(
               totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestCharges)}",
               totalUpcomingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",
               totalOutstandingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
-              penaltiesTable = table,
-              paymentAndChargesTable = table,
+              penaltiesTable = penaltiesTable,
+              paymentAndChargesTable = penaltiesTable,
             )))
           }
         } else {
@@ -117,6 +123,12 @@ class AllPenaltiesAndChargesController @Inject()(
           psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
             request.idOrException, filteredPenalties, All) flatMap { table =>
 
+            val penaltiesTable: Table = if (journeyType == Upcoming) {
+              removePaymentStatusColumn(table)
+            } else {
+              table
+            }
+
             Future.successful(Ok(view(
               journeyType = journeyType.toString,
               psaName = penaltiesCache.psaName,
@@ -127,8 +139,8 @@ class AllPenaltiesAndChargesController @Inject()(
               totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestCharges)}",
               totalUpcomingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",
               totalOutstandingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
-              penaltiesTable = table,
-              paymentAndChargesTable = table,
+              penaltiesTable = penaltiesTable,
+              paymentAndChargesTable = penaltiesTable,
             )))
           }
         } else {
@@ -137,4 +149,15 @@ class AllPenaltiesAndChargesController @Inject()(
         }
       }
     }
+
+  private val removePaymentStatusColumn: Table => Table = table => {
+    Table(caption = table.caption,
+      captionClasses = table.captionClasses,
+      firstCellIsHeader = table.firstCellIsHeader,
+      head = Some(table.head.getOrElse(Seq()).take(table.head.size - 1)),
+      rows = table.rows.map(p => p.take(p.size - 1)),
+      classes = table.classes,
+      attributes = table.attributes
+    )
+  }
 }

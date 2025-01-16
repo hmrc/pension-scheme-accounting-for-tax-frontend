@@ -34,6 +34,6 @@ case class ChargeDetailsViewModel(
                                    returnHistoryUrl: String,
                                    paymentDueAmount: Option[String] = None,
                                    paymentDueDate: Option[String] = None,
-                                   chargeAmountDetails: Option[Seq[Table]] = None,
+                                   chargeAmountDetails: Option[Table] = None,
                                    hintText: Option[String] = None,
                                  )

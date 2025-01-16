@@ -218,7 +218,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       penaltyAmount = psaFSDetail.totalAmount,
       insetText = setInsetTextNew(psaFSDetail, interestUrl, originalChargeUrl),
       chargeHeaderDetails = Some(psaPenaltiesAndChargesService.chargeHeaderDetailsRows(psaFSDetail)),
-      chargeAmountDetails = Some(Seq(psaPenaltiesAndChargesService.chargeAmountDetailsRows(psaFSDetail))),
+      chargeAmountDetails = Some(psaPenaltiesAndChargesService.chargeAmountDetailsRows(psaFSDetail)),
       isInterestPresent = isInterestPresent,
       returnUrl = getReturnUrl(psaFSDetail, penaltyType, journeyType),
       returnUrlText = getReturnUrlText(psaFSDetail, penaltyType, journeyType)

@@ -35,7 +35,7 @@ case class PsaChargeDetailsViewModel(
                                    isInterestPresent: Boolean,
                                    list: Option[Seq[SummaryListRow]] = None,
                                    chargeHeaderDetails: Option[Seq[SummaryListRow]] = None,
-                                   chargeAmountDetails: Option[Seq[Table]] = None,
+                                   chargeAmountDetails: Option[Table] = None,
                                    returnUrl: String,
                                    returnUrlText: String
                                  )

@@ -402,17 +402,17 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   def chargeAmountDetailsRowsV2(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): Table = {
 
-    val headRow = Seq(
+    val headRow = scala.collection.immutable.Seq(
       HeadCell(Text(Messages("pension.scheme.chargeAmount.label.new"))),
       HeadCell(Text("")),
       HeadCell(Text(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.totalAmount)}"), classes = "govuk-!-font-weight-regular govuk-!-text-align-right")
     )
 
-    val rows = schemeFSDetail.documentLineItemDetails map { documentLineItemDetail => {
+    val rows = schemeFSDetail.documentLineItemDetails.map { documentLineItemDetail => {
         if (documentLineItemDetail.clearedAmountItem > 0) {
           getClearingDetailLabelV2(documentLineItemDetail) match {
             case Some(clearingDetailsValue) =>
-              Seq(
+              scala.collection.immutable.Seq(
                 TableRow(clearingDetailsValue, classes = "govuk-!-font-weight-bold govuk-!-width-one-half"),
                 TableRow(Text(getChargeDateV2(documentLineItemDetail))),
                 TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"),
@@ -427,7 +427,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
 
     val stoodOverAmountRow = if (schemeFSDetail.stoodOverAmount > 0) {
-      Seq(Seq(
+      scala.collection.immutable.Seq(scala.collection.immutable.Seq(
         TableRow(Text(Messages("paymentsAndCharges.chargeDetails.stoodOverAmount")), classes = "govuk-!-font-weight-bold"),
         TableRow(Text("")),
         TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.stoodOverAmount)}"),

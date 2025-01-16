@@ -60,23 +60,16 @@
         )
     </p>
 
-        <div class="govuk-grid-row">
-            <div class="govuk-grid-column-one-half">
-                <h2 class="govuk-heading-l">
-                    @messages("psa.pension.scheme.charge.details.new")
-                </h2>
-            </div>
-        </div>
-
+    @if(model.chargeAmountDetails.isDefined) {
         <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
-            @govukTable(
-                Table(
-                    rows = model.chargeAmountDetails
-                        .getOrElse(Seq.empty)
-                        .flatMap(_.rows)
-                )
-            )
+            <h2 class="govuk-heading-l">
+                    @messages("psa.pension.scheme.charge.details.new")
+            </h2>
+                @model.chargeAmountDetails.map { table =>
+                    @govukTable(table)
+                }
         </div>
+    }
 
         @if(model.isInterestPresent) {
             @govukInsetText(

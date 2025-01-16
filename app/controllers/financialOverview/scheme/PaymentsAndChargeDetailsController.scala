@@ -190,7 +190,7 @@ class PaymentsAndChargeDetailsController @Inject()(
         },
         isPaymentOverdue = isPaymentOverdue(schemeFSDetail),
         paymentDueDate = Some(paymentDueDate(schemeFSDetail)),
-        chargeAmountDetails = Some(Seq(paymentsAndChargesService.chargeAmountDetailsRowsV2(schemeFSDetail))),
+        chargeAmountDetails = Some(paymentsAndChargesService.chargeAmountDetailsRowsV2(schemeFSDetail)),
         paymentDueAmount = Some(paymentDueAmountCharges(schemeFSDetail)),
         insetText = setInsetTextV2(isChargeAssigned, schemeFSDetail, interestUrl),
         interest = Some(schemeFSDetail.accruedInterestTotal),
