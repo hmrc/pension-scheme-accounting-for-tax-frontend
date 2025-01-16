@@ -24,21 +24,21 @@ import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeEHelper, ChargeServiceHelper}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{AccessType, ChargeType, CheckMode, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{MemberFormCompleted, ViewOnlyAccessiblePage}
 import pages.chargeE.{CheckYourAnswersPage, TotalChargeAmountPage}
 import pages.mccloud.SchemePathHelper
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.JsArray
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.AFTService
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.CheckYourAnswersView
 
 class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
@@ -50,10 +50,9 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
                                            chargeServiceHelper: ChargeServiceHelper,
-                                           renderer: Renderer)(implicit ec: ExecutionContext)
+                                           checkYourAnswersView: CheckYourAnswersView)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
@@ -64,7 +63,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           val pensionsSchemeSize = pensionsSchemeCount(request.userAnswers, index)
           val wasAnotherPensionSchemeVal = pensionsRemedySummary.wasAnotherPensionScheme.getOrElse(false)
 
-          val seqRows: Seq[SummaryList.Row] = Seq(
+          val seqRows: Seq[SummaryListRow] = Seq(
             helper.isPsprForCharge(index, pensionsRemedySummary.isPublicServicePensionsRemedy),
             helper.chargeEMemberDetails(index, memberDetails),
             helper.chargeETaxYear(index, taxYear),
@@ -73,26 +72,19 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             helper.psprSchemesChargeDetails(index, pensionsRemedySummary, wasAnotherPensionSchemeVal)
           ).flatten
 
-          renderer
-            .render(
-              "check-your-answers.njk",
-              Json.obj(
-                "list" -> helper.rows(request.isViewOnly, seqRows),
-                "viewModel" -> GenericViewModel(
-                  submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version, index).url,
-                  returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                  schemeName = schemeName
-                ),
-                "selectAnotherSchemeUrl" -> controllers.mccloud.routes.AddAnotherPensionSchemeController
-                  .onPageLoad(ChargeType.ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsSchemeSize - 1)
-                  .url,
-                "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
-                "chargeName" -> "chargeE",
-                "showAnotherSchemeBtn" -> (pensionsSchemeSize < 5 && wasAnotherPensionSchemeVal),
-                "canChange" -> !request.isViewOnly
-              )
-            )
-            .map(Ok(_))
+          Future.successful(Ok(checkYourAnswersView(
+            "chargeE",
+            helper.rows(request.isViewOnly, seqRows),
+            !request.isViewOnly,
+            None,
+            showAnotherSchemeBtn = (pensionsSchemeSize < 5 && wasAnotherPensionSchemeVal),
+            controllers.mccloud.routes.AddAnotherPensionSchemeController
+              .onPageLoad(ChargeType.ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsSchemeSize - 1)
+              .url,
+            controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
+            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName
+          )))
       }
     }
 

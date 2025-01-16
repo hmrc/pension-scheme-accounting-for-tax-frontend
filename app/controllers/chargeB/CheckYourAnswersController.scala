@@ -17,30 +17,26 @@
 package controllers.chargeB
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import helpers.ErrorHelper.recoverFrom5XX
 import helpers.{CYAChargeBHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{AccessType, NormalMode}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import views.html.CheckYourAnswersView
 
-class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
-                                           override val messagesApi: MessagesApi,
+class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
                                            allowAccess: AllowAccessActionProvider,
@@ -49,10 +45,9 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
                                            deleteChargeHelper: DeleteChargeHelper,
-                                           renderer: Renderer)(implicit ec: ExecutionContext)
+                                           checkYourAnswersView: CheckYourAnswersView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
@@ -62,23 +57,17 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         val helper = new CYAChargeBHelper(srn, startDate, accessType, version)
         val seqRows = helper.chargeBDetails(chargeDetails)
 
-        renderer
-          .render(
-            "check-your-answers.njk",
-            Json.obj(
-              "list" -> helper.rows(request.isViewOnly, seqRows),
-              "viewModel" -> GenericViewModel(
-                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              ),
-              "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
-              "chargeName" -> "chargeB",
-              "removeChargeUrl" -> getDeleteChargeUrl(srn, startDate, accessType, version),
-              "canChange" -> !request.isViewOnly
-            )
-          )
-          .map(Ok(_))
+          Future.successful(Ok(checkYourAnswersView(
+            "chargeB",
+            helper.rows(request.isViewOnly, seqRows),
+            !request.isViewOnly,
+            Some(getDeleteChargeUrl(srn, startDate, accessType, version)),
+            showAnotherSchemeBtn = false,
+            "",
+            controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
+            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName
+          )))
       }
     }
 

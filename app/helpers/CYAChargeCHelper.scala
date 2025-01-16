@@ -21,9 +21,8 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.{AccessType, CheckMode, SponsoringEmployerType}
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Content, Html, _}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
 
 import java.time.LocalDate
 
@@ -31,7 +30,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
 
   def chargeCEmployerDetails(index: Int,
                              sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails]
-                            ): Seq[Row] =
+                            ): Seq[SummaryListRow] =
     sponsorDetails.fold(
       individual => chargeCIndividualDetails(index, individual),
       organisation => chargeCOrganisationDetails(index, organisation)
@@ -44,45 +43,51 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
       organisation => organisation.name
     )
 
-  def chargeCWhichTypeOfSponsoringEmployer(index: Int, answer: SponsoringEmployerType): Row =
-    Row(
-      key = Key(msg"chargeC.whichTypeOfSponsoringEmployer.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+  def chargeCWhichTypeOfSponsoringEmployer(index: Int, answer: SponsoringEmployerType): SummaryListRow =
+    SummaryListRow(
+      key = Key(Text(messages("chargeC.whichTypeOfSponsoringEmployer.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
       value = Value(typeOfSponsoringEmployer(answer)),
-      actions = List(
-        Action(
-          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-          href = controllers.chargeC.routes.WhichTypeOfSponsoringEmployerController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-          visuallyHiddenText = Some(Literal(
-            messages("site.edit") + " " + messages("chargeC.whichTypeOfSponsoringEmployer.visuallyHidden.checkYourAnswersLabel")
+      actions = Some(
+        Actions(
+          items = Seq(ActionItem(
+            content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.chargeC.routes.WhichTypeOfSponsoringEmployerController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+            visuallyHiddenText = Some(
+              messages("site.edit") + " " + messages("chargeC.whichTypeOfSponsoringEmployer.visuallyHidden.checkYourAnswersLabel")
+            )
           ))
       )
     )
     )
 
-  def chargeCIndividualDetails(index: Int, answer: models.MemberDetails): Seq[Row] = {
+  def chargeCIndividualDetails(index: Int, answer: models.MemberDetails): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"chargeC.sponsoringIndividualName.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(lit"${answer.fullName}"),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel")
+      SummaryListRow(
+        key = Key(Text(messages("chargeC.sponsoringIndividualName.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+        value = Value(Text("${answer.fullName}")),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(
+                messages("site.edit") + " " + messages("chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel")
+              )
             ))
           )
         )
       ),
-      Row(
-        key = Key(msg"chargeC.sponsoringIndividualNino.checkYourAnswersLabel".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-        value = Value(lit"${answer.nino}"),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel",answer.fullName)
+      SummaryListRow(
+        key = Key(Text(messages("chargeC.sponsoringIndividualNino.checkYourAnswersLabel", answer.fullName)), classes = "govuk-!-width-one-half"),
+        value = Value(Text("${answer.nino}")),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(
+                messages("site.edit") + " " + messages("chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel",answer.fullName)
+              )
             ))
           )
         )
@@ -90,30 +95,34 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
     )
   }
 
-  def chargeCOrganisationDetails(index: Int, answer: SponsoringOrganisationDetails): Seq[Row] = {
+  def chargeCOrganisationDetails(index: Int, answer: SponsoringOrganisationDetails): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"chargeC.sponsoringOrganisationName.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(lit"${answer.name}"),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel")
+      SummaryListRow(
+        key = Key(Text(messages("chargeC.sponsoringOrganisationName.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+        value = Value(Text("${answer.name}")),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(
+                messages("site.edit") + " " + messages("chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel")
+              )
             ))
           )
         )
       ),
-      Row(
-        key = Key(msg"chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel".withArgs(answer.name), classes = Seq("govuk-!-width-one-half")),
-        value = Value(lit"${answer.crn}"),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel", answer.name)
+      SummaryListRow(
+        key = Key(Text(messages("chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel", answer.name)), classes = "govuk-!-width-one-half"),
+        value = Value(Text("${answer.crn}")),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(
+                messages("site.edit") + " " + messages("chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel", answer.name)
+              )
             ))
           )
         )
@@ -124,59 +133,66 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
   def chargeCAddress(index: Int,
                      address: SponsoringEmployerAddress,
                      sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails])
-                    (implicit messages: Messages): Row =
-    Row(
-      key = Key(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)),
-        classes = Seq("govuk-!-width-one-half")),
+                    (implicit messages: Messages): SummaryListRow =
+    SummaryListRow(
+      key = Key(Text(messages("chargeC.sponsoringEmployerAddress.checkYourAnswersLabel", getEmployerName(index, sponsorDetails))),
+        classes = "govuk-!-width-one-half"),
       value = Value(addressAnswer(address)),
-      actions = List(
-        Action(
-          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-          href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-          visuallyHiddenText = Some(Literal(
-            messages("site.edit") + " " + messages("chargeC.sponsoringEmployerAddress.checkYourAnswersLabel", getEmployerName(index, sponsorDetails))
+      actions = Some(
+        Actions(
+          items = Seq(ActionItem(
+            content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+            visuallyHiddenText = Some(
+              messages("site.edit") + " " + messages("chargeC.sponsoringEmployerAddress.checkYourAnswersLabel", getEmployerName(index, sponsorDetails))
+            )
           ))
         )
       )
     )
 
-  def chargeCChargeDetails(index: Int, chargeDetails: ChargeCDetails): Seq[Row] =
+  def chargeCChargeDetails(index: Int, chargeDetails: ChargeCDetails): Seq[SummaryListRow] =
     Seq(
-      Row(
-        key = Key(msg"chargeC.paymentDate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(chargeDetails.paymentDate.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel")
+      SummaryListRow(
+        key = Key(Text(messages("chargeC.paymentDate.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+        value = Value(Text(chargeDetails.paymentDate.format(FormatHelper.dateFormatter)), classes = "govuk-!-width-one-quarter"),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(
+                messages("site.edit") + " " + messages("chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel")
+              )
             ))
           )
         )
       ),
-      Row(
-        key = Key(msg"chargeC.totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(chargeDetails.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
+      SummaryListRow(
+        key = Key(Text(messages("chargeC.totalTaxDue.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(chargeDetails.amountTaxDue)}"), classes = "govuk-!-width-one-quarter"),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(
+                messages("site.edit") + " " + messages("chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
+              )
             ))
+
           )
         )
       )
     )
 
-  private def typeOfSponsoringEmployer(answer: SponsoringEmployerType): Content =
+  private def typeOfSponsoringEmployer(answer: SponsoringEmployerType): Text =
     answer match {
-      case SponsoringEmployerTypeIndividual => msg"chargeC.whichTypeOfSponsoringEmployer.individual"
-      case SponsoringEmployerTypeOrganisation => msg"chargeC.whichTypeOfSponsoringEmployer.organisation"
+      case SponsoringEmployerTypeIndividual => Text(messages("chargeC.whichTypeOfSponsoringEmployer.individual"))
+      case SponsoringEmployerTypeOrganisation => Text(messages("chargeC.whichTypeOfSponsoringEmployer.organisation"))
     }
 
-  private def addressAnswer(addr: SponsoringEmployerAddress)(implicit messages: Messages): Html = {
+  private def addressAnswer(addr: SponsoringEmployerAddress)(implicit messages: Messages): HtmlContent = {
     def addrLineToHtml(l: String): String = s"""<span class="govuk-!-display-block">$l</span>"""
 
     def optionalAddrLineToHtml(optionalAddrLine: Option[String]): String = optionalAddrLine match {
@@ -184,7 +200,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
       case None => ""
     }
 
-    Html(
+    HtmlContent(
       addrLineToHtml(addr.line1) +
         addrLineToHtml(addr.line2) +
         optionalAddrLineToHtml(addr.line3) +

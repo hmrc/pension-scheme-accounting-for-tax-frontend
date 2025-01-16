@@ -36,11 +36,12 @@ import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.CheckYourAnswersView
 
 class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
@@ -53,10 +54,10 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            config: FrontendAppConfig,
                                            val controllerComponents: MessagesControllerComponents,
                                            chargeServiceHelper: ChargeServiceHelper,
-                                           renderer: Renderer)(implicit ec: ExecutionContext)
+                                           renderer: Renderer,
+                                           checkYourAnswersView: CheckYourAnswersView)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
@@ -66,7 +67,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         val pensionsSchemeSize = pensionsSchemeCount(request.userAnswers, index)
         val wasAnotherPensionSchemeVal = pensionsRemedySummary.wasAnotherPensionScheme.getOrElse(false)
 
-        val seqRows: Seq[SummaryList.Row] = Seq(
+        val seqRows: Seq[SummaryListRow] = Seq(
           helper.isPsprForChargeD(isPsrAlwaysTrue(request.userAnswers), index, pensionsRemedySummary.isPublicServicePensionsRemedy),
           helper.chargeDMemberDetails(index, memberDetails),
           helper.chargeDDetails(index, chargeDetails),
@@ -95,6 +96,19 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             )
           )
           .map(Ok(_))
+        Future.successful(Ok(checkYourAnswersView(
+          "chargeD",
+          helper.rows(request.isViewOnly, seqRows),
+          !request.isViewOnly,
+          None,
+          pensionsSchemeSize < 5 && wasAnotherPensionSchemeVal,
+          controllers.mccloud.routes.AddAnotherPensionSchemeController
+            .onPageLoad(ChargeType.ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, version, index, pensionsSchemeSize - 1)
+            .url,
+          controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName
+        )))
       }
     }
 
