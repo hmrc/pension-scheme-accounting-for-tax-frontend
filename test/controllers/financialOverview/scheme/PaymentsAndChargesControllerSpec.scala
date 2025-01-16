@@ -74,7 +74,6 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
 //      any(), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseOverdue)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseUpcoming)
   }
 
@@ -87,15 +86,19 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
   "PaymentsAndChargesController" must {
 
     "return OK and the correct view with filtered payments and charges information for a GET" in {
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
 //      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndCharges.njk"
 //      jsonCaptor.getValue must containJson(expectedJson)
+      val view = application.injector.instanceOf///
+
+      compareResultAndView(result, view)
+
     }
 
     "redirect to Session Expired page when there is no data for a GET" in {

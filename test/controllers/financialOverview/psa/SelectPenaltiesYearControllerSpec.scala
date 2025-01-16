@@ -89,10 +89,6 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with JsonMatc
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(_ => true)
   }
 
-  //  private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
-  //    "form" -> form,
-  //    "radios" -> FSYears.radios(form, years)
-  //  )
   "SelectYearController" must {
     "return OK and the correct view for a GET with the select option for Year" in {
       when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any()))

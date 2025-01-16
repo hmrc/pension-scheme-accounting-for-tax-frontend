@@ -47,7 +47,6 @@ import scala.concurrent.Future
 
 class PaymentsAndChargeDetailsControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with RecoverMethods {
@@ -130,30 +129,30 @@ class PaymentsAndChargeDetailsControllerSpec
     )
   }
 
-  private def expectedJson(
-                            schemeFSDetail: SchemeFSDetail,
-                            insetText: uk.gov.hmrc.viewmodels.Html,
-                            isPaymentOverdue: Boolean = false,
-                            optHint: Option[String] = None
-                          ): JsObject = {
-    val commonJson = Json.obj(
-      "chargeDetailsList" -> Nil,
-      "tableHeader" -> "",
-      "schemeName" -> schemeName,
-      "chargeType" -> (schemeFSDetail.chargeType.toString + s" submission $version"),
-      "versionValue" -> s" submission $version",
-      "isPaymentOverdue" -> isPaymentOverdue,
-      "insetText" -> insetText,
-      "interest" -> schemeFSDetail.accruedInterestTotal,
-      "returnLinkBasedOnJourney" -> "",
-      "returnUrl" -> "",
-      "returnHistoryURL" -> "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary"
-    )
-    optHint match {
-      case Some(_) => commonJson ++ Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
-      case _ => commonJson
-    }
-  }
+//  private def expectedJson(
+//                            schemeFSDetail: SchemeFSDetail,
+//                            insetText: uk.gov.hmrc.viewmodels.Html,
+//                            isPaymentOverdue: Boolean = false,
+//                            optHint: Option[String] = None
+//                          ): JsObject = {
+//    val commonJson = Json.obj(
+//      "chargeDetailsList" -> Nil,
+//      "tableHeader" -> "",
+//      "schemeName" -> schemeName,
+//      "chargeType" -> (schemeFSDetail.chargeType.toString + s" submission $version"),
+//      "versionValue" -> s" submission $version",
+//      "isPaymentOverdue" -> isPaymentOverdue,
+//      "insetText" -> insetText,
+//      "interest" -> schemeFSDetail.accruedInterestTotal,
+//      "returnLinkBasedOnJourney" -> "",
+//      "returnUrl" -> "",
+//      "returnHistoryURL" -> "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary"
+//    )
+//    optHint match {
+//      case Some(_) => commonJson ++ Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
+//      case _ => commonJson
+//    }
+//  }
 
   "PaymentsAndChargesController" must {
 
@@ -165,19 +164,24 @@ class PaymentsAndChargeDetailsControllerSpec
         ))))
       when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
       val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150184", amountDue = 1234.00)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
+
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1))
-        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf///
 
-      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
+      compareResultAndView(result, view)
+//
+//      verify(mockRenderer, times(1))
+//        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+//
+//      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
+//
+//      jsonCaptor.getValue must containJson(
+//        expectedJson(schemeFSDetail, insetTextWithAmountDueAndInterest(schemeFSDetail), isPaymentOverdue = true)
 
-      jsonCaptor.getValue must containJson(
-        expectedJson(schemeFSDetail, insetTextWithAmountDueAndInterest(schemeFSDetail), isPaymentOverdue = true)
-      )
     }
 
     "return OK and the correct view with hint text linked to interest page if amount is due and interest is not accruing for a GET" in {
@@ -192,18 +196,21 @@ class PaymentsAndChargeDetailsControllerSpec
         chargeReference = "XY002610150188",
         interest = BigDecimal(0.00)
       )
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1))
-        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+//      verify(mockRenderer, times(1))
+//        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+//
+//      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
+//      jsonCaptor.getValue must containJson(
+//        expectedJson(schemeFSDetail, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
+      val view = application.injector.instanceOf///
 
-      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
-      jsonCaptor.getValue must containJson(
-        expectedJson(schemeFSDetail, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
-      )
+      compareResultAndView(result, view)
+
     }
 
     "return OK and the correct view with inset text linked to original charge page if linked interest is present and Quarter is applicable for a GET" in {
@@ -232,19 +239,22 @@ class PaymentsAndChargeDetailsControllerSpec
                 schemeFSDetail
               ))))
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "2"))).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1))
-        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+//      verify(mockRenderer, times(1))
+//        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+//
+//      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
+//
+//      jsonCaptor.getValue must containJson(
+//        expectedJson(schemeFSDetail, insetTextForInterestWithQuarter(schemeFSDetail), isPaymentOverdue = true)
+//      )
+      val view = application.injector.instanceOf///
 
-      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
-
-      jsonCaptor.getValue must containJson(
-        expectedJson(schemeFSDetail, insetTextForInterestWithQuarter(schemeFSDetail), isPaymentOverdue = true)
-      )
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
@@ -252,16 +262,21 @@ class PaymentsAndChargeDetailsControllerSpec
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest(index = 1, "XY002610150187", interest = 0.00)))))
       when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
       val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150187", interest = 0.00)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1))
-        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+//      verify(mockRenderer, times(1))
+//        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, uk.gov.hmrc.viewmodels.Html("")))
+//      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndChargeDetails.njk"
+//      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, uk.gov.hmrc.viewmodels.Html("")))
+
+      val view = application.injector.instanceOf///
+
+      compareResultAndView(result, view)
+
     }
 
     "catch IndexOutOfBoundsException" in {

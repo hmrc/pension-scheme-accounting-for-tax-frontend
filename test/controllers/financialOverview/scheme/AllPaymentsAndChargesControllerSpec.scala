@@ -42,7 +42,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   import AllPaymentsAndChargesControllerSpec._
 
@@ -77,24 +77,28 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
-  private def expectedJson: JsObject = Json.obj(
-    fields = "paymentAndChargesTable" -> emptyChargesTable,
-    "schemeName" -> schemeDetails.schemeName,
-    "returnUrl" -> dummyCall.url
-  )
+//  private def expectedJson: JsObject = Json.obj(
+//    fields = "paymentAndChargesTable" -> emptyChargesTable,
+//    "schemeName" -> schemeDetails.schemeName,
+//    "returnUrl" -> dummyCall.url
+//  )
 
   "AllPaymentsAndChargesController" must {
 
     "return OK and the correct view with filtered payments and charges information for a GET" in {
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET())).value
+
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf///
+
+      //      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
 //      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndCharges.njk"
 //      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired page when there is no data for the selected year for a GET" in {

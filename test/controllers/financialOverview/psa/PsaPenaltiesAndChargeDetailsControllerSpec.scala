@@ -50,7 +50,6 @@ import scala.concurrent.Future
 
 class PsaPenaltiesAndChargeDetailsControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with Enumerable.Implicits
@@ -76,14 +75,14 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-  private val templateToBeRendered = "financialOverview/psa/psaChargeDetails.njk"
-  private val commonJson: JsObject = Json.obj(
-    "heading" -> "Accounting for Tax Late Filing Penalty",
-    "isOverdue" -> true,
-    "period" -> "Quarter: 1 October to 31 December 2020",
-    "chargeReference" -> chargeRef,
-    "list" -> rows
-  )
+//  private val templateToBeRendered = "financialOverview/psa/psaChargeDetails.njk"
+//  private val commonJson: JsObject = Json.obj(
+//    "heading" -> "Accounting for Tax Late Filing Penalty",
+//    "isOverdue" -> true,
+//    "period" -> "Quarter: 1 October to 31 December 2020",
+//    "chargeReference" -> chargeRef,
+//    "list" -> rows
+//  )
 
   val isOverdue: PsaFSDetail => Boolean = _ => true
 
@@ -108,21 +107,25 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
         when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+//        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETAssociated("1"))).value
-        val json = Json.obj(
-          "schemeAssociated" -> true,
-          "schemeName" -> schemeDetails.schemeName
-        )
+//        val json = Json.obj(
+//          "schemeAssociated" -> true,
+//          "schemeName" -> schemeDetails.schemeName
+//        )
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+        val view = application.injector.instanceOf///
 
-        templateCaptor.getValue mustEqual templateToBeRendered
+        //        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+//
+//        templateCaptor.getValue mustEqual templateToBeRendered
+//
+//        jsonCaptor.getValue must containJson(commonJson ++ json)
 
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+        compareResultAndView(result, view)
       }
 
       "catch IndexOutOfBoundsException" in {

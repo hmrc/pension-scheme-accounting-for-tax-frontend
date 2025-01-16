@@ -44,11 +44,12 @@ import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, stat
 import play.twirl.api.Html
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
 import views.html.financialOverview.psa.PenaltyTypeView
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
@@ -76,10 +77,10 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
   lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad().url
   lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit().url
 
-  private val jsonToPassToTemplate: Form[PenaltyType] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
-  )
+//  private val jsonToPassToTemplate: Form[PenaltyType] => JsObject = form => Json.obj(
+//    "form" -> form,
+//    "radios" -> PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
+//  )
 
   private val year = "2020"
   val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
@@ -91,7 +92,6 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
@@ -102,21 +102,23 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
   }
 
   "PenaltyTypeController" must {
-//    "return OK and the correct view for a GET with penalty types" in {
-//
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-//
-//      val result = route(application, httpGETRequest(httpPathGET)).value
-//
-//      status(result) mustEqual OK
-//
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-//
-//      templateCaptor.getValue mustEqual templateToBeRendered
-//
-//      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
-//    }
+    "return OK and the correct view for a GET with penalty types" in {
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[PenaltyTypeView].apply(
+        form = form,
+        psaName = "John Doe",
+        submitCall = dummyCall,
+        returnUrl = dummyCall.url,
+        radios = TwirlMigration.toTwirlRadiosWithHintText (PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+      )(fakeRequest, messages)
+
+      compareResultAndView(result, view)
+
+    }
 
     "redirect to next page when valid data is submitted" in {
       when(mockNavigationService.navFromPenaltiesTypePage(any(), any(), any())(any(), any()))
@@ -129,13 +131,13 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with NunjucksSupport 
       redirectLocation(result) mustBe Some(routes.AllPenaltiesAndChargesController.onPageLoad(year, pstr, ContractSettlementCharges).url)
     }
 
-//    "return a BAD REQUEST when invalid data is submitted" in {
-//
-//      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
-//
-//      status(result) mustEqual BAD_REQUEST
-//
-//      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-//    }
+    "return a BAD REQUEST when invalid data is submitted" in {
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+    }
   }
 }

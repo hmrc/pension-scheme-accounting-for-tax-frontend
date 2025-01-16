@@ -92,6 +92,11 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
       status(result) mustEqual OK
 
+      //add view
+      val view = application.injector.instanceOf///
+
+      compareResultAndView(result, view)
+
     }
 
     "redirect to next page when valid data is submitted" in {

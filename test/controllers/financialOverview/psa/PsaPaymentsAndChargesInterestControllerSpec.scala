@@ -49,7 +49,6 @@ import scala.concurrent.Future
 
 class PsaPaymentsAndChargesInterestControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with Enumerable.Implicits
@@ -75,20 +74,19 @@ class PsaPaymentsAndChargesInterestControllerSpec
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-  private val templateToBeRendered = "financialOverview/psa/psaInterestDetails.njk"
-  private val commonJson: JsObject = Json.obj(
-    "heading" -> "Interest on contract settlement charge",
-    "period" -> "Period: 1 January to 2 February 2021",
-    "chargeReference" -> chargeRef,
-    "list" -> rows
-  )
+//  private val templateToBeRendered = "financialOverview/psa/psaInterestDetails.njk"
+//  private val commonJson: JsObject = Json.obj(
+//    "heading" -> "Interest on contract settlement charge",
+//    "period" -> "Period: 1 January to 2 February 2021",
+//    "chargeReference" -> chargeRef,
+//    "list" -> rows
+//  )
 
   val isOverdue: PsaFSDetail => Boolean = _ => true
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
-    reset(mockRenderer)
 //    when(mockPsaPenaltiesAndChargesService.interestRows(any())).thenReturn(rows)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesFromCache(any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", interestPsaFSResponse)))
@@ -109,21 +107,27 @@ class PsaPaymentsAndChargesInterestControllerSpec
 
         when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(interestPsaFSResponse))))
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+//        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
         val result = route(application, httpGETRequest(httpPathGETAssociated("0"))).value
-        val json = Json.obj(
-          "schemeAssociated" -> true,
-          "schemeName" -> schemeDetails.schemeName
-        )
+
+//        val json = Json.obj(
+//          "schemeAssociated" -> true,
+//          "schemeName" -> schemeDetails.schemeName
+//        )
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+        val view = application.injector.instanceOf///
 
-        templateCaptor.getValue mustEqual templateToBeRendered
+        //        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+//        templateCaptor.getValue mustEqual templateToBeRendered
+
+//        jsonCaptor.getValue must containJson(commonJson ++ json)
+
+        compareResultAndView(result, view)
       }
 
       "catch IndexOutOfBoundsException" in {

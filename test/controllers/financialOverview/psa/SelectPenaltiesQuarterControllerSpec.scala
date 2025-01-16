@@ -74,11 +74,6 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
   lazy val httpPathPOST: String = routes.SelectPenaltiesQuarterController.onSubmit(year).url
 
   private val submitCall = controllers.financialOverview.psa.routes.SelectPenaltiesQuarterController.onSubmit(year)
-//  private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
-//    "form" -> form,
-//    "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"), areLabelsBold = false),
-//    "submitUrl" -> httpPathPOST
-//  )
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q32020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
@@ -122,7 +117,9 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     "return a BAD REQUEST when invalid data is submitted" in {
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
       status(result) mustEqual BAD_REQUEST
+
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
 
     }

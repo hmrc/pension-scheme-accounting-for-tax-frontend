@@ -32,9 +32,6 @@ class RefundUnavailableControllerSpec extends ControllerSpecBase {
 
     "must return OK and the correct view for a GET" in {
 
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
-
       val application = applicationBuilder(userAnswers = None).build()
 
       val request = FakeRequest(GET, routes.RefundUnavailableController.onPageLoad.url)

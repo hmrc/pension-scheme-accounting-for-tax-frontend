@@ -37,16 +37,13 @@ import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
-import play.twirl.api.Html
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewmodels.Table
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   private def httpPathGET: String =
     routes.PsaPaymentsAndChargesController.onPageLoad(Overdue).url
@@ -59,7 +56,6 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     .overrides(
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[FinancialStatementConnector].toInstance(mockFSConnector),
         bind[MinimalConnector].toInstance(mockMinimalConnector),
@@ -70,21 +66,20 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     .build()
 
   private val penaltiesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
+  //check this import (aliases vs viewmodels)
 
-  private val expectedJson = Json.obj("totalUpcomingCharge" -> "100",
-    "totalOverdueCharge" -> "100",
-    "totalInterestAccruing" -> "100",
-    "titleMessage" -> "Overdue penalties and interest charges")
+//  private val expectedJson = Json.obj("totalUpcomingCharge" -> "100",
+//    "totalOverdueCharge" -> "100",
+//    "totalInterestAccruing" -> "100",
+//    "titleMessage" -> "Overdue penalties and interest charges")
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
     reset(mockPsaPenaltiesAndChargesService)
 //    when(mockPsaPenaltiesAndChargesService.getPenaltiesAndCharges(any(), any(), any(), any())(any(), any(), any())).
 //      thenReturn(Future.successful(penaltiesTable))
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPsaPenaltiesAndChargesService.getOverdueCharges(any())).thenReturn(responseOverdue)
     when(mockPsaPenaltiesAndChargesService.extractUpcomingCharges(any())).thenReturn(responseUpcoming)
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
@@ -97,15 +92,19 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
 
     "return OK and the payments and charges information for a GET" in {
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf///
 
-      templateCaptor.getValue mustEqual "financialOverview/psa/psaPaymentsAndCharges.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+//      templateCaptor.getValue mustEqual "financialOverview/psa/psaPaymentsAndCharges.njk"
+//      jsonCaptor.getValue must containJson(expectedJson)
+
+      compareResultAndView(result, view)
     }
   }
 
