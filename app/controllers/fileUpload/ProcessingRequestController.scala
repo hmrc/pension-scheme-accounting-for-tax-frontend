@@ -43,7 +43,7 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                                             val controllerComponents: MessagesControllerComponents,
                                             fileUploadOutcomeConnector: FileUploadOutcomeConnector,
                                             navigator: CompoundNavigator,
-                                            view: ProcessingRequestView,
+                                            view: ProcessingRequestView
                                            )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {

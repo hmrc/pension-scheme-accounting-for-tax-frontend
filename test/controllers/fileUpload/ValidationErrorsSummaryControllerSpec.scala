@@ -54,7 +54,7 @@ class ValidationErrorsSummaryControllerSpec extends ControllerSpecBase with Json
   private val expectedOutcome = FileUploadOutcome(
     status = ValidationErrorsMoreThanOrEqualToMax,
     json = Json.obj(
-      "totalErrors" -> 2,
+      "totalError" -> 2,
       "errors" -> Json.arr(
         "error1",
         "error2"
