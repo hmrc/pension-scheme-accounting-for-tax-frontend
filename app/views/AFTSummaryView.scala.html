@@ -52,7 +52,7 @@
     }
 }
 
-@layout(messages("addAnotherPensionScheme.title"), formHasErrors = form.hasErrors) {
+@layout((summarySearchHeadingText + messages("aft.summary.heading", quarterStartDate, quarterEndDate)), formHasErrors = form.hasErrors) {
     <div>
         @hmrcPageHeading(
             PageHeading(
