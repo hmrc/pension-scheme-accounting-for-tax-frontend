@@ -23,28 +23,27 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.{Enumerable, PenaltiesFilter, SchemeDetails}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.{PenaltiesCache, PenaltiesService, SchemeService}
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, _}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import views.html.financialStatement.penalties.InterestView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
 class InterestControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with Enumerable.Implicits
@@ -77,19 +76,14 @@ class InterestControllerSpec
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-  private val templateToBeRendered = "financialStatement/penalties/interest.njk"
-  private val commonJson: JsObject = Json.obj(
-    "heading" -> "Interest on accounting for tax late filing penalty",
-    "period" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
-    "chargeReference" -> chargeRef,
-    "list" -> rows
-  )
+
+  private val period = messages("penalties.period", "1 April", "30 June 2020")
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPenaltiesService)
     reset(mockRenderer)
-    when(mockPenaltiesService.interestRows(any())).thenReturn(rows)
+    when(mockPenaltiesService.interestRows(any())(any())).thenReturn(getRows())
     when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
@@ -100,46 +94,47 @@ class InterestControllerSpec
     "on a GET" must {
 
       "render the correct view with penalty tables for associated" in {
-
         when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETAssociated("0"))).value
-        val json = Json.obj(
-          "schemeAssociated" -> true,
-          "schemeName" -> schemeDetails.schemeName,
-          "originalAmountURL" -> controllers.financialStatement.penalties.routes.ChargeDetailsController
-            .onPageLoad(srn, "0", PenaltiesFilter.All).url
-        )
+
+        val view = application.injector.instanceOf[InterestView].apply(
+          "Interest on accounting for tax late filing penalty",
+          schemeAssociated = true,
+          Some(schemeDetails.schemeName),
+          period,
+          chargeRef,
+          getRows(),
+          controllers.financialStatement.penalties.routes.ChargeDetailsController
+            .onPageLoad(srn, "0", PenaltiesFilter.All).url,
+          "",
+          "psa-name"
+        )(httpGETRequest(httpPathGETAssociated("0")), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+        compareResultAndView(result,  view)
       }
 
       "render the correct view with penalty tables for unassociated" in {
-
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETUnassociated)).value
-        val json = Json.obj(
-          "schemeAssociated" -> false,
-          "originalAmountURL" -> controllers.financialStatement.penalties.routes.ChargeDetailsController
-            .onPageLoad("0", "0", PenaltiesFilter.All).url
-        )
+
+        val view = application.injector.instanceOf[InterestView].apply(
+          "Interest on accounting for tax late filing penalty",
+          schemeAssociated = false,
+          Some(schemeDetails.schemeName),
+          period,
+          chargeRef,
+          getRows(),
+          controllers.financialStatement.penalties.routes.ChargeDetailsController
+            .onPageLoad("0", "0", PenaltiesFilter.All).url,
+          "",
+          "psa-name"
+        )(httpGETRequest(httpPathGETAssociated("0")), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+        compareResultAndView(result,  view)
       }
 
       "catch IndexOutOfBoundsException" in {
@@ -159,17 +154,17 @@ object InterestControllerSpec {
   val pstr = "24000040IN"
   val chargeRef = "To be assigned"
 
-  val rows: Seq[SummaryList.Row] =
+  private def getRows()(implicit messages: Messages): Seq[SummaryListRow] =
     Seq(
-      Row(
-        key = Key(Message("penalties.status.interestAccruing"), classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal("£33.44"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      SummaryListRow(
+        key = Key(Text(Messages("penalties.status.interestAccruing")), classes = "govuk-!-width-three-quarters"),
+        value = Value(Text("£33.44"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
       ),
-      Row(
-        key = Key(msg"penalties.interest.totalDueAsOf".withArgs(LocalDate.now), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-        value = Value(Literal("£33.44"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      SummaryListRow(
+        key = Key(Text(messages("penalties.interest.totalDueAsOf", LocalDate.now)), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+        value = Value(Text("£33.44"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
       )
     )
 

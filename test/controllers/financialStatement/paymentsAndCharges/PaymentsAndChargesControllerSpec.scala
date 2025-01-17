@@ -28,23 +28,22 @@ import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.{reset, when}
+import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import play.twirl.api.Html
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
+import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargesView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   import PaymentsAndChargesControllerSpec._
 
@@ -56,13 +55,14 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     .overrides(
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
       ): _*
     )
     .build()
+
+  val emptyChargesTable: Table = Table()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -75,24 +75,20 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
-  private def expectedJson: JsObject = Json.obj(
-    fields = "paymentAndChargesTable" -> emptyChargesTable,
-    "schemeName" -> schemeDetails.schemeName,
-    "returnUrl" -> dummyCall.url
-  )
-
   "PaymentsAndChargesController" must {
 
     "return OK and the correct view with filtered payments and charges information for a GET" in {
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET())).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[PaymentsAndChargesView].apply(
+        "Accounting for Tax payments and charges for 1 April to 30 June 2020",
+        emptyChargesTable,
+        returnUrl = dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET(startDate)), messages)
 
-      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndCharges.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired page when there is no data for the selected year for a GET" in {
