@@ -20,9 +20,9 @@ import config.FrontendAppConfig
 import connectors.MinimalConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, multiplePenalties, psaId, schemeDetails, schemeName}
+import data.SampleData.{dummyCall, emptyChargesTable, multiplePenalties, psaId, schemeDetails}
 import matchers.JsonMatchers
-import models.SchemeDetails
+import models.{Quarters, SchemeDetails}
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -38,16 +38,16 @@ import play.twirl.api.Html
 import services.SchemeService
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import viewmodels.PsaChargeDetailsViewModel
-import views.html.financialOverview.psa.PsaChargeDetailsNewView
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
 
 import scala.concurrent.Future
 
 class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
-  private val startDate = "2020-04-01"
+  private val startDate = "2020-07-01"
+  private val endDate = "2020-09-30"
   val pstr = "24000041IN"
 
   private def httpPathGET(startDate: String = startDate): String =
@@ -58,7 +58,6 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonM
   private val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
 
   val emptyChargesTable: Table = Table()
-  val emptySummaryList: SummaryListRow = SummaryListRow()
 
   private val application: Application = new GuiceApplicationBuilder()
     .overrides(
@@ -86,17 +85,7 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonM
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    /*when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
-      thenReturn(Future.successful(penaltySchemes))*/
-
   }
-
-//  private def expectedJson: JsObject = Json.obj(
-//    fields = "paymentAndChargesTable" -> emptyChargesTable,
-//    "pstr" -> "24000041IN",
-//    "totalOutstandingCharge" -> "£200.00"
-//  )
 
   "AllPenaltiesAndChargesController" must {
 
@@ -104,22 +93,19 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonM
       val result = route(application, httpGETRequest(httpPathGET())).value
       status(result) mustEqual OK
 
-      val template = PsaChargeDetailsViewModel(
-        heading = "Accounting for Tax payments and charges for 1 April to 30 June 2020",
-        psaName = "John Doe",
-        schemeName = schemeName,
-        isOverdue = false,
-        chargeReference = " ",
-        penaltyAmount = 0,
-        insetText = HtmlContent(""),
-        isInterestPresent = false,
-        chargeHeaderDetails = Some(Seq(emptySummaryList)),
-        chargeAmountDetails = Some(emptyChargesTable),
-        returnUrl = dummyCall.url,
-        returnUrlText = ""
-      )
-
-      val view = application.injector.instanceOf[PsaChargeDetailsNewView].apply(template)
+      val view = application.injector.instanceOf[PsaPaymentsAndChargesNewView].apply(
+        psaName = "psa-name",
+        journeyType = "all",
+        titleMessage = "Accounting for Tax penalties for 1 July to 30 September 2020",
+        pstr = Some("24000041IN"),
+        reflectChargeText = "Amounts due may not reflect payments made in the last 3 days.",
+        totalOverdueCharge = "0",
+        totalInterestAccruing = "0",
+        totalUpcomingCharge = "0",
+        totalOutstandingCharge = "£200.00",
+        penaltiesTable = emptyChargesTable,
+        paymentAndChargesTable = emptyChargesTable
+      )(request, messages)
 
       compareResultAndView(result, view)
     }

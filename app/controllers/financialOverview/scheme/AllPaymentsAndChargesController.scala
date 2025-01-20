@@ -24,12 +24,9 @@ import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import views.html.financialOverview.scheme.PaymentsAndChargesNewView

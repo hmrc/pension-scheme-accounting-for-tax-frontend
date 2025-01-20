@@ -94,12 +94,14 @@ class RequestRefundControllerSpec extends ControllerSpecBase with JsonMatchers w
 
       val request = httpGETRequest(httpPathGET)
       val result = route(application, httpGETRequest(httpPathGET)).value
+
       status(result) mustEqual OK
 
       val view = application.injector.instanceOf[RequestRefundView].apply(
         heading = Messages(s"requestRefund.youAlready.h1"),
         p1 = Messages(s"requestRefund.youAlready.p1"),
-        continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4")(request, messages)
+        continueUrl = s"$dummyURL?requestType=1&psaName=John Doe&pstr=pstr&availAmt=44.4"
+      )(request, messages)
 
       compareResultAndView(result, view)
     }

@@ -33,11 +33,15 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.AnyContentAsEmpty
+import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, _}
 import play.twirl.api.Html
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.scheme.PaymentsAndChargesNewView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -45,6 +49,10 @@ import scala.concurrent.Future
 class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   import AllPaymentsAndChargesControllerSpec._
+
+  private val startDate = "2020-04-01"
+  private val endDate = "2020-06-30"
+  val pstr = "24000041IN"
 
   private def httpPathGET(startDate: String = startDate): String =
     routes.AllPaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges).url
@@ -54,7 +62,6 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
     .overrides(
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
@@ -62,9 +69,12 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
     )
     .build()
 
+  val emptyChargesTable: Table = Table()
+
+  private implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
+
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
     reset(mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
@@ -73,31 +83,31 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
       .thenReturn(schemeFSResponse)
     when(mockPaymentsAndChargesService.getInterestCharges(any()))
       .thenReturn(schemeFSResponse)
-//    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
   }
-
-//  private def expectedJson: JsObject = Json.obj(
-//    fields = "paymentAndChargesTable" -> emptyChargesTable,
-//    "schemeName" -> schemeDetails.schemeName,
-//    "returnUrl" -> dummyCall.url
-//  )
 
   "AllPaymentsAndChargesController" must {
 
     "return OK and the correct view with filtered payments and charges information for a GET" in {
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET())).value
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf///
+      val view = application.injector.instanceOf[PaymentsAndChargesNewView].apply(
+        journeyType = "all",
+        schemeName = schemeDetails.schemeName,
+        titleMessage = "Accounting for Tax payments and charges for 1 April to 30 June 2020",
+        pstr = "pstr",
+        reflectChargeText = "Amounts due may not reflect payments made in the last 3 days.",
+        totalOverdue = "£56049.08",
+        totalInterestAccruing = "0",
+        totalUpcoming = "£1,029.05",
+        totalDue = "£3,087.15",
+        penaltiesTable = emptyChargesTable,
+        paymentAndChargesTable = emptyChargesTable,
+        returnUrl = dummyCall.url
+      )(request, messages)
 
-      //      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-//      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndCharges.njk"
-//      jsonCaptor.getValue must containJson(expectedJson)
       compareResultAndView(result, view)
     }
 

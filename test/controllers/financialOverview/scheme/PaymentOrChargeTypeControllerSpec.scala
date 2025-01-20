@@ -41,6 +41,8 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.financialOverview.scheme.PaymentOrChargeTypeView
 
 import scala.concurrent.Future
 
@@ -67,13 +69,6 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
-  private val jsonToPassToTemplate: Form[PaymentOrChargeType] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> PaymentOrChargeType.radios(form, displayPaymentOrChargeType, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
-    "schemeName" -> schemeName,
-    "returnUrl" -> dummyCall.url
-  )
-
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(AccountingForTaxCharges.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("value" -> Seq("false"))
 
@@ -92,8 +87,15 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
       status(result) mustEqual OK
 
-      //add view
-      val view = application.injector.instanceOf///
+      val view = application.injector.instanceOf[PaymentOrChargeTypeView].apply(
+        form = form,
+        titleMessage = messages(s"paymentOrChargeType.all.title"),
+        schemeName = schemeName,
+        submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
+        returnUrl = dummyCall.url,
+        radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(form, displayPaymentOrChargeType,
+        Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+      )(fakeRequest, messages)
 
       compareResultAndView(result, view)
 
