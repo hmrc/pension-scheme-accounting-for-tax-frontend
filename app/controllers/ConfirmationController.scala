@@ -36,7 +36,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import services.SchemeService
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.formatSubmittedDate
@@ -114,7 +114,7 @@ class ConfirmationController @Inject()(
 
               val viewModel = ConfirmationViewModel(
                   panelH1,
-                  confirmationPanelText.toString(),
+                  confirmationPanelText,
                   email,
                   rows,
                   optViewPaymentsUrl,
@@ -165,8 +165,8 @@ class ConfirmationController @Inject()(
     }.getOrElse(Nil)
   }
 
-  private def confirmationPanelText(implicit messages: Messages): Html = {
-    Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
+  private def confirmationPanelText(implicit messages: Messages): HtmlContent = {
+    HtmlContent(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
   }
 
 }

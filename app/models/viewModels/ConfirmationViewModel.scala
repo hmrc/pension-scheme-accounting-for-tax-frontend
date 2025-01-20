@@ -16,11 +16,12 @@
 
 package models.viewModels
 
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 
 case class ConfirmationViewModel(
                                   panelH1: String,
-                                  panelContent: String,
+                                  panelContent: HtmlContent,
                                   email: String,
                                   list: Seq[SummaryListRow],
                                   viewPaymentsUrl: Option[String] = None,

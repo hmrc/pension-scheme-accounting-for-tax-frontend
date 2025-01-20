@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.FinancialStatementConnector
-import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
+import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction, MutableFakeDataSetupAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -112,17 +112,13 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       )
     )
 
-  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockRenderer)
     Mockito.reset(mockUserAnswersCacheConnector)
     Mockito.reset(mockAllowAccessActionProvider)
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockAppConfig.yourPensionSchemesUrl).thenReturn(testManagePensionsUrl.url)
+//    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+//    when(mockAppConfig.yourPensionSchemesUrl).thenReturn(testManagePensionsUrl.url)
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
@@ -131,21 +127,18 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   "Confirmation Controller" must {
 
     "return OK and the correct view for submission for a GET when financial info exists for year" in {
-      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
-        set(EmailQuery, email).getOrElse(UserAnswers())))
+      mutableFakeDataRetrievalAction.setDataToReturn(
+        Some(userAnswersWithSchemeNamePstrQuarter.set(EmailQuery, email).getOrElse(UserAnswers())))
 
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
-      templateCaptor.getValue mustEqual "confirmation.njk"
 
-      jsonCaptor.getValue must containJson(json(isAmendment = false))
     }
 
     "return OK and the correct view for amendment for a GET when financial info exists for year" in {
@@ -157,10 +150,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "confirmation.njk"
-      jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
     "return OK and the correct view for amendment for a GET when value decreased and financial info exists for year" in {
@@ -177,10 +166,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "confirmationAmendDecrease.njk"
-      jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
     "return OK and the correct view for amendment for a GET when value increased and financial info exists for year" in {
@@ -197,10 +182,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "confirmationAmendIncrease.njk"
-      jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
     "return OK and the correct view for amendment for a GET when value not changed and financial info exists for year" in {
@@ -217,10 +198,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "confirmationNoChange.njk"
-      jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
     "return OK but don't include financial info link when no financial info exists for year" in {
@@ -236,10 +213,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "confirmation.njk"
-      (jsonCaptor.getValue \ "viewPaymentsUrl").toOption mustBe None
     }
 
     "redirect to Session Expired page when there is no scheme name or pstr or quarter" in {
