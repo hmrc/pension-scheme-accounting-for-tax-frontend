@@ -463,7 +463,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         Seq(
           SummaryListRow(
             key = Key(Text(Messages("financialPaymentsAndCharges.dateSubmitted")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-            value = Value(Text(formatDateDMYString(date))), classes = "govuk-!-width-one-quarter"
+            value = Value(Text(formatDateDMYString(date)), classes = "govuk-!-width-one-quarter")
           ))
       case _ =>
         Nil
@@ -475,7 +475,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     Seq(
       SummaryListRow(
         key = Key(Text(Messages("financialPaymentsAndCharges.chargeReference")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(schemeFSDetail.chargeReference)), classes = "govuk-!-width-one-quarter"
+        value = Value(Text(schemeFSDetail.chargeReference), classes = "govuk-!-width-one-quarter")
       ))
   }
 
@@ -502,7 +502,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   private def totalAmountDueChargeDetailsRow(schemeFSDetail: SchemeFSDetail, journeyType: ChargeDetailsFilter)(implicit messages: Messages): Seq[SummaryListRow] = {
     val amountDueKey: Content = (schemeFSDetail.dueDate, schemeFSDetail.amountDue > 0) match {
       case (Some(date), true) =>
-        Text(Messages("financialPaymentsAndCharges.paymentDue.${journeyType.toString}.dueDate", date.format(dateFormatterDMY)))
+        Text(Messages(s"financialPaymentsAndCharges.paymentDue.${journeyType.toString}.dueDate", date.format(dateFormatterDMY)))
       case _ =>
         Text(Messages("financialPaymentsAndCharges.paymentDue.noDueDate"))
     }
@@ -511,7 +511,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         SummaryListRow(
           key = Key(
             content = amountDueKey,
-            classes = "govuk-!-padding-left-0,govuk-!-width-one-half"
+            classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
           ),
           value = Value(
             content = Text(s"${formatCurrencyAmountAsString(schemeFSDetail.amountDue)}"),
@@ -534,7 +534,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                 SummaryListRow(
                   key = Key(
                     content = clearingDetailsValue,
-                    classes = "govuk-!-padding-left-0,govuk-!-width-one-half"
+                    classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
                   ),
                   value = Value(
                     content = Text(s"-${formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"),
