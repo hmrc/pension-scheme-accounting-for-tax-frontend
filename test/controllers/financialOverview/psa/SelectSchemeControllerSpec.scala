@@ -26,7 +26,7 @@ import data.SampleData.{dummyCall, psaId}
 import forms.SelectSchemeFormProvider
 import matchers.JsonMatchers
 import models.financialStatement.PenaltyType
-import models.financialStatement.PenaltyType.ContractSettlementCharges
+import models.financialStatement.PenaltyType.{ContractSettlementCharges, penaltyTypeToString}
 import models.{Enumerable, PenaltySchemes}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -40,6 +40,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
+import play.twirl.api.Html
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import utils.TwirlMigration
 import views.html.financialOverview.psa.SelectSchemeView
@@ -53,6 +54,8 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
 
   private val mockNavigationService = mock[PenaltiesNavigationService]
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
+  private val mockFICacheConnector = mock[FinancialInfoCacheConnector]
+  private val mockFSConnector = mock[FinancialStatementConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
 
   private def form: Form[PenaltySchemes] =
@@ -61,6 +64,8 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
+    bind[FinancialInfoCacheConnector].toInstance(mockFICacheConnector),
+    bind[FinancialStatementConnector].toInstance(mockFSConnector),
     bind[PenaltiesNavigationService].toInstance(mockNavigationService)
   )
 
@@ -69,11 +74,16 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
+    reset(mockAppConfig)
+    reset(mockFICacheConnector)
+    reset(mockFSConnector)
+    when(mockAppConfig.timeoutSeconds).thenReturn("5")
+    when(mockAppConfig.countdownSeconds).thenReturn("1")
+    when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("/mockUrl")
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
       thenReturn(Future.successful(penaltySchemes))
-    when(mockPsaPenaltiesAndChargesService.getTypeParam(any())(any())).thenReturn(messages(s"penaltyType.ContractSettlementCharges")) //this message needs to be updated
   }
 
   "SelectSchemeController" when {
@@ -89,9 +99,9 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
         val view = application.injector.instanceOf[SelectSchemeView].apply(
           form = form,
           submitCall = submitCall,
-          typeParam = penaltyType,
+          typeParam = mockPsaPenaltiesAndChargesService.getTypeParam(penaltyType),
           psaName = "psa-name",
-          returnUrl = dummyCall.url,
+          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
           radios = TwirlMigration.toTwirlRadiosWithHintText(
             PenaltySchemes.radios(
               form,
@@ -126,6 +136,7 @@ object SelectSchemeControllerSpec {
   val penaltySchemes: Seq[PenaltySchemes] = Seq(ps1, ps2)
   val psaFS: JsValue = Json.toJson(psaFSResponse)
   val penaltyType: PenaltyType = ContractSettlementCharges
+  val typeParam: String = "Contract settlement charges"
 
   private def httpPathGET: String = routes.SelectSchemeController.onPageLoad(penaltyType, year).url
 

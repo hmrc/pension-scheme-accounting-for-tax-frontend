@@ -42,10 +42,10 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with JsonMatcher
 
   private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
   private val mockService = mock[AFTPartialService]
+  private val mockRefundController = mock[PsaRequestRefundController]
   private val mockMinimalConnector = mock[MinimalConnector]
   private val mockFinancialInfoCreditAccessConnector = mock[FinancialInfoCreditAccessConnector]
   private val dummyURL = "/DUMMY"
-  private val continueUrl = dummyURL
 
   private def application: Application = new GuiceApplicationBuilder()
     .overrides(
@@ -95,7 +95,7 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with JsonMatcher
       val view = application.injector.instanceOf[RequestRefundView].apply(
         heading = "requestRefund.youAlready.h1",
         p1 = "requestRefund.youAlready.psa.p1",
-        continueUrl = continueUrl
+        continueUrl = s"$dummyURL?requestType=3&psaName=John Doe&availAmt=44.4"
       )(request, messages)
 
       compareResultAndView(result, view)

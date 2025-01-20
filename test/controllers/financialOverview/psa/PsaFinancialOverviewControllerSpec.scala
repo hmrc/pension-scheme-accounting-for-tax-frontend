@@ -32,7 +32,7 @@ import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.AFTPartialService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
-import views.html.financialOverview.psa.PsaFinancialOverviewView
+import views.html.financialOverview.psa.{PsaFinancialOverviewNewView, PsaFinancialOverviewView}
 
 import scala.concurrent.Future
 
@@ -101,7 +101,7 @@ class PsaFinancialOverviewControllerSpec
           allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
           duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
           allPaymentLink = routes.PenaltyTypeController.onPageLoad().url,
-          creditBalanceFormatted = "1000",
+          creditBalanceFormatted = "£1,000.00",
           creditBalance = 1000,
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
         )(messages, request)
@@ -127,7 +127,7 @@ class PsaFinancialOverviewControllerSpec
 
         status(result) mustEqual OK
 
-        val view = application.injector.instanceOf[PsaFinancialOverviewView].apply(
+        val view = application.injector.instanceOf[PsaFinancialOverviewNewView].apply(
           psaName = psaName,
           totalUpcomingCharge = "10",
           totalOverdueCharge = "10",
@@ -136,7 +136,7 @@ class PsaFinancialOverviewControllerSpec
           allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
           duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
           allPaymentLink = routes.PenaltyTypeController.onPageLoad().url,
-          creditBalanceFormatted = "1000",
+          creditBalanceFormatted = "£1,000.00",
           creditBalance = 1000,
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
         )(messages, request)

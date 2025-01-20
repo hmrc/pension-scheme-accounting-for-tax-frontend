@@ -40,6 +40,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import services.SchemeService
 import services.financialOverview.psa.PenaltiesCache
+import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
@@ -71,6 +72,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       chargeReference
     }
 
+//    HtmlContent
     Html(
       s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +

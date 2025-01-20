@@ -77,11 +77,6 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad().url
   lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit().url
 
-//  private val jsonToPassToTemplate: Form[PenaltyType] => JsObject = form => Json.obj(
-//    "form" -> form,
-//    "radios" -> PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
-//  )
-
   private val year = "2020"
   val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
     ListSchemeDetails("Assoc scheme", "SRN123", "", None, Some("24000040IN"), None, None))))
@@ -110,10 +105,10 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
 
       val view = application.injector.instanceOf[PenaltyTypeView].apply(
         form = form,
-        psaName = "John Doe",
-        submitCall = dummyCall,
-        returnUrl = dummyCall.url,
-        radios = TwirlMigration.toTwirlRadiosWithHintText (PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+        psaName = "psa-name",
+        submitCall = routes.PenaltyTypeController.onSubmit(),
+        returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+        radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
       )(fakeRequest, messages)
 
       compareResultAndView(result, view)
