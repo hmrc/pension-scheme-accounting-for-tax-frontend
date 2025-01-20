@@ -23,26 +23,26 @@ import forms.ConfirmSubmitAFTReturnFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, UserAnswers}
+import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{never, times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito
 import pages.ConfirmSubmitAFTReturnPage
 import play.api.Application
-import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTConstants.QUARTER_START_DATE
+import viewmodels.TwirlRadios
+import views.html.ConfirmSubmitAFTReturnView
 
 import scala.concurrent.Future
 
-class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with JsonMatchers {
   private def onwardRoute = Call("GET", "/onward")
 
   private val formProvider = new ConfirmSubmitAFTReturnFormProvider()
@@ -50,25 +50,9 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
 
   private def confirmSubmitAFTReturnRoute: String = routes.ConfirmSubmitAFTReturnController.onPageLoad(srn, QUARTER_START_DATE).url
 
-  private def confirmSubmitAFTReturnSubmitRoute: String = routes.ConfirmSubmitAFTReturnController.onSubmit(srn, QUARTER_START_DATE).url
-
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  private val templateToBeRendered = "confirmSubmitAFTReturn.njk"
-
-  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-  private def jsonToBePassed(form: Form[Boolean]): JsObject = Json.obj(
-    fields = "srn" -> srn,
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = confirmSubmitAFTReturnSubmitRoute,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      schemeName = schemeName),
-    "radios" -> Radios.yesNo(form("value"))
-  )
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -85,15 +69,19 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       val request = FakeRequest(GET, confirmSubmitAFTReturnRoute)
-      val expectedJson = jsonToBePassed(form)
 
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[ConfirmSubmitAFTReturnView].apply(
+        form,
+        TwirlRadios.yesNo(form("value")),
+        routes.ConfirmSubmitAFTReturnController.onSubmit(srn, QUARTER_START_DATE),
+        routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "populate the view correctly on a GET when the question has previously been answered" in {
@@ -101,15 +89,20 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       mutableFakeDataRetrievalAction.setDataToReturn(filledAnswers)
       val request = FakeRequest(GET, confirmSubmitAFTReturnRoute)
       val filledForm = form.bind(Map("value" -> "true"))
-      val expectedJson = jsonToBePassed(filledForm)
 
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[ConfirmSubmitAFTReturnView].apply(
+        filledForm,
+        TwirlRadios.yesNo(filledForm("value")),
+        routes.ConfirmSubmitAFTReturnController.onSubmit(srn, QUARTER_START_DATE),
+        routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
+
     }
 
     "redirect to the next page when submits with value true" in {
@@ -149,7 +142,6 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       val result = route(application, request).value
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockRenderer, times(1)).render(any(), any())(any())
       verify(mockUserAnswersCacheConnector, never).savePartial(any(), any(), any(), any())(any(), any())
     }
 

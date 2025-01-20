@@ -28,9 +28,8 @@ import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsResultException, JsValue, Reads}
 import services.{ChargeCService, ChargeDService, ChargeEService, ChargeGService}
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 
 class AmendmentHelper @Inject()(
                                  chargeCService: ChargeCService,
@@ -54,31 +53,29 @@ class AmendmentHelper @Inject()(
     (amountUK, amountNonUK)
   }
 
-  def amendmentSummaryRows(currentTotalAmount: BigDecimal, previousTotalAmount: BigDecimal, currentVersion: Int, previousVersion: Int): Seq[Row] = {
+  def amendmentSummaryRows(currentTotalAmount: BigDecimal, previousTotalAmount: BigDecimal, previousVersion: Int)(
+    implicit messages: Messages): Seq[SummaryListRow] = {
     val differenceAmount = currentTotalAmount - previousTotalAmount
     if (previousTotalAmount == 0 && currentTotalAmount == 0) {
       Nil
     } else {
       Seq(
-        Row(
-          key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(previousVersion), classes = Seq("govuk-!-width-three-quarters")),
-          value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(previousTotalAmount)}"),
-                        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-          actions = Nil
+        SummaryListRow(
+          key = Key(Text(messages("confirmSubmitAFTReturn.total.for", previousVersion)), classes = "govuk-!-width-three-quarters"),
+          value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(previousTotalAmount)}"),
+                        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
         ),
-        Row(
-          key = Key(msg"confirmSubmitAFTReturn.total.for.draft", classes = Seq("govuk-!-width-three-quarters")),
+        SummaryListRow(
+          key = Key(Text(messages("confirmSubmitAFTReturn.total.for.draft")), classes = "govuk-!-width-three-quarters"),
           value = Value(
-            Literal(s"${FormatHelper.formatCurrencyAmountAsString(currentTotalAmount)}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+            Text(s"${FormatHelper.formatCurrencyAmountAsString(currentTotalAmount)}"),
+            classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"
           ),
-          actions = Nil
         ),
-        Row(
-          key = Key(msg"confirmSubmitAFTReturn.difference", classes = Seq("govuk-!-width-three-quarters")),
-          value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(differenceAmount)}"),
-                        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-          actions = Nil
+        SummaryListRow(
+          key = Key(Text(messages("confirmSubmitAFTReturn.difference")), classes = "govuk-!-width-three-quarters"),
+          value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(differenceAmount)}"),
+                        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"),
         )
       )
     }
