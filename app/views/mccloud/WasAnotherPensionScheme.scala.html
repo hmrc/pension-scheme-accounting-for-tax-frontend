@@ -1,0 +1,54 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@this(
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    govukButton: GovukButton,
+    govukRadios: GovukRadios
+)
+
+@(form: Form[_], radios: Seq[RadioItem], chargeTypeDesc: String, submitCall: Call, returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
+
+@layout(messages("wasAnotherPensionScheme.title", messages(chargeTypeDesc)), formHasErrors = form.hasErrors) {
+    <div>
+        @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+            @govukRadios(
+                RadiosViewModel(
+                    form("value"),
+                    radios,
+                    Fieldset(
+                        legend = Some(
+                            Legend(
+                                content = Text(messages("wasAnotherPensionScheme.heading", messages(chargeTypeDesc))),
+                                isPageHeading = true,
+                                classes = "govuk-fieldset__legend--l"
+                            )
+                        )
+                    ),
+                    classes = "govuk-radios--inline",
+                    hint = Some(Hint(content = Text(messages("wasAnotherPensionScheme.hint"))))
+                )
+            )
+
+            @govukButton(
+                ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
+            )
+        }
+        <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
+    </div>
+}

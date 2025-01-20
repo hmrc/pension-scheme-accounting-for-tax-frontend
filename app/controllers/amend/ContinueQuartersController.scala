@@ -21,16 +21,15 @@ import connectors.AFTConnector
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
-import models.requests.IdentifierRequest
-import models.{AFTQuarter, Draft, GenericViewModel, Quarters}
+import models.{AFTQuarter, Draft, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.amend.ContinueQuartersView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,12 +39,12 @@ class ContinueQuartersController @Inject()(
                                             identify: IdentifierAction,
                                             formProvider: QuartersFormProvider,
                                             val controllerComponents: MessagesControllerComponents,
-                                            renderer: Renderer,
                                             config: FrontendAppConfig,
                                             quartersService: QuartersService,
                                             schemeService: SchemeService,
                                             aftConnector: AFTConnector,
-                                            allowAccess: AllowAccessActionProviderForIdentifierRequest
+                                            allowAccess: AllowAccessActionProviderForIdentifierRequest,
+                                            continueQuartersView: ContinueQuartersView
                                           )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -65,15 +64,13 @@ class ContinueQuartersController @Inject()(
 
           val quarters = displayQuarters.map(_.quarter)
 
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> None,
-            "form" -> form(quarters),
-            "radios" -> Quarters.radios(form(quarters), displayQuarters),
-            "viewModel" -> viewModel(srn, schemeDetails.schemeName)
-          )
-
-          renderer.render(template = "amend/continueQuarters.njk", json).map(Ok(_))
+          Future.successful(Ok(continueQuartersView(
+            form(quarters),
+            TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters), displayQuarters)),
+            routes.ContinueQuartersController.onSubmit(srn),
+            config.schemeDashboardUrl(request).format(srn),
+            schemeDetails.schemeName
+          )))
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
@@ -97,14 +94,13 @@ class ContinueQuartersController @Inject()(
               .bindFromRequest()
               .fold(
                 formWithErrors => {
-                  val json = Json.obj(
-                    fields = "srn" -> srn,
-                    "startDate" -> None,
-                    "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, displayQuarters),
-                    "viewModel" -> viewModel(srn, schemeDetails.schemeName)
-                  )
-                  renderer.render(template = "amend/continueQuarters.njk", json).map(BadRequest(_))
+                  Future.successful(BadRequest(continueQuartersView(
+                    formWithErrors,
+                    TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, displayQuarters)),
+                    routes.ContinueQuartersController.onSubmit(srn),
+                    config.schemeDashboardUrl(request).format(srn),
+                    schemeDetails.schemeName
+                  )))
                 },
                 value => {
                   val aftOverviewElement = aftOverview.filter(_.versionDetails.isDefined)
@@ -125,13 +121,6 @@ class ContinueQuartersController @Inject()(
       }
     }
   }
-
-  private def viewModel(srn: String, schemeName: String)(implicit request: IdentifierRequest[_]): GenericViewModel =
-    GenericViewModel(
-      submitUrl = routes.ContinueQuartersController.onSubmit(srn).url,
-      returnUrl = config.schemeDashboardUrl(request).format(srn),
-      schemeName = schemeName
-    )
 
   case object InvalidValueSelected extends Exception("The selected quarter did not match any quarters in the list of options")
 

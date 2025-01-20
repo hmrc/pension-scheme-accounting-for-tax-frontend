@@ -1,0 +1,53 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@this(
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    govukButton: GovukButton,
+    hmrcCurrencyInput: HmrcCurrencyInput
+)
+
+@(form: Form[_], submitCall: Call, returnUrl: String, schemeName: String, periodDescription: String, ordinal: String, chargeTypeDesc: String)(implicit request: Request[_], messages: Messages)
+
+@layout(messages("chargeAmountReported.title", periodDescription, ordinal, messages(chargeTypeDesc)), formHasErrors = form.hasErrors) {
+    <div>
+        <h1 class="govuk-heading-xl">@messages("chargeAmountReported.heading", periodDescription, ordinal, messages(chargeTypeDesc))</h1>
+
+        @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+            @hmrcCurrencyInput(
+                CurrencyInput(
+                    name = "value",
+                    id = "value",
+                    label = Label(
+                    content = Text(messages("chargeEDetails.chargeAmount.label")),
+                    isPageHeading = false,
+                        classes = "govuk-label--s"
+                    ),
+                    value = form("value").value,
+                    classes = "govuk-input--width-10",
+                    autocomplete = Some("off"),
+                    errorMessage = form("value").error.map(e => ErrorMessage.errorMessageWithDefaultStringsTranslated(content = Text(messages(e.message, e.args:_*))))
+                )
+            )
+            @govukButton(
+                ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
+            )
+        }
+        <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
+    </div>
+}

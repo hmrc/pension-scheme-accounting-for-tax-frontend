@@ -23,17 +23,17 @@ import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import models.LocalDateBinder._
 import models.chargeC.SponsoringEmployerAddress
-import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
+import models.{AccessType, ChargeType, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressResultsPage}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
+import uk.gov.hmrc.govukfrontend.views.viewmodels.select.SelectItem
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.chargeC.SponsoringEmployerAddressView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -50,10 +50,9 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
                                                     formProvider: SponsoringEmployerAddressFormProvider,
                                                     val controllerComponents: MessagesControllerComponents,
                                                     config: FrontendAppConfig,
-                                                    renderer: Renderer)(implicit ec: ExecutionContext)
+                                                    view: SponsoringEmployerAddressView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val form = formProvider()
 
@@ -91,23 +90,12 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
             case None        => form
           }
         }
-        val viewModel = GenericViewModel(
-          submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "sponsorName" -> sponsorName,
-          "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
-          "countries" -> jsonCountries(preparedForm.data.get("country"))
-        )
-
-        renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(Ok(_))
+        val submitCall = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, accessType, version, index)
+        val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+        val empType = Messages(s"chargeC.employerType.${employerType.toString}")
+        Future.successful(Ok(view(
+          preparedForm, schemeName, submitCall, returnUrl, sponsorName, empType, jsonCountries(preparedForm.data.get("country")).as[Seq[SelectItem]]
+        )))
       }
     }
 
@@ -122,23 +110,13 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val viewModel = GenericViewModel(
-                submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> addArgsToErrors(formWithErrors, sponsorName),
-                "viewModel" -> viewModel,
-                "sponsorName" -> sponsorName,
-                "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
-                "countries" -> jsonCountries(formWithErrors.data.get("country"))
-              )
-
-              renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(BadRequest(_))
+              val submitCall = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, accessType, version, index)
+              val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+              val empType = Messages(s"chargeC.employerType.${employerType.toString}")
+              Future.successful(BadRequest(view(
+                addArgsToErrors(formWithErrors, sponsorName), schemeName, submitCall, returnUrl, sponsorName, empType,
+                jsonCountries(formWithErrors.data.get("country")).as[Seq[SelectItem]]
+              )))
             },
             value =>
               for {

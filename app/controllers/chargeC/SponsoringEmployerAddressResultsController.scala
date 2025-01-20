@@ -22,24 +22,22 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
 import models.LocalDateBinder._
-
-import javax.inject.Inject
-import models.{TolerantAddress, GenericViewModel, AccessType, Mode, ChargeType, Index}
 import models.requests.DataRequest
+import models.{AccessType, ChargeType, Index, Mode, TolerantAddress}
 import navigators.CompoundNavigator
-import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressSearchPage, SponsoringEmployerAddressResultsPage}
+import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringEmployerAddressResultsPage, SponsoringEmployerAddressSearchPage}
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
-import play.api.libs.json.{JsObject, Json}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.chargeC.SponsoringEmployerAddressResultsView
 
 import java.time.LocalDate
-import scala.util.Try
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 class SponsoringEmployerAddressResultsController @Inject()(override val messagesApi: MessagesApi,
                                                            userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -52,10 +50,9 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
                                                            formProvider: SponsoringEmployerAddressResultsFormProvider,
                                                            val controllerComponents: MessagesControllerComponents,
                                                            config: FrontendAppConfig,
-                                                           renderer: Renderer)(implicit ec: ExecutionContext)
+                                                           view: SponsoringEmployerAddressResultsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val form = formProvider()
 
@@ -93,15 +90,6 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
         )
     }
 
-  private def transformAddressesForTemplate(seqTolerantAddresses:Seq[TolerantAddress]):Seq[JsObject] = {
-    for ((row, i) <- seqTolerantAddresses.zipWithIndex) yield {
-      Json.obj(
-        "value" -> i,
-        "text" -> row.print
-      )
-    }
-  }
-
 
   private def mkString(p: TolerantAddress) = p.lines.mkString(" ").toLowerCase()
 
@@ -117,11 +105,9 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
       request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
         case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         case Some(addresses) =>
-          val viewModel = GenericViewModel(
-            submitUrl = routes.SponsoringEmployerAddressResultsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )
+          val submitCall = routes.SponsoringEmployerAddressResultsController.onSubmit(mode, srn, startDate, accessType, version, index)
+          val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+
           val addressesSorted = addresses.sortWith((a, b) => {
 
             def sort(zipped: Seq[(Option[Int], Option[Int])]): Boolean = zipped match {
@@ -131,22 +117,14 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
               case (None, Some(_)) :: _ => false
               case _ => mkString(a) < mkString(b)
             }
-
             sort(numbersIn(a).zipAll(numbersIn(b), None, None).toList)
           })
 
-          val addressesAsJson = transformAddressesForTemplate(addressesSorted)
+          val empType = Messages(s"chargeC.employerType.${employerType.toString}")
+          val enterManuallyUrl = routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url
 
-          val json = Json.obj(
-            "form" -> form,
-            "viewModel" -> viewModel,
-            "sponsorName" -> sponsorName,
-            "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
-            "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url,
-            "addresses" -> addressesAsJson
-          )
-
-          renderer.render("chargeC/sponsoringEmployerAddressResults.njk", json).map(status(_))
+      Future.successful(status(view(form, schemeName, submitCall, returnUrl, sponsorName, empType, enterManuallyUrl,
+        TwirlMigration.convertToRadioItems(addressesSorted))))
       }
     }
   }

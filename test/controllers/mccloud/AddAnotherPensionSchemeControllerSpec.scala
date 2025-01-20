@@ -23,28 +23,26 @@ import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{GenericViewModel, NormalMode}
-import org.mockito.ArgumentCaptor
+import models.NormalMode
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import viewmodels.TwirlRadios
+import views.html.mccloud.AddAnotherPensionScheme
 
 import scala.concurrent.Future
 
 class AddAnotherPensionSchemeControllerSpec
     extends ControllerSpecBase
     with MockitoSugar
-    with NunjucksSupport
     with JsonMatchers
     with OptionValues
     with TryValues {
@@ -68,11 +66,15 @@ class AddAnotherPensionSchemeControllerSpec
       .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex)
       .url
 
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName
-  )
+  private val submitCall = routes.AddAnotherPensionSchemeController
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex)
+
+  private val returnUrl = controllers.routes.ReturnToSchemeDetailsController
+    .returnToSchemeDetails(
+      srn,
+      startDate,
+      accessType,
+      versionInt).url
 
   private def userAnswers =
     userAnswersWithSchemeNamePstrQuarter
@@ -90,23 +92,20 @@ class AddAnotherPensionSchemeControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[AddAnotherPensionScheme].apply(
+        form,
+        TwirlRadios.yesNo(form("value")),
+        submitCall,
+        returnUrl,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(form("value"))
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/addAnotherPensionScheme.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted" in {
@@ -132,24 +131,20 @@ class AddAnotherPensionSchemeControllerSpec
 
       val request = FakeRequest(POST, httpPathPOST).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[AddAnotherPensionScheme].apply(
+        boundForm,
+        TwirlRadios.yesNo(boundForm("value")),
+        submitCall,
+        returnUrl,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(boundForm("value"))
-      )
-
-      templateCaptor.getValue mustEqual "mccloud/addAnotherPensionScheme.njk"
-
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

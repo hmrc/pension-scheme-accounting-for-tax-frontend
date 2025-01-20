@@ -16,7 +16,6 @@
 
 package controllers.mccloud
 
-import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -25,8 +24,7 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTQuarter, ChargeType, Enumerable, GenericViewModel, NormalMode, Quarters, SchemeDetails, SchemeStatus, UserAnswers, YearRange}
-import org.mockito.ArgumentCaptor
+import models.{AFTQuarter, ChargeType, Enumerable, NormalMode, Quarters, SchemeDetails, SchemeStatus, UserAnswers, YearRange}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -36,21 +34,20 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper
+import utils.{DateHelper, TwirlMigration}
+import views.html.mccloud.TaxQuarterReportedAndPaid
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
-  implicit val config: FrontendAppConfig = mockAppConfig
   val mockSchemeService: SchemeService = mock[SchemeService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService)
@@ -71,17 +68,8 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
   private def httpPathPOST: String = routes.TaxQuarterReportedAndPaidController
     .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
 
-  private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> Quarters.radios(form, xx),
-    "viewModel" -> GenericViewModel(
-      submitUrl = routes.TaxQuarterReportedAndPaidController
-        .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "year" -> (testYear.toString + " to " + (testYear + 1).toString)
-  )
-
+  private val submitCall = routes.TaxQuarterReportedAndPaidController
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex))
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q12020.toString))
 
@@ -91,7 +79,6 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
     super.beforeEach()
     reset(mockUserAnswersCacheConnector)
     reset(mockRenderer)
-    reset(mockAppConfig)
     reset(mockSchemeService)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
@@ -109,18 +96,23 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
   "TaxQuarterReportedAndPaid Controller" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[TaxQuarterReportedAndPaid].apply(
+        form,
+        TwirlMigration.toTwirlRadios(Quarters.radios(form, xx)),
+        testYear.toString + " to " + (testYear + 1).toString,
+        "",
+        "chargeType.description.annualAllowance",
+        submitCall,
+        dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      compareResultAndView(result, view)
     }
 
     "redirect to next page when valid data is submitted" in {
@@ -135,10 +127,24 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Nu
     "return a BAD REQUEST when invalid data is submitted" in {
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+      val boundForm = form.bind(Map("value" -> ""))
 
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+
+      val view = application.injector.instanceOf[TaxQuarterReportedAndPaid].apply(
+        boundForm,
+        TwirlMigration.toTwirlRadios(Quarters.radios(boundForm, xx)),
+        testYear.toString + " to " + (testYear + 1).toString,
+        "",
+        "chargeType.description.annualAllowance",
+        submitCall,
+        dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
+
+      compareResultAndView(result, view)
     }
   }
 }
