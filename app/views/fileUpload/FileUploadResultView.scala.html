@@ -1,0 +1,60 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@this(
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    govukRadios: GovukRadios,
+    govukButton: GovukButton
+)
+
+@(form: Form[_], schemeName: String, chargeTypeText:String, submitUrl: play.api.mvc.Call, returnUrl: String, fileName: String, radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
+
+@layout(messages("fileupload.upload.result.title", chargeTypeText), formHasErrors = form.hasErrors) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
+
+    @formHelper(action = submitUrl, Symbol("autoComplete") -> "off") {
+
+        <h1 class="govuk-heading-xl">@messages("fileupload.upload.result.heading", chargeTypeText)</h1>
+
+        <p class="govuk-body">@fileName</p>
+
+    @govukRadios(
+        RadiosViewModel(
+            form("value"),
+            radios,
+            Fieldset(
+                legend = Some(Legend(content = Text(messages("fileupload.upload.result.h1")), isPageHeading = true,
+                classes = "govuk-fieldset__legend--m govuk-!-margin-bottom-6"
+            ))
+            )
+        )
+    )
+
+        @govukButton(
+            Button(
+                attributes = Map("id" -> "submit"),
+                content = Text(messages("site.continue")),
+                disabled = fileName.isEmpty
+            )
+        )
+
+    }
+    @templates.ReturnLink(schemeName, returnUrl)
+}
