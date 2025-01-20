@@ -554,7 +554,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   private def chargeReferenceRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
-        key = Key(Text(Messages("psa.financial.overview.charge.reference")), classes = "govuk-!-padding-left-0,govuk-!-width-one-half"),
+        key = Key(Text(Messages("psa.financial.overview.charge.reference")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
         value = Value(Text(s"${data.chargeReference}"), classes = "govuk-!-width-one-quarter")
       ))
   }
@@ -562,7 +562,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   private def chargeReferenceRowNew(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
-        key = Key(Text(Messages("psa.financial.overview.charge.reference")), classes = "govuk-!-padding-left-0,govuk-!-width-one-half"),
+        key = Key(Text(Messages("psa.financial.overview.charge.reference")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
         value = Value(Text(s"${data.chargeReference}"), classes = "govuk-!-width-one-half")
       ))
   }
@@ -570,7 +570,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   private def pstrRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
-        key = Key(Text(Messages("psa.pension.scheme.tax.reference.new")), classes = "govuk-!-padding-left-0,govuk-!-width-one-half"),
+        key = Key(Text(Messages("psa.pension.scheme.tax.reference.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
         value = Value(Text(s"${data.pstr}"), classes = "govuk-!-width-one-half")
       ))
   }
@@ -578,7 +578,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   private def setTaxPeriod(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
-        key = Key(Text(Messages("psa.pension.scheme.tax.period.new")), classes = "govuk-!-padding-left-0,govuk-!-width-one-half"),
+        key = Key(Text(Messages("psa.pension.scheme.tax.period.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
         value = Value(Text(s"${formatDateDMY(data.periodStartDate) + " to " + formatDateDMY(data.periodEndDate)}"), classes = "govuk-!-width-one-half")
       ))
   }
@@ -587,7 +587,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
     Seq(
       SummaryListRow(
-        key = Key(Text(Messages("psa.financial.overview.penaltyAmount")), classes = "govuk-!-padding-left-0,govuk-!-width-one-half"),
+        key = Key(Text(Messages("psa.financial.overview.penaltyAmount")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
         value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
           classes = "govuk-!-width-one-quarter")
       ))
@@ -675,7 +675,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               SummaryListRow(
                 key = Key(
                   content = clearingDetailsValue,
-                  classes = "govuk-!-padding-left-0,govuk-!-width-one-half"
+                  classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
                 ),
                 value = Value(
                   content = Text(s"-${formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"),
@@ -730,7 +730,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         SummaryListRow(
           key = Key(
             content = Text(Messages("paymentsAndCharges.chargeDetails.stoodOverAmount")),
-            classes = "govuk-!-padding-left-0,govuk-!-width-one-half"
+            classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
           ),
           value = Value(
             content = Text(s"-${formatCurrencyAmountAsString(data.stoodOverAmount)}"),
@@ -754,11 +754,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         SummaryListRow(
           key = Key(
             content = amountDueKey,
-            classes = "govuk-!-padding-left-0,govuk-!-width-one-half"
+            classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
           ),
           value = Value(
             content = Text(s"${formatCurrencyAmountAsString(data.amountDue)}"),
-            classes = "govuk-!-width-one-quarter,govuk-!-font-weight-bold"
+            classes = "govuk-!-width-one-quarter govuk-!-font-weight-bold"
           ),
           actions = None
         ))

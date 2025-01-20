@@ -39,14 +39,12 @@ import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.PenaltiesServiceSpec.dateNow
 import services.SchemeService
-import utils.DateHelper.{dateFormatterDMY, formatDateDMY}
-import viewmodels.Radios.MessageInterpolators
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
+import utils.DateHelper.{dateFormatterDMY, formatDateDMY}
 
 import java.time.LocalDate
-import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
@@ -404,7 +402,7 @@ object PsaPenaltiesAndChargesServiceSpec {
     Seq(
       SummaryListRow(
         key = Key(Text(messages("psa.financial.overview.charge.reference")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text("XY002610150184")), classes = "govuk-!-width-one-quarter"),
+        value = Value(Text("XY002610150184"), classes = "govuk-!-width-one-quarter")),
     )
   }
 
@@ -420,7 +418,7 @@ object PsaPenaltiesAndChargesServiceSpec {
   private def totalAmountDueChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
-        key = Key(Text(messages("financialPaymentsAndCharges.paymentDue.overdue.dueDate", LocalDate.parse("2022-03-18").format(dateFormatterDMY)))), classes = "govuk-!-padding-left-0 govuk-!-width-one-half",
+        key = Key(Text(messages("financialPaymentsAndCharges.paymentDue.overdue.dueDate", LocalDate.parse("2022-03-18").format(dateFormatterDMY))), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
         value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"), classes = "govuk-!-width-one-quarter govuk-!-font-weight-bold")),
     )
   }

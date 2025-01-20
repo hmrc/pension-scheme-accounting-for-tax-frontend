@@ -37,18 +37,18 @@ import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.SchemeService
 import services.financialOverview.psa.PenaltiesCache
-import uk.gov.hmrc.govukfrontend.views.Aliases.HtmlContent
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow}
 import utils.AFTConstants._
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatDateDMY}
-import viewmodels.Table
-import viewmodels.Table.Cell
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -65,7 +65,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                               redirectUrl: String,
                               period: String,
                               visuallyHiddenText: String,
-                            ): Html = {
+                            ): HtmlContent = {
     val linkId = if (isInterestAccrued) {
       s"$chargeReference-interest"
     } else {
@@ -73,7 +73,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
 
 //    HtmlContent
-    Html(
+    HtmlContent(
       s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +
         s"$chargeType " +
@@ -83,17 +83,18 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   }
 
   private val tableHead = Seq(
-    Cell(msg"paymentsAndCharges.chargeType.table", classes = Seq("govuk-!-width-one-half")),
-    Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-font-weight-bold")),
-    Cell(msg"paymentsAndCharges.chargeDetails.originalChargeAmount", classes = Seq("govuk-!-font-weight-bold")),
-    Cell(msg"paymentsAndCharges.paymentDue.table", classes = Seq("govuk-!-font-weight-bold")),
-    Cell(Html(
+    HeadCell(Text(messages("paymentsAndCharges.chargeType.table")), classes = "govuk-!-width-one-half"),
+    HeadCell(Text(messages("paymentsAndCharges.chargeReference.table")), classes = "govuk-!-font-weight-bold"),
+    HeadCell(Text(messages("paymentsAndCharges.chargeDetails.originalChargeAmount")), classes = "govuk-!-font-weight-bold"),
+    HeadCell(Text(messages("paymentsAndCharges.paymentDue.table")), classes = "govuk-!-font-weight-bold"),
+    HeadCell(HtmlContent(
       s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
     ))
   )
 
-  private def paymentTable(rows: Seq[Seq[Table.Cell]]): Table =
-    Table(head = tableHead, rows = rows, attributes = Map("role" -> "table"))
+  private def paymentTable(rows: Seq[Seq[TableRow]]): Table =
+    Table(head = Some(tableHead), rows = rows, attributes = Map("role" -> "table"))
+
 
   private def row(isInterestAccrued: Boolean,
                   chargeType: String,
@@ -103,29 +104,29 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                   status: PaymentAndChargeStatus,
                   redirectUrl: String,
                   visuallyHiddenText: String
-                 ): Seq[Table.Cell] = {
+                 ): Seq[TableRow] = {
     val period = "Quarter: 1 April to 30 June 2020"
     val statusHtml = status match {
-      case InterestIsAccruing => Html(s"<span class='govuk-tag govuk-tag--blue'>${status.toString}</span>")
-      case PaymentOverdue => Html(s"<span class='govuk-tag govuk-tag--red'>${status.toString}</span>")
+      case InterestIsAccruing => HtmlContent(s"<span class='govuk-tag govuk-tag--blue'>${status.toString}</span>")
+      case PaymentOverdue => HtmlContent(s"<span class='govuk-tag govuk-tag--red'>${status.toString}</span>")
       case _ => if (paymentDue == "£0.00") {
-        Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
+        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
       } else {
-        Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
+        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
       }
     }
 
     Seq(
-      Cell(htmlChargeType(isInterestAccrued, chargeType, "AYU3494534632", redirectUrl, period, visuallyHiddenText),
-        classes = Seq("govuk-!-width-one-third")),
-      Cell(Literal(s"$displayChargeReference"), classes = Seq("govuk-!-padding-right-7")),
+      TableRow(htmlChargeType(isInterestAccrued, chargeType, "AYU3494534632", redirectUrl, period, visuallyHiddenText),
+        classes = "govuk-!-width-one-third"),
+      TableRow(Text(s"$displayChargeReference"), classes = "govuk-!-padding-right-7"),
       if (originalChargeAmount.isEmpty) {
-        Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
+        TableRow(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
       } else {
-        Cell(Literal(originalChargeAmount), classes = Seq("govuk-!-padding-right-7 table-nowrap"))
+        TableRow(Text(originalChargeAmount), classes = "govuk-!-padding-right-7 table-nowrap")
       },
-      Cell(Literal(paymentDue), classes = Seq("govuk-!-padding-right-5 table-nowrap")),
-      Cell(statusHtml)
+      TableRow(Text(paymentDue), classes = "govuk-!-padding-right-5 table-nowrap"),
+      TableRow(statusHtml)
     )
   }
 
@@ -463,107 +464,101 @@ object PaymentsAndChargesServiceSpec {
     )
   )
 
-  private def dateSubmittedRow: Seq[SummaryList.Row] = {
+  private def dateSubmittedRow(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"financialPaymentsAndCharges.dateSubmitted", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")),
+      SummaryListRow(
+        key = Key(Text(messages("financialPaymentsAndCharges.dateSubmitted")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
         value = Value(
-          Literal(s"${DateHelper.formatDateDMYString(submittedDate)}"),
-          classes = Seq("govuk-!-width-one-quarter")
-        ),
-        actions = Nil
+          Text(s"${DateHelper.formatDateDMYString(submittedDate)}"), classes = "govuk-!-width-one-quarter")
       ))
   }
 
-  private def chargeReferenceRow: Seq[SummaryList.Row] = {
+  private def chargeReferenceRow(implicit messages: Messages): Seq[SummaryListRow]  = {
     Seq(
-      Row(
+      SummaryListRow(
         key = Key(
-          content = msg"financialPaymentsAndCharges.chargeReference",
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          content = Text(messages("financialPaymentsAndCharges.chargeReference")),
+          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
         ),
         value = Value(
-          content = Literal("AYU3494534632"),
-          classes =
-            Seq("govuk-!-width-one-quarter")
-        ),
-        actions = Nil
+          content = Text("AYU3494534632"),
+          classes = "govuk-!-width-one-quarter"),
+        actions = None
       ))
   }
 
-  private def originalAmountChargeDetailsRow: Seq[SummaryList.Row] = {
+  private def originalAmountChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
+      SummaryListRow(
         key = Key(
-          content = msg"paymentsAndCharges.chargeDetails.originalChargeAmount",
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          content = Text(messages("paymentsAndCharges.chargeDetails.originalChargeAmount")),
+          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
         ),
         value = Value(
-          content = Literal(s"${formatCurrencyAmountAsString(56432.00)}"),
-          classes =
-            Seq("govuk-!-width-one-quarter")
+          content = Text(s"${formatCurrencyAmountAsString(56432.00)}"),
+          classes = "govuk-!-width-one-quarter"
         ),
-        actions = Nil
+        actions = None
       ))
   }
 
-  private def stoodOverAmountChargeDetailsRow: Seq[SummaryList.Row] = {
+  private def stoodOverAmountChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
+      SummaryListRow(
         key = Key(
-          content = msg"paymentsAndCharges.chargeDetails.stoodOverAmount",
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          content = Text(messages("paymentsAndCharges.chargeDetails.stoodOverAmount")),
+          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
         ),
         value = Value(
-          content = Literal(s"-${formatCurrencyAmountAsString(25089.08)}"),
-          classes = Seq("govuk-!-width-one-quarter")
+          content = Text(s"-${formatCurrencyAmountAsString(25089.08)}"),
+          classes = "govuk-!-width-one-quarter"
         ),
-        actions = Nil
+        actions = None
       ))
   }
 
-  private def totalAmountDueChargeDetailsRow: Seq[SummaryList.Row] = {
+  private def totalAmountDueChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
+      SummaryListRow(
         key = Key(
-          content = msg"financialPaymentsAndCharges.paymentDue.upcoming.dueDate".withArgs(LocalDate.parse("2020-05-15").format(dateFormatterDMY)),
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          content = Text(messages("financialPaymentsAndCharges.paymentDue.upcoming.dueDate", LocalDate.parse("2020-05-15").format(dateFormatterDMY))),
+          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
         ),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"),
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width--one-half", "govuk-!-font-weight-bold")
+          Text(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"),
+          classes = "govuk-!-padding-left-0 govuk-!-width--one-half govuk-!-font-weight-bold"
         ),
-        actions = Nil
+        actions = None
       ))
   }
 
-  private def clearingChargeDetailsRow: Seq[SummaryList.Row] = {
+  private def clearingChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
+      SummaryListRow(
         key = Key(
-          content = msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(LocalDate.parse("2020-04-24"))),
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          content = Text(messages("financialPaymentsAndCharges.clearingReason.c1", formatDateDMY(LocalDate.parse("2020-04-24")))),
+          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
         ),
         value = Value(
-          content = Literal(s"-${formatCurrencyAmountAsString(150)}"),
-          classes = Seq("govuk-!-width-one-quarter")
+          content = Text(s"-${formatCurrencyAmountAsString(150)}"),
+          classes = "govuk-!-width-one-quarter"
         ),
-        actions = Nil
+        actions = None
       ))
   }
 
-  private def clearingChargeDetailsWithClearingDateRow: Seq[SummaryList.Row] = {
+  private def clearingChargeDetailsWithClearingDateRow(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
+      SummaryListRow(
         key = Key(
-          content = msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(LocalDate.parse("2020-04-15"))),
-          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half")
+          content = Text(messages("financialPaymentsAndCharges.clearingReason.c1", formatDateDMY(LocalDate.parse("2020-04-15")))),
+          classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
         ),
         value = Value(
-          content = Literal(s"-${formatCurrencyAmountAsString(150)}"),
-          classes = Seq("govuk-!-width-one-quarter")
+          content = Text(s"-${formatCurrencyAmountAsString(150)}"),
+          classes = "govuk-!-width-one-quarter"
         ),
-        actions = Nil
+        actions = None
       ))
   }
 }
