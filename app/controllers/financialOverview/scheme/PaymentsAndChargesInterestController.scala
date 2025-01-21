@@ -29,9 +29,9 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.domain.{PsaId, PspId}
-import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, Text, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper
 import utils.DateHelper.formatDateDMY
