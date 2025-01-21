@@ -16,7 +16,7 @@ This is the frontend repository for the Pension Scheme Accounting for Tax servic
 
 This service has a corresponding back-end microservice, namely pension-scheme-accounting-for-tax.
 
-**Associated Frontend Link:** [https://github.com/hmrc/pension-administrator](https://github.com/hmrc/pension-scheme-accounting-for-tax)
+**Associated Backend Link:** [https://github.com/hmrc/pension-administrator](https://github.com/hmrc/pension-scheme-accounting-for-tax)
 
 **Stubs:** https://github.com/hmrc/pensions-scheme-stubs
 
