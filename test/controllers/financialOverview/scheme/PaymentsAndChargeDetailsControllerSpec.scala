@@ -33,14 +33,15 @@ import org.scalatest._
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
-import uk.gov.hmrc.govukfrontend.views.Aliases.{Table}
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.ChargeDetailsViewModel
-import views.html.financialOverview.scheme.PaymentsAndChargeDetailsNewView
+import views.html.financialOverview.scheme.{PaymentsAndChargeDetailsNewView, PaymentsAndChargeDetailsView}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -89,7 +90,6 @@ class PaymentsAndChargeDetailsControllerSpec
       .thenReturn("")
     when(mockPaymentsAndChargesService.getReturnUrl(any(), any(), any(), any(), any()))
       .thenReturn("")
-    when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }
 
   private def insetTextWithAmountDueAndInterest(schemeFSDetail: SchemeFSDetail): HtmlContent = {
@@ -116,7 +116,8 @@ class PaymentsAndChargeDetailsControllerSpec
   }
 
   private def insetText(schemeFSDetail: SchemeFSDetail): HtmlContent = {
-    val interestUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/financial-overview/accounting-for-tax/2020-04-01/1/charge-details"
+    val interestUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/financial-overview/accounting-for-tax/" +
+      "2020-04-01/1/2016-12-17/1/interest/overdue-charge-details"
 
     HtmlContent(
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
@@ -125,7 +126,7 @@ class PaymentsAndChargeDetailsControllerSpec
           messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
             schemeFSDetail.accruedInterestTotal)
         }</span>" +
-        s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", "22.10.19")}</span>" +
+        s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", "15 February 2020")}<span>" +
         s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
         s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
     )
@@ -143,6 +144,31 @@ class PaymentsAndChargeDetailsControllerSpec
     )
   }
 
+  private def expectedJson(
+                            schemeFSDetail: SchemeFSDetail,
+                            insetText: uk.gov.hmrc.viewmodels.Html,
+                            isPaymentOverdue: Boolean = false,
+                            optHint: Option[String] = None
+                          ): JsObject = {
+    val commonJson = Json.obj(
+      "chargeDetailsList" -> None,
+      "tableHeader" -> "",
+      "schemeName" -> schemeName,
+      "chargeType" -> (schemeFSDetail.chargeType.toString + s" submission $version"),
+      "versionValue" -> s" submission $version",
+      "isPaymentOverdue" -> isPaymentOverdue,
+      "insetText" -> insetText,
+      "interest" -> schemeFSDetail.accruedInterestTotal,
+      "returnLinkBasedOnJourney" -> "",
+      "returnUrl" -> "",
+      "returnHistoryURL" -> "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary"
+    )
+    optHint match {
+      case Some(_) => commonJson ++ Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
+      case _ => commonJson
+    }
+  }
+
   "PaymentsAndChargesController" must {
 
     "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
@@ -154,17 +180,15 @@ class PaymentsAndChargeDetailsControllerSpec
       when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
       val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150184", amountDue = 1234.00)
 
-      val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
+      val request = httpGETRequest(httpPathGET(index = "1"))
 
-      status(result) mustEqual OK
-
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
         model = ChargeDetailsViewModel(
           chargeDetailsList = Nil,
           tableHeader = Some(""),
           schemeName = schemeName,
           chargeType = schemeFSDetail.chargeType.toString + s" submission $version",
-          versionValue = Some(s"submission $version"),
+          versionValue = Some(s" submission $version"),
           isPaymentOverdue = true,
           insetText = insetText(schemeFSDetail),
           interest = Some(schemeFSDetail.accruedInterestTotal),
@@ -174,11 +198,16 @@ class PaymentsAndChargeDetailsControllerSpec
           paymentDueAmount = Some("0"),
           paymentDueDate = Some("0"),
           chargeAmountDetails = Some(emptyChargeAmountTable),
-          hintText = Some("0")
+          hintText = Some("")
         )
-      )(messages, fakeRequest)
+      )(messages, request)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
 
       compareResultAndView(result, view)
+
     }
 
     "return OK and the correct view with hint text linked to interest page if amount is due and interest is not accruing for a GET" in {
@@ -194,18 +223,19 @@ class PaymentsAndChargeDetailsControllerSpec
         interest = BigDecimal(0.00)
       )
 
-      val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
-      status(result) mustEqual OK
-
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
+      val request =  httpGETRequest(httpPathGET(index = "1"))
+//   jsonCaptor.getValue must containJson(
+//        expectedJson(schemeFSDetail, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
+//      )
+      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
         model = ChargeDetailsViewModel(
           chargeDetailsList = Nil,
           tableHeader = Some(""),
           schemeName = schemeName,
           chargeType = schemeFSDetail.chargeType.toString + s" submission $version",
-          versionValue = Some(s"submission $version"),
-          isPaymentOverdue = true,
-          insetText = insetTextForInterestWithQuarter(schemeFSDetail),
+          versionValue = Some(s" submission $version"),
+          isPaymentOverdue = false,
+          insetText = HtmlContent(""),
           interest = Some(schemeFSDetail.accruedInterestTotal),
           returnLinkBasedOnJourney = "",
           returnUrl = "",
@@ -215,7 +245,11 @@ class PaymentsAndChargeDetailsControllerSpec
           chargeAmountDetails = Some(emptyChargeAmountTable),
           hintText = Some(messages("paymentsAndCharges.interest.hint"))
         )
-      )(messages, fakeRequest)
+      )(messages, request)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
 
       compareResultAndView(result, view)
 
@@ -250,13 +284,13 @@ class PaymentsAndChargeDetailsControllerSpec
       val result = route(application, httpGETRequest(httpPathGET(index = "2"))).value
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
         model = ChargeDetailsViewModel(
           chargeDetailsList = Nil,
           tableHeader = Some(""),
           schemeName = schemeName,
           chargeType = schemeFSDetail.chargeType.toString + s" submission $version",
-          versionValue = Some(s"submission $version"),
+          versionValue = Some(s" submission $version"),
           isPaymentOverdue = true,
           insetText = insetTextForInterestWithQuarter(schemeFSDetail),
           interest = Some(schemeFSDetail.accruedInterestTotal),
@@ -266,7 +300,7 @@ class PaymentsAndChargeDetailsControllerSpec
           paymentDueAmount = Some("0"),
           paymentDueDate = Some("0"),
           chargeAmountDetails = Some(emptyChargeAmountTable),
-          hintText = Some("0")
+          hintText = Some("")
         )
       )(messages, fakeRequest)
 
@@ -282,15 +316,15 @@ class PaymentsAndChargeDetailsControllerSpec
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
+      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
         model = ChargeDetailsViewModel(
           chargeDetailsList = Nil,
           tableHeader = Some(""),
           schemeName = schemeName,
           chargeType = schemeFSDetail.chargeType.toString + s" submission $version",
-          versionValue = Some(s"submission $version"),
-          isPaymentOverdue = true,
-          insetText = insetTextForInterestWithQuarter(schemeFSDetail),
+          versionValue = Some(s" submission $version"),
+          isPaymentOverdue = false,
+          insetText = HtmlContent(""),
           interest = Some(schemeFSDetail.accruedInterestTotal),
           returnLinkBasedOnJourney = "",
           returnUrl = "",
@@ -298,7 +332,7 @@ class PaymentsAndChargeDetailsControllerSpec
           paymentDueAmount = Some("0"),
           paymentDueDate = Some("0"),
           chargeAmountDetails = Some(emptyChargeAmountTable),
-          hintText = Some("0")
+          hintText = Some("")
         )
       )(messages, fakeRequest)
 
