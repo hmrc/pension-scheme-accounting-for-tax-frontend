@@ -36,8 +36,10 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import play.twirl.api.Html
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.scheme.PaymentsAndChargesNewView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -50,6 +52,8 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
     routes.PaymentsAndChargesController.onPageLoad(srn, Overdue).url
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
+
+  private val penaltiesTable: Table = Table()
 
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
@@ -70,32 +74,34 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).
       thenReturn(Future.successful(paymentsCache(schemeFSResponseOverdue)))
-//    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
-//      any(), any(), any())(any())).thenReturn(emptyChargesTable)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
+      any(), any(), any())(any())).thenReturn(penaltiesTable)
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseUpcoming)
+    when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }
-
-  private def expectedJson: JsObject = Json.obj(
-    fields = "paymentAndChargesTable" -> emptyChargesTable,
-    "schemeName" -> schemeDetails.schemeName,
-    "returnUrl" -> dummyCall.url
-  )
 
   "PaymentsAndChargesController" must {
 
     "return OK and the correct view with filtered payments and charges information for a GET" in {
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual OK
 
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-//      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndCharges.njk"
-//      jsonCaptor.getValue must containJson(expectedJson)
-      val view = application.injector.instanceOf///
+      val view = application.injector.instanceOf[PaymentsAndChargesNewView].apply(
+        journeyType = "overdue",
+        schemeName = schemeDetails.schemeName,
+        titleMessage = messages("schemeFinancial.overview.overdue.title.v2"),
+        pstr = pstr,
+        reflectChargeText = "This information may not reflect payments made in the last 3 days.",
+        totalOverdue = "£3,087.15",
+        totalInterestAccruing = "£0.00",
+        totalUpcoming = "£0.00",
+        totalDue = "£0.00",
+        penaltiesTable = penaltiesTable,
+        paymentAndChargesTable = penaltiesTable,
+        returnUrl = dummyCall.url
+      )(fakeRequest, messages)
 
       compareResultAndView(result, view)
 

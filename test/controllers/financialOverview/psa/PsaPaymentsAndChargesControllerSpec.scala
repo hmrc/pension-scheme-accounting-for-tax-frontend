@@ -22,23 +22,22 @@ import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.psa.PsaPaymentsAndChargesControllerSpec.{responseOverdue, responseUpcoming}
-import data.SampleData.psaId
+import data.SampleData.{psaId, pstr}
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.PsaFSDetail
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
-import viewmodels.Table
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
+import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -65,19 +64,13 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
     )
     .build()
 
-  private val penaltiesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
-  //check this import (aliases vs viewmodels)
-
-//  private val expectedJson = Json.obj("totalUpcomingCharge" -> "100",
-//    "totalOverdueCharge" -> "100",
-//    "totalInterestAccruing" -> "100",
-//    "titleMessage" -> "Overdue penalties and interest charges")
+  private val penaltiesTable: Table = Table()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
-//    when(mockPsaPenaltiesAndChargesService.getPenaltiesAndCharges(any(), any(), any(), any())(any(), any(), any())).
-//      thenReturn(Future.successful(penaltiesTable))
+    when(mockPsaPenaltiesAndChargesService.getPenaltiesAndCharges(any(), any(), any(), any())(any(), any(), any())).
+      thenReturn(Future.successful(penaltiesTable))
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockPsaPenaltiesAndChargesService.getOverdueCharges(any())).thenReturn(responseOverdue)
@@ -85,24 +78,19 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
     when(mockFSConnector.getPsaFSWithPaymentOnAccount(any())(any(), any())).thenReturn(Future.successful(psaFs))
     when(mockPsaPenaltiesAndChargesService.retrievePsaChargesAmount(any())).thenReturn(mockPsaPenaltiesAndChargesService.chargeAmount("100", "100", "100"))
-
+    when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }
 
   "PsaPaymentsAndChargesController" must {
 
     "return OK and the payments and charges information for a GET" in {
 
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf///
-
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-//      templateCaptor.getValue mustEqual "financialOverview/psa/psaPaymentsAndCharges.njk"
-//      jsonCaptor.getValue must containJson(expectedJson)
+      val view = application.injector.instanceOf[PsaPaymentsAndChargesNewView].apply(
+        journeyType = "overdue", psaName = "psa-name", titleMessage = messages("psa.financial.overview.overdue.title.v2"), pstr = Some(pstr), reflectChargeText = "The information may not reflect payments made in the last 3 days.", totalOverdueCharge = "100", totalInterestAccruing = "100", totalUpcomingCharge = "100", totalOutstandingCharge = "100", penaltiesTable = penaltiesTable, paymentAndChargesTable = penaltiesTable
+      )(fakeRequest, messages)
 
       compareResultAndView(result, view)
     }
