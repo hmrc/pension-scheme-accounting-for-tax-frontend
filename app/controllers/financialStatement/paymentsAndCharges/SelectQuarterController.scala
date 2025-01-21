@@ -26,16 +26,15 @@ import models.financialStatement.SchemeFSDetail
 import models.{AFTQuarter, ChargeDetailsFilter, DisplayHint, DisplayQuarter, PaymentOverdue, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.financialStatement.paymentsAndCharges.SelectQuarterView
 
 class SelectQuarterController @Inject()(config: FrontendAppConfig,
                                                   override val messagesApi: MessagesApi,
@@ -43,35 +42,33 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                                                   allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   formProvider: QuartersFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
-                                                  renderer: Renderer,
+                                                  selectQuarterView: SelectQuarterView,
                                                   service: PaymentsAndChargesService)
                                                   (implicit ec: ExecutionContext)
                                                   extends FrontendBaseController
-                                                  with I18nSupport
-                                                  with NunjucksSupport {
+                                                  with I18nSupport {
 
   private def form(quarters: Seq[AFTQuarter], year: String, journeyType: ChargeDetailsFilter)
                   (implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages(s"selectChargesQuarter.$journeyType.error", year), quarters)
 
-  def onPageLoad(srn: String, year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onPageLoad(srn: String, year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+    (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
       val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFSDetail)
 
         if (quarters.nonEmpty) {
-
-          val json = Json.obj(
-            "titleMessage" -> s"selectChargesQuarter.$journeyType.title",
-            "schemeName" -> paymentsCache.schemeDetails.schemeName,
-            "year" -> year,
-            "form" -> form(quarters, year, journeyType),
-            "radios" -> Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
-              Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
-            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-          )
-
-          renderer.render(template = "financialStatement/paymentsAndCharges/selectQuarter.njk", json).map(Ok(_))
+          Future.successful(Ok(selectQuarterView(
+            form(quarters, year, journeyType),
+            s"selectChargesQuarter.$journeyType.title",
+            year,
+            TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
+              Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+            routes.SelectQuarterController.onSubmit(srn, year,  journeyType),
+            config.schemeDashboardUrl(request).format(srn),
+            paymentsCache.schemeDetails.schemeName
+          )))
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
@@ -79,7 +76,8 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
     }
   }
 
-  def onSubmit(srn: String, year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onSubmit(srn: String, year: String, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+    (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { paymentsCache =>
 
       val quarters: Seq[AFTQuarter] = getQuarters(year, paymentsCache.schemeFSDetail)
@@ -87,18 +85,16 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
 
           form(quarters, year, journeyType).bindFromRequest().fold(
               formWithErrors => {
-
-                  val json = Json.obj(
-                    "titleMessage" -> s"selectChargesQuarter.$journeyType.title",
-                    "schemeName" -> paymentsCache.schemeDetails.schemeName,
-                    "year" -> year,
-                    "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
-                      Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false),
-                    "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-                  )
-                  renderer.render(template = "financialStatement/paymentsAndCharges/selectQuarter.njk", json).map(BadRequest(_))
-
+                Future.successful(BadRequest(selectQuarterView(
+                  formWithErrors,
+                  s"selectChargesQuarter.$journeyType.title",
+                  year,
+                  TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
+                    Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false)),
+                  routes.SelectQuarterController.onSubmit(srn, year,  journeyType),
+                  config.schemeDashboardUrl(request).format(srn),
+                  paymentsCache.schemeDetails.schemeName
+                )))
               },
               value => {
                 Future.successful(Redirect(PaymentsAndChargesController.onPageLoad(srn, value.startDate, AccountingForTaxCharges, journeyType)))

@@ -22,13 +22,12 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, UserAnswers}
+import models.UserAnswers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.mockito.ArgumentMatchers
 import pages.chargeG.WhatYouWillNeedPage
 import play.api.Application
-import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -41,13 +40,6 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
   private def httpPathGET: String = controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt).url
-
-  private val jsonToPassToTemplate = Json.obj(
-    "viewModel" -> GenericViewModel(
-      submitUrl = dummyCall.url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      schemeName = schemeName)
-  )
 
   override def beforeEach(): Unit = {
     super.beforeEach()

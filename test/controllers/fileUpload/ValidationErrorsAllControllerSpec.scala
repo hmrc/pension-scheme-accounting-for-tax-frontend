@@ -22,27 +22,25 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsLessThanMax
+import models.fileUpload.{FileUploadOutcome, ValidationErrorForRendering}
 import models.requests.IdentifierRequest
 import models.{ChargeType, UserAnswers}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.fileUpload.InvalidView
 
 import scala.concurrent.Future
 
-class ValidationErrorsAllControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class ValidationErrorsAllControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
 
-  private val templateToBeRendered = "fileUpload/invalid.njk"
   private val chargeType = ChargeType.ChargeTypeOverseasTransfer
 
   private def httpPathGET: String = controllers.fileUpload.routes.ValidationErrorsAllController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
@@ -51,17 +49,21 @@ class ValidationErrorsAllControllerSpec extends ControllerSpecBase with Nunjucks
 
   private def returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, versionInt).url
 
-  private val errorsJson = Json.obj("test" -> "test")
-
-  private def jsonToPassToTemplate = Json.obj(
-    "chargeType" -> chargeType.toString,
-    "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-    "srn" -> srn,
-    "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
-    "returnToFileUploadURL" -> dummyCall.url,
-    "returnToSchemeDetails" -> returnToSchemeDetails,
-    "schemeName" -> schemeName
-  ) ++ errorsJson
+  private val expectedOutcome = FileUploadOutcome(
+    status = ValidationErrorsLessThanMax,
+    json = Json.obj(
+      "errors" -> Json.arr(
+        Json.obj(
+          "cell" -> "A1",
+          "error" -> "error1"
+        ),
+        Json.obj(
+          "cell" -> "B2",
+          "error" -> "error2"
+        )
+      )
+    )
+  )
 
   private val mockFileUploadOutcomeConnector = mock[FileUploadOutcomeConnector]
 
@@ -74,31 +76,31 @@ class ValidationErrorsAllControllerSpec extends ControllerSpecBase with Nunjucks
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))
-      .thenReturn(Future.successful(Some(FileUploadOutcome(status = ValidationErrorsLessThanMax, json = errorsJson))))
+      .thenReturn(Future.successful(Some(expectedOutcome)))
   }
 
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   "validationErrorsAll Controller" must {
     "return OK and the correct view for a GET" in {
-
+      val request = FakeRequest(GET,httpPathGET)
       when(mockAppConfig.failureEndpointTarget(any(), any(), any(), any(), any())).thenReturn(dummyCall.url)
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val dummyErrors = Seq(
+        ValidationErrorForRendering(cell = "A1", error = "error1"),
+        ValidationErrorForRendering(cell = "B2", error = "error2")
+      )
+      val view = application.injector.instanceOf[InvalidView].apply(
+        ChargeType.fileUploadText(chargeType), schemeName, returnToSchemeDetails, dummyCall.url, fileDownloadInstructionLink, dummyErrors,
+        fileDownloadInstructionLink)(request, messages)
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      compareResultAndView(result, view)
     }
   }
 }
