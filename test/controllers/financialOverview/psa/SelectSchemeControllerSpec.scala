@@ -22,7 +22,7 @@ import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.psa.routes.AllPenaltiesAndChargesController
-import data.SampleData.{dummyCall, psaId}
+import data.SampleData.psaId
 import forms.SelectSchemeFormProvider
 import matchers.JsonMatchers
 import models.financialStatement.PenaltyType
@@ -40,7 +40,6 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import utils.TwirlMigration
 import views.html.financialOverview.psa.SelectSchemeView

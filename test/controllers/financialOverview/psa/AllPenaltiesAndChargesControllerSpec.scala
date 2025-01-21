@@ -20,9 +20,9 @@ import config.FrontendAppConfig
 import connectors.MinimalConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, emptyChargesTable, multiplePenalties, psaId, schemeDetails}
+import data.SampleData.{dummyCall, multiplePenalties, psaId, schemeDetails}
 import matchers.JsonMatchers
-import models.{Quarters, SchemeDetails}
+import models.SchemeDetails
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
@@ -34,12 +34,9 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
-import play.twirl.api.Html
 import services.SchemeService
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
 
 import scala.concurrent.Future

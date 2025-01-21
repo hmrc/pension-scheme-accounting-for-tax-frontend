@@ -49,9 +49,6 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
   private def form(errorParameter: String)(implicit messages: Messages, ev: Enumerable[Year]): Form[Year] =
     formProvider(messages("selectPenaltiesYear.error", messages(errorParameter)))(implicitly)
 
-//  private def form(implicit appConfig: FrontendAppConfig): Form[Year] =
-//    formProvider()(StartYears.enumerable)
-
   def onPageLoad(penaltyType: PenaltyType, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
 
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
