@@ -44,7 +44,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListR
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import utils.DateHelper.formatDateDMY
 import viewmodels.PsaChargeDetailsViewModel
-import views.html.financialOverview.psa.PsaChargeDetailsNewView
+import views.html.financialOverview.psa.{PsaChargeDetailsNewView, PsaChargeDetailsView}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -90,7 +90,6 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
-    when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }
 
   "PsaPenaltiesAndChargeDetailsController" when {
@@ -104,7 +103,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
         status(result) mustEqual OK
 
-        val view = application.injector.instanceOf[PsaChargeDetailsNewView].apply(
+        val view = application.injector.instanceOf[PsaChargeDetailsView].apply(
           model = PsaChargeDetailsViewModel(
             heading = "Accounting for Tax Late Filing Penalty",
             psaName = "psa-name",
@@ -117,11 +116,11 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
             penaltyAmount = 10.00,
             insetText = HtmlContent(""),
             isInterestPresent = true,
-            list = Some(getRows()),
-            chargeHeaderDetails = Some(getRows()),
+            list = None,
+            chargeHeaderDetails = None,
             chargeAmountDetails = Some(emptyChargesTable),
-            returnUrl = dummyCall.url,
-            returnUrlText = "???"
+            returnUrl = routes.PsaPaymentsAndChargesController.onPageLoad(Overdue).url,
+            returnUrlText = "your Overdue payments and charges"
           )
         )(messages, fakeRequest)
 

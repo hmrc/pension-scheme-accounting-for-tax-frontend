@@ -17,10 +17,10 @@
 @import viewmodels.PsaChargeDetailsViewModel
 
 @this(
-layout: templates.Layout,
-govukButton: GovukButton,
-govukSummaryList: GovukSummaryList,
-govukInsetText: GovukInsetText
+    layout: templates.Layout,
+    govukButton: GovukButton,
+    govukSummaryList: GovukSummaryList,
+    govukInsetText: GovukInsetText
 )
 
 @(model: PsaChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
@@ -29,16 +29,16 @@ govukInsetText: GovukInsetText
 
 <div>
         @if(model.schemeAssociated) {
-        <h1 class="hmrc-caption govuk-caption-xl">@{model.heading}</h1>
-        <h1 class="govuk-heading-xl">@{model.schemeName}</h1>
+            <h1 class="hmrc-caption govuk-caption-xl">@{model.heading}</h1>
+            <h1 class="govuk-heading-xl">@{model.schemeName}</h1>
         } else {
-        <h1 class="govuk-heading-xl">@{model.heading}</h1>
+            <h1 class="govuk-heading-xl">@{model.heading}</h1>
         }
 
         @if(model.isOverdue) {
-        <p class="govuk-body govuk-tag govuk-tag--red">
-            @messages("penalties.status.paymentOverdue")
-        </p>
+            <p class="govuk-body govuk-tag govuk-tag--red">
+                @messages("penalties.status.paymentOverdue")
+            </p>
         }
 
         <h2 class="govuk-heading-m">@{model.period.get}</h2>
