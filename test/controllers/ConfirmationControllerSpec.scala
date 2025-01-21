@@ -137,8 +137,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       status(result) mustEqual OK
 
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-
-
     }
 
     "return OK and the correct view for amendment for a GET when financial info exists for year" in {
