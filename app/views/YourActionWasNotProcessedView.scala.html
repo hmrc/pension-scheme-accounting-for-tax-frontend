@@ -15,28 +15,19 @@
  *@
 
 @this(
-    layout: templates.Layout,
-    govukButton: GovukButton
+    layout: templates.Layout
 )
 
-@(submitCall: String, returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
-@layout(messages("removeLastCharge.title")) {
-<div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+@(returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
+@layout(messages("yourActionWasNotProcessed.title")) {
 
         <h1 class="govuk-heading-xl">
-            @messages("removeLastCharge.title")
+            @messages("yourActionWasNotProcessed.heading")
         </h1>
 
-        <p class="govuk-body">
-            @messages("removeLastCharge.p1")
-        </p>
-
-            @govukButton(
-                ButtonViewModel(Text(messages("site.continue"))).asLink(submitCall)
-            )
+        <p class="govuk-body">@messages("yourActionWasNotProcessed.guidance.p1")</p>
+        <p class="govuk-body">@messages("yourActionWasNotProcessed.guidance.p2")</p>
+        <p class="govuk-body">@messages("yourActionWasNotProcessed.guidance.p3")</p>
 
         <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
-    </div>
-</div>
 }
