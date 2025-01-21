@@ -116,6 +116,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
 
   override def beforeEach(): Unit = {
+    super.beforeEach()
     Mockito.reset(mockUserAnswersCacheConnector)
     Mockito.reset(mockAllowAccessActionProvider)
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
@@ -124,7 +125,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
-    super.beforeEach()
+
   }
 
   "Confirmation Controller" must {
