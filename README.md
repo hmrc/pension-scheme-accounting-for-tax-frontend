@@ -27,7 +27,7 @@ This service is written in Scala and Play, so needs at least a [JRE] to run.
 
 **Node version:** 16.20.2
 
-**Java version:** 11
+**Java version:** 21
 
 **Scala version:** 2.13.14
 
@@ -40,7 +40,7 @@ This service is written in Scala and Play, so needs at least a [JRE] to run.
 In order to run the service, ensure Service Manager is installed (see [MDTP guidance](https://docs.tax.service.gov.uk/mdtp-handbook/documentation/developer-set-up/set-up-service-manager.html) if needed) and launch the relevant configuration by typing into the terminal:
 `sm2 --start PODS_ALL`
 
-To run the service locally, enter `sm2 --stop PENSION_ADMINISTRATOR`.
+To run the service locally, enter `sm2 --stop PENSION_SCHEME_ACCOUNTING_FOR_TAX_FRONTEND`.
 
 In your terminal, navigate to the relevant directory and enter `sbt run`.
 
