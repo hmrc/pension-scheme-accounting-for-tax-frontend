@@ -32,7 +32,6 @@ class SessionExpiredController @Inject()(
     with I18nSupport {
 
   def onPageLoad: Action[AnyContent] = Action { implicit request =>
-    println("****************** test")
     Ok(view())
   }
 }
