@@ -34,6 +34,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
 import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, EmailQuery}
+import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
@@ -67,7 +68,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     bind[SchemeService].toInstance(mockSchemeService),
     bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
   )
-  private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+
+  override def fakeApplication(): Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private def json(isAmendment: Boolean): JsObject = Json.obj(
     fields = "srn" -> SampleData.srn,
@@ -122,6 +124,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
+    super.beforeEach()
   }
 
   "Confirmation Controller" must {
@@ -133,7 +136,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       mutableFakeDataRetrievalAction.setDataToReturn(
         Some(userAnswersWithSchemeNamePstrQuarter.set(EmailQuery, email).getOrElse(UserAnswers())))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
@@ -145,7 +148,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.setOrException(EmailQuery, email)))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
     }
@@ -161,7 +164,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeDecrease)
         ))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
     }
@@ -177,7 +180,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease)
         ))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
     }
@@ -193,7 +196,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeSame)
         ))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
     }
@@ -208,7 +211,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseWithDataForDifferentYear))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
     }
@@ -216,7 +219,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     "redirect to Session Expired page when there is no scheme name or pstr or quarter" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setDataToReturn(None)
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
