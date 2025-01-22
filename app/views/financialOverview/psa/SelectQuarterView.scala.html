@@ -24,7 +24,7 @@
 
 @(form: Form[_], submitCall: Call, psaName: String, returnUrl: String, radios: Seq[RadioItem], Year: String)(implicit request: Request[_], messages: Messages)
 
-@layout(messages("selectChargesQuarter.all.title", Year), formHasErrors = form.hasErrors) {
+@layout(messages("selectPenaltiesQuarter.title", Year), formHasErrors = form.hasErrors) {
 
 <div>
 
@@ -34,7 +34,7 @@
                 form("value"),
                 radios,
                 Fieldset(
-                    legend = Some(Legend(content = Text(messages("selectChargesQuarter.all.title", Year)), isPageHeading = true,
+                    legend = Some(Legend(content = Text(messages("selectPenaltiesQuarter.title", Year)), isPageHeading = true,
                     classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4"
                 ))
             )
