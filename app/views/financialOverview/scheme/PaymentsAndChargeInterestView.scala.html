@@ -31,8 +31,12 @@
 
 <div>
 
-    <h1 class="hmrc-caption govuk-caption-xl">@{model.chargeType}</h1>
-    <h1 class="govuk-heading-xl">{model.schemeName}</h1>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="hmrc-caption govuk-caption-xl">@{model.chargeType}</h1>
+            <h1 class="govuk-heading-xl">{model.schemeName}</h1>
+        </div>
+    </div>
 
     @if(model.accruedInterest > 0) {
     <p class="govuk-body govuk-tag govuk-tag--blue">

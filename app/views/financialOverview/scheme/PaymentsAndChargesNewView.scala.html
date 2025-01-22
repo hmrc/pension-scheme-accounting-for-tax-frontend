@@ -43,16 +43,14 @@ config: FrontendAppConfig
 
 <div>
 
-    <h1 class="hmrc-caption govuk-caption-xl">@titleMessage</h1>
-    <h1 class="govuk-heading-xl">@schemeName</h1>
-
-        @if(journeyType == "all") {
-        <p class="govuk-body">@messages("psa.financial.overview.penalties.pstr.text", pstr)</p>
-        }
-
-        <div class="govuk-inset-text">
-            <p class="govuk-body">@reflectChargeText</p>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+            <h1 class="hmrc-caption govuk-caption-xl">@schemeName</h1>
+            <h1 class="govuk-heading-xl">@titleMessage</h1>
         </div>
+    </div>
+
+       <p class="govuk-body">@reflectChargeText</p>
 
         <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
             @if(journeyType == "overdue") {
