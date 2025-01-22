@@ -24,10 +24,10 @@ import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsMoreThanOrEqual
 import models.{AccessType, ChargeType}
 import pages.SchemeNameQuery
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.fileUpload.GenericErrorsView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -40,8 +40,8 @@ class ValidationErrorsSummaryController @Inject()(appConfig: FrontendAppConfig,
                                                   getData: DataRetrievalAction,
                                                   allowAccess: AllowAccessActionProvider,
                                                   requireData: DataRequiredAction,
-                                                  renderer: Renderer,
-                                                  fileUploadOutcomeConnector: FileUploadOutcomeConnector
+                                                  fileUploadOutcomeConnector: FileUploadOutcomeConnector,
+                                                  view: GenericErrorsView
                                                  )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -56,20 +56,27 @@ class ValidationErrorsSummaryController @Inject()(appConfig: FrontendAppConfig,
         val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
         val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
         fileUploadOutcomeConnector.getOutcome.flatMap {
-          case Some(FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, errorsJson, _)) =>
-            renderer.render(template = "fileUpload/genericErrors.njk",
-              Json.obj(
-                "chargeType" -> chargeType,
-                "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
-                "srn" -> srn,
-                "startDate" -> Some(startDate),
-                "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
-                "returnToFileUploadURL" -> returnToFileUpload,
-                "returnToSchemeDetails" -> returnToSchemeDetails,
-                "schemeName" -> schemeName
-              ) ++ errorsJson
-            ).map(Ok(_))
+          case Some(outcome@FileUploadOutcome(ValidationErrorsMoreThanOrEqualToMax, _, _)) =>
+            val (errors, totalNumOfErrors) = generateAllErrors(outcome)
+          Future.successful(Ok(view(schemeName,ChargeType.fileUploadText(chargeType), fileDownloadInstructionLink,
+            totalNumOfErrors, errors, returnToFileUpload, returnToSchemeDetails)))
           case _ => Future.successful(NotFound)
         }
     }
+
+  private def generateAllErrors(fileUploadOutcome: FileUploadOutcome): (Seq[String], Int) = {
+    val numOfErrorsReads = (JsPath \ "totalError").read[Int]
+    val readsErrors = (JsPath \ "errors").read[Seq[String]](JsPath.read[Seq[String]](__.read(Reads.seq[String])))
+
+    val numberOfErrors = numOfErrorsReads.reads(fileUploadOutcome.json) match {
+      case JsSuccess(total, _) => total
+      case JsError(errors) => throw JsResultException(errors)
+    }
+
+    val errors = readsErrors.reads(fileUploadOutcome.json) match {
+      case JsSuccess(value, _) => value
+      case JsError(errors) => throw JsResultException(errors)
+    }
+    (errors, numberOfErrors)
+  }
 }

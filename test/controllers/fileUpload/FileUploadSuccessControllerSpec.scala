@@ -23,36 +23,27 @@ import helpers.ChargeTypeHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{ChargeType, GenericViewModel, UserAnswers}
+import models.{ChargeType, UserAnswers}
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.when
 import play.api.Application
-import play.api.libs.json.{JsObject, Json}
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.fileUpload.FileUploadSuccessView
 
-import scala.concurrent.Future
-
-class FileUploadSuccessControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class FileUploadSuccessControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
-  private val templateToBeRendered = "fileUpload/fileUploadSuccess.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
-  private def httpPathGET: String = controllers.fileUpload.routes.FileUploadSuccessController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
-
-  private val jsonToPassToTemplate = Json.obj(
-    "viewModel" -> GenericViewModel(
-      submitUrl = dummyCall.url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      schemeName = schemeName)
-  )
+  val request = FakeRequest(GET, controllers.fileUpload.routes.FileUploadSuccessController.onPageLoad(srn, startDate,
+    accessType, versionInt, chargeType).url)
+  val submitUrl = dummyCall
+  val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 
@@ -61,21 +52,17 @@ class FileUploadSuccessControllerSpec extends ControllerSpecBase with NunjucksSu
   "FileUploadSuccessController" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       when(mockCompoundNavigator
         .nextPage(ArgumentMatchers.eq(ChargeTypeHelper.getCheckYourAnswersPage(chargeType)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val view = application.injector.instanceOf[FileUploadSuccessView].apply(
+        schemeName, submitUrl, returnUrl, "")(request, messages)
+
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      compareResultAndView(result, view)
     }
   }
 }
