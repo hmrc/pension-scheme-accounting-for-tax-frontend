@@ -91,7 +91,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                 submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
                 schemeName = paymentsCache.schemeDetails.schemeName,
                 returnUrl = config.schemeDashboardUrl(request).format(srn),
-                radios = TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType))),
+                radios = TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType)))
               )))
             },
           value =>
