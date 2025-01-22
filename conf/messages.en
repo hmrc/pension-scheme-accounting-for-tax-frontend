@@ -1508,7 +1508,7 @@ schemeFinancial.refund = Request a refund
 
 
 psa.financial.overview.title = Your financial overview
-psa.financial.overview.title.new = Financial overview
+psa.financial.overview.title.new = Your Financial overview
 psa.financial.overview.h2.overdue  = Total of overdue penalties and charges
 psa.financial.overview.h2.overdue.new  = Total overdue charges:
 psa.financial.overview.h2.overdue.penalties.and.charges.new = Overdue charges
