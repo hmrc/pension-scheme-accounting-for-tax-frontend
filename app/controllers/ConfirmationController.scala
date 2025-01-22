@@ -148,7 +148,7 @@ class ConfirmationController @Inject()(
     ),
       SummaryListRow(
         key = Key(Text(messages("confirmation.table.accounting.period.label")), classes = "govuk-!-font-weight-regular"),
-        value = Value(Text(messages("confirmation.table.accounting.period.value", quarterStartDate, quarterEndDate))),
+        value = Value(Text(messages("confirmation.table.accounting.period.value", quarterStartDate, quarterEndDate)))
       ),
       SummaryListRow(
         key = Key(Text(messages("confirmation.table.data.submitted.label")), classes = "govuk-!-font-weight-regular"),
