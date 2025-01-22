@@ -30,10 +30,8 @@
 
 <div>
 
-    <div class="govuk-grid-row">
-            <h1 class="hmrc-caption govuk-caption-xl">@{model.schemeName}</h1>
-            <h1 class="govuk-heading-xl">@{model.chargeType}</h1>
-    </div>
+        <h1 class="hmrc-caption govuk-caption-xl">@{model.schemeName}</h1>
+        <h1 class="govuk-heading-xl">@{model.chargeType}</h1>
 
         @if(model.isPaymentOverdue) {
         <p class="govuk-body govuk-tag govuk-tag--red">
@@ -50,9 +48,11 @@
             )
         }
 
-        @if(model.insetText.nonEmpty) {
-            @{model.insetText}
-        }
+        @govukInsetText(
+            InsetText(
+                content = model.insetText
+            )
+        )
 
         @model.hintText.map { text =>
         <p class="govuk-body">@text</p>
