@@ -75,7 +75,7 @@ returnUrl: String
         @if(totalOverdueCharge != "£0.00") {
         <p class="govuk-body-m govuk-!-margin-bottom-6">
             <a id="allOverdue" class="govuk-link" href="@allOverduePenaltiesAndInterestLink">
-                @messages("psa.financial.overview.allOverdue.link.new")
+                @messages("schemeFinancial.allOverdue.link")
             </a>
         </p>
         }
@@ -136,9 +136,6 @@ returnUrl: String
 
             </div>
         </div>
-
-        <p class="govuk-body"><a id="@returnUrl" class="govuk-link" href="@returnUrl">
-            @messages("return.to.link", schemeName)</a></p>
 
 </div>
 
