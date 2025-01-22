@@ -35,5 +35,5 @@ case class ChargeDetailsViewModel(
                                    paymentDueAmount: Option[String] = None,
                                    paymentDueDate: Option[String] = None,
                                    chargeAmountDetails: Option[Table] = None,
-                                   hintText: Option[String] = None,
+                                   hintText: Option[String] = None
                                  )
