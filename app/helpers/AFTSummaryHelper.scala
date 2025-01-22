@@ -147,7 +147,7 @@ class AFTSummaryHelper {
     val totalRow: Seq[SummaryListRow] = Seq(SummaryListRow(
       key = Key(Text(messages("aft.summary.total")), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
       value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(summaryDataUK(ua, srn, startDate, accessType, version).map(_.totalAmount).sum)}"),
-        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"),
+        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
     ))
 
     summaryRowsUK(ua, srn, startDate, accessType, version) ++ totalRow ++ summaryRowsNonUK(ua, srn, startDate, accessType, version)

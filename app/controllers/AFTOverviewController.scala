@@ -71,7 +71,7 @@ class AFTOverviewController @Inject()(
           overviewInfo.quartersInProgress.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)),
           overviewInfo.pastYearsAndQuarters.map(pYAQ => (pYAQ._1, pYAQ._2.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)))),
           controllers.routes.PastAftReturnsController.onPageLoad(srn, 0).url,
-          config.schemeDashboardUrl(request).format(srn),
+          config.schemeDashboardUrl(request).format(srn)
         )))
       }
   }

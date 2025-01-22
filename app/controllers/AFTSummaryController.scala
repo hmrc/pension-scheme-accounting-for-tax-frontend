@@ -108,7 +108,7 @@ class AFTSummaryController @Inject()(
       searchHint = hint(),
       searchUrl = controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version),
       schemeName = schemeName,
-      submitCall = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, version),
+      submitCall = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, version)
     )
   }
 

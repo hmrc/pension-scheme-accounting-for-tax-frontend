@@ -28,5 +28,5 @@ case class AFTSummaryViewModel(
                                 searchHint: Hint,
                                 searchUrl: Call,
                                 schemeName: String,
-                                submitCall: Call,
+                                submitCall: Call
                               )
