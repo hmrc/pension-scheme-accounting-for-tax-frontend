@@ -38,7 +38,7 @@ config: FrontendAppConfig
     paymentAndChargesTable: Table
 )(implicit request: Request[_], messages: Messages)
 
-@layout(messages(titleMessage)) {
+@layout(messages(titleMessage), fullWidthLayout = true) {
 
 <div>
 
