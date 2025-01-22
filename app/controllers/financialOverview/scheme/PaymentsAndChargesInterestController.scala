@@ -161,17 +161,18 @@ class PaymentsAndChargesInterestController @Inject()(
 
     val interestChargeType = getInterestChargeTypeText(schemeFSDetail.chargeType)
 
+
     InterestDetailsViewModel(
       chargeDetailsList = getSummaryListRowsV2(schemeFSDetail),
       schemeName = schemeName,
       interestDueAmount = Some(FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)),
       accruedInterest = schemeFSDetail.accruedInterestTotal,
       chargeType = (version, interestChargeType) match {
-        case (Some(value), interestChargeTypeText) =>
-          interestChargeTypeText + s" submission $value"
-        case (None, interestChargeTypeText) =>
-          interestChargeTypeText
-      },
+          case (Some(value), interestChargeTypeText) =>
+            interestChargeTypeText + s" submission $value"
+          case (None, interestChargeTypeText) =>
+            interestChargeTypeText
+        },
       insetText = htmlInsetText,
       originalAmountUrl = originalAmountUrl,
       returnLinkBasedOnJourney = paymentsAndChargesService.getReturnLinkBasedOnJourney(journeyType, schemeName),
