@@ -90,7 +90,7 @@ class AllPenaltiesAndChargesController @Inject()(
               totalUpcomingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",
               totalOutstandingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
               penaltiesTable = penaltiesTable,
-              paymentAndChargesTable = penaltiesTable,
+              paymentAndChargesTable = penaltiesTable
             )))
           }
         } else {
@@ -140,7 +140,7 @@ class AllPenaltiesAndChargesController @Inject()(
               totalUpcomingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",
               totalOutstandingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
               penaltiesTable = penaltiesTable,
-              paymentAndChargesTable = penaltiesTable,
+              paymentAndChargesTable = penaltiesTable
             )))
           }
         } else {

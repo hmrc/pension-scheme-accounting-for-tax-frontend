@@ -47,7 +47,7 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
                                                         psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                                         schemeService: SchemeService,
                                                         view: PsaInterestDetailsView,
-                                                        newView: PsaInterestDetailsNewView,
+                                                        newView: PsaInterestDetailsNewView
                                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {

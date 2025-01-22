@@ -76,8 +76,11 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
             submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
             schemeName = cache.schemeDetails.schemeName,
             returnUrl = config.schemeDashboardUrl(request).format(srn),
-            radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail))),
-          )))
+            radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail))
+              )
+            )
+          )
+        )
         },
         value => navService.navFromPaymentsTypePage(cache.schemeFSDetail, srn, value)
       )

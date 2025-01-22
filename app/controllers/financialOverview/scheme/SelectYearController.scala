@@ -41,7 +41,8 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                                      config: FrontendAppConfig,
                                      service: PaymentsAndChargesService,
                                      selectYearView: SelectYearView,
-                                     navService: PaymentsNavigationService)(implicit ec: ExecutionContext)
+                                     navService: PaymentsNavigationService
+                                    )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 

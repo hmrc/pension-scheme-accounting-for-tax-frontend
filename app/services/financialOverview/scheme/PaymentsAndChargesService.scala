@@ -492,7 +492,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       Seq(
         SummaryListRow(
           key = Key(Text(Messages("paymentsAndCharges.chargeDetails.stoodOverAmount")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-          value = Value(Text(s"-${formatCurrencyAmountAsString(schemeFSDetail.stoodOverAmount)}"), classes = "govuk-!-width-one-quarter"),
+          value = Value(Text(s"-${formatCurrencyAmountAsString(schemeFSDetail.stoodOverAmount)}"), classes = "govuk-!-width-one-quarter")
         ))
     } else {
       Nil

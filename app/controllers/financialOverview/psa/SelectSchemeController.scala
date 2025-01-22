@@ -45,7 +45,7 @@ class SelectSchemeController @Inject()(
                                         psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                         navService: PenaltiesNavigationService,
                                         appConfig: FrontendAppConfig,
-                                        selectSchemeView: SelectSchemeView,
+                                        selectSchemeView: SelectSchemeView
                                       )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {

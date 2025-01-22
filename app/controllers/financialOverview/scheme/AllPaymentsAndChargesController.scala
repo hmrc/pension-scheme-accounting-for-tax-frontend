@@ -42,7 +42,7 @@ class AllPaymentsAndChargesController @Inject()(
                                                  val controllerComponents: MessagesControllerComponents,
                                                  config: FrontendAppConfig,
                                                  view: PaymentsAndChargesNewView,
-                                                 paymentsAndChargesService: PaymentsAndChargesService,
+                                                 paymentsAndChargesService: PaymentsAndChargesService
                                                )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
