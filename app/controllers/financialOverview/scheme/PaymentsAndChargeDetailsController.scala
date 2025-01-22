@@ -177,6 +177,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                         version: Option[Int],
                         isChargeAssigned: Boolean
                        ): ChargeDetailsViewModel = {
+
       ChargeDetailsViewModel(
         chargeDetailsList = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetail, schemeDetails, journeyType, submittedDate),
         schemeName = schemeDetails.schemeName,

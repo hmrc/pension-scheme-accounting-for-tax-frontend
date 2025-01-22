@@ -41,7 +41,7 @@
             </p>
         }
 
-        <h2 class="govuk-heading-m">@{model.period.get}</h2>
+        <h2 class="govuk-heading-m">@{model.period}</h2>
 
         <p class="govuk-body">
             @govukSummaryList(
@@ -51,11 +51,13 @@
             )
         </p>
 
-    @govukInsetText(
-        InsetText(
-            content = model.insetText
+    @if(model.isInterestPresent) {
+        @govukInsetText(
+            InsetText(
+                content = model.insetText
+            )
         )
-    )
+    }
 
 </div>
 

@@ -180,6 +180,7 @@ class PsaPenaltiesAndChargeDetailsController @Inject()(identify: IdentifierActio
       schemeName = schemeName,
       psaName = psaName,
       isOverdue = psaPenaltiesAndChargesService.isPaymentOverdue(psaFSDetail),
+      list = Some(psaPenaltiesAndChargesService.chargeDetailsRows(psaFSDetail, journeyType)),
       period = Some(period),
       chargeReference = psaFSDetail.chargeReference,
       penaltyAmount = psaFSDetail.totalAmount,
