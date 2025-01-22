@@ -25,7 +25,7 @@
 
 @(model: PsaChargeDetailsViewModel)(implicit messages: Messages, request: Request[_])
 
-@layout(messages({model.heading}), fullWidthLayout = true) {
+@layout(messages({model.heading})) {
 
 <div>
         @if(model.schemeAssociated) {

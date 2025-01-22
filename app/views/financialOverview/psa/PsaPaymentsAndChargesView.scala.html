@@ -20,6 +20,7 @@
 @this(
     layout: templates.Layout,
     govukBackLink: GovukBackLink,
+    hmrcPageHeading: HmrcPageHeading,
     govukButton: GovukButton,
     govukTable: GovukTable,
     config: FrontendAppConfig
@@ -45,16 +46,16 @@
 
 <div class="govuk-grid-row">
 
-        <h1 class="hmrc-caption govuk-caption-xl">@psaName</h1>
-        <h1 class="govuk-heading-xl">@schemeName</h1>
+        @hmrcPageHeading(PageHeading(
+            text = messages(titleMessage),
+            section = Some(psaName)
+        ))
 
         @if(journeyType == "all") {
         <p class="govuk-body">@messages("psa.financial.overview.penalties.pstr.text", pstr)</p>
         }
 
-        <div class="govuk-inset-text">
-            <p class="govuk-body">@reflectChargeText</p>
-        </div>
+        <p class="govuk-body">@reflectChargeText</p>
 
         <div class="govuk-grid-row govuk-!-margin-top-7 govuk-!-margin-bottom-7">
             @if(journeyType == "overdue") {

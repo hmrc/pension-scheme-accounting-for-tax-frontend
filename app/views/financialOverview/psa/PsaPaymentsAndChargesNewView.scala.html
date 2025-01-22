@@ -43,8 +43,8 @@ config: FrontendAppConfig
 <div>
 
         @hmrcPageHeading(PageHeading(
-        text = messages(titleMessage),
-        section = Some(psaName)
+            text = messages(titleMessage),
+            section = Some(psaName)
         ))
 
         @if(journeyType == "all" && pstr.isDefined) {
