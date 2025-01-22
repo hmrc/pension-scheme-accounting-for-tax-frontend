@@ -70,12 +70,12 @@ class AmendmentHelper @Inject()(
           value = Value(
             Text(s"${FormatHelper.formatCurrencyAmountAsString(currentTotalAmount)}"),
             classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"
-          ),
+          )
         ),
         SummaryListRow(
           key = Key(Text(messages("confirmSubmitAFTReturn.difference")), classes = "govuk-!-width-three-quarters"),
           value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(differenceAmount)}"),
-                        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"),
+                        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
         )
       )
     }
