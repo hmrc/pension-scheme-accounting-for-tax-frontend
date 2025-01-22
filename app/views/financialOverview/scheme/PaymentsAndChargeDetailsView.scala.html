@@ -48,11 +48,13 @@
             )
         }
 
+    @if(model.insetText.nonEmpty) {
         @govukInsetText(
             InsetText(
                 content = model.insetText
             )
         )
+    }
 
         @model.hintText.map { text =>
         <p class="govuk-body">@text</p>
