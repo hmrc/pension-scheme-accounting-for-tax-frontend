@@ -36,9 +36,9 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.GET
 import play.twirl.api.{Html => TwirlHtml}
 import uk.gov.hmrc.domain.PsaId
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, _}
+import uk.gov.hmrc.govukfrontend.views.Aliases.Value
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow}
 
 import java.time.LocalDate
 
@@ -57,23 +57,22 @@ class AFTSummaryHelperSpec extends SpecBase with Matchers with MockitoSugar with
   private val startDate = LocalDate.now
 
   private def createRow(chargeType: ChargeType, amount: BigDecimal, href: Option[String]) = {
-    Row(
-      key = Key(msg"aft.summary.${chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"),
-        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+    SummaryListRow(
+      key = Key(Text(messages(s"aft.summary.${chargeType.toString}.row")), classes = "govuk-!-width-three-quarters"),
+      value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"),
+        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"),
       actions = href
         .map { url =>
-          List(
-            Action(
-              content = Html(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
-              href = url,
-              visuallyHiddenText = Some(Literal(
-                messages("site.view") + " " + messages(s"aft.summary.${chargeType.toString}.visuallyHidden.row")
+            Actions(
+              items = Seq(ActionItem(
+                content = HtmlContent(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
+                href = url,
+                visuallyHiddenText = Some(
+                  messages("site.view") + " " + messages(s"aft.summary.${chargeType.toString}.visuallyHidden.row")
+                )
               ))
             )
-          )
         }
-        .getOrElse(Nil)
     )
   }
 
@@ -97,11 +96,10 @@ class AFTSummaryHelperSpec extends SpecBase with Matchers with MockitoSugar with
           Some(chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
         createRow(ChargeTypeLumpSumDeath, BigDecimal(600.00),
           Some(chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
-        Row(
-          key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-          value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(BigDecimal(2100.00))}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-          actions = Nil
+        SummaryListRow(
+          key = Key(Text(messages("aft.summary.total")), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+          value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(BigDecimal(2100.00))}"),
+            classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
         ),
         createRow(ChargeTypeOverseasTransfer, BigDecimal(700.00),
           Some(chargeG.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url))
@@ -121,11 +119,10 @@ class AFTSummaryHelperSpec extends SpecBase with Matchers with MockitoSugar with
         createRow(ChargeTypeLifetimeAllowance, BigDecimal(0.00), None),
         createRow(ChargeTypeShortService, BigDecimal(0.00), None),
         createRow(ChargeTypeLumpSumDeath, BigDecimal(0.00), None),
-        Row(
-          key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-          value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(BigDecimal(100.00))}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-          actions = Nil
+        SummaryListRow(
+          key = Key(Text(messages("aft.summary.total")), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+          value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(BigDecimal(100.00))}"),
+            classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
         ),
         createRow(ChargeTypeOverseasTransfer, BigDecimal(0.00), None)
       )
