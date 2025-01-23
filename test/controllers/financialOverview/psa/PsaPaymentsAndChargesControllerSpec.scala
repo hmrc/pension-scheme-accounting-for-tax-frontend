@@ -22,7 +22,7 @@ import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.psa.PsaPaymentsAndChargesControllerSpec.{responseOverdue, responseUpcoming}
-import data.SampleData.{psaId, pstr}
+import data.SampleData.{psaId, pstr, schemeName}
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
@@ -37,7 +37,7 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
-import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
+import views.html.financialOverview.psa.{PsaPaymentsAndChargesNewView, PsaPaymentsAndChargesView}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -78,12 +78,12 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
     when(mockFSConnector.getPsaFSWithPaymentOnAccount(any())(any(), any())).thenReturn(Future.successful(psaFs))
     when(mockPsaPenaltiesAndChargesService.retrievePsaChargesAmount(any())).thenReturn(mockPsaPenaltiesAndChargesService.chargeAmount("100", "100", "100"))
-    when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }
 
   "PsaPaymentsAndChargesController" must {
 
-    "return OK and the payments and charges information for a GET" in {
+    "return OK and the new payments and charges information for a GET" in {
+      when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual OK
@@ -91,6 +91,19 @@ class PsaPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
       val view = application.injector.instanceOf[PsaPaymentsAndChargesNewView].apply(
         journeyType = "overdue", psaName = "psa-name", titleMessage = messages("psa.financial.overview.overdue.title.v2"), pstr = Some(pstr), reflectChargeText = "The information may not reflect payments made in the last 3 days.", totalOverdueCharge = "100", totalInterestAccruing = "100", totalUpcomingCharge = "100", totalOutstandingCharge = "100", penaltiesTable = penaltiesTable, paymentAndChargesTable = penaltiesTable
       )(fakeRequest, messages)
+
+      compareResultAndView(result, view)
+    }
+
+    "return OK and the old payments and charges information for a GET" in {
+      when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+      status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[PsaPaymentsAndChargesView].apply(
+        journeyType = "overdue", schemeName = schemeName, psaName = "psa-name", titleMessage = messages("psa.financial.overview.overdue.title"), pstr = pstr, reflectChargeText = "The information may not reflect payments made in the last 3 days.", totalOverdueCharge = "100", totalInterestAccruing = "100", totalUpcomingCharge = "100", totalOutstandingCharge = "100", penaltiesTable = penaltiesTable, paymentAndChargesTable = penaltiesTable, returnUrl = ""
+      )(messages, fakeRequest)
 
       compareResultAndView(result, view)
     }
