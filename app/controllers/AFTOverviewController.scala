@@ -46,7 +46,7 @@ class AFTOverviewController @Inject()(
                                        paymentsAndChargesService: PaymentsAndChargesService,
                                        override val messagesApi: MessagesApi,
                                        val controllerComponents: MessagesControllerComponents,
-                                       AFTOverviewView: AFTOverviewView
+                                       aftOverviewView: AFTOverviewView
                                      )(implicit ec: ExecutionContext)
   extends FrontendBaseController with I18nSupport {
 
@@ -63,7 +63,7 @@ class AFTOverviewController @Inject()(
       }
       yield OverviewInfo(schemeDetails, quartersInProgress, pastYearsAndQuarters, outstandingAmount)
         ).flatMap { overviewInfo =>
-        Future.successful(Ok(AFTOverviewView(
+        Future.successful(Ok(aftOverviewView(
           overviewInfo.schemeDetails.schemeName,
           controllers.routes.YearsController.onPageLoad(srn).url,
           overviewInfo.outstandingAmount,

@@ -37,7 +37,7 @@ class AFTReturnLockedController @Inject()(appConfig: FrontendAppConfig,
                                           identify: IdentifierAction,
                                           getData: DataRetrievalAction,
                                           schemeService: SchemeService,
-                                          AFTReturnLockedView: AFTReturnLockedView,
+                                          aftReturnLockedView: AFTReturnLockedView,
                                           allowAccess: AllowAccessActionProviderForIdentifierRequest
                                                    )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
@@ -46,7 +46,7 @@ class AFTReturnLockedController @Inject()(appConfig: FrontendAppConfig,
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
-          Future.successful(Ok(AFTReturnLockedView(
+          Future.successful(Ok(aftReturnLockedView(
             controllers.routes.AFTLoginController.onPageLoad(srn).url,
             controllers.routes.AFTReturnLockedController.onClick(srn, startDate).url,
             schemeDetails.schemeName
