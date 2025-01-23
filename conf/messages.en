@@ -1427,8 +1427,8 @@ return.to.fileupload = Return to file upload
 
 schemeFinancial.h1 = Your financial overview
 schemeFinancial.h1.new = Financial overview
-schemeFinancial.overview.overdue.title = Overdue Charges
-schemeFinancial.overview.overdue.title.v2 = Overdue Charges
+schemeFinancial.overview.overdue.title = Overdue charges
+schemeFinancial.overview.overdue.title.v2 = Overdue charges
 schemeFinancial.overview.upcoming.title = Due penalties and charges
 schemeFinancial.overview.upcoming.title.v2 = Due penalties and charges
 schemeFinancial.overview.all.title = All penalties and charges
