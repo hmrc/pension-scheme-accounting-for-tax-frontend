@@ -58,7 +58,6 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
     Mockito.reset(mockUserAnswersCacheConnector)
     Mockito.reset(mockCompoundNavigator)
     Mockito.reset(mockAllowAccessActionProvider)
-    Mockito.reset(mockAppConfig)
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
     when(mockAllowAccessActionProviderForIdentifierRequest.apply(any())).thenReturn(FakeActionFilterForIdentifierRequest)
     when(mockAppConfig.timeoutSeconds).thenReturn("900")
