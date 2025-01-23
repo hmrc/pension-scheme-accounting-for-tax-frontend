@@ -224,9 +224,7 @@ class PaymentsAndChargeDetailsControllerSpec
       )
 
       val request =  httpGETRequest(httpPathGET(index = "1"))
-//   jsonCaptor.getValue must containJson(
-//        expectedJson(schemeFSDetail, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
-//      )
+
       val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
         model = ChargeDetailsViewModel(
           chargeDetailsList = Nil,
