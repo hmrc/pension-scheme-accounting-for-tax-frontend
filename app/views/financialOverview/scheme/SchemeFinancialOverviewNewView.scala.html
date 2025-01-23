@@ -36,34 +36,34 @@ isOverdueChargeAvailable: Boolean,
 returnUrl: String
 )(implicit messages: Messages, request: Request[_])
 
-@layout(messages("psa.financial.overview.title"), fullWidthLayout = true) {
+@layout(messages("schemeFinancial.title"), fullWidthLayout = true) {
 
 <div>
 
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
             <h1 class="hmrc-caption govuk-caption-xl">@schemeName</h1>
-            <h1 class="govuk-heading-xl">@messages("psa.financial.overview.title")</h1>
+            <h1 class="govuk-heading-xl">@messages("schemeFinancial.h1.new")</h1>
         </div>
     </div>
 
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
-                <h2 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">@messages("psa.financial.overview.h2.overdue.penalties.and.charges.new")</h2>
-                <p class="govuk-body">@messages("paymentsAndCharges.chargeDetails.late.interestAccruing")</p>
+                <h2 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">@messages("schemeFinancial.h2.overdueCharges")</h2>
+                <p class="govuk-body">@messages("schemeFinancial.p1.overdueCharges")</p>
             </div>
         </div>
 
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-one-half">
                 <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                    @messages("psa.financial.overview.h2.overdue.new")
+                    @messages("schemeFinancial.h2.overduePayments.new")
                 </h3>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalOverdueCharge</p>
             </div>
             <div class="govuk-grid-column-one-half">
                 <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                    @messages("psa.financial.overview.h2.totalInterestAccruing.new")
+                    @messages("schemeFinancial.h2.totalInterestAccruing.new")
                 </h3>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalInterestAccruing</p>
             </div>
@@ -83,17 +83,17 @@ returnUrl: String
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
                 <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
-                    @messages("psa.financial.overview.due.penalties.and.charges.new")
+                    @messages("schemeFinancial.h2.totalDuePayment.new")
                 </h2>
                 <p class="govuk-body">
-                    @messages("psa.financial.overview.due.penalties.and.charges.p1.new")
+                    @messages("schemeFinancial.p1.totalDue.noDeadline")
                 </p>
             </div>
         </div>
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
                 <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                    @messages("psa.financial.overview.h2.totalDuePenalties.new")
+                    @messages("schemeFinancial.h2.totalDueCharges")
                 </h3>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalUpcomingCharge</p>
 
@@ -103,7 +103,7 @@ returnUrl: String
         @if(totalUpcomingCharge != "£0.00") {
         <p class="govuk-body-m govuk-!-margin-bottom-6">
             <a id="allDue" class="govuk-link" href="@duePaymentLink">
-                @messages("psa.financial.overview.allDue.link")
+                @messages("schemeFinancial.allDue.link.new")
             </a>
         </p>
         }
@@ -113,10 +113,10 @@ returnUrl: String
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-full">
                 <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
-                    @messages("psa.financial.overview.h2.creditHeading.new")
+                    @messages("schemeFinancial.h2.creditHeading")
                 </h2>
                 <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                    @messages("psa.financial.overview.h2.creditBalance.new")
+                    @messages("schemeFinancial.h2.creditBalance.new")
                 </h3>
                 <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@creditBalanceFormatted</p>
 
