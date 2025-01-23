@@ -39,7 +39,7 @@ import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCac
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import views.html.financialOverview.scheme.PaymentsAndChargesNewView
+import views.html.financialOverview.scheme.{PaymentsAndChargesNewView, PaymentsAndChargesView}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -79,12 +79,12 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseOverdue)
     when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseUpcoming)
-    when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }
 
   "PaymentsAndChargesController" must {
 
-    "return OK and the correct view with filtered payments and charges information for a GET" in {
+    "return OK and the new view with filtered payments and charges information for a GET" in {
+      when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
       val result = route(application, httpGETRequest(httpPathGET)).value
       status(result) mustEqual OK
 
@@ -102,6 +102,29 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
         paymentAndChargesTable = penaltiesTable,
         returnUrl = dummyCall.url
       )(fakeRequest, messages)
+
+      compareResultAndView(result, view)
+
+    }
+
+    "return OK and the old view with filtered payments and charges information for a GET" in {
+      when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
+      val result = route(application, httpGETRequest(httpPathGET)).value
+      status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[PaymentsAndChargesView].apply(
+        journeyType = "overdue",
+        schemeName = schemeDetails.schemeName,
+        titleMessage = messages("schemeFinancial.overview.overdue.title"),
+        pstr = pstr,
+        reflectChargeText = "The information may not reflect payments made in the last 3 days.",
+        totalDue = "£2,058.10",
+        totalInterestAccruing = "£0.00",
+        totalUpcoming = "£0.00",
+        penaltiesTable = penaltiesTable,
+        paymentAndChargesTable = penaltiesTable,
+        returnUrl = dummyCall.url
+      )(messages, fakeRequest)
 
       compareResultAndView(result, view)
 

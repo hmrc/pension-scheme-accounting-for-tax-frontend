@@ -40,7 +40,6 @@ import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import utils.AFTConstants._
-import utils.DateHelper
 import utils.DateHelper.formatDateDMY
 import viewmodels.InterestDetailsViewModel
 import views.html.financialOverview.scheme.PaymentsAndChargeInterestNewView
