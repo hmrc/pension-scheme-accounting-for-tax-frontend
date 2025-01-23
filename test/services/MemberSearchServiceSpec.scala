@@ -30,13 +30,14 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContent, Results}
 import services.MemberSearchService.MemberRow
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
 
 import java.time.LocalDate
 
@@ -95,7 +96,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
 
     "return valid results with no remove link when read only" in {
       val fakeDataRequest: DataRequest[AnyContent] = request(sessionAccessData = SampleData.sessionAccessData(accessMode = AccessMode.PageAccessModeViewOnly))
-      List(memberSearchService.search(UserAnswers(uaJs), srn, startDate, "CS121212C", accessType, versionInt)(fakeDataRequest)(1)) mustBe
+      List(memberSearchService.search(UserAnswers(uaJs), srn, startDate, "CS121212C", accessType, versionInt)(fakeDataRequest, messages)(1)) mustBe
         searchResultsMemberDetailsChargeE("Bill Bloggs", "CS121212C", BigDecimal("110.02"), removeLink = false)
     }
 
@@ -117,22 +118,41 @@ object MemberSearchServiceSpec {
 
   private def emptyUserAnswers: UserAnswers = UserAnswers()
 
-  private def searchResultsMemberDetailsChargeE(name: String, nino: String, totalAmount: BigDecimal, index: Int = 0, removeLink: Boolean = true) =
+  private def searchResultsMemberDetailsChargeE(name: String, nino: String, totalAmount: BigDecimal, index: Int = 0, removeLink: Boolean = true)
+                                               (implicit messages: Messages) =
     Seq(MemberRow(name,
       Seq(
-        Row(Key(Message("memberDetails.nino"), Seq("govuk-!-width-one-half")),
-          Value(Literal(nino), Seq("govuk-!-width-one-half"))),
-        Row(Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-one-half")),
-          Value(Message("aft.summary.annualAllowance.description"), Seq("govuk-!-width-one-half"))
+        SummaryListRow(Key(Text(messages("memberDetails.nino")), "govuk-!-width-one-half"),
+          Value(Text(nino), "govuk-!-width-one-half")),
+        SummaryListRow(Key(Text(messages("aft.summary.search.chargeType")), "govuk-!-width-one-half"),
+          Value(Text(messages("aft.summary.annualAllowance.description")), "govuk-!-width-one-half")
         ),
-        Row(Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-one-half")),
-          Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-half")))
+        SummaryListRow(Key(Text(messages("aft.summary.search.amount")), "govuk-!-width-one-half"),
+          Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"), classes = "govuk-!-width-one-half"))
       ),
       if (removeLink) {
-        Seq(Action(Message("site.view"), controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, 1, index).url, None),
-          Action(Message("site.remove"), controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, 1, index).url, None))
+        Seq(Actions(
+          items = Seq(ActionItem(
+            content = Text(messages("site.view")),
+            href = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, 1, index).url
+          ))
+        ),
+          Actions(
+            items = Seq(ActionItem(
+              content = Text(messages("site.remove")),
+              href = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, 1, index).url
+            ))
+          )
+        )
       } else {
-        Seq(Action(Message("site.view"), controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, 1, index).url, None))
+        Seq(
+          Actions(
+            items = Seq(ActionItem(
+              content = Text(messages("site.view")),
+              href = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, 1, index).url
+            ))
+          )
+        )
       }
     ))
 

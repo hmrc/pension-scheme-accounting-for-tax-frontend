@@ -60,7 +60,9 @@ lazy val root = (project in file("."))
     uglifyCompressOptions := Seq("unused=false", "dead_code=false"),
     scalacOptions += "-Wconf:src=routes/.*:s",
     scalacOptions += "-Wconf:cat=unused-imports&src=html/.*:s",
-    Assets / pipelineStages := Seq(concat, uglify)
+    // Removed uglify due to node 20 compile issues.
+    // Suspected cause minification of already minified location-autocomplete.min.js -Pavel Vjalicin
+    Assets / pipelineStages := Seq(concat),
   )
 
 lazy val testSettings: Seq[Def.Setting[_]] = Seq(
