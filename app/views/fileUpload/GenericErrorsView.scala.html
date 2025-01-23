@@ -1,0 +1,50 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@this(
+layout: templates.Layout,
+govukButton: GovukButton,
+govukRadios: GovukRadios
+)
+
+@(schemeName: String, chargeTypeText: String, fileDownloadInstructionsLink: String, totalError: Int, errors: Seq[String],returnToFileUploadURL: String, returnUrl: String)(implicit request: Request[_], messages: Messages)
+
+@layout(messages("fileupload.invalid.title", chargeTypeText)) {
+
+<h1 class="govuk-heading-xl">
+    @messages("fileupload.invalid.title", chargeTypeText)
+
+</h1>
+<p class="govuk-body">@messages("fileupload.invalid.p1")
+    <a href="@fileDownloadInstructionsLink" class="govuk-link">@messages("fileupload.invalid.download.instructions.link")</a>
+    @messages("fileupload.invalid.subheading.p2")</p>
+<h2 class="govuk-heading-m">
+    @messages("fileupload.invalid.h1")
+</h2>
+<p class="govuk-body">
+    @messages("fileUpload.amountTaxDue.generic.total.error.part1", totalError)
+</p>
+<ul class="govuk-list govuk-list--bullet">
+    @for(e <- errors){
+    <li>@messages(e)</li>
+    }
+</ul>
+@govukButton(
+ButtonViewModel(content = Text(messages("return.to.fileupload"))) .withAttribute(("id", "submit")).asLink(returnToFileUploadURL)
+)
+
+@templates.ReturnLink(schemeName, returnUrl)
+}

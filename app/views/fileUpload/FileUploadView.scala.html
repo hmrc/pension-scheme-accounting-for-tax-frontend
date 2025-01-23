@@ -1,0 +1,107 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@this(
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    govukDetails: GovukDetails,
+    govukFileUpload : GovukFileUpload,
+    govukButton: GovukButton
+)
+
+@(schemeName: String, chargeType:String,  chargeTypeText: String, submitUrl: play.api.mvc.Call,returnUrl: String, errorCodes: Option[String], formFields: Map[String, String])(implicit request: Request[_], messages: Messages)
+
+@insetContent = {
+        @if(chargeType.toString == "annualAllowance") {
+        <ul class="govuk-list govuk-list--bullet">
+            <li>@messages("fileupload.upload.details.annualAllowance.item1")</li>
+            <li>@messages("fileupload.upload.details.annualAllowance.item2")</li>
+            <li>@messages("fileupload.upload.details.annualAllowance.item3")</li>
+            <li>@messages("fileupload.upload.details.annualAllowance.item4")</li>
+            <li>@messages("fileupload.upload.details.annualAllowance.item5")</li>
+            <li>@messages("fileupload.upload.details.annualAllowance.item6")</li>
+            <li>@messages("fileupload.upload.details.annualAllowance.item7")</li>
+        </ul>
+        } else if(chargeType.toString == "lifeTimeAllowance") {
+        <ul class="govuk-list govuk-list--bullet">
+            <li>@messages("fileupload.upload.details.lifeTimeAllowance.item1")</li>
+            <li>@messages("fileupload.upload.details.lifeTimeAllowance.item2")</li>
+            <li>@messages("fileupload.upload.details.lifeTimeAllowance.item3")</li>
+            <li>@messages("fileupload.upload.details.lifeTimeAllowance.item4")</li>
+            <li>@messages("fileupload.upload.details.lifeTimeAllowance.item5")</li>
+            <li>@messages("fileupload.upload.details.lifeTimeAllowance.item6")</li>
+        </ul>
+        } else if(chargeType.toString == "overseasTransfer") {
+        <ul class="govuk-list govuk-list--bullet">
+            <li>@messages("fileupload.upload.details.overseasTransfer.item1")</li>
+            <li>@messages("fileupload.upload.details.overseasTransfer.item2")</li>
+            <li>@messages("fileupload.upload.details.overseasTransfer.item3")</li>
+            <li>@messages("fileupload.upload.details.overseasTransfer.item4")</li>
+            <li>@messages("fileupload.upload.details.overseasTransfer.item5")</li>
+            <li>@messages("fileupload.upload.details.overseasTransfer.item6")</li>
+            <li>@messages("fileupload.upload.details.overseasTransfer.item7")</li>
+            <li>@messages("fileupload.upload.details.overseasTransfer.item8")</li>
+        </ul>
+        }
+}
+
+@layout(messages("fileupload.fileupload.title", chargeTypeText)) {
+
+
+@if(errorCodes.isDefined) {
+    @govukErrorSummary(ErrorSummary(
+    title = Text(messages("error.summary.title")),
+    errorList =  Seq(
+        ErrorLink(
+        href = Some("#file-input"),
+        content = Text(messages(errorCodes.get))
+        )
+)
+    ))
+}
+
+@formHelper(action = submitUrl, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "false", Symbol("enctype") -> "multipart/form-data") {
+    @for(field <- formFields) {
+        <input type="hidden" name="@field._1" value="@field._2"/>
+    }
+    <h1 class="govuk-heading-xl">@messages("fileupload.fileupload.heading", chargeTypeText)</h1>
+
+    @govukDetails(Details(
+        summary = Text(messages("fileupload.upload.details.summary")),
+        content = HtmlContent(insetContent)
+    ))
+
+        <div class="govuk-inset-text">
+            <p class="govuk-body govuk-!-margin-bottom-0">@messages("fileupload.upload.inset.text1")</p>
+            <p class="govuk-body govuk-!-margin-bottom-0">@messages("fileupload.upload.inset.text2")</p>
+        </div>
+
+    @govukFileUpload(
+    FileUpload(
+        id = "file-input",
+        name = "file",
+        label = Label(content = Text(messages("inputSelection.radio.fileUploadInput"))),
+        errorMessage = errorCodes.map(err => ErrorMessage(content = Text(messages(err)))),
+        attributes = Map("accept" -> ".csv,application/csv", "required" -> "required")
+    ))
+
+    @govukButton(
+        ButtonViewModel(Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String))
+    )
+}
+@templates.ReturnLink(schemeName, returnUrl)
+}

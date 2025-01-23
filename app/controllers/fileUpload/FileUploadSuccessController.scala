@@ -19,18 +19,17 @@ package controllers.fileUpload
 import controllers.actions._
 import helpers.ChargeTypeHelper
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.fileUpload.UploadedFileName
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.fileUpload.FileUploadSuccessView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class FileUploadSuccessController @Inject()(
     override val messagesApi: MessagesApi,
@@ -39,8 +38,8 @@ class FileUploadSuccessController @Inject()(
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    navigator: CompoundNavigator
+    navigator: CompoundNavigator,
+    view: FileUploadSuccessView
 )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -49,18 +48,11 @@ class FileUploadSuccessController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
 
-      val viewModel = GenericViewModel(
-        submitUrl = navigator.nextPage(ChargeTypeHelper.getCheckYourAnswersPage(chargeType), NormalMode, ua, srn,
-          startDate, accessType, version).url,
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-        schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      )
-
-      renderer.render(template = "fileUpload/fileUploadSuccess.njk",
-        Json.obj( "fileName" -> ua.get(UploadedFileName(chargeType).path),
-          "chargeTypeText" -> chargeType.toString,
-          "viewModel" -> viewModel))
-        .map(Ok(_))
+      val submitUrl = navigator.nextPage(ChargeTypeHelper.getCheckYourAnswersPage(chargeType), NormalMode, ua, srn,
+        startDate, accessType, version)
+      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+      val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
+      Future.successful(Ok(view(schemeName, submitUrl, returnUrl, ua.get(UploadedFileName(chargeType)).getOrElse(""))))
     }
 }
 

@@ -16,7 +16,6 @@
 
 package controllers.chargeG
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
@@ -25,20 +24,18 @@ import forms.chargeG.ChargeAmountsFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeG.ChargeAmounts
-import models.{GenericViewModel, AccessType, Mode, ChargeType, Index}
+import models.{AccessType, Mode, ChargeType, Index}
 import navigators.CompoundNavigator
 import pages.chargeG.{MemberDetailsPage, ChargeAmountsPage}
 import play.api.data.Form
 import play.api.i18n.{MessagesApi, Messages, I18nSupport}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDate
+import views.html.chargeG.ChargeAmountsView
 
 class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -50,11 +47,9 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
                                         requireData: DataRequiredAction,
                                         formProvider: ChargeAmountsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
-                                        config: FrontendAppConfig,
-                                        renderer: Renderer)(implicit ec: ExecutionContext)
+                                        chargeAmountsView: ChargeAmountsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def form(memberName: String, minimumChargeValue:BigDecimal)(implicit messages: Messages): Form[ChargeAmounts] =
     formProvider(memberName, minimumChargeValueAllowed = minimumChargeValue)
@@ -70,21 +65,15 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
           case None        => form(memberName, mininimumChargeValue)
         }
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeAmountsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
+        Future.successful(
+          Ok(chargeAmountsView(
+            preparedForm,
+            memberName,
+            routes.ChargeAmountsController.onSubmit(mode, srn, startDate, accessType, version, index),
+            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName
+          ))
         )
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "memberName" -> memberName
-        )
-
-        renderer.render(template = "chargeG/chargeAmounts.njk", json).map(Ok(_))
       }
     }
 
@@ -98,20 +87,15 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val viewModel = GenericViewModel(
-                submitUrl = routes.ChargeAmountsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
+              Future.successful(
+                BadRequest(chargeAmountsView(
+                  formWithErrors,
+                  memberName,
+                  routes.ChargeAmountsController.onSubmit(mode, srn, startDate, accessType, version, index),
+                  controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                  schemeName
+                ))
               )
-
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel,
-                "memberName" -> memberName
-              )
-              renderer.render(template = "chargeG/chargeAmounts.njk", json).map(BadRequest(_))
             },
             value => {
               for {
