@@ -20,39 +20,40 @@ import models.LocalDateBinder._
 import models.chargeF.ChargeDetails
 import models.{AccessType, CheckMode}
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 
 import java.time.LocalDate
 
 class CYAChargeFHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
-  def chargeFDate(answer: ChargeDetails): Row =
-    Row(
-      key = Key(msg"chargeF.chargeDetails.date.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(answer.deRegistrationDate.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
-      actions = List(
-        Action(
-          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-          href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(Literal(
-            messages("site.edit") + " " + messages("chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel")
+  def chargeFDate(answer: ChargeDetails): SummaryListRow =
+    SummaryListRow(
+      key = Key(Text(messages("chargeF.chargeDetails.date.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+      value = Value(Text(answer.deRegistrationDate.format(FormatHelper.dateFormatter)), classes = "govuk-!-width-one-quarter"),
+      actions = Some(
+        Actions(
+          items = Seq(ActionItem(
+            content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
+            visuallyHiddenText = Some(
+              messages("site.edit") + " " + messages("chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel")
+            )
           ))
         )
       )
     )
 
-  def chargeFAmount(answer: ChargeDetails): Row =
-    Row(
-      key = Key(msg"chargeF.chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
-      actions = List(
-        Action(
-          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-          href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(Literal(
-            messages("site.edit") + " " + messages("chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel")
+  def chargeFAmount(answer: ChargeDetails): SummaryListRow =
+    SummaryListRow(
+      key = Key(Text(messages("chargeF.chargeDetails.amount.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+      value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmount)}"), classes = "govuk-!-width-one-quarter"),
+      actions = Some(
+        Actions(
+          items = Seq(ActionItem(
+            content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
+            visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel"))
           ))
         )
       )

@@ -25,23 +25,19 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.mccloud.{PensionsRemedySchemeSummary, PensionsRemedySummary}
-import models.{UserAnswers, YearRange}
+import models.{CheckMode, UserAnswers, YearRange}
 import org.mockito.Mockito.when
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
 import pages.mccloud._
 import pages.{IsPublicServicePensionsRemedyPage, QuarterPage}
-import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
-import scala.collection.Seq
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatchers with CheckYourAnswersBehaviour {
   //scalastyle:off magic.number
 
   private val dynamicYearRange = YearRange("2019")
 
-  private val templateToBeRendered = "check-your-answers.njk"
   private val lifetimeAllowanceCharge = ChargeTypeLifetimeAllowance
   private val mccloudPsrAlwaysTrueStartDate = LocalDate.of(2024, 4, 1)
 
@@ -117,20 +113,14 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.psprSchemesChargeDetails(0, psprSummary(isPSR, isChargeInAddition, wasAnotherPensionScheme), wasAnotherPensionScheme)
     ).flatten
 
-  private def jsonToPassToTemplate(isPsrAlwaysTrue: Boolean, isPSR: Boolean, isChargeInAddition: Boolean,
-                                   wasAnotherPensionScheme: Boolean): JsObject = Json.obj(
-    "list" -> rows(isPsrAlwaysTrue, isPSR, isChargeInAddition, wasAnotherPensionScheme)
-  )
+  private def rowsToPassToTemplate(isPsrAlwaysTrue: Boolean, isPSR: Boolean, isChargeInAddition: Boolean,
+                                   wasAnotherPensionScheme: Boolean) = rows(isPsrAlwaysTrue, isPSR, isChargeInAddition, wasAnotherPensionScheme)
 
   private val rowsWithoutPSR = Seq(
     helper.chargeDMemberDetails(0, memberDetails),
     helper.chargeDDetails(0, chargeDDetails),
     Seq(helper.total(chargeAmount1 + chargeAmount2))
   ).flatten
-
-  private val jsonToPassToTemplateNoPSR: JsObject = Json.obj(
-    "list" -> rowsWithoutPSR
-  )
 
   private def isPsrAlwaysTrue(ua: UserAnswers): Boolean = {
     when(mockAppConfig.mccloudPsrAlwaysTrueStartDate).thenReturn(mccloudPsrAlwaysTrueStartDate)
@@ -145,8 +135,10 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     val updatedUA = ua.setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
     behave like cyaController(
       httpPath = httpGETRoute,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false),
+      chargeName = "chargeD",
+      list = rowsToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false),
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      submitUrl = httpOnClickRoute,
       userAnswers = updateUserAnswers(updatedUA, isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false)
     )
 
@@ -184,8 +176,10 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   "CheckYourAnswers Controller Without PSR Questions" must {
     behave like cyaController(
       httpPath = httpGETRoute,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplateNoPSR,
+      chargeName = "chargeD",
+      list = rowsWithoutPSR,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      submitUrl = httpOnClickRoute,
       userAnswers = ua
     )
 
@@ -224,8 +218,10 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     val updatedUA = ua.setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
     behave like cyaController(
       httpPath = httpGETRoute,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false),
+      chargeName = "chargeD",
+      list = rowsToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false),
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      submitUrl = httpOnClickRoute,
       userAnswers = updateUserAnswers(updatedUA, isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false)
     )
   }
@@ -235,8 +231,10 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
     behave like cyaController(
       httpPath = httpGETRoute,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false),
+      chargeName = "chargeD",
+      list = rowsToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false),
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      submitUrl = httpOnClickRoute,
       userAnswers = updateUserAnswers(updatedUA, isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false)
     )
   }
@@ -245,8 +243,13 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     val updatedUA = ua.setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
     behave like cyaController(
       httpPath = httpGETRoute,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true),
+      chargeName = "chargeD",
+      list = rowsToPassToTemplate(isPsrAlwaysTrue(updatedUA), isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true),
+      showAnotherSchemeBtn = true,
+      selectAnotherSchemeUrl = controllers.mccloud.routes.AddAnotherPensionSchemeController
+        .onPageLoad(ChargeTypeLifetimeAllowance, CheckMode, srn, startDate, accessType, versionInt, 0 , 0).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      submitUrl = httpOnClickRoute,
       userAnswers = updateUserAnswers(updatedUA, isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true)
     )
   }
