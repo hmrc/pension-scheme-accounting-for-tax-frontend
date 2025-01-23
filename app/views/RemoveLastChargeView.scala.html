@@ -31,7 +31,7 @@
         </p>
 
             @govukButton(
-                ButtonViewModel(Text(messages("site.continue"))).asLink(submitCall)
+                ButtonViewModel(Text(messages("site.continue"))).asLink(submitCall).copy(attributes = Map("id" -> "submit"))
             )
 
         <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
