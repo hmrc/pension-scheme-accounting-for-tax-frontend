@@ -37,7 +37,7 @@ import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import viewmodels.Radios.MessageInterpolators
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
-import views.html.financialOverview.scheme.SchemeFinancialOverviewNewView
+import views.html.financialOverview.scheme.{SchemeFinancialOverviewNewView, SchemeFinancialOverviewView}
 
 import scala.concurrent.Future
 
@@ -89,7 +89,7 @@ class SchemeFinancialOverviewControllerSpec
   "SchemeFinancial Controller" when {
     "schemeFinancialOverview" must {
 
-      "return html with information received from overview api" in {
+      "return new html with information received from overview api" in {
         when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
@@ -126,6 +126,44 @@ class SchemeFinancialOverviewControllerSpec
 
         compareResultAndView(result, view)
 
+      }
+
+      "return old html with information received from overview api" in {
+        when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
+          .thenReturn(Future.successful(allTypesMultipleReturnsModel))
+        when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
+          .thenReturn(allTypesMultipleReturnsModel)
+        when(mockPsaSchemePartialService.overdueAftChargesModel(any(), any())(any()))
+          .thenReturn(allTypesMultipleReturnsModel)
+        when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
+          .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
+        when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
+          .thenReturn("£1,000.00")
+        when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
+          .thenReturn(Future.successful("John Doe"))
+        when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
+
+        val request = httpGETRequest(getPartial)
+        val result = route(application, httpGETRequest(getPartial)).value
+
+        status(result) mustEqual OK
+
+        val view = application.injector.instanceOf[SchemeFinancialOverviewView].apply(
+          schemeName = "Big Scheme",
+          totalUpcomingCharge = "£2,058.10",
+          totalOverdueCharge = "£2,058.10",
+          totalInterestAccruing = "£47,000.96",
+          requestRefundUrl = routes.RequestRefundController.onPageLoad(srn).url,
+          allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, journeyType = "overdue").url,
+          duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
+          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
+          creditBalanceFormatted = "£0.00",
+          creditBalance = 0,
+          isOverdueChargeAvailable = false,
+          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
+        )(messages, request)
+
+        compareResultAndView(result, view)
       }
     }
 
