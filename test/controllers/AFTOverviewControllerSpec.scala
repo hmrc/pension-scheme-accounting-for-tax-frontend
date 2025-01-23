@@ -36,6 +36,7 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import views.html.AFTOverviewView
 
@@ -65,6 +66,8 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
       ): _*
     )
     .build()
+
+  val emptyChargesTable: Table = Table()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
