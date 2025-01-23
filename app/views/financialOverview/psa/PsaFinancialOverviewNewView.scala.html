@@ -35,12 +35,12 @@ creditBalance: BigDecimal,
 returnUrl: String
 )(implicit messages: Messages, request: Request[_])
 
-@layout(messages("psa.financial.overview.title.new"), fullWidthLayout = true) {
+@layout(messages("psa.financial.overview.title"), fullWidthLayout = true) {
 
     <div>
 
             <h1 class="hmrc-caption govuk-caption-xl">@psaName</h1>
-            <h1 class="govuk-heading-xl">@messages("psa.financial.overview.title.new")</h1>
+            <h1 class="govuk-heading-xl">@messages("psa.financial.overview.title")</h1>
 
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
