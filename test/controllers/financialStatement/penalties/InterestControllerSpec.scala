@@ -117,6 +117,7 @@ class InterestControllerSpec
       }
 
       "render the correct view with penalty tables for unassociated" in {
+        val req = httpGETRequest(httpPathGETUnassociated)
         val result = route(application, httpGETRequest(httpPathGETUnassociated)).value
 
         val view = application.injector.instanceOf[InterestView].apply(
@@ -130,7 +131,7 @@ class InterestControllerSpec
             .onPageLoad("0", "0", PenaltiesFilter.All).url,
           "",
           "psa-name"
-        )(httpGETRequest(httpPathGETAssociated("0")), messages)
+        )(req, messages)
 
         status(result) mustEqual OK
 
