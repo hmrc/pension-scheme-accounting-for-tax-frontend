@@ -21,20 +21,18 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.EnterPsaIdFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{AccessType, NormalMode}
 import navigators.CompoundNavigator
 import pages.EnterPsaIdPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.EnterPsaIdView
 
 class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -46,10 +44,9 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: EnterPsaIdFormProvider,
                                         schemeDetailsConnector: SchemeDetailsConnector,
                                         val controllerComponents: MessagesControllerComponents,
-                                        renderer: Renderer)(implicit ec: ExecutionContext)
+                                        enterPsaIdView: EnterPsaIdView)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(authorisingPsaId: Option[String]):Form[String] = formProvider(authorisingPSAID = authorisingPsaId)
 
@@ -62,20 +59,12 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
           case None        => form(authorisingPsaId=None)
         }
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, version).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel
-        )
-
-        renderer.render("enterPsaId.njk", json).map(Ok(_))
+        Future.successful(Ok(enterPsaIdView(
+          preparedForm,
+          routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, version),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName
+        )))
       }
     }
 
@@ -87,21 +76,12 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-
-              val viewModel = GenericViewModel(
-                submitUrl = routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, version).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel
-              )
-
-              renderer.render("enterPsaId.njk", json).map(BadRequest(_))
+              Future.successful(BadRequest(enterPsaIdView(
+                formWithErrors,
+                routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, version),
+                controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName
+              )))
             },
             value =>
               for {

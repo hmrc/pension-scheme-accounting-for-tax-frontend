@@ -19,14 +19,13 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.YourActionWasNotProcessedView
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class YourActionWasNotProcessedController @Inject()(appConfig: FrontendAppConfig,
                                                     override val messagesApi: MessagesApi,
@@ -34,7 +33,7 @@ class YourActionWasNotProcessedController @Inject()(appConfig: FrontendAppConfig
                                                     identify: IdentifierAction,
                                                     getData: DataRetrievalAction,
                                                     requireData: DataRequiredAction,
-                                                    renderer: Renderer,
+                                                    view : YourActionWasNotProcessedView,
                                                     allowAccess: AllowAccessActionProviderForIdentifierRequest
                                                    )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
@@ -44,11 +43,7 @@ class YourActionWasNotProcessedController @Inject()(appConfig: FrontendAppConfig
     (identify andThen allowAccess(Some(srn)) andThen getData(srn, startDate) andThen requireData).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
-          val json = Json.obj(
-            "schemeName" -> schemeName,
-            "returnUrl" -> appConfig.schemeDashboardUrl(request).format(srn)
-          )
-          renderer.render("yourActionWasNotProcessed.njk", json).map(Ok(_))
+       Future.successful(Ok(view(appConfig.schemeDashboardUrl(request).format(srn), schemeName)))
         }
     }
 }

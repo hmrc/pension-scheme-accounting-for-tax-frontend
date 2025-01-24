@@ -21,6 +21,7 @@ import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData.multiplePenalties
 import helpers.FormatHelper
+import controllers.fileUpload.ValidationControllerSpec.messages
 import models._
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
@@ -33,6 +34,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.paymentsAndCharges.PaymentsAndChargesService
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
+import uk.gov.hmrc.viewmodels.Text.Message
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
 import viewmodels._
@@ -151,8 +154,8 @@ class AFTPartialServiceSpec
               id = "upcoming-payments-and-charges",
               url = viewUpcomingChargesUrl,
               linkText =
-                msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
-                  .withArgs("1 October", "31 December"),
+                Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
+                  ,Seq("1 October", "31 December"))),
               hiddenText = None
             )
           )
@@ -174,7 +177,7 @@ class AFTPartialServiceSpec
               id = "upcoming-payments-and-charges",
               url = viewUpcomingChargesUrl,
               linkText =
-                msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
+                Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple")),
               hiddenText = None
             )
           )
@@ -195,14 +198,14 @@ class AFTPartialServiceSpec
               id = "upcoming-payments-and-charges",
               url = viewUpcomingChargesUrl,
               linkText =
-                msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
-                  .withArgs("1 October", "31 December"),
+                Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
+                  , Seq("1 October", "31 December"))),
               hiddenText = None
             ),
             Link(
               id = "past-payments-and-charges",
               url = viewPastChargesUrl,
-              linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+              linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
               hiddenText = None
             )
           )
@@ -224,13 +227,13 @@ class AFTPartialServiceSpec
               id = "upcoming-payments-and-charges",
               url = viewUpcomingChargesUrl,
               linkText =
-                msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
+                Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple")),
               hiddenText = None
             ),
             Link(
               id = "past-payments-and-charges",
               url = viewPastChargesUrl,
-              linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+              linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
               hiddenText = None
             )
           )
@@ -257,8 +260,8 @@ class AFTPartialServiceSpec
               id = "overdue-payments-and-charges",
               url = viewOverdueChargesUrl,
               linkText =
-                msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
-                  .withArgs("1 October", "31 December"),
+                Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+                  ,Seq("1 October", "31 December"))),
               hiddenText = None
             )
           )
@@ -286,8 +289,8 @@ class AFTPartialServiceSpec
               id = "overdue-payments-and-charges",
               url = viewOverdueChargesUrl,
               linkText =
-                msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
-                  .withArgs("1 October", "31 December"),
+                Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+                  , Seq("1 October", "31 December"))),
               hiddenText = None
             )
           )
@@ -312,7 +315,7 @@ class AFTPartialServiceSpec
               id = "overdue-payments-and-charges",
               url = viewOverdueChargesUrl,
               linkText =
-                msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
+                Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods")),
               hiddenText = None
             )
           )
@@ -337,7 +340,7 @@ class AFTPartialServiceSpec
               id = "overdue-payments-and-charges",
               url = viewOverdueChargesUrl,
               linkText =
-                msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
+                Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods")),
               hiddenText = None
             )
           )
@@ -363,10 +366,10 @@ class AFTPartialServiceSpec
           multiplePenalties(0).copy(dueDate = Some(dueDate)),
           multiplePenalties(1).copy(dueDate = Some(dueDate))
         )
-        val message = msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate".withArgs(
-          dueDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
+        val message = Message("pspDashboardUpcomingAftChargesCard.span.singleDueDate", Seq(
+          dueDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))))
 
-        service.retrievePsaPenaltiesCardModel(penalties) mustBe aftViewModel(message)
+        service.retrievePsaPenaltiesCardModel(penalties) mustBe aftViewModel(message, upcomingLink = upcomingLinkDefault)
       }
 
       "there are upcoming payments for multiple due dates" in {
@@ -374,7 +377,7 @@ class AFTPartialServiceSpec
           multiplePenalties(0).copy(dueDate = Some(LocalDate.now().plusDays(5))),
           multiplePenalties(1).copy(dueDate = Some(LocalDate.now().plusMonths(5)))
         )
-        service.retrievePsaPenaltiesCardModel(penalties) mustBe aftViewModel()
+        service.retrievePsaPenaltiesCardModel(penalties) mustBe aftViewModel(upcomingLink = upcomingLinkDefault)
       }
     }
   }
@@ -507,7 +510,7 @@ class AFTPartialServiceSpec
     Link(
       id = "view-your-financial-overview",
       url = overviewurl,
-      linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+      linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.financialOverview")),
       hiddenText = None
     )
   private val overviewurl: String = s"$aftUrl/srn/financial-overview"
@@ -515,7 +518,7 @@ class AFTPartialServiceSpec
     Link(
       id = "past-payments-and-charges",
       url = viewFinancialInfoPastChargesUrl,
-      linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+      linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
       hiddenText = None
     )
 
@@ -538,70 +541,71 @@ object AFTPartialServiceSpec {
   private val viewPenaltiesUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/view-penalties"
   private val viewUpcomingPenaltiesUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/view-upcoming-penalties"
 
-  private val upcomingLink = Seq(Link("outstanding-penalties-id", viewUpcomingPenaltiesUrl, msg"psaPenaltiesCard.paymentsDue.linkText", None))
+  private def upcomingLinkDefault(implicit messages: Messages) = Seq(Link("outstanding-penalties-id", viewUpcomingPenaltiesUrl,
+    Text(Messages("psaPenaltiesCard.paymentsDue.linkText")), None))
 
-  def aftViewModel(message: Text = msg"pspDashboardUpcomingAftChargesCard.span.multipleDueDate",
-                   upcomingLink: Seq[Link] = upcomingLink,
+  def aftViewModel(message: Message = Message("pspDashboardUpcomingAftChargesCard.span.multipleDueDate"),
+                   upcomingLink: Seq[Link] = Nil,
                    upcomingAmount: String = "£200.00",
                    overdueAmount: String = "£0.00",
                   )(implicit messages: Messages): DashboardAftViewModel = DashboardAftViewModel(
     subHeadings = Seq(
       Json.obj(
         "total" -> upcomingAmount,
-        "span" -> message
+        "span" -> message.resolve
       ),
       Json.obj(
         "total" -> overdueAmount,
         "span" -> msg"pspDashboardOverdueAftChargesCard.total.span"
       )
     ),
-    links = upcomingLink :+ Link("past-penalties-id", viewPenaltiesUrl, msg"psaPenaltiesCard.viewPastPenalties", None)
+    links = upcomingLink :+ Link("past-penalties-id", viewPenaltiesUrl, Text(Messages("psaPenaltiesCard.viewPastPenalties")), None)
   )
 
-  def lockedAftModel: Seq[AFTViewModel] = Seq(
+  def lockedAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
       Some(msg"aftPartial.status.lockDetail".withArgs(name)),
       Link(
         id = "aftSummaryPageLink",
         url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/$startDate/$Draft/1/summary",
-        linkText = msg"aftPartial.view.link",
-        hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
+        linkText = Text(Messages("aftPartial.view.link")),
+        hiddenText = Some(Text(Messages("aftPartial.view.hidden.forPeriod", Seq(formattedStartDate, formattedEndDate)))))
     )
   )
 
-  def unlockedEmptyAftModel: Seq[AFTViewModel] = Seq(
+  def unlockedEmptyAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       None,
       None,
       Link(
         id = "aftChargeTypePageLink",
         url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/new-return/aft-login",
-        linkText = msg"aftPartial.startLink.forPeriod".withArgs(formattedStartDate, formattedEndDate))
+        linkText = Text(Messages("aftPartial.startLink.forPeriod", Seq(formattedStartDate, formattedEndDate))))
     )
   )
 
-  def lockedAftModelWithNoVersion: Seq[AFTViewModel] = Seq(
+  def lockedAftModelWithNoVersion(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
       Some(msg"aftPartial.status.lockDetail".withArgs(name)),
       Link(
         id = "aftSummaryPageLink",
         url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/$startDate/$Draft/1/summary",
-        linkText = msg"aftPartial.view.link",
-        hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
+        linkText = Text(Messages("aftPartial.view.link")),
+        hiddenText = Some(Text(Messages("aftPartial.view.hidden.forPeriod", Seq(formattedStartDate, formattedEndDate)))))
     )
   )
 
-  def inProgressUnlockedAftModel: Seq[AFTViewModel] = Seq(
+  def inProgressUnlockedAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
       Some(msg"aftPartial.status.inProgress"),
       Link(
         id = "aftSummaryPageLink",
         url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/$startDate/$Draft/1/summary",
-        linkText = msg"aftPartial.view.link",
-        hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
+        linkText = Text(Messages("aftPartial.view.link")),
+        hiddenText = Some(Text(Messages("aftPartial.view.hidden.forPeriod", Seq(formattedStartDate, formattedEndDate)))))
     )
   )
 
@@ -658,28 +662,28 @@ object AFTPartialServiceSpec {
   val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
   val viewFinancialInfoPastChargesUrl: String = s"$aftUrl/srn/financial-overview/past-payments-logic"
 
-  def startModel: AFTViewModel = AFTViewModel(None, None,
+  def startModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,
-      linkText = msg"aftPartial.start.link"))
+      linkText = Text(Messages("aftPartial.start.link"))))
 
-  def pastReturnsModel: AFTViewModel = AFTViewModel(None, None,
+  def pastReturnsModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
     Link(
       id = "aftAmendLink",
       url = amendUrl,
-      linkText = msg"aftPartial.view.change.past"))
+      linkText = Text(Messages("aftPartial.view.change.past"))))
 
-  def multipleInProgressModel(count: Int, linkText: String = "aftPartial.view.link"): AFTViewModel =
+  def multipleInProgressModel(count: Int, linkText: String = "aftPartial.view.link")(implicit messages: Messages): AFTViewModel =
     AFTViewModel(
       Some(msg"aftPartial.multipleInProgress.text"),
       Some(msg"aftPartial.multipleInProgress.count".withArgs(count)),
       Link(
         id = "aftContinueInProgressLink",
         url = continueUrl,
-        linkText = msg"$linkText",
-        hiddenText = Some(msg"aftPartial.view.hidden"))
+        linkText = Text(Messages(s"$linkText")),
+        hiddenText = Some(Text(Messages("aftPartial.view.hidden"))))
     )
 
-  def oneInProgressModel(locked: Boolean, linkText: String = "aftPartial.view.link"): AFTViewModel = AFTViewModel(
+  def oneInProgressModel(locked: Boolean, linkText: String = "aftPartial.view.link")(implicit messages: Messages): AFTViewModel = AFTViewModel(
     Some(msg"aftPartial.inProgress.forPeriod".withArgs("1 October", "31 December 2020")),
     if (locked) {
       Some(msg"aftPartial.status.lockDetail".withArgs(name))
@@ -688,24 +692,24 @@ object AFTPartialServiceSpec {
       Some(msg"aftPartial.status.inProgress")
     },
     Link(id = "aftSummaryLink", url = aftSummaryUrl,
-      linkText = msg"$linkText",
-      hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs("1 October", "31 December 2020")))
+      linkText = Text(Messages(s"$linkText")),
+      hiddenText = Some(Text(Messages("aftPartial.view.hidden.forPeriod", Seq("1 October", "31 December 2020")))))
   )
 
   val allTypesMultipleReturnsPresent = Seq(overviewApril20, overviewJuly20, overviewOctober20, overviewJan21)
   val noInProgress = Seq(overviewApril20, overviewJuly20)
   val oneInProgress = Seq(overviewApril20, overviewOctober20)
 
-  def allTypesMultipleReturnsModel: Seq[AFTViewModel] =
+  def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(multipleInProgressModel(2), startModel, pastReturnsModel)
 
-  def noInProgressModel: Seq[AFTViewModel] =
+  def noInProgressModel(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(startModel, pastReturnsModel)
 
-  def oneInProgressModelLocked: Seq[AFTViewModel] =
+  def oneInProgressModelLocked(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(oneInProgressModel(locked = true), startModel, pastReturnsModel)
 
-  def oneInProgressModelNotLocked: Seq[AFTViewModel] =
+  def oneInProgressModelNotLocked(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(oneInProgressModel(locked = false), startModel, pastReturnsModel)
 
   def oneCompileZeroedOut: Seq[AFTOverview] =
@@ -715,10 +719,10 @@ object AFTPartialServiceSpec {
       overviewOctober20.copy(versionDetails = Some(overviewOctober20.versionDetails.get.copy(numberOfVersions = 2, compiledVersionAvailable = true)))
     )
 
-  def oneCompileZeroedOutModel: Seq[AFTViewModel] =
+  def oneCompileZeroedOutModel(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(multipleInProgressModel(2), startModel)
 
-  def pspDashboardAftReturnsViewModel: DashboardAftViewModel =
+  def pspDashboardAftReturnsViewModel(implicit messages: Messages): DashboardAftViewModel =
     DashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "h3" -> "2 in progress",
@@ -737,7 +741,7 @@ object AFTPartialServiceSpec {
                                                  h3: String,
                                                  span: String,
                                                  linkText: String
-                                               ): DashboardAftViewModel =
+                                               )(implicit messages: Messages): DashboardAftViewModel =
     DashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "span" -> span,
@@ -750,7 +754,7 @@ object AFTPartialServiceSpec {
       ).map(_.link)
     )
 
-  def pspDashboardOneCompileZeroedOutModel: DashboardAftViewModel =
+  def pspDashboardOneCompileZeroedOutModel(implicit messages: Messages): DashboardAftViewModel =
     DashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "h3" -> "3 in progress",

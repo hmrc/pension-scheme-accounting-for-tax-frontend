@@ -20,19 +20,18 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{AccessType, NormalMode}
 import navigators.CompoundNavigator
 import pages.ConfirmSubmitAFTReturnPage
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import viewmodels.TwirlRadios
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.ConfirmSubmitAFTReturnView
 
 class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: MessagesApi,
                                                  userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -44,10 +43,9 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
                                                  requireData: DataRequiredAction,
                                                  formProvider: ConfirmSubmitAFTReturnFormProvider,
                                                  val controllerComponents: MessagesControllerComponents,
-                                                 renderer: Renderer)(implicit ec: ExecutionContext)
+                                                 confirmSubmitAFTReturnView: ConfirmSubmitAFTReturnView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val form = formProvider()
 
@@ -60,21 +58,13 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
           case Some(value) => form.fill(value)
         }
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(srn, startDate).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
-
-        val json = Json.obj(
-          fields = "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "radios" -> Radios.yesNo(preparedForm("value"))
-        )
-
-        renderer.render(template = "confirmSubmitAFTReturn.njk", json).map(Ok(_))
+        Future.successful(Ok(confirmSubmitAFTReturnView(
+          preparedForm,
+          TwirlRadios.yesNo(preparedForm("value")),
+          routes.ConfirmSubmitAFTReturnController.onSubmit(srn, startDate),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName
+        )))
       }
     }
 
@@ -86,22 +76,13 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
           .bindFromRequest()
           .fold(
             formWithErrors => {
-
-              val viewModel = GenericViewModel(
-                submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(srn, startDate).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              val json = Json.obj(
-                fields = "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel,
-                "radios" -> Radios.yesNo(formWithErrors("value"))
-              )
-
-              renderer.render(template = "confirmSubmitAFTReturn.njk", json).map(BadRequest(_))
+              Future.successful(BadRequest(confirmSubmitAFTReturnView(
+                formWithErrors,
+                TwirlRadios.yesNo(formWithErrors("value")),
+                routes.ConfirmSubmitAFTReturnController.onSubmit(srn, startDate),
+                controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName
+              )))
             },
             value =>
               for {
