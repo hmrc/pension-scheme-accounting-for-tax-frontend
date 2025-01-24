@@ -38,7 +38,7 @@ class WhatYouWillNeedController @Inject()(
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
     view : WhatYouWillNeedView,
-    navigator: CompoundNavigator,
+    navigator: CompoundNavigator
 )
     extends FrontendBaseController
     with I18nSupport {
