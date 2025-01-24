@@ -287,7 +287,9 @@ class PaymentsAndChargeDetailsControllerSpec
                 schemeFSDetail
               ))))
 
-      val result = route(application, httpGETRequest(httpPathGET(index = "2"))).value
+      val req =  httpGETRequest(httpPathGET(index = "2"))
+
+      val result = route(application, req).value
       status(result) mustEqual OK
 
       val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
@@ -308,7 +310,7 @@ class PaymentsAndChargeDetailsControllerSpec
           chargeAmountDetails = Some(emptyChargeAmountTable),
           hintText = Some("")
         )
-      )(messages, fakeRequest)
+      )(messages, req)
 
       compareResultAndView(result, view)
     }
@@ -318,7 +320,8 @@ class PaymentsAndChargeDetailsControllerSpec
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest(index = 1, "XY002610150187", interest = 0.00)))))
       when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
       val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150187", interest = 0.00)
-      val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
+      val req = httpGETRequest(httpPathGET(index = "1"))
+      val result = route(application, req).value
 
       status(result) mustEqual OK
 
@@ -340,7 +343,7 @@ class PaymentsAndChargeDetailsControllerSpec
           chargeAmountDetails = Some(emptyChargeAmountTable),
           hintText = Some("")
         )
-      )(messages, fakeRequest)
+      )(messages, req)
 
       compareResultAndView(result, view)
 

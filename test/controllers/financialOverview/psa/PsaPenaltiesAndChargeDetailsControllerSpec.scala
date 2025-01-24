@@ -99,7 +99,8 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
         when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
-        val result = route(application, httpGETRequest(httpPathGETAssociated("1"))).value
+        val req = httpGETRequest(httpPathGETAssociated("1"))
+        val result = route(application, req).value
 
         status(result) mustEqual OK
 
@@ -122,7 +123,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
             returnUrl = routes.PsaPaymentsAndChargesController.onPageLoad(Overdue).url,
             returnUrlText = "your Overdue payments and charges"
           )
-        )(messages, fakeRequest)
+        )(messages, req)
 
         compareResultAndView(result, view)
       }

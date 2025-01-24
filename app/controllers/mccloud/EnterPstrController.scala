@@ -27,9 +27,9 @@ import pages.mccloud.EnterPstrPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.ErrorView
 import views.html.mccloud.EnterPstr
 
 import java.time.LocalDate
@@ -47,7 +47,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                                     formProvider: EnterPstrFormProvider,
                                     val controllerComponents: MessagesControllerComponents,
                                     enterPstrView: EnterPstr,
-                                    renderer: Renderer)(implicit ec: ExecutionContext)
+                                    errorView: ErrorView)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with CommonMcCloud {
@@ -80,7 +80,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
               schemeName = schemeName
             )))
           case _ =>
-            renderer.render("badRequest.njk").map(BadRequest(_))
+            Future.successful(BadRequest(errorView()))
         }
       }
     }
@@ -111,7 +111,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
                     schemeName
                   )))
                 case _ =>
-                  renderer.render("badRequest.njk").map(BadRequest(_))
+                  Future.successful(BadRequest(errorView()))
               }
             },
             value =>

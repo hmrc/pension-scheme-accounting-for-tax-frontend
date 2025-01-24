@@ -24,11 +24,10 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.Results._
 import play.api.mvc.{Request, RequestHeader, Result, Results}
 import play.api.{Logger, PlayException}
+import views.html.{ErrorView, NotFoundView}
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
-import views.html.ErrorView
-import views.html.NotFoundView
+import scala.concurrent.Future
 
 // NOTE: There should be changes to bootstrap to make this easier, the API in bootstrap should allow a `Future[Html]` rather than just an `Html`
 @Singleton

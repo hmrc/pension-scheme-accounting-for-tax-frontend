@@ -85,7 +85,8 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
   "AllPaymentsAndChargesController" must {
 
     "return OK and the correct view with filtered payments and charges information for a GET" in {
-      val result = route(application, httpGETRequest(httpPathGET())).value
+      val req = httpGETRequest(httpPathGET())
+      val result = route(application, req).value
 
       status(result) mustEqual OK
 
@@ -102,7 +103,7 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
         penaltiesTable = emptyChargesTable,
         paymentAndChargesTable = emptyChargesTable,
         returnUrl = dummyCall.url
-      )(request, messages)
+      )(req, messages)
 
       compareResultAndView(result, view)
     }

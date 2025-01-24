@@ -214,6 +214,7 @@ class PaymentsAndChargeDetailsControllerSpec
         )))
       val schemeFSDetail = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00)
 
+      val req = httpGETRequest(httpPathGET(index = "0"))
       val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
         chargeType = schemeFSDetail.chargeType.toString,
         isPaymentOverdue = false,
@@ -228,9 +229,9 @@ class PaymentsAndChargeDetailsControllerSpec
         returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
         returnUrl = dummyCall.url,
         schemeName
-      )(httpGETRequest(httpPathGET(index = "0")), messages)
+      )(req, messages)
 
-      val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
+      val result = route(application, req).value
       status(result) mustEqual OK
 
       compareResultAndView(result, view)
