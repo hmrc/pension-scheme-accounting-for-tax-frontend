@@ -275,24 +275,18 @@ object MemberSearchService {
                                    amount: BigDecimal,
                                    viewLink: String,
                                    removeLink: String) {
-    def linkIdRemove = s"$id-remove"
-
-    def linkIdView = s"$id-view"
-
     def id = s"member-$index"
   }
 
   object MemberRow {
 
-    implicit def writes(implicit messages: Messages): Writes[MemberRow] =
+    implicit def writes: Writes[MemberRow] =
       ((JsPath \ "name").write[String] and
         (JsPath \ "rows").write[Seq[SummaryListRow]] and
         (JsPath \ "actions").write[Seq[Actions]]) (mr => Tuple3(mr.name, mr.rows, mr.actions))
   }
 
   private object MemberSummary {
-    implicit lazy val formats: Format[Member] =
-      Json.format[Member]
 
     def apply(member: Member, chargeType: ChargeType): MemberSummary =
       MemberSummary(member.index, member.name, member.nino, chargeType, member.amount, member.viewLink, member.removeLink)

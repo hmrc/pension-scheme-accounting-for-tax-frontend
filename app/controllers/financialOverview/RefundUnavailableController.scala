@@ -22,12 +22,12 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.financialOverview.RefundUnavailableView
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class RefundUnavailableController @Inject()(
                                             val controllerComponents: MessagesControllerComponents,
                                             refundUnavailableView: RefundUnavailableView
-                                           )(implicit ec: ExecutionContext)
+                                           )
     extends FrontendBaseController
     with I18nSupport {
 

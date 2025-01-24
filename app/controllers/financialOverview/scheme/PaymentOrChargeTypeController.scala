@@ -54,7 +54,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
         val messages = request2Messages
 
         Future.successful(Ok(paymentOrChargeTypeView(
-          form = form,
+          form = form(),
           titleMessage = messages(s"paymentOrChargeType.all.title"),
           submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
           schemeName = cache.schemeDetails.schemeName,
