@@ -27,30 +27,28 @@ import models.requests.IdentifierRequest
 import models.{AFTQuarter, DisplayQuarter, SchemeDetails}
 import play.api.i18n.Lang.logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{Json, OWrites}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
-import renderer.Renderer
 import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{QuartersService, SchemeService}
-import uk.gov.hmrc.nunjucks.NunjucksSupport
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.AFTOverviewView
 
 class AFTOverviewController @Inject()(
                                        identify: IdentifierAction,
-                                       renderer: Renderer,
                                        allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                        config: FrontendAppConfig,
                                        schemeService: SchemeService,
                                        quartersService: QuartersService,
                                        paymentsAndChargesService: PaymentsAndChargesService,
                                        override val messagesApi: MessagesApi,
-                                       val controllerComponents: MessagesControllerComponents
+                                       val controllerComponents: MessagesControllerComponents,
+                                       aftOverviewView: AFTOverviewView
                                      )(implicit ec: ExecutionContext)
-  extends FrontendBaseController with I18nSupport with NunjucksSupport {
+  extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
@@ -65,20 +63,16 @@ class AFTOverviewController @Inject()(
       }
       yield OverviewInfo(schemeDetails, quartersInProgress, pastYearsAndQuarters, outstandingAmount)
         ).flatMap { overviewInfo =>
-        renderer.render(aftOverviewTemplate,
-          Json.obj(viewModel ->
-            OverviewViewModel(
-              returnUrl = config.schemeDashboardUrl(request).format(srn),
-              newAftUrl = controllers.routes.YearsController.onPageLoad(srn).url,
-              paymentsAndChargesUrl = linkForOutstandingAmount(srn, overviewInfo.outstandingAmount),
-              schemeName = overviewInfo.schemeDetails.schemeName,
-              outstandingAmount = overviewInfo.outstandingAmount,
-              quartersInProgress = overviewInfo.quartersInProgress.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)),
-              pastYearsAndQuarters = overviewInfo.pastYearsAndQuarters.map(pYAQ => (pYAQ._1, pYAQ._2.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)))),
-              viewAllPastAftsUrl = controllers.routes.PastAftReturnsController.onPageLoad(srn, 0).url
-            )
-          )
-        ).map(Ok(_))
+        Future.successful(Ok(aftOverviewView(
+          overviewInfo.schemeDetails.schemeName,
+          controllers.routes.YearsController.onPageLoad(srn).url,
+          overviewInfo.outstandingAmount,
+          linkForOutstandingAmount(srn, overviewInfo.outstandingAmount),
+          overviewInfo.quartersInProgress.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)),
+          overviewInfo.pastYearsAndQuarters.map(pYAQ => (pYAQ._1, pYAQ._2.map(q => textAndLinkForQuarter(formatForDisplayOneYear, q, srn)))),
+          controllers.routes.PastAftReturnsController.onPageLoad(srn, 0).url,
+          config.schemeDashboardUrl(request).format(srn)
+        )))
       }
   }
 
@@ -106,8 +100,6 @@ class AFTOverviewController @Inject()(
 object AFTOverviewController {
 
   private val schemeIdType: String = "srn"
-  private val viewModel: String = "viewModel"
-  private val aftOverviewTemplate: String = "aftOverview.njk"
   private val maxPastYearsToDisplay: Int  = 3
   private val journeyTypeAll: String  = "all"
   private val nothingOutstanding: String = "£0.00"
@@ -135,18 +127,4 @@ object AFTOverviewController {
                                    outstandingAmount: String
                                  )
 
-  case class OverviewViewModel(
-                                returnUrl: String,
-                                newAftUrl: String,
-                                paymentsAndChargesUrl: String,
-                                schemeName: String,
-                                outstandingAmount: String,
-                                quartersInProgress: Seq[(String, String)] = Seq.empty,
-                                pastYearsAndQuarters: Seq[(Int, Seq[(String, String)])] = Seq.empty,
-                                viewAllPastAftsUrl: String
-                              )
-
-  private object OverviewViewModel {
-    implicit lazy val writes: OWrites[OverviewViewModel] = Json.writes[OverviewViewModel]
-  }
 }

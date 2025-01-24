@@ -12,7 +12,7 @@ object AppDependencies {
     "uk.gov.hmrc"                   %%  "domain-play-30"                         % "9.0.0",
     "com.univocity"                 %   "univocity-parsers"                      % "2.9.1",
     "org.typelevel"                 %%  "cats-core"                              % "2.10.0",
-    "uk.gov.hmrc"                   %% "play-frontend-hmrc-play-30"             % "8.5.0"
+    "uk.gov.hmrc"                   %%  "play-frontend-hmrc-play-30"             % "8.5.0"
   )
 
   val test: Seq[ModuleID] = Seq(

@@ -22,25 +22,23 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.SchemeDetails
 import models.requests.IdentifierRequest
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import views.html.NotSubmissionTimeView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
+class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSugar
   with JsonMatchers with OptionValues with TryValues {
   private val srn = "test-srn"
   val startDate: LocalDate = QUARTER_START_DATE
@@ -63,23 +61,17 @@ class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSug
 
       val application = applicationBuilder(extraModules = extraModules).overrides().build()
       val request = FakeRequest(GET, getRoute)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[NotSubmissionTimeView].apply(
+        dummyCall.url,
+        "1 July 2020"
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "date" -> "1 July 2020",
-        "continueLink" -> dummyCall.url
-      )
-
-      templateCaptor.getValue mustEqual "notSubmissionTime.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
+      compareResultAndView(result, view)
       application.stop()
     }
   }
