@@ -98,9 +98,7 @@
         attributes = Map("accept" -> ".csv,application/csv", "required" -> "required")
     ))
 
-    @govukButton(
-        ButtonViewModel(Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String))
-    )
+    <input type="submit" value="@messages("site.continue")" class="govuk-button" id="submit" data-module="govuk-button"/>
 </form>
 @templates.ReturnLink(schemeName, returnUrl)
 }
