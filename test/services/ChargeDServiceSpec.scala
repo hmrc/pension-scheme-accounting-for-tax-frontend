@@ -45,7 +45,7 @@ class ChargeDServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(MemberStatusPage(1), AmendedChargeStatus.Updated.toString).toOption.get
     .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
-    .set(ChargeDetailsPage(1), SampleData.chargeDDetails).toOption.get
+    .set(ChargeDetailsPage(1), SampleData.chargeDDetailsNoTax).toOption.get
 
   val allMembersIncludingDeleted: UserAnswers = allMembers
     .set(MemberDetailsPage(2), SampleData.memberDetails).toOption.get
@@ -74,7 +74,7 @@ class ChargeDServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
         ),
         ViewAmendmentDetails(
           SampleData.memberDetails2.fullName, ChargeTypeLifetimeAllowance.toString,
-          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeDDetails.total),
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeDDetailsNoTax.total),
           Updated
         )
       )

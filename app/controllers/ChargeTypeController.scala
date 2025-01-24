@@ -20,7 +20,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, NormalMode}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}

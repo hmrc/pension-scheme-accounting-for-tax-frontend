@@ -58,7 +58,7 @@ class AFTOverviewController @Inject()(
         quartersInProgress <- quartersService.getInProgressQuarters(srn = srn, pstr = schemeDetails.pstr)
         allPastYears <- quartersService.getPastYears(pstr = schemeDetails.pstr)
         pastYearsAndQuarters <- Future.traverse(displayYears(allPastYears))(
-          year => quartersService.getPastQuarters(pstr = schemeDetails.pstr, year = year).flatMap(quarters => Future.successful(year, quarters))
+          year => quartersService.getPastQuarters(pstr = schemeDetails.pstr, year = year).flatMap(quarters => Future.successful((year, quarters)))
         )
       }
       yield OverviewInfo(schemeDetails, quartersInProgress, pastYearsAndQuarters, outstandingAmount)

@@ -30,7 +30,6 @@ import views.html.chargeE.WhatYouWillNeedView
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
@@ -41,7 +40,7 @@ class WhatYouWillNeedController @Inject()(
     val controllerComponents: MessagesControllerComponents,
     navigator: CompoundNavigator,
     view: WhatYouWillNeedView
-)(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)) { implicit request =>
