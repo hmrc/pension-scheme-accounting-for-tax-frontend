@@ -18,7 +18,6 @@ package viewmodels
 
 import play.api.mvc.Call
 
-import java.time.LocalDate
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 
 case class AFTSummaryViewModel(

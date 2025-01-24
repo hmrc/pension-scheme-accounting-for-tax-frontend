@@ -80,7 +80,6 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
-    when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
     DateHelper.setDate(Some(LocalDate.of(2021, 1, 1)))
   }
 
@@ -89,6 +88,8 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
   "Quarters Controller" must {
 
     "return OK and the correct view for a GET" in {
+      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
+
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
@@ -108,6 +109,7 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "redirect to next page when valid data is submitted" in {
+      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
 
       when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
@@ -115,6 +117,17 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, q12021.startDate, accessType, versionInt).url)
+    }
+
+    "redirect when there are no displayQuarters" in {
+      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq()))
+
+      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result) mustBe Some(controllers.routes.SessionExpiredController.onPageLoad.url)
     }
 
     "redirect to locked page when AFT return is locked but there is no overview data" in {
@@ -130,6 +143,8 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
+      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
+
       when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value

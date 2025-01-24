@@ -21,30 +21,28 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.JsObject
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{PsaSchemePartialService, SchemeService}
-import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Table, Text}
+import viewmodels.Radios.MessageInterpolators
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
+import views.html.financialOverview.scheme.{SchemeFinancialOverviewNewView, SchemeFinancialOverviewView}
 
 import scala.concurrent.Future
 
 class SchemeFinancialOverviewControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with Enumerable.Implicits
@@ -66,38 +64,32 @@ class SchemeFinancialOverviewControllerSpec
       bind[MinimalConnector].toInstance(mockMinimalPsaConnector),
       bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
     )
-  val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-  private val jsonCaptor: ArgumentCaptor[JsObject] = ArgumentCaptor.forClass(classOf[JsObject])
+  val application: Application = applicationBuilder(extraModules = extraModules).build()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaSchemePartialService)
-    reset(mockRenderer)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    reset(mockPaymentsAndChargesService)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
-
-    reset(mockPaymentsAndChargesService)
     when(mockPaymentsAndChargesService.getPaymentsFromCache(any(),any())(any(),any())).
       thenReturn(Future.successful(schemeToFinancial(schemeFSResponseAftAndOTC)))
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).
       thenReturn(Future.successful(schemeToFinancial(schemeFSResponseAftAndOTC)))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn),
-      any(), any(), any())(any())).thenReturn(emptyChargesTable)
+      any(), any(), any())(any())).thenReturn(Table())
     when(mockPaymentsAndChargesService.getOverdueCharges(any())).thenReturn(schemeFSResponseAftAndOTC.seqSchemeFSDetail)
     when(mockPaymentsAndChargesService.getInterestCharges(any())).thenReturn(schemeFSResponseAftAndOTC.seqSchemeFSDetail)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseAftAndOTC.seqSchemeFSDetail)
   }
 
   "SchemeFinancial Controller" when {
     "schemeFinancialOverview" must {
 
-      "return html with information received from overview api" in {
+      "return new html with information received from overview api" in {
         when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
@@ -107,17 +99,71 @@ class SchemeFinancialOverviewControllerSpec
         when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
           .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
         when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
-          .thenReturn(retrieveCreditBalance(1000.00))
+          .thenReturn("£1,000.00")
         when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
           .thenReturn(Future.successful("John Doe"))
+        when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
 
+        val request = httpGETRequest(getPartial)
         val result = route(application, httpGETRequest(getPartial)).value
 
         status(result) mustEqual OK
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        templateCaptor.getValue mustEqual "financialOverview/scheme/schemeFinancialOverview.njk"
-        val actualJson = jsonCaptor.getValue
-        (actualJson \ "requestRefundUrl").asOpt[String] mustBe Some(routes.RequestRefundController.onPageLoad(srn).url)
+
+        val view = application.injector.instanceOf[SchemeFinancialOverviewNewView].apply(
+          schemeName = "Big Scheme",
+          totalUpcomingCharge = "£2,058.10",
+          totalOverdueCharge = "£2,058.10",
+          totalInterestAccruing = "£47,000.96",
+          requestRefundUrl = routes.RequestRefundController.onPageLoad(srn).url,
+          allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, journeyType = "overdue").url,
+          duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
+          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
+          creditBalanceFormatted = "£0.00",
+          creditBalance = 0,
+          isOverdueChargeAvailable = false,
+          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
+        )(messages, request)
+
+        compareResultAndView(result, view)
+
+      }
+
+      "return old html with information received from overview api" in {
+        when(mockPsaSchemePartialService.aftCardModel(any(), any())(any(), any()))
+          .thenReturn(Future.successful(allTypesMultipleReturnsModel))
+        when(mockPsaSchemePartialService.upcomingAftChargesModel(any(), any())(any()))
+          .thenReturn(allTypesMultipleReturnsModel)
+        when(mockPsaSchemePartialService.overdueAftChargesModel(any(), any())(any()))
+          .thenReturn(allTypesMultipleReturnsModel)
+        when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
+          .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
+        when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
+          .thenReturn("£1,000.00")
+        when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
+          .thenReturn(Future.successful("John Doe"))
+        when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
+
+        val request = httpGETRequest(getPartial)
+        val result = route(application, httpGETRequest(getPartial)).value
+
+        status(result) mustEqual OK
+
+        val view = application.injector.instanceOf[SchemeFinancialOverviewView].apply(
+          schemeName = "Big Scheme",
+          totalUpcomingCharge = "£2,058.10",
+          totalOverdueCharge = "£2,058.10",
+          totalInterestAccruing = "£47,000.96",
+          requestRefundUrl = routes.RequestRefundController.onPageLoad(srn).url,
+          allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, journeyType = "overdue").url,
+          duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
+          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
+          creditBalanceFormatted = "£0.00",
+          creditBalance = 0,
+          isOverdueChargeAvailable = false,
+          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
+        )(messages, request)
+
+        compareResultAndView(result, view)
       }
     }
 

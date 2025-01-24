@@ -16,8 +16,6 @@
 
 package controllers.chargeF
 
-import connectors.SchemeDetailsConnector
-import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import models.LocalDateBinder._
 import models.{AccessType, NormalMode}
@@ -31,7 +29,6 @@ import views.html.chargeF.WhatYouWillNeedView
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
@@ -40,11 +37,9 @@ class WhatYouWillNeedController @Inject()(
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
-    schemeDetailsConnector: SchemeDetailsConnector,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
     navigator: CompoundNavigator,
     view: WhatYouWillNeedView
-)(implicit ec: ExecutionContext)
+)
     extends FrontendBaseController
     with I18nSupport {
 

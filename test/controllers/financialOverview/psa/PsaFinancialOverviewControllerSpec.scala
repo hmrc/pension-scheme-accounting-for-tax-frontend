@@ -21,26 +21,23 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.AFTPartialService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
+import views.html.financialOverview.psa.{PsaFinancialOverviewNewView, PsaFinancialOverviewView}
 
 import scala.concurrent.Future
 
 class PsaFinancialOverviewControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with Enumerable.Implicits
@@ -60,36 +57,26 @@ class PsaFinancialOverviewControllerSpec
     )
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-  private val psaName = "John Doe"
+  private val psaName = "psa-name"
   val requestRefundUrl = s"test.com?requestType=3&psaName=$psaName&availAmt=1000"
-  private val jsonToPassToTemplate: JsObject = Json.obj(
-    "totalUpcomingCharge" -> "10",
-    "totalOverdueCharge" -> "10",
-    "totalInterestAccruing" -> "10",
-    "psaName" -> "John Doe",
-    "requestRefundUrl" -> routes.PsaRequestRefundController.onPageLoad.url,
-    "creditBalanceFormatted" -> "£1,000.00",
-    "creditBalance" -> 1000
-  )
+
+  val emptyChargesTable: Table = Table()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockAFTPartialService)
-    reset(mockRenderer)
     reset(mockAppConfig)
+    when(mockAppConfig.timeoutSeconds).thenReturn("5")
+    when(mockAppConfig.countdownSeconds).thenReturn("1")
+    when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("/mockUrl")
     when(mockAppConfig.creditBalanceRefundLink).thenReturn("test.com")
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
       .thenReturn(Future.successful(psaFs))
-
   }
 
-  "PsaFinancialOverviewController" when {
-    "schemeFinancialOverview" must {
-
+  "PsaFinancialOverviewController" must {
       "return old html with information received from overview api for new financial credits is false" in {
+        when(mockAppConfig.countdownSeconds).thenReturn("60")
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
         when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
@@ -100,15 +87,31 @@ class PsaFinancialOverviewControllerSpec
         when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
           .thenReturn(Future.successful(psaName))
 
-        val result = route(application, httpGETRequest(getPartial)).value
+        val request = httpGETRequest(getPartial)
+        val result = route(application, request).value
 
         status(result) mustEqual OK
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        templateCaptor.getValue mustEqual "financialOverview/psa/psaFinancialOverview.njk"
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+        val view = application.injector.instanceOf[PsaFinancialOverviewView].apply(
+          psaName = psaName,
+          totalUpcomingCharge = "10",
+          totalOverdueCharge = "10",
+          totalInterestAccruing = "10",
+          requestRefundUrl = routes.PsaRequestRefundController.onPageLoad.url,
+          allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
+          duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
+          allPaymentLink = routes.PenaltyTypeController.onPageLoad().url,
+          creditBalanceFormatted = "£1,000.00",
+          creditBalance = 1000,
+          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
+        )(messages, request)
+
+        compareResultAndView(result, view)
+
       }
 
       "return new html with information received from overview api for new financial credits is true" in {
+        when(mockAppConfig.countdownSeconds).thenReturn("60")
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
         when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
@@ -119,15 +122,27 @@ class PsaFinancialOverviewControllerSpec
         when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
           .thenReturn(Future.successful(psaName))
 
+        val request = httpGETRequest(getPartial)
         val result = route(application, httpGETRequest(getPartial)).value
 
         status(result) mustEqual OK
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        templateCaptor.getValue mustEqual "financialOverview/psa/psaFinancialOverviewNew.njk"
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+        val view = application.injector.instanceOf[PsaFinancialOverviewNewView].apply(
+          psaName = psaName,
+          totalUpcomingCharge = "10",
+          totalOverdueCharge = "10",
+          totalInterestAccruing = "10",
+          requestRefundUrl = routes.PsaRequestRefundController.onPageLoad.url,
+          allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
+          duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
+          allPaymentLink = routes.PenaltyTypeController.onPageLoad().url,
+          creditBalanceFormatted = "£1,000.00",
+          creditBalance = 1000,
+          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
+        )(messages, request)
+
+        compareResultAndView(result, view)
       }
     }
 
   }
-
-}

@@ -24,28 +24,25 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.CreditAccessType.AccessedByLoggedInPsaOrPsp
 import models.requests.IdentifierRequest
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
-import play.twirl.api.Html
 import services.AFTPartialService
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.financialOverview.RequestRefundView
 
 import scala.concurrent.Future
 
-class PsaRequestRefundControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class PsaRequestRefundControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   private def httpPathGET: String = routes.PsaRequestRefundController.onPageLoad.url
 
   private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
   private val mockService = mock[AFTPartialService]
+  private val mockRefundController = mock[PsaRequestRefundController]
   private val mockMinimalConnector = mock[MinimalConnector]
   private val mockFinancialInfoCreditAccessConnector = mock[FinancialInfoCreditAccessConnector]
   private val dummyURL = "/DUMMY"
@@ -55,7 +52,6 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with NunjucksSup
       Seq[GuiceableModule](
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest),
         bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
         bind[AFTPartialService].toInstance(mockService),
@@ -67,14 +63,15 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with NunjucksSup
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
     reset(mockAppConfig)
     reset(mockFinancialStatementConnector)
     reset(mockService)
     reset(mockMinimalConnector)
     reset(mockFinancialInfoCreditAccessConnector)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.timeoutSeconds).thenReturn("5")
+    when(mockAppConfig.countdownSeconds).thenReturn("1")
+    when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("/mockUrl")
     when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
       .thenReturn(Future.successful(psaFs))
     when(mockService.getCreditBalanceAmount(any())).thenReturn(BigDecimal(44.4))
@@ -84,27 +81,25 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with NunjucksSup
     when(mockAppConfig.creditBalanceRefundLink).thenReturn(dummyURL)
   }
 
-  private def expectedJson(continueUrl: String): JsObject = Json.obj(
-    "heading" -> "requestRefund.youAlready.h1",
-    "p1" -> "requestRefund.youAlready.psa.p1",
-    "continueUrl" -> continueUrl
-  )
-
   "RequestRefundController" must {
 
     "when accessed by same PSA return OK and render correct content on page" in {
       when(mockFinancialInfoCreditAccessConnector.creditAccessForPsa(any())(any(), any()))
         .thenReturn(Future.successful(Some(AccessedByLoggedInPsaOrPsp)))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val request = httpGETRequest(httpPathGET)
       val result = route(application, httpGETRequest(httpPathGET)).value
+
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[RequestRefundView].apply(
+        heading = "requestRefund.youAlready.h1",
+        p1 = "requestRefund.youAlready.psa.p1",
+        continueUrl = s"$dummyURL?requestType=3&psaName=John Doe&availAmt=44.4"
+      )(request, messages)
 
-      templateCaptor.getValue mustEqual "financialOverview/requestRefund.njk"
-      jsonCaptor.getValue must containJson(expectedJson(
-        continueUrl = s"$dummyURL?requestType=3&psaName=John Doe&availAmt=44.4"))
+      compareResultAndView(result, view)
+
     }
 
     "when not accessed return redirect to correct page" in {

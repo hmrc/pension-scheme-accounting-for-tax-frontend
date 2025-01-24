@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.AFTOverviewControllerSpec.{paymentsCache, schemeFSResponse}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, emptyChargesTable, psaId, schemeDetails, schemeName}
+import data.SampleData.{dummyCall, psaId, schemeDetails, schemeName}
 import matchers.JsonMatchers
 import models.SchemeDetails
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
@@ -36,6 +36,7 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import views.html.AFTOverviewView
 
@@ -65,6 +66,8 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
       ): _*
     )
     .build()
+
+  val emptyChargesTable: Table = Table()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -112,7 +115,6 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
 
       compareResultAndView(result, view)
     }
-
 
     "return Success page when paymentsAndChargesService fails" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))

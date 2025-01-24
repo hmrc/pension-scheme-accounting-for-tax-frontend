@@ -28,7 +28,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import views.html.chargeG.WhatYouWillNeedView
 
 class WhatYouWillNeedController @Inject()(
@@ -40,7 +40,7 @@ class WhatYouWillNeedController @Inject()(
     val controllerComponents: MessagesControllerComponents,
     whatYouWillNeedView: WhatYouWillNeedView,
     navigator: CompoundNavigator
-)(implicit ec: ExecutionContext)
+)
     extends FrontendBaseController
     with I18nSupport {
 

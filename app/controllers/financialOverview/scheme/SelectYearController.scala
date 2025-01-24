@@ -24,12 +24,11 @@ import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.financialOverview.scheme.SelectYearView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,13 +38,13 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                                      allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                      formProvider: YearsFormProvider,
                                      val controllerComponents: MessagesControllerComponents,
-                                     renderer: Renderer,
                                      config: FrontendAppConfig,
                                      service: PaymentsAndChargesService,
-                                     navService: PaymentsNavigationService)(implicit ec: ExecutionContext)
+                                     selectYearView: SelectYearView,
+                                     navService: PaymentsNavigationService
+                                    )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(paymentOrChargeType: PaymentOrChargeType, typeParam: String)(implicit messages: Messages, ev: Enumerable[Year]): Form[Year] = {
     val errorMessage = if (isTaxYearFormat(paymentOrChargeType)) {
@@ -63,16 +62,14 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
         val years = getYears(paymentsCache.schemeFSDetail, paymentOrChargeType)
         implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
-        val json = Json.obj(
-          "titleMessage" -> getTitle(typeParam, paymentOrChargeType),
-          "typeParam" -> typeParam,
-          "schemeName" -> paymentsCache.schemeDetails.schemeName,
-          "form" -> form(paymentOrChargeType, typeParam),
-          "radios" -> FSYears.radios(form(paymentOrChargeType, typeParam), years, isTaxYearFormat(paymentOrChargeType)),
-          "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-        )
-
-        renderer.render(template = "financialOverview/scheme/selectYear.njk", json).map(Ok(_))
+        Future.successful(Ok(selectYearView(
+          form = form(paymentOrChargeType, typeParam),
+          penaltyType = typeParam,
+          submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
+          schemeName = paymentsCache.schemeDetails.schemeName,
+          returnUrl = config.schemeDashboardUrl(request).format(srn),
+          radios = TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form(paymentOrChargeType, typeParam), years, isTaxYearFormat(paymentOrChargeType)))
+        )))
       }
     }
 
@@ -88,25 +85,24 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           .fold(
             formWithErrors => {
 
-              val json = Json.obj(
-                "titleMessage" -> getTitle(typeParam, paymentOrChargeType),
-                "typeParam" -> typeParam,
-                "schemeName" -> paymentsCache.schemeDetails.schemeName,
-                "form" -> formWithErrors,
-                "radios" -> FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType)),
-                "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-              )
-              renderer.render(template = "financialOverview/scheme/selectYear.njk", json).map(BadRequest(_))
+              Future.successful(BadRequest(selectYearView(
+                form = formWithErrors,
+                penaltyType = typeParam,
+                submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
+                schemeName = paymentsCache.schemeDetails.schemeName,
+                returnUrl = config.schemeDashboardUrl(request).format(srn),
+                radios = TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType)))
+              )))
             },
-            value =>
-              if (paymentOrChargeType == AccountingForTaxCharges) {
-                navService.navFromAFTYearsPage(paymentsCache.schemeFSDetail, value.year, srn)
-              } else {
-                Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
-            }
-          )
-      }
+          value =>
+            if (paymentOrChargeType == AccountingForTaxCharges) {
+              navService.navFromAFTYearsPage(paymentsCache.schemeFSDetail, value.year, srn)
+            } else {
+              Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
+          }
+        )
     }
+  }
 
   def getTitle(typeParam: String, paymentOrChargeType: PaymentOrChargeType)(implicit messages: Messages): String =
     if (isTaxYearFormat(paymentOrChargeType)) {

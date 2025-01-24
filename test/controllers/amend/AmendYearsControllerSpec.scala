@@ -77,6 +77,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with JsonMatchers
   }
 
   "AmendYears Controller" must {
+
     "return OK and the correct view for a GET when more than one year" in {
       val result = route(application, httpGETRequest(httpPathGET)).value
 

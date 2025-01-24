@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.fileUpload.FileUploadSuccessView
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class FileUploadSuccessController @Inject()(
     override val messagesApi: MessagesApi,
@@ -40,7 +40,7 @@ class FileUploadSuccessController @Inject()(
     val controllerComponents: MessagesControllerComponents,
     navigator: CompoundNavigator,
     view: FileUploadSuccessView
-)(implicit ec: ExecutionContext)
+)
   extends FrontendBaseController
     with I18nSupport {
 

@@ -23,18 +23,15 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, FileUploadDataCache, GenericViewModel, UploadId}
-import pages.fileUpload.{FileUploadPage, UploadedFileName}
+import models.{AccessType, ChargeType, FileUploadDataCache, UploadId}
+import pages.fileUpload.UploadedFileName
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
-import renderer.Renderer
 import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.fileUpload.FileUploadView
-import views.html.helper.form
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

@@ -20,7 +20,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, NormalMode}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -97,12 +97,4 @@ class ChargeTypeController @Inject()(
             )
         }
     }
-
-  private def viewModel(schemeName: String, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): GenericViewModel = {
-    GenericViewModel(
-      submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate, accessType, version).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-      schemeName = schemeName
-    )
-  }
 }
