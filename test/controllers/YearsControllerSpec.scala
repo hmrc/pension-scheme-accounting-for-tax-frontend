@@ -38,13 +38,12 @@ import play.api.libs.json.Json
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.TwirlMigration
 import views.html.YearsView
 
 import scala.concurrent.Future
 
-class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class YearsControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
