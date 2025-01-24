@@ -25,20 +25,22 @@ import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, Draft, GenericViewModel, NormalMode, Quarters, UserAnswers, ValueChangeType}
+import models.{AccessType, Draft, NormalMode, Quarters, UserAnswers, ValueChangeType}
 import navigators.CompoundNavigator
 import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTAmendmentValueChangeTypePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
 import play.api.mvc._
-import renderer.Renderer
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios, SummaryList}
+import viewmodels.TwirlRadios
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.ConfirmSubmitAFTAmendmentView
+
 
 class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: MessagesApi,
                                                     userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -52,10 +54,9 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
                                                     config: FrontendAppConfig,
                                                     aftConnector: AFTConnector,
                                                     amendmentHelper: AmendmentHelper,
-                                                    renderer: Renderer)(implicit ec: ExecutionContext)
+                                                    confirmSubmitAFTAmendmentView: ConfirmSubmitAFTAmendmentView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val form = formProvider()
 
@@ -99,7 +100,6 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
                            result: Results.Status,
                            accessType: AccessType,
                            version: Int)(implicit request: DataRequest[AnyContent]): Future[Result] = {
-
     DataRetrievals.retrieveSchemeWithPSTR { (schemeName, pstr) =>
       val amendedVersion = request.aftVersion
       val previousVersion = amendedVersion - 1
@@ -121,36 +121,25 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
             userAnswersCacheConnector.savePartial(request.internalId, updatedUA.data).
             flatMap{ _ =>
 
-              val tableRowsUK: Seq[SummaryList.Row] = amendmentHelper.amendmentSummaryRows(
-                currentTotalAmountUK, previousTotalAmountUK, amendedVersion, previousVersion)
+              val tableRowsUK: Seq[SummaryListRow] = amendmentHelper.amendmentSummaryRows(
+                currentTotalAmountUK, previousTotalAmountUK, previousVersion)
 
-              val tableRowsNonUK: Seq[SummaryList.Row] = amendmentHelper.amendmentSummaryRows(
-                currentTotalAmountNonUK, previousTotalAmountNonUK, amendedVersion, previousVersion)
+              val tableRowsNonUK: Seq[SummaryListRow] = amendmentHelper.amendmentSummaryRows(
+                currentTotalAmountNonUK, previousTotalAmountNonUK, previousVersion)
 
-              val viewModel = GenericViewModel(routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version).url,
-                config.schemeDashboardUrl(request).format(srn), schemeName)
-
-              val json: JsObject = getJson(srn, startDate, amendedVersion, tableRowsUK, tableRowsNonUK, viewModel, form)
-
-              renderer.render(template = "confirmSubmitAFTAmendment.njk", json).map(result(_))
+              Future.successful(result(confirmSubmitAFTAmendmentView(
+                tableRowsUK,
+                tableRowsNonUK,
+                form,
+                TwirlRadios.yesNo(form("value")),
+                routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version),
+                config.schemeDashboardUrl(request).format(srn),
+                schemeName
+              )))
             }
           }
         }
       }
     }
   }
-
-  def getJson(srn: String, startDate: LocalDate, amendedVersion: Int, tableRowsUK: Seq[SummaryList.Row],
-              tableRowsNonUK: Seq[SummaryList.Row], viewModel: GenericViewModel, form: Form[Boolean])
-             (implicit request: DataRequest[AnyContent]): JsObject =
-    Json.obj(
-      fields = "srn" -> srn,
-      "startDate" -> Some(localDateToString(startDate)),
-      "form" -> form,
-      "versionNumber" -> amendedVersion,
-      "viewModel" -> viewModel,
-      "tableRowsUK" -> tableRowsUK,
-      "tableRowsNonUK" -> tableRowsNonUK,
-      "radios" -> Radios.yesNo(form("value"))
-    )
 }

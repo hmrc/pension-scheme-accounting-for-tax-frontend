@@ -17,37 +17,35 @@
 package controllers
 
 import connectors.FinancialStatementConnector
-import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
+import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction, MutableFakeDataSetupAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
-import models.ChargeDetailsFilter.All
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
-import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.{SchemeFS, SchemeFSDetail}
-import models.requests.IdentifierRequest
-import models.{AccessMode, GenericViewModel, SessionAccessData, SessionData, UserAnswers}
+import models.viewModels.ConfirmationViewModel
+import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito
 import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, EmailQuery}
+import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import utils.AFTConstants._
 import utils.DateHelper.formatSubmittedDate
+import views.html.{ConfirmationAmendDecreaseView, ConfirmationAmendIncreaseView, ConfirmationNoChargeView, ConfirmationView}
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
@@ -67,25 +65,10 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     bind[SchemeService].toInstance(mockSchemeService),
     bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
   )
-  private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private def json(isAmendment: Boolean): JsObject = Json.obj(
-    fields = "srn" -> SampleData.srn,
-    "panelHtml" -> Html(s"${
-      Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
-        .toString()
-    }").toString(),
-    "email" -> email,
-    "list" -> rows(isAmendment),
-    "isAmendment" -> isAmendment,
-    "pensionSchemesUrl" -> testManagePensionsUrl.url,
-    "viewModel" -> GenericViewModel(
-      submitUrl = submitUrl.url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      schemeName = SampleData.schemeName),
-    "viewPaymentsUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController
-      .onPageLoad(srn, QUARTER_START_DATE, AccountingForTaxCharges, All).url
-  )
+  override def fakeApplication(): Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+
+  private val viewPaymentsUrl = "/manage-pension-scheme-accounting-for-tax/accounting-for-tax/aa/2020-04-01/payments-and-charges"
 
   private val schemeFSResponseWithDataForDifferentYear: SchemeFS =
     SchemeFS(
@@ -112,20 +95,16 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       )
     )
 
-  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockRenderer)
+    super.beforeEach()
     Mockito.reset(mockUserAnswersCacheConnector)
     Mockito.reset(mockAllowAccessActionProvider)
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockAppConfig.yourPensionSchemesUrl).thenReturn(testManagePensionsUrl.url)
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
+
   }
 
   "Confirmation Controller" must {
@@ -137,15 +116,28 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
         set(EmailQuery, email).getOrElse(UserAnswers())))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
-      templateCaptor.getValue mustEqual "confirmation.njk"
+      val viewModel = ConfirmationViewModel(
+        "Return submitted",
+        HtmlContent(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>"""),
+        email,
+        rows(false),
+        Some(viewPaymentsUrl),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        schemeName,
+        "",
+        submitUrl.url
+      )
 
-      jsonCaptor.getValue must containJson(json(isAmendment = false))
+      val view = app.injector.instanceOf[ConfirmationView].apply(
+        viewModel
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for amendment for a GET when financial info exists for year" in {
@@ -154,13 +146,26 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.setOrException(EmailQuery, email)))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val viewModel = ConfirmationViewModel(
+        "Amended return submitted",
+        HtmlContent(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>"""),
+        email,
+        rows(true),
+        Some(viewPaymentsUrl),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        schemeName,
+        "",
+        submitUrl.url
+      )
 
-      templateCaptor.getValue mustEqual "confirmation.njk"
-      jsonCaptor.getValue must containJson(json(isAmendment = true))
+      val view = app.injector.instanceOf[ConfirmationView].apply(
+        viewModel
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for amendment for a GET when value decreased and financial info exists for year" in {
@@ -174,13 +179,26 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeDecrease)
         ))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val viewModel = ConfirmationViewModel(
+        "Amended return submitted",
+        HtmlContent(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>"""),
+        email,
+        rows(true),
+        Some(viewPaymentsUrl),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        schemeName,
+        "",
+        submitUrl.url
+      )
 
-      templateCaptor.getValue mustEqual "confirmationAmendDecrease.njk"
-      jsonCaptor.getValue must containJson(json(isAmendment = true))
+      val view = app.injector.instanceOf[ConfirmationAmendDecreaseView].apply(
+        viewModel
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for amendment for a GET when value increased and financial info exists for year" in {
@@ -194,13 +212,26 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease)
         ))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val viewModel = ConfirmationViewModel(
+        "Amended return submitted",
+        HtmlContent(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>"""),
+        email,
+        rows(true),
+        Some(viewPaymentsUrl),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        schemeName,
+        "",
+        submitUrl.url
+      )
 
-      templateCaptor.getValue mustEqual "confirmationAmendIncrease.njk"
-      jsonCaptor.getValue must containJson(json(isAmendment = true))
+      val view = app.injector.instanceOf[ConfirmationAmendIncreaseView].apply(
+        viewModel
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for amendment for a GET when value not changed and financial info exists for year" in {
@@ -214,13 +245,26 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeSame)
         ))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val viewModel = ConfirmationViewModel(
+        "Amended return submitted",
+        HtmlContent(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>"""),
+        email,
+        rows(true),
+        Some(viewPaymentsUrl),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        schemeName,
+        "",
+        submitUrl.url
+      )
 
-      templateCaptor.getValue mustEqual "confirmationNoChange.njk"
-      jsonCaptor.getValue must containJson(json(isAmendment = true))
+      val view = app.injector.instanceOf[ConfirmationNoChargeView].apply(
+        viewModel
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "return OK but don't include financial info link when no financial info exists for year" in {
@@ -233,19 +277,32 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseWithDataForDifferentYear))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val viewModel = ConfirmationViewModel(
+        "Return submitted",
+        HtmlContent(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>"""),
+        email,
+        rows(false),
+        None,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        schemeName,
+        "",
+        submitUrl.url
+      )
 
-      templateCaptor.getValue mustEqual "confirmation.njk"
-      (jsonCaptor.getValue \ "viewPaymentsUrl").toOption mustBe None
+      val view = app.injector.instanceOf[ConfirmationView].apply(
+        viewModel
+      )(request, messages)
+
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired page when there is no scheme name or pstr or quarter" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setDataToReturn(None)
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad.url
@@ -254,7 +311,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 }
 
 object ConfirmationControllerSpec {
-  private val testManagePensionsUrl = Call("GET", "/scheme-summary")
   private val quarterEndDate = QUARTER_END_DATE.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
   private val quarterStartDate = QUARTER_START_DATE.format(DateTimeFormatter.ofPattern("d MMMM"))
   private val email = "test@test.com"
@@ -262,26 +318,22 @@ object ConfirmationControllerSpec {
 
   private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/${SampleData.startDate}/${SampleData.srn}/sign-out")
 
-  private def rows(hasVersion: Boolean) = Seq(Row(
-    key = Key(msg"confirmation.table.scheme.label", classes = Seq("govuk-!-font-weight-regular")),
-    value = Value(Literal(SampleData.schemeName), classes = Nil),
-    actions = Nil
+  private def rows(hasVersion: Boolean)(implicit messages: Messages) = Seq(SummaryListRow(
+    key = Key(Text(messages("confirmation.table.scheme.label")), classes = "govuk-!-font-weight-regular"),
+    value = Value(Text(SampleData.schemeName))
   ),
-    Row(
-      key = Key(msg"confirmation.table.accounting.period.label", classes = Seq("govuk-!-font-weight-regular")),
-      value = Value(msg"confirmation.table.accounting.period.value".withArgs(quarterStartDate, quarterEndDate), classes = Nil),
-      actions = Nil
+    SummaryListRow(
+      key = Key(Text(messages("confirmation.table.accounting.period.label")), classes = "govuk-!-font-weight-regular"),
+      value = Value(Text(messages("confirmation.table.accounting.period.value", quarterStartDate, quarterEndDate))),
     ),
-    Row(
-      key = Key(msg"confirmation.table.data.submitted.label", classes = Seq("govuk-!-font-weight-regular")),
-      value = Value(Literal(formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London")))), classes = Nil),
-      actions = Nil
+    SummaryListRow(
+      key = Key(Text(messages("confirmation.table.data.submitted.label")), classes = "govuk-!-font-weight-regular"),
+      value = Value(Text(formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London"))))),
     )
   ) ++ (if (hasVersion) {
-    Seq(Row(
-      key = Key(msg"confirmation.table.submission.number.label", classes = Seq("govuk-!-font-weight-regular")),
-      value = Value(Literal(s"$versionNumber"), classes = Nil),
-      actions = Nil
+    Seq(SummaryListRow(
+      key = Key(Text(messages("confirmation.table.submission.number.label")), classes = "govuk-!-font-weight-regular"),
+      value = Value(Text(s"$versionNumber")),
     ))
   } else {
     Nil

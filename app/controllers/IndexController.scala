@@ -16,22 +16,22 @@
 
 package controllers
 
-import play.api.i18n.I18nSupport
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import views.html.IndexView
 
-class IndexController @Inject()(
+class IndexController @Inject()(override val messagesApi: MessagesApi,
     val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer
-)(implicit ec: ExecutionContext)
+    indexView: IndexView
+)
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad: Action[AnyContent] = Action.async { implicit request =>
-    renderer.render("index.njk").map(Ok(_))
+  def onPageLoad(): Action[AnyContent] = Action.async { implicit request =>
+    Future.successful(Ok(indexView()))
   }
 }
