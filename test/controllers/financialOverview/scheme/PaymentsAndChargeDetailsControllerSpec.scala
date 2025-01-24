@@ -36,8 +36,9 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
-import uk.gov.hmrc.govukfrontend.views.Aliases.Table
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, Table, Text, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.ChargeDetailsViewModel
@@ -173,6 +174,43 @@ class PaymentsAndChargeDetailsControllerSpec
 
     "return OK and the correct view if financial toggles  are switched on" in {
       when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
+
+      val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 0, chargeReference = "XY002610150183", amountDue = 0.00)
+
+      val mockSummaryListRow: SummaryListRow = SummaryListRow(
+        key = Key(Text("Key"), classes = "govuk-summary-list__key"),
+        value = Value(Text("Value"), classes = "govuk-summary-list__value")
+      )
+
+      when(mockPaymentsAndChargesService.getChargeDetailsForSelectedChargeV2(any, any, any, any)(any))
+        .thenReturn(Seq(mockSummaryListRow))
+
+      val request = httpGETRequest(httpPathGET(index = "0"))
+
+      val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
+        model = ChargeDetailsViewModel(
+          chargeDetailsList = Seq(mockSummaryListRow),
+          schemeName = schemeName,
+          chargeType = "Accounting for tax" + s" submission $version",
+          versionValue = Some(s" submission $version"),
+          isPaymentOverdue = true,
+          insetText = insetText(schemeFSDetail),
+          interest = Some(schemeFSDetail.accruedInterestTotal),
+          returnLinkBasedOnJourney = "",
+          returnUrl = "",
+          returnHistoryUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/0/summary",
+          paymentDueAmount = Some("0"),
+          paymentDueDate = Some("0"),
+          chargeAmountDetails = Some(emptyChargeAmountTable),
+          hintText = Some("")
+        )
+      )(messages, request)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
