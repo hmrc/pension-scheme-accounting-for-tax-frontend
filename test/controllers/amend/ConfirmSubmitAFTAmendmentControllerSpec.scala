@@ -44,6 +44,8 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import viewmodels.TwirlRadios
+import views.html.ConfirmSubmitAFTAmendmentView
 
 import scala.concurrent.Future
 
@@ -67,10 +69,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
     bind[AFTConnector].toInstance(mockAFTConnector)
   )
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  private val templateToBeRendered = "confirmSubmitAFTAmendment.njk"
 
-  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
   private val versionNumber = 3
 
   private def jsonToBePassed(form: Form[Boolean]): JsObject = Json.obj(
@@ -95,7 +94,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
     Mockito.reset(mockAFTConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
-    when(mockAmendmentHelper.amendmentSummaryRows(any(), any(), any(), any())).thenReturn(Nil)
+    when(mockAmendmentHelper.amendmentSummaryRows(any(), any(), any())(any())).thenReturn(Nil)
     when(mockAmendmentHelper.getTotalAmount(any())).thenReturn((BigDecimal(2000.00), BigDecimal(40000.00)))
     when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(
@@ -115,19 +114,21 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       val request = FakeRequest(GET, confirmSubmitAFTAmendmentRoute)
-      val expectedJson = jsonToBePassed(form)
 
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[ConfirmSubmitAFTAmendmentView].apply(
+        Nil,
+        Nil,
+        form,
+        TwirlRadios.yesNo(form("value")),
+        routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, QUARTER_START_DATE, accessType, 3),
+        dummyCall.url,
+        schemeName
+      )(request, messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture(), any(), any())(any(), any())
-      val storedValueChangeType = UserAnswers(jsonCaptor.getValue).get(ConfirmSubmitAFTAmendmentValueChangeTypePage)
-      storedValueChangeType mustEqual Some(ChangeTypeSame)
+      compareResultAndView(result, view)
     }
 
     "populate the view correctly on a GET when the question has previously been answered" in {
@@ -136,16 +137,21 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       val request = FakeRequest(GET, confirmSubmitAFTAmendmentRoute)
       val filledForm = form.bind(Map("value" -> "true"))
-      val expectedJson = jsonToBePassed(filledForm)
 
       val result = route(application, request).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[ConfirmSubmitAFTAmendmentView].apply(
+        Nil,
+        Nil,
+        filledForm,
+        TwirlRadios.yesNo(filledForm("value")),
+        routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, QUARTER_START_DATE, accessType, 3),
+        dummyCall.url,
+        schemeName
+      )(request, messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to the next page when submits with value true" in {
@@ -186,7 +192,6 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       val result = route(application, request).value
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockRenderer, times(1)).render(any(), any())(any())
       verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), any(), any(), any())(any(), any())
     }
 

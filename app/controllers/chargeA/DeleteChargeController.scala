@@ -16,31 +16,27 @@
 
 package controllers.chargeA
 
-import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode, UserAnswers}
+import models.{AccessType, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeA.{DeleteChargePage, ShortServiceRefundQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import viewmodels.TwirlRadios
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.DeleteChargeView
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
-                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                        userAnswersService: UserAnswersService,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
@@ -50,11 +46,9 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        deleteAFTChargeService: DeleteAFTChargeService,
                                        formProvider: YesNoFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
-                                       config: FrontendAppConfig,
-                                       renderer: Renderer)(implicit ec: ExecutionContext)
+                                       deleteChargeView: DeleteChargeView)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteCharge.error.required", messages("chargeA").toLowerCase()))
@@ -63,23 +57,14 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
-
-          val viewModel = GenericViewModel(
-            submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, version).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )
-
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "form" -> form,
-            "viewModel" -> viewModel,
-            "radios" -> Radios.yesNo(form(implicitly)("value")),
-            "chargeName" -> "chargeA"
-          )
-
-          renderer.render("deleteCharge.njk", json).map(Ok(_))
+          Future.successful(Ok(deleteChargeView(
+            "chargeA",
+            form,
+            TwirlRadios.yesNo(form(implicitly)("value")),
+            routes.DeleteChargeController.onSubmit(srn, startDate, accessType, version),
+            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName
+          )))
         }
     }
 
@@ -90,24 +75,14 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-
-              val viewModel = GenericViewModel(
-                submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, version).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel,
-                "radios" -> Radios.yesNo(formWithErrors("value")),
-                "chargeName" -> "chargeA"
-              )
-
-              renderer.render("deleteCharge.njk", json).map(BadRequest(_))
-
+              Future.successful(BadRequest(deleteChargeView(
+                "chargeA",
+                formWithErrors,
+                TwirlRadios.yesNo(formWithErrors("value")),
+                routes.DeleteChargeController.onSubmit(srn, startDate, accessType, version),
+                controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName
+              )))
             },
             value =>
               if (value) {

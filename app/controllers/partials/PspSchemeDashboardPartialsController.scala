@@ -21,14 +21,12 @@ import controllers.actions._
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.{Html, HtmlFormat}
-import renderer.Renderer
 import services.{AFTPartialService, SchemeService}
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.partials.SchemePaymentsAndChargesPartialView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,11 +38,10 @@ class PspSchemeDashboardPartialsController @Inject()(
                                                       schemeService: SchemeService,
                                                       financialStatementConnector: FinancialStatementConnector,
                                                       aftPartialService: AFTPartialService,
-                                                      renderer: Renderer
+                                                      view: SchemePaymentsAndChargesPartialView
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
   // scalastyle:off
   def pspDashboardAllTilesPartial(): Action[AnyContent] = identify.async {
     implicit request =>
@@ -78,10 +75,7 @@ class PspSchemeDashboardPartialsController @Inject()(
     } else {
       val viewModel =
         aftPartialService.retrievePspDashboardPaymentsAndChargesModel(schemeFs, idNumber, pstr)
-      renderer.render(
-        template = "partials/pspSchemePaymentsAndChargesPartial.njk",
-        ctx = Json.obj("cards" -> Json.toJson(viewModel))
-      )
+        Future.successful(view(viewModel))
     }
   }
 }

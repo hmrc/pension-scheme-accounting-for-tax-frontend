@@ -24,8 +24,7 @@ import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
-import models.{GenericViewModel, NormalMode}
-import org.mockito.ArgumentCaptor
+import models.NormalMode
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
@@ -35,12 +34,13 @@ import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import viewmodels.TwirlRadios
+import views.html.IsPublicServicePensionsRemedyView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -48,7 +48,6 @@ import scala.concurrent.Future
 class IsPublicServicePensionsRemedyControllerSpec
   extends ControllerSpecBase
     with MockitoSugar
-    with NunjucksSupport
     with JsonMatchers
     with OptionValues
     with TryValues {
@@ -84,18 +83,6 @@ class IsPublicServicePensionsRemedyControllerSpec
       .onSubmit(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, index)
       .url
 
-  private def viewModelAnnualAllowance(index: Option[Int]) = GenericViewModel(
-    submitUrl = httpPathPOSTAnnualAllowance(index),
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName
-  )
-
-  private def viewModelLifetimeAllowance(index: Option[Int]) = GenericViewModel(
-    submitUrl = httpPathPOSTLifetimeAllowance(index),
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName
-  )
-
   private def userAnswers =
     userAnswersWithSchemeNamePstrQuarter
       .set(MemberDetailsPage(0), memberDetails)
@@ -112,52 +99,48 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance(None))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[IsPublicServicePensionsRemedyView].apply(
+        "isPublicServicePensionsRemedyBulk.heading",
+        "isPublicServicePensionsRemedyBulk.title",
+        Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}"),
+        formBulk,
+        TwirlRadios.yesNo(formBulk("value")),
+        routes.IsPublicServicePensionsRemedyController
+          .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, None),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      def expectedJson(heading: String, title: String) = Json.obj(
-        "form" -> formBulk,
-        "viewModel" -> viewModelAnnualAllowance(None),
-        "radios" -> Radios.yesNo(formBulk("value")),
-        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}"),
-        "manOrBulkHeading" -> s"isPublicServicePensionsRemedy$heading",
-        "manOrBulkTitle" -> s"isPublicServicePensionsRemedy$title"
-      )
-
-      templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
-      jsonCaptor.getValue must containJson(expectedJson("Bulk.heading", "Bulk.title"))
+      compareResultAndView(result, view)
     }
     "return OK and the correct view for a GET (for ManualInput PSR question)" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance(Some(0)))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[IsPublicServicePensionsRemedyView].apply(
+        "isPublicServicePensionsRemedy.heading",
+        "isPublicServicePensionsRemedy.title",
+        Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}"),
+        formManual,
+        TwirlRadios.yesNo(formManual("value")),
+        routes.IsPublicServicePensionsRemedyController
+          .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(0)),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      def expectedJson(heading: String, title: String) = Json.obj(
-        "form" -> formManual,
-        "viewModel" -> viewModelAnnualAllowance(Some(0)),
-        "radios" -> Radios.yesNo(formManual("value")),
-        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}"),
-        "manOrBulkHeading" -> s"isPublicServicePensionsRemedy$heading",
-        "manOrBulkTitle" -> s"isPublicServicePensionsRemedy$title"
-      )
-
-      templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
-      jsonCaptor.getValue must containJson(expectedJson(".heading", ".title"))
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET for Lifetime allowance (Manual Input) for PSR dynamic" in {
@@ -168,24 +151,24 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val request = FakeRequest(GET, httpPathGETLifetimeAllowance(Some(0)))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[IsPublicServicePensionsRemedyView].apply(
+        "isPublicServicePensionsRemedy.heading",
+        "isPublicServicePensionsRemedy.title",
+        Messages(s"chargeType.description.${ChargeTypeLifetimeAllowance.toString}"),
+        formManual,
+        TwirlRadios.yesNo(formManual("value")),
+        routes.IsPublicServicePensionsRemedyController
+          .onSubmit(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(0)),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "form" -> formManual,
-        "viewModel" -> viewModelLifetimeAllowance(Some(0)),
-        "radios" -> Radios.yesNo(formManual("value")),
-        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeLifetimeAllowance.toString}")
-      )
-
-      templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET for Lifetime allowance (Manual Input) for PSR default true" in {
@@ -285,24 +268,24 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       val request = FakeRequest(POST, httpPathGETAnnualAllowance(Some(0))).withFormUrlEncodedBody(("value", ""))
       val boundForm = formManual.bind(Map("value" -> ""))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[IsPublicServicePensionsRemedyView].apply(
+        "isPublicServicePensionsRemedy.heading",
+        "isPublicServicePensionsRemedy.title",
+        Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}"),
+        boundForm,
+        TwirlRadios.yesNo(boundForm("value")),
+        routes.IsPublicServicePensionsRemedyController
+          .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Some(0)),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "viewModel" -> viewModelAnnualAllowance(Some(0)),
-        "radios" -> Radios.yesNo(boundForm("value"))
-      )
-
-      templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
-
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
     "return a Bad Request and errors when invalid data is submitted (fileUpload journey)" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
@@ -311,24 +294,24 @@ class IsPublicServicePensionsRemedyControllerSpec
 
       val request = FakeRequest(POST, httpPathGETAnnualAllowance(None)).withFormUrlEncodedBody(("value", ""))
       val boundForm = formBulk.bind(Map("value" -> ""))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[IsPublicServicePensionsRemedyView].apply(
+        "isPublicServicePensionsRemedyBulk.heading",
+        "isPublicServicePensionsRemedyBulk.title",
+        Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}"),
+        boundForm,
+        TwirlRadios.yesNo(boundForm("value")),
+        routes.IsPublicServicePensionsRemedyController
+          .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, None),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "viewModel" -> viewModelAnnualAllowance(None),
-        "radios" -> Radios.yesNo(boundForm("value"))
-      )
-
-      templateCaptor.getValue mustEqual "isPublicServicePensionsRemedy.njk"
-
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired for a GET if no existing data is found (manual)" in {

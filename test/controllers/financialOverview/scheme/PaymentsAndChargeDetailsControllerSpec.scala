@@ -33,14 +33,11 @@ import org.scalatest._
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
-import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, Table, Text, Value}
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import utils.AFTConstants._
-import utils.DateHelper.dateFormatterDMY
 import viewmodels.ChargeDetailsViewModel
 import views.html.financialOverview.scheme.{PaymentsAndChargeDetailsNewView, PaymentsAndChargeDetailsView}
 
@@ -85,35 +82,14 @@ class PaymentsAndChargeDetailsControllerSpec
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
     when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any(), any(), any())(any()))
       .thenReturn(Nil)
+    when(mockPaymentsAndChargesService.getChargeDetailsForSelectedChargeV2(any(), any(), any(), any())(any()))
+      .thenReturn(Nil)
     when(mockPaymentsAndChargesService.setPeriod(any(), any(), any()))
       .thenReturn("")
     when(mockPaymentsAndChargesService.getReturnLinkBasedOnJourney(any(), any())(any()))
       .thenReturn("")
     when(mockPaymentsAndChargesService.getReturnUrl(any(), any(), any(), any(), any()))
       .thenReturn("")
-  }
-
-  private def insetTextWithAmountDueAndInterest(schemeFSDetail: SchemeFSDetail): HtmlContent = {
-    HtmlContent(
-      s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
-        s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
-        s" <span class=govuk-!-font-weight-bold>${
-          messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
-            schemeFSDetail.accruedInterestTotal)
-        }</span>" +
-        s" <span>${
-          messages(
-            "financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3",
-            schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY)
-          )
-        }<span>" +
-        s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=${
-          routes.PaymentsAndChargesInterestController
-            .onPageLoad(srn, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, Some(versionInt), Some(submittedDate), Overdue)
-            .url
-        }>" +
-        s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
-    )
   }
 
   private def insetText(schemeFSDetail: SchemeFSDetail): HtmlContent = {
@@ -124,6 +100,22 @@ class PaymentsAndChargeDetailsControllerSpec
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
         s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
         s" <span class=govuk-!-font-weight-bold>${
+          messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
+            schemeFSDetail.accruedInterestTotal)
+        }</span>" +
+        s" <span>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line3", "15 February 2020")}<span>" +
+        s"<p class=govuk-body><span><a id='breakdown' class=govuk-link href=$interestUrl>" +
+        s" ${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
+    )
+  }
+
+  private def insetTextV2(schemeFSDetail: SchemeFSDetail): HtmlContent = {
+    val interestUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/financial-overview/accounting-for-tax/" +
+      "2020-04-01/1/2016-12-17/1/interest/overdue-charge-details"
+
+    HtmlContent(
+        s"<p class=govuk-body>${messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line1")}" +
+        s" <span class=govuk-!-font-weight-regular>${
           messages("financialPaymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate.line2",
             schemeFSDetail.accruedInterestTotal)
         }</span>" +
@@ -145,62 +137,36 @@ class PaymentsAndChargeDetailsControllerSpec
     )
   }
 
-  private def expectedJson(
-                            schemeFSDetail: SchemeFSDetail,
-                            insetText: uk.gov.hmrc.viewmodels.Html,
-                            isPaymentOverdue: Boolean = false,
-                            optHint: Option[String] = None
-                          ): JsObject = {
-    val commonJson = Json.obj(
-      "chargeDetailsList" -> None,
-      "tableHeader" -> "",
-      "schemeName" -> schemeName,
-      "chargeType" -> (schemeFSDetail.chargeType.toString + s" submission $version"),
-      "versionValue" -> s" submission $version",
-      "isPaymentOverdue" -> isPaymentOverdue,
-      "insetText" -> insetText,
-      "interest" -> schemeFSDetail.accruedInterestTotal,
-      "returnLinkBasedOnJourney" -> "",
-      "returnUrl" -> "",
-      "returnHistoryURL" -> "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary"
-    )
-    optHint match {
-      case Some(_) => commonJson ++ Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
-      case _ => commonJson
-    }
-  }
-
   "PaymentsAndChargesController" must {
 
     "return OK and the correct view if financial toggles  are switched on" in {
       when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
+      when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(Seq(
+          createChargeWithAmountDueAndInterest(index = 1, "XY002610150183", amountDue = 1234.00),
+          createChargeWithAmountDueAndInterest(index = 2, "XY002610150184", amountDue = 1234.00)
+        ))))
+      when(mockPaymentsAndChargesService.chargeAmountDetailsRowsV2(any())(any())).thenReturn(Table())
 
-      val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 0, chargeReference = "XY002610150183", amountDue = 0.00)
+      val schemeFSDetail = createChargeWithAmountDueAndInterest(index = 1, chargeReference = "XY002610150184", amountDue = 1234.00)
 
-      val mockSummaryListRow: SummaryListRow = SummaryListRow(
-        key = Key(Text("Key"), classes = "govuk-summary-list__key"),
-        value = Value(Text("Value"), classes = "govuk-summary-list__value")
-      )
-
-      when(mockPaymentsAndChargesService.getChargeDetailsForSelectedChargeV2(any, any, any, any)(any))
-        .thenReturn(Seq(mockSummaryListRow))
-
-      val request = httpGETRequest(httpPathGET(index = "0"))
+      val request = httpGETRequest(httpPathGET(index = "1"))
 
       val view = application.injector.instanceOf[PaymentsAndChargeDetailsNewView].apply(
         model = ChargeDetailsViewModel(
-          chargeDetailsList = Seq(mockSummaryListRow),
+          chargeDetailsList = Nil,
+          tableHeader = Some(""),
           schemeName = schemeName,
-          chargeType = "Accounting for tax" + s" submission $version",
+          chargeType = schemeFSDetail.chargeType.toString + s" submission $version",
           versionValue = Some(s" submission $version"),
           isPaymentOverdue = true,
-          insetText = insetText(schemeFSDetail),
+          insetText = insetTextV2(schemeFSDetail),
           interest = Some(schemeFSDetail.accruedInterestTotal),
           returnLinkBasedOnJourney = "",
           returnUrl = "",
-          returnHistoryUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/0/summary",
-          paymentDueAmount = Some("0"),
-          paymentDueDate = Some("0"),
+          returnHistoryUrl = "/manage-pension-scheme-accounting-for-tax/test-srn/2020-04-01/submission/1/summary",
+          paymentDueAmount = Some("£1,234.00"),
+          paymentDueDate = Some("15 February 2020"),
           chargeAmountDetails = Some(emptyChargeAmountTable),
           hintText = Some("")
         )

@@ -27,8 +27,10 @@ import models.{AFTOverviewOnPODS, Draft, LockDetail, Quarters}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import services.paymentsAndCharges.PaymentsAndChargesService
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Content
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels._
@@ -57,7 +59,7 @@ class AFTPartialService @Inject()(
 
       val links: Seq[Link] = Seq(
         inProgressReturnsLinkOpt,
-        Option(Link("aftLoginLink", appConfig.aftLoginUrl.format(srn), msg"aftPartial.start.link")),
+        Option(Link("aftLoginLink", appConfig.aftLoginUrl.format(srn), Text(Messages("aftPartial.start.link")))),
         getPastReturnsModelOpt(reportsOnPods, srn).map(_.link)
       ).flatten
 
@@ -78,10 +80,10 @@ class AFTPartialService @Inject()(
 
     val span =
       if (upcomingCharges.map(_.dueDate).distinct.size == 1) {
-        msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate"
+        Message("pspDashboardUpcomingAftChargesCard.span.singleDueDate")
           .withArgs(upcomingCharges.map(_.dueDate).distinct.flatten.head.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
       } else {
-        msg"pspDashboardUpcomingAftChargesCard.span.multipleDueDate"
+        Message("pspDashboardUpcomingAftChargesCard.span.multipleDueDate")
       }
 
     val subHeading = Json.obj(
@@ -95,15 +97,14 @@ class AFTPartialService @Inject()(
         None
       } else {
         val nonAftUpcomingCharges: Seq[SchemeFSDetail] = upcomingCharges.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
-        val linkText: Text = if (upcomingCharges.map(_.dueDate).distinct.size == 1 && nonAftUpcomingCharges.isEmpty) {
-          msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
-            .withArgs(
+        val linkText: Content = if (upcomingCharges.map(_.dueDate).distinct.size == 1 && nonAftUpcomingCharges.isEmpty) {
+          Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single",
+            Seq(
               startDate(upcomingCharges).format(DateTimeFormatter.ofPattern("d MMMM")),
               endDate(upcomingCharges).format(DateTimeFormatter.ofPattern("d MMMM"))
-            )
+            )))
         } else {
-
-          msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
+          Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"))
         }
         Some(Link("upcoming-payments-and-charges", appConfig.upcomingChargesUrl.format(srn), linkText, None))
       }
@@ -116,7 +117,7 @@ class AFTPartialService @Inject()(
         Some(Link(
           id = "past-payments-and-charges",
           url = appConfig.paymentsAndChargesUrl.format(srn),
-          linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+          linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
           hiddenText = None
         ))
       }
@@ -140,12 +141,12 @@ class AFTPartialService @Inject()(
     val subHeadingTotal = Json.obj(
 
       "total" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
-      "span" -> msg"pspDashboardOverdueAftChargesCard.total.span"
+      "span" -> Message("pspDashboardOverdueAftChargesCard.total.span")
     )
 
     val subHeadingInterestAccruing = Json.obj(
       "total" -> s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
-      "span" -> msg"pspDashboardOverdueAftChargesCard.interestAccruing.span"
+      "span" -> Message("pspDashboardOverdueAftChargesCard.interestAccruing.span")
     )
 
 
@@ -155,13 +156,13 @@ class AFTPartialService @Inject()(
       } else {
         val nonAftOverdueCharges: Seq[SchemeFSDetail] = schemeFs.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
         val linkText: Text = if (schemeFs.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
-          msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
-            .withArgs(
+          Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+            ,Seq(
               startDate(schemeFs).format(DateTimeFormatter.ofPattern("d MMMM")),
               endDate(schemeFs).format(DateTimeFormatter.ofPattern("d MMMM"))
-            )
+            )))
         } else {
-          msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"
+          Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"))
         }
         Some(Link("overdue-payments-and-charges", appConfig.overdueChargesUrl.format(srn), linkText, None))
       }
@@ -220,20 +221,20 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def viewFinancialOverviewLink(srn: String): Seq[Link] =
+  private def viewFinancialOverviewLink(srn: String)(implicit messages: Messages): Seq[Link] =
       Seq(Link(
         id = "view-your-financial-overview",
         url = appConfig.financialOverviewUrl.format(srn),
-        linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+        linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.financialOverview")),
         hiddenText = None
       ))
 
 
-  private def viewAllPaymentsAndChargesLink(srn: String, pstr: String): Seq[Link] =
+  private def viewAllPaymentsAndChargesLink(srn: String, pstr: String)(implicit messages: Messages): Seq[Link] =
       Seq(Link(
         id = "past-payments-and-charges",
         url = appConfig.financialPaymentsAndChargesUrl.format(srn),
-        linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+        linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
         hiddenText = None
       ))
 
@@ -273,8 +274,8 @@ class AFTPartialService @Inject()(
   private def multipleReturnSubHeading(inProgressReturns: Seq[AFTOverviewOnPODS])
                                       (implicit messages: Messages): JsObject =
     Json.obj(
-      "h3" -> msg"pspDashboardAftReturnsCard.h3.multiple".withArgs(inProgressReturns.size.toString).resolve,
-      "span" -> msg"pspDashboardAftReturnsCard.span.multiple".resolve
+      "h3" -> Message("pspDashboardAftReturnsCard.h3.multiple").withArgs(inProgressReturns.size.toString).resolve,
+      "span" -> Message("pspDashboardAftReturnsCard.span.multiple").resolve
     )
 
   private def singleReturnSubHeading(inProgressReturns: Seq[AFTOverviewOnPODS], lockDetail: Option[LockDetail], authorisingPsaId: String)
@@ -287,17 +288,17 @@ class AFTPartialService @Inject()(
     val h3: String =
       if (lockDetail.nonEmpty) {
         if (lockDetail.get.psaOrPspId == authorisingPsaId) {
-          msg"pspDashboardAftReturnsCard.h3.single.lockedBy".withArgs(lockDetail.get.name).resolve
+          Message("pspDashboardAftReturnsCard.h3.single.lockedBy").withArgs(lockDetail.get.name).resolve
         } else {
-          msg"pspDashboardAftReturnsCard.h3.single.locked".resolve
+          Message("pspDashboardAftReturnsCard.h3.single.locked").resolve
         }
       } else {
-        msg"pspDashboardAftReturnsCard.h3.single".resolve
+        Message("pspDashboardAftReturnsCard.h3.single").resolve
       }
 
     Json.obj(
       "h3" -> h3,
-      "span" -> msg"pspDashboardAftReturnsCard.span.single".withArgs(startDateStr, endDate)
+      "span" -> Message("pspDashboardAftReturnsCard.span.single").withArgs(startDateStr, endDate)
     )
   }
 
@@ -314,11 +315,11 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def getPastReturnsModelOpt(overview: Seq[AFTOverviewOnPODS], srn: String): Option[AFTViewModel] = {
+  private def getPastReturnsModelOpt(overview: Seq[AFTOverviewOnPODS], srn: String)(implicit messages: Messages): Option[AFTViewModel] = {
     val pastReturns = overview.filter(!_.compiledVersionAvailable)
 
     if (pastReturns.nonEmpty) {
-      Some(AFTViewModel(None, None, Link("aftAmendLink", appConfig.aftAmendUrl.format(srn), msg"aftPartial.view.change.past")))
+      Some(AFTViewModel(None, None, Link("aftAmendLink", appConfig.aftAmendUrl.format(srn), Text(Messages("aftPartial.view.change.past")))))
     } else {
       None
     }
@@ -328,9 +329,7 @@ class AFTPartialService @Inject()(
                                                         overview: Seq[AFTOverviewOnPODS],
                                                         srn: String,
                                                         pstr: String
-                                                      )(
-                                                        implicit
-                                                        hc: HeaderCarrier
+                                                      )(implicit hc: HeaderCarrier,messages: Messages
                                                       ): Future[Option[Link]] = {
     val inProgressReturns = overview.filter(_.compiledVersionAvailable)
 
@@ -360,28 +359,28 @@ class AFTPartialService @Inject()(
                                                          endDate: LocalDate,
                                                          overview: AFTOverviewOnPODS
                                                        )(
-                                                         implicit hc: HeaderCarrier
+                                                         implicit hc: HeaderCarrier, messages: Messages
                                                        ): Future[Option[Link]] = {
     aftCacheConnector.lockDetail(srn, startDate.toString).map {
       case Some(_) =>
         Some(Link(
           id = "aftSummaryLink",
           url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
-          linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link.single.locked",
-          hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(
+          linkText = Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link.single.locked")),
+          hiddenText = Some(Text(Messages("aftPartial.view.hidden.forPeriod", Seq(
             startDate.format(dateFormatterStartDate),
             endDate.format(dateFormatterDMY)
-          ))
+          ))))
         ))
       case _ =>
         Some(Link(
           id = "aftSummaryLink",
           url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
-          linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link.single",
-          hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(
+          linkText = Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link.single")),
+          hiddenText = Some(Text(Messages("aftPartial.view.hidden.forPeriod", Seq(
             startDate.format(dateFormatterStartDate),
             endDate.format(dateFormatterDMY)
-          ))
+          ))))
         ))
     }
   }
@@ -391,7 +390,7 @@ class AFTPartialService @Inject()(
                                                            pstr: String,
                                                            inProgressReturns: Seq[AFTOverviewOnPODS]
                                                          )(
-                                                           implicit hc: HeaderCarrier
+                                                           implicit hc: HeaderCarrier, messages: Messages
                                                          ): Future[Option[Link]] = {
     retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>
 
@@ -402,8 +401,8 @@ class AFTPartialService @Inject()(
         Some(Link(
           id = "aftContinueInProgressLink",
           url = appConfig.aftContinueReturnUrl.format(srn),
-          linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
-          hiddenText = Some(msg"aftPartial.view.hidden")
+          linkText = Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link")),
+          hiddenText = Some(Text(Messages("aftPartial.view.hidden")))
         ))
       } else {
         None
@@ -456,19 +455,19 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def viewFinancialOverviewLink(): Seq[Link] =
+  private def viewFinancialOverviewLink()(implicit messages: Messages): Seq[Link] =
     Seq(Link(
       id = "view-your-financial-overview",
       url = appConfig.psafinancialOverviewUrl,
-      linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+      linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.financialOverview")),
       hiddenText = None
     ))
 
-  private def viewAllPenaltiesAndChargesLink(): Seq[Link] =
+  private def viewAllPenaltiesAndChargesLink()(implicit messages: Messages): Seq[Link] =
     Seq(Link(
       id = "past-penalties-id",
       url = appConfig.viewAllPenaltiesForFinancialOverviewUrl,
-      linkText = msg"psa.financial.overview.pastPenalties.link",
+      linkText = Text(Messages("psa.financial.overview.pastPenalties.link")),
       hiddenText = None
     ))
 
@@ -482,11 +481,11 @@ class AFTPartialService @Inject()(
 
       val totalUpcoming = upcomingCharges.map(_.amountDue).sum
 
-      val span: Text = if (upcomingCharges.map(_.dueDate).distinct.size == 1) {
-        msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate".withArgs(
-          upcomingCharges.map(_.dueDate).distinct.flatten.head.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
+      val span: Message = if (upcomingCharges.map(_.dueDate).distinct.size == 1) {
+        Message("pspDashboardUpcomingAftChargesCard.span.singleDueDate",Seq(
+          upcomingCharges.map(_.dueDate).distinct.flatten.head.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))))
       } else {
-        msg"pspDashboardUpcomingAftChargesCard.span.multipleDueDate"
+        Message("pspDashboardUpcomingAftChargesCard.span.multipleDueDate")
       }
 
       Json.obj(
@@ -501,19 +500,19 @@ class AFTPartialService @Inject()(
       val totalOverdue: BigDecimal = pastDueDateCharges.map(_.amountDue).sum
       Json.obj(
         "total" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
-        "span" -> msg"pspDashboardOverdueAftChargesCard.total.span"
+        "span" -> Message("pspDashboardOverdueAftChargesCard.total.span")
       )
     }
 
     val outstandingLink: Seq[Link] = if (psaFs.exists(_.amountDue > BigDecimal(0.00))) {
-      Seq(Link("outstanding-penalties-id", appConfig.viewUpcomingPenaltiesUrl, msg"psaPenaltiesCard.paymentsDue.linkText", None))
+      Seq(Link("outstanding-penalties-id", appConfig.viewUpcomingPenaltiesUrl, Text(Message("psaPenaltiesCard.paymentsDue.linkText").resolve), None))
     } else {
       Nil
     }
 
     DashboardAftViewModel(
       subHeadings = Seq(subHeadingPaymentDue, subHeadingTotalOverduePayments),
-      links = outstandingLink :+ Link("past-penalties-id", appConfig.viewPenaltiesUrl, msg"psaPenaltiesCard.viewPastPenalties", None))
+      links = outstandingLink :+ Link("past-penalties-id", appConfig.viewPenaltiesUrl, Text(Messages("psaPenaltiesCard.viewPastPenalties")), None))
   }
 
   def retrievePsaChargesAmount(psaFs: Seq[PsaFSDetail]): (String, String, String) = {

@@ -19,13 +19,11 @@ package controllers.financialStatement.penalties
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
-import renderer.Renderer
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.partials.SchemePaymentsAndChargesPartialView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,12 +33,11 @@ class PenaltiesPartialController @Inject()(
                                                 override val messagesApi: MessagesApi,
                                                 val controllerComponents: MessagesControllerComponents,
                                                 fsConnector: FinancialStatementConnector,
-                                                renderer: Renderer,
-                                                aftPartialService: AFTPartialService
+                                                aftPartialService: AFTPartialService,
+                                                view: SchemePaymentsAndChargesPartialView
                                  )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def penaltiesPartial() : Action[AnyContent] = identify.async { implicit request =>
         fsConnector.getPsaFS(request.psaIdOrException.id).flatMap { psaFS =>
@@ -48,10 +45,7 @@ class PenaltiesPartialController @Inject()(
             Future.successful(Html(""))
           } else {
             val viewModel = aftPartialService.penaltiesAndCharges(psaFS.seqPsaFSDetail)
-            renderer.render(
-              template = "partials/psaSchemeDashboardPartial.njk",
-              ctx = Json.obj("cards" -> Json.toJson(viewModel))
-            )
+            Future.successful(view(viewModel))
           }
           result.map(Ok(_))
         }

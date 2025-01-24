@@ -17,54 +17,45 @@
 package controllers
 
 import controllers.base.ControllerSpecBase
+import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.UserAnswers
 import models.requests.DataRequest
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.SchemeNameQuery
-import play.api.libs.json.{JsObject, Json}
-import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import views.html.YourActionWasNotProcessedView
 
-import scala.concurrent.Future
-
-class YourActionWasNotProcessedControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
+class YourActionWasNotProcessedControllerSpec extends ControllerSpecBase with MockitoSugar
   with JsonMatchers with OptionValues with TryValues {
   private val srn = "test-srn"
 
   private val data = UserAnswers().set(SchemeNameQuery, schemeName).toOption
-
+  private val returnUrl = controllers.routes.ReturnToSchemeDetailsController.
+    returnToSchemeDetails(srn, startDate, SampleData.accessType, SampleData.versionInt).url
   private def getRoute: String = routes.YourActionWasNotProcessedController.onPageLoad(srn, QUARTER_START_DATE).url
 
   "YourActionWasNotProcessedController" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockAppConfig.schemeDashboardUrl(any():DataRequest[_])).thenReturn("")
+      when(mockAppConfig.schemeDashboardUrl(any():DataRequest[_])).thenReturn(returnUrl)
       val application = applicationBuilder(userAnswers = data).overrides().build()
-      val request = FakeRequest(GET, getRoute)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val request = httpGETRequest(getRoute)
+
+      val view = application.injector.instanceOf[YourActionWasNotProcessedView].apply(returnUrl, schemeName)(request, messages)
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj()
-
-      templateCaptor.getValue mustEqual "yourActionWasNotProcessed.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
 
       application.stop()
     }
