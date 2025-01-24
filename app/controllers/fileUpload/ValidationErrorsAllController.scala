@@ -19,15 +19,15 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import connectors.cache.FileUploadOutcomeConnector
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsLessThanMax
-import models.fileUpload.{FileUploadOutcome, ValidationErrorForRendering}
 import models.{AccessType, ChargeType}
 import pages.SchemeNameQuery
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsError, JsResultException, JsSuccess}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.fileUpload.InvalidView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -40,8 +40,8 @@ class ValidationErrorsAllController @Inject()(appConfig: FrontendAppConfig,
                                               getData: DataRetrievalAction,
                                               allowAccess: AllowAccessActionProvider,
                                               requireData: DataRequiredAction,
-                                              fileUploadOutcomeConnector: FileUploadOutcomeConnector,
-                                              view: InvalidView
+                                              renderer: Renderer,
+                                              fileUploadOutcomeConnector: FileUploadOutcomeConnector
                                              )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -54,15 +54,21 @@ class ValidationErrorsAllController @Inject()(appConfig: FrontendAppConfig,
         val fileDownloadInstructionLink =
           controllers.routes.FileDownloadController.instructionsFile(chargeType, request.userAnswers.isPublicServicePensionsRemedy(chargeType)).url
         val returnToFileUpload = appConfig.failureEndpointTarget(srn, startDate, accessType, version, chargeType)
-        val returnUrl= controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
+        val returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate.toString, accessType, version).url
 
         fileUploadOutcomeConnector.getOutcome.flatMap {
-          case Some(outcome@FileUploadOutcome(ValidationErrorsLessThanMax, _, _)) =>
-            outcome.json.validate[Seq[ValidationErrorForRendering]] match {
-              case JsSuccess(value, _) => Future.successful(Ok(view(ChargeType.fileUploadText(chargeType), schemeName, returnUrl,
-                returnToFileUpload, fileDownloadInstructionLink, value, fileDownloadInstructionLink)))
-              case JsError(errors) => throw JsResultException(errors)
-            }
+          case Some(FileUploadOutcome(ValidationErrorsLessThanMax, errorsJson, _)) =>
+            renderer.render(template = "fileUpload/invalid.njk",
+              Json.obj(
+                "chargeType" -> chargeType,
+                "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
+                "srn" -> srn,
+                "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
+                "returnToFileUploadURL" -> returnToFileUpload,
+                "returnToSchemeDetails" -> returnToSchemeDetails,
+                "schemeName" -> schemeName
+              ) ++ errorsJson
+            ).map(Ok(_))
           case _ => Future.successful(NotFound)
         }
     }

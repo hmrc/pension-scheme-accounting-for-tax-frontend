@@ -16,21 +16,24 @@
 
 package controllers.mccloud
 
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.mccloud.ChargeAmountReportedFormProvider
 import models.Index._
 import models.LocalDateBinder._
-import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, Index, Mode}
+import models.{AFTQuarter, AccessType, ChargeType, CommonQuarters, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.mccloud.{ChargeAmountReportedPage, TaxQuarterReportedAndPaidPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc._
+import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.mccloud.ChargeAmountReported
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -46,9 +49,11 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
                                                requireData: DataRequiredAction,
                                                formProvider: ChargeAmountReportedFormProvider,
                                                val controllerComponents: MessagesControllerComponents,
-                                               chargeAmountReportedView: ChargeAmountReported)(implicit ec: ExecutionContext)
+                                               config: FrontendAppConfig,
+                                               renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
+    with NunjucksSupport
     with CommonQuarters
     with CommonMcCloud {
 
@@ -77,20 +82,27 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
           case None => form(mininimumChargeValue)
         }
 
+        val viewModel = GenericViewModel(
+          submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName = schemeName
+        )
+
         val taxQuarterSelection = request.userAnswers.get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
 
-        (taxQuarterSelection, twirlLifetimeOrAnnual(chargeType)) match {
+        (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
           case (Some(aftQuarter), Some(chargeTypeDesc)) =>
             val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-            Future.successful(Ok(chargeAmountReportedView(
-              form = preparedForm,
-              submitCall = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-              schemeName = schemeName,
-              periodDescription = AFTQuarter.formatForDisplay(aftQuarter),
-              ordinal = ordinalValue,
-              chargeTypeDesc = chargeTypeDesc
-            )))
+            val json = Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(localDateToString(startDate)),
+              "form" -> preparedForm,
+              "viewModel" -> viewModel,
+              "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
+              "ordinal" -> ordinalValue,
+              "chargeTypeDesc" -> chargeTypeDesc
+            )
+            renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(Ok(_))
           case _ =>
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
@@ -113,21 +125,27 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
           .bindFromRequest()
           .fold(
             formWithErrors => {
+              val viewModel = GenericViewModel(
+                submitUrl = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName = schemeName
+              )
               val taxQuarterSelection = request.userAnswers
                 .get(TaxQuarterReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt)))
 
-              (taxQuarterSelection, twirlLifetimeOrAnnual(chargeType)) match {
+              (taxQuarterSelection, lifetimeOrAnnual(chargeType)) match {
                 case (Some(aftQuarter), Some(chargeTypeDesc)) =>
                   val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
-                  Future.successful(BadRequest(chargeAmountReportedView(
-                    form = formWithErrors,
-                    submitCall = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
-                    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                    schemeName = schemeName,
-                    periodDescription = AFTQuarter.formatForDisplay(aftQuarter),
-                    ordinal = ordinalValue,
-                    chargeTypeDesc = chargeTypeDesc
-                  )))
+                  val json = Json.obj(
+                    "srn" -> srn,
+                    "startDate" -> Some(localDateToString(startDate)),
+                    "form" -> formWithErrors,
+                    "viewModel" -> viewModel,
+                    "periodDescription" -> AFTQuarter.formatForDisplay(aftQuarter),
+                    "ordinal" -> ordinalValue,
+                    "chargeTypeDesc" -> chargeTypeDesc
+                  )
+                  renderer.render(template = "mccloud/chargeAmountReported.njk", json).map(BadRequest(_))
                 case _ =>
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
               }

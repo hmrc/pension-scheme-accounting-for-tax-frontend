@@ -21,17 +21,19 @@ import connectors.AFTConnector
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
-import models.{AFTQuarter, Draft, Quarters, SubmittedHint}
+import models.requests.IdentifierRequest
+import models.{AFTQuarter, Draft, GenericViewModel, Quarters, SubmittedHint}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.QuartersView
 
 class QuartersController @Inject()(
                                     override val messagesApi: MessagesApi,
@@ -39,14 +41,15 @@ class QuartersController @Inject()(
                                     allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                     formProvider: QuartersFormProvider,
                                     val controllerComponents: MessagesControllerComponents,
-                                    quartersView: QuartersView,
+                                    renderer: Renderer,
                                     config: FrontendAppConfig,
                                     schemeService: SchemeService,
                                     aftConnector: AFTConnector,
                                     quartersService: QuartersService
                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(year: String, quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("quarters.error.required", year), quarters)
@@ -61,14 +64,16 @@ class QuartersController @Inject()(
         if (displayQuarters.nonEmpty) {
           val quarters = displayQuarters.map(_.quarter)
 
-          Future.successful(Ok(quartersView(
-            year,
-            form(year, quarters),
-            TwirlMigration.toTwirlRadios(Quarters.radios(form(year, quarters), displayQuarters)),
-            routes.QuartersController.onSubmit(srn, year),
-            config.schemeDashboardUrl(request).format(srn),
-            schemeDetails.schemeName
-          )))
+          val json = Json.obj(
+            "srn" -> srn,
+            "startDate" -> None,
+            "form" -> form(year, quarters),
+            "radios" -> Quarters.radios(form(year, quarters), displayQuarters),
+            "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+            "year" -> year
+          )
+
+          renderer.render(template = "quarters.njk", json).map(Ok(_))
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
@@ -86,14 +91,15 @@ class QuartersController @Inject()(
               .bindFromRequest()
               .fold(
                 formWithErrors => {
-                  Future.successful(BadRequest(quartersView(
-                    year,
-                    formWithErrors,
-                    TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, displayQuarters)),
-                    routes.QuartersController.onSubmit(srn, year),
-                    config.schemeDashboardUrl(request).format(srn),
-                    schemeDetails.schemeName
-                  )))
+                  val json = Json.obj(
+                    fields = "srn" -> srn,
+                    "startDate" -> None,
+                    "form" -> formWithErrors,
+                    "radios" -> Quarters.radios(formWithErrors, displayQuarters),
+                    "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+                    "year" -> year
+                  )
+                  renderer.render(template = "quarters.njk", json).map(BadRequest(_))
                 },
                 value => {
                   val tpssReports = aftOverview.filter(_.periodStartDate == value.startDate).filter(_.tpssReportPresent)
@@ -116,6 +122,7 @@ class QuartersController @Inject()(
                               case Some(o) =>
                                 Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, o.numberOfVersions)))
                             }
+
                         }
                     }
                   }
@@ -128,6 +135,14 @@ class QuartersController @Inject()(
       }
     }
   }
+
+  private def viewModel(srn: String, year: String, schemeName: String)
+                       (implicit request: IdentifierRequest[_]): GenericViewModel =
+    GenericViewModel(
+      submitUrl = routes.QuartersController.onSubmit(srn, year).url,
+      returnUrl = config.schemeDashboardUrl(request).format(srn),
+      schemeName = schemeName
+    )
 
   case class InvalidValueSelected(details: String) extends Exception(s"The selected quarter did not match any quarters in the list of options: $details")
 }

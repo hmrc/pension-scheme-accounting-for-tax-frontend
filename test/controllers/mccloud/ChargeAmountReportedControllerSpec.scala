@@ -24,26 +24,27 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, ChargeType, CommonQuarters, Index, NormalMode}
+import models.{ChargeType, CommonQuarters, GenericViewModel, NormalMode}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.MemberDetailsPage
 import pages.mccloud.TaxQuarterReportedAndPaidPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import views.html.mccloud.ChargeAmountReported
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
 class ChargeAmountReportedControllerSpec extends ControllerSpecBase
-  with MockitoSugar with JsonMatchers with OptionValues with TryValues with CommonQuarters {
+  with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues with CommonQuarters {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction,
@@ -54,46 +55,48 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
   private val formProvider = new ChargeAmountReportedFormProvider()
   private val form: Form[BigDecimal] = formProvider(minimumChargeValueAllowed = BigDecimal("0.01"))
 
-  private def httpPathGET: String = routes.ChargeAmountReportedController
-    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Index(0), Some(Index(0))).url
+  private def httpPathGET(schemeIndex: Int): String = routes.ChargeAmountReportedController
+    .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
 
   private def httpPathPOST: String = routes.ChargeAmountReportedController
-    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Index(0), Some(Index(0))).url
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, Some(schemeIndex)).url
 
-  private val submitCall = routes.ChargeAmountReportedController
-    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, Index(0), Some(Index(0)))
+  private val viewModel = GenericViewModel(
+    submitUrl = httpPathPOST,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+    schemeName = schemeName)
 
   private def userAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value
     .set(MemberDetailsPage(1), memberDetails).success.value
     .setOrException(
-      TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, Index(0), Some(Index(0))), getQuarter(Q1, 2021))
+      TaxQuarterReportedAndPaidPage(ChargeType.ChargeTypeAnnualAllowance, 0, Some(0)), getQuarter(Q1, 2021))
 
   "ChargeAmountReportedController Controller" must {
 
     "return OK and the correct view for a GET for scheme index zero" in {
-      val application = applicationBuilder(Some(userAnswers))
-        .overrides(
-        )
-        .build()
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val request = FakeRequest(GET, httpPathGET)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+      val request = FakeRequest(GET, httpPathGET(schemeIndex = 0))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[ChargeAmountReported].apply(
-        form,
-        submitCall,
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-        schemeName,
-        AFTQuarter.formatForDisplay(getQuarter(Q1, 2021)),
-        "",
-        "chargeType.description.annualAllowance"
-      )(request, messages)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      compareResultAndView(result, view)
+      val expectedJson = Json.obj(
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "ordinal" -> ""
+      )
+
+      templateCaptor.getValue mustEqual "mccloud/chargeAmountReported.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
     "redirect to the next page when valid data is submitted" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
@@ -120,31 +123,32 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
-      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathGET(0)).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
 
-      val view = application.injector.instanceOf[ChargeAmountReported].apply(
-        boundForm,
-        submitCall,
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-        schemeName,
-        AFTQuarter.formatForDisplay(getQuarter(Q1, 2021)),
-        "",
-        "chargeType.description.annualAllowance"
-      )(request, messages)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      compareResultAndView(result, view)
+      val expectedJson = Json.obj(
+        "form" -> boundForm,
+        "viewModel" -> viewModel
+      )
+
+      templateCaptor.getValue mustEqual "mccloud/chargeAmountReported.njk"
+
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {
 
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
-      val request = FakeRequest(GET, httpPathGET)
+      val request = FakeRequest(GET, httpPathGET(0))
 
       val result = route(application, request).value
 
@@ -158,7 +162,7 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
-        FakeRequest(POST, httpPathGET)
+        FakeRequest(POST, httpPathGET(0))
           .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value

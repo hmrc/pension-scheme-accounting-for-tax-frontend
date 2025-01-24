@@ -16,25 +16,28 @@
 
 package controllers.chargeC
 
+import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.ChargeDetailsFormProvider
+
+import javax.inject.Inject
 import models.LocalDateBinder._
+import models.{Quarters, GenericViewModel, AccessType, Mode, ChargeType, Index}
 import models.chargeC.ChargeCDetails
-import models.{AccessType, ChargeType, Index, Mode, Quarters}
 import navigators.CompoundNavigator
 import pages.chargeC.ChargeCDetailsPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.chargeC.ChargeDetailsView
+import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
-import java.time.LocalDate
-import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
@@ -48,9 +51,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
-                                        view: ChargeDetailsView)(implicit ec: ExecutionContext)
+                                        renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(minimumChargeValue:BigDecimal, startDate: LocalDate)(implicit messages: Messages): Form[ChargeCDetails] = {
     val endDate = Quarters.getQuarter(startDate).endDate
@@ -72,19 +76,29 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           case None        => form(mininimumChargeValue, startDate)
         }
 
-          Future.successful(Ok(view(preparedForm,
-          schemeName,
-          routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index),
-          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          sponsorName,
-          Messages(s"chargeC.employerType.${employerType.toString}")
-        )))
+        val viewModel = GenericViewModel(
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName = schemeName
+        )
+
+        val json = Json.obj(
+          "srn" -> srn,
+          "startDate" -> Some(localDateToString(startDate)),
+          "form" -> preparedForm,
+          "viewModel" -> viewModel,
+          "date" -> DateInput.localDate(preparedForm("paymentDate")),
+          "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}"),
+          "sponsorName" -> sponsorName
+        )
+
+        renderer.render("chargeC/chargeDetails.njk", json).map(Ok(_))
       }
     }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, sponsorName, employerType) =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
@@ -92,13 +106,23 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              Future.successful(BadRequest(view(formWithErrors.copy(errors = formWithErrors.errors.distinct),
-                schemeName,
-                routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index),
-                controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                sponsorName,
-                Messages(s"chargeC.employerType.${employerType.toString}")
-              )))
+
+              val viewModel = GenericViewModel(
+                submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName = schemeName
+              )
+
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(localDateToString(startDate)),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel,
+                "date" -> DateInput.localDate(formWithErrors("paymentDate")),
+                "sponsorName" -> sponsorName
+              )
+
+              renderer.render("chargeC/chargeDetails.njk", json).map(BadRequest(_))
             },
             value =>
               for {

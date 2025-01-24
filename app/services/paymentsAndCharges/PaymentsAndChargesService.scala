@@ -31,12 +31,14 @@ import models.viewModels.paymentsAndCharges.{PaymentAndChargeStatus, PaymentsAnd
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
 import services.SchemeService
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{Content, Html, SummaryList, _}
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{Content, HtmlContent, Text}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
+import viewmodels.Table
+import viewmodels.Table.Cell
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -50,14 +52,14 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
                             paymentOrChargeType: PaymentOrChargeType)
                            (implicit messages: Messages): Table = {
 
-    val chargeRefs: Seq[String] = schemeFSDetail.map(_.chargeReference)
+        val chargeRefs: Seq[String] = schemeFSDetail.map(_.chargeReference)
 
-    val seqPayments: Seq[PaymentsAndChargesDetails] = schemeFSDetail.flatMap { paymentOrCharge =>
-      paymentsAndChargesDetails(paymentOrCharge, srn, chargeRefs, chargeDetailsFilter, paymentOrChargeType)
+        val seqPayments: Seq[PaymentsAndChargesDetails] = schemeFSDetail.flatMap { paymentOrCharge =>
+            paymentsAndChargesDetails(paymentOrCharge, srn, chargeRefs, chargeDetailsFilter, paymentOrChargeType)
+          }
+
+        mapToTable(seqPayments)
     }
-
-    mapToTable(seqPayments)
-  }
 
   val extractUpcomingCharges: Seq[SchemeFSDetail] => Seq[SchemeFSDetail] = schemeFSDetail =>{
     schemeFSDetail.filter(charge => charge.dueDate.nonEmpty
@@ -136,7 +138,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   }
 
   private def htmlStatus(data: PaymentsAndChargesDetails)
-                        (implicit messages: Messages): HtmlContent = {
+                        (implicit messages: Messages): Html = {
     val (classes, content) = (data.status, data.amountDue) match {
       case (InterestIsAccruing, _) =>
         ("govuk-tag govuk-tag--blue", data.status.toString)
@@ -147,17 +149,17 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       case _ =>
         ("govuk-visually-hidden", messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue"))
     }
-    HtmlContent(s"<span class='$classes'>$content</span>")
+    Html(s"<span class='$classes'>$content</span>")
   }
 
   private def mapToTable(allPayments: Seq[PaymentsAndChargesDetails])
                         (implicit messages: Messages): Table = {
 
     val head = Seq(
-      HeadCell(Text(messages("paymentsAndCharges.chargeType.table"))),
-      HeadCell(Text(messages("paymentsAndCharges.totalDue.table")), classes = "govuk-!-font-weight-bold"),
-      HeadCell(Text(messages("paymentsAndCharges.chargeReference.table")), classes = "govuk-!-font-weight-bold"),
-      HeadCell(HtmlContent(
+      Cell(msg"paymentsAndCharges.chargeType.table"),
+      Cell(msg"paymentsAndCharges.totalDue.table", classes = Seq("govuk-!-font-weight-bold")),
+      Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-font-weight-bold")),
+      Cell(Html(
         s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
       ))
     )
@@ -170,111 +172,120 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           case _ => data.chargeReference
         }
 
-      val htmlChargeType = HtmlContent(
+      val htmlChargeType = Html(
         s"<a id=$linkId class=govuk-link href=" +
           s"${data.redirectUrl}>" +
           s"${data.chargeType} " +
           s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
 
       Seq(
-        TableRow(htmlChargeType, classes = "govuk-!-padding-right-7"),
-        TableRow(Text(data.amountDue), classes ="govuk-!-padding-right-7"),
-        TableRow(Text(s"${data.chargeReference}"), classes = "govuk-!-padding-right-7"),
-        TableRow(htmlStatus(data))
+        Cell(htmlChargeType, classes = Seq("govuk-!-padding-right-7")),
+        Cell(Literal(data.amountDue), classes = Seq("govuk-!-padding-right-7")),
+        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-padding-right-7")),
+        Cell(htmlStatus(data), classes = Nil)
       )
     }
 
 
       Table(
-        head = Some(head),
+        head = head,
         rows = rows,
         attributes = Map("role" -> "table")
     )
   }
 
   def getChargeDetailsForSelectedCharge(schemeFSDetail: SchemeFSDetail)
-                                       (implicit messages: Messages): Seq[SummaryListRow] = {
+                                       (implicit messages: Messages): Seq[SummaryList.Row] = {
     originalAmountChargeDetailsRow(schemeFSDetail) ++ paymentsAndCreditsChargeDetailsRow(schemeFSDetail) ++
       stoodOverAmountChargeDetailsRow(schemeFSDetail) ++ totalAmountDueChargeDetailsRow(schemeFSDetail)
   }
 
   private def originalAmountChargeDetailsRow(schemeFSDetail: SchemeFSDetail)
-                                            (implicit messages: Messages): Seq[SummaryListRow] = {
+                                            (implicit messages: Messages): Seq[SummaryList.Row] = {
     val value = if (schemeFSDetail.totalAmount < 0) {
       s"${formatCurrencyAmountAsString(schemeFSDetail.totalAmount.abs)} ${messages("paymentsAndCharges.credit")}"
     } else {
       s"${formatCurrencyAmountAsString(schemeFSDetail.totalAmount)}"
     }
     Seq(
-      SummaryListRow(
+      Row(
         key = Key(
-          content = Text(messages("paymentsAndCharges.chargeDetails.originalChargeAmount")),
-          classes = "govuk-!-padding-left-0 govuk-!-width-three-quarters"
+          content = msg"paymentsAndCharges.chargeDetails.originalChargeAmount",
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")
         ),
         value = Value(
-          content = Text(value),
+          content = Literal(value),
           classes =
-            if (schemeFSDetail.totalAmount < 0) "" else "govuk-!-width-one-quarter govuk-table__cell--numeric")
-        )
-      )
+            if (schemeFSDetail.totalAmount < 0) Nil else Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+        ),
+        actions = Nil
+      ))
   }
 
-  private def paymentsAndCreditsChargeDetailsRow(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
+  private def paymentsAndCreditsChargeDetailsRow(schemeFSDetail: SchemeFSDetail): Seq[SummaryList.Row] =
     if (schemeFSDetail.totalAmount - schemeFSDetail.amountDue - schemeFSDetail.stoodOverAmount > 0) {
       Seq(
-        SummaryListRow(
+        Row(
           key = Key(
-            content = Text(messages("paymentsAndCharges.chargeDetails.payments")),
-            classes = "govuk-!-padding-left-0 govuk-!-width-three-quarters"
+            content = msg"paymentsAndCharges.chargeDetails.payments",
+            classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")
           ),
           value = Value(
-            content = Text(s"-${
+            content = Literal(s"-${
               formatCurrencyAmountAsString(
                 schemeFSDetail.totalAmount - schemeFSDetail.amountDue - schemeFSDetail.stoodOverAmount
               )
             }"),
-            classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"
-          )
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+          ),
+          actions = Nil
         ))
     } else {
       Nil
     }
 
-  private def stoodOverAmountChargeDetailsRow(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
+  private def stoodOverAmountChargeDetailsRow(schemeFSDetail: SchemeFSDetail): Seq[SummaryList.Row] =
     if (schemeFSDetail.stoodOverAmount > 0) {
       Seq(
-        SummaryListRow(
+        Row(
           key = Key(
-            content = Text(messages("paymentsAndCharges.chargeDetails.stoodOverAmount")),
-            classes = "govuk-!-padding-left-0 govuk-!-width-three-quarters"
+            content = msg"paymentsAndCharges.chargeDetails.stoodOverAmount",
+            classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")
           ),
           value = Value(
-            content = Text(s"-${formatCurrencyAmountAsString(schemeFSDetail.stoodOverAmount)}"),
-            classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"
-          )
+            content = Literal(s"-${formatCurrencyAmountAsString(schemeFSDetail.stoodOverAmount)}"),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+          ),
+          actions = Nil
         ))
     } else {
       Nil
     }
 
-  private def totalAmountDueChargeDetailsRow(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def totalAmountDueChargeDetailsRow(schemeFSDetail: SchemeFSDetail): Seq[SummaryList.Row] = {
     val amountDueKey: Content = (schemeFSDetail.dueDate, schemeFSDetail.amountDue > 0) match {
       case (Some(date), true) =>
-        Text(messages("paymentsAndCharges.chargeDetails.amountDue", date.format(dateFormatterDMY)))
+        msg"paymentsAndCharges.chargeDetails.amountDue".withArgs(date.format(dateFormatterDMY))
       case _ =>
-        Text(messages("paymentsAndCharges.chargeDetails.noAmountDueDate"))
+        msg"paymentsAndCharges.chargeDetails.noAmountDueDate"
     }
     if (schemeFSDetail.totalAmount > 0) {
       Seq(
-        SummaryListRow(
+        Row(
           key = Key(
             content = amountDueKey,
-            classes = "govuk-table__cell--numeric govuk-!-padding-right-0 govuk-!-width-three-quarters govuk-!-font-weight-bold"
+            classes = Seq(
+              "govuk-table__cell--numeric",
+              "govuk-!-padding-right-0",
+              "govuk-!-width-three-quarters",
+              "govuk-!-font-weight-bold"
+            )
           ),
           value = Value(
-            content = Text(s"${formatCurrencyAmountAsString(schemeFSDetail.amountDue)}"),
-            classes = "govuk-!-width-one-quarter govuk-table__cell--numeric govuk-!-font-weight-bold"
-          )
+            content = Literal(s"${formatCurrencyAmountAsString(schemeFSDetail.amountDue)}"),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")
+          ),
+          actions = Nil
         ))
     } else {
       Nil

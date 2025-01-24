@@ -24,24 +24,24 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.fileUpload.UploadCheckSelection
 import models.fileUpload.UploadCheckSelection.Yes
-import models.{ChargeType, FileUploadDataCache, FileUploadStatus, UploadId, UserAnswers}
+import models.{ChargeType, FileUploadDataCache, FileUploadStatus, GenericViewModel, UploadId, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import pages.fileUpload.UploadCheckPage
+import play.api.data.Form
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, status, _}
 import play.api.{Application, inject}
+import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
-import utils.TwirlMigration
-import views.html.fileUpload.FileUploadResultView
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDateTime
 import scala.concurrent.Future
 
-class FileUploadCheckControllerSpec extends ControllerSpecBase with JsonMatchers {
+class FileUploadCheckControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val fakeUploadProgressTracker: MutableFakeUploadProgressTracker = new MutableFakeUploadProgressTracker()
 
@@ -49,14 +49,37 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with JsonMatchers
     inject.bind[UploadProgressTracker].to(fakeUploadProgressTracker)
   )
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+  private val templateToBeRendered = "fileUpload/fileUploadResult.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
-  private val form = new UploadCheckSelectionFormProvider()()
+  private val form = new UploadCheckSelectionFormProvider
 
-  val request = FakeRequest(GET, controllers.fileUpload.routes.FileUploadCheckController.
-    onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url)
+  private def httpPathGET: String = controllers.fileUpload.routes.FileUploadCheckController.
+    onPageLoad(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url
 
   private def httpPathPOST: String = controllers.fileUpload.routes.FileUploadCheckController.
     onSubmit(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url
+
+
+  private val jsonToPassToTemplate: Form[UploadCheckSelection] => JsObject = form => Json.obj(
+    "form" -> form,
+    "viewModel" -> GenericViewModel(
+      submitUrl = routes.FileUploadCheckController.onSubmit(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      schemeName = schemeName),
+    "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
+    "radios" -> UploadCheckSelection.radios(form),
+    "fileName" -> "name"
+  )
+  private val jsonToPassToTemplateFill: Form[UploadCheckSelection] => JsObject = form => Json.obj(
+    "form" -> form.fill(Yes),
+    "viewModel" -> GenericViewModel(
+      submitUrl = routes.FileUploadCheckController.onSubmit(srn, startDate, accessType, versionInt, chargeType, UploadId("")).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      schemeName = schemeName),
+    "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
+    "radios" -> UploadCheckSelection.radios(form.fill(Yes)),
+    "fileName" -> "name"
+  )
 
   private val dateTimeNow = LocalDateTime.now
 
@@ -73,6 +96,7 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with JsonMatchers
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
   val validData: UserAnswers = userAnswersWithSchemeName
@@ -86,23 +110,21 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with JsonMatchers
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "value" -> Seq("No")
   )
-  private val submitUrl = routes.FileUploadCheckController.onSubmit(srn, startDate, accessType, versionInt, chargeType, UploadId(""))
-  private val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
-
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {
       fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val view = application.injector.instanceOf[FileUploadResultView].apply(
-        form, schemeName, ChargeType.fileUploadText(chargeType), submitUrl, returnUrl, "name", TwirlMigration.toTwirlRadios(UploadCheckSelection.radios(form))
-      )(request, messages)
-
-      val result = route(application, request).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.apply()))
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
@@ -110,17 +132,18 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with JsonMatchers
       val ua = validData.set(UploadCheckPage(chargeType), Yes).get
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val view = application.injector.instanceOf[FileUploadResultView].apply(
-        form.fill(Yes), schemeName, ChargeType.fileUploadText(chargeType), submitUrl, returnUrl, "name",
-        TwirlMigration.toTwirlRadios(UploadCheckSelection.radios(form.fill(Yes)))
-      )(request, messages)
-
-      val result = route(application, request).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplateFill(form.apply()))
     }
 
 

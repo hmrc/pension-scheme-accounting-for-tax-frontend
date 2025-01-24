@@ -19,10 +19,12 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
-import models.{StartYears, Year}
+import models.requests.IdentifierRequest
+import models.{GenericViewModel, StartYears, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.TwirlMigration
@@ -37,6 +39,7 @@ class YearsController @Inject()(
                                 allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                 formProvider: YearsFormProvider,
                                 val controllerComponents: MessagesControllerComponents,
+                                renderer: Renderer,
                                 config: FrontendAppConfig,
                                 schemeService: SchemeService,
                                 yearsView: YearsView
@@ -74,6 +77,14 @@ class YearsController @Inject()(
         },
         value => Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.getYear.toString)))
       )
+  }
+
+  private def viewModel(schemeName: String, srn: String)(implicit request: IdentifierRequest[_]): GenericViewModel = {
+    GenericViewModel(
+      submitUrl = routes.YearsController.onSubmit(srn).url,
+      returnUrl = config.schemeDashboardUrl(request).format(srn),
+      schemeName = schemeName
+    )
   }
 
 }

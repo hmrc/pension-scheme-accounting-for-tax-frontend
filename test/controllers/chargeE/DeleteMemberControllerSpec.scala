@@ -24,9 +24,9 @@ import matchers.JsonMatchers
 import models.GenericViewModel
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
@@ -34,18 +34,18 @@ import pages.chargeE.{MemberDetailsPage, TotalChargeAmountPage}
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.DeleteAFTChargeService
 import uk.gov.hmrc.http.UpstreamErrorResponse
-import views.html.chargeE.DeleteMemberView
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
 
-class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers with OptionValues with TryValues {
+class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockDeleteAFTChargeService: DeleteAFTChargeService = mock[DeleteAFTChargeService]
   private val application: Application =
@@ -78,21 +78,25 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-      val request = httpGETRequest(httpPathGET)
-      val view = application.injector.instanceOf[DeleteMemberView].apply(
-        form,
-        schemeName,
-        routes.DeleteMemberController.onSubmit(srn, startDate, accessType, versionInt, 0),
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-        memberName = memberName,
-        utils.Radios.yesNo(form("value"))
-      )(request, messages)
+      val request = FakeRequest(GET, httpPathGET)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "radios" -> Radios.yesNo(form("value")),
+        "memberName" -> memberName
+      )
+
+      templateCaptor.getValue mustEqual "chargeE/deleteMember.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted" in {
@@ -132,21 +136,23 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
-
-      val view = application.injector.instanceOf[DeleteMemberView].apply(
-        boundForm,
-        schemeName,
-        routes.DeleteMemberController.onSubmit(srn, startDate, accessType, versionInt, 0),
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-        memberName = memberName,
-        utils.Radios.yesNo(form("value"))
-      )(request, messages)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "form" -> boundForm,
+        "viewModel" -> viewModel,
+        "radios" -> Radios.yesNo(boundForm("value"))
+      )
+
+      templateCaptor.getValue mustEqual "chargeE/deleteMember.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

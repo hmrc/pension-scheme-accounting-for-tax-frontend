@@ -19,17 +19,19 @@ package controllers.chargeD
 import controllers.actions._
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
-import models.{AccessType, NormalMode}
+import models.{AccessType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeD.WhatYouWillNeedPage
 import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}
+import pages.chargeD.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.chargeD.WhatYouWillNeedView
 
 import java.time.LocalDate
 import javax.inject.Inject
+import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
@@ -38,24 +40,27 @@ class WhatYouWillNeedController @Inject()(
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
-    navigator: CompoundNavigator,
-    view: WhatYouWillNeedView
-) extends FrontendBaseController with I18nSupport {
+    renderer: Renderer,
+    navigator: CompoundNavigator)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)) {
-      implicit request =>
-        val ua = request.userAnswers
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+      val ua = request.userAnswers
 
-        val psr: Option[String] = ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(index))) match {
-          case Some(true) => Some("chargeD.whatYouWillNeed.li6")
-          case _ => None
-        }
+      val psr = ua.get(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(index))) match {
+      case Some(true) => Some("chargeD.whatYouWillNeed.li6")
+      case _ => None
+    }
+      val viewModel = GenericViewModel(
+        submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version).url,
+        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+        schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
+      )
 
-        val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
-        val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version).url
-        val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-
-        Ok(view(nextPage, schemeName, returnUrl, psr))
+      renderer
+        .render(template = "chargeD/whatYouWillNeed.njk", Json.obj("srn" -> srn, "startDate" -> Some(localDateToString(startDate)), "viewModel" -> viewModel, "psr" -> psr))
+        .map(Ok(_))
     }
 }

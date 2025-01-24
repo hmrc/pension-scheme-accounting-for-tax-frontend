@@ -1,0 +1,35 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "macros/title.njk"                         import title %}
+
+{% block pageTitle %}
+  {{ title(messages(heading)) }}
+{% endblock %}
+
+{% block mainContent %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <h1 class="govuk-heading-xl">{{ messages(heading) }}</h1>
+
+        <p class="govuk-body">
+          {{ messages(p1) }}
+        </p>
+
+        <p class="govuk-body">
+          {{ messages("requestRefund.p2") }}
+        </p>
+
+        <p class="govuk-body">
+          {{ messages("requestRefund.p3") }}
+        </p>
+
+       {{ govukButton({
+         href: continueUrl,
+         attributes: {id: "submit"},
+         text: messages("site.continue")
+       }) }}
+    </div>
+  </div>
+{% endblock %}

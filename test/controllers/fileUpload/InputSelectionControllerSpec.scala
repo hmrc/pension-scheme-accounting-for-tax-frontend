@@ -33,18 +33,25 @@ import pages.fileUpload.InputSelectionPage
 import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, status, _}
-import utils.TwirlMigration
-import views.html.fileUpload.InputSelectionView
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class InputSelectionControllerSpec extends ControllerSpecBase with JsonMatchers {
+class InputSelectionControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val templateToBeRendered = "fileUpload/inputSelection.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   private def ua: UserAnswers = userAnswersWithSchemeName
+
+  val expectedJson: JsObject = Json.obj()
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   private def httpPathPOST: String = controllers.fileUpload.routes.InputSelectionController
     .onSubmit(srn, startDate, accessType, versionInt, ChargeTypeAnnualAllowance).url
@@ -62,44 +69,63 @@ class InputSelectionControllerSpec extends ControllerSpecBase with JsonMatchers 
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val formProvider = new InputSelectionFormProvider
   private val form: Form[InputSelection] = formProvider()
-  val submitUrl = controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, versionInt, chargeType)
-  val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
-
   "onPageLoad" must {
     "return OK and the correct view for a GET" in {
-      val request = FakeRequest(GET,controllers.fileUpload
-                  .routes.InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
+
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
-      val view = application.injector.instanceOf[InputSelectionView].apply(
-        form, schemeName, submitUrl, returnUrl, ChargeType.fileUploadText(chargeType),
-        TwirlMigration.toTwirlRadiosWithHintText(InputSelection.radios(form)))(request, messages)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
-
+      val result = route(application,
+        httpGETRequest(controllers.fileUpload
+          .routes.InputSelectionController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)).value
       status(result) mustEqual OK
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      compareResultAndView(result, view)
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      val jsonToPassToTemplate = Json.obj(
+        "chargeType" -> ChargeType.fileUploadText(chargeType),
+        "srn" -> srn,
+        "startDate" -> Some("2020-04-01"),
+        "form" -> form,
+        "radios" -> InputSelection.radios(form),
+        "viewModel" -> viewModel(srn, startDate, accessType, versionInt, chargeType)
+      )
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
   }
 
   "onSubmit" must {
     "Show error when invalid data is submitted" in {
-      val request = httpPOSTRequest(httpPathPOST, valuesInvalid)
+
       val boundForm = form.bind(Map("value" -> "invalid value"))
 
       when(mockCompoundNavigator.nextPage(
         ArgumentMatchers.eq(InputSelectionPage(chargeType)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
-      val view = application.injector.instanceOf[InputSelectionView].apply(
-        boundForm, schemeName, submitUrl, returnUrl, ChargeType.fileUploadText(chargeType),
-        TwirlMigration.toTwirlRadiosWithHintText(InputSelection.radios(boundForm)))(request, messages)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
-      compareResultAndView(result, view)
+      val expectedJson = Json.obj(
+        "chargeType" -> chargeType.toString,
+        "srn" -> srn,
+        "startDate" -> Some("2020-04-01"),
+        "form" -> boundForm,
+        "radios" -> InputSelection.radios(form),
+        "viewModel" -> viewModel(srn, startDate, accessType, versionInt, chargeType)
+      )
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+      templateCaptor.getValue mustEqual "fileUpload/inputSelection.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
 
     }
 

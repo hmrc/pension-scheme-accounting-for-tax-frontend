@@ -17,12 +17,12 @@
 package controllers
 
 import controllers.base.ControllerSpecBase
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import views.html.AccessibilityView
 
 import scala.concurrent.Future
 
@@ -43,9 +43,12 @@ class AccessibilityControllerSpec extends ControllerSpecBase {
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[AccessibilityView].apply()(request, messages)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
+
+      templateCaptor.getValue mustEqual "accessibility.njk"
+
       application.stop()
     }
   }

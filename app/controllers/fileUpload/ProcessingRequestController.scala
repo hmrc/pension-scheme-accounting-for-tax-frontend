@@ -26,13 +26,14 @@ import models.fileUpload.FileUploadOutcomeStatus.{GeneralError, SessionExpired, 
 import models.{AccessType, ChargeType, NormalMode}
 import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.fileUpload.ProcessingRequestView
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                                             override val messagesApi: MessagesApi,
@@ -41,9 +42,9 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
                                             allowAccess: AllowAccessActionProvider,
                                             requireData: DataRequiredAction,
                                             val controllerComponents: MessagesControllerComponents,
+                                            renderer: Renderer,
                                             fileUploadOutcomeConnector: FileUploadOutcomeConnector,
-                                            navigator: CompoundNavigator,
-                                            view: ProcessingRequestView
+                                            navigator: CompoundNavigator
                                            )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -117,7 +118,13 @@ class ProcessingRequestController @Inject()(val appConfig: FrontendAppConfig,
 
         fileUploadOutcomeConnector.getOutcome.flatMap { optionOutcome =>
           val (header, content, redirect) = headerContentAndRedirect(optionOutcome)
-          Future.successful(Ok(view(header, header, content, redirect)))
+          val json = Json.obj(
+            "pageTitle" -> header,
+            "heading" -> header,
+            "content" -> content,
+            "continueUrl" -> redirect
+          )
+          renderer.render("fileUpload/processingRequest.njk", json).map(Ok(_))
         }
     }
   }

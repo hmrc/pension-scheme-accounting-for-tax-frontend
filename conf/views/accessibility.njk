@@ -1,0 +1,130 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"                         import title %}
+
+{% block pageTitle %}
+  {{ title(messages("accessibility.title")) }}
+{% endblock %}
+
+{% block mainContent %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    <h1 class="govuk-heading-xl">{{ messages("compliant.one.heading") }}</h1>
+
+    <p class="govuk-body-l">{{ messages("compliant.one.lede") }}</p>
+
+    <p class="govuk-body">{{ messages("compliant.one.p1.1") }}
+      <a href="https://www.gov.uk/help/accessibility" class="govuk-link">{{ messages("compliant.one.p1.2") }}</a>
+      {{ messages("compliant.one.p1.3") }}
+    </p>
+
+    <p class="govuk-body">{{ messages("compliant.one.p2") }}.</p>
+
+    <h2 class="govuk-heading-l">{{ messages("compliant.two.heading") }}</h2>
+
+    <p class="govuk-body">{{ messages("compliant.two.p1") }}</p>
+
+    <p class="govuk-body">{{ messages("compliant.two.p2") }}</p>
+
+    <ul class="govuk-list govuk-list--bullet">
+      <li>{{ messages("compliant.two.l1") }}</li>
+      <li>{{ messages("compliant.two.l2") }}</li>
+      <li>{{ messages("compliant.two.l3") }}</li>
+      <li>{{ messages("compliant.two.l4") }}</li>
+      <li>{{ messages("compliant.two.l5") }}</li>
+    </ul>
+
+    <p class="govuk-body">{{ messages("compliant.two.p3") }}</p>
+
+    <p class="govuk-body">{{ messages("compliant.two.p4.0") }}
+      <a href="https://mcmw.abilitynet.org.uk/" class="govuk-link">{{ messages("compliant.two.p4.1") }}</a>
+      {{ messages("compliant.two.p4.2") }}
+    </p>
+
+    <h2 class="govuk-heading-l">{{ messages("compliant.three.heading") }}</h2>
+
+    <p class="govuk-body">{{ messages("compliant.three.p1.1") }}
+      <a href="https://www.w3.org/TR/WCAG21/" class="govuk-link">{{ messages("compliant.three.p1.2") }}</a>.
+    </p>
+
+    <p class="govuk-body">{{ messages("compliant.three.p2") }}</p>
+
+    <ul class="govuk-list govuk-list--bullet">
+      <li>{{ messages("compliant.three.l1") }}</li>
+      <li>{{ messages("compliant.three.l2") }}</li>
+      <li>{{ messages("compliant.three.l3") }}</li>
+    </ul>
+
+    <p class="govuk-body">{{ messages("compliant.three.p3") }}</p>
+
+    <p class="govuk-body">{{ messages("compliant.three.p4") }}</p>
+
+    <h2 class="govuk-heading-l">{{ messages("compliant.four.heading") }}</h2>
+
+    <p class="govuk-body">{{ messages("compliant.four.p1.1") }}
+      <a href="https://www.gov.uk/government/organisations/hm-revenue-customs/contact/tax-credits-enquiries" class="govuk-link">{{ messages("compliant.four.p1.2") }}</a>{{ messages("compliant.four.p1.3") }}.
+    </p>
+
+    <p class="govuk-body">{{ messages("compliant.four.p2.1") }}
+      <a href="https://intranet.prod.dop.corp.hmrc.gov.uk/page/business-area/customer-services/alternative-format-media" class="govuk-link">{{ messages("compliant.four.p2.2") }}</a>.]
+    </p>
+
+    <p class="govuk-body">{{ messages("compliant.four.p3") }}</p>
+
+    <ul class="govuk-list govuk-list--bullet">
+      <li>{{ messages("compliant.four.l1") }}</li>
+      <li>{{ messages("compliant.four.l2") }}</li>
+    </ul>
+
+    <p class="govuk-body">{{ messages("compliant.four.p4") }}</p>
+
+    <h2 class="govuk-heading-l">{{ messages("compliant.five.heading") }}</h2>
+
+    <p class="govuk-body">{{ messages("compliant.five.p.1") }}
+      <a href="/accessibility-problem-service" class="govuk-link" target=".blank">{{ messages("compliant.five.p.2") }}</a>.
+      {{ messages("compliant.five.p.3") }}.
+    </p>
+
+    <h2 class="govuk-heading-l">{{ messages("compliant.six.heading") }}</h2>
+
+    <p class="govuk-body">
+      {{ messages("compliant.six.p.1") }}
+      <a href="https://www.equalityadvisoryservice.com/" class="govuk-link">{{ messages("compliant.six.p.2") }}</a>
+      {{ messages("compliant.six.p.3") }}
+      <a href="https://www.equalityni.org/Home" class="govuk-link">{{ messages("compliant.six.p.4") }}</a>
+      {{ messages("compliant.six.p.5") }}
+    </p>
+
+    <h2 class="govuk-heading-l">{{ messages("compliant.seven.heading") }}</h2>
+
+    <p class="govuk-body">{{ messages("compliant.seven.p1") }}</p>
+
+    <p class="govuk-body">{{ messages("compliant.seven.p2") }}</p>
+
+    <p class="govuk-body">{{ messages("compliant.seven.p3.1") }}
+      <a href="https://www.gov.uk/dealing-hmrc-additional-needs" class="govuk-link">{{ messages("compliant.seven.p3.2") }}</a>.
+    </p>
+
+    <h2 class="govuk-heading-l">{{ messages("compliant.eight.heading") }}</h2>
+
+    <p class="govuk-body">{{ messages("compliant.eight.p1") }}</p>
+
+    <p class="govuk-body">{{ messages("compliant.eight.p2.1") }}
+      <a href="https://www.w3.org/TR/WCAG21/" class="govuk-link">{{ messages("compliant.eight.p2.2") }}</a>.
+    </p>
+
+    <h2 class="govuk-heading-l">{{ messages("compliant.nine.heading") }}</h2>
+
+    <p class="govuk-body">{{ messages("compliant.nine.p1") }}</p>
+
+    <p class="govuk-body">{{ messages("compliant.nine.p2.1") }}
+       <a href="http://www.digitalaccessibilitycentre.org/" class="govuk-link">{{ messages("compliant.nine.p2.2") }}</a>.
+      {{ messages("compliant.nine.p2.3") }}
+    </p>
+
+    <p class="govuk-body">{{ messages("compliant.nine.p3") }}</p>
+  </div>
+</div>
+{% endblock %}

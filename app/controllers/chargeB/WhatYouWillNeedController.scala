@@ -16,6 +16,8 @@
 
 package controllers.chargeB
 
+import connectors.SchemeDetailsConnector
+import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import models.LocalDateBinder._
 import models.{AccessType, NormalMode}
@@ -24,11 +26,13 @@ import pages.SchemeNameQuery
 import pages.chargeB.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.chargeB.WhatYouWillNeedView
 
 import java.time.LocalDate
 import javax.inject.Inject
+import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
@@ -37,9 +41,12 @@ class WhatYouWillNeedController @Inject()(
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    schemeDetailsConnector: SchemeDetailsConnector,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
     navigator: CompoundNavigator,
     view: WhatYouWillNeedView
-)
+)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 

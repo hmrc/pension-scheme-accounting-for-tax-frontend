@@ -18,21 +18,20 @@ package controllers.financialOverview
 
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.financialOverview.RefundUnavailableView
 
 import javax.inject.Inject
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 class RefundUnavailableController @Inject()(
                                             val controllerComponents: MessagesControllerComponents,
-                                            refundUnavailableView: RefundUnavailableView
-                                           )
+                                            renderer: Renderer
+                                           )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(refundUnavailableView(request, request.messages)
-    ))
+    renderer.render("financialOverview/refundUnavailable.njk").map(Ok(_))
   }
 }

@@ -23,7 +23,8 @@ import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, DisplayQuarter, Enumerable, Quarters, SchemeDetails, SchemeStatus}
+import models.{AFTQuarter, DisplayQuarter, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -32,16 +33,16 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
-import utils.TwirlMigration
-import views.html.amend.AmendQuartersView
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class AmendQuartersControllerSpec extends ControllerSpecBase with JsonMatchers
+class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -67,7 +68,15 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with JsonMatchers
 
   lazy val httpPathGET: String = controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year).url
   lazy val httpPathPOST: String = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url
-  private val submitCall = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year)
+
+  private def jsonToPassToTemplate(quarters: Seq[DisplayQuarter]): Form[AFTQuarter] => JsObject = form => Json.obj(
+    "form" -> form,
+    "radios" -> Quarters.radios(form, quarters),
+    "viewModel" -> GenericViewModel(
+      submitUrl = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url,
+      returnUrl = dummyCall.url,
+      schemeName = schemeName)
+  )
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q22020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
@@ -85,21 +94,19 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with JsonMatchers
 
   "AmendQuarters Controller" must {
     "return OK and the correct view for a GET" in {
+
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      val quartersForm = form(quarters)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val view = application.injector.instanceOf[AmendQuartersView].apply(
-        quartersForm,
-        TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(quartersForm, displayQuarters)),
-        submitCall,
-        dummyCall.url,
-        schemeName
-      )(httpGETRequest(httpPathGET), messages)
+      templateCaptor.getValue mustEqual templateToBeRendered
 
-      compareResultAndView(result, view)
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(displayQuarters).apply(form(quarters)))
     }
 
     "redirect to return history page when only one quarter for a GET" in {

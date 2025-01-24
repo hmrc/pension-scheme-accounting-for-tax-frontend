@@ -23,76 +23,82 @@ import matchers.JsonMatchers
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{ChargeType, UserAnswers}
-import org.mockito.ArgumentMatchers
+import models.{ChargeType, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.IsPublicServicePensionsRemedyPage
 import pages.fileUpload.WhatYouWillNeedPage
 import play.api.Application
-import play.api.test.FakeRequest
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
-import views.html.fileUpload.WhatYouWillNeedView
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers {
+import scala.concurrent.Future
+
+class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val templateToBeRendered = "fileUpload/whatYouWillNeed.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
   private val uaPsrTrue: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeAnnualAllowance,None), true)
   private val uaPsrFalse: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance,None), false)
 
+  private def httpPathGET: String = controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url
+
+  private def jsonToPassToTemplate(psrBool: Option[Boolean]) = Json.obj(
+    "viewModel" -> GenericViewModel(
+      submitUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      schemeName = schemeName),
+    "psr" -> psrBool
+  )
+
   override def beforeEach(): Unit = {
     super.beforeEach()
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET without paragraph for PublicServicePensionsRemedy" in {
-      val request = FakeRequest(GET, controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(uaPsrFalse))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       when(mockCompoundNavigator
         .nextPage(ArgumentMatchers.eq(WhatYouWillNeedPage(chargeType)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
-      val submitUrl = dummyCall.url
-      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
-      val (templateDownloadLink, instructionsDownloadLink) =
-        (controllers.routes.FileDownloadController.templateFile(chargeType, None).url,
-          controllers.routes.FileDownloadController.instructionsFile(chargeType, None).url)
-
-      val view = application.injector.instanceOf[WhatYouWillNeedView].apply(
-        chargeType.toString, ChargeType.fileUploadText(chargeType), submitUrl, schemeName, returnUrl, false,
-        templateDownloadLink, instructionsDownloadLink)(request, messages)
-
-      val result = route(application, request).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(None))
     }
     "return OK and the correct view for a GET with paragraph for PublicServicePensionsRemedy" in {
-      val request = FakeRequest(GET, controllers.fileUpload.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(uaPsrTrue))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
       when(mockCompoundNavigator
         .nextPage(ArgumentMatchers.eq(WhatYouWillNeedPage(chargeType)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
-      val submitUrl = dummyCall.url
-      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
-      val (templateDownloadLink, instructionsDownloadLink) =
-        (controllers.routes.FileDownloadController.templateFile(chargeType, Some(true)).url,
-          controllers.routes.FileDownloadController.instructionsFile(chargeType, Some(true)).url)
-
-      val view = application.injector.instanceOf[WhatYouWillNeedView].apply(
-        chargeType.toString, ChargeType.fileUploadText(chargeType), submitUrl, schemeName, returnUrl, true,
-        templateDownloadLink, instructionsDownloadLink)(request, messages)
-
-      val result = route(application, request).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(Some(true)))
     }
   }
 }

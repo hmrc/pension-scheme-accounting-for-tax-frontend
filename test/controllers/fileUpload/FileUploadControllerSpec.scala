@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{ChargeType, FileUploadDataCache, FileUploadStatus, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
+import models.{ChargeType, FileUploadDataCache, FileUploadStatus, GenericViewModel, UploadId, UpscanFileReference, UpscanInitiateResponse, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -30,18 +30,17 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Call
-import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
-import views.html.fileUpload.FileUploadView
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDateTime
 import scala.concurrent.Future
 
-class FileUploadControllerSpec extends ControllerSpecBase with JsonMatchers {
+class FileUploadControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val templateToBeRendered = "fileUpload/fileupload.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   private def ua: UserAnswers = userAnswersWithSchemeName
@@ -84,6 +83,7 @@ class FileUploadControllerSpec extends ControllerSpecBase with JsonMatchers {
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUpscanInitiateConnector)
+    reset(mockAppConfig)
     reset(mockRenderer)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.maxUploadFileSize).thenReturn(maxUploadFileSize)
@@ -93,25 +93,41 @@ class FileUploadControllerSpec extends ControllerSpecBase with JsonMatchers {
 
   "onPageLoad" must {
     "return OK and the correct view for a GET" in {
-      val request = FakeRequest(GET, controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)
-
       fakeUploadProgressTracker.setDataToReturn(fileUploadDataCache)
       when(mockUpscanInitiateConnector.initiateV2(any(), any(), any())(any(), any())).thenReturn(Future.successful(upscanInitiateResponse))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
-      val submitUrl = Call("POST",upscanInitiateResponse.postTarget)
-      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val view = application.injector.instanceOf[FileUploadView].apply(
-        schemeName, chargeType.toString,ChargeType.fileUploadText(chargeType), submitUrl,
-        returnUrl, None,formFieldsMap)(request, messages)
-
-      val result = route(application, request).value
+      val result = route(
+        application,
+        httpGETRequest(controllers.fileUpload.routes.FileUploadController.onPageLoad(srn, startDate, accessType, versionInt, chargeType).url)).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      val jsonToPassToTemplate = Json.obj(
+        "chargeType" -> chargeType.toString,
+        "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
+        "srn" -> srn,
+        "startDate" -> Some("2020-04-01"),
+        "formFields" -> formFieldsMap.toList,
+        "error" -> None,
+        "maxFileUploadSize" -> maxUploadFileSize,
+        "viewModel" -> GenericViewModel(
+          submitUrl = upscanInitiateResponse.postTarget,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+          schemeName = schemeName
+        )
+      )
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      verify(mockAppConfig, times(1)).maxUploadFileSize
     }
   }
 

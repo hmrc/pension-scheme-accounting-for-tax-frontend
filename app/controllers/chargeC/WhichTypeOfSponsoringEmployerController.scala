@@ -16,23 +16,26 @@
 
 package controllers.chargeC
 
+import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.IsSponsoringEmployerIndividualFormProvider
+
+import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, Index, Mode, SponsoringEmployerType}
+import models.{AccessType, Mode, ChargeType, Index, GenericViewModel, SponsoringEmployerType}
 import navigators.CompoundNavigator
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.chargeC.WhichTypeOfSponsoringEmployerView
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
-import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi: MessagesApi,
@@ -46,9 +49,10 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
                                                         formProvider: IsSponsoringEmployerIndividualFormProvider,
                                                         val controllerComponents: MessagesControllerComponents,
                                                         config: FrontendAppConfig,
-                                                        view: WhichTypeOfSponsoringEmployerView)(implicit ec: ExecutionContext)
+                                                        renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with NunjucksSupport {
 
   private val form = formProvider()
 
@@ -59,9 +63,22 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
           case None        => form
           case Some(value) => form.fill(value)
         }
-        val submitCall = routes.WhichTypeOfSponsoringEmployerController.onSubmit(mode, srn, startDate, accessType, version, index)
-        val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
-        Future.successful(Ok(view(preparedForm, schemeName, submitCall, returnUrl, SponsoringEmployerType.radios(preparedForm))))
+
+        val viewModel = GenericViewModel(
+          submitUrl = routes.WhichTypeOfSponsoringEmployerController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName = schemeName
+        )
+
+        val json = Json.obj(
+          "srn" -> srn,
+          "startDate" -> Some(localDateToString(startDate)),
+          "form" -> preparedForm,
+          "viewModel" -> viewModel,
+          "radios" -> SponsoringEmployerType.radios(preparedForm)
+        )
+
+        renderer.render("chargeC/whichTypeOfSponsoringEmployer.njk", json).map(Ok(_))
       }
     }
 
@@ -72,9 +89,20 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val submitCall = routes.WhichTypeOfSponsoringEmployerController.onSubmit(mode, srn, startDate, accessType, version, index)
-              val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
-              Future.successful(BadRequest(view(formWithErrors, schemeName, submitCall, returnUrl, SponsoringEmployerType.radios(formWithErrors))))
+
+              val viewModel = GenericViewModel(
+                submitUrl = routes.WhichTypeOfSponsoringEmployerController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName = schemeName
+              )
+
+              val json = Json.obj(
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel,
+                "radios" -> SponsoringEmployerType.radios(formWithErrors)
+              )
+
+              renderer.render("chargeC/whichTypeOfSponsoringEmployer.njk", json).map(BadRequest(_))
             },
             value =>
               for {

@@ -22,24 +22,26 @@ import data.SampleData._
 import forms.chargeG.ChargeAmountsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import models.chargeG.ChargeAmounts
 import models.requests.IdentifierRequest
-import models.{NormalMode, UserAnswers}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.ArgumentMatchers
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import play.api.Application
+import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.FakeRequest
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
-import views.html.chargeG.ChargeAmountsView
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class ChargeAmountsControllerSpec extends ControllerSpecBase with JsonMatchers {
+class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val templateToBeRendered = "chargeG/chargeAmounts.njk"
   private val form = new ChargeAmountsFormProvider()("first last", BigDecimal("0.01"))
 
   private def httpPathGET: String = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url
@@ -61,6 +63,15 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with JsonMatchers {
     "amountTaxDue" -> Seq.empty
   )
 
+  private val jsonToPassToTemplate: Form[ChargeAmounts] => JsObject = form => Json.obj(
+    "form" -> form,
+    "viewModel" -> GenericViewModel(
+      submitUrl = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      schemeName = schemeName),
+    "memberName" -> "first last"
+  )
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
@@ -71,44 +82,39 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with JsonMatchers {
   val validData: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(MemberDetailsPage(0), memberGDetails).get
   val expectedJson: JsObject = validData.set(ChargeAmountsPage(0), chargeAmounts).get.data
 
-  val request: FakeRequest[_] = httpGETRequest(httpPathGET)
-
   "ChargeAmounts Controller" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
       val result = route(application, httpGETRequest(httpPathGET)).value
-      val view = application.injector.instanceOf[ChargeAmountsView].apply(
-        form,
-        "first last",
-        controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0),
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-        schemeName
-      )(request, messages)
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       val ua = validData.set(ChargeAmountsPage(0), chargeAmounts).get
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-
-      val view = application.injector.instanceOf[ChargeAmountsView].apply(
-        form.fill(chargeAmounts),
-        "first last",
-        controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0),
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-        schemeName
-      )(request, messages)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(chargeAmounts)))
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
@@ -126,9 +132,14 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with JsonMatchers {
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
 
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).savePartial(any(), jsonCaptor.capture, any(), any())(any(), any())
+      jsonCaptor.getValue must containJson(expectedJson)
 
       redirectLocation(result) mustBe Some(dummyCall.url)
     }

@@ -23,20 +23,22 @@ import handlers.ErrorHandler
 import helpers.{DeleteChargeHelper, FormatHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, AddEmployersViewModel, ChargeType, Employer, NormalMode, UserAnswers}
+import models.{AFTQuarter, AccessType, ChargeType, Employer, GenericViewModel, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC.AddEmployersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
+import renderer.Renderer
 import services.ChargePaginationService
-import uk.gov.hmrc.govukfrontend.views.Aliases.{HtmlContent, Table, Text}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
-import viewmodels.TwirlRadios
-import views.html.chargeC.AddEmployersView
+import viewmodels.Table
+import viewmodels.Table.Cell
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -54,9 +56,10 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        chargePaginationService: ChargePaginationService,
                                        deleteChargeHelper: DeleteChargeHelper,
                                        errorHandler:ErrorHandler,
-                                       view: AddEmployersView)(implicit ec: ExecutionContext)
+                                       renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with NunjucksSupport {
 
   def form: Form[Boolean] = formProvider("chargeC.addEmployers.error")
 
@@ -64,7 +67,10 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
     request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(quarter)) =>
-        renderPageWithStatus(srn, startDate, form, schemeName, quarter, accessType, version, pageNumber, Ok)
+        getJson(srn, startDate, form, schemeName, quarter, accessType, version, pageNumber).map{json =>
+          renderer.render(template = "chargeC/addEmployers.njk", json)
+            .map(Ok(_))
+        }.getOrElse(errorHandler.onClientError(request.request, NOT_FOUND))
       case _ => futureSessionExpired
     }
   }
@@ -92,7 +98,9 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
             (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
               case (Some(schemeName), Some(quarter)) =>
-                renderPageWithStatus(srn, startDate, formWithErrors, schemeName, quarter, accessType, version, pageNumber, BadRequest)
+                getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version, pageNumber).map { json =>
+                  renderer.render(template = "chargeC/addEmployers.njk", json).map(BadRequest(_))
+                }.getOrElse(Future.successful(NotFound))
               case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
             }
           },
@@ -106,16 +114,20 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
   }
 
   // scalastyle:off parameter.number
-  private def renderPageWithStatus(srn: String,
+  private def getJson(srn: String,
     startDate: LocalDate,
     form: Form[_],
     schemeName: String,
     quarter: AFTQuarter,
     accessType: AccessType,
     version: Int,
-    pageNumber: Int,
-    status: Status
-  )(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    pageNumber: Int
+  )(implicit request: DataRequest[AnyContent]): Option[JsObject] = {
+
+    val viewModel = GenericViewModel(submitUrl = routes.AddEmployersController.onSubmit(srn, startDate, accessType, version, pageNumber).url,
+                                     returnUrl = controllers.routes.ReturnToSchemeDetailsController
+                                       .returnToSchemeDetails(srn, startDate, accessType, version).url,
+                                     schemeName = schemeName)
 
     val optionPaginatedMembersInfo = chargePaginationService.getItemsPaginated(
       pageNo = pageNumber,
@@ -126,62 +138,64 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
     )
 
     optionPaginatedMembersInfo.map { pmi =>
-      val viewModel = AddEmployersViewModel(
-        schemeName,
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-        quarter.startDate.format(dateFormatterDMY),
-        quarter.endDate.format(dateFormatterDMY),
-        canChange = !request.isViewOnly,
-        paginationStatsStartMember = pmi.paginationStats.startMember,
-        paginationStatsLastMember = pmi.paginationStats.lastMember,
-        paginationStatsTotalMembers = pmi.paginationStats.totalMembers,
-        radios = TwirlRadios.yesNo(form("value"))
-      )
-       val submitCall = routes.AddEmployersController.onSubmit(srn, startDate, accessType, version, pageNumber)
-       val table =  mapToTable(pmi.employersForCurrentPage, !request.isViewOnly, pmi.paginationStats.totalAmount)
-        val pageLinksSeq = chargePaginationService.pagerNavSeq(
+      Json.obj(
+        "srn" -> srn,
+        "startDate" -> Some(localDateToString(startDate)),
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "radios" -> Radios.yesNo(form("value")),
+        "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
+        "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
+        "table" -> Json.toJson(mapToTable(pmi.employersForCurrentPage, !request.isViewOnly, pmi.paginationStats.totalAmount)),
+        "pageLinksSeq" -> chargePaginationService.pagerNavSeq(
           pmi.paginationStats,
           controllers.chargeC.routes.AddEmployersController.onPageLoadWithPageNo(srn, startDate, accessType, version, _)
-        )
-      Future.successful(status(view(form, viewModel, submitCall, table, pageLinksSeq)))
-    }.getOrElse(Future.successful(NotFound))
+        ),
+        "paginationStatsStartMember" -> pmi.paginationStats.startMember,
+        "paginationStatsLastMember" -> pmi.paginationStats.lastMember,
+        "paginationStatsTotalMembers" -> pmi.paginationStats.totalMembers,
+        "canChange" -> !request.isViewOnly
+      )
+    }
 
   }
 
   private def mapToTable(members: Seq[Employer], canChange: Boolean, totalAmount:BigDecimal)
-                        (implicit messages: Messages): Table = {
+    (implicit messages: Messages): Table = {
     val head = Seq(
-        HeadCell(Text(Messages("addEmployers.employer.header"))),
-        HeadCell(Text(Messages("addEmployers.amount.header")), classes = "govuk-table__header--numeric"),
-        HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>"""))
-      ) ++ (
-        if (canChange)
-          Seq(HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")))
-        else
-          Nil
-        )
+      Cell(msg"addEmployers.employer.header"),
+      Cell(msg"addEmployers.amount.header", classes = Seq("govuk-table__header--numeric")),
+      Cell(Html(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>"""))
+    ) ++ (
+      if (canChange)
+        Seq(Cell(Html(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")))
+      else
+        Nil
+      )
 
     val rows = members.map { data =>
       Seq(
-        TableRow(Text(data.name), classes = "govuk-!-width-one-half"),
-        TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = "govuk-!-width-one-quarter,govuk-table__header--numeric"),
-        TableRow(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = "govuk-!-width-one-quarter")
-      ) ++ (if (canChange) Seq(TableRow(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = "govuk-!-width-one-quarter"))
+        Cell(Literal(data.name), classes = Seq("govuk-!-width-one-half")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
+        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = Seq("govuk-!-width-one-quarter"))
+      ) ++ (if (canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter")))
       else Nil)
     }
     val totalRow = Seq(
       Seq(
-        TableRow(Text(Messages("addMembers.total")), classes = "govuk-!-font-weight-bold govuk-table__header--numeric"),
-        TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"), classes = "govuk-!-font-weight-bold govuk-table__header--numeric"),
-        TableRow(Text(""))
-      ) ++ (if (canChange) Seq(TableRow(Text(""))) else Nil))
+        Cell(msg"addMembers.total", classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
+          classes = Seq("govuk-!-font-weight-bold govuk-table__header--numeric")),
+        Cell(msg"")
+      ) ++ (if (canChange) Seq(Cell(msg"")) else Nil))
 
-    Table(rows ++ totalRow, Some(head), attributes = Map("role" -> "table"))
+    Table(head = head, rows = rows ++ totalRow,attributes = Map("role" -> "table"))
   }
 
-  private def link(id: String, text: String, url: String, name: String)(implicit messages: Messages): HtmlContent = {
+  private def link(id: String, text: String, url: String, name: String)(implicit messages: Messages): Html = {
     val hiddenTag = "govuk-visually-hidden"
-    HtmlContent(
+    Html(
       s"<a class=govuk-link id=$id href=$url>" + s"<span aria-hidden=true >${messages(text)}</span>" +
         s"<span class= $hiddenTag>${messages(text)} ${messages(s"chargeC.addEmployers.visuallyHidden", name)}</span> </a>")
   }

@@ -24,39 +24,41 @@ import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFSDetail}
 import models.{DisplayHint, PaymentOverdue, PenaltiesFilter}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
-import views.html.financialStatement.penalties.PenaltyTypeView
+import scala.concurrent.ExecutionContext
 
 class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
                                       identify: IdentifierAction,
                                       allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                       formProvider: PenaltyTypeFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
+                                      renderer: Renderer,
                                       config: FrontendAppConfig,
-                                      service: PenaltiesService,
-                                      penaltyTypeView: PenaltyTypeView)
+                                      service: PenaltiesService)
                                      (implicit ec: ExecutionContext) extends FrontendBaseController
-  with I18nSupport {
+  with I18nSupport
+  with NunjucksSupport {
 
   private def form: Form[PenaltyType] = formProvider()
 
   def onPageLoad(journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     service.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties)
-      Future.successful(Ok(penaltyTypeView(
-        form,
-        TwirlMigration.toTwirlRadiosWithHintText(
-          PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
-        routes.PenaltyTypeController.onSubmit(journeyType),
-        config.managePensionsSchemeOverviewUrl,
-        penaltiesCache.psaName
-      )))
+      val json = Json.obj(
+        "psaName" -> penaltiesCache.psaName,
+        "form" -> form,
+        "radios" -> PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
+        "submitUrl" -> routes.PenaltyTypeController.onSubmit(journeyType).url
+      )
+
+      renderer.render(template = "financialStatement/penalties/penaltyType.njk", json).map(Ok(_))
     }
   }
 
@@ -64,14 +66,13 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
     service.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       form.bindFromRequest().fold(
         formWithErrors => {
-          Future.successful(BadRequest(penaltyTypeView(
-            formWithErrors,
-            TwirlMigration.toTwirlRadiosWithHintText(
-              PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties))),
-            routes.PenaltyTypeController.onSubmit(journeyType),
-            config.managePensionsSchemeOverviewUrl,
-            penaltiesCache.psaName
-          )))
+          val json = Json.obj(
+            "psaName" -> penaltiesCache.psaName,
+            "form" -> formWithErrors,
+            "radios" -> PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties)),
+            "submitUrl" -> routes.PenaltyTypeController.onSubmit(journeyType).url
+          )
+          renderer.render(template = "financialStatement/penalties/penaltyType.njk", json).map(BadRequest(_))
         },
         value => service.navFromPenaltiesTypePage(penaltiesCache.penalties, value, request.psaIdOrException.id, journeyType)
       )

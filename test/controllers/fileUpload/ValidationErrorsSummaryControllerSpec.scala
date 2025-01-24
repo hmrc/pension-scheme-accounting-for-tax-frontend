@@ -26,21 +26,23 @@ import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsMoreThanOrEqualToMax
 import models.requests.IdentifierRequest
 import models.{ChargeType, UserAnswers}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.Json
-import play.api.test.FakeRequest
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
-import views.html.fileUpload.GenericErrorsView
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class ValidationErrorsSummaryControllerSpec extends ControllerSpecBase with JsonMatchers {
+class ValidationErrorsSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
 
+  private val templateToBeRendered = "fileUpload/genericErrors.njk"
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
 
   private def httpPathGET: String = controllers.fileUpload.routes.ValidationErrorsSummaryController
@@ -51,16 +53,17 @@ class ValidationErrorsSummaryControllerSpec extends ControllerSpecBase with Json
   private def returnToSchemeDetails = controllers.routes.ReturnToSchemeDetailsController
     .returnToSchemeDetails(srn, startDate.toString, accessType, versionInt).url
 
-  private val expectedOutcome = FileUploadOutcome(
-    status = ValidationErrorsMoreThanOrEqualToMax,
-    json = Json.obj(
-      "totalError" -> 2,
-      "errors" -> Json.arr(
-        "error1",
-        "error2"
-      )
-    )
-  )
+  private val errorsJson = Json.obj("test" -> "test")
+
+  private def jsonToPassToTemplate = Json.obj(
+    "chargeType" -> chargeType.toString,
+    "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
+    "srn" -> srn,
+    "fileDownloadInstructionsLink" -> fileDownloadInstructionLink,
+    "returnToFileUploadURL" -> dummyCall.url,
+    "returnToSchemeDetails" -> returnToSchemeDetails,
+    "schemeName" -> schemeName
+  ) ++ errorsJson
 
   private val mockFileUploadOutcomeConnector = mock[FileUploadOutcomeConnector]
 
@@ -73,28 +76,31 @@ class ValidationErrorsSummaryControllerSpec extends ControllerSpecBase with Json
 
   override def beforeEach(): Unit = {
     super.beforeEach()
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))
-      .thenReturn(Future.successful(Some(expectedOutcome)))
+      .thenReturn(Future.successful(Some(FileUploadOutcome(status = ValidationErrorsMoreThanOrEqualToMax, json = errorsJson))))
   }
 
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   "validationErrorsSummary Controller" must {
     "return OK and the correct view for a GET" in {
-      val request = FakeRequest(GET,httpPathGET)
+
       when(mockAppConfig.failureEndpointTarget(any(), any(), any(), any(), any())).thenReturn(dummyCall.url)
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      val dummyErrors = Seq("error1", "error2")
-      val view = application.injector.instanceOf[GenericErrorsView].apply(
-        schemeName, ChargeType.fileUploadText(chargeType), fileDownloadInstructionLink, 2, dummyErrors,
-        dummyCall.url, returnToSchemeDetails)(request, messages)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
   }
 }

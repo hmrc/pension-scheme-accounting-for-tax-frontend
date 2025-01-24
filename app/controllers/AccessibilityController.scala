@@ -18,20 +18,20 @@ package controllers
 
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.Inject
-import scala.concurrent.Future
-import views.html.AccessibilityView
+import scala.concurrent.ExecutionContext
 
 class AccessibilityController @Inject()(
     val controllerComponents: MessagesControllerComponents,
-    accessibilityView: AccessibilityView
-)
+    renderer: Renderer
+)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad: Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(accessibilityView()))
+    renderer.render("accessibility.njk").map(Ok(_))
   }
 }

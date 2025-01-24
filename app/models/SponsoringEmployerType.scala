@@ -17,9 +17,7 @@
 package models
 
 import play.api.data.Form
-import play.api.i18n.Messages
-import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
+import uk.gov.hmrc.viewmodels._
 
 sealed trait SponsoringEmployerType
 
@@ -33,22 +31,15 @@ object SponsoringEmployerType extends Enumerable.Implicits {
     SponsoringEmployerTypeOrganisation
   )
 
-  def radios(form: Form[_])(implicit messages: Messages): Seq[RadioItem] = {
-    Seq(
-      RadioItem(
-        content = Text(Messages("chargeC.whichTypeOfSponsoringEmployer.individual")),
-        value = Some(SponsoringEmployerTypeIndividual.toString),
-        checked = form("value").value.contains(SponsoringEmployerTypeIndividual.toString)
-      ),
-      RadioItem(
-        content = Text(Messages("chargeC.whichTypeOfSponsoringEmployer.organisation")),
-        value = Some(SponsoringEmployerTypeOrganisation.toString),
-        checked = form("value").value.contains(SponsoringEmployerTypeOrganisation.toString)
-      )
+  def radios(form: Form[_]): Seq[Radios.Item] = {
+    val field = form("value")
+    val items = Seq(
+      Radios.Radio(msg"chargeC.whichTypeOfSponsoringEmployer.individual", SponsoringEmployerTypeIndividual.toString),
+      Radios.Radio(msg"chargeC.whichTypeOfSponsoringEmployer.organisation", SponsoringEmployerTypeOrganisation.toString)
     )
+
+    Radios(field, items)
   }
-
-
 
   implicit val enumerable: Enumerable[SponsoringEmployerType] =
     Enumerable(values.map(v => v.toString -> v): _*)

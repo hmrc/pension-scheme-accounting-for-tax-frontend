@@ -21,14 +21,15 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, DataRetrievalAction, IdentifierAction}
 import models.LocalDateBinder._
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
-import views.html.AFTReturnLockedView
+import scala.concurrent.ExecutionContext
 
 class AFTReturnLockedController @Inject()(appConfig: FrontendAppConfig,
                                           override val messagesApi: MessagesApi,
@@ -37,7 +38,7 @@ class AFTReturnLockedController @Inject()(appConfig: FrontendAppConfig,
                                           identify: IdentifierAction,
                                           getData: DataRetrievalAction,
                                           schemeService: SchemeService,
-                                          aftReturnLockedView: AFTReturnLockedView,
+                                          renderer: Renderer,
                                           allowAccess: AllowAccessActionProviderForIdentifierRequest
                                                    )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
@@ -46,11 +47,12 @@ class AFTReturnLockedController @Inject()(appConfig: FrontendAppConfig,
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
-          Future.successful(Ok(aftReturnLockedView(
-            controllers.routes.AFTLoginController.onPageLoad(srn).url,
-            controllers.routes.AFTReturnLockedController.onClick(srn, startDate).url,
-            schemeDetails.schemeName
-          )))
+          val json = Json.obj(
+            "schemeName" -> schemeDetails.schemeName,
+            "selectAnotherUrl" -> controllers.routes.AFTLoginController.onPageLoad(srn).url,
+            "returnUrl" -> controllers.routes.AFTReturnLockedController.onClick(srn, startDate).url
+          )
+          renderer.render("aftReturnLocked.njk", json).map(Ok(_))
         }
     }
 

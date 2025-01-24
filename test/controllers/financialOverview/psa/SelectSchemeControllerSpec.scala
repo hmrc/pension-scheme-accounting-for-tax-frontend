@@ -26,10 +26,11 @@ import data.SampleData.psaId
 import forms.SelectSchemeFormProvider
 import matchers.JsonMatchers
 import models.financialStatement.PenaltyType
-import models.financialStatement.PenaltyType.{ContractSettlementCharges, penaltyTypeToString}
+import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.{Enumerable, PenaltySchemes}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
@@ -37,16 +38,16 @@ import play.api.data.Form
 import play.api.http.Status.{OK, SEE_OTHER}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Call, Results}
-import play.api.test.Helpers.{route, status, _}
+import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.mvc.Results
+import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
+import play.twirl.api.Html
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
-import utils.TwirlMigration
-import views.html.financialOverview.psa.SelectSchemeView
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
+class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   import SelectSchemeControllerSpec._
@@ -70,19 +71,23 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
+  private val jsonToTemplate: Form[PenaltySchemes] => JsObject = form => Json.obj(
+    fields = "form" -> form,
+    "radios" -> PenaltySchemes.radios(form, penaltySchemes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
+  )
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
     reset(mockAppConfig)
     reset(mockFICacheConnector)
     reset(mockFSConnector)
-    when(mockAppConfig.timeoutSeconds).thenReturn("5")
-    when(mockAppConfig.countdownSeconds).thenReturn("1")
-    when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("/mockUrl")
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
       thenReturn(Future.successful(penaltySchemes))
+
   }
 
   "SelectSchemeController" when {
@@ -90,26 +95,17 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
 
       "return OK with the correct view" in {
 
-        val request = httpGETRequest(httpPathGET)
-        val result = route(application, request).value
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+        val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
-        val view = application.injector.instanceOf[SelectSchemeView].apply(
-          form = form,
-          submitCall = submitCall,
-          typeParam = mockPsaPenaltiesAndChargesService.getTypeParam(penaltyType),
-          psaName = "psa-name",
-          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-          radios = TwirlMigration.toTwirlRadiosWithHintText(
-            PenaltySchemes.radios(
-              form,
-              penaltySchemes,
-              Seq("govuk-tag govuk-tag--red govuk-!-display-inline"),
-              areLabelsBold = false))
-        )(request, messages)
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-        compareResultAndView(result, view)
+        templateCaptor.getValue mustEqual template
+        jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
       }
     }
 
@@ -128,6 +124,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
 }
 
 object SelectSchemeControllerSpec {
+  private val template = "financialOverview/psa/selectScheme.njk"
   private val year = "2020"
   val pstr = "24000040IN"
   private val ps1 = PenaltySchemes(name = Some("Scheme1"), pstr = "24000040IN", srn = None, None)
@@ -135,11 +132,8 @@ object SelectSchemeControllerSpec {
   val penaltySchemes: Seq[PenaltySchemes] = Seq(ps1, ps2)
   val psaFS: JsValue = Json.toJson(psaFSResponse)
   val penaltyType: PenaltyType = ContractSettlementCharges
-  val typeParam: String = "Contract settlement charges"
 
-  private def httpPathGET: String = routes.SelectSchemeController.onPageLoad(penaltyType, year).url
+  private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad(penaltyType, year).url
 
-  private val submitCall: Call = routes.SelectSchemeController.onSubmit(penaltyType, year)
-
-  private def httpPathPOST: String = submitCall.url
+  private def httpPathPOST: String = routes.SelectSchemeController.onSubmit(penaltyType, year).url
 }

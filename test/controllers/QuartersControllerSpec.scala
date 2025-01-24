@@ -25,7 +25,8 @@ import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, DisplayQuarter, Enumerable, LockedHint, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
+import models.{AFTQuarter, DisplayQuarter, Enumerable, GenericViewModel, LockedHint, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -34,18 +35,18 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
-import utils.{DateHelper, TwirlMigration}
-import views.html.QuartersView
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
+class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -62,12 +63,23 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   private val testYear = 2020
   private val errorKey = "quarters.error.required"
+  val templateToBeRendered = "quarters.njk"
   val formProvider = new QuartersFormProvider()
   val availableQuarters: Seq[AFTQuarter] = Seq(q22020, q32020, q42020, q12021)
   val form: Form[AFTQuarter] = formProvider(messages(errorKey, testYear), availableQuarters)
 
   lazy val httpPathGET: String = controllers.routes.QuartersController.onPageLoad(srn, testYear.toString).url
   lazy val httpPathPOST: String = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url
+
+  private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
+    "form" -> form,
+    "radios" -> Quarters.radios(form, Seq(displayQuarterStart)),
+    "viewModel" -> GenericViewModel(
+      submitUrl = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url,
+      returnUrl = dummyCall.url,
+      schemeName = schemeName),
+    "year" -> testYear.toString
+  )
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q12021.toString))
 
@@ -80,6 +92,7 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
+    when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
     DateHelper.setDate(Some(LocalDate.of(2021, 1, 1)))
   }
 
@@ -88,28 +101,22 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
   "Quarters Controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
-
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[QuartersView].apply(
-        testYear.toString,
-        form,
-        TwirlMigration.toTwirlRadios(Quarters.radios(form, Seq(displayQuarterStart))),
-        controllers.routes.QuartersController.onSubmit(srn, testYear.toString),
-        dummyCall.url,
-        schemeName
-      )(httpGETRequest(httpPathGET), messages)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      compareResultAndView(result, view)
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
     }
 
     "redirect to next page when valid data is submitted" in {
-      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
 
       when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
@@ -117,17 +124,6 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, q12021.startDate, accessType, versionInt).url)
-    }
-
-    "redirect when there are no displayQuarters" in {
-      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq()))
-
-      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result) mustBe Some(controllers.routes.SessionExpiredController.onPageLoad.url)
     }
 
     "redirect to locked page when AFT return is locked but there is no overview data" in {
@@ -143,8 +139,6 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      when(mockQuartersService.getStartQuarters(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(displayQuarterStart)))
-
       when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value

@@ -22,10 +22,14 @@ import data.SampleData._
 import helpers.CYAChargeAHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.UserAnswers
+import models.{GenericViewModel, UserAnswers}
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
+import play.api.libs.json.{JsObject, Json}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatchers with CheckYourAnswersBehaviour {
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
+
+  private val templateToBeRendered = "check-your-answers.njk"
 
   private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url
 
@@ -35,21 +39,26 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
 
   private val helper: CYAChargeAHelper = new CYAChargeAHelper(srn, startDate, accessType, versionInt)
 
-  private val rows = Seq(
-    helper.chargeAMembers(chargeAChargeDetails),
-    helper.chargeAAmountLowerRate(chargeAChargeDetails),
-    helper.chargeAAmountHigherRate(chargeAChargeDetails),
-    helper.total(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
+  private val jsonToPassToTemplate: JsObject = Json.obj(
+    "list" -> Seq(
+      helper.chargeAMembers(chargeAChargeDetails),
+      helper.chargeAAmountLowerRate(chargeAChargeDetails),
+      helper.chargeAAmountHigherRate(chargeAChargeDetails),
+      helper.total(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
+    ),
+    "viewModel" -> GenericViewModel(
+      submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      schemeName = schemeName
+    ),
+    "chargeName" -> "chargeA"
   )
 
   "CheckYourAnswers Controller" must {
     behave like cyaController(
       httpPath = httpGETRoute,
-      chargeName = "chargeA",
-      removeChargeUrl = Some(controllers.chargeA.routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, versionInt).url),
-      list = rows,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt).url,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate,
       userAnswers = ua
     )
 

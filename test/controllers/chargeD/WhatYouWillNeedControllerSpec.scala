@@ -18,32 +18,45 @@ package controllers.chargeD
 
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeLifetimeAllowance
+import models.GenericViewModel
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeD.WhatYouWillNeedPage
 import play.api.Application
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
-import utils.AFTConstants.QUARTER_START_DATE
-import views.html.chargeD.WhatYouWillNeedView
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers {
+import scala.concurrent.Future
+
+class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val templateToBeRendered = "chargeD/whatYouWillNeed.njk"
 
   private val uaPsrTrue = userAnswersWithSchemeNamePstrQuarter.setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(0)), true)
   private val uaPsrFalse = userAnswersWithSchemeNamePstrQuarter.setOrException(IsPublicServicePensionsRemedyPage(ChargeTypeLifetimeAllowance, Some(0)), false)
   private def httpPathGET: String = controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt, index = 0).url
 
+  private def jsonToPassToTemplate(optMessage: Option[String]) = Json.obj(
+    "viewModel" -> GenericViewModel(
+      submitUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      schemeName = schemeName),
+    "psr" -> optMessage
+  )
+
   override def beforeEach(): Unit = {
     super.beforeEach()
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 
@@ -51,37 +64,37 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers
 
     "return OK and the correct view for a GET without extra PSR paragraph" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(uaPsrFalse))
-      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-      val request = httpGETRequest(httpPathGET)
-      val result = route(application, request).value
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val view = application.injector.instanceOf[WhatYouWillNeedView].apply(
-        dummyCall.url,
-        SampleData.schemeName,
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-        None,
-      )(request, messages)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(None))
     }
     "return OK and the correct view for a GET with extra PSR paragraph" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(uaPsrTrue))
-      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-      val request = httpGETRequest(httpPathGET)
-      val result = route(application, request).value
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val view = application.injector.instanceOf[WhatYouWillNeedView].apply(
-        dummyCall.url,
-        SampleData.schemeName,
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-        Some("chargeD.whatYouWillNeed.li6"),
-      )(request, messages)
+      when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(Some("chargeD.whatYouWillNeed.li6")))
     }
   }
 }

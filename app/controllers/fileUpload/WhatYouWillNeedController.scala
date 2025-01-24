@@ -18,17 +18,18 @@ package controllers.fileUpload
 
 import controllers.actions._
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, NormalMode}
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.fileUpload.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.fileUpload.WhatYouWillNeedView
 
 import javax.inject.Inject
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
@@ -37,22 +38,35 @@ class WhatYouWillNeedController @Inject()(
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
-    navigator: CompoundNavigator,
-    view: WhatYouWillNeedView
-)
+    renderer: Renderer,
+    navigator: CompoundNavigator
+)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
-      val isPsr = request.userAnswers.isPublicServicePensionsRemedy(chargeType)
+      val isPsr =  request.userAnswers.isPublicServicePensionsRemedy(chargeType)
       val (templateDownloadLink, instructionsDownloadLink) =
-        (controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url, controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url)
-      val submitUrl = navigator.nextPage(WhatYouWillNeedPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url
-      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
-      val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      Future.successful(Ok(view(chargeType.toString, ChargeType.fileUploadText(chargeType), submitUrl, schemeName,
-        returnUrl, isPsr.getOrElse(false), templateDownloadLink, instructionsDownloadLink)))
+        (controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url,
+        controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url)
+
+      val viewModel = GenericViewModel(
+        submitUrl = navigator.nextPage(WhatYouWillNeedPage(chargeType), NormalMode, ua, srn, startDate, accessType, version).url,
+        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+        schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
+      )
+
+      renderer.render(template = "fileUpload/whatYouWillNeed.njk",
+        Json.obj(
+          "chargeType" -> chargeType.toString,
+          "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
+          "srn" -> srn, "startDate" -> Some(startDate),
+          "fileDownloadTemplateLink" -> templateDownloadLink,
+          "fileDownloadInstructionsLink" -> instructionsDownloadLink,
+          "viewModel" -> viewModel,
+          "psr" -> isPsr))
+        .map(Ok(_))
     }
 }

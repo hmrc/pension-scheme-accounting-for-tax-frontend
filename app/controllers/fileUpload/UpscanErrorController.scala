@@ -19,15 +19,16 @@ package controllers.fileUpload
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.{AccessType, ChargeType}
+import models.{AccessType, ChargeType, GenericViewModel}
 import play.api.i18n.I18nSupport
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.fileUpload.error.{InvalidHeaderOrBodyView, QuarantineView, RejectedView, UnknownView}
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 class UpscanErrorController @Inject()(
                                        val controllerComponents: MessagesControllerComponents,
@@ -35,41 +36,52 @@ class UpscanErrorController @Inject()(
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
                                        requireData: DataRequiredAction,
-                                       allowAccess: AllowAccessActionProviderForIdentifierRequest,
-                                       invalidHeaderOrBodyView: InvalidHeaderOrBodyView,
-                                       quarantineView: QuarantineView,
-                                       rejectedView: RejectedView,
-                                       unknownView: UnknownView
-                                      )
+                                       renderer: Renderer,
+                                       allowAccess: AllowAccessActionProviderForIdentifierRequest
+                                      )(implicit ec: ExecutionContext)
                                       extends FrontendBaseController
                                       with I18nSupport {
 
 
   def quarantineError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen allowAccess(Some(srn))) { implicit request =>
-      Ok(quarantineView(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url))
+    (identify andThen allowAccess(Some(srn))).async { implicit request =>
+    val json = Json.obj(
+      "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
+    renderer.render("fileUpload/error/quarantine.njk", json).map(Ok(_))
   }
 
   def rejectedError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen allowAccess(Some(srn))) { implicit request =>
-      Ok(rejectedView(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url))
+    (identify andThen allowAccess(Some(srn))).async { implicit request =>
+    val json = Json.obj(
+      "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
+    renderer.render("fileUpload/error/rejected.njk", json).map(Ok(_))
   }
 
   def unknownError(srn: String, startDate: String, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen allowAccess(Some(srn))) { implicit request =>
-     Ok(unknownView(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url))
+    (identify andThen allowAccess(Some(srn))).async { implicit request =>
+    val json = Json.obj(
+      "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url)
+    renderer.render("fileUpload/error/unknown.njk", json).map(Ok(_))
   }
 
   def invalidHeaderOrBodyError(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, chargeType: ChargeType): Action[AnyContent] =
     (identify andThen allowAccess(Some(srn)) andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        val submitUrl = routes.FileUploadController.onPageLoad(srn, startDate.toString, accessType, version, chargeType).url
-        val returnUrl = config.schemeDashboardUrl(request).format(srn)
+
+        val viewModel = GenericViewModel(
+          submitUrl = routes.FileUploadController.onPageLoad(srn, startDate.toString, accessType, version, chargeType).url,
+          returnUrl = config.schemeDashboardUrl(request).format(srn),
+          schemeName = schemeName
+        )
         val isPsr = request.userAnswers.isPublicServicePensionsRemedy(chargeType)
-        val fileTemplateLink = controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url
-        val fileDownloadInstructionsLink = controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url
-        Future.successful(Ok(invalidHeaderOrBodyView(ChargeType.fileUploadText(chargeType), schemeName, submitUrl,
-          returnUrl, fileTemplateLink, fileDownloadInstructionsLink)))
+        val json = Json.obj(
+          "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
+          "fileTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType, isPsr).url,
+          "fileDownloadInstructionsLink" ->
+            controllers.routes.FileDownloadController.instructionsFile(chargeType, isPsr).url,
+          "viewModel" -> viewModel
+        )
+        renderer.render("fileUpload/error/invalidHeaderOrBody.njk", json).map(Ok(_))
       }
     }
 

@@ -21,16 +21,17 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, CheckMode, Index, Mode, UserAnswers}
+import models.{AccessType, ChargeType, CheckMode, GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.IsPublicServicePensionsRemedyPage
 import pages.mccloud.{IsChargeInAdditionReportedPage, SchemePathHelper, WasAnotherPensionSchemePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import viewmodels.TwirlRadios
-import views.html.mccloud.WasAnotherPensionScheme
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -45,9 +46,10 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
                                                   requireData: DataRequiredAction,
                                                   formProvider: YesNoFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
-                                                  wasAnotherPensionSchemeView: WasAnotherPensionScheme)(implicit ec: ExecutionContext)
+                                                  renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("wasAnotherPensionScheme.error.required", memberName))
@@ -62,21 +64,29 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
-          val chargeTypeDescription = s"chargeType.description.${chargeType.toString}"
+          val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
+
+          val viewModel = GenericViewModel(
+            submitUrl = routes.WasAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName = schemeName
+          )
 
           val preparedForm = request.userAnswers.get(WasAnotherPensionSchemePage(chargeType, index)) match {
             case None => form(chargeTypeDescription)
             case Some(value) => form(chargeTypeDescription).fill(value)
           }
 
-          Future.successful(Ok(wasAnotherPensionSchemeView(
-            form = preparedForm,
-            radios = TwirlRadios.yesNo(preparedForm("value")),
-            chargeTypeDesc = chargeTypeDescription,
-            submitCall = routes.WasAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index),
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )))
+          val json = Json.obj(
+            "srn" -> srn,
+            "startDate" -> Some(localDateToString(startDate)),
+            "form" -> preparedForm,
+            "viewModel" -> viewModel,
+            "radios" -> Radios.yesNo(preparedForm("value")),
+            "chargeTypeDescription" -> chargeTypeDescription
+          )
+
+          renderer.render("mccloud/wasAnotherPensionScheme.njk", json).map(Ok(_))
         }
     }
 
@@ -90,14 +100,21 @@ class WasAnotherPensionSchemeController @Inject()(override val messagesApi: Mess
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              Future.successful(BadRequest(wasAnotherPensionSchemeView(
-                form = formWithErrors,
-                radios = TwirlRadios.yesNo(formWithErrors("value")),
-                chargeTypeDesc = chargeTypeDescription,
-                submitCall = routes.WasAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index),
+
+              val viewModel = GenericViewModel(
+                submitUrl = routes.WasAnotherPensionSchemeController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
-              )))
+              )
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(localDateToString(startDate)),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel,
+                "radios" -> Radios.yesNo(formWithErrors("value")),
+                "chargeTypeDescription" -> chargeTypeDescription
+              )
+              renderer.render("mccloud/wasAnotherPensionScheme.njk", json).map(BadRequest(_))
             },
             value => {
               def getUserAnswers: Future[UserAnswers] = {

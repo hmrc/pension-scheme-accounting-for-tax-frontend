@@ -20,27 +20,30 @@ import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData.{schemeDetails, srn}
+import matchers.JsonMatchers.containJson
 import models.viewModels.PastAftReturnsViewModel
 import models.{AFTOverview, AFTOverviewVersion, AFTQuarter, Enumerable, PastAftReturnGroup, ReportLink}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
 import play.twirl.api.Html
 import services.SchemeService
-import views.html.PastAFTReturnsView
+import uk.gov.hmrc.nunjucks.NunjucksSupport
 
 import java.time.LocalDate
 import scala.annotation.tailrec
 import scala.concurrent.Future
 
-class PastAftReturnsControllerSpec extends ControllerSpecBase with BeforeAndAfterEach
+class PastAftReturnsControllerSpec extends ControllerSpecBase with NunjucksSupport with BeforeAndAfterEach
   with Enumerable.Implicits with Results with ScalaFutures {
 
   private val mockSchemeService = mock[SchemeService]
@@ -56,6 +59,17 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with BeforeAndAfte
 
   private val httpPathGET = controllers.routes.PastAftReturnsController.onPageLoad(srn, 0).url
 
+  val templateToBeRendered = "past_aft_returns.njk"
+
+  def jsonToPassToTemplate(pageNo: Int, viewModel: PastAftReturnsViewModel): JsObject = Json.obj(
+    "page" -> pageNo,
+    "schemeName" -> SampleData.schemeName,
+    "returnLink" -> controllers.routes.AFTOverviewController.onPageLoad(srn).url,
+    "viewModel" -> viewModel,
+    "firstPageLink" -> controllers.routes.PastAftReturnsController.onPageLoad(srn, 1).url,
+    "secondPageLink" -> controllers.routes.PastAftReturnsController.onPageLoad(srn, 2).url
+  )
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
@@ -70,22 +84,20 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with BeforeAndAfte
       when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(sampleData))
 
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
       val groupedReturns = generateGroupedReturns(1)
 
-      val view = application.injector.instanceOf[PastAFTReturnsView].apply(
-        SampleData.schemeName,
-        PastAftReturnsViewModel(groupedReturns),
-        0,
-        controllers.routes.PastAftReturnsController.onPageLoad(srn, 1).url,
-        controllers.routes.PastAftReturnsController.onPageLoad(srn, 2).url,
-        controllers.routes.AFTOverviewController.onPageLoad(srn).url
-      )(httpGETRequest(httpPathGET), messages)
-
-      compareResultAndView(result, view)
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(0, PastAftReturnsViewModel(groupedReturns)))
     }
     "successfully render correct view when more than 4 years of past AFT returns are available" in {
 
@@ -94,23 +106,20 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with BeforeAndAfte
       when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(sampleData))
 
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
       val groupedReturns = generateGroupedReturns(4)
 
-      val view = application.injector.instanceOf[PastAFTReturnsView].apply(
-        SampleData.schemeName,
-        PastAftReturnsViewModel(groupedReturns),
-        1,
-        controllers.routes.PastAftReturnsController.onPageLoad(srn, 1).url,
-        controllers.routes.PastAftReturnsController.onPageLoad(srn, 2).url,
-        controllers.routes.AFTOverviewController.onPageLoad(srn).url
-      )(httpGETRequest(httpPathGET), messages)
-
-      compareResultAndView(result, view)
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(1, PastAftReturnsViewModel(groupedReturns)))
     }
   }
 

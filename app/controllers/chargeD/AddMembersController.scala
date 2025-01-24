@@ -23,20 +23,21 @@ import handlers.ErrorHandler
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTQuarter, AccessType, AddMembersViewModel, ChargeType, Member, NormalMode, UserAnswers}
+import models.{AFTQuarter, AccessType, ChargeType, GenericViewModel, Member, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeD.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
-import services.AddMembersService.mapChargeXMembersToTableTwirlMigration
+import renderer.Renderer
+import services.AddMembersService.mapChargeXMembersToTable
 import services.ChargePaginationService
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
-import viewmodels.TwirlRadios
-import views.html.chargeD.AddMembersView
+import viewmodels.Table
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -54,9 +55,10 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      chargePaginationService: ChargePaginationService,
                                      deleteChargeHelper: DeleteChargeHelper,
                                      errorHandler:ErrorHandler,
-                                     view: AddMembersView)(implicit ec: ExecutionContext)
+                                     renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with NunjucksSupport {
 
   def form: Form[Boolean] = formProvider("chargeD.addMembers.error")
 
@@ -64,7 +66,10 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
     request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(quarter)) =>
-        renderPageWithStatus(srn, startDate, form, schemeName, quarter, accessType, version, pageNumber, Ok)
+        getJson(srn, startDate, form, schemeName, quarter, accessType, version, pageNumber).map{json =>
+          renderer.render(template = "chargeD/addMembers.njk", json)
+            .map(Ok(_))
+        }.getOrElse(errorHandler.onClientError(request.request, NOT_FOUND))
       case _ => futureSessionExpired
     }
   }
@@ -92,7 +97,9 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
             (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
               case (Some(schemeName), Some(quarter)) =>
-                renderPageWithStatus(srn, startDate, formWithErrors, schemeName, quarter, accessType, version, pageNumber, BadRequest)
+                getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version, pageNumber).map { json =>
+                  renderer.render(template = "chargeD/addMembers.njk", json).map(BadRequest(_))
+                }.getOrElse(Future.successful(NotFound))
               case _ => futureSessionExpired
             }
           },
@@ -107,16 +114,20 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   }
 
   // scalastyle:off parameter.number
-  private def renderPageWithStatus(srn: String,
+  private def getJson(srn: String,
     startDate: LocalDate,
     form: Form[_],
     schemeName: String,
     quarter: AFTQuarter,
     accessType: AccessType,
     version: Int,
-    pageNumber: Int,
-    status: Status
-  )(implicit request: DataRequest[AnyContent]):  Future[Result]  = {
+    pageNumber: Int
+  )(implicit request: DataRequest[AnyContent]): Option[JsObject] = {
+
+    val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate, accessType, version, pageNumber).url,
+                                     returnUrl = controllers.routes.ReturnToSchemeDetailsController
+                                       .returnToSchemeDetails(srn, startDate, accessType, version).url,
+                                     schemeName = schemeName)
 
     val optionPaginatedMembersInfo = chargePaginationService.getItemsPaginated(
       pageNo = pageNumber,
@@ -127,29 +138,29 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
     )
 
     optionPaginatedMembersInfo.map { pmi =>
-      val viewModel = AddMembersViewModel(
-        schemeName = schemeName,
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-        canChange = !request.isViewOnly,
-        quarterStart = quarter.startDate.format(dateFormatterDMY),
-        quarterEnd = quarter.endDate.format(dateFormatterDMY),
-        paginationStatsStartMember = pmi.paginationStats.startMember,
-        paginationStatsLastMember = pmi.paginationStats.lastMember,
-        paginationStatsTotalMembers = pmi.paginationStats.totalMembers,
-        radios= TwirlRadios.yesNo(form("value"))
+      Json.obj(
+        "srn" -> srn,
+        "startDate" -> Some(localDateToString(startDate)),
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "radios" -> Radios.yesNo(form("value")),
+        "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
+        "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
+        "table" -> Json.toJson(mapToTable(pmi.membersForCurrentPage, !request.isViewOnly, pmi.paginationStats.totalAmount)),
+        "pageLinksSeq" -> chargePaginationService.pagerNavSeq(
+          pmi.paginationStats,
+          controllers.chargeD.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, _)
+        ),
+        "paginationStatsStartMember" -> pmi.paginationStats.startMember,
+        "paginationStatsLastMember" -> pmi.paginationStats.lastMember,
+        "paginationStatsTotalMembers" -> pmi.paginationStats.totalMembers,
+        "canChange" -> !request.isViewOnly
       )
-      val submitCall = routes.AddMembersController.onSubmit(srn, startDate, accessType, version, pageNumber)
-      val table = mapToTable(pmi.membersForCurrentPage, !request.isViewOnly, pmi.paginationStats.totalAmount)
-      val pageLinksSeq = chargePaginationService.pagerNavSeq(
-        pmi.paginationStats,
-        controllers.chargeD.routes.AddMembersController.onPageLoadWithPageNo(srn, startDate, accessType, version, _)
-      )
-      Future.successful(status(view(form, viewModel, submitCall, table, pageLinksSeq)))
-    }.getOrElse(Future.successful(NotFound))
+    }
   }
 
   private def mapToTable(members: Seq[Member], canChange: Boolean, totalAmount:BigDecimal)(implicit messages: Messages): Table =
-    mapChargeXMembersToTableTwirlMigration("chargeD", members, canChange, Some(totalAmount))
+    mapChargeXMembersToTable("chargeD", members, canChange, Some(totalAmount))
 
   private def viewUrl(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Int => Call =
     controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, _)

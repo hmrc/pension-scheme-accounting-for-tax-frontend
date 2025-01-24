@@ -26,20 +26,19 @@ import models.UserAnswers
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentMatchers, Mockito}
+import org.mockito.{ArgumentCaptor, ArgumentMatchers, Mockito}
 import pages.Page
 import play.api.Application
 import play.api.inject.bind
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.http.UpstreamErrorResponse
-import views.html.CheckYourAnswersView
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-trait CheckYourAnswersBehaviour extends ControllerSpecBase with JsonMatchers {
+trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -56,38 +55,26 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with JsonMatchers {
   }
 
   def cyaController(httpPath: => String,
-                    chargeName: String,
-                    list: Seq[SummaryListRow],
-                    canChange: Boolean = true,
-                    removeChargeUrl: Option[String] = None,
-                    showAnotherSchemeBtn: Boolean = false,
-                    selectAnotherSchemeUrl: String = "",
-                    returnToSummaryLink: String = "",
-                    returnUrl: String,
-                    submitUrl: String,
+                    templateToBeRendered: String,
+                    jsonToPassToTemplate: JsObject,
                     userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter): Unit = {
 
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
 
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
       val result = route(application, httpGETRequest(httpPath)).value
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[CheckYourAnswersView].apply(
-        chargeName,
-        list,
-        canChange,
-        removeChargeUrl,
-        showAnotherSchemeBtn,
-        selectAnotherSchemeUrl,
-        returnToSummaryLink,
-        returnUrl,
-        schemeName,
-        submitUrl
-      )(httpGETRequest(httpPath), messages)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      compareResultAndView(result, view)
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
 
     "redirect to AFT summary page for a GET when necessary answers are missing" in {

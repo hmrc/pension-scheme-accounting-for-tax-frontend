@@ -25,25 +25,27 @@ import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, PenaltiesFilter, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import renderer.Renderer
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.financialStatement.penalties.SelectYearView
 
 class SelectPenaltiesYearController @Inject()(override val messagesApi: MessagesApi,
                                               identify: IdentifierAction,
                                               allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                               formProvider: YearsFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
+                                              renderer: Renderer,
                                               config: FrontendAppConfig,
-                                              service: PenaltiesService,
-                                              selectYearView: SelectYearView)
+                                              service: PenaltiesService)
                                              (implicit ec: ExecutionContext) extends FrontendBaseController
-                                                                      with I18nSupport {
+                                                                      with I18nSupport
+                                                                      with NunjucksSupport {
 
   private def form(errorParameter: String)(implicit messages: Messages, ev: Enumerable[Year]): Form[Year] =
     formProvider(messages("selectPenaltiesYear.error", messages(errorParameter)))(implicitly)
@@ -56,14 +58,14 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       val years = getYears(penaltyType, penaltiesCache.penalties)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
-      Future.successful(Ok(selectYearView(
-        form(typeParam),
-        typeParam,
-        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form(typeParam), years)),
-        routes.SelectPenaltiesYearController.onSubmit(penaltyType,  journeyType),
-        config.managePensionsSchemeOverviewUrl,
-        penaltiesCache.psaName
-      )))
+      val json = Json.obj(
+        "psaName" -> penaltiesCache.psaName,
+        "typeParam" -> typeParam,
+        "form" -> form(typeParam),
+        "radios" -> FSYears.radios(form(typeParam), years)
+      )
+
+      renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(Ok(_))
     }
 
   }
@@ -85,14 +87,13 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
 
       form(typeParam).bindFromRequest().fold(
         formWithErrors => {
-          Future.successful(BadRequest(selectYearView(
-            formWithErrors,
-            typeParam,
-            TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, getYears(penaltyType, penaltiesCache.penalties))),
-            routes.SelectPenaltiesYearController.onSubmit(penaltyType,  journeyType),
-            config.managePensionsSchemeOverviewUrl,
-            penaltiesCache.psaName
-          )))
+          val json = Json.obj(
+            "psaName" -> penaltiesCache.psaName,
+            "typeParam" -> typeParam,
+            "form" -> formWithErrors,
+            "radios" -> FSYears.radios(formWithErrors, getYears(penaltyType, penaltiesCache.penalties))
+          )
+          renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(BadRequest(_))
         },
         value => navMethod(penaltiesCache.penalties, value.year)
       )

@@ -16,6 +16,8 @@
 
 package controllers.chargeF
 
+import connectors.SchemeDetailsConnector
+import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import models.LocalDateBinder._
 import models.{AccessType, NormalMode}
@@ -23,12 +25,14 @@ import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.chargeF.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.chargeF.WhatYouWillNeedView
 
 import java.time.LocalDate
 import javax.inject.Inject
+import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
@@ -37,18 +41,24 @@ class WhatYouWillNeedController @Inject()(
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
-    navigator: CompoundNavigator,
-    view: WhatYouWillNeedView
-)
+    renderer: Renderer,
+    schemeDetailsConnector: SchemeDetailsConnector,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    navigator: CompoundNavigator
+)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)) { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
       val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version)
-      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
-      Ok(view(nextPage.url, schemeName, returnUrl))
+
+      renderer
+        .render(template = "chargeF/whatYouWillNeed.njk",
+                Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url, "srn" -> srn, "startDate" -> Some(localDateToString(startDate)),
+                  "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url))
+        .map(Ok(_))
     }
 }

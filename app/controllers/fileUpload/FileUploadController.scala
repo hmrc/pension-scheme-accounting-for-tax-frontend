@@ -23,15 +23,16 @@ import connectors.{Reference, UpscanInitiateConnector}
 import controllers.actions._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, FileUploadDataCache, UploadId}
+import models.{AccessType, ChargeType, FileUploadDataCache, GenericViewModel, UploadId}
 import pages.fileUpload.UploadedFileName
 import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.fileUpload.FileUploadView
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,12 +44,12 @@ class FileUploadController @Inject()(
                                       allowAccess: AllowAccessActionProvider,
                                       requireData: DataRequiredAction,
                                       val controllerComponents: MessagesControllerComponents,
+                                      renderer: Renderer,
                                       auditService: AuditService,
                                       upscanInitiateConnector: UpscanInitiateConnector,
                                       uploadProgressTracker: UploadProgressTracker,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
-                                      upscanErrorHandlingService: UpscanErrorHandlingService,
-                                      view: FileUploadView
+                                      upscanErrorHandlingService: UpscanErrorHandlingService
                                     )(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
   extends FrontendBaseController
     with I18nSupport {
@@ -65,16 +66,24 @@ class FileUploadController @Inject()(
       logger.info("FileUploadController.onPageLoad BF upscanInitiate")
       upscanInitiateConnector.initiateV2(Some(successRedirectUrl), Some(errorRedirectUrl), chargeType).flatMap { uir =>
         uploadProgressTracker.requestUpload(uploadId, Reference(uir.fileReference.reference)).flatMap { _ =>
-          val submitUrl = Call("POST", uir.postTarget)
-          val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
-
+          val viewModel = GenericViewModel(
+            submitUrl = uir.postTarget,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme")
+          )
           logger.info("FileUploadController.onPageLoad AF upscanInitiate")
-          Future.successful(Ok(view(
-            schemeName = request.userAnswers.get(SchemeNameQuery).getOrElse("the scheme"),
-            chargeType.toString,
-            ChargeType.fileUploadText(chargeType), submitUrl, returnUrl,getErrorCode(request),
-            uir.formFields
-          )))
+          renderer.render(template = "fileUpload/fileupload.njk",
+            Json.obj(
+              "chargeType" -> chargeType.toString,
+              "chargeTypeText" -> ChargeType.fileUploadText(chargeType),
+              "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "formFields" -> uir.formFields.toList,
+              "error" -> getErrorCode(request),
+              "maxFileUploadSize" -> appConfig.maxUploadFileSize,
+              "viewModel" -> viewModel))
+            .map(Ok(_))
+
         }
       }
     }
@@ -138,4 +147,3 @@ class FileUploadController @Inject()(
     }
   }
 }
-

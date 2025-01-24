@@ -1,0 +1,49 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"  import title %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+
+{% block pageTitle %}
+  {{ title(messages("fileupload.invalid.title", chargeTypeText)) }}
+{% endblock %}
+
+
+{% block mainContent %}
+
+
+    <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+
+            <h1 class="govuk-heading-xl">
+              {{ messages("fileupload.invalid.title", chargeTypeText) }}
+             </h1>
+               <p class="govuk-body">{{ messages("fileupload.invalid.p1") }}
+            <a href="{{fileDownloadInstructionsLink}}" class="govuk-link"> {{ messages("fileupload.invalid.download.instructions.link") }}</a>
+                 {{ messages("fileupload.invalid.subheading.p2") }}</p>
+              <h2 class="govuk-heading-m">
+                {{ messages("fileupload.invalid.h1") }}
+              </h2>
+                <p class="govuk-body">
+                {{ messages("fileUpload.amountTaxDue.generic.total.error.part1",totalError)}}
+                </p>
+                 <ul class="govuk-list govuk-list--bullet">
+                {% for e in errors %}
+                     <li>{{ messages(e) }} </li>
+                {% endfor %}
+                </ul>
+
+            {{ govukButton({
+                            href: returnToFileUploadURL,
+                            attributes: {id: "submit"},
+                            text: messages("return.to.fileupload")
+                          }) }}
+
+            </div>
+
+            </div>
+                  <p class="govuk-body"><a href="{{returnToSchemeDetails}}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+                  </p>
+      </p>
+{% endblock %}

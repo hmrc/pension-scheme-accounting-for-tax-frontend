@@ -25,10 +25,12 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.UserAnswers
 import pages.chargeC._
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
+import play.api.libs.json.{JsObject, Json}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatchers with CheckYourAnswersBehaviour {
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
+  private val templateToBeRendered = "check-your-answers.njk"
   private val index = 0
   private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt, index).url
@@ -47,28 +49,28 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
 
   private def helper(ua: UserAnswers) = new CYAChargeCHelper(srn, startDate, accessType, versionInt)
   
-  private val answersInd: Seq[SummaryListRow] = Seq(
+  private val answersInd: Seq[SummaryList.Row] = Seq(
     Seq(helper(uaInd).chargeCWhichTypeOfSponsoringEmployer(index, uaInd.get(WhichTypeOfSponsoringEmployerPage(index)).get)),
     helper(uaInd).chargeCEmployerDetails(index, Left(sponsoringIndividualDetails)),
     Seq(helper(uaInd).chargeCAddress(index, sponsoringEmployerAddress, Left(sponsoringIndividualDetails))),
     helper(uaInd).chargeCChargeDetails(index, chargeCDetails)
   ).flatten
 
-  private val answersOrg: Seq[SummaryListRow] = Seq(
+  private val answersOrg: Seq[SummaryList.Row] = Seq(
     Seq(helper(uaOrg).chargeCWhichTypeOfSponsoringEmployer(index, uaOrg.get(WhichTypeOfSponsoringEmployerPage(index)).get)),
     helper(uaOrg).chargeCEmployerDetails(index, Right(sponsoringOrganisationDetails)),
     Seq(helper(uaOrg).chargeCAddress(index, sponsoringEmployerAddress, Right(sponsoringOrganisationDetails))),
     helper(uaOrg).chargeCChargeDetails(index, chargeCDetails)
   ).flatten
 
+  private def jsonToPassToTemplate(answers: Seq[SummaryList.Row]): JsObject =
+    Json.obj("list" -> Json.toJson(answers))
 
   "CheckYourAnswers Controller for individual" must {
     behave like cyaController(
       httpPath = httpGETRoute,
-      chargeName = "chargeC",
-      list = answersInd,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      submitUrl = httpOnClickRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate(answersInd),
       userAnswers = uaInd
     )
 
@@ -82,10 +84,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
   "CheckYourAnswers Controller for organisation" must {
     behave like cyaController(
       httpPath = httpGETRoute,
-      chargeName = "chargeC",
-      list = answersOrg,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      submitUrl = httpOnClickRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate(answersOrg),
       userAnswers = uaOrg
     )
 

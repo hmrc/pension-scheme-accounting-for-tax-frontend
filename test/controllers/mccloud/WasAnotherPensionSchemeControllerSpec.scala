@@ -23,28 +23,29 @@ import forms.YesNoFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeLifetimeAllowance}
 import models.LocalDateBinder._
-import models.NormalMode
+import models.{GenericViewModel, NormalMode}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import viewmodels.TwirlRadios
-import views.html.mccloud.WasAnotherPensionScheme
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
 
 class WasAnotherPensionSchemeControllerSpec
   extends ControllerSpecBase
     with MockitoSugar
+    with NunjucksSupport
     with JsonMatchers
     with OptionValues
     with TryValues {
@@ -63,17 +64,31 @@ class WasAnotherPensionSchemeControllerSpec
       .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
       .url
 
-  private val annualAllowanceSubmitCall = routes.WasAnotherPensionSchemeController
-    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+  private def httpPathPOSTAnnualAllowance: String =
+    routes.WasAnotherPensionSchemeController
+      .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+      .url
 
   private def httpPathGETLifetimeAllowance: String =
     routes.WasAnotherPensionSchemeController
       .onPageLoad(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
       .url
 
-  private val lifetimeAllowanceSubmitCall = routes.WasAnotherPensionSchemeController
-    .onSubmit(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+  private def httpPathPOSTLifetimeAllowance: String =
+    routes.WasAnotherPensionSchemeController
+      .onSubmit(ChargeTypeLifetimeAllowance, NormalMode, srn, startDate, accessType, versionInt, 0)
+      .url
 
+  private val viewModelAnnualAllowance = GenericViewModel(
+    submitUrl = httpPathPOSTAnnualAllowance,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+    schemeName = schemeName
+  )
+  private val viewModelLifetimeAllowance = GenericViewModel(
+    submitUrl = httpPathPOSTLifetimeAllowance,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+    schemeName = schemeName
+  )
 
   private def userAnswers =
     userAnswersWithSchemeNamePstrQuarter
@@ -91,21 +106,24 @@ class WasAnotherPensionSchemeControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[WasAnotherPensionScheme].apply(
-        form,
-        TwirlRadios.yesNo(form("value")),
-        "chargeType.description.annualAllowance",
-        annualAllowanceSubmitCall,
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-        schemeName
-      )(request, messages)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      compareResultAndView(result, view)
+      val expectedJson = Json.obj(
+        "form" -> form,
+        "viewModel" -> viewModelAnnualAllowance,
+        "radios" -> Radios.yesNo(form("value")),
+        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeAnnualAllowance.toString}")
+      )
+
+      templateCaptor.getValue mustEqual "mccloud/wasAnotherPensionScheme.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
 
@@ -114,21 +132,24 @@ class WasAnotherPensionSchemeControllerSpec
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETLifetimeAllowance)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[WasAnotherPensionScheme].apply(
-        form,
-        TwirlRadios.yesNo(form("value")),
-        "chargeType.description.lifeTimeAllowance",
-        lifetimeAllowanceSubmitCall,
-        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-        schemeName
-      )(request, messages)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      compareResultAndView(result, view)
+      val expectedJson = Json.obj(
+        "form" -> form,
+        "viewModel" -> viewModelLifetimeAllowance,
+        "radios" -> Radios.yesNo(form("value")),
+        "chargeTypeDescription" -> Messages(s"chargeType.description.${ChargeTypeLifetimeAllowance.toString}")
+      )
+
+      templateCaptor.getValue mustEqual "mccloud/wasAnotherPensionScheme.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to the next page when valid data is submitted for AnnualAllowance" in {

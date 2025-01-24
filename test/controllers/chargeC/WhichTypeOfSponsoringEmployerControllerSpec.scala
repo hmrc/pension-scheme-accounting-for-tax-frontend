@@ -24,24 +24,27 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.IdentifierRequest
-import models.{NormalMode, SponsoringEmployerType, UserAnswers}
+import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import views.html.chargeC.WhichTypeOfSponsoringEmployerView
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
 class WhichTypeOfSponsoringEmployerControllerSpec
   extends ControllerSpecBase
     with MockitoSugar
+    with NunjucksSupport
     with JsonMatchers
     with OptionValues
     with TryValues {
@@ -59,53 +62,66 @@ class WhichTypeOfSponsoringEmployerControllerSpec
 
   private def httpPathGET: String = routes.WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url
 
+  private def httpPathPOST: String = routes.WhichTypeOfSponsoringEmployerController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url
+
+  private def viewModel = GenericViewModel(submitUrl = httpPathPOST,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url, schemeName = schemeName)
+
   "IsSponsoringEmployerIndividual Controller" must {
 
     "return OK and the correct view for a GET" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
-      val request = httpGETRequest(httpPathGET)
-      val submitCall = routes.WhichTypeOfSponsoringEmployerController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index)
-      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
-      val view = application.injector.instanceOf[WhichTypeOfSponsoringEmployerView].apply(
-        form,
-        schemeName,
-        submitCall,
-        returnUrl,
-        SponsoringEmployerType.radios(form)
-      )(request, messages)
+      val request = FakeRequest(GET, httpPathGET)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
+      val expectedJson = Json.obj(
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "radios" -> SponsoringEmployerType.radios(form)
+      )
+
+      templateCaptor.getValue mustEqual "chargeC/whichTypeOfSponsoringEmployer.njk"
+
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "populate the view correctly on a GET when the question has previously been answered" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answers))
 
-      val request = httpGETRequest(httpPathGET)
-      val submitCall = routes.WhichTypeOfSponsoringEmployerController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index)
-      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
-      val view = application.injector.instanceOf[WhichTypeOfSponsoringEmployerView].apply(
-        form.fill(SponsoringEmployerTypeIndividual),
-        schemeName,
-        submitCall,
-        returnUrl,
-        SponsoringEmployerType.radios(form)
-      )(request, messages)
+      val request = FakeRequest(GET, httpPathGET)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val filledForm = form.bind(Map("value" -> "individual"))
+
+      val expectedJson = Json.obj(
+        "form" -> filledForm,
+        "viewModel" -> viewModel,
+        "radios" -> SponsoringEmployerType.radios(filledForm)
+      )
+
+      templateCaptor.getValue mustEqual "chargeC/whichTypeOfSponsoringEmployer.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to the next page when valid data is submitted" in {
@@ -129,28 +145,29 @@ class WhichTypeOfSponsoringEmployerControllerSpec
     "return a Bad Request and errors when invalid data is submitted" in {
 
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
-
-
-      val submitCall = routes.WhichTypeOfSponsoringEmployerController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index)
-      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
-      val view = application.injector.instanceOf[WhichTypeOfSponsoringEmployerView].apply(
-        boundForm,
-        schemeName,
-        submitCall,
-        returnUrl,
-        SponsoringEmployerType.radios(form)
-      )(request, messages)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "form" -> boundForm,
+        "viewModel" -> viewModel,
+        "radios" -> SponsoringEmployerType.radios(boundForm)
+      )
+
+      templateCaptor.getValue mustEqual "chargeC/whichTypeOfSponsoringEmployer.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

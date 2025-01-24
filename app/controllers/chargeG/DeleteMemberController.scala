@@ -16,28 +16,32 @@
 
 package controllers.chargeG
 
+import config.FrontendAppConfig
+import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YesNoFormProvider
 import helpers.ChargeServiceHelper
 import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
-import models.{AccessType, Index, NormalMode, UserAnswers}
+import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeG.{DeleteMemberPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import viewmodels.TwirlRadios
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.chargeG.DeleteMemberView
 
 class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
+                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                        userAnswersService: UserAnswersService,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
@@ -48,9 +52,11 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        formProvider: YesNoFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        chargeServiceHelper: ChargeServiceHelper,
-                                       deleteMemberView: DeleteMemberView)(implicit ec: ExecutionContext)
+                                       config: FrontendAppConfig,
+                                       renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteMember.chargeG.error.required", memberName))
@@ -60,14 +66,22 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
           case Some(memberDetails) =>
-            Future.successful(Ok(deleteMemberView(
-              form(memberDetails.fullName),
-              TwirlRadios.yesNo(form(memberDetails.fullName)(implicitly)("value")),
-              memberDetails.fullName,
-              routes.DeleteMemberController.onSubmit(srn, startDate, accessType, version, index),
-              controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-              schemeName
-            )))
+            val viewModel = GenericViewModel(
+              submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, accessType, version, index).url,
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              schemeName = schemeName
+            )
+
+            val json = Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(localDateToString(startDate)),
+              "form" -> form(memberDetails.fullName),
+              "viewModel" -> viewModel,
+              "radios" -> Radios.yesNo(form(memberDetails.fullName)(implicitly)("value")),
+              "memberName" -> memberDetails.fullName
+            )
+
+            renderer.render("chargeG/deleteMember.njk", json).map(Ok(_))
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
         }
       }
@@ -82,14 +96,24 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               .bindFromRequest()
               .fold(
                 formWithErrors => {
-                  Future.successful(BadRequest(deleteMemberView(
-                    formWithErrors,
-                    TwirlRadios.yesNo(formWithErrors("value")),
-                    memberDetails.fullName,
-                    routes.DeleteMemberController.onSubmit(srn, startDate, accessType, version, index),
-                    controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                    schemeName
-                  )))
+
+                  val viewModel = GenericViewModel(
+                    submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, accessType, version, index).url,
+                    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                    schemeName = schemeName
+                  )
+
+                  val json = Json.obj(
+                    "srn" -> srn,
+                    "startDate" -> Some(localDateToString(startDate)),
+                    "form" -> formWithErrors,
+                    "viewModel" -> viewModel,
+                    "radios" -> Radios.yesNo(formWithErrors("value")),
+                    "memberName" -> memberDetails.fullName
+                  )
+
+                  renderer.render("chargeG/deleteMember.njk", json).map(BadRequest(_))
+
                 },
                 value =>
                   if (value) {

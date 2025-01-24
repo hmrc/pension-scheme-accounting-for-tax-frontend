@@ -25,7 +25,7 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.IdentifierRequest
-import models.{NormalMode, TolerantAddress, UserAnswers}
+import models.{GenericViewModel, NormalMode, SponsoringEmployerType, TolerantAddress, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -33,21 +33,23 @@ import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC._
 import play.api.Application
+import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
-import utils.TwirlMigration
-import views.html.chargeC.SponsoringEmployerAddressResultsView
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
 class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
-  with MockitoSugar with JsonMatchers with OptionValues with TryValues {
+  with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
 
   private val mockAddressLookupConnector = mock[AddressLookupConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val templateToBeRendered = "chargeC/sponsoringEmployerAddressResults.njk"
   private val form = new SponsoringEmployerAddressResultsFormProvider()()
   private val index = 0
   private val firstAddress = TolerantAddress(Some("first1"), Some("first2"), Some("first3"), Some("first4"), Some("firstpost"), Some("UK"))
@@ -64,9 +66,6 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
       firstAddress,
       secondAddress
     )
-
-  private val emptySeqAddresses =
-    Seq[TolerantAddress]()
 
   private val userAnswersIndividual: Option[UserAnswers] = Some(
     userAnswersWithSchemeNameAndIndividual.setOrException(SponsoringEmployerAddressSearchPage(index), seqAddresses)
@@ -86,9 +85,36 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
     "value" -> Seq("")
   )
 
+  private def transformAddressesForTemplate(seqTolerantAddresses: Seq[TolerantAddress]): Seq[JsObject] = {
+    for ((row, i) <- seqTolerantAddresses.zipWithIndex) yield {
+      Json.obj(
+        "value" -> i,
+        "text" -> row.print
+      )
+    }
+  }
+
+  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false, sponsorType: SponsoringEmployerType): Form[Int] => JsObject =
+    form =>
+      Json.obj(
+        "form" -> form,
+        "viewModel" -> GenericViewModel(
+          submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressResultsController.
+            onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+          schemeName = schemeName
+        ),
+        "sponsorName" -> sponsorName,
+        "employerType" -> Messages(s"chargeC.employerType.${sponsorType.toString}"),
+        "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.
+          onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url,
+        "addresses" -> transformAddressesForTemplate(seqAddresses)
+      )
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.validCountryCodes).thenReturn(Seq("UK"))
   }
@@ -101,27 +127,23 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
           firstAddress
         )
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersIndividual)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val request = httpGETRequest(httpPathGET)
-      val submitCall = controllers.chargeC.routes.SponsoringEmployerAddressResultsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index)
-      val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
-      val view = application.injector.instanceOf[SponsoringEmployerAddressResultsView].apply(
-        form,
-        schemeName,
-        submitCall,
-        returnUrl,
-        s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}",
-        Messages(s"chargeC.employerType.${SponsoringEmployerTypeIndividual.toString}"),
-        routes.SponsoringEmployerAddressController.
-          onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url,
-        TwirlMigration.convertToRadioItems(seqAddresses)
-      )(request, messages)
-
-      val result = route(application, request).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      val expectedJson = jsonToPassToTemplate(sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}",
+        sponsorType = SponsoringEmployerTypeIndividual)
+        .apply(form)
+      val expected = expectedJson ++ Json.obj("addresses" -> transformAddressesForTemplate(seqAddresses))
+
+      jsonCaptor.getValue must containJson(expected)
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {

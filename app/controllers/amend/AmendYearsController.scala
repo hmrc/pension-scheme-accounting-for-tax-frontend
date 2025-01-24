@@ -19,29 +19,30 @@ package controllers.amend
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.amend.AmendYearsFormProvider
-import models.{AmendYears, Year}
+import models.requests.IdentifierRequest
+import models.{AmendYears, GenericViewModel, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import renderer.Renderer
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.TwirlMigration
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import views.html.amend.AmendYearsView
 
 class AmendYearsController @Inject()(
                                       override val messagesApi: MessagesApi,
                                       identify: IdentifierAction,
                                       formProvider: AmendYearsFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
+                                      renderer: Renderer,
                                       config: FrontendAppConfig,
                                       schemeService: SchemeService,
                                       quartersService: QuartersService,
-                                      allowAccess: AllowAccessActionProviderForIdentifierRequest,
-                                      amendYearsView: AmendYearsView
+                                      allowAccess: AllowAccessActionProviderForIdentifierRequest
                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -61,19 +62,30 @@ class AmendYearsController @Inject()(
         case Nil => futureSessionExpiredPage
         case Seq(oneYearOnly) => amendQuartersPage(srn, oneYearOnly)
         case yearsSeq =>
-          Future.successful(Ok(amendYearsView(
-            form(yearsSeq),
-            TwirlMigration.toTwirlRadios(AmendYears.radios(form(yearsSeq), yearsSeq)),
-            routes.AmendYearsController.onSubmit(srn),
-            config.schemeDashboardUrl(request).format(srn),
-            schemeDetails.schemeName
-          )))
+          val json = Json.obj(
+            "srn" -> srn,
+            "startDate" -> None,
+            "form" -> form(yearsSeq),
+            "radios" -> AmendYears.radios(form(yearsSeq), yearsSeq),
+            "viewModel" -> viewModel(schemeDetails.schemeName, srn)
+          )
+          renderer
+            .render(template = "amend/amendYears.njk", json)
+            .map(Ok(_))
       }
     }
   }
 
 
   private def form(years: Seq[Int]): Form[Year] = formProvider(years)
+
+  private def viewModel(schemeName: String, srn: String)(implicit request: IdentifierRequest[_]): GenericViewModel = {
+    GenericViewModel(
+      submitUrl = routes.AmendYearsController.onSubmit(srn).url,
+      returnUrl = config.schemeDashboardUrl(request).format(srn),
+      schemeName = schemeName
+    )
+  }
 
   def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
@@ -86,13 +98,18 @@ class AmendYearsController @Inject()(
         case yearsSeq =>
           form(yearsSeq).bindFromRequest().fold(
               formWithErrors => {
-                Future.successful(BadRequest(amendYearsView(
-                  formWithErrors,
-                  TwirlMigration.toTwirlRadios(AmendYears.radios(formWithErrors, yearsSeq)),
-                  routes.AmendYearsController.onSubmit(srn),
-                  config.schemeDashboardUrl(request).format(srn),
-                  schemeDetails.schemeName
-                )))
+                val json = Json.obj(
+                  fields = "srn" -> srn,
+                  "startDate" -> None,
+                  "form" -> formWithErrors,
+                  "radios" -> AmendYears
+                    .radios(formWithErrors, yearsSeq),
+                  "viewModel" -> viewModel(
+                    schemeDetails.schemeName,
+                    srn
+                  )
+                )
+                renderer.render(template = "amend/amendYears.njk", json).map(BadRequest(_))
               },
               value => amendQuartersPage(srn, value.year)
             )

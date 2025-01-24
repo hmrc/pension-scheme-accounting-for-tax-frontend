@@ -26,15 +26,17 @@ import helpers.ErrorHelper.recoverFrom5XX
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.DataRequest
-import models.{AccessType, Index, NormalMode, UserAnswers}
+import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC._
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import views.html.chargeC.DeleteEmployerView
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -54,9 +56,10 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                          val controllerComponents: MessagesControllerComponents,
                                          chargeServiceHelper: ChargeServiceHelper,
                                          config: FrontendAppConfig,
-                                         view: DeleteEmployerView)(implicit ec: ExecutionContext)
+                                         renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteEmployer.chargeC.error.required", memberName))
@@ -64,12 +67,23 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeEmployerTypeAndSponsoringEmployer(index) { (schemeName, employerName, employerType) =>
-        val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
-        val submitCall = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, version, index)
+        val viewModel = GenericViewModel(
+          submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, version, index).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          schemeName = schemeName
+        )
 
-        Future.successful(Ok(view(form(employerName),schemeName,  submitCall, returnUrl, employerName,
-          Messages(s"chargeC.employerType.${employerType.toString}"),
-          utils.Radios.yesNo(form(employerName)(implicitly)("value")))))
+        val json = Json.obj(
+          "srn" -> srn,
+          "startDate" -> Some(localDateToString(startDate)),
+          "form" -> form(employerName),
+          "viewModel" -> viewModel,
+          "radios" -> Radios.yesNo(form(employerName)(implicitly)("value")),
+          "employerName" -> employerName,
+          "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}")
+        )
+
+        renderer.render("chargeC/deleteEmployer.njk", json).map(Ok(_))
       }
     }
 
@@ -80,12 +94,24 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
-              val submitCall = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, version, index)
 
-              Future.successful(BadRequest(view(formWithErrors,schemeName,  submitCall, returnUrl, employerName,
-                Messages(s"chargeC.employerType.${employerType.toString}"),
-                utils.Radios.yesNo(form(employerName)(implicitly)("value")))))
+              val viewModel = GenericViewModel(
+                submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, version, index).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName = schemeName
+              )
+
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(localDateToString(startDate)),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel,
+                "radios" -> Radios.yesNo(formWithErrors("value")),
+                "employerName" -> employerName,
+                "employerType" -> Messages(s"chargeC.employerType.${employerType.toString}")
+              )
+
+              renderer.render("chargeC/deleteEmployer.njk", json).map(BadRequest(_))
 
             },
             value =>

@@ -33,18 +33,20 @@ import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAc
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
 import services.SchemeService
-import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, Table, Text, Value}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{Content, HtmlContent}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{Content, Html, SummaryList, Text}
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
+import viewmodels.Radios.MessageInterpolators
+import viewmodels.Table
+import viewmodels.Table.Cell
 
 import java.time.LocalDate
 import javax.inject.Inject
+import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
-
 
 class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementConnector,
                                               financialInfoCacheConnector: FinancialInfoCacheConnector,
@@ -117,7 +119,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 .onPageLoad(detail.pstr, detail.index.toString, journeyType)
                 .url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", displayChargeReference(detail.chargeReference)),
-              dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
+              dueDate = detail.dueDate
             )
 
         val seqInterestCharge: Seq[PsaPaymentsAndChargesDetails] =
@@ -140,7 +142,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
                   .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText"),
-                dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
+                dueDate = detail.dueDate
               ))
           } else {
             Nil
@@ -164,7 +166,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     Future.sequence(seqPayments).map {
       x =>
         x.foldLeft(Table(
-          head = if(config.podsNewFinancialCredits) Some(getHeadingNew()) else Some(getHeading()),
+          head = if(config.podsNewFinancialCredits) getHeadingNew().toSeq else getHeading().toSeq,
           rows = Nil
         )) { (acc, a) =>
           acc.copy(
@@ -204,7 +206,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               redirectUrl = controllers.financialOverview.psa.routes.PsaPenaltiesAndChargeDetailsController
                 .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", detail.chargeReference),
-              dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
+              dueDate = detail.dueDate
             )
 
         val seqInterestCharge: Seq[PsaPaymentsAndChargesDetails] =
@@ -223,7 +225,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
                   .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText"),
-                dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
+                dueDate = detail.dueDate
               ))
           } else {
             Nil
@@ -241,7 +243,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
     Future.sequence(seqPayments).map {
       x =>
-        x.foldLeft(Table(head = Some(getHeading()), rows = Nil)) { (acc, a) =>
+        x.foldLeft(Table(head = getHeading().toSeq, rows = Nil)) { (acc, a) =>
           acc.copy(
             rows = acc.rows ++ a.rows
           )
@@ -256,40 +258,40 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     res
   }
 
-  private def getHeading()(implicit messages: Messages): Seq[HeadCell] = {
+  private def getHeading()(implicit messages: Messages): Seq[Cell] = {
     if(config.podsNewFinancialCredits) {
       Seq(
-        HeadCell(
-          HtmlContent(
+        Cell(
+          Html(
             s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penalty")}</span>"
           )),
-        HeadCell(Text(Messages("psa.financial.overview.payment.dueDate")), classes = "govuk-!-font-weight-bold"),
-        HeadCell(Text(Messages("psa.financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold"),
-        HeadCell(Text(Messages("psa.financial.overview.payment.due")), classes = "govuk-!-font-weight-bold"),
-        HeadCell(Text(Messages("psa.financial.overview.payment.interest")), classes = "govuk-!-font-weight-bold")
+        Cell(msg"psa.financial.overview.payment.dueDate", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(msg"psa.financial.overview.payment.charge.amount", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(msg"psa.financial.overview.payment.interest", classes = Seq("govuk-!-font-weight-bold").toSeq)
       )
     } else  {
       Seq(
-        HeadCell(Text(Messages("psa.financial.overview.penalty")), classes = "govuk-!-width-one-half"),
-        HeadCell(Text(Messages("psa.financial.overview.charge.reference")), classes = "govuk-!-font-weight-bold"),
-        HeadCell(Text(Messages("psa.financial.overview.payment.amount")), classes = "govuk-!-font-weight-bold"),
-        HeadCell(Text(Messages("psa.financial.overview.payment.due")), classes = "govuk-!-font-weight-bold"),
-        HeadCell(
-          HtmlContent(
+        Cell(msg"psa.financial.overview.penalty", classes = Seq("govuk-!-width-one-half").toSeq),
+        Cell(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(msg"psa.financial.overview.payment.amount", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold").toSeq),
+        Cell(
+          Html(
             s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.paymentStatus")}</span>"
           ))
       )
     }
   }
 
-  private def getHeadingNew()(implicit messages: Messages): Seq[HeadCell] = {
+  private def getHeadingNew()(implicit messages: Messages): Seq[Cell] = {
     Seq(
-      HeadCell(Text(Messages("")), classes = "govuk-!-width-one-half"),
-      HeadCell(Text(Messages("psa.financial.overview.dueDate")), classes = "govuk-!-font-weight-bold"),
-      HeadCell(Text(Messages("psa.financial.overview.payment.amount.new")), classes = "govuk-!-font-weight-bold"),
-      HeadCell(Text(Messages("psa.financial.overview.payment.due")), classes = "govuk-!-font-weight-bold,table-nowrap"),
-      HeadCell(
-        HtmlContent(
+      Cell(msg"", classes = Seq("govuk-!-width-one-half").toSeq),
+      Cell(msg"psa.financial.overview.dueDate", classes = Seq("govuk-!-font-weight-bold").toSeq),
+      Cell(msg"psa.financial.overview.payment.amount.new", classes = Seq("govuk-!-font-weight-bold").toSeq),
+      Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold", "table-nowrap").toSeq),
+      Cell(
+        Html(
           s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.paymentStatus")}</span>"
         ))
     )
@@ -314,13 +316,13 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
       val htmlChargeType = (journeyType, getPenaltyType(data.chargeType)) match {
         case (All, AccountingForTaxPenalties) =>
-          HtmlContent(
+          Html(
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
               s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
         case (All, _) =>
-          HtmlContent(
+          Html(
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
@@ -328,7 +330,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               s"<p class=govuk-hint>" +
               s"${data.period} </br>")
         case _ =>
-          HtmlContent(
+          Html(
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
@@ -340,13 +342,13 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
       val htmlChargeTypeV2 = (journeyType, getPenaltyType(data.chargeType)) match {
         case (All, AccountingForTaxPenalties) =>
-          HtmlContent(
+          Html(
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
               s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
         case (All, _) =>
-          HtmlContent(
+          Html(
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
@@ -354,7 +356,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               s"<p class=govuk-hint>" +
               s"${data.period} </br>")
         case _ =>
-          HtmlContent(
+          Html(
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
@@ -366,39 +368,39 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
       if(config.podsNewFinancialCredits) {
         Seq(
-          TableRow(htmlChargeTypeV2, classes = "govuk-!-width-one-half"),
-          TableRow(Text(s"${data.dueDate.get.format(dateFormatterDMY)}"), classes = "govuk-!-width-one-quarter"),
+          Cell(htmlChargeTypeV2, classes = Seq("govuk-!-width-one-half").toSeq),
+          Cell(Literal(s"${data.dueDate}"), classes = Seq("govuk-!-width-one-quarter").toSeq),
           if (data.originalChargeAmount.isEmpty) {
-            TableRow(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
+            Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
           } else {
-            TableRow(Text(data.originalChargeAmount), classes = "govuk-!-width-one-quarter")
+            Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-quarter").toSeq)
           },
-          TableRow(Text(data.paymentDue), classes = "govuk-!-width-one-quarter"),
+          Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-quarter").toSeq),
           if (data.status == InterestIsAccruing && data.accruedInterestTotal!=0) {
-            TableRow(Text(data.accruedInterestTotal.toString()), classes = "govuk-!-width-one-quarter")
+            Cell(Literal(data.accruedInterestTotal.toString()), classes = Seq("govuk-!-width-one-quarter").toSeq)
           } else {
-            TableRow(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
+            Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
           }
         )
       } else {
         Seq(
-          TableRow(htmlChargeType, classes = "govuk-!-width-one-half"),
-          TableRow(Text(s"${data.chargeReference}"), classes = "govuk-!-width-one-quarter"),
+          Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half").toSeq),
+          Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter").toSeq),
           if (data.originalChargeAmount.isEmpty) {
-            TableRow(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
+            Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
           } else {
-            TableRow(Text(data.originalChargeAmount), classes = "govuk-!-width-one-quarter")
+            Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-quarter").toSeq)
           },
-          TableRow(Text(data.paymentDue), classes = "govuk-!-width-one-quarter"),
-          TableRow(htmlStatus(data), classes = "")
+          Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-quarter").toSeq),
+          Cell(htmlStatus(data), classes = Nil)
         )
       }
 
     }
 
     Table(
-      head = Some(head),
-      rows = rows.map(_.toSeq),
+      head = head.toSeq,
+      rows = rows.map(_.toSeq).toSeq,
       attributes = Map("role" -> "table")
     )
   }
@@ -422,14 +424,14 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
 
       val htmlChargeType = (journeyType, getPenaltyType(data.chargeType)) match {
         case (All, AccountingForTaxPenalties) =>
-          HtmlContent(
+          Html(
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
               s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span></a>" +
               s"${data.chargeReference}")
         case (All, _) =>
-          HtmlContent(
+          Html(
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
@@ -438,7 +440,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               s"${data.chargeReference}</br>" +
               s"${data.period}</p>")
         case _ =>
-          HtmlContent(
+          Html(
             s"<a id=$linkId class=govuk-link href=" +
               s"${data.redirectUrl}>" +
               s"${data.chargeType} " +
@@ -449,26 +451,26 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       }
 
       Seq(
-        TableRow(htmlChargeType, classes = "govuk-!-width-one-half"),
-        TableRow(Text(s"${data.dueDate.get.format(dateFormatterDMY)}"), classes = "govuk-!-width-one-quarter"),
+        Cell(htmlChargeType, classes = Seq("govuk-!-width-one-half").toSeq),
+        Cell(Literal(s"${formatDateDMY(data.dueDate)}"), classes = Seq("govuk-!-width-one-quarter").toSeq),
         if (data.originalChargeAmount.isEmpty) {
-          TableRow(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
+          Cell(Html(s"""<span class=govuk-visually-hidden>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText")}</span>"""))
         } else {
-          TableRow(Text(data.originalChargeAmount), classes = "govuk-!-width-one-quarter")
+          Cell(Literal(data.originalChargeAmount), classes = Seq("govuk-!-width-one-quarter").toSeq)
         },
-        TableRow(Text(data.paymentDue), classes = "govuk-!-width-one-quarter"),
-        TableRow(htmlStatus(data), classes = "")
+        Cell(Literal(data.paymentDue), classes = Seq("govuk-!-width-one-quarter").toSeq),
+        Cell(htmlStatus(data), classes = Nil)
       )
     }
 
     Table(
-      head = Some(head),
-      rows = rows.map(_.toSeq),
+      head = head.toSeq,
+      rows = rows.map(_.toSeq).toSeq,
       attributes = Map("role" -> "table")
     )
   }
 
-  private def htmlStatus(data: PsaPaymentsAndChargesDetails)(implicit messages: Messages): HtmlContent = {
+  private def htmlStatus(data: PsaPaymentsAndChargesDetails)(implicit messages: Messages): Html = {
     val (classes, content) = (data.status, data.paymentDue) match {
       case (InterestIsAccruing, _) =>
         ("govuk-tag govuk-tag--blue", data.status.toString)
@@ -479,7 +481,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       case _ =>
         ("govuk-visually-hidden", messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue"))
     }
-    HtmlContent(s"<span class='$classes'>$content</span>")
+    Html(s"<span class='$classes'>$content</span>")
   }
 
   def getTypeParam(penaltyType: PenaltyType)(implicit messages: Messages): String =
@@ -534,12 +536,12 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       .filter(charge => charge.dueDate.nonEmpty && !charge.dueDate.get.isBefore(DateHelper.today))
       .filter(_.amountDue > BigDecimal(0.00))
 
-  def chargeDetailsRows(data: PsaFSDetail, journeyType: ChargeDetailsFilter)(implicit messages: Messages): Seq[SummaryListRow] = {
+  def chargeDetailsRows(data: PsaFSDetail, journeyType: ChargeDetailsFilter): Seq[SummaryList.Row] = {
     chargeReferenceRow(data) ++ penaltyAmountRow(data) ++ clearingChargeDetailsRow(data) ++
       stoodOverAmountChargeDetailsRow(data) ++ totalAmountDueChargeDetailsRow(data, journeyType)
   }
 
-  def chargeHeaderDetailsRows(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+  def chargeHeaderDetailsRows(data: PsaFSDetail): Seq[SummaryList.Row] = {
     pstrRow(data) ++ chargeReferenceRowNew(data) ++ setTaxPeriod(data)
   }
 
@@ -551,105 +553,105 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
   }
 
-  private def chargeReferenceRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def chargeReferenceRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
     Seq(
-      SummaryListRow(
-        key = Key(Text(Messages("psa.financial.overview.charge.reference")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(s"${data.chargeReference}"), classes = "govuk-!-width-one-quarter")
+      Row(
+        key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq),
+        value = Value(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter").toSeq)
       ))
   }
 
-  private def chargeReferenceRowNew(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def chargeReferenceRowNew(data: PsaFSDetail): Seq[SummaryList.Row] = {
     Seq(
-      SummaryListRow(
-        key = Key(Text(Messages("psa.financial.overview.charge.reference")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(s"${data.chargeReference}"), classes = "govuk-!-width-one-half")
+      Row(
+        key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq),
+        value = Value(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-half").toSeq)
       ))
   }
 
-  private def pstrRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def pstrRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
     Seq(
-      SummaryListRow(
-        key = Key(Text(Messages("psa.pension.scheme.tax.reference.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(s"${data.pstr}"), classes = "govuk-!-width-one-half")
+      Row(
+        key = Key(msg"psa.pension.scheme.tax.reference.new", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq),
+        value = Value(Literal(s"${data.pstr}"), classes = Seq("govuk-!-width-one-half").toSeq)
       ))
   }
 
-  private def setTaxPeriod(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def setTaxPeriod(data: PsaFSDetail): Seq[SummaryList.Row] = {
     Seq(
-      SummaryListRow(
-        key = Key(Text(Messages("psa.pension.scheme.tax.period.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(s"${formatDateDMY(data.periodStartDate) + " to " + formatDateDMY(data.periodEndDate)}"), classes = "govuk-!-width-one-half")
+      Row(
+        key = Key(msg"psa.pension.scheme.tax.period.new", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq),
+        value = Value(Literal(s"${formatDateDMY(data.periodStartDate) + " to " + formatDateDMY(data.periodEndDate)}"), classes = Seq("govuk-!-width-one-half").toSeq)
       ))
   }
 
-  private def penaltyAmountRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def penaltyAmountRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
 
     Seq(
-      SummaryListRow(
-        key = Key(Text(Messages("psa.financial.overview.penaltyAmount")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
-          classes = "govuk-!-width-one-quarter")
+      Row(
+        key = Key(msg"psa.financial.overview.penaltyAmount", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
+          classes = Seq("govuk-!-width-one-quarter").toSeq)
       ))
   }
 
-  def chargeAmountDetailsRows(data: PsaFSDetail)(implicit messages: Messages): Table = {
+  def chargeAmountDetailsRows(data: PsaFSDetail): Table = {
 
-    val headRow = Seq(
-      HeadCell(Text(Messages("psa.pension.scheme.chargeAmount.label.new"))),
-      HeadCell(Text("")),
-      HeadCell(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"), classes = "govuk-!-font-weight-regular")
+    val headRow = scala.collection.immutable.Seq(
+      Cell(msg"psa.pension.scheme.chargeAmount.label.new"),
+      Cell(Literal("")),
+      Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"), classes = scala.collection.immutable.Seq("govuk-!-font-weight-regular"))
     )
 
     val rows = data.documentLineItemDetails.map { documentLineItemDetail =>
       if (documentLineItemDetail.clearedAmountItem > 0) {
         getClearingDetailLabelNew(documentLineItemDetail) match {
           case Some(clearingDetailsValue) =>
-            Seq(
-              TableRow(clearingDetailsValue, classes = "govuk-!-font-weight-bold"),
-              TableRow(Text(getChargeDateNew(documentLineItemDetail))),
-              TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"))
+            scala.collection.immutable.Seq(
+              Cell(clearingDetailsValue, classes = scala.collection.immutable.Seq("govuk-!-font-weight-bold") ),
+              Cell(Literal(getChargeDateNew(documentLineItemDetail))),
+              Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"))
             )
-          case _ =>  Seq()
+          case _ =>  scala.collection.immutable.Seq()
         }
       } else {
-        Seq()
+        scala.collection.immutable.Seq()
       }
     }
 
     val stoodOverAmountRow = if (data.stoodOverAmount > 0) {
-      Seq(Seq(
-        TableRow(Text(Messages("paymentsAndCharges.chargeDetails.stoodOverAmount")), classes = "govuk-!-font-weight-bold"),
-        TableRow(Text("")),
-        TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.stoodOverAmount)}"),
-          classes = "govuk-!-font-weight-regular,govuk-!-text-align-left")
+      scala.collection.immutable.Seq(scala.collection.immutable.Seq(
+        Cell(msg"paymentsAndCharges.chargeDetails.stoodOverAmount", classes = scala.collection.immutable.Seq("govuk-!-font-weight-bold")),
+        Cell(Literal("")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.stoodOverAmount)}"),
+          classes = scala.collection.immutable.Seq("govuk-!-font-weight-regular", "govuk-!-text-align-left"))
       ))
     } else {
-      Seq(Seq())
+      scala.collection.immutable.Seq(scala.collection.immutable.Seq())
     }
 
-    Table(head = Some(headRow), rows = rows ++ stoodOverAmountRow, attributes = Map("role" -> "table"))
+    Table(head = headRow, rows = rows ++ stoodOverAmountRow, attributes = Map("role" -> "table"))
   }
 
-  private def getClearingDetailLabelNew(documentLineItemDetail: DocumentLineItemDetail)(implicit messages: Messages): Option[Text] = {
+  private def getClearingDetailLabelNew(documentLineItemDetail: DocumentLineItemDetail): Option[Text.Message] = {
     (documentLineItemDetail.clearingReason, documentLineItemDetail.paymDateOrCredDueDate, documentLineItemDetail.clearingDate) match {
       case (Some(clearingReason), _, _) =>
         clearingReason match {
-          case CLEARED_WITH_PAYMENT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c1.new")))
-          case CLEARED_WITH_DELTA_CREDIT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c2.new")))
-          case REPAYMENT_TO_THE_CUSTOMER => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c3.new")))
-          case WRITTEN_OFF => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c4.new")))
-          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c5.new")))
-          case OTHER_REASONS => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c6.new")))
+          case CLEARED_WITH_PAYMENT => Some(msg"financialPaymentsAndCharges.clearingReason.c1.new")
+          case CLEARED_WITH_DELTA_CREDIT => Some(msg"financialPaymentsAndCharges.clearingReason.c2.new")
+          case REPAYMENT_TO_THE_CUSTOMER => Some(msg"financialPaymentsAndCharges.clearingReason.c3.new")
+          case WRITTEN_OFF => Some(msg"financialPaymentsAndCharges.clearingReason.c4.new")
+          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(msg"financialPaymentsAndCharges.clearingReason.c5.new")
+          case OTHER_REASONS => Some(msg"financialPaymentsAndCharges.clearingReason.c6.new")
         }
       case (Some(clearingReason), None, None) =>
         clearingReason match {
-          case CLEARED_WITH_PAYMENT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c1")))
-          case CLEARED_WITH_DELTA_CREDIT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c2")))
-          case REPAYMENT_TO_THE_CUSTOMER => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c3")))
-          case WRITTEN_OFF => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c4")))
-          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(Text(Messages("financialPaymentsAndCharges.noClearingDate.clearingReason.c5")))
-          case OTHER_REASONS => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c6")))
+          case CLEARED_WITH_PAYMENT => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c1")
+          case CLEARED_WITH_DELTA_CREDIT => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c2")
+          case REPAYMENT_TO_THE_CUSTOMER => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c3")
+          case WRITTEN_OFF => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c4")
+          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(msg"financialPaymentsAndCharges.noClearingDate.clearingReason.c5")
+          case OTHER_REASONS => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c6")
         }
       case _ => None
     }
@@ -665,23 +667,23 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
   }
 
-  private def clearingChargeDetailsRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def clearingChargeDetailsRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
 
     data.documentLineItemDetails.flatMap { documentLineItemDetail =>
       if (documentLineItemDetail.clearedAmountItem > 0) {
         getClearingDetailLabel(documentLineItemDetail) match {
           case Some(clearingDetailsValue) =>
             Seq(
-              SummaryListRow(
+              Row(
                 key = Key(
                   content = clearingDetailsValue,
-                  classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
+                  classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
                 ),
                 value = Value(
-                  content = Text(s"-${formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"),
-                  classes = "govuk-!-width-one-quarter"
+                  content = Literal(s"-${formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"),
+                  classes = Seq("govuk-!-width-one-quarter").toSeq
                 ),
-                actions = None
+                actions = Nil
               ))
           case _ => Nil
         }
@@ -691,76 +693,76 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
   }
 
-  private def getClearingDetailLabel(documentLineItemDetail: DocumentLineItemDetail)(implicit messages: Messages): Option[Text] = {
+  private def getClearingDetailLabel(documentLineItemDetail: DocumentLineItemDetail): Option[Text.Message] = {
     (documentLineItemDetail.clearingReason, documentLineItemDetail.paymDateOrCredDueDate, documentLineItemDetail.clearingDate) match {
       case (Some(clearingReason), Some(paymDateOrCredDueDate), _) =>
         clearingReason match {
-          case CLEARED_WITH_PAYMENT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c1",formatDateDMY(paymDateOrCredDueDate))))
-          case CLEARED_WITH_DELTA_CREDIT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c2",formatDateDMY(paymDateOrCredDueDate))))
-          case REPAYMENT_TO_THE_CUSTOMER => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c3",formatDateDMY(paymDateOrCredDueDate))))
-          case WRITTEN_OFF => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c4",formatDateDMY(paymDateOrCredDueDate))))
-          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c5",formatDateDMY(paymDateOrCredDueDate))))
-          case OTHER_REASONS => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c6",formatDateDMY(paymDateOrCredDueDate))))
+          case CLEARED_WITH_PAYMENT => Some(msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(paymDateOrCredDueDate)))
+          case CLEARED_WITH_DELTA_CREDIT => Some(msg"financialPaymentsAndCharges.clearingReason.c2".withArgs(formatDateDMY(paymDateOrCredDueDate)))
+          case REPAYMENT_TO_THE_CUSTOMER => Some(msg"financialPaymentsAndCharges.clearingReason.c3".withArgs(formatDateDMY(paymDateOrCredDueDate)))
+          case WRITTEN_OFF => Some(msg"financialPaymentsAndCharges.clearingReason.c4".withArgs(formatDateDMY(paymDateOrCredDueDate)))
+          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(msg"financialPaymentsAndCharges.clearingReason.c5".withArgs(formatDateDMY(paymDateOrCredDueDate)))
+          case OTHER_REASONS => Some(msg"financialPaymentsAndCharges.clearingReason.c6".withArgs(formatDateDMY(paymDateOrCredDueDate)))
         }
       case (Some(clearingReason), None, Some(clearingDate)) =>
         clearingReason match {
-          case CLEARED_WITH_PAYMENT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c1",formatDateDMY(clearingDate))))
-          case CLEARED_WITH_DELTA_CREDIT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c2",formatDateDMY(clearingDate))))
-          case REPAYMENT_TO_THE_CUSTOMER => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c3",formatDateDMY(clearingDate))))
-          case WRITTEN_OFF => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c4",formatDateDMY(clearingDate))))
-          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c5",formatDateDMY(clearingDate))))
-          case OTHER_REASONS => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.c6",formatDateDMY(clearingDate))))
+          case CLEARED_WITH_PAYMENT => Some(msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(clearingDate)))
+          case CLEARED_WITH_DELTA_CREDIT => Some(msg"financialPaymentsAndCharges.clearingReason.c2".withArgs(formatDateDMY(clearingDate)))
+          case REPAYMENT_TO_THE_CUSTOMER => Some(msg"financialPaymentsAndCharges.clearingReason.c3".withArgs(formatDateDMY(clearingDate)))
+          case WRITTEN_OFF => Some(msg"financialPaymentsAndCharges.clearingReason.c4".withArgs(formatDateDMY(clearingDate)))
+          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(msg"financialPaymentsAndCharges.clearingReason.c5".withArgs(formatDateDMY(clearingDate)))
+          case OTHER_REASONS => Some(msg"financialPaymentsAndCharges.clearingReason.c6".withArgs(formatDateDMY(clearingDate)))
         }
       case (Some(clearingReason), None, None) =>
         clearingReason match {
-          case CLEARED_WITH_PAYMENT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c1")))
-          case CLEARED_WITH_DELTA_CREDIT => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c2")))
-          case REPAYMENT_TO_THE_CUSTOMER => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c3")))
-          case WRITTEN_OFF => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c4")))
-          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(Text(Messages("financialPaymentsAndCharges.noClearingDate.clearingReason.c5")))
-          case OTHER_REASONS => Some(Text(Messages("financialPaymentsAndCharges.clearingReason.noClearingDate.c6")))
+          case CLEARED_WITH_PAYMENT => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c1")
+          case CLEARED_WITH_DELTA_CREDIT => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c2")
+          case REPAYMENT_TO_THE_CUSTOMER => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c3")
+          case WRITTEN_OFF => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c4")
+          case TRANSFERRED_TO_ANOTHER_ACCOUNT => Some(msg"financialPaymentsAndCharges.noClearingDate.clearingReason.c5")
+          case OTHER_REASONS => Some(msg"financialPaymentsAndCharges.clearingReason.noClearingDate.c6")
         }
       case _ => None
     }
   }
 
-  private def stoodOverAmountChargeDetailsRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
+  private def stoodOverAmountChargeDetailsRow(data: PsaFSDetail): Seq[SummaryList.Row] =
     if (data.stoodOverAmount > 0) {
       Seq(
-        SummaryListRow(
+        Row(
           key = Key(
-            content = Text(Messages("paymentsAndCharges.chargeDetails.stoodOverAmount")),
-            classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
+            content = msg"paymentsAndCharges.chargeDetails.stoodOverAmount",
+            classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
           ),
           value = Value(
-            content = Text(s"-${formatCurrencyAmountAsString(data.stoodOverAmount)}"),
-            classes = "govuk-!-width-one-quarter"
+            content = Literal(s"-${formatCurrencyAmountAsString(data.stoodOverAmount)}"),
+            classes = Seq("govuk-!-width-one-quarter").toSeq
           ),
-          actions = None
+          actions = Nil
         ))
     } else {
       Nil
     }
 
-  private def totalAmountDueChargeDetailsRow(data: PsaFSDetail, journeyType: ChargeDetailsFilter)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def totalAmountDueChargeDetailsRow(data: PsaFSDetail, journeyType: ChargeDetailsFilter): Seq[SummaryList.Row] = {
     val amountDueKey: Content = (data.dueDate, data.amountDue > 0) match {
       case (Some(date), true) =>
-        Text(Messages(s"financialPaymentsAndCharges.paymentDue.${journeyType.toString}.dueDate", date.format(dateFormatterDMY)))
+        msg"financialPaymentsAndCharges.paymentDue.${journeyType.toString}.dueDate".withArgs(date.format(dateFormatterDMY))
       case _ =>
-        Text(Messages("financialPaymentsAndCharges.paymentDue.noDueDate"))
+        msg"financialPaymentsAndCharges.paymentDue.noDueDate"
     }
     if (data.totalAmount > 0) {
       Seq(
-        SummaryListRow(
+        Row(
           key = Key(
             content = amountDueKey,
-            classes = "govuk-!-padding-left-0 govuk-!-width-one-half"
+            classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
           ),
           value = Value(
-            content = Text(s"${formatCurrencyAmountAsString(data.amountDue)}"),
-            classes = "govuk-!-width-one-quarter govuk-!-font-weight-bold"
+            content = Literal(s"${formatCurrencyAmountAsString(data.amountDue)}"),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold").toSeq
           ),
-          actions = None
+          actions = Nil
         ))
     } else {
       Nil
@@ -787,37 +789,37 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       case _ => ""
     }
 
-  private def totalInterestDueRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def totalInterestDueRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
     val dateAsOf: String = LocalDate.now.format(dateFormatterDMY)
-    Seq(SummaryListRow(
-      key = Key(Text(Messages("psa.financial.overview.totalDueAsOf",dateAsOf)), classes = "govuk-!-width-two-quarters"),
-      value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
-        classes = "govuk-!-width-one-quarter")
+    Seq(Row(
+      key = Key(msg"psa.financial.overview.totalDueAsOf".withArgs(dateAsOf), classes = Seq("govuk-!-width-two-quarters").toSeq),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
+        classes = Seq("govuk-!-width-one-quarter").toSeq)
     ))
   }
 
-  private def interestTaxPeriodRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(SummaryListRow(
-      key = Key(Text(Messages("psa.pension.scheme.interest.tax.period.new")), classes = "govuk-!-width-one-half"),
-      value = Value(Text(s"${formatDateDMY(data.periodStartDate) + " to " + formatDateDMY(data.periodEndDate)}"),
-        classes = "govuk-!-width-one-half")
+  private def interestTaxPeriodRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
+    Seq(Row(
+      key = Key(msg"psa.pension.scheme.interest.tax.period.new", classes = Seq("govuk-!-width-one-half").toSeq),
+      value = Value(Literal(s"${formatDateDMY(data.periodStartDate) + " to " + formatDateDMY(data.periodEndDate)}"),
+        classes = Seq("govuk-!-width-one-half").toSeq)
     ))
   }
 
-  private def chargeReferenceInterestRow(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def chargeReferenceInterestRow: Seq[SummaryList.Row] = {
 
     Seq(
-      SummaryListRow(
-        key = Key(Text(Messages("psa.financial.overview.charge.reference")), classes = "govuk-!-width-two-quarters"),
-        value = Value(Text(Messages("paymentsAndCharges.chargeReference.toBeAssigned")), classes = "govuk-!-width-one-quarter")
+      Row(
+        key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-width-two-quarters").toSeq),
+        value = Value(msg"paymentsAndCharges.chargeReference.toBeAssigned", classes = Seq("govuk-!-width-one-quarter").toSeq)
       ))
   }
 
-  private def chargeReferenceInterestRowNew(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def chargeReferenceInterestRowNew: Seq[SummaryList.Row] = {
     Seq(
-      SummaryListRow(
-        key = Key(Text(Messages("psa.financial.overview.charge.reference")), classes = "govuk-!-width-one-half"),
-        value = Value(Text(Messages("paymentsAndCharges.chargeReference.toBeAssigned")), classes = "govuk-!-width-one-half")
+      Row(
+        key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-width-one-half").toSeq),
+        value = Value(msg"paymentsAndCharges.chargeReference.toBeAssigned", classes = Seq("govuk-!-width-one-half").toSeq)
       ))
   }
 
@@ -825,10 +827,10 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     if (chargeReference == "") messages("paymentsAndCharges.chargeReference.toBeAssigned") else chargeReference
   }
 
-  def interestRows(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
+  def interestRows(data: PsaFSDetail): Seq[SummaryList.Row] =
     chargeReferenceInterestRow ++ totalInterestDueRow(data)
 
-  def interestRowsNew(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
+  def interestRowsNew(data: PsaFSDetail): Seq[SummaryList.Row] =
     chargeReferenceInterestRowNew ++ interestTaxPeriodRow(data)
 
 }

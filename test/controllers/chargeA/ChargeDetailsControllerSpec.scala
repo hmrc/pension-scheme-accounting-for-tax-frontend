@@ -31,6 +31,7 @@ import pages.chargeA.ChargeDetailsPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import views.html.chargeA.ChargeDetailsView
 

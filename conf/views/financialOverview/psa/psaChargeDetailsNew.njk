@@ -1,0 +1,78 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
+{% from "govuk/components/input/macro.njk"         import govukInput %}
+{% from "govuk/components/fieldset/macro.njk"      import govukFieldset %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% from 'macros/inputSearch.njk'               import hmrcInputSearch with context %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+
+{% block pageTitle %}
+    {{ title(heading, form.errors) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-three-quarters">
+
+            {% if schemeAssociated %}
+                        {{ hmrcPageHeading({
+                              text: heading,
+                              section: schemeName
+                            }) }}
+                    {% else %}
+                    <h1 class="govuk-caption-xl">{{ heading }}</h1>
+                    {% endif %}
+
+
+               <div class="govuk-grid-row">
+                   <div class="govuk-grid-column-one-half">
+                        <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
+                           {{ messages("psa.scheme.paymentDueAmount.new") }}
+                        </h3>
+                        <p class="govuk-heading-m govuk-!-margin-top-0">{{ paymentDueAmount }}</p>
+                   </div>
+                   <div class="govuk-grid-column-one-half">
+                         <h3 class="govuk-caption-m govuk-!-margin-bottom-1">
+                            {{ messages("psa.scheme.paymentDueDate.new") }}
+                         </h3>
+                         <p class="govuk-heading-m govuk-!-margin-top-0">{{ paymentDueDate }}</p>
+                   </div>
+               </div>
+
+            <p class="govuk-body">
+                {{ govukSummaryList({
+                    rows: chargeHeaderDetails
+                }) }}
+            </p>
+
+           <div class="govuk-grid-row">
+                 <div class="govuk-grid-column-one-half">
+                      <h2 class="govuk-heading-l">
+                         {{ messages("psa.pension.scheme.charge.details.new") }}
+                      </h2>
+                 </div>
+             </div>
+
+              <div role="region" aria-labelledby="chargeE_h1" class="govuk-!-margin-bottom-1">
+                         {{ govukTable(chargeAmountDetails) }}
+                     </div>
+
+            {% if isInterestPresent %}
+                {{ govukInsetText({
+                    html: htmlInsetText
+                }) }}
+            {% endif %}
+
+        </div>
+    </div>
+
+<p class="govuk-body"><a id="return" href="{{ returnUrl }}" class="govuk-link">{{ messages("return.to.link", returnLinkBasedOnJourney) }}</a></p>
+
+{% endblock %}

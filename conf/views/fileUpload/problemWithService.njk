@@ -1,0 +1,23 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"  import title %}
+
+{% block pageTitle %}
+  {{ title(messages("messages__problemWithService__h1")) }}
+{% endblock %}
+
+{% block mainContent %}
+    <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+              <h1 class="govuk-heading-xl">
+               {{ messages("messages__problemWithService__h1") }}
+              </h1>
+              <h2 class="govuk-heading-m">
+                {{ messages("messages__problemWithService__content_failure") }}
+              </h2>
+          </div>
+    </div>
+
+    <p class="govuk-body"><a href="{{tryAgainLink}}" class="govuk-link"> {{ messages("messages__problemWithService__try_again") }}</a>
+    </p>
+{% endblock %}

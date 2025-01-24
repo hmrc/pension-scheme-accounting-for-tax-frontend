@@ -24,19 +24,23 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.mccloud.{PensionsRemedySchemeSummary, PensionsRemedySummary}
-import models.{CheckMode, UserAnswers, YearRange}
+import models.{UserAnswers, YearRange}
 import pages.IsPublicServicePensionsRemedyPage
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
 import pages.mccloud._
+import play.api.libs.json.{JsObject, Json}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
 import java.time.LocalDate
+import scala.collection.Seq
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatchers with CheckYourAnswersBehaviour {
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
   //scalastyle:off magic.number
 
   private val dynamicYearRange = YearRange("2019")
 
+  private val templateToBeRendered = "check-your-answers.njk"
   private val annualAllowanceCharge = ChargeTypeAnnualAllowance
 
   private def httpGETRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
@@ -113,8 +117,9 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
     ).flatten
   }
 
-  private def rowsToPassToTemplate(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean) =
-    rows(isPSR, isChargeInAddition, wasAnotherPensionScheme)
+  private def jsonToPassToTemplate(isPSR: Boolean, isChargeInAddition: Boolean, wasAnotherPensionScheme: Boolean): JsObject = Json.obj(
+    "list" -> rows(isPSR, isChargeInAddition, wasAnotherPensionScheme)
+  )
 
   private val rowsWithoutPSR = Seq(
     helper.chargeEMemberDetails(0, memberDetails),
@@ -122,16 +127,18 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
     helper.chargeEDetails(0, chargeEDetails)
   ).flatten
 
+  private val jsonToPassToTemplateNoPSR: JsObject = Json.obj(
+    "list" -> rowsWithoutPSR
+  )
+
   DateHelper.setDate(Some(LocalDate.of(2020, 4, 1)))
 
   "CheckYourAnswers Controller for PSR if isPSR is false, isChargeInAddition is false and wasAnotherPensionScheme is false" must {
 
     behave like cyaController(
       httpPath = httpGETRoute,
-      chargeName = "chargeE",
-      list = rowsToPassToTemplate(isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false),
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      submitUrl = httpOnClickRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false),
       userAnswers = updateUserAnswers(ua, isPSR = false, isChargeInAddition = false, wasAnotherPensionScheme = false)
     )
 
@@ -152,10 +159,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
 
     behave like cyaController(
       httpPath = httpGETRoute,
-      chargeName = "chargeE",
-      list = rowsWithoutPSR,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      submitUrl = httpOnClickRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplateNoPSR,
       userAnswers = ua
     )
 
@@ -176,10 +181,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
 
     behave like cyaController(
       httpPath = httpGETRoute,
-      chargeName = "chargeE",
-      list = rowsToPassToTemplate(isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false),
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      submitUrl = httpOnClickRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false),
       userAnswers = updateUserAnswers(ua, isPSR = true, isChargeInAddition = false, wasAnotherPensionScheme = false)
     )
   }
@@ -188,10 +191,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
 
     behave like cyaController(
       httpPath = httpGETRoute,
-      chargeName = "chargeE",
-      list = rowsToPassToTemplate(isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false),
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      submitUrl = httpOnClickRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false),
       userAnswers = updateUserAnswers(ua, isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = false)
     )
   }
@@ -200,13 +201,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatcher
 
     behave like cyaController(
       httpPath = httpGETRoute,
-      chargeName = "chargeE",
-      list = rowsToPassToTemplate(isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true),
-      showAnotherSchemeBtn = true,
-      selectAnotherSchemeUrl = controllers.mccloud.routes.AddAnotherPensionSchemeController
-        .onPageLoad(ChargeTypeAnnualAllowance, CheckMode, srn, startDate, accessType, versionInt, 0 , 0).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      submitUrl = httpOnClickRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate(isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true),
       userAnswers = updateUserAnswers(ua, isPSR = true, isChargeInAddition = true, wasAnotherPensionScheme = true)
     )
   }

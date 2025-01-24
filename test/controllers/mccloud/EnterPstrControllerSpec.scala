@@ -24,25 +24,26 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.NormalMode
+import models.{GenericViewModel, NormalMode}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import views.html.mccloud.EnterPstr
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
 class EnterPstrControllerSpec extends ControllerSpecBase
-  with MockitoSugar with JsonMatchers with OptionValues with TryValues {
+  with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction,
@@ -56,10 +57,13 @@ class EnterPstrControllerSpec extends ControllerSpecBase
   private def httpPathGET(schemeIndex: Int): String = routes.EnterPstrController
     .onPageLoad(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
 
-  private def submitCall(schemeIndex: Int = 0) = routes.EnterPstrController
-    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex)
+  private def httpPathPOST: String = routes.EnterPstrController
+    .onSubmit(ChargeTypeAnnualAllowance, NormalMode, srn, startDate, accessType, versionInt, 0, schemeIndex).url
 
-  private val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
+  private val viewModel = GenericViewModel(
+    submitUrl = httpPathPOST,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+    schemeName = schemeName)
 
   private def userAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value
@@ -73,21 +77,23 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET(schemeIndex = 0))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[EnterPstr].apply(
-        form,
-        "",
-        "chargeType.description.annualAllowance",
-        submitCall(),
-        returnUrl,
-        schemeName
-      )(request, messages)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      compareResultAndView(result, view)
+      val expectedJson = Json.obj(
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "ordinal" -> ""
+      )
+
+      templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "return OK and the correct view for a GET and correct ordinal for scheme index one" in {
@@ -96,21 +102,21 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET(schemeIndex = 1))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      val view = application.injector.instanceOf[EnterPstr].apply(
-        form,
-        "second",
-        "chargeType.description.annualAllowance",
-        submitCall(1),
-        returnUrl,
-        schemeName
-      )(request, messages)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      compareResultAndView(result, view)
+      val expectedJson = Json.obj(
+        "ordinal" -> "second"
+      )
+
+      templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to the next page when valid data is submitted" in {
@@ -140,21 +146,23 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
       val request = FakeRequest(POST, httpPathGET(0)).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual BAD_REQUEST
 
-      val view = application.injector.instanceOf[EnterPstr].apply(
-        boundForm,
-        "",
-        "chargeType.description.annualAllowance",
-        submitCall(),
-        returnUrl,
-        schemeName
-      )(request, messages)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      compareResultAndView(result, view)
+      val expectedJson = Json.obj(
+        "form" -> boundForm,
+        "viewModel" -> viewModel
+      )
+
+      templateCaptor.getValue mustEqual "mccloud/enterPstr.njk"
+
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

@@ -29,26 +29,28 @@ import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
 import models.financialStatement.{PsaFSDetail, SchemeFSDetail}
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest._
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.libs.json.{JsObject, JsString, Json}
 import play.api.test.Helpers.{route, _}
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
-import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargeDetailsView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
 class PaymentsAndChargeDetailsControllerSpec
   extends ControllerSpecBase
+    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with RecoverMethods {
@@ -85,8 +87,8 @@ class PaymentsAndChargeDetailsControllerSpec
       .thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
-  private def insetTextWithAmountDueAndInterest(schemeFSDetail: SchemeFSDetail, index: String = "1") = {
-    HtmlContent(
+  private def insetTextWithAmountDueAndInterest(schemeFSDetail: SchemeFSDetail): uk.gov.hmrc.viewmodels.Html = {
+    uk.gov.hmrc.viewmodels.Html(
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
         s"<p class=govuk-body>${
           messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate",
@@ -95,21 +97,56 @@ class PaymentsAndChargeDetailsControllerSpec
         s" <span>" +
         s"<a id='breakdown' class=govuk-link href=${
           controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-            .onPageLoad(srn, schemeFSDetail.periodStartDate.get, index, AccountingForTaxCharges, All)
+            .onPageLoad(srn, schemeFSDetail.periodStartDate.get, "1", AccountingForTaxCharges, All)
             .url
         }>" +
         s"${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
     )
   }
 
-  private def insetTextWithNoAmountDue(schemeFSDetail: SchemeFSDetail): HtmlContent = {
-    HtmlContent(
+  private def insetTextWithNoAmountDue(schemeFSDetail: SchemeFSDetail): uk.gov.hmrc.viewmodels.Html = {
+    uk.gov.hmrc.viewmodels.Html(
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccrued")}</h2>" +
         s"<p class=govuk-body>${
           messages("paymentsAndCharges.chargeDetails.amount.paid.after.dueDate",
             schemeFSDetail.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))
         }</p>"
     )
+  }
+
+  private def expectedJson(
+                            schemeFSDetail: SchemeFSDetail,
+                            insetText: uk.gov.hmrc.viewmodels.Html,
+                            isPaymentOverdue: Boolean = false,
+                            isInCredit: Boolean = false,
+                            optHint: Option[String] = None
+                          ): JsObject = {
+    val commonJson = Json.obj(
+      "chargeDetailsList" -> Nil,
+      "tableHeader" -> messages("paymentsAndCharges.caption",
+        DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
+        DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
+      "schemeName" -> schemeName,
+      "chargeType" -> schemeFSDetail.chargeType.toString,
+      "chargeReferenceTextMessage" -> (if (isInCredit) {
+        messages(
+          "paymentsAndCharges.credit.information",
+          s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.totalAmount.abs)}"
+        )
+      }
+      else {
+        messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFSDetail.chargeReference)
+      }),
+      "isPaymentOverdue" -> isPaymentOverdue,
+      "insetText" -> insetText,
+      "interest" -> schemeFSDetail.accruedInterestTotal,
+      "returnUrl" -> dummyCall.url,
+      "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
+    )
+    optHint match {
+      case Some(_) => commonJson ++ Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
+      case _ => commonJson
+    }
   }
 
   "PaymentsAndChargesController" must {
@@ -119,30 +156,23 @@ class PaymentsAndChargeDetailsControllerSpec
         .thenReturn(Future.successful(paymentsCache(Seq(
           createChargeWithAmountDueAndInterest("XY002610150183", amountDue = 1234.00),
           createChargeWithAmountDueAndInterest("XY002610150184", amountDue = 1234.00)
-        ))))
+        ))
+        ))
 
       val schemeFSDetail = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00)
-
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
-        chargeType = schemeFSDetail.chargeType.toString,
-        isPaymentOverdue = true,
-        tableHeader = messages("paymentsAndCharges.caption",
-          DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
-          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
-        chargeReferenceTextMessage = messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFSDetail.chargeReference),
-        chargeDetailsList = Nil,
-        interest = schemeFSDetail.accruedInterestTotal,
-        insetText = insetTextWithAmountDueAndInterest(schemeFSDetail),
-        hintText = "",
-        returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-        returnUrl = dummyCall.url,
-        schemeName
-      )(httpGETRequest(httpPathGET(index = "1")), messages)
-
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
+
+      jsonCaptor.getValue must containJson(
+        expectedJson(schemeFSDetail, insetTextWithAmountDueAndInterest(schemeFSDetail), isPaymentOverdue = true)
+      )
     }
 
     "return OK and the correct view with hint text linked to interest page if amount is due and interest is not accruing for a GET" in {
@@ -150,121 +180,80 @@ class PaymentsAndChargeDetailsControllerSpec
         .thenReturn(Future.successful(paymentsCache(Seq(
           createChargeWithAmountDueAndInterestPayment("XY002610150188", interest = BigDecimal(0.00)),
           createChargeWithAmountDueAndInterestPayment("XY002610150189", interest = BigDecimal(0.00))
-        ))))
+        )
+        )
+        ))
 
       val schemeFSDetail = createChargeWithAmountDueAndInterestPayment(
         chargeReference = "XY002610150188",
         interest = BigDecimal(0.00)
       )
-
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
-        chargeType = schemeFSDetail.chargeType.toString,
-        isPaymentOverdue = false,
-        tableHeader = messages("paymentsAndCharges.caption",
-          DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
-          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
-        chargeReferenceTextMessage = messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFSDetail.chargeReference),
-        chargeDetailsList = Nil,
-        interest = schemeFSDetail.accruedInterestTotal,
-        insetText = insetTextWithAmountDueAndInterest(schemeFSDetail),
-        hintText = messages("paymentsAndCharges.interest.hint"),
-        returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-        returnUrl = dummyCall.url,
-        schemeName
-      )(httpGETRequest(httpPathGET(index = "0")), messages)
-
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
+      jsonCaptor.getValue must containJson(
+        expectedJson(schemeFSDetail, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
+      )
     }
 
     "return OK and the correct view with inset text if amount is all paid and interest accrued has been created as another charge for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest("XY002610150186"))
-        )))
-
+        )
+        ))
       val schemeFSDetail = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150186")
-
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
-        chargeType = schemeFSDetail.chargeType.toString,
-        isPaymentOverdue = false,
-        tableHeader = messages("paymentsAndCharges.caption",
-          DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
-          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
-        chargeReferenceTextMessage = messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFSDetail.chargeReference),
-        chargeDetailsList = Nil,
-        interest = schemeFSDetail.accruedInterestTotal,
-        insetText = insetTextWithNoAmountDue(schemeFSDetail),
-        hintText = "",
-        returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-        returnUrl = dummyCall.url,
-        schemeName
-      )(httpGETRequest(httpPathGET(index = "0")), messages)
-
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
+      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, insetTextWithNoAmountDue(schemeFSDetail)))
     }
 
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithAmountDueAndInterest("XY002610150187", interest = 0.00))
-        )))
+        )
+        ))
       val schemeFSDetail = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00)
-
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
-        chargeType = schemeFSDetail.chargeType.toString,
-        isPaymentOverdue = false,
-        tableHeader = messages("paymentsAndCharges.caption",
-          DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
-          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
-        chargeReferenceTextMessage = messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFSDetail.chargeReference),
-        chargeDetailsList = Nil,
-        interest = schemeFSDetail.accruedInterestTotal,
-        insetText = HtmlContent(""),
-        hintText = "",
-        returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-        returnUrl = dummyCall.url,
-        schemeName
-      )(httpGETRequest(httpPathGET(index = "0")), messages)
-
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
+      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, uk.gov.hmrc.viewmodels.Html("")))
     }
 
     "return OK and the correct view with no inset text and correct chargeReference text if amount is in credit for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(createChargeWithDeltaCredit())
-        )))
+        )
+        ))
       val schemeFSDetail = createChargeWithDeltaCredit()
-
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
-        chargeType = schemeFSDetail.chargeType.toString,
-        isPaymentOverdue = false,
-        tableHeader = messages("paymentsAndCharges.caption",
-          DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
-          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
-        chargeReferenceTextMessage = messages(
-          "paymentsAndCharges.credit.information",
-          s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.totalAmount.abs)}"
-        ),
-        chargeDetailsList = Nil,
-        interest = schemeFSDetail.accruedInterestTotal,
-        insetText = insetTextWithAmountDueAndInterest(schemeFSDetail),
-        hintText = "",
-        returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-        returnUrl = dummyCall.url,
-        schemeName
-      )(httpGETRequest(httpPathGET(index = "0")), messages)
-
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
+      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, uk.gov.hmrc.viewmodels.Html(""), isInCredit = true))
     }
 
     "catch IndexOutOfBoundsException" in {
@@ -290,28 +279,17 @@ class PaymentsAndChargeDetailsControllerSpec
         )
         ))
 
-      val schemeFSDetail = createChargeWithAmountDueAndInterest("XY002610150184", amountDue = 1234.00)
-
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
-        chargeType = schemeFSDetail.chargeType.toString,
-        isPaymentOverdue = true,
-        tableHeader = messages("paymentsAndCharges.caption",
-          DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
-          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
-        chargeReferenceTextMessage = messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFSDetail.chargeReference),
-        chargeDetailsList = Nil,
-        interest = schemeFSDetail.accruedInterestTotal,
-        insetText = insetTextWithAmountDueAndInterest(schemeFSDetail, "3"),
-        hintText = "",
-        returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-        returnUrl = dummyCall.url,
-        schemeName
-      )(httpGETRequest(httpPathGET("2020-04-01", index = "3")), messages)
-
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET("2020-04-01", index = "3"))).value
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
+
+      jsonCaptor.getValue.value("chargeReferenceTextMessage") mustBe JsString("Charge reference: XY002610150184")
     }
 
     "return charge details for XY002610150181 for startDate 2020-04-01 index 0" in {
@@ -325,28 +303,17 @@ class PaymentsAndChargeDetailsControllerSpec
         )
         ))
 
-      val schemeFSDetail = createChargeWithAmountDueAndInterest("XY002610150184", amountDue = 1234.00)
-
-      val view = application.injector.instanceOf[PaymentsAndChargeDetailsView].apply(
-        chargeType = schemeFSDetail.chargeType.toString,
-        isPaymentOverdue = true,
-        tableHeader = messages("paymentsAndCharges.caption",
-          DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
-          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
-        chargeReferenceTextMessage = messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFSDetail.chargeReference),
-        chargeDetailsList = Nil,
-        interest = schemeFSDetail.accruedInterestTotal,
-        insetText = insetTextWithAmountDueAndInterest(schemeFSDetail, "0"),
-        hintText = "",
-        returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
-        returnUrl = dummyCall.url,
-        schemeName
-      )(httpGETRequest(httpPathGET("2020-04-01", index = "0")), messages)
-
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET("2020-04-01", index = "0"))).value
       status(result) mustEqual OK
 
-      compareResultAndView(result, view)
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
+
+      jsonCaptor.getValue.value("chargeReferenceTextMessage") mustBe JsString("Charge reference: XY002610150181")
     }
   }
 }

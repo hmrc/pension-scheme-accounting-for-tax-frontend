@@ -35,16 +35,19 @@ import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.PenaltiesServiceSpec.dateNow
 import services.SchemeService
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{Html, SummaryList}
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY}
+import viewmodels.Radios.MessageInterpolators
+import viewmodels.Table
+import viewmodels.Table.Cell
 
 import java.time.LocalDate
+import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
@@ -77,7 +80,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
         case _ => chargeReference
       }
 
-    HtmlContent(
+    Html(
       s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +
         s"$penaltyType " +
@@ -89,11 +92,11 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
   }
 
   private val tableHead = Seq(
-    HeadCell(Text(messages("psa.financial.overview.penalty")), classes = "govuk-!-width-one-half"),
-    HeadCell(Text(messages("psa.financial.overview.charge.reference")), classes = "govuk-!-font-weight-bold"),
-    HeadCell(Text(messages("psa.financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold"),
-    HeadCell(Text(messages("psa.financial.overview.payment.due")), classes = "govuk-!-font-weight-bold"),
-    HeadCell(HtmlContent(
+    Cell(msg"psa.financial.overview.penalty", classes = Seq("govuk-!-width-one-half").toSeq),
+    Cell(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-font-weight-bold").toSeq),
+    Cell(msg"psa.financial.overview.payment.charge.amount", classes = Seq("govuk-!-font-weight-bold").toSeq),
+    Cell(msg"psa.financial.overview.payment.due", classes = Seq("govuk-!-font-weight-bold").toSeq),
+    Cell(Html(
       s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
     ))
   )
@@ -107,31 +110,32 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
                   schemeName: String,
                   pstr: String,
                   visuallyHiddenText: String
-                 ): Seq[TableRow] = {
+                 ): Seq[Table.Cell] = {
     val statusHtml = status match {
-      case InterestIsAccruing => HtmlContent(s"<span class='govuk-tag govuk-tag--blue'>${status.toString}</span>")
-      case PaymentOverdue => HtmlContent(s"<span class='govuk-tag govuk-tag--red'>${status.toString}</span>")
+      case InterestIsAccruing => Html(s"<span class='govuk-tag govuk-tag--blue'>${status.toString}</span>")
+      case PaymentOverdue => Html(s"<span class='govuk-tag govuk-tag--red'>${status.toString}</span>")
       case _ => if (paymentDue == "£0.00") {
-        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
+        Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
       } else {
-        HtmlContent(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
+        Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
       }
     }
 
     Seq(
-      TableRow(htmlChargeType(penaltyType, chargeReference, redirectUrl, visuallyHiddenText, schemeName, pstr), classes = "govuk-!-width-one-half"),
-      TableRow(Text(s"$chargeReference"), classes = "govuk-!-width-one-quarter"),
-      TableRow(Text(penaltyAmount), classes = "govuk-!-width-one-quarter"),
-      TableRow(Text(paymentDue), classes = "govuk-!-width-one-quarter"),
-      TableRow(statusHtml)
+      Cell(htmlChargeType(penaltyType, chargeReference, redirectUrl, visuallyHiddenText, schemeName, pstr), classes = Seq("govuk-!-width-one-half").toSeq),
+      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter").toSeq),
+      Cell(Literal(penaltyAmount), classes = Seq("govuk-!-width-one-quarter").toSeq),
+      Cell(Literal(paymentDue), classes = Seq("govuk-!-width-one-quarter").toSeq),
+      Cell(statusHtml)
     )
   }
 
-  private def penaltiesTable(rows: Seq[Seq[TableRow]]): Table =
-    Table(head = Some(tableHead), rows = rows)
+  private def penaltiesTable(rows: Seq[Seq[Table.Cell]]): Table =
+    Table(head = tableHead.toSeq, rows = rows.map(_.toSeq).toSeq)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
+
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockFinancialInfoCacheConnector.fetch(any(), any()))
@@ -398,45 +402,80 @@ object PsaPenaltiesAndChargesServiceSpec {
 
   val psaFs: PsaFS = PsaFS(inhibitRefundSignal = false, psaFsSeq.toSeq)
 
-  private def chargeReferenceRow(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def chargeReferenceRow: Seq[SummaryList.Row] = {
     Seq(
-      SummaryListRow(
-        key = Key(Text(messages("psa.financial.overview.charge.reference")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text("XY002610150184"), classes = "govuk-!-width-one-quarter")),
-    )
-  }
-
-  private def penaltyAmountRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(Text(messages("psa.financial.overview.penaltyAmount")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(s"${formatCurrencyAmountAsString(80000.00)}"), classes = "govuk-!-width-one-quarter"),
-        actions = None
+      Row(
+        key = Key(
+          content = msg"psa.financial.overview.charge.reference",
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
+        ),
+        value = Value(
+          content = Literal("XY002610150184"),
+          classes =
+            Seq("govuk-!-width-one-quarter").toSeq
+        ),
+        actions = Nil
       ))
   }
 
-  private def totalAmountDueChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def penaltyAmountRow: Seq[SummaryList.Row] = {
     Seq(
-      SummaryListRow(
-        key = Key(Text(messages("financialPaymentsAndCharges.paymentDue.overdue.dueDate", LocalDate.parse("2022-03-18").format(dateFormatterDMY))), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"), classes = "govuk-!-width-one-quarter govuk-!-font-weight-bold")),
-    )
-  }
-
-  private def stoodOverAmountChargeDetailsRow(implicit messages: Messages): Seq[SummaryListRow] = {
-    Seq(
-      SummaryListRow(
-        key = Key(Text(messages("paymentsAndCharges.chargeDetails.stoodOverAmount")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(s"-${formatCurrencyAmountAsString(25089.08)}"), classes = "govuk-!-width-one-quarter"),
-        actions = None
+      Row(
+        key = Key(
+          content = msg"psa.financial.overview.penaltyAmount",
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
+        ),
+        value = Value(
+          content = Literal(s"${formatCurrencyAmountAsString(80000.00)}"),
+          classes =
+            Seq("govuk-!-width-one-quarter").toSeq
+        ),
+        actions = Nil
       ))
   }
 
-  private def clearingDetailsRow(date: String)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def totalAmountDueChargeDetailsRow: Seq[SummaryList.Row] = {
     Seq(
-      SummaryListRow(
-        key = Key(Text(messages("financialPaymentsAndCharges.clearingReason.c1", formatDateDMY(LocalDate.parse(date)))), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(s"-${formatCurrencyAmountAsString(100)}"), classes = "govuk-!-width-one-quarter")),
-    )
+      Row(
+        key = Key(
+          content = msg"financialPaymentsAndCharges.paymentDue.overdue.dueDate".withArgs(LocalDate.parse("2022-03-18").format(dateFormatterDMY)),
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
+        ),
+        value = Value(
+          Literal(s"${FormatHelper.formatCurrencyAmountAsString(1029.05)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold").toSeq
+        ),
+        actions = Nil
+      ))
+  }
+
+  private def stoodOverAmountChargeDetailsRow: Seq[SummaryList.Row] = {
+    Seq(
+      Row(
+        key = Key(
+          content = msg"paymentsAndCharges.chargeDetails.stoodOverAmount",
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
+        ),
+        value = Value(
+          content = Literal(s"-${formatCurrencyAmountAsString(25089.08)}"),
+          classes = Seq("govuk-!-width-one-quarter").toSeq
+        ),
+        actions = Nil
+      ))
+  }
+
+  private def clearingDetailsRow(date: String): Seq[SummaryList.Row] = {
+    Seq(
+      Row(
+        key = Key(
+          content = msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(LocalDate.parse(date))),
+          classes = Seq("govuk-!-padding-left-0", "govuk-!-width-one-half").toSeq
+        ),
+        value = Value(
+          content = Literal(s"-${formatCurrencyAmountAsString(100)}"),
+          classes = Seq("govuk-!-width-one-quarter").toSeq
+        ),
+        actions = Nil
+      ))
   }
 }
