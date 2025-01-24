@@ -16,7 +16,6 @@
 
 @this(
     layout: templates.Layout,
-    formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukDetails: GovukDetails,
     govukFileUpload : GovukFileUpload,
@@ -74,7 +73,7 @@
     ))
 }
 
-@formHelper(action = submitUrl, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "false", Symbol("enctype") -> "multipart/form-data") {
+<form method="@submitUrl.method" action="@submitUrl.path" autocomplete="off" novalidate enctype="multipart/form-data">
     @for(field <- formFields) {
         <input type="hidden" name="@field._1" value="@field._2"/>
     }
@@ -102,6 +101,6 @@
     @govukButton(
         ButtonViewModel(Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String))
     )
-}
+</form>
 @templates.ReturnLink(schemeName, returnUrl)
 }
