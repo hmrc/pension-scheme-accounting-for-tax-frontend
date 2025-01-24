@@ -39,7 +39,7 @@ import pages._
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
@@ -47,6 +47,7 @@ import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
+import views.html.{DeclarationView, PspDeclarationView}
 
 import java.time.{ZoneId, ZonedDateTime}
 import scala.concurrent.Future
@@ -86,22 +87,12 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   private val applicationPsp: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModulesPsp).build()
 
-  private val templateToBeRendered = "declaration.njk"
-
   private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
 
   private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url
 
-  private val jsonToPassToTemplate = Json.obj(
-    fields = "viewModel" -> GenericViewModel(
-      submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      schemeName = schemeName)
-  )
-
   override def beforeEach(): Unit = {
     super.beforeEach()
-    Mockito.reset(mockRenderer)
     Mockito.reset(mockEmailConnector)
     Mockito.reset(mockAFTService)
     Mockito.reset(mockUserAnswersCacheConnector)
@@ -129,30 +120,34 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   "Declaration Controller" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      val view = application.injector.instanceOf[DeclarationView].apply(
+        routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
+
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET for PSP" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(applicationPsp, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual templateToBeRenderedPsp
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      val view = application.injector.instanceOf[PspDeclarationView].apply(
+        routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
+
+      compareResultAndView(result, view)
     }
 
     "Save data to user answers, file AFT Return, send an email (with audit event) and redirect to next page when on submit declaration by PSA" in {

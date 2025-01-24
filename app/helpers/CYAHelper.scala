@@ -16,21 +16,28 @@
 
 package helpers
 
-import uk.gov.hmrc.viewmodels.SummaryList._
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import models.YearRange
+import play.api.i18n.Messages
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{Content, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 
 trait CYAHelper {
 
-  def total(total: BigDecimal): Row = Row(
-    key = Key(msg"total", classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")),
-    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(total)}"))
+  def total(total: BigDecimal)(implicit messages: Messages): SummaryListRow = SummaryListRow(
+    key = Key(Text(messages("total")), classes = "govuk-!-width-one-half govuk-table__cell--numeric govuk-!-font-weight-bold"),
+    value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(total)}"))
   )
 
-  def yesOrNo(answer: Boolean): Content =
-    if (answer) msg"site.yes" else msg"site.no"
+  def yesOrNo(answer: Boolean)(implicit messages: Messages): Text =
+    if (answer) Text(messages("site.yes")) else Text(messages("site.no"))
 
-  def rows(viewOnly: Boolean, rows: Seq[SummaryList.Row]): Seq[SummaryList.Row] = {
-    if (viewOnly) rows.map(_.copy(actions = Nil)) else rows
+  def rows(viewOnly: Boolean, rows: Seq[SummaryListRow]): Seq[SummaryListRow] = {
+    if (viewOnly) rows.map(_.copy(actions = None)) else rows
+  }
+
+  def getLabel(yr: YearRange)(implicit messages: Messages): Text = {
+    val startYear = yr.toString
+    val yearRangeMsg = messages("yearRangeRadio", startYear, (startYear.toInt + 1).toString)
+    Text(yearRangeMsg)
   }
 }

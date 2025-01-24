@@ -25,8 +25,7 @@ import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, DisplayQuarter, Enumerable, GenericViewModel, LockedHint, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
-import org.mockito.ArgumentCaptor
+import models.{AFTQuarter, DisplayQuarter, Enumerable, LockedHint, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -35,18 +34,18 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper
+import utils.{DateHelper, TwirlMigration}
+import views.html.QuartersView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -63,23 +62,12 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   private val testYear = 2020
   private val errorKey = "quarters.error.required"
-  val templateToBeRendered = "quarters.njk"
   val formProvider = new QuartersFormProvider()
   val availableQuarters: Seq[AFTQuarter] = Seq(q22020, q32020, q42020, q12021)
   val form: Form[AFTQuarter] = formProvider(messages(errorKey, testYear), availableQuarters)
 
   lazy val httpPathGET: String = controllers.routes.QuartersController.onPageLoad(srn, testYear.toString).url
   lazy val httpPathPOST: String = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url
-
-  private val jsonToPassToTemplate: Form[AFTQuarter] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> Quarters.radios(form, Seq(displayQuarterStart)),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "year" -> testYear.toString
-  )
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q12021.toString))
 
@@ -102,18 +90,21 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[QuartersView].apply(
+        testYear.toString,
+        form,
+        TwirlMigration.toTwirlRadios(Quarters.radios(form, Seq(displayQuarterStart))),
+        controllers.routes.QuartersController.onSubmit(srn, testYear.toString),
+        dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      compareResultAndView(result, view)
     }
 
     "redirect to next page when valid data is submitted" in {

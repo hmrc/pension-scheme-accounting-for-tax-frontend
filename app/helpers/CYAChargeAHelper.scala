@@ -19,61 +19,66 @@ package helpers
 import models.LocalDateBinder._
 import models.{AccessType, CheckMode}
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
 
 import java.time.LocalDate
 
 class CYAChargeAHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
-  def chargeAMembers(answer: models.chargeA.ChargeDetails): Row = {
-    Row(
-      key = Key(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(answer.numberOfMembers.toString), classes = Seq("govuk-!-width-one-quarter")),
-      actions = List(
-        Action(
-          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(Literal(
-            messages("site.edit") + " " + messages("chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
+  def chargeAMembers(answer: models.chargeA.ChargeDetails): SummaryListRow = {
+    SummaryListRow(
+      key = Key(Text(messages("chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+      value = Value(Text(answer.numberOfMembers.toString), classes = "govuk-!-width-one-quarter"),
+      actions = Some(
+        Actions(
+          items = Seq(ActionItem(
+            content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
+            visuallyHiddenText = Some(
+              messages("site.edit") + " " + messages("chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
+            )
+          ))
+
+        )
+      )
+    )
+  }
+
+  def chargeAAmountLowerRate(answer: models.chargeA.ChargeDetails): SummaryListRow = {
+    SummaryListRow(
+      key = Key(Text(messages("chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+      value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"),
+        classes = "govuk-!-width-one-quarter"),
+      actions = Some(
+        Actions(
+          items = Seq(ActionItem(
+            content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+            href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
+            visuallyHiddenText = Some(
+              messages("site.edit") + " " + messages("chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel")
+            )
           ))
         )
       )
     )
   }
 
-  def chargeAAmountLowerRate(answer: models.chargeA.ChargeDetails): Row = {
-    Row(
-      key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"),
-        classes = Seq("govuk-!-width-one-quarter")),
-      actions = List(
-        Action(
-          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+  def chargeAAmountHigherRate(answer: models.chargeA.ChargeDetails): SummaryListRow = {
+    SummaryListRow(
+      key = Key(Text(messages("chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+      value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"),
+        classes = "govuk-!-width-one-quarter"),
+      actions = Some(
+        Actions(
+          items = Seq(ActionItem(
+          content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
           href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(Literal(
-            messages("site.edit") + " " + messages("chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel")
-          ))
-        )
-      )
-    )
-  }
-
-  def chargeAAmountHigherRate(answer: models.chargeA.ChargeDetails): Row = {
-    Row(
-      key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"),
-        classes = Seq("govuk-!-width-one-quarter")),
-      actions = List(
-        Action(
-          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(Literal(
+          visuallyHiddenText = Some(
             messages("site.edit") + " " + messages("chargeA.chargeDetails.amountHigherRate.visuallyHidden.checkYourAnswersLabel")
-          ))
-        )
-      )
+          )
+        ))
+      ))
     )
   }
 
