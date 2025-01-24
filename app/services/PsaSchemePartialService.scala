@@ -26,8 +26,8 @@ import models.financialStatement.SchemeFSDetail.{endDate, startDate}
 import models.{AFTOverview, AFTOverviewOnPODS, Draft, Quarters, SchemeDetails}
 import play.api.i18n.Messages
 import services.paymentsAndCharges.PaymentsAndChargesService
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels._
@@ -63,10 +63,10 @@ class PsaSchemePartialService @Inject()(
    */
 
   private def getStartReturnLink(overview: Seq[AFTOverview], srn: String, pstr: String)
-                                (implicit hc: HeaderCarrier): Future[Seq[Link]] = {
+                                (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[Link]] = {
 
     val startLink: Link = Link(id = "aftLoginLink", url = appConfig.aftLoginUrl.format(srn),
-      linkText = msg"aftPartial.start.link")
+      linkText = Text(Messages("aftPartial.start.link")))
 
     val isReturnNotInitiatedForAnyQuarter: Boolean = {
       val aftValidYears = aftConnector.aftOverviewStartDate.getYear to aftConnector.aftOverviewEndDate.getYear
@@ -100,7 +100,7 @@ class PsaSchemePartialService @Inject()(
     }
   }
 
-  private def getPastReturnsLink(overview: Seq[AFTOverview], srn: String): Seq[Link] = {
+  private def getPastReturnsLink(overview: Seq[AFTOverview], srn: String)(implicit messages: Messages): Seq[Link] = {
     val pastReturns = overview.filter(_.versionDetails.isDefined)
       .map(_.toPodsReport).filter(!_.compiledVersionAvailable)
 
@@ -108,7 +108,7 @@ class PsaSchemePartialService @Inject()(
       Seq(Link(
         id = "aftAmendLink",
         url = appConfig.aftAmendUrl.format(srn),
-        linkText = msg"aftPartial.view.change.past"))
+        linkText = Text(Messages("aftPartial.view.change.past"))))
     } else {
       Nil
     }
@@ -161,20 +161,20 @@ class PsaSchemePartialService @Inject()(
         id = "aftSummaryLink",
         url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
         linkText = linkText,
-        hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
+        hiddenText = Some(Text(Messages("aftPartial.view.hidden.forPeriod", Seq(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))))
       ))
     )
 
     aftCacheConnector.lockDetail(srn, startDate.toString).map {
       case Some(lockDetail) => if (lockDetail.name.nonEmpty) {
         returnTuple(messages("aftPartial.status.lockDetail", lockDetail.name),
-          msg"pspDashboardAftReturnsCard.inProgressReturns.link.single.locked")
+          Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link.single.locked")))
       } else {
         returnTuple(messages("aftPartial.status.locked"),
-          msg"pspDashboardAftReturnsCard.inProgressReturns.link.single.locked")
+          Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link.single.locked")))
       }
       case _ => returnTuple(messages("aftPartial.status.inProgress"),
-        msg"pspDashboardAftReturnsCard.inProgressReturns.link.single")
+        Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link.single")))
     }
   }
 
@@ -198,8 +198,8 @@ class PsaSchemePartialService @Inject()(
           Seq(Link(
             id = "aftContinueInProgressLink",
             url = appConfig.aftContinueReturnUrl.format(srn),
-            linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
-            hiddenText = Some(msg"aftPartial.view.hidden")
+            linkText = Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link")),
+            hiddenText = Some(Text(Messages("aftPartial.view.hidden")))
           )))
       } else {
         (Nil, Nil)
@@ -248,17 +248,17 @@ class PsaSchemePartialService @Inject()(
       Nil
     }
 
-  private def viewUpcomingLink(upcomingCharges: Seq[SchemeFSDetail], srn: String): Seq[Link] =
+  private def viewUpcomingLink(upcomingCharges: Seq[SchemeFSDetail], srn: String)(implicit messages: Messages): Seq[Link] =
     if (upcomingCharges != Seq.empty) {
       val nonAftUpcomingCharges: Seq[SchemeFSDetail] = upcomingCharges.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
 
       val linkText: Text = if (upcomingCharges.map(_.dueDate).distinct.size == 1 && nonAftUpcomingCharges.isEmpty) {
-        msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
+        Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single", Seq(
           startDate(upcomingCharges).format(smallDatePattern),
           endDate(upcomingCharges).format(smallDatePattern)
-        )
+        )))
       } else {
-        msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
+        Text(Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"))
       }
 
       Seq(Link("upcoming-payments-and-charges", appConfig.upcomingChargesUrl.format(srn), linkText, None))
@@ -267,14 +267,14 @@ class PsaSchemePartialService @Inject()(
       Nil
     }
 
-  private def viewPastPaymentsAndChargesLink(pastCharges: Seq[SchemeFSDetail], srn: String): Seq[Link] =
+  private def viewPastPaymentsAndChargesLink(pastCharges: Seq[SchemeFSDetail], srn: String)(implicit messages: Messages): Seq[Link] =
     if (pastCharges == Seq.empty) {
       Nil
     } else {
       Seq(Link(
         id = "past-payments-and-charges",
         url = appConfig.paymentsAndChargesUrl.format(srn),
-        linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+        linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
         hiddenText = None
       ))
     }
@@ -322,16 +322,16 @@ class PsaSchemePartialService @Inject()(
     }
   }
 
-  private def viewOverdueLink(schemeFs: Seq[SchemeFSDetail], srn: String): Seq[Link] = {
+  private def viewOverdueLink(schemeFs: Seq[SchemeFSDetail], srn: String)(implicit messages: Messages): Seq[Link] = {
     val nonAftOverdueCharges: Seq[SchemeFSDetail] = schemeFs.filter(p => getPaymentOrChargeType(p.chargeType) != AccountingForTaxCharges)
     val linkText = if (schemeFs.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate).distinct.size == 1 && nonAftOverdueCharges.isEmpty) {
       //messages associated with each scenario of links for the overdue charges tile
-      msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
-        .withArgs(
+      Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod",
+        Seq(
           schemeFs.filter(_.periodStartDate.nonEmpty).map(_.periodStartDate.get).distinct.head.format(smallDatePattern),
-          schemeFs.filter(_.periodEndDate.nonEmpty).map(_.periodEndDate.get).distinct.head.format(smallDatePattern))
+          schemeFs.filter(_.periodEndDate.nonEmpty).map(_.periodEndDate.get).distinct.head.format(smallDatePattern))))
     } else {
-      msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"
+      Text(Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"))
     }
 
     Seq(Link("overdue-payments-and-charges", appConfig.overdueChargesUrl.format(srn), linkText, None))
@@ -384,20 +384,20 @@ class PsaSchemePartialService @Inject()(
 
   }
 
-  private def viewFinancialOverviewLink(srn: String): Seq[Link] =
+  private def viewFinancialOverviewLink(srn: String)(implicit messages: Messages): Seq[Link] =
       Seq(Link(
         id = "view-your-financial-overview",
         url = appConfig.financialOverviewUrl.format(srn),
-        linkText = msg"pspDashboardUpcomingAftChargesCard.link.financialOverview",
+        linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.financialOverview")),
         hiddenText = None
       ))
 
 
-  private def viewAllPaymentsAndChargesLink(srn: String, pstr: String): Seq[Link] =
+  private def viewAllPaymentsAndChargesLink(srn: String, pstr: String)(implicit messages: Messages): Seq[Link] =
           Seq(Link(
         id = "past-payments-and-charges",
         url = appConfig.financialPaymentsAndChargesUrl.format(srn),
-        linkText = msg"pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges",
+        linkText = Text(Messages("pspDashboardUpcomingAftChargesCard.link.allPaymentsAndCharges")),
         hiddenText = None
       ))
 
