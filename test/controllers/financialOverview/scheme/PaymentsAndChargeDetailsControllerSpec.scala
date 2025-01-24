@@ -171,6 +171,10 @@ class PaymentsAndChargeDetailsControllerSpec
 
   "PaymentsAndChargesController" must {
 
+    "return OK and the correct view if financial toggles  are switched on" in {
+      when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
+    }
+
     "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(Seq(
