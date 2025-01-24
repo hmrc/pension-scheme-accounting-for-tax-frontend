@@ -40,5 +40,13 @@ trait CommonMcCloud {
     }
   }
 
+  def twirlLifetimeOrAnnual(chargeType: ChargeType): Option[String] = {
+    chargeType match {
+      case ChargeTypeAnnualAllowance => Some("chargeType.description.annualAllowance")
+      case ChargeTypeLifetimeAllowance => Some("chargeType.description.lifeTimeAllowance")
+      case _ => None
+    }
+  }
+
   protected def sessionExpired: Future[Result] = Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
 }

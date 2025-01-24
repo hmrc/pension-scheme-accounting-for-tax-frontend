@@ -1,0 +1,66 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import viewmodels.InterestDetailsViewModel
+
+@this(
+    layout: templates.Layout,
+    govukBackLink: GovukBackLink,
+    govukButton: GovukButton,
+    govukSummaryList: GovukSummaryList,
+    govukTable: GovukTable,
+    govukInsetText: GovukInsetText
+)
+
+@(model: InterestDetailsViewModel)(implicit messages: Messages, request: Request[_])
+
+@layout(messages(model.chargeType)) {
+
+<div>
+
+    <h1 class="hmrc-caption govuk-caption-xl">@model.schemeName</h1>
+    <h1 class="govuk-heading-xl">@model.chargeType</h1>
+
+
+    @if(model.accruedInterest > 0) {
+    <p class="govuk-body govuk-tag govuk-tag--blue">
+        @messages("paymentsAndCharges.status.InterestAccruing")
+    </p>
+    }
+
+    @if(model.chargeDetailsList.nonEmpty) {
+    <h2 id="paymentAndChargeDetails" class="govuk-heading-m">@model.tableHeader</h2>
+    @govukSummaryList(
+        SummaryList(
+            rows = model.chargeDetailsList
+        ))
+    }
+
+    @govukInsetText(
+        InsetText(
+            content = model.insetText
+        )
+    )
+
+</div>
+
+<p class="govuk-body">
+    <a id="return" href="@model.returnUrl" class="govuk-link">
+        @messages("return.to.link", model.returnLinkBasedOnJourney)
+    </a>
+</p>
+
+}

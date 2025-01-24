@@ -16,6 +16,7 @@
 
 package controllers.financialOverview.psa
 
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.financialStatement.PenaltyTypeFormProvider
 import models.financialStatement.PenaltyType.getPenaltyType
@@ -23,54 +24,60 @@ import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.financialOverview.psa.PenaltyTypeView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
                                       identify: IdentifierAction,
+                                      appConfig: FrontendAppConfig,
                                       allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                       formProvider: PenaltyTypeFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
-                                      renderer: Renderer,
+                                      penaltyTypeView: PenaltyTypeView,
                                       psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
                                       navService: PenaltiesNavigationService)
                                      (implicit ec: ExecutionContext) extends FrontendBaseController
-  with I18nSupport
-  with NunjucksSupport {
+  with I18nSupport {
 
   private def form: Form[PenaltyType] = formProvider()
 
   def onPageLoad(journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-      val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties.toSeq)
-       val json = Json.obj(
-         "psaName" -> penaltiesCache.psaName,
-         "form" -> form,
-         "radios" -> PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
-         "submitUrl" -> routes.PenaltyTypeController.onSubmit().url
-       )
-       renderer.render(template = "financialOverview/psa/penaltyType.njk", json).map(Ok(_))
+        val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties.toSeq)
+
+        Future.successful(Ok(
+          penaltyTypeView(
+            form = form,
+            psaName = penaltiesCache.psaName,
+            radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+            submitCall = routes.PenaltyTypeController.onSubmit(),
+            returnUrl = appConfig.managePensionsSchemeOverviewUrl
+          )
+        ))
+      }
     }
-  }
+
 
   def onSubmit(journeyType: ChargeDetailsFilter): Action[AnyContent] = identify.async { implicit request =>
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       form.bindFromRequest().fold(
         formWithErrors => {
-          val json = Json.obj(
-            "psaName" -> penaltiesCache.psaName,
-            "form" -> formWithErrors,
-            "radios" -> PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq)),
-            "submitUrl" -> routes.PenaltyTypeController.onSubmit().url
-          )
-          renderer.render(template = "financialOverview/psa/penaltyType.njk", json).map(BadRequest(_))
+
+          Future.successful(BadRequest(
+            penaltyTypeView(
+              formWithErrors,
+              psaName = penaltiesCache.psaName,
+              radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq))),
+              submitCall = routes.PenaltyTypeController.onSubmit(),
+              returnUrl = appConfig.managePensionsSchemeOverviewUrl
+            )
+          ))
         },
         value => navService.navFromPenaltiesTypePage(penaltiesCache.penalties, request.psaIdOrException.id, value)
       )
@@ -84,5 +91,6 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
       val hint: Option[DisplayHint] = if (isOverdue) Some(PaymentOverdue) else None
 
       DisplayPenaltyType(category, hint)
+
     }
 }

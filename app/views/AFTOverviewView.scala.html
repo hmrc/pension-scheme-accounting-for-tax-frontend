@@ -1,0 +1,140 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@this(
+    layout: templates.Layout,
+)
+
+@(schemeName: String,
+    newAftUrl: String,
+    outstandingAmount: String,
+    paymentsAndChargesUrl: String,
+    quartersInProgress: Seq[(String, String)],
+    pastYearsAndQuarters: Seq[(Int, Seq[(String, String)])],
+    viewAllPastAftsUrl: String,
+    returnUrl: String
+)(implicit request: Request[_], messages: Messages)
+
+@layout(messages("aftOverview.title")) {
+    <div>
+        <span class="govuk-caption-xl">
+            @schemeName
+        </span>
+
+        <h1 class="govuk-heading-xl govuk-!-margin-bottom-6">
+            @messages("aftOverview.title")
+        </h1>
+
+        <p class="govuk-body">
+            <a class="govuk-link" href=@newAftUrl>
+                @messages("aftOverview.startNewAft")
+            </a>
+        </p>
+
+        @if(outstandingAmount != messages("aftOverview.totalOutstandingNotAvailable")) {
+            <h3 class="govuk-caption-l govuk-!-margin-top-8 govuk-!-margin-bottom-2">
+                @messages("aftOverview.totalOutstanding")
+            </h3>
+
+            <p class="govuk-heading-l">
+                <strong>
+                    @outstandingAmount
+                </strong>
+            </p>
+        } else {
+            <h3 class="govuk-caption-l govuk-!-margin-top-8 govuk-!-margin-bottom-2">
+                @messages("aftOverview.totalOutstandingNotAvailable")
+            </h3>
+        }
+
+        <p class="govuk-body govuk-!-margin-bottom-6">
+            <a class="govuk-link" href=@paymentsAndChargesUrl>
+                @if(outstandingAmount != "£0.00") {
+                    @messages("aftOverview.viewOutstanding")
+                }
+            </a>
+        </p>
+        <hr>
+
+        <h2 class="govuk-heading-l govuk-!-margin-top-6">
+            @messages("aftOverview.inProgress")
+        </h2>
+
+        @if(quartersInProgress.length > 0) {
+            <ul class="govuk-list">
+                @for(tuple <- quartersInProgress) {
+                    <li class="govuk-body">
+                        <a class="govuk-link" href=@tuple._2>
+                            @tuple._1
+                        </a>
+                    </li>
+                }
+            </ul>
+            <hr>
+        } else {
+            <p class="govuk-body">
+                @messages("aftOverview.noReportsInProgress")
+            </p>
+            <br>
+            <hr>
+        }
+
+        <h2 class="govuk-heading-l govuk-!-margin-top-6">
+            @messages("aftOverview.pastAftReturns")
+        </h2>
+
+        @if(pastYearsAndQuarters.length > 0) {
+            @for(tuple <- pastYearsAndQuarters) {
+                <h3 class="govuk-heading-s">
+                    @tuple._1
+                </h3>
+
+                <ul class="govuk-list">
+                    @for(item <- tuple._2) {
+                        <li class="govuk-body">
+                            <a class="govuk-link" href=@item._2>
+                                @item._1
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+        } else {
+            <p class="govuk-body">
+                @messages("aftOverview.noPastReturns")
+            </p>
+        }
+        <br>
+
+
+        @if(pastYearsAndQuarters.length > 3) {
+            <p class="govuk-body govuk-!-margin-bottom-6">
+                <a class="govuk-link" href=@viewAllPastAftsUrl>
+                    @messages("aftOverview.allPastAftReturns")
+                </a>
+            </p>
+        }
+
+        <hr>
+
+        <br>
+        <p class="govuk-body">
+            <a href=@returnUrl class="govuk-link">
+                @messages("return.to.link", schemeName)
+            </a>
+        </p>
+    </div>
+}

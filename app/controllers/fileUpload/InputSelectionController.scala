@@ -22,18 +22,17 @@ import controllers.actions._
 import forms.fileUpload.InputSelectionFormProvider
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, NormalMode}
 import navigators.CompoundNavigator
 import pages.fileUpload.InputSelectionPage
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.fileUpload.InputSelectionView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class InputSelectionController @Inject()(
     override val messagesApi: MessagesApi,
@@ -42,14 +41,13 @@ class InputSelectionController @Inject()(
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
     navigator: CompoundNavigator,
     formProvider: InputSelectionFormProvider,
-    userAnswersCacheConnector: UserAnswersCacheConnector
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    view: InputSelectionView
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-      with NunjucksSupport  {
+    with I18nSupport {
 
   private val form = formProvider()
 
@@ -58,19 +56,11 @@ class InputSelectionController @Inject()(
       val preparedForm = request.userAnswers.get(InputSelectionPage(chargeType)).fold(form)(form.fill)
 
       DataRetrievals.retrieveSchemeName { schemeName =>
-        renderer
-          .render(
-            template = "fileUpload/inputSelection.njk",
-            Json.obj(
-              "chargeType" -> ChargeType.fileUploadText(chargeType),
-              "srn" -> srn,
-              "startDate" -> Some(startDate),
-              "radios" -> InputSelection.radios(preparedForm),
-              "form" -> preparedForm,
-              "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version, chargeType)
-            )
-          )
-          .map(Ok(_))
+        val submitUrl =  controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, version, chargeType)
+        val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+
+        Future.successful(Ok(view(preparedForm, schemeName, submitUrl, returnUrl,ChargeType.fileUploadText(chargeType),
+          TwirlMigration.toTwirlRadiosWithHintText(InputSelection.radios(preparedForm)))))
       }
     }
 
@@ -83,15 +73,10 @@ class InputSelectionController @Inject()(
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val json = Json.obj(
-                "chargeType" -> chargeType.toString,
-                "srn" -> srn,
-                "startDate" -> Some(startDate),
-                "form" -> formWithErrors,
-                "radios" -> InputSelection.radios(formWithErrors),
-                "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version, chargeType)
-              )
-              renderer.render(template = "fileUpload/inputSelection.njk", json).map(BadRequest(_))
+              val submitUrl =  controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, version, chargeType)
+              val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+              Future.successful(BadRequest(view(formWithErrors, schemeName, submitUrl, returnUrl,ChargeType.fileUploadText(chargeType),
+                TwirlMigration.toTwirlRadiosWithHintText(InputSelection.radios(formWithErrors)))))
             },
             { inputSelection =>
               val updatedUA = ua.setOrException(InputSelectionPage(chargeType), inputSelection)
@@ -102,10 +87,4 @@ class InputSelectionController @Inject()(
           )
       }
     }
-
-  private def viewModel(schemeName: String, srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType) = GenericViewModel(
-    submitUrl =  controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, version, chargeType).url,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-    schemeName = schemeName
-  )
 }

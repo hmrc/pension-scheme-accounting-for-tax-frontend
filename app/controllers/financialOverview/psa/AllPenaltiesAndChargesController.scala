@@ -18,24 +18,21 @@ package controllers.financialOverview.psa
 
 import controllers.actions._
 import helpers.FormatHelper
-import models.ChargeDetailsFilter.All
+import models.ChargeDetailsFilter.{All, Upcoming}
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, getPenaltyType}
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc._
-import renderer.Renderer
 import services.financialOverview.psa.PsaPenaltiesAndChargesService
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.collection.Seq
 import scala.concurrent.{ExecutionContext, Future}
 
 class AllPenaltiesAndChargesController @Inject()(
@@ -44,20 +41,15 @@ class AllPenaltiesAndChargesController @Inject()(
                                                   allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                                  renderer: Renderer
+                                                  view: PsaPaymentsAndChargesNewView
                                                 )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val logger = Logger(classOf[AllPenaltiesAndChargesController])
 
   def onPageLoadAFT(startDate: LocalDate, pstr: String, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
-
-      val title: Message = Message("penalties.aft.title").withArgs(
-        startDate.format(dateFormatterStartDate),
-        Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY))
 
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
@@ -70,23 +62,36 @@ class AllPenaltiesAndChargesController @Inject()(
         val interestCharges: Seq[PsaFSDetail] = psaPenaltiesAndChargesService.getInterestCharges(filteredPenalties)
         val totalInterestCharges: BigDecimal = interestCharges.map(_.accruedInterestTotal).sum
         val totalCharges: BigDecimal = totalDueCharges + totalInterestCharges
+        val messages = request2Messages
+
+        val title = messages("penalties.aft.title",
+          startDate.format(dateFormatterStartDate),
+          Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY))
 
         if (filteredPenalties.nonEmpty) {
 
           psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
             request.idOrException, filteredPenalties, All) flatMap { table =>
 
-            val json = Json.obj(
-              fields =
-                "titleMessage" -> title,
-              "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
-              "journeyType" -> journeyType.toString,
-              "paymentAndChargesTable" -> table,
-              "totalOutstandingCharge" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
-              "pstr" -> pstr,
-              "psaName" -> penaltiesCache.psaName
-            )
-            renderer.render(template = "financialOverview/psa/psaPaymentsAndCharges.njk", json).map(Ok(_))
+            val penaltiesTable: Table = if (journeyType == Upcoming) {
+              removePaymentStatusColumn(table)
+            } else {
+              table
+            }
+
+            Future.successful(Ok(view(
+              journeyType = journeyType,
+              psaName = penaltiesCache.psaName,
+              titleMessage = title,
+              pstr = Some(pstr),
+              reflectChargeText = messages(s"paymentsAndCharges.reflect.charge.text"),
+              totalOverdueCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+              totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestCharges)}",
+              totalUpcomingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",
+              totalOutstandingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+              penaltiesTable = penaltiesTable,
+              paymentAndChargesTable = penaltiesTable
+            )))
           }
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $startDate")
@@ -99,8 +104,9 @@ class AllPenaltiesAndChargesController @Inject()(
     (identify andThen allowAccess()).async { implicit request =>
 
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
+        val messages = request2Messages
 
-        val title: Message = Message("penalties.nonAft.title", Message(s"penaltyType.${penaltyType.toString}"), year)
+        val title = messages("penalties.nonAft.title", messages(s"penaltyType.${penaltyType.toString}"), year)
         val filteredPenalties: Seq[PsaFSDetail] = penaltiesCache.penalties
           .filter(_.periodEndDate.getYear == year.toInt)
           .filter(_.pstr == pstr)
@@ -117,17 +123,25 @@ class AllPenaltiesAndChargesController @Inject()(
           psaPenaltiesAndChargesService.getAllPenaltiesAndCharges(
             request.idOrException, filteredPenalties, All) flatMap { table =>
 
-            val json = Json.obj(
-              fields =
-                "titleMessage" -> title,
-              "reflectChargeText" -> Message(s"paymentsAndCharges.reflect.charge.text"),
-              "journeyType" -> journeyType.toString,
-              "paymentAndChargesTable" -> table,
-              "totalOutstandingCharge" -> s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
-              "pstr" -> pstr,
-              "psaName" -> penaltiesCache.psaName
-            )
-            renderer.render(template = "financialOverview/psa/psaPaymentsAndCharges.njk", json).map(Ok(_))
+            val penaltiesTable: Table = if (journeyType == Upcoming) {
+              removePaymentStatusColumn(table)
+            } else {
+              table
+            }
+
+            Future.successful(Ok(view(
+              journeyType = journeyType.toString,
+              psaName = penaltiesCache.psaName,
+              titleMessage = title,
+              pstr = Some(pstr),
+              reflectChargeText = messages(s"paymentsAndCharges.reflect.charge.text"),
+              totalOverdueCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+              totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestCharges)}",
+              totalUpcomingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalDueCharges)}",
+              totalOutstandingCharge = s"${FormatHelper.formatCurrencyAmountAsString(totalCharges)}",
+              penaltiesTable = penaltiesTable,
+              paymentAndChargesTable = penaltiesTable
+            )))
           }
         } else {
           logger.warn(s"No Scheme Payments and Charges returned for the selected period $year")
@@ -135,4 +149,15 @@ class AllPenaltiesAndChargesController @Inject()(
         }
       }
     }
+
+  private val removePaymentStatusColumn: Table => Table = table => {
+    Table(caption = table.caption,
+      captionClasses = table.captionClasses,
+      firstCellIsHeader = table.firstCellIsHeader,
+      head = Some(table.head.getOrElse(Seq()).take(table.head.size - 1)),
+      rows = table.rows.map(p => p.take(p.size - 1)),
+      classes = table.classes,
+      attributes = table.attributes
+    )
+  }
 }

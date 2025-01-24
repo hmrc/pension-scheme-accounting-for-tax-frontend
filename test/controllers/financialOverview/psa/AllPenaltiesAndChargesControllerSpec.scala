@@ -20,46 +20,46 @@ import config.FrontendAppConfig
 import connectors.MinimalConnector
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, emptyChargesTable, multiplePenalties, psaId, schemeDetails}
+import data.SampleData.{dummyCall, multiplePenalties, psaId, schemeDetails}
 import matchers.JsonMatchers
 import models.SchemeDetails
 import models.requests.IdentifierRequest
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.AnyContentAsEmpty
+import play.api.test.FakeRequest
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
-import play.twirl.api.Html
 import services.SchemeService
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
+import views.html.financialOverview.psa.PsaPaymentsAndChargesNewView
 
-import java.time.LocalDate
 import scala.concurrent.Future
 
-class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
-  private val startDate = LocalDate.parse("2020-07-01")
+  private val startDate = "2020-07-01"
+  private val endDate = "2020-09-30"
   val pstr = "24000041IN"
 
-  private def httpPathGET(startDate: String = startDate.toString): String =
+  private def httpPathGET(startDate: String = startDate): String =
     routes.AllPenaltiesAndChargesController.onPageLoadAFT(startDate, pstr).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
   private val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
 
+  val emptyChargesTable: Table = Table()
+
   private val application: Application = new GuiceApplicationBuilder()
     .overrides(
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
@@ -67,9 +67,10 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with Nunju
     )
     .build()
 
+  private implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
+
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
     reset(mockPsaPenaltiesAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
@@ -81,32 +82,29 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with Nunju
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    /*when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
-      thenReturn(Future.successful(penaltySchemes))*/
-
   }
-
-  private def expectedJson: JsObject = Json.obj(
-    fields = "paymentAndChargesTable" -> emptyChargesTable,
-    "pstr" -> "24000041IN",
-    "totalOutstandingCharge" -> "£200.00"
-  )
 
   "AllPenaltiesAndChargesController" must {
 
     "return OK and the correct view with filtered penalties and charges information for All journey for a GET" in {
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET())).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[PsaPaymentsAndChargesNewView].apply(
+        psaName = "psa-name",
+        journeyType = "all",
+        titleMessage = "Accounting for Tax penalties for 1 July to 30 September 2020",
+        pstr = Some("24000041IN"),
+        reflectChargeText = "Amounts due may not reflect payments made in the last 3 days.",
+        totalOverdueCharge = "0",
+        totalInterestAccruing = "0",
+        totalUpcomingCharge = "0",
+        totalOutstandingCharge = "£200.00",
+        penaltiesTable = emptyChargesTable,
+        paymentAndChargesTable = emptyChargesTable
+      )(request, messages)
 
-      templateCaptor.getValue mustEqual "financialOverview/psa/psaPaymentsAndCharges.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
-
   }
-
 }

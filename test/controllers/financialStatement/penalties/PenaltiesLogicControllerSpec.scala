@@ -37,12 +37,11 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
 import services.{PenaltiesCache, PenaltiesService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class PenaltiesLogicControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   private def httpPathGET: String = routes.PenaltiesLogicController.onPageLoad(All).url

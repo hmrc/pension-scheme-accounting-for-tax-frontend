@@ -24,26 +24,23 @@ import forms.YearRangeFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
+import models.{Enumerable, NormalMode, UserAnswers, YearRange}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfterEach
 import pages.chargeE.{AnnualAllowanceMembersQuery, AnnualAllowanceYearPage}
 import play.api.Application
-import play.api.data.Form
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, route, status, _}
-import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper
+import play.api.test.Helpers.{route, status, _}
+import utils.{DateHelper, TwirlMigration}
+import views.html.chargeE.AnnualAllowanceYearView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
+class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
 
@@ -52,7 +49,6 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
       bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
     )
     .build()
-  private val template = "chargeE/annualAllowanceYear.njk"
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("2019")
@@ -63,14 +59,8 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "value" -> Seq("Unknown Year")
   )
-  private val jsonToTemplate: Form[YearRange] => JsObject = form => Json.obj(
-    fields = "form" -> form,
-    "radios" -> YearRange.radios(form),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      schemeName = schemeName)
-  )
+  val submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0)
+  val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url
 
   private def form = new YearRangeFormProvider()()
 
@@ -83,7 +73,6 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 
@@ -96,18 +85,21 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeNamePstrQuarter))
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val request = httpGETRequest(httpPathGET)
 
-      val result = route(application, FakeRequest(GET, httpPathGET)).value
+      val view = application.injector.instanceOf[AnnualAllowanceYearView].apply(
+        form,
+        schemeName,
+        submitUrl,
+        returnUrl,
+        TwirlMigration.toTwirlRadios(YearRange.radios(form))
+      )(request, messages)
+
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual template
-
-      jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
@@ -117,18 +109,21 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
       ).get
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val request = httpGETRequest(httpPathGET)
 
-      val result = route(application, FakeRequest(GET, httpPathGET)).value
+      val view = application.injector.instanceOf[AnnualAllowanceYearView].apply(
+        form.fill(YearRange("2019")),
+        schemeName,
+        submitUrl,
+        returnUrl,
+        TwirlMigration.toTwirlRadios(YearRange.radios(form))
+      )(request, messages)
+
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual template
-
-      jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(YearRange("2019"))))
+      compareResultAndView(result, view)
     }
 
 

@@ -17,7 +17,6 @@
 package controllers.chargeA
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
@@ -26,20 +25,18 @@ import helpers.{CYAChargeAHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.{AccessType, ChargeType, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
 import pages.{PSTRQuery, ViewOnlyAccessiblePage}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.CheckYourAnswersView
 
 class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -51,11 +48,9 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
                                            deleteChargeHelper: DeleteChargeHelper,
-                                           config: FrontendAppConfig,
-                                           renderer: Renderer)(implicit ec: ExecutionContext)
+                                           checkYourAnswersView: CheckYourAnswersView)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
@@ -70,23 +65,16 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             helper.total(chargeDetails.totalAmount)
           )
 
-          renderer
-            .render(
-              template = "check-your-answers.njk",
-              ctx = Json.obj(
-                "list" -> helper.rows(request.isViewOnly, seqRows),
-                "viewModel" -> GenericViewModel(
-                  submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version).url,
-                  returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                  schemeName = schemeName
-                ),
-                "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
-                "chargeName" -> "chargeA",
-                "removeChargeUrl" -> getDeleteChargeUrl(srn, startDate, accessType, version),
-                "canChange" -> !request.isViewOnly
-              )
-            )
-            .map(Ok(_))
+          Future.successful(Ok(checkYourAnswersView(
+            "chargeA",
+            helper.rows(request.isViewOnly, seqRows),
+            !request.isViewOnly,
+            Some(getDeleteChargeUrl(srn, startDate, accessType, version)),
+            returnToSummaryLink = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+            schemeName = schemeName,
+            submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version).url
+          )))
         }
     }
 

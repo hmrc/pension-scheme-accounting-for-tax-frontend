@@ -26,13 +26,12 @@ import models.{AccessType, ChargeType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import play.twirl.api.{Html => TwirlHtml}
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, SummaryList, _}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
 
 import java.time.LocalDate
 
-class AFTSummaryHelper extends NunjucksSupport {
+class AFTSummaryHelper {
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
@@ -89,24 +88,26 @@ class AFTSummaryHelper extends NunjucksSupport {
                             srn: String,
                             startDate: LocalDate,
                             accessType: AccessType,
-                            version: Int)(implicit messages:Messages): Seq[SummaryList.Row] =
+                            version: Int)(implicit messages:Messages): Seq[SummaryListRow] =
     summaryDataUK(ua, srn, startDate, accessType, version).map { data =>
-      Row(
-        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+      SummaryListRow(
+        key = Key(Text(messages(s"aft.summary.${data.chargeType.toString}.row")), classes = "govuk-!-width-three-quarters"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"),
         actions = if (data.totalAmount > BigDecimal(0)) {
-          List(
-            Action(
-              content = Html(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
-              href = data.href.url,
-              visuallyHiddenText = Some(Literal(
-                messages("site.view") + " " + messages(s"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+          Some(
+            Actions(
+              items = Seq(ActionItem(
+                content = HtmlContent(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
+                href = data.href.url,
+                visuallyHiddenText = Some(
+                  messages("site.view") + " " + messages(s"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+                )
               ))
             )
           )
         } else {
-          Nil
+          None
         }
       )
   }
@@ -115,35 +116,37 @@ class AFTSummaryHelper extends NunjucksSupport {
     srn: String,
     startDate: LocalDate,
     accessType: AccessType,
-    version: Int)(implicit messages:Messages): Seq[SummaryList.Row] =
+    version: Int)(implicit messages:Messages): Seq[SummaryListRow] =
     summaryDataNonUK(ua, srn, startDate, accessType, version).map { data =>
-    Row(
-      key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
-        classes = Seq("govuk-!-width-one-quarter","govuk-table__cell--numeric")),
+      SummaryListRow(
+      key = Key(Text(messages(s"aft.summary.${data.chargeType.toString}.row")), classes = "govuk-!-width-three-quarters"),
+      value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
+        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"),
       actions = if (data.totalAmount > BigDecimal(0)) {
-        List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
-            href = data.href.url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.view") + " " + messages(s"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+        Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
+              href = data.href.url,
+              visuallyHiddenText = Some(
+                messages("site.view") + " " + messages(s"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+              )
             ))
           )
         )
       } else {
-        Nil
+        None
       }
     )
   }
 
-  def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages): Seq[Row] = {
+  def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+                     (implicit messages: Messages): Seq[SummaryListRow] = {
 
-    val totalRow: Seq[SummaryList.Row] = Seq(Row(
-      key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(summaryDataUK(ua, srn, startDate, accessType, version).map(_.totalAmount).sum)}"),
-        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-      actions = Nil
+    val totalRow: Seq[SummaryListRow] = Seq(SummaryListRow(
+      key = Key(Text(messages("aft.summary.total")), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+      value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(summaryDataUK(ua, srn, startDate, accessType, version).map(_.totalAmount).sum)}"),
+        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
     ))
 
     summaryRowsUK(ua, srn, startDate, accessType, version) ++ totalRow ++ summaryRowsNonUK(ua, srn, startDate, accessType, version)
@@ -157,8 +160,8 @@ class AFTSummaryHelper extends NunjucksSupport {
     } else {
       messages("allAmendments.view.changes.submission.link")
     }
+
     val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, version).url
-    TwirlHtml(
-      s"${TwirlHtml(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin).toString()}")
+    TwirlHtml(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin)
   }
 }

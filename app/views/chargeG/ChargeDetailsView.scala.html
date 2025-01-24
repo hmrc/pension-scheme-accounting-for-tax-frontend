@@ -1,0 +1,78 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import models.chargeG.ChargeDetails
+@import viewmodels.govuk.date.DateViewModel
+
+@this(
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    govukButton: GovukButton,
+    govukInput: GovukInput,
+    govukDateInput: GovukDateInput
+)
+
+@(form: Form[ChargeDetails],
+    memberName: String,
+    submitCall: Call,
+    returnUrl: String,
+    schemeName: String
+)(implicit request: Request[_], messages: Messages)
+
+@layout(messages("chargeG.chargeDetails.title"), formHasErrors = form.hasErrors) {
+    <div>
+        <h1 class="govuk-heading-xl">@messages("chargeG.chargeDetails.heading", memberName)</h1>
+
+        @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+
+            <form action="@submitCall" method="post" autocomplete="off" novalidate >
+
+                @govukInput(
+                    InputViewModel(
+                        field = form("qropsReferenceNumber"),
+                        label = Label(
+                            content = Text(messages("chargeG.chargeDetails.qropsReferenceNumber.label")),
+                            isPageHeading = false,
+                            classes = "govuk-label--s"
+                        ),
+                        inputmode = Some("numeric"),
+                        pattern = Some("[0-9]*"),
+                        classes = "govuk-input--width-10"
+                    )
+                    .withPrefix(PrefixOrSuffix(content = Text("Q")))
+                )
+
+                @govukDateInput(
+                    DateViewModel(
+                        field  = form("qropsTransferDate"),
+                        legend = Legend(
+                            content = Text(messages("chargeG.chargeDetails.qropsTransferDate.label")),
+                            isPageHeading = false,
+                            classes = "govuk-fieldset__legend--s"
+                        )
+                    )
+                )
+
+                @govukButton(
+                    ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
+                )
+
+            </form>
+        }
+        <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
+    </div>
+}

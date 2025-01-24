@@ -20,31 +20,30 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
-import models.requests.IdentifierRequest
-import models.{AFTQuarter, GenericViewModel, Quarters}
+import models.{AFTQuarter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import renderer.Renderer
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.amend.AmendQuartersView
 
 class AmendQuartersController @Inject()(
                                          override val messagesApi: MessagesApi,
                                          identify: IdentifierAction,
                                          formProvider: QuartersFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
-                                         renderer: Renderer,
                                          config: FrontendAppConfig,
                                          quartersService: QuartersService,
                                          schemeService: SchemeService,
-                                         allowAccess: AllowAccessActionProviderForIdentifierRequest
+                                         allowAccess: AllowAccessActionProviderForIdentifierRequest,
+                                         amendQuartersView: AmendQuartersView
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -78,17 +77,13 @@ class AmendQuartersController @Inject()(
                 futureReturnHistoryPage(srn, oneQuarterOnly.quarter.startDate)
               case displayQuarters =>
                 val quarters = displayQuarters.map(_.quarter)
-                renderer.render(
-                  template = "amend/amendQuarters.njk",
-                  ctx = Json.obj(
-                    "srn" -> srn,
-                    "startDate" -> None,
-                    "form" -> form(quarters),
-                    "radios" -> Quarters.radios(form(quarters), displayQuarters),
-                    "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-                    "year" -> year
-                  )
-                ).map(Ok(_))
+                Future.successful(Ok(amendQuartersView(
+                  form(quarters),
+                  TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters), displayQuarters)),
+                  routes.AmendQuartersController.onSubmit(srn, year),
+                  config.schemeDashboardUrl(request).format(srn),
+                  schemeDetails.schemeName
+                )))
             }
         }
     }
@@ -112,16 +107,13 @@ class AmendQuartersController @Inject()(
                     .bindFromRequest()
                     .fold(
                       formWithErrors =>
-                        renderer.render(
-                          template = "amend/amendQuarters.njk",
-                          ctx = Json.obj(
-                            fields = "srn" -> srn,
-                            "startDate" -> None,
-                            "form" -> formWithErrors,
-                            "radios" -> Quarters.radios(formWithErrors, displayQuarters),
-                            "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-                            "year" -> year
-                          )).map(BadRequest(_)),
+                          Future.successful(BadRequest(amendQuartersView(
+                            formWithErrors,
+                            TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, displayQuarters)),
+                            routes.AmendQuartersController.onSubmit(srn, year),
+                            config.schemeDashboardUrl(request).format(srn),
+                            schemeDetails.schemeName
+                          ))),
                       value =>
                         futureReturnHistoryPage(srn, value.startDate)
                     )
@@ -131,12 +123,4 @@ class AmendQuartersController @Inject()(
             }
         }
     }
-
-  private def viewModel(srn: String, year: String, schemeName: String)
-                       (implicit request: IdentifierRequest[_]): GenericViewModel =
-    GenericViewModel(
-      submitUrl = routes.AmendQuartersController.onSubmit(srn, year).url,
-      returnUrl = config.schemeDashboardUrl(request).format(srn),
-      schemeName = schemeName
-    )
 }

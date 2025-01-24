@@ -23,8 +23,7 @@ import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, DisplayQuarter, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus}
-import org.mockito.ArgumentCaptor
+import models.{AFTQuarter, DisplayQuarter, Enumerable, Quarters, SchemeDetails, SchemeStatus}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -33,16 +32,16 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.amend.ContinueQuartersView
 
 import scala.concurrent.Future
 
-class ContinueQuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class ContinueQuartersControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -67,15 +66,7 @@ class ContinueQuartersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   lazy val httpPathGET: String = controllers.amend.routes.ContinueQuartersController.onPageLoad(srn).url
   lazy val httpPathPOST: String = controllers.amend.routes.ContinueQuartersController.onSubmit(srn).url
-
-  private def jsonToPassToTemplate(quarters: Seq[DisplayQuarter]): Form[AFTQuarter] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> Quarters.radios(form, quarters),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.amend.routes.ContinueQuartersController.onSubmit(srn).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
-  )
+  lazy val submitCall = controllers.amend.routes.ContinueQuartersController.onSubmit(srn)
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q22020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
@@ -93,19 +84,22 @@ class ContinueQuartersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   "ContinueQuarters Controller" must {
     "return OK and the correct view for a GET" in {
-
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val quartersForm = form(quarters)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
+      val view = application.injector.instanceOf[ContinueQuartersView].apply(
+        quartersForm,
+        TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(quartersForm, displayQuarters)),
+        submitCall,
+        dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(displayQuarters).apply(form(quarters)))
+      compareResultAndView(result, view)
+
     }
 
     "redirect to session expired page when quarters service returns an empty list" in {

@@ -20,37 +20,37 @@ import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
-import controllers.financialOverview.psa.PsaPenaltiesAndChargeDetailsControllerSpec.{chargeRef, rows}
+import controllers.financialOverview.psa.PsaPenaltiesAndChargeDetailsControllerSpec.{chargeRef, getRows}
 import data.SampleData._
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
 import models.financialStatement.PsaFSDetail
 import models.{Enumerable, SchemeDetails}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.govukfrontend.views.Aliases.{HtmlContent, Table}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import utils.DateHelper.formatDateDMY
-import viewmodels.Radios.MessageInterpolators
+import viewmodels.PsaChargeDetailsViewModel
+import views.html.financialOverview.psa.{PsaChargeDetailsNewView, PsaChargeDetailsView}
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
 class PsaPenaltiesAndChargeDetailsControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with Enumerable.Implicits
@@ -76,25 +76,16 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-  private val templateToBeRendered = "financialOverview/psa/psaChargeDetails.njk"
-  private val commonJson: JsObject = Json.obj(
-    "heading" -> "Accounting for Tax Late Filing Penalty",
-    "isOverdue" -> true,
-    "period" -> "Quarter: 1 October to 31 December 2020",
-    "chargeReference" -> chargeRef,
-    "list" -> rows
-  )
-
+  val emptyChargesTable: Table = Table()
   val isOverdue: PsaFSDetail => Boolean = _ => true
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
-    reset(mockRenderer)
-    when(mockPsaPenaltiesAndChargesService.chargeDetailsRows(any(), any())).thenReturn(rows)
+    when(mockPsaPenaltiesAndChargesService.chargeDetailsRows(any(), any())(any)).thenReturn(getRows())
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(isOverdue)
-    when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
-      thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
+    when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any()))
+      .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockPsaPenaltiesAndChargesService.setPeriod(any(), any(), any())).thenReturn("Quarter: 1 October to 31 December 2020")
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
@@ -108,21 +99,32 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
 
         when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETAssociated("1"))).value
-        val json = Json.obj(
-          "schemeAssociated" -> true,
-          "schemeName" -> schemeDetails.schemeName
-        )
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+        val view = application.injector.instanceOf[PsaChargeDetailsView].apply(
+          model = PsaChargeDetailsViewModel(
+            heading = "Accounting for Tax Late Filing Penalty",
+            psaName = "psa-name",
+            schemeName = schemeDetails.schemeName,
+            isOverdue = true,
+            period = Some("Quarter: 1 October to 31 December 2020"),
+            paymentDueAmount = Some("0"),
+            paymentDueDate = Some("0"),
+            chargeReference = chargeRef,
+            penaltyAmount = 10.00,
+            insetText = HtmlContent(""),
+            isInterestPresent = false,
+            list = Some(mockPsaPenaltiesAndChargesService.chargeDetailsRows(psaFSResponse.head, "Overdue")),
+            chargeHeaderDetails = None,
+            chargeAmountDetails = Some(emptyChargesTable),
+            returnUrl = routes.PsaPaymentsAndChargesController.onPageLoad(Overdue).url,
+            returnUrlText = "your Overdue payments and charges"
+          )
+        )(messages, fakeRequest)
 
-        templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+        compareResultAndView(result, view)
       }
 
       "catch IndexOutOfBoundsException" in {
@@ -143,24 +145,25 @@ object PsaPenaltiesAndChargeDetailsControllerSpec {
   val chargeRef = "XY002610150184"
   val clearingDate: LocalDate = LocalDate.parse("2020-06-30")
 
-  val rows = Seq(
-    Row(
-      key = Key(msg"psa.financial.overview.charge.reference", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal(s"$chargeRef"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-    ),
-    Row(
-      key = Key(msg"psa.financial.overview.penaltyAmount", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal("£800.08"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-    ),
-    Row(
-      key = Key(msg"financialPaymentsAndCharges.clearingReason.c1".withArgs(formatDateDMY(clearingDate)), classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal("£800.08"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-    ),
-    Row(
-      key = Key(msg"financialPaymentsAndCharges.paymentDue.overdue.dueDate".withArgs("15 July 2020"),
-        classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-      value = Value(Literal("£1029.05"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+  private def getRows()(implicit messages: Messages): Seq[SummaryListRow] =
+    Seq(
+      SummaryListRow(
+        key = Key(Text(messages("psa.financial.overview.charge.reference")), classes = "govuk-!-width-three-quarters"),
+        value = Value(Text(s"$chargeRef"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
+      ),
+      SummaryListRow(
+        key = Key(Text(messages("psa.financial.overview.penaltyAmount")), classes = "govuk-!-width-three-quarters"),
+        value = Value(Text("£800.08"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
+      ),
+      SummaryListRow(
+        key = Key(Text(messages("financialPaymentsAndCharges.clearingReason.c1", formatDateDMY(clearingDate))), classes = "govuk-!-width-three-quarters"),
+        value = Value(Text("£800.08"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
+      ),
+      SummaryListRow(
+        key = Key(Text(messages("financialPaymentsAndCharges.paymentDue.overdue.dueDate", "15 July 2020")), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+        value = Value(Text("£1029.05"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
+      )
     )
-  )
+
 
 }

@@ -22,21 +22,17 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.{DataRequest, IdentifierRequest}
-import models.{ChargeType, GenericViewModel, UserAnswers}
-import org.mockito.ArgumentCaptor
+import models.{ChargeType, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
-import play.api.libs.json.{JsObject, Json}
+import org.mockito.Mockito.when
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import views.html.fileUpload.error.{InvalidHeaderOrBodyView, QuarantineView, RejectedView, UnknownView}
 
 import java.time.LocalDate
-import scala.concurrent.Future
 
-class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class UpscanErrorControllerSpec extends ControllerSpecBase with JsonMatchers {
 
   private val startDate = LocalDate.parse(QUARTER_START_DATE)
   private val chargeType = ChargeType.ChargeTypeOverseasTransfer
@@ -45,18 +41,9 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport 
   private def ua: UserAnswers = userAnswersWithSchemeName
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val viewModel = GenericViewModel(
-    submitUrl = routes.FileUploadController.onPageLoad(srn, startDate.toString, accessType, versionInt, chargeType).url,
-    returnUrl = "",
-    schemeName = schemeName
-  )
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
-    reset(mockAppConfig)
-    when(mockRenderer.render(any(), any())(any()))
-      .thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn("")
   }
 
@@ -65,47 +52,43 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport 
     "must return OK and the correct view for a GET quarantineError" in {
       val request = FakeRequest(GET, routes.UpscanErrorController.quarantineError(srn, startDate, accessType, versionInt).url)
 
+      val view = application.injector.instanceOf[QuarantineView].apply(
+        controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url
+      )(request, messages)
+
       val result = route(application, request).value
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       status(result) mustEqual OK
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      templateCaptor.getValue mustEqual "fileUpload/error/quarantine.njk"
-      val jsonToPassToTemplate = Json.obj(
-        "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url
-      )
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      compareResultAndView(result, view)
     }
 
     "must return OK and the correct view for a GET rejectedError" in {
       val request = FakeRequest(GET, routes.UpscanErrorController.rejectedError(srn, startDate, accessType, versionInt).url)
+
+      val view = application.injector.instanceOf[RejectedView].apply(
+        controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url
+      )(request, messages)
+
       val result = route(application, request).value
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       status(result) mustEqual OK
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      templateCaptor.getValue mustEqual "fileUpload/error/rejected.njk"
-      val jsonToPassToTemplate = Json.obj(
-        "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url
-      )
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      compareResultAndView(result, view)
     }
 
     "must return OK and the correct view for a GET unknownError" in {
       val request = FakeRequest(GET, routes.UpscanErrorController.unknownError(srn, startDate, accessType, versionInt).url)
+
+      val view = application.injector.instanceOf[UnknownView].apply(
+        controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url
+      )(request, messages)
+
       val result = route(application, request).value
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       status(result) mustEqual OK
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      templateCaptor.getValue mustEqual "fileUpload/error/unknown.njk"
-      val jsonToPassToTemplate = Json.obj(
-        "returnUrl" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url
-      )
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      compareResultAndView(result, view)
     }
 
     "must return the correct view for a GET invalidHeaderOrBodyError" in {
@@ -115,20 +98,21 @@ class UpscanErrorControllerSpec extends ControllerSpecBase with NunjucksSupport 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val request = FakeRequest(GET, routes.UpscanErrorController.invalidHeaderOrBodyError(srn, startDate, accessType, versionInt, chargeType).url)
       val application1 = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+      val submitUrl = routes.FileUploadController.onPageLoad(srn, startDate.toString, accessType, versionInt, chargeType).url
+      val fileTemplateLink = controllers.routes.FileDownloadController.templateFile(chargeType, None).url
+      val fileDownloadInstructionsLink = controllers.routes.FileDownloadController.instructionsFile(chargeType, None).url
+
+      val view = application.injector.instanceOf[InvalidHeaderOrBodyView].apply(
+        "overseas transfer charge",schemeName, submitUrl, "", fileTemplateLink,
+        fileDownloadInstructionsLink
+      )(request, messages)
+
       val result = route(application1, request).value
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       status(result) mustEqual OK
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      templateCaptor.getValue mustEqual "fileUpload/error/invalidHeaderOrBody.njk"
-      val jsonToPassToTemplate = Json.obj(
-        "chargeTypeText" -> "overseas transfer charge",
-        "fileTemplateLink" -> controllers.routes.FileDownloadController.templateFile(chargeType, None).url,
-        "fileDownloadInstructionsLink" -> controllers.routes.FileDownloadController.instructionsFile(chargeType, None).url,
-        "viewModel" -> viewModel
-      )
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      compareResultAndView(result, view)
+
     }
   }
 }

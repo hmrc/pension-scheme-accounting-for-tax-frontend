@@ -1,0 +1,84 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.{HmrcPageHeading, PageHeading}
+
+@this(
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    hmrcPageHeading: HmrcPageHeading,
+    govukTable: GovukTable
+)
+
+@(pageTitle: String, isDraft: Boolean, versionNumber: Int, addedTable: Table, deletedTable: Table, updatedTable: Table, submitUrl: String, returnUrl: String, schemeName: String)(implicit request: Request[_], messages: Messages)
+
+@returnTo = {
+    @if(isDraft) {
+        @messages("return.to.draft")
+    } else {
+        @messages("return.to.submission", versionNumber)
+    }
+}
+
+@layout(pageTitle) {
+    <div>
+        @if(isDraft) {
+            @hmrcPageHeading(PageHeading(
+                text = messages("allAmendments.draft.title"),
+                section = Some(messages("allAmendments.h1.draft.caption"))
+            ))
+        } else {
+            @hmrcPageHeading(PageHeading(
+                text = messages("allAmendments.submission.title"),
+                section = Some(messages("allAmendments.h1.submission.caption", versionNumber))
+            ))
+        }
+
+        @if(addedTable.rows.length > 0) {
+            <h2 id="added"
+                class="govuk-heading-m">
+                @messages("allAmendments.table.caption.added")
+            </h2>
+            @govukTable(addedTable)
+        }
+
+        @if(deletedTable.rows.length > 0) {
+            <h2 id="deleted"
+                class="govuk-heading-m">
+                @messages("allAmendments.table.caption.deleted")
+            </h2>
+            @govukTable(deletedTable)
+        }
+
+        @if(updatedTable.rows.length > 0) {
+            <h2 id="updated"
+                class="govuk-heading-m">
+                @messages("allAmendments.table.caption.updated")
+            </h2>
+            @govukTable(updatedTable)
+        }
+
+        <p class="govuk-body">
+            <a href="@submitUrl"
+               class="govuk-link">
+                @returnTo
+            </a>
+        </p>
+
+        <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
+    </div>
+}

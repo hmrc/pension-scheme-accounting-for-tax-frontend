@@ -24,12 +24,9 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.UserAnswers
 import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
-import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with JsonMatchers with CheckYourAnswersBehaviour {
 
-  private val templateToBeRendered = "check-your-answers.njk"
 
   private def httpGETRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
   private def httpOnClickRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt, 0).url
@@ -46,15 +43,13 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     helper.chargeGAmounts(0, chargeAmounts)
   ).flatten
 
-  private val jsonToPassToTemplate: JsObject = Json.obj(
-    "list" -> rows
-  )
-
   "CheckYourAnswers Controller" must {
     behave like cyaController(
       httpPath = httpGETRoute,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate,
+      chargeName = "chargeG",
+      list = rows,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+      submitUrl = httpOnClickRoute,
       userAnswers = ua
     )
 

@@ -16,29 +16,25 @@
 
 package controllers.chargeF
 
-import java.time.LocalDate
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeF.ChargeDetailsFormProvider
 import helpers.DeleteChargeHelper
-
-import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, GenericViewModel, AccessType, Mode, ChargeType}
 import models.chargeF.ChargeDetails
+import models.{AccessType, ChargeType, Mode, Quarters}
 import navigators.CompoundNavigator
 import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, Messages, I18nSupport}
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import views.html.chargeF.ChargeDetailsView
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
@@ -52,11 +48,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         deleteChargeHelper: DeleteChargeHelper,
-                                        config: FrontendAppConfig,
-                                        renderer: Renderer)(implicit ec: ExecutionContext)
+                                        view: ChargeDetailsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(minimumChargeValue:BigDecimal, startDate: LocalDate)(implicit messages: Messages): Form[ChargeDetails] = {
     val endDate = Quarters.getQuarter(startDate).endDate
@@ -80,21 +74,11 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           case _        => form(mininimumChargeValue, startDate)
         }
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-          schemeName = schemeName
-        )
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(localDateToString(startDate)),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "date" -> DateInput.localDate(preparedForm("deregistrationDate"))
-        )
-
-        renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
+        Future.successful(Ok(view(preparedForm,
+          schemeName,
+          routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+        )))
       }
     }
 
@@ -108,20 +92,11 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val viewModel = GenericViewModel(
-                submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
-              val json = Json.obj(
-                "srn" -> srn,
-                "startDate" -> Some(localDateToString(startDate)),
-                "form" -> formWithErrors,
-                "viewModel" -> viewModel,
-                "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))
-              )
-              renderer.render(template = "chargeF/chargeDetails.njk", json).map(BadRequest(_))
+              Future.successful(BadRequest(view(formWithErrors.copy(errors = formWithErrors.errors.distinct),
+                schemeName,
+                routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version),
+                controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+              )))
             },
             value => {
               for {

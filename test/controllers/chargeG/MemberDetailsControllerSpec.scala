@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.chargeG.MemberDetails
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{NormalMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -34,15 +34,14 @@ import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import views.html.chargeG.MemberDetailsView
 
 import scala.concurrent.Future
 
-class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class MemberDetailsControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
-  private val templateToBeRendered = "chargeG/memberDetails.njk"
   private val formProvider = new MemberDetailsFormProvider()
   private val form: Form[MemberDetails] = formProvider()
 
@@ -50,15 +49,6 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url
   private lazy val httpPathPOST: String =
     controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url
-
-  private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-      schemeName = schemeName),
-    "date" -> DateInput.localDate(form("dob"))
-  )
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "firstName" -> Seq("first"),
@@ -105,19 +95,19 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val view = application.injector.instanceOf[MemberDetailsView].apply(
+        form,
+        "chargeG",
+        controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
@@ -125,19 +115,19 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val view = application.injector.instanceOf[MemberDetailsView].apply(
+        form.fill(memberGDetails),
+        "chargeG",
+        controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0),
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName
+      )(httpGETRequest(httpPathGET), messages)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(memberGDetails)))
+      compareResultAndView(result, view)
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {

@@ -21,17 +21,16 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.YearRangeFormProvider
 import models.LocalDateBinder._
-import models.{YearRange, GenericViewModel, AccessType, Mode, ChargeType, Index}
+import models.{AccessType, ChargeType, Index, Mode, YearRange}
 import navigators.CompoundNavigator
 import pages.chargeE.AnnualAllowanceYearPage
 import play.api.data.Form
-import play.api.i18n.{MessagesApi, I18nSupport}
-import play.api.libs.json.Json
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.chargeE.AnnualAllowanceYearView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -47,10 +46,9 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
                                               requireData: DataRequiredAction,
                                               formProvider: YearRangeFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
-                                              renderer: Renderer)(implicit ec: ExecutionContext)
+                                              view: AnnualAllowanceYearView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def form: Form[YearRange] =
     formProvider("annualAllowanceYear.error.required")
@@ -63,21 +61,15 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
             case None => form
           }
 
-          val viewModel = GenericViewModel(
-            submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-            schemeName = schemeName
-          )
+        val submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, accessType, version, index)
+        val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
 
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(localDateToString(startDate)),
-            "form" -> preparedForm,
-            "radios" -> YearRange.radios(preparedForm),
-            "viewModel" -> viewModel
-          )
-
-          renderer.render(template = "chargeE/annualAllowanceYear.njk", json).map(Ok(_))
+          Future.successful(Ok(view(preparedForm,
+            schemeName,
+            submitUrl,
+            returnUrl,
+            TwirlMigration.toTwirlRadios(YearRange.radios(preparedForm))
+          )))
         }
       }
 
@@ -88,20 +80,14 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
             .bindFromRequest()
             .fold(
               formWithErrors => {
-                val viewModel = GenericViewModel(
-                  submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-                  returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                  schemeName = schemeName
-                )
-
-                val json = Json.obj(
-                  "srn" -> srn,
-                  "startDate" -> Some(localDateToString(startDate)),
-                  "form" -> formWithErrors,
-                  "radios" -> YearRange.radios(formWithErrors),
-                  "viewModel" -> viewModel
-                )
-                renderer.render(template = "chargeE/annualAllowanceYear.njk", json).map(BadRequest(_))
+              val submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, accessType, version, index)
+                val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
+                Future.successful(BadRequest(view(formWithErrors,
+                  schemeName,
+                  submitUrl,
+                  returnUrl,
+                  TwirlMigration.toTwirlRadios(YearRange.radios(formWithErrors))
+                )))
               },
               value => {
                 for {

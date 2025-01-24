@@ -27,27 +27,24 @@ import models.LocalDateBinder._
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import utils.AFTConstants._
 import utils.DateHelper
 
 import java.time.LocalDate
 import scala.concurrent.Future
+import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargeInterestView
 
-class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   import PaymentsAndChargesInterestControllerSpec._
 
@@ -60,7 +57,6 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     .overrides(
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
@@ -74,38 +70,24 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
-  private def expectedJson(schemeFSDetail: SchemeFSDetail, chargeType: String, index: String): JsObject = Json.obj(
-    fields = "chargeDetailsList" -> Seq(
-      Row(
-        key = Key(msg"paymentsAndCharges.interest", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
-        value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
-        ),
-        actions = Nil
-      ),
-      Row(
-        key = Key(
-          msg"paymentsAndCharges.interestFrom".withArgs(DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46)))),
-          classes = Seq("govuk-table__cell--numeric", "govuk-!-padding-right-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
-        ),
-        value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")
-        ),
-        actions = Nil
+  private def chargeDetailsList(schemeFSDetail: SchemeFSDetail) = Seq(
+    SummaryListRow(
+      key = Key(Text(messages("paymentsAndCharges.interest")), classes = "govuk-!-padding-left-0 govuk-!-width-three-quarters"),
+      value = Value(
+        Text(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
+        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"
       )
     ),
-    "tableHeader" -> messages("paymentsAndCharges.caption",
-      DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
-      DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
-    "schemeName" -> schemeName,
-    "accruedInterest" -> schemeFSDetail.accruedInterestTotal,
-    "chargeType" -> chargeType,
-    "originalAmountUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, schemeFSDetail.periodStartDate.get, index, AccountingForTaxCharges, All)
-      .url,
-    "returnUrl" -> dummyCall.url
+    SummaryListRow(
+      key = Key(
+        Text(messages("paymentsAndCharges.interestFrom", DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46))))),
+        classes = "govuk-table__cell--numeric govuk-!-padding-right-0 govuk-!-width-three-quarters govuk-!-font-weight-bold"
+      ),
+      value = Value(
+        Text(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
+        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric govuk-!-font-weight-bold"
+      )
+    )
   )
 
   "PaymentsAndChargesInterestController" must {
@@ -115,15 +97,24 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
 
       val schemeFSDetail = createCharge(chargeReference = "XY002610150184", chargeType = PSS_AFT_RETURN)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val view = application.injector.instanceOf[PaymentsAndChargeInterestView].apply(
+        PSS_AFT_RETURN_INTEREST.toString,
+        tableHeader = messages("paymentsAndCharges.caption",
+          DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
+          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
+        chargeDetailsList = chargeDetailsList(schemeFSDetail),
+        accruedInterest = schemeFSDetail.accruedInterestTotal,
+        originalAmountUrl = controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+          .onPageLoad(srn, schemeFSDetail.periodStartDate.get, index = "0", AccountingForTaxCharges, All).url,
+        returnUrl = dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET(index = "0")), messages)
+
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeInterest.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, PSS_AFT_RETURN_INTEREST.toString, "0"))
+      compareResultAndView(result, view)
     }
 
     "return OK and the correct view for interest accrued for overseas transfer charge if amount is due and interest is accruing for a GET" in {
@@ -131,15 +122,24 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
 
       val schemeFSDetail = createCharge(chargeReference = "XY002610150185", chargeType = PSS_OTC_AFT_RETURN)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val view = application.injector.instanceOf[PaymentsAndChargeInterestView].apply(
+        PSS_OTC_AFT_RETURN_INTEREST.toString,
+        tableHeader = messages("paymentsAndCharges.caption",
+          DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
+          DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
+        chargeDetailsList = chargeDetailsList(schemeFSDetail),
+        accruedInterest = schemeFSDetail.accruedInterestTotal,
+        originalAmountUrl = controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+          .onPageLoad(srn, schemeFSDetail.periodStartDate.get, index = "1", AccountingForTaxCharges, All).url,
+        returnUrl = dummyCall.url,
+        schemeName
+      )(httpGETRequest(httpPathGET(index = "1")), messages)
+
       val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeInterest.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFSDetail, PSS_OTC_AFT_RETURN_INTEREST.toString, "1"))
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired page when there is no data for the selected charge reference for a GET" in {

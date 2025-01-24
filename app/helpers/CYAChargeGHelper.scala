@@ -20,51 +20,51 @@ import models.LocalDateBinder._
 import models.chargeG.{ChargeAmounts, MemberDetails}
 import models.{AccessType, CheckMode}
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
 
 import java.time.LocalDate
 
 class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
-  def chargeGMemberDetails(index: Int, answer: MemberDetails): Seq[Row] = {
+  def chargeGMemberDetails(index: Int, answer: MemberDetails): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-third")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("visuallyHidden.memberName.label")
+      SummaryListRow(
+        key = Key(Text(messages("cya.memberName.label")), classes = "govuk-!-width-one-half"),
+        value = Value(Text(answer.fullName.toString), classes = "govuk-!-width-one-third"),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("visuallyHidden.memberName.label"))
+            ))
+
+          )
+        )
+      ),
+      SummaryListRow(
+        key = Key(Text(messages("dob.cya.label", answer.fullName)), classes = "govuk-!-width-one-half"),
+        value = Value(Text(answer.dob.format(FormatHelper.dateFormatter)), classes = "govuk-!-width-one-third"),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("dob.cya.label",answer.fullName))
             ))
           )
         )
       ),
-      Row(
-        key = Key(msg"dob.cya.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.dob.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-third")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("dob.cya.label",answer.fullName)
-            ))
-          )
-        )
-      ),
-      Row(
-        key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.nino), classes = Seq("govuk-!-width-one-third")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("cya.nino.label", answer.fullName)
+      SummaryListRow(
+        key = Key(Text(messages("cya.nino.label", answer.fullName)), classes = "govuk-!-width-one-half"),
+        value = Value(Text(answer.nino), classes = "govuk-!-width-one-third"),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("cya.nino.label", answer.fullName))
             ))
           )
         )
@@ -72,30 +72,30 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType
     )
   }
 
-  def chargeGDetails(index: Int, answer: models.chargeG.ChargeDetails): Seq[Row] = {
+  def chargeGDetails(index: Int, answer: models.chargeG.ChargeDetails): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"chargeG.chargeDetails.qropsReferenceNumber.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.qropsReferenceNumber), classes = Seq("govuk-!-width-one-third")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeGDetails.qropsReferenceNumber.visuallyHidden.label")
+      SummaryListRow(
+        key = Key(Text(messages("chargeG.chargeDetails.qropsReferenceNumber.label")), classes = "govuk-!-width-one-half"),
+        value = Value(Text(answer.qropsReferenceNumber), classes = "govuk-!-width-one-third"),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeGDetails.qropsReferenceNumber.visuallyHidden.label"))
             ))
           )
         )
       ),
-      Row(
-        key = Key(msg"chargeG.chargeDetails.qropsTransferDate.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.qropsTransferDate.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-third")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeGDetails.qropsTransferDate.visuallyHidden.label")
+      SummaryListRow(
+        key = Key(Text(messages("chargeG.chargeDetails.qropsTransferDate.label")), classes = "govuk-!-width-one-half"),
+        value = Value(Text(answer.qropsTransferDate.format(FormatHelper.dateFormatter)), classes = "govuk-!-width-one-third"),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeGDetails.qropsTransferDate.visuallyHidden.label"))
             ))
           )
         )
@@ -103,31 +103,30 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType
     )
   }
 
-  def chargeGAmounts(index: Int, answer: ChargeAmounts): Seq[Row] = {
+  def chargeGAmounts(index: Int, answer: ChargeAmounts): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"chargeG.chargeAmount.transferred", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.amountTransferred)}"), classes = Seq("govuk-!-width-one-third")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeG.chargeAmount.transferred.visuallyHidden.label")
+      SummaryListRow(
+        key = Key(Text(messages("chargeG.chargeAmount.transferred")), classes = "govuk-!-width-one-half"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.amountTransferred)}"), classes = "govuk-!-width-one-third"),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeG.chargeAmount.transferred.visuallyHidden.label"))
             ))
           )
         )
       ),
-      Row(
-        key = Key(msg"chargeG.chargeAmount.taxDue", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-thirdt run" +
-          "")),
-        actions = List(
-          Action(
-            content = Html(s"<span aria-hidden=true>${messages("site.edit")}</span>"),
-            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeG.chargeAmount.taxDue.visuallyHidden.label")
+      SummaryListRow(
+        key = Key(Text(messages("chargeG.chargeAmount.taxDue")), classes = "govuk-!-width-one-half"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = "govuk-!-width-one-thirdt run" + ""),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span aria-hidden=true>${messages("site.edit")}</span>"),
+              href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
+              visuallyHiddenText = Some(messages("site.edit") + " " + messages("chargeG.chargeAmount.taxDue.visuallyHidden.label"))
             ))
           )
         )

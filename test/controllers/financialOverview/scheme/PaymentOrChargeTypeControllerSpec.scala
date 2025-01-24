@@ -26,7 +26,6 @@ import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import models.{Enumerable, PaymentOverdue}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -35,12 +34,12 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.financialOverview.scheme.PaymentOrChargeTypeView
 
 import scala.concurrent.Future
 
@@ -59,7 +58,6 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialOverview/scheme/paymentOrChargeType.njk"
   val formProvider = new PaymentOrChargeTypeFormProvider()
   val form: Form[PaymentOrChargeType] = formProvider()
 
@@ -68,19 +66,11 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
-  private val jsonToPassToTemplate: Form[PaymentOrChargeType] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> PaymentOrChargeType.radios(form, displayPaymentOrChargeType, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
-    "schemeName" -> schemeName,
-    "returnUrl" -> dummyCall.url
-  )
-
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(AccountingForTaxCharges.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("value" -> Seq("false"))
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(),
@@ -90,18 +80,22 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
   "PaymentOrChargeType Controller" must {
     "return OK and the correct view for a GET" in {
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[PaymentOrChargeTypeView].apply(
+        form = form,
+        titleMessage = messages(s"paymentOrChargeType.all.title"),
+        schemeName = schemeName,
+        submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
+        returnUrl = dummyCall.url,
+        radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(form, displayPaymentOrChargeType,
+        Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+      )(fakeRequest, messages)
 
-      templateCaptor.getValue mustEqual templateToBeRendered
+      compareResultAndView(result, view)
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
     }
 
     "redirect to next page when valid data is submitted" in {

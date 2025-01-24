@@ -28,7 +28,6 @@ import models.financialStatement.PenaltyType
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, EventReportingCharges}
 import models.requests.IdentifierRequest
 import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -37,16 +36,17 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{PenaltiesCache, PenaltiesService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.financialStatement.penalties.SelectYearView
 
 import scala.concurrent.Future
 
-class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -71,11 +71,6 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
   lazy val erHttpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad(penaltyER, All).url
   lazy val erHttpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit(penaltyER, All).url
 
-  private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> FSYears.radios(form, years)
-  )
-
   private val year = "2020"
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
@@ -88,23 +83,26 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+    when(mockPenaltiesService.getTypeParam(any())(any())).thenReturn(messages(s"penaltyType.AccountingForTaxPenalties"))
   }
 
   "SelectYear Controller" must {
     "return OK and the correct view for a GET with aft" in {
-
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       val result = route(application, httpGETRequest(aftHttpPathGET)).value
+
+      val typeParam = "penaltyType.AccountingForTaxPenalties"
+      val view = application.injector.instanceOf[SelectYearView].apply(
+        form,
+        typeParam,
+        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form, years)),
+        routes.SelectPenaltiesYearController.onSubmit(penaltyAft, All),
+        "",
+        "psa-name"
+      )(httpGETRequest(aftHttpPathGET), messages)
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      compareResultAndView(result, view)
     }
 
     "redirect to next page when valid data is submitted for aft" in {

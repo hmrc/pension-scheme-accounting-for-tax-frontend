@@ -20,36 +20,37 @@ import controllers.actions.{DataSetupAction, MutableFakeDataRetrievalAction, Mut
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
-import forms.AFTSummaryFormProvider
+import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
 import helpers.{AFTSummaryHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, AccessMode, GenericViewModel, MemberDetails, UserAnswers}
+import models.{AFTQuarter, AccessMode, MemberDetails, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import pages._
-import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.{Html => TwirlHtml}
 import services.MemberSearchService.MemberRow
 import services.{AFTService, MemberSearchService, SchemeService}
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
-import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, Radios}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
 import utils.AFTConstants.QUARTER_END_DATE
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import viewmodels.{AFTSummaryViewModel, Radios}
+import views.html.AFTSummaryView
+import uk.gov.hmrc.govukfrontend.views.html.components.{Hint => GovukHint}
+import utils.TwirlMigration
 
 import scala.concurrent.Future
 
-class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   import AFTSummaryControllerSpec._
 
@@ -71,50 +72,28 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUserAnswersCacheConnector)
     reset(mockRenderer)
     reset(mockAFTService)
-    reset(mockAppConfig)
     reset(mockMemberSearchService)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(TwirlHtml("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(testManagePensionsUrl.url)
     when(mockAFTSummaryHelper.summaryListData(any(), any(), any(), any(), any())(any())).thenReturn(Nil)
-    when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(emptyHtml)
   }
 
-  private def jsonToPassToTemplate(version: Option[String], includeReturnHistoryLink: Boolean, isAmendment: Boolean): Form[Boolean] => JsObject = { form =>
-    val returnHistoryJson = if (includeReturnHistoryLink) {
-      Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
-    } else {
-      Json.obj()
-    }
-
-    val amendmentsLink = if (isAmendment) Json.obj("viewAllAmendmentsLink" -> emptyHtml.toString()) else Json.obj()
-
-    Json.obj(
-      "srn" -> srn,
-      "startDate" -> Some(localDateToString(startDate)),
-      "form" -> form,
-      "list" -> Nil,
-      "isAmendment" -> isAmendment,
-      "viewModel" -> GenericViewModel(
-        submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url,
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-        schemeName = SampleData.schemeName
-      ),
-      "quarterStartDate" -> startDate.format(dateFormatterStartDate),
-      "quarterEndDate" -> QUARTER_END_DATE.format(dateFormatterDMY),
-      "canChange" -> true,
-      "radios" -> Radios.yesNo(form("value"))
-    ) ++ returnHistoryJson ++ amendmentsLink
-  }
+  private val viewModel = AFTSummaryViewModel(
+    aftSummaryURL = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt).url,
+    returnHistoryURL = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+    searchHint = GovukHint(content = Text(messages("aft.summary.search.hint"))),
+    searchUrl = controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, versionInt),
+    schemeName = schemeName,
+    submitCall = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, versionInt),
+  )
 
   "AFTSummary Controller" when {
 
@@ -131,18 +110,28 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
             )
           )
         )
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, httpGETRequest(httpPathGET(None))).value
+        val result = route(application, httpGETRequest(httpPathGET)).value
+
+        val view = application.injector.instanceOf[AFTSummaryView].apply(
+          btnText = messages("aft.summary.search.button"),
+          canChange = true,
+          form = form,
+          memberSearchForm = memberSearchForm,
+          summaryList = mockAFTSummaryHelper.summaryListData(userAnswersWithSchemeNamePstrQuarter, srn, startDate, accessType, versionInt),
+          membersList = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44")),
+          quarterEndDate = QUARTER_END_DATE.format(dateFormatterDMY),
+          quarterStartDate = startDate.format(dateFormatterStartDate),
+          radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+          submissionNumber = "Big Scheme",
+          summarySearchHeadingText = "",
+          viewAllAmendmentsLink = None,
+          viewModel
+        )(httpGETRequest(httpPathGET), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-        jsonCaptor.getValue must containJson(
-          jsonToPassToTemplate(version = None, includeReturnHistoryLink = false, isAmendment = false).apply(form))
+        compareResultAndView(result, view)
       }
 
       "return OK and the correct view without view all amendments link when compiling initial draft and " +
@@ -156,21 +145,38 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
               accessMode = AccessMode.PageAccessModeCompile)
           )
         )
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, httpGETRequest(httpPathGET(Some(SampleData.version)))).value
+        val result = route(application, httpGETRequest(httpPathGET)).value
+
+        val view = application.injector.instanceOf[AFTSummaryView].apply(
+          btnText = messages("aft.summary.search.button"),
+          canChange = true,
+          form = form,
+          memberSearchForm = memberSearchForm,
+          summaryList = mockAFTSummaryHelper.summaryListData(userAnswersWithSchemeNamePstrQuarter, srn, startDate, accessType, versionInt),
+          membersList = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44")),
+          quarterEndDate = QUARTER_END_DATE.format(dateFormatterDMY),
+          quarterStartDate = startDate.format(dateFormatterStartDate),
+          radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+          submissionNumber = "Big Scheme",
+          summarySearchHeadingText = "",
+          viewAllAmendmentsLink = None,
+          viewModel
+        )(httpGETRequest(httpPathGET), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-        jsonCaptor.getValue must containJson(
-          jsonToPassToTemplate(version = Some(version), includeReturnHistoryLink = false, isAmendment = false).apply(form))
+        compareResultAndView(result, view)
       }
 
       "include the view all amendments link in json passed to page when there are submitted versions available" in {
+        val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, version2Int).url
+
+        val linkText = messages("allAmendments.view.changes.draft.link")
+
+        val viewAllAmendmentsLink = TwirlHtml(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin)
+
+        when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(viewAllAmendmentsLink)
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataSetupAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataSetupAction.setSessionData(
@@ -182,18 +188,28 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
             )
           )
         )
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, httpGETRequest(httpPathGET(None))).value
+        val result = route(application, httpGETRequest(httpPathGET)).value
+
+        val view = application.injector.instanceOf[AFTSummaryView].apply(
+          btnText = messages("aft.summary.search.button"),
+          canChange = true,
+          form = form,
+          memberSearchForm = memberSearchForm,
+          summaryList = mockAFTSummaryHelper.summaryListData(userAnswersWithSchemeNamePstrQuarter, srn, startDate, accessType, version2Int),
+          membersList = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44")),
+          quarterEndDate = QUARTER_END_DATE.format(dateFormatterDMY),
+          quarterStartDate = startDate.format(dateFormatterStartDate),
+          radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+          submissionNumber = "Draft",
+          summarySearchHeadingText = "",
+          viewAllAmendmentsLink = Some(viewAllAmendmentsLink),
+          viewModel
+        )(httpGETRequest(httpPathGET), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-        jsonCaptor.getValue must containJson(
-          jsonToPassToTemplate(version = None, includeReturnHistoryLink = true, isAmendment = true).apply(form))
+        compareResultAndView(result, view)
       }
 
     }
@@ -202,6 +218,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "redirect to next page when user selects yes" in {
         when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(SampleData.dummyCall)
+        when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(emptyHtml)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
         fakeDataSetupAction.setDataToReturn(userAnswers)
@@ -260,7 +277,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "display search results when Search is triggered and not display view amendments link" in {
         val searchResult: Seq[MemberRow] = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
 
-        when(mockMemberSearchService.search(any(), any(), any(), any(), any(), any())(any()))
+        when(mockMemberSearchService.search(any(), any(), any(), any(), any(), any())(any(), any()))
           .thenReturn(searchResult)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
@@ -274,15 +291,23 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         status(result) mustEqual OK
 
-        verify(mockMemberSearchService, times(1)).search(any(), any(), any(), ArgumentMatchers.eq("Search"), any(), any())(any())
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        templateCaptor.getValue mustBe templateToBeRendered
+        val view = application.injector.instanceOf[AFTSummaryView].apply(
+          btnText = messages("aft.summary.searchAgain.button"),
+          canChange = true,
+          form = form,
+          memberSearchForm = memberSearchForm.bind(Map("searchText" -> "Search")),
+          summaryList = mockAFTSummaryHelper.summaryListData(userAnswersWithSchemeNamePstrQuarter, srn, startDate, accessType, versionInt),
+          membersList = searchResult,
+          quarterEndDate = QUARTER_END_DATE.format(dateFormatterDMY),
+          quarterStartDate = startDate.format(dateFormatterStartDate),
+          radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+          submissionNumber = "Big Scheme",
+          summarySearchHeadingText = messages("aft.summary.heading.search.results") + " ",
+          viewAllAmendmentsLink = None,
+          viewModel
+        )(httpGETRequest(httpPathGET), messages)
 
-        val expectedJson = Json.obj(
-          "list" ->
-            Json.toJson(searchResult))
-        jsonCaptor.getValue must containJson(expectedJson)
-        (jsonCaptor.getValue \ "viewAllAmendmentsLink").isEmpty mustBe true
+        compareResultAndView(result, view)
       }
     }
   }
@@ -293,12 +318,12 @@ object AFTSummaryControllerSpec {
   private val valuesInvalid: Map[String, Seq[String]] = Map("value" -> Seq("xyz"))
   private val testManagePensionsUrl = Call("GET", "/scheme-summary")
   private val uaGetAFTDetails = UserAnswers().set(QuarterPage, AFTQuarter("2000-04-01", "2000-05-31")).toOption.get
-  private val templateToBeRendered = "aftSummary.njk"
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
   private val form = new AFTSummaryFormProvider()()
+  private val memberSearchForm = new MemberSearchFormProvider()()
   private val emptyHtml = TwirlHtml("")
 
-  private def httpPathGET(version: Option[String]): String =
+  private def httpPathGET: String =
     controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, accessType, versionInt).url
 
   private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url
@@ -307,30 +332,32 @@ object AFTSummaryControllerSpec {
     MemberRow(
       memberDetails.fullName,
       Seq(
-        Row(
-          Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        SummaryListRow(
+          Key(Text(messages("memberDetails.nino")), "govuk-!-width-three-quarters"),
+          Value(Text(memberDetails.nino), "govuk-!-width-one-quarter govuk-table__cell--numeric")
         ),
-        Row(
-          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
-          Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        SummaryListRow(
+          Key(Text(messages("aft.summary.search.chargeType")), "govuk-!-width-three-quarters"),
+          Value(Text(messages("aft.summary.lifeTimeAllowance.description")), "govuk-!-width-one-quarter govuk-table__cell--numeric")
         ),
-        Row(
-          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        SummaryListRow(
+          Key(Text(messages("aft.summary.search.amount")), "govuk-!-width-three-quarters"),
+          Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
+            classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
         )
       ),
       Seq(
-        Action(
-          Html(s"<span aria-hidden=true >${messages("site.view")}</span>"),
-          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url,
-          None
+        Actions(
+          items = Seq(ActionItem(
+            content = HtmlContent(s"<span aria-hidden=true >${messages("site.view")}</span>"),
+            href = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+          ))
         ),
-        Action(
-          Message("site.remove"),
-          controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url,
-          None
+        Actions(
+          items = Seq(ActionItem(
+            content = Text(messages("site.remove")),
+            href = controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+          ))
         )
       )
     )

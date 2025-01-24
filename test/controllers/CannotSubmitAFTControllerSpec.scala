@@ -21,7 +21,6 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{SchemeDetails, UserAnswers}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
@@ -29,7 +28,6 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.SchemeNameQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -37,6 +35,7 @@ import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import views.html.CannotSubmitAFTView
 
 import scala.concurrent.Future
 
@@ -67,23 +66,17 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
 
       val application = applicationBuilder(userAnswers = data, extraModules).overrides().build()
       val request = FakeRequest(GET, getRoute)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[CannotSubmitAFTView].apply(
+        schemeName,
+        controllers.routes.CannotSubmitAFTController.onClick(srn, startDate).url
+      )(request, messages)
 
-      val expectedJson = Json.obj(
-        "schemeName" -> schemeName,
-        "returnUrl" -> controllers.routes.CannotSubmitAFTController.onClick(srn, startDate).url
-      )
-
-      templateCaptor.getValue mustEqual "cannotSubmitAFT.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
+      compareResultAndView(result, view)
       application.stop()
     }
 

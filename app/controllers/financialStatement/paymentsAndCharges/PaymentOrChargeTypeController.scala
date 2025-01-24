@@ -24,43 +24,41 @@ import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeTyp
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.paymentsAndCharges.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
+import views.html.financialStatement.paymentsAndCharges.PaymentOrChargeTypeView
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PaymentOrChargeTypeController @Inject()(override val messagesApi: MessagesApi,
                                               identify: IdentifierAction,
                                               allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                               formProvider: PaymentOrChargeTypeFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
-                                              renderer: Renderer,
                                               config: FrontendAppConfig,
                                               service: PaymentsAndChargesService,
-                                              navService: PaymentsNavigationService)
+                                              navService: PaymentsNavigationService,
+                                              paymentOrChargeTypeView: PaymentOrChargeTypeView)
                                              (implicit ec: ExecutionContext) extends FrontendBaseController
-  with I18nSupport
-  with NunjucksSupport {
+  with I18nSupport {
 
   private def form(journeyType: ChargeDetailsFilter): Form[PaymentOrChargeType] = formProvider(journeyType)
 
   def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { cache =>
       val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail)
-      val json = Json.obj(
-        "titleMessage" -> s"paymentOrChargeType.$journeyType.title",
-        "form" -> form(journeyType),
-        "radios" -> PaymentOrChargeType.radios(form(journeyType), paymentsOrCharges),
-        "schemeName" -> cache.schemeDetails.schemeName,
-        "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-      )
 
-      renderer.render(template = "financialStatement/paymentsAndCharges/paymentOrChargeType.njk", json).map(Ok(_))
+      Future.successful(Ok(paymentOrChargeTypeView(
+        form(journeyType),
+        s"paymentOrChargeType.$journeyType.title",
+        TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(form(journeyType), paymentsOrCharges)),
+        routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
+        config.schemeDashboardUrl(request).format(srn),
+        cache.schemeDetails.schemeName
+      )))
     }
   }
 
@@ -68,14 +66,14 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
     service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { cache =>
       form(journeyType).bindFromRequest().fold(
         formWithErrors => {
-          val json = Json.obj(
-            "titleMessage" -> s"paymentOrChargeType.$journeyType.title",
-            "form" -> formWithErrors,
-            "radios" -> PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail)),
-            "schemeName" -> cache.schemeDetails.schemeName,
-            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
-          )
-          renderer.render(template = "financialStatement/paymentsAndCharges/paymentOrChargeType.njk", json).map(BadRequest(_))
+          Future.successful(BadRequest(paymentOrChargeTypeView(
+            formWithErrors,
+            s"paymentOrChargeType.$journeyType.title",
+            TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail))),
+            routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
+            config.schemeDashboardUrl(request).format(srn),
+            cache.schemeDetails.schemeName
+          )))
         },
         value => navService.navFromPaymentsTypePage(cache.schemeFSDetail, srn, value, journeyType)
       )

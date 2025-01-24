@@ -16,6 +16,7 @@
 
 package controllers.financialStatement.penalties
 
+import config.FrontendAppConfig
 import controllers.actions._
 import controllers.financialStatement.penalties.routes._
 import forms.SelectSchemeFormProvider
@@ -25,16 +26,15 @@ import models.requests.IdentifierRequest
 import models.{PenaltiesFilter, PenaltySchemes}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
-import renderer.Renderer
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.TwirlMigration
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.financialStatement.penalties.SelectSchemeView
 
 class SelectSchemeController @Inject()(
                                         identify: IdentifierAction,
@@ -43,11 +43,11 @@ class SelectSchemeController @Inject()(
                                         val controllerComponents: MessagesControllerComponents,
                                         formProvider: SelectSchemeFormProvider,
                                         penaltiesService: PenaltiesService,
-                                        renderer: Renderer
+                                        selectSchemeView: SelectSchemeView,
+                                        config: FrontendAppConfig
                                       )(implicit ec: ExecutionContext)
                                         extends FrontendBaseController
-                                          with I18nSupport
-                                          with NunjucksSupport {
+                                          with I18nSupport {
 
   private def form(schemes: Seq[PenaltySchemes], typeParam: String)
                   (implicit messages: Messages): Form[PenaltySchemes] = formProvider(schemes, messages("selectScheme.error", typeParam))
@@ -60,14 +60,14 @@ class SelectSchemeController @Inject()(
           if (penaltySchemes.nonEmpty) {
 
             val typeParam = penaltiesService.getTypeParam(penaltyType)
-
-            val json = Json.obj(
-              "psaName" -> penaltiesCache.psaName,
-              "typeParam" -> typeParam,
-              "form" -> form(penaltySchemes, typeParam),
-              "radios" -> PenaltySchemes.radios(form(penaltySchemes, typeParam), penaltySchemes))
-
-            renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(Ok(_))
+            Future.successful(Ok(selectSchemeView(
+              form(penaltySchemes, typeParam),
+              typeParam,
+              TwirlMigration.toTwirlRadios(PenaltySchemes.radios(form(penaltySchemes, typeParam), penaltySchemes)),
+              routes.SelectSchemeController.onSubmit(penaltyType, period, journeyType),
+              config.managePensionsSchemeOverviewUrl,
+              penaltiesCache.psaName
+            )))
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
           }
@@ -87,14 +87,14 @@ class SelectSchemeController @Inject()(
 
           form(penaltySchemes, typeParam).bindFromRequest().fold(
             formWithErrors => {
-
-              val json = Json.obj(
-                "psaName" -> penaltiesCache.psaName,
-                "typeParam" -> typeParam,
-                "form" -> formWithErrors,
-                "radios" -> PenaltySchemes.radios(formWithErrors, penaltySchemes))
-
-              renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(BadRequest(_))
+              Future.successful(BadRequest(selectSchemeView(
+                formWithErrors,
+                typeParam,
+                TwirlMigration.toTwirlRadios(PenaltySchemes.radios(formWithErrors, penaltySchemes)),
+                routes.SelectSchemeController.onSubmit(penaltyType, period, journeyType),
+                config.managePensionsSchemeOverviewUrl,
+                penaltiesCache.psaName
+              )))
             },
             value => {
               value.srn match {

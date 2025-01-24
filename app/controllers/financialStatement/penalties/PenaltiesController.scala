@@ -17,25 +17,24 @@
 package controllers.financialStatement.penalties
 
 import config.Constants._
+import config.FrontendAppConfig
 import controllers.actions._
 import models.LocalDateBinder._
 import models.financialStatement.PenaltyType._
-import models.financialStatement.{PenaltyType, PsaFSDetail}
+import models.financialStatement.{PenaltiesViewModel, PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
 import models.{PenaltiesFilter, Quarters}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.financialStatement.penalties.PenaltiesView
 
 class PenaltiesController @Inject()(identify: IdentifierAction,
                                     allowAccess: AllowAccessActionProviderForIdentifierRequest,
@@ -43,23 +42,25 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                                     val controllerComponents: MessagesControllerComponents,
                                     penaltiesService: PenaltiesService,
                                     schemeService: SchemeService,
-                                    renderer: Renderer
+                                    penaltiesView: PenaltiesView,
+                                    config: FrontendAppConfig
                                    )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
-  def onPageLoadAft(startDate: LocalDate, identifier: String, journeyType: PenaltiesFilter): Action[AnyContent] = (identify andThen allowAccess()).async {
+  //noinspection ScalaStyle
+  def onPageLoadAft(startDate: LocalDate, identifier: String, journeyType: PenaltiesFilter): Action[AnyContent] =
+    (identify andThen allowAccess()).async {
     implicit request =>
 
-      val title: Message = Message("penalties.aft.title").withArgs(
+      val title: String = Messages("penalties.aft.title",
         LocalDate.parse(startDate).format(dateFormatterStartDate),
           Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY))
 
       penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
 
         val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
-        val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
+        val viewModel: Future[PenaltiesViewModel] = if (identifier.matches(srnRegex)) {
           schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
 
             val filteredPsaFS: Seq[PsaFSDetail] = penaltiesCache.penalties
@@ -67,9 +68,17 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
               .filter(_.periodStartDate == startDate)
               .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
 
-            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, AccountingForTaxPenalties, journeyType)
+            val penaltyTable: Table = penaltiesService.getPsaFsTable(filteredPsaFS, identifier, chargeRefsIndex, AccountingForTaxPenalties, journeyType)
 
-            viewModel(title, penaltiesCache.psaName, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
+            PenaltiesViewModel(
+              title,
+              schemeAssociated = true,
+              Some(schemeDetails.schemeName),
+              schemeDetails.pstr,
+              penaltyTable,
+              config.managePensionsSchemeOverviewUrl,
+              penaltiesCache.psaName
+            )
           }
         } else {
           penaltiesService.unassociatedSchemes(penaltiesCache.penalties, startDate, request.psaIdOrException.id) map { penalties =>
@@ -80,14 +89,21 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
               .filter(_.periodStartDate == startDate)
               .filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
 
-            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, AccountingForTaxPenalties, journeyType)
+            val penaltyTable: Table = penaltiesService.getPsaFsTable(filteredPsaFS, identifier, chargeRefsIndex, AccountingForTaxPenalties, journeyType)
 
-            viewModel(title, penaltiesCache.psaName, pstrs(identifier.toInt), schemeAssociated = false, penaltyTable)
+            PenaltiesViewModel(
+              title,
+              false,
+              None,
+              pstrs(identifier.toInt),
+              penaltyTable,
+              config.managePensionsSchemeOverviewUrl,
+              penaltiesCache.psaName
+            )
           }
         }
 
-        json.flatMap(js => renderer.render(template = "financialStatement/penalties/penalties.njk", js).map(Ok(_)))
-
+        viewModel.flatMap(model => Future.successful(Ok(penaltiesView(model))))
       }
   }
 
@@ -112,9 +128,9 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
   private def onPageLoad(year: Int, identifier: String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
                         (implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
     penaltiesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-      val title: Message = Message("penalties.nonAft.title", Message(s"penaltyType.${penaltyType.toString}"), year.toString)
+      val title: String = Messages("penalties.nonAft.title", Messages(s"penaltyType.${penaltyType.toString}"), year.toString)
       val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
-      val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
+      val viewModel: Future[PenaltiesViewModel] = if (identifier.matches(srnRegex)) {
         schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
 
           val filteredPsaFS: Seq[PsaFSDetail] = penaltiesCache.penalties
@@ -122,9 +138,17 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
             .filter(_.periodEndDate.getYear == year)
             .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
-          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, penaltyType, journeyType)
+          val penaltyTable: Table = penaltiesService.getPsaFsTable(filteredPsaFS, identifier, chargeRefsIndex, penaltyType, journeyType)
 
-          viewModel(title, penaltiesCache.psaName, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
+          PenaltiesViewModel(
+            title,
+            true,
+            Some(schemeDetails.schemeName),
+            schemeDetails.pstr,
+            penaltyTable,
+            config.managePensionsSchemeOverviewUrl,
+            penaltiesCache.psaName
+          )
         }
       } else {
         penaltiesService.unassociatedSchemes(penaltiesCache.penalties, year, request.psaIdOrException.id) map { penalties =>
@@ -135,25 +159,20 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
             .filter(_.periodEndDate.getYear == year)
             .filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
-          val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, chargeRefsIndex, penaltyType, journeyType)
+          val penaltyTable: Table = penaltiesService.getPsaFsTable(filteredPsaFS, identifier, chargeRefsIndex, penaltyType, journeyType)
 
-          viewModel(title, penaltiesCache.psaName, pstrs(identifier.toInt), schemeAssociated = false, penaltyTable)
+          PenaltiesViewModel(
+            title,
+            false,
+            None,
+            pstrs(identifier.toInt),
+            penaltyTable,
+            config.managePensionsSchemeOverviewUrl,
+            penaltiesCache.psaName
+          )
         }
       }
-
-      json.flatMap(js => renderer.render(template = "financialStatement/penalties/penalties.njk", js).map(Ok(_)))
-
+      viewModel.flatMap(model => Future.successful(Ok(penaltiesView(model))))
     }
   }
-
-  private def viewModel(title: Message, psaName: String, pstr: String, schemeAssociated: Boolean, table: JsObject, args: String*)
-                       (implicit messages: Messages): JsObject =
-    Json.obj(
-      "titleMessage" -> title.resolve,
-      "psaName" -> psaName,
-      "pstr" -> pstr,
-      "schemeAssociated" -> schemeAssociated,
-      "table" -> table,
-      "schemeName" -> args
-    )
 }

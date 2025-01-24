@@ -1427,6 +1427,12 @@ return.to.fileupload = Return to file upload
 
 schemeFinancial.h1 = Your financial overview
 schemeFinancial.h1.new = Financial overview
+schemeFinancial.overview.overdue.title = Overdue charges
+schemeFinancial.overview.overdue.title.v2 = Overdue charges
+schemeFinancial.overview.upcoming.title = Due penalties and charges
+schemeFinancial.overview.upcoming.title.v2 = Due penalties and charges
+schemeFinancial.overview.all.title = All penalties and charges
+schemeFinancial.overview.all.title.v2 = All penalties and charges
 schemeFinancial.h2.overdueCharges  = Overdue charges
 schemeFinancial.p1.overdueCharges  = Charges that are late. Any interest shown is accruing.
 schemeFinancial.h2.overduePayments  = Total of overdue payments and charges
@@ -1524,9 +1530,10 @@ psa.financial.overview.allOverdue.link  = View all overdue penalties and interes
 psa.financial.overview.allOverdue.link.new  = View complete list of overdue charges
 psa.financial.overview.allDue.link  = View all due penalties and charges
 psa.financial.overview.pastPenalties.link  = View all penalties and charges
-psa.financial.overview.overdue.title = Overdue penalties and interest charges
-psa.financial.overview.overdue.title.v2 = Overdue penalties and charges
+psa.financial.overview.overdue.title = Overdue penalties and charges
+psa.financial.overview.overdue.title.v2 = Overdue Charges
 psa.financial.overview.upcoming.title = Due penalties and charges
+psa.financial.overview.upcoming.title.v2 = Due Charges
 psa.financial.overview.overdue.text = The information may not reflect payments made in the last 3 days.
 psa.financial.overview.overdue.text.new = The information may not reflect payments made in the last 3 days.
 psa.financial.overview.overdue.text.v2 = This information may not reflect payments made in the last 3 days.
@@ -1555,6 +1562,11 @@ psa.financial.overview.interest.late.payment.text = This interest charge was the
 psa.financial.overview.penalties.pstr.text = Pension Scheme Tax Reference: {0}
 psa.financial.overview.penalties.all.returnLink = your penalties and charges for {0}
 psa.financial.overview.penalties.all.aft.returnLink = your penalties for {0} to {1}
+psa.financial.overview.all.title = All penalties and charges
+psa.financial.overview.all.title.v2 = All penalties and charges
+psa.financial.overview.all.text = The information may not reflect payments made in the last 3 days.
+psa.financial.overview.all.text.new = The information may not reflect payments made in the last 3 days.
+
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format
@@ -1593,7 +1605,6 @@ fileupload.invalid.item2 = Error
 requestRefund.youAlready.h1 = You might have already requested a refund
 requestRefund.youAlready.p1 = You might have recently requested a refund for this scheme.
 requestRefund.youAlready.psa.p1 = You or someone else from your organisation might have recently requested a refund for this account.
-
 requestRefund.p2 = Your credit balance will only change once a refund has been paid. We aim to process refund requests within 15 working days.
 requestRefund.p3 = Select continue to request a refund.
 

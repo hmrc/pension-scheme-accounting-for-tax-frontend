@@ -1,0 +1,79 @@
+@*
+ * Copyright 2024 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import viewmodels.govuk.date.DateViewModel
+@import uk.gov.hmrc.hmrcfrontend.views.html.components.{HmrcCurrencyInput, CurrencyInput}
+
+@this(
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    govukDateInput: GovukDateInput,
+    govukButton: GovukButton,
+    hmrcCurrencyInput: HmrcCurrencyInput,
+    govukRadios: GovukRadios
+)
+@(form: Form[_], schemeName: String, submitUrl: play.api.mvc.Call, returnUrl: String, memberName: String, radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
+
+@layout(messages("chargeEDetails.title"), formHasErrors = form.hasErrors) {
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
+<h1 class="govuk-heading-xl">@messages("chargeEDetails.heading", memberName)</h1>
+
+@formHelper(action = submitUrl, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "true") {
+
+@hmrcCurrencyInput(
+CurrencyInput(
+    id = "chargeAmount",
+    name = "chargeAmount",
+    value = form("chargeAmount").value,
+    classes = "govuk-input--width-10",
+    errorMessage = form("chargeAmount").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
+    label = Label(content = Text(messages("chargeEDetails.chargeAmount.label")), classes = "govuk-label--s"),
+    autocomplete= Some("off")
+))
+
+@govukDateInput(
+    DateViewModel(
+        field  = form("dateNoticeReceived"),
+        legend = Legend(
+        content = Text(messages("chargeEDetails.dateNoticeReceived.label")),
+        classes = "govuk-fieldset__legend--s",
+        isPageHeading = false
+        )
+    )
+)
+
+@govukRadios(
+    RadiosViewModel(
+        classes = "govuk-radios--inline",
+        field = form("isPaymentMandatory"),
+        items = radios,
+        fieldset =Fieldset(
+            legend = Some(Legend(content = Text(messages("chargeEDetails.isPaymentMandatory.label")),
+            isPageHeading = false,
+            classes = "govuk-fieldset__legend--s"))
+        )
+    )
+)
+
+
+@govukButton(ButtonViewModel(
+    Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String)))
+}
+@templates.ReturnLink(schemeName, returnUrl)
+}

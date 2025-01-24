@@ -25,27 +25,26 @@ import matchers.JsonMatchers
 import models.PenaltiesFilter.All
 import models.financialStatement.PsaFSDetail
 import models.{Enumerable, SchemeDetails}
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.{PenaltiesCache, PenaltiesService, SchemeService}
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, _}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import views.html.financialStatement.penalties.ChargeDetailsView
 
 import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
     with Enumerable.Implicits
@@ -76,14 +75,6 @@ class ChargeDetailsControllerSpec
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-  private val templateToBeRendered = "financialStatement/penalties/chargeDetails.njk"
-  private val commonJson: JsObject = Json.obj(
-    "heading" -> "Accounting for Tax Late Filing Penalty",
-    "isOverdue" -> true,
-    "period" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
-    "chargeReference" -> chargeRef,
-    "list" -> rows
-  )
 
   val isOverdue: PsaFSDetail => Boolean = _ => true
 
@@ -91,7 +82,7 @@ class ChargeDetailsControllerSpec
     super.beforeEach()
     reset(mockPenaltiesService)
     reset(mockRenderer)
-    when(mockPenaltiesService.chargeDetailsRows(any())).thenReturn(rows)
+    when(mockPenaltiesService.chargeDetailsRows(any())(any())).thenReturn(getRows())
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any()))
       .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
@@ -104,42 +95,45 @@ class ChargeDetailsControllerSpec
     "on a GET" must {
 
       "render the correct view with penalty tables for associated" in {
-
         when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETAssociated("0"))).value
-        val json = Json.obj(
-          "schemeAssociated" -> true,
-          "schemeName" -> schemeDetails.schemeName
-        )
+
+        val view = application.injector.instanceOf[ChargeDetailsView].apply(
+          "Accounting for Tax Late Filing Penalty",
+          schemeAssociated = true,
+          Some(schemeDetails.schemeName),
+          isOverdue = true,
+          period = messages("penalties.period", "1 April", "30 June 2020"),
+          chargeRef,
+          getRows(),
+          "",
+          "psa-name"
+        )(httpGETRequest(httpPathGETAssociated("0")), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+        compareResultAndView(result, view)
       }
 
       "render the correct view with penalty tables for unassociated" in {
-
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETUnassociated)).value
-        val json = Json.obj(
-          "schemeAssociated" -> false
-        )
+
+        val view = application.injector.instanceOf[ChargeDetailsView].apply(
+          "Accounting for Tax Late Filing Penalty",
+          schemeAssociated = false,
+          Some(schemeDetails.schemeName),
+          isOverdue = true,
+          period = messages("penalties.period", "1 April", "30 June 2020"),
+          chargeRef,
+          getRows(),
+          "",
+          "psa-name"
+        )(httpGETRequest(httpPathGETUnassociated), messages)
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(commonJson ++ json)
+        compareResultAndView(result, view)
       }
 
       "catch IndexOutOfBoundsException" in {
@@ -160,22 +154,22 @@ object ChargeDetailsControllerSpec {
   val chargeRef = "XY002610150184"
 
 
-  val rows = Seq(
-    Row(
-      key = Key(Literal("Accounting for Tax late filing penalty"), classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal("£80000.00"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+  private def getRows()(implicit messages: Messages) = Seq(
+    SummaryListRow(
+      key = Key(Text("Accounting for Tax late filing penalty"), classes = "govuk-!-width-three-quarters"),
+      value = Value(Text("£80000.00"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
     ),
-    Row(
-      key = Key(msg"penalties.chargeDetails.payments", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal("£23950.92"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    SummaryListRow(
+      key = Key(Text(messages("penalties.chargeDetails.payments")), classes = "govuk-!-width-three-quarters"),
+      value = Value(Text("£23950.92"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
     ),
-    Row(
-      key = Key(msg"penalties.chargeDetails.amountUnderReview", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal("£25089.08"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    SummaryListRow(
+      key = Key(Text(messages("penalties.chargeDetails.amountUnderReview")), classes = "govuk-!-width-three-quarters"),
+      value = Value(Text("£25089.08"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
     ),
-    Row(
-      key = Key(msg"penalties.chargeDetails.totalDueBy".withArgs("15 July 2020"), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-      value = Value(Literal("£1029.05"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    SummaryListRow(
+      key = Key(Text(messages("penalties.chargeDetails.totalDueBy", "15 July 2020")), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+      value = Value(Text("£1029.05"), classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
     )
   )
 

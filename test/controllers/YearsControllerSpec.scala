@@ -25,7 +25,7 @@ import forms.YearsFormProvider
 import matchers.JsonMatchers
 import models.StartYears.enumerable
 import models.requests.IdentifierRequest
-import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, StartYears, UserAnswers, Year}
+import models.{Enumerable, SchemeDetails, SchemeStatus, StartYears, UserAnswers, Year}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -34,7 +34,7 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
@@ -61,15 +61,6 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
   lazy val httpPathGET: String = controllers.routes.YearsController.onPageLoad(srn).url
   private val submitCall: Call = controllers.routes.YearsController.onSubmit(srn)
   lazy val httpPathPOST: String = submitCall.url
-
-  private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> StartYears.radios(form),
-    "viewModel" -> GenericViewModel(
-      submitUrl = submitCall.url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
-  )
 
   private val year = "2020"
 

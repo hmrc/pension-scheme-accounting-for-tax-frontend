@@ -26,20 +26,17 @@ import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
-import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.domain.{PsaId, PspId}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.DateHelper
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.financialStatement.paymentsAndCharges.PaymentsAndChargeInterestView
 
 class PaymentsAndChargesInterestController @Inject()(
                                                       override val messagesApi: MessagesApi,
@@ -48,11 +45,10 @@ class PaymentsAndChargesInterestController @Inject()(
                                                       val controllerComponents: MessagesControllerComponents,
                                                       config: FrontendAppConfig,
                                                       paymentsAndChargesService: PaymentsAndChargesService,
-                                                      renderer: Renderer
+                                                      paymentsAndChargeInterestView: PaymentsAndChargeInterestView
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private val logger = Logger(classOf[PaymentsAndChargesInterestController])
 
@@ -92,10 +88,20 @@ class PaymentsAndChargesInterestController @Inject()(
     if (chargeRefs.size > index.toInt) {
       filteredSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
         case Some(schemeFs) =>
-          renderer.render(
-            template = "financialStatement/paymentsAndCharges/paymentsAndChargeInterest.njk",
-            ctx = summaryListData(srn, schemeFs, schemeName, request.psaId, request.pspId, originalAmountUrl)
-          ).map(Ok(_))
+          val chargeType = if (schemeFs.chargeType == PSS_AFT_RETURN) {
+            PSS_AFT_RETURN_INTEREST.toString
+          } else {
+            PSS_OTC_AFT_RETURN_INTEREST.toString
+          }
+          Future.successful(Ok(paymentsAndChargeInterestView(
+            chargeType,
+            tableHeader = getTableHeader(schemeFs),
+            chargeDetailsList = getSummaryListRows(schemeFs),
+            accruedInterest = schemeFs.accruedInterestTotal,
+            originalAmountUrl,
+            returnUrl = config.schemeDashboardUrl(request.psaId, request.pspId).format(srn),
+            schemeName
+          )))
         case _ =>
           logger.warn(s"No Payments and Charge details " +
             s"found for the selected charge reference ${chargeRefs(index.toInt)}")
@@ -112,47 +118,31 @@ class PaymentsAndChargesInterestController @Inject()(
 
   }
 
-  def summaryListData(srn: String, schemeFSDetail: SchemeFSDetail, schemeName: String,
-                      psaId: Option[PsaId], pspId: Option[PspId], originalAmountUrl: String)
-                     (implicit messages: Messages): JsObject =
-        Json.obj(
-          fields = "chargeDetailsList" -> getSummaryListRows(schemeFSDetail),
-          "tableHeader" -> messages("paymentsAndCharges.caption",
-           DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
-            DateHelper.formatDateDMY(schemeFSDetail.periodEndDate)),
-          "schemeName" -> schemeName,
-          "accruedInterest" -> schemeFSDetail.accruedInterestTotal,
-          "chargeType" -> (
-            if (schemeFSDetail.chargeType == PSS_AFT_RETURN) {
-              PSS_AFT_RETURN_INTEREST.toString
-            } else {
-              PSS_OTC_AFT_RETURN_INTEREST.toString
-            }
-            ),
-          "originalAmountUrl" -> originalAmountUrl,
-          "returnUrl" -> config.schemeDashboardUrl(psaId, pspId).format(srn)
-        )
+  private def getTableHeader(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages) = {
+    messages("paymentsAndCharges.caption",
+      DateHelper.formatStartDate(schemeFSDetail.periodStartDate),
+      DateHelper.formatDateDMY(schemeFSDetail.periodEndDate))
+  }
 
-  private def getSummaryListRows(schemeFSDetail: SchemeFSDetail): Seq[SummaryList.Row] = {
+
+  private def getSummaryListRows(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"paymentsAndCharges.interest", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
+      SummaryListRow(
+        key = Key(Text(messages("paymentsAndCharges.interest")), classes = "govuk-!-padding-left-0 govuk-!-width-three-quarters"),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
-        ),
-        actions = Nil
+          Text(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric"
+        )
       ),
-      Row(
+      SummaryListRow(
         key = Key(
-          msg"paymentsAndCharges.interestFrom".withArgs(DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46)))),
-          classes = Seq("govuk-table__cell--numeric", "govuk-!-padding-right-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
+          Text(messages("paymentsAndCharges.interestFrom", DateHelper.formatDateDMY(schemeFSDetail.periodEndDate.map(_.plusDays(46))))),
+          classes = "govuk-table__cell--numeric govuk-!-padding-right-0 govuk-!-width-three-quarters govuk-!-font-weight-bold"
         ),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")
-        ),
-        actions = Nil
+          Text(s"${FormatHelper.formatCurrencyAmountAsString(schemeFSDetail.accruedInterestTotal)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric govuk-!-font-weight-bold"
+        )
       )
     )
   }

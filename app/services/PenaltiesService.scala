@@ -29,15 +29,14 @@ import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ListSchemeDetails, PenaltiesFilter, PenaltySchemes}
 import play.api.Logger
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, JsSuccess, Json, OFormat}
+import play.api.libs.json.{JsSuccess, Json, OFormat}
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Table.Cell
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
-import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.dateFormatterDMY
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow, Table}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
@@ -52,34 +51,34 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
   val isPaymentOverdue: PsaFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
   //PENALTIES
-  def getPsaFsJson(penalties: Seq[PsaFSDetail], identifier: String, chargeRefsIndex: String => String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
-                  (implicit messages: Messages): JsObject = {
+  def getPsaFsTable(penalties: Seq[PsaFSDetail], identifier: String, chargeRefsIndex: String => String, penaltyType: PenaltyType, journeyType: PenaltiesFilter)
+                   (implicit messages: Messages): Table = {
 
-    val head: Seq[Cell] = Seq(
-      Cell(msg"penalties.column.${if(penaltyType == ContractSettlementCharges) "chargeType" else "penaltyType"}"),
-      Cell(msg"penalties.column.amount"),
-      Cell(msg"penalties.column.chargeReference"),
-      Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
+    val head: Seq[HeadCell] = Seq(
+      HeadCell(Text(messages(s"penalties.column.${if(penaltyType == ContractSettlementCharges) "chargeType" else "penaltyType"}"))),
+      HeadCell(Text(messages("penalties.column.amount"))),
+      HeadCell(Text(messages("penalties.column.chargeReference"))),
+      HeadCell(HtmlContent(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
     )
 
     val rows = penalties.flatMap { data =>
       val content = chargeTypeLink(identifier, data, chargeRefsIndex(data.chargeReference), journeyType)
       val charge = Seq(
-        Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
-        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
-          classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
+        TableRow(content, classes = "govuk-!-width-two-thirds-quarter"),
+        TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+          classes = "govuk-!-width-one-quarter"),
+        TableRow(Text(data.chargeReference), classes = "govuk-!-width-one-quarter"),
         statusCell(data)
       )
 
       val interest = if (data.chargeType == CONTRACT_SETTLEMENT && data.accruedInterestTotal > 0) {
         val content = accruedInterestLink(identifier, data, chargeRefsIndex(data.chargeReference))
         Seq(
-          Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
-          Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
-            classes = Seq("govuk-!-width-one-quarter")),
-          Cell(Message("penalties.column.chargeReference.toBeAssigned"), classes = Seq("govuk-!-width-one-quarter")),
-          Cell(Html(s"<span class='govuk-body govuk-tag govuk-tag--blue'>${messages("penalties.status.interestAccruing").toUpperCase}</span>"))
+          TableRow(content, classes = "govuk-!-width-two-thirds-quarter"),
+          TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
+            classes = "govuk-!-width-one-quarter"),
+          TableRow(Text(Messages("penalties.column.chargeReference.toBeAssigned")), classes = "govuk-!-width-one-quarter"),
+          TableRow(HtmlContent(s"<span class='govuk-body govuk-tag govuk-tag--blue'>${messages("penalties.status.interestAccruing").toUpperCase}</span>"))
         )
       } else {
         Nil
@@ -87,73 +86,71 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
       (Seq(charge) ++ Seq(interest)).filterNot(_.isEmpty)
     }
-    Json.obj(
-      "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
-    )
+    Table(head = Some(head), rows = rows, attributes = Map("role" -> "table"))
   }
 
   private def chargeTypeLink(identifier: String, data: PsaFSDetail, chargeRefsIndex: String, journeyType: PenaltiesFilter)
-                            (implicit messages: Messages): Html =
-          Html(s"<a id=${data.chargeReference} " +
+                            (implicit messages: Messages): HtmlContent =
+    HtmlContent(s"<a id=${data.chargeReference} " +
             s"class=govuk-link href=${controllers.financialStatement.penalties.routes
               .ChargeDetailsController.onPageLoad(identifier, chargeRefsIndex, journeyType)}>" +
             s"${messages(data.chargeType.toString)}" +
             s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
 
   private def accruedInterestLink(identifier: String, data: PsaFSDetail, chargeRefsIndex: String)
-    (implicit messages: Messages): Html =
-    Html(s"<a id=${data.chargeReference}-interest " +
+    (implicit messages: Messages): HtmlContent =
+    HtmlContent(s"<a id=${data.chargeReference}-interest " +
       s"class=govuk-link href=${controllers.financialStatement.penalties.routes
         .InterestController.onPageLoad(identifier, chargeRefsIndex)}>" +
       s"${messages("penalties.column.chargeType.interestOn", messages(data.chargeType.toString.toLowerCase))}" +
       s"<span class=govuk-visually-hidden>${messages(s"penalties.column.chargeType.interestToCome")}</span> </a>")
 
-  private def statusCell(data: PsaFSDetail)(implicit messages: Messages): Cell = {
+  private def statusCell(data: PsaFSDetail)(implicit messages: Messages): TableRow = {
     val (classes, content) = (isPaymentOverdue(data), data.amountDue) match {
       case (true, _) => ("govuk-tag govuk-tag--red", messages("penalties.status.paymentOverdue"))
       case (_, amount) if amount == BigDecimal(0.00) =>
         ("govuk-visually-hidden", messages("penalties.status.visuallyHiddenText.noPaymentDue"))
       case _ => ("govuk-visually-hidden", messages("penalties.status.visuallyHiddenText.paymentIsDue"))
     }
-    Cell(Html(s"""<span class='$classes'>$content</span>"""))
+    TableRow(HtmlContent(s"""<span class='$classes'>$content</span>"""))
   }
 
   //CHARGE DETAILS
-  def chargeDetailsRows(data: PsaFSDetail): Seq[SummaryList.Row] =
+  def chargeDetailsRows(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
     Seq(
-      Row(
-        key = Key(Literal(data.chargeType.toString), classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      SummaryListRow(
+        key = Key(Text(data.chargeType.toString), classes = "govuk-!-width-three-quarters"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
       )
     ) ++ paymentRow(data) ++ amountUnderReviewRow(data) ++ totalDueRow(data)
 
 
-  private def totalInterestDueRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
+  private def totalInterestDueRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     val dateAsOf: String = LocalDate.now.format(dateFormatterDMY)
-    Seq(Row(
-      key = Key(msg"penalties.interest.totalDueAsOf".withArgs(dateAsOf), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
-        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+    Seq(SummaryListRow(
+      key = Key(Text(messages("penalties.interest.totalDueAsOf", dateAsOf)), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+      value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
+        classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
     ))
   }
 
-  def interestRows(data: PsaFSDetail): Seq[SummaryList.Row] =
+  def interestRows(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
     Seq(
-      Row(
-        key = Key(Message("penalties.status.interestAccruing"), classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      SummaryListRow(
+        key = Key(Text(messages("penalties.status.interestAccruing")), classes = "govuk-!-width-three-quarters"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.accruedInterestTotal)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
       )
     ) ++ totalInterestDueRow(data)
 
-  private def paymentRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
+  private def paymentRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     val paymentAmount: BigDecimal = data.totalAmount - data.outstandingAmount
     if (paymentAmount != BigDecimal(0.00)) {
-      Seq(Row(
-        key = Key(msg"penalties.chargeDetails.payments", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount - data.amountDue - data.stoodOverAmount)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      Seq(SummaryListRow(
+        key = Key(Text(messages("penalties.chargeDetails.payments")), classes = "govuk-!-width-three-quarters"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount - data.amountDue - data.stoodOverAmount)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
       ))
     }
     else {
@@ -161,12 +158,12 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
   }
 
-  private def amountUnderReviewRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
+  private def amountUnderReviewRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     if (data.stoodOverAmount != BigDecimal(0.00)) {
-      Seq(Row(
-        key = Key(msg"penalties.chargeDetails.amountUnderReview", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.stoodOverAmount)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      Seq(SummaryListRow(
+        key = Key(Text(messages("penalties.chargeDetails.amountUnderReview")), classes = "govuk-!-width-three-quarters"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.stoodOverAmount)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
       ))
     }
     else {
@@ -174,20 +171,20 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     }
   }
 
-  private def totalDueRow(data: PsaFSDetail): Seq[SummaryList.Row] = {
+  private def totalDueRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     if (data.amountDue > BigDecimal(0.00) && data.dueDate.isDefined) {
       val dueDate: String = data.dueDate.get.format(dateFormatterDMY)
-      Seq(Row(
-        key = Key(msg"penalties.chargeDetails.totalDueBy".withArgs(dueDate), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      Seq(SummaryListRow(
+        key = Key(Text(messages("penalties.chargeDetails.totalDueBy", dueDate)), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
       ))
     }
     else {
-      Seq(Row(
-        key = Key(msg"penalties.chargeDetails.totalDue", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      Seq(SummaryListRow(
+        key = Key(Text(messages("penalties.chargeDetails.totalDue")), classes = "govuk-table__header--numeric govuk-!-padding-right-0"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+          classes = "govuk-!-width-one-quarter govuk-table__cell--numeric")
       ))
     }
   }

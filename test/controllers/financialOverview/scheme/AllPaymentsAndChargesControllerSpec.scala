@@ -26,25 +26,29 @@ import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.{reset, when}
+import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.AnyContentAsEmpty
+import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, _}
-import play.twirl.api.Html
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
+import views.html.financialOverview.scheme.PaymentsAndChargesNewView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   import AllPaymentsAndChargesControllerSpec._
+
+  private val startDate = "2020-04-01"
+  private val endDate = "2020-06-30"
+  val pstr = "24000041IN"
 
   private def httpPathGET(startDate: String = startDate): String =
     routes.AllPaymentsAndChargesController.onPageLoad(srn, startDate, AccountingForTaxCharges).url
@@ -54,7 +58,6 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     .overrides(
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
@@ -62,9 +65,12 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     )
     .build()
 
+  val emptyChargesTable: Table = Table()
+
+  private implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
+
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
     reset(mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
@@ -74,27 +80,31 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with Nunjuc
     when(mockPaymentsAndChargesService.getInterestCharges(any()))
       .thenReturn(schemeFSResponse)
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(ArgumentMatchers.eq(srn), any(), any(), any())(any())).thenReturn(emptyChargesTable)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
-
-  private def expectedJson: JsObject = Json.obj(
-    fields = "paymentAndChargesTable" -> emptyChargesTable,
-    "schemeName" -> schemeDetails.schemeName,
-    "returnUrl" -> dummyCall.url
-  )
 
   "AllPaymentsAndChargesController" must {
 
     "return OK and the correct view with filtered payments and charges information for a GET" in {
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET())).value
+
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      val view = application.injector.instanceOf[PaymentsAndChargesNewView].apply(
+        journeyType = "all",
+        schemeName = schemeDetails.schemeName,
+        titleMessage = "Accounting for Tax payments and charges for 1 April to 30 June 2020",
+        pstr = "pstr",
+        reflectChargeText = "Amounts due may not reflect payments made in the last 3 days.",
+        totalOverdue = "£56049.08",
+        totalInterestAccruing = "0",
+        totalUpcoming = "£1,029.05",
+        totalDue = "£3,087.15",
+        penaltiesTable = emptyChargesTable,
+        paymentAndChargesTable = emptyChargesTable,
+        returnUrl = dummyCall.url
+      )(request, messages)
 
-      templateCaptor.getValue mustEqual "financialOverview/scheme/paymentsAndCharges.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      compareResultAndView(result, view)
     }
 
     "redirect to Session Expired page when there is no data for the selected year for a GET" in {

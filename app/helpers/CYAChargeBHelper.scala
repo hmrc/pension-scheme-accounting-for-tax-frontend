@@ -20,43 +20,45 @@ import models.LocalDateBinder._
 import models.chargeB.ChargeBDetails
 import models.{AccessType, CheckMode}
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{ActionItem, Actions, Key, SummaryListRow, Value}
 
 import java.time.LocalDate
 
 class CYAChargeBHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
-  def chargeBDetails(answer: ChargeBDetails): Seq[Row] = {
+  def chargeBDetails(answer: ChargeBDetails): Seq[SummaryListRow] = {
     Seq(
-      Row(
-        key = Key(msg"chargeB.numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.numberOfDeceased.toString), classes = Seq("govuk-!-width-one-quarter")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-            visuallyHiddenText = Some(Literal(
-              messages("site.edit") + " " + messages("chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel")
+      SummaryListRow(
+        key = Key(Text(messages("chargeB.numberOfDeceased.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+        value = Value(Text(answer.numberOfDeceased.toString), classes = "govuk-!-width-one-quarter"),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+              content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+              href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
+              visuallyHiddenText = Some(
+                messages("site.edit") + " " + messages("chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel")
+              )
             ))
           )
         )
       ),
-      Row(
-        key = Key(msg"chargeB.totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
-        actions = List(
-          Action(
-            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
+      SummaryListRow(
+        key = Key(Text(messages("chargeB.totalTaxDue.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmount)}"), classes = "govuk-!-width-one-quarter"),
+        actions = Some(
+          Actions(
+            items = Seq(ActionItem(
+            content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-            visuallyHiddenText = Some(Literal(
+            visuallyHiddenText = Some(
               messages("site.edit") + " " + messages("chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
-            ))
-          )
+            )
+          ))
         )
       )
-    )
+    ))
   }
 
 }

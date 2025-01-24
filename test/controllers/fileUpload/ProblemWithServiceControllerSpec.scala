@@ -26,31 +26,25 @@ import models.UserAnswers
 import models.fileUpload.FileUploadOutcome
 import models.fileUpload.FileUploadOutcomeStatus.ValidationErrorsLessThanMax
 import models.requests.IdentifierRequest
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.when
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import views.html.fileUpload.ProblemWithServiceView
 
 import scala.concurrent.Future
 
-class ProblemWithServiceControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class ProblemWithServiceControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-
-  private val templateToBeRendered = "fileUpload/problemWithService.njk"
 
   private def httpPathGET: String = controllers.fileUpload.routes.ProblemWithServiceController.onPageLoad(srn, startDate, accessType, versionInt).url
 
   private val errorsJson = Json.obj("test" -> "test")
 
-  private def jsonToPassToTemplate = Json.obj(
-    "tryAgainLink" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url
-  )
 
   private val mockFileUploadOutcomeConnector = mock[FileUploadOutcomeConnector]
 
@@ -63,7 +57,6 @@ class ProblemWithServiceControllerSpec extends ControllerSpecBase with NunjucksS
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockFileUploadOutcomeConnector.getOutcome(any(), any()))
       .thenReturn(Future.successful(Some(FileUploadOutcome(status = ValidationErrorsLessThanMax, json = errorsJson))))
@@ -74,20 +67,19 @@ class ProblemWithServiceControllerSpec extends ControllerSpecBase with NunjucksS
   "problemWithService Controller" must {
     "return OK and the correct view for a GET" in {
 
+      val request = FakeRequest(GET, httpPathGET)
+
       when(mockAppConfig.failureEndpointTarget(any(), any(), any(), any(), any())).thenReturn(dummyCall.url)
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val view = application.injector.instanceOf[ProblemWithServiceView].apply(
+        controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url)(request, messages)
+
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      compareResultAndView(result, view)
     }
   }
 }

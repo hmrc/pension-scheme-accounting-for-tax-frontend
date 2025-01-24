@@ -20,10 +20,9 @@ import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataR
 import models.AccessType
 import models.LocalDateBinder._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import views.html.fileUpload.ProblemWithServiceView
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -35,18 +34,15 @@ class ProblemWithServiceController @Inject()(override val messagesApi: MessagesA
                                              getData: DataRetrievalAction,
                                              allowAccess: AllowAccessActionProvider,
                                              requireData: DataRequiredAction,
-                                             renderer: Renderer
+                                             view: ProblemWithServiceView
                                             )(implicit val executionContext: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)) {
       implicit request =>
-        renderer.render(template = "fileUpload/problemWithService.njk",
-          Json.obj(
-            "tryAgainLink" -> controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url
-          )
-        ).map(Ok(_))
+        val tryAgainLink = controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version).url
+        Ok(view(tryAgainLink))
     }
 }
