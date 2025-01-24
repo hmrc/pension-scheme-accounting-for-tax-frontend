@@ -305,7 +305,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
           summarySearchHeadingText = messages("aft.summary.heading.search.results") + " ",
           viewAllAmendmentsLink = None,
           viewModel
-        )(httpGETRequest(httpPathGET), messages)
+        )(fakeRequest, messages)
 
         compareResultAndView(result, view)
       }
