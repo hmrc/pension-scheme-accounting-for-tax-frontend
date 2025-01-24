@@ -124,8 +124,16 @@ object SampleData {
     UserAnswers(Json.obj(
       "schemeName" -> schemeName,
       "pstr" -> pstr,
-      "quarter" -> AFTQuarter(QUARTER_START_DATE, QUARTER_END_DATE))
-    )
+      "quarter" -> AFTQuarter(QUARTER_START_DATE, QUARTER_END_DATE)
+    ))
+
+  def userAnswersWithStartAndEndDate: UserAnswers =
+    UserAnswers(Json.obj(
+      "schemeName" -> schemeName,
+      "pstr" -> pstr,
+      "startDate" -> QUARTER_START_DATE,
+      "endDate" -> QUARTER_END_DATE
+    ))
 
   def uaWithPSPRAndOneSchemeAnnual: UserAnswers =
     UserAnswers(Json.obj(

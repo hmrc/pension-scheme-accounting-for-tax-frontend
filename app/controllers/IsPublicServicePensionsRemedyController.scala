@@ -22,22 +22,21 @@ import controllers.actions._
 import forms.YesNoFormProvider
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, Index, Mode, NormalMode, UserAnswers}
+import models.{AccessType, ChargeType, Index, Mode, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{IsPublicServicePensionsRemedyPage, MemberFormCompleted, QuarterPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import viewmodels.TwirlRadios
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
+import views.html.IsPublicServicePensionsRemedyView
 
 class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi: MessagesApi,
                                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -50,10 +49,9 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
                                                         config: FrontendAppConfig,
                                                         formProvider: YesNoFormProvider,
                                                         val controllerComponents: MessagesControllerComponents,
-                                                        renderer: Renderer)(implicit ec: ExecutionContext)
+                                                        isPublicServicePensionsRemedyView: IsPublicServicePensionsRemedyView)(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(memberName: String, optIndex: Option[Index])(implicit messages: Messages): Form[Boolean] = {
     optIndex match {
@@ -83,12 +81,6 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
           } else {
             val chargeTypeDescription = Messages(s"chargeType.description.${chargeType.toString}")
 
-            val viewModel = GenericViewModel(
-              submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-              schemeName = schemeName
-            )
-
             val (heading, title) = index match {
               case Some(_) => Tuple2("isPublicServicePensionsRemedy.heading", "isPublicServicePensionsRemedy.title")
               case None => Tuple2("isPublicServicePensionsRemedyBulk.heading", "isPublicServicePensionsRemedyBulk.title")
@@ -99,17 +91,16 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
               case Some(value) => form(chargeTypeDescription, index).fill(value)
             }
 
-            val json = Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(localDateToString(startDate)),
-              "form" -> preparedForm,
-              "viewModel" -> viewModel,
-              "radios" -> Radios.yesNo(preparedForm("value")),
-              "chargeTypeDescription" -> chargeTypeDescription,
-              "manOrBulkHeading" -> heading,
-              "manOrBulkTitle" -> title
-            )
-            renderer.render("isPublicServicePensionsRemedy.njk", json).map(Ok(_))
+            Future.successful(Ok(isPublicServicePensionsRemedyView(
+              title,
+              heading,
+              chargeTypeDescription,
+              preparedForm,
+              TwirlRadios.yesNo(preparedForm("value")),
+              routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index),
+              controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              schemeName
+            )))
           }
         }
     }
@@ -128,26 +119,22 @@ class IsPublicServicePensionsRemedyController @Inject()(override val messagesApi
         form(chargeTypeDescription, index)
           .bindFromRequest()
           .fold(formWithErrors => {
-            val viewModel = GenericViewModel(
-              submitUrl = routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-              schemeName = schemeName
-            )
+
             val (heading, title) = index match {
               case Some(_) => Tuple2("isPublicServicePensionsRemedy.heading", "isPublicServicePensionsRemedy.title")
               case None => Tuple2("isPublicServicePensionsRemedyBulk.heading", "isPublicServicePensionsRemedyBulk.title")
             }
-            val json = Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(localDateToString(startDate)),
-              "form" -> formWithErrors,
-              "viewModel" -> viewModel,
-              "radios" -> Radios.yesNo(formWithErrors("value")),
-              "chargeTypeDescription" -> chargeTypeDescription,
-              "manOrBulkHeading" -> heading,
-              "manOrBulkTitle" -> title
-            )
-            renderer.render("isPublicServicePensionsRemedy.njk", json).map(BadRequest(_))
+
+            Future.successful(BadRequest(isPublicServicePensionsRemedyView(
+              title,
+              heading,
+              chargeTypeDescription,
+              formWithErrors,
+              TwirlRadios.yesNo(formWithErrors("value")),
+              routes.IsPublicServicePensionsRemedyController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index),
+              controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+              schemeName
+            )))
           },
             value => {
               for {

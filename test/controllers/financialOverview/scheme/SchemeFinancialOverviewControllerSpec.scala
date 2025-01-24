@@ -192,13 +192,13 @@ class SchemeFinancialOverviewControllerSpec
   private def multipleInProgressLink = Link(
     id = "aftContinueInProgressLink",
     url = continueUrl,
-    linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
-    hiddenText = Some(msg"aftPartial.view.hidden")
+    linkText = Text(Messages("pspDashboardAftReturnsCard.inProgressReturns.link")),
+    hiddenText = Some(Text(Messages("aftPartial.view.hidden")))
   )
 
-  private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = msg"aftPartial.start.link")
+  private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = Text(Messages("aftPartial.start.link")))
 
-  private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = msg"aftPartial.view.change.past")
+  private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = Text(Messages("aftPartial.view.change.past")))
 
   private def retrieveCreditBalance(creditBalance: BigDecimal): String = {
     if (creditBalance >= 0) {

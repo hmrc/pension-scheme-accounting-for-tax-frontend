@@ -148,7 +148,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
     bind[ChargePaginationService].toInstance(mockMemberPaginationService)
   )
 
-  private val dummyPagerNavSeq = Seq(Link(id = s"test-id", url = "test-target", linkText = Literal("test-text"), hiddenText = None))
+  private val dummyPagerNavSeq = Seq(Link(id = s"test-id", url = "test-target", linkText = Text("test-text"), hiddenText = None))
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -159,7 +159,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockMemberPaginationService
       .getItemsPaginated(any(), any(), any(), any(), any()))
       .thenReturn(expectedPaginatedMembersInfo)
-    when(mockMemberPaginationService.pagerNavSeq(any(), any()))
+    when(mockMemberPaginationService.pagerNavSeq(any(), any())(any()))
       .thenReturn(dummyPagerNavSeq)
   }
 

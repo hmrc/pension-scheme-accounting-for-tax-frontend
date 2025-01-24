@@ -21,56 +21,38 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{CheckMode, GenericViewModel, UserAnswers}
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{times, verify, when}
+import models.{CheckMode, UserAnswers}
 import play.api.Application
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
+import views.html.RemoveLastChargeView
 
-import scala.concurrent.Future
-
-class RemoveLastChargeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class RemoveLastChargeControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
-  private val templateToBeRendered = "removeLastCharge.njk"
 
   private def httpPathGET: String = controllers.chargeB.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, versionInt).url
 
   val redirectUrl: String = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate, accessType, versionInt).url
-  private val jsonToPassToTemplate: JsObject = Json.obj(
-    fields = "viewModel" -> GenericViewModel(
-      submitUrl = redirectUrl,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      schemeName = schemeName))
-
-  override def beforeEach(): Unit = {
-    super.beforeEach()
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-  }
 
   "removeLastCharge Controller" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val request = httpGETRequest(httpPathGET)
 
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val view = application.injector.instanceOf[RemoveLastChargeView].apply(
+        submitCall = redirectUrl,
+        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
+        schemeName = schemeName
+      )(request, messages)
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val result = route(application, request).value
 
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      compareResultAndView(result, view)
     }
   }
 }

@@ -21,22 +21,23 @@ import play.api.http.HeaderNames.CACHE_CONTROL
 import play.api.http.HttpErrorHandler
 import play.api.http.Status._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.Results._
-import play.api.mvc.{RequestHeader, Result, Results}
+import play.api.mvc.{Request, RequestHeader, Result, Results}
 import play.api.{Logger, PlayException}
-import renderer.Renderer
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import views.html.ErrorView
+import views.html.NotFoundView
 
 // NOTE: There should be changes to bootstrap to make this easier, the API in bootstrap should allow a `Future[Html]` rather than just an `Html`
 @Singleton
 class ErrorHandler @Inject()(
-                              renderer: Renderer,
+                              errorView: ErrorView,
+                              notFoundView: NotFoundView,
                               val messagesApi: MessagesApi,
                               config: FrontendAppConfig
-                            )(implicit ec: ExecutionContext)
+                            )
   extends HttpErrorHandler
     with I18nSupport {
 
@@ -44,34 +45,33 @@ class ErrorHandler @Inject()(
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = {
 
-    implicit val rh: RequestHeader = request
+    implicit def requestImplicit: Request[_] = Request(request, "")
+
     logger.warn(s"Errorhandler onClientError:statusCode = $statusCode and message = $message")
     statusCode match {
       case BAD_REQUEST =>
-        renderer.render("badRequest.njk").map(BadRequest(_))
+        Future.successful(BadRequest(errorView(
+          "global.error.badRequest400", "global.error.badRequest400.message")))
       case NOT_FOUND =>
-        renderer.render("notFound.njk", Json.obj("yourPensionSchemesUrl" -> config.yourPensionSchemesUrl)).map(NotFound(_))
+        Future.successful(NotFound(notFoundView(config.yourPensionSchemesUrl)))
       case _ =>
-        renderer.render("error.njk", Json.obj()).map {
-          content =>
-            Results.Status(statusCode)(content)
-        }
+        Future.successful(Results.Status(statusCode)(errorView(
+          "Error", message)))
     }
   }
 
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
 
-    implicit val rh: RequestHeader = request
+    implicit def requestImplicit: Request[_] = Request(request, "")
 
     logError(request, exception)
     exception match {
       case ApplicationException(result, _) =>
         Future.successful(result)
       case _ =>
-        renderer.render("internalServerError.njk").map {
-          content =>
-            InternalServerError(content).withHeaders(CACHE_CONTROL -> "no-cache")
-        }
+        Future.successful(InternalServerError(errorView(
+          "global.error.InternalServerError500", "global.error.InternalServerError500.message"
+        )).withHeaders(CACHE_CONTROL -> "no-cache"))
     }
   }
 
