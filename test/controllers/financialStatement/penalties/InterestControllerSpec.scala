@@ -118,7 +118,7 @@ class InterestControllerSpec
 
       "render the correct view with penalty tables for unassociated" in {
         val req = httpGETRequest(httpPathGETUnassociated)
-        val result = route(application, httpGETRequest(httpPathGETUnassociated)).value
+        val result = route(application, req).value
 
         val view = application.injector.instanceOf[InterestView].apply(
           "Interest on accounting for tax late filing penalty",
