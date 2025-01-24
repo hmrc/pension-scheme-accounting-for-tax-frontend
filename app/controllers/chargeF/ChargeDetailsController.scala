@@ -16,7 +16,6 @@
 
 package controllers.chargeF
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
@@ -24,7 +23,7 @@ import forms.chargeF.ChargeDetailsFormProvider
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.chargeF.ChargeDetails
-import models.{AccessType, ChargeType, GenericViewModel, Mode, Quarters}
+import models.{AccessType, ChargeType, Mode, Quarters}
 import navigators.CompoundNavigator
 import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
@@ -49,7 +48,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         deleteChargeHelper: DeleteChargeHelper,
-                                        config: FrontendAppConfig,
                                         view: ChargeDetailsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -94,12 +92,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val viewModel = GenericViewModel(
-                submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-
               Future.successful(BadRequest(view(formWithErrors.copy(errors = formWithErrors.errors.distinct),
                 schemeName,
                 routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version),

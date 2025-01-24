@@ -18,7 +18,6 @@ package models.viewModels.financialOverview
 
 import models.financialStatement.PsaFSChargeType
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
-import java.time.LocalDate
 
 case class PsaPaymentsAndChargesDetails(chargeType: PsaFSChargeType,
                                         chargeReference: String,

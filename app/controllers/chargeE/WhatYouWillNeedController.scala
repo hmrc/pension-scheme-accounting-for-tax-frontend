@@ -19,7 +19,7 @@ package controllers.chargeE
 import controllers.actions._
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{AccessType, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeE.WhatYouWillNeedPage
 import pages.{IsPublicServicePensionsRemedyPage, SchemeNameQuery}

@@ -68,7 +68,6 @@ object ChargeType extends Enumerable.Implicits {
 
   def radios(form: Form[_])(implicit messages: Messages): Seq[RadioItem] = {
 
-    val field = form("value")
     val items = Seq(
       RadioItem(Text(messages("chargeType.radio.annualAllowance")), id = Some("value"), value = Some(ChargeTypeAnnualAllowance.toString)),
       RadioItem(Text(messages("chargeType.radio.authSurplus")), id = Some("value_1"), value = Some(ChargeTypeAuthSurplus.toString)),

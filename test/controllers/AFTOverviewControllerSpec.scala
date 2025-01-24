@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.AFTOverviewControllerSpec.{paymentsCache, schemeFSResponse}
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, emptyChargesTable, psaId, schemeDetails, schemeName}
+import data.SampleData.{dummyCall, psaId, schemeDetails, schemeName}
 import matchers.JsonMatchers
 import models.SchemeDetails
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
@@ -115,7 +115,6 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
 
       compareResultAndView(result, view)
     }
-
 
     "return Success page when paymentsAndChargesService fails" in {
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))

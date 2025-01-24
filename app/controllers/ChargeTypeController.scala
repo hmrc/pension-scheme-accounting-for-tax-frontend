@@ -97,12 +97,4 @@ class ChargeTypeController @Inject()(
             )
         }
     }
-
-  private def viewModel(schemeName: String, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): GenericViewModel = {
-    GenericViewModel(
-      submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate, accessType, version).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-      schemeName = schemeName
-    )
-  }
 }
