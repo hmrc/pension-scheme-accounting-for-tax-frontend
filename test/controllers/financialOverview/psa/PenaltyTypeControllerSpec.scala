@@ -96,7 +96,8 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   "PenaltyTypeController" must {
     "return OK and the correct view for a GET with penalty types" in {
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val req = httpGETRequest(httpPathGET)
+      val result = route(application, req).value
 
       status(result) mustEqual OK
 
@@ -106,7 +107,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
         submitCall = routes.PenaltyTypeController.onSubmit(),
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
         radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
-      )(fakeRequest, messages)
+      )(req, messages)
 
       compareResultAndView(result, view)
 

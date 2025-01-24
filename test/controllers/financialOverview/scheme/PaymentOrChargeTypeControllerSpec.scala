@@ -80,7 +80,8 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
   "PaymentOrChargeType Controller" must {
     "return OK and the correct view for a GET" in {
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val req = httpGETRequest(httpPathGET)
+      val result = route(application, req).value
 
       status(result) mustEqual OK
 
@@ -92,7 +93,7 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
         returnUrl = dummyCall.url,
         radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(form, displayPaymentOrChargeType,
         Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
-      )(fakeRequest, messages)
+      )(req, messages)
 
       compareResultAndView(result, view)
 

@@ -85,7 +85,8 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
 
     "return OK and the new view with filtered payments and charges information for a GET" in {
       when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val req = httpGETRequest(httpPathGET)
+      val result = route(application, req).value
       status(result) mustEqual OK
 
       val view = application.injector.instanceOf[PaymentsAndChargesNewView].apply(
@@ -101,7 +102,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
         penaltiesTable = penaltiesTable,
         paymentAndChargesTable = penaltiesTable,
         returnUrl = dummyCall.url
-      )(fakeRequest, messages)
+      )(req, messages)
 
       compareResultAndView(result, view)
 
@@ -109,7 +110,8 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
 
     "return OK and the old view with filtered payments and charges information for a GET" in {
       when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val req = httpGETRequest(httpPathGET)
+      val result = route(application, req).value
       status(result) mustEqual OK
 
       val view = application.injector.instanceOf[PaymentsAndChargesView].apply(
@@ -124,7 +126,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
         penaltiesTable = penaltiesTable,
         paymentAndChargesTable = penaltiesTable,
         returnUrl = dummyCall.url
-      )(messages, fakeRequest)
+      )(messages, req)
 
       compareResultAndView(result, view)
 

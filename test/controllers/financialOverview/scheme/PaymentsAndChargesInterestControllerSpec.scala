@@ -88,7 +88,8 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
 
       val schemeFSDetail = createCharge(index = 1, chargeReference = "XY002610150184", chargeType = PSS_AFT_RETURN)
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val req = httpGETRequest(httpPathGET)
+      val result = route(application, req).value
 
       status(result) mustEqual OK
 
@@ -107,7 +108,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
           returnUrl = dummyCall.url,
           returnLinkBasedOnJourney = dummyCall.url,
         )
-      )(messages, fakeRequest)
+      )(messages, req)
 
       compareResultAndView(result, view)
     }

@@ -18,7 +18,7 @@
     layout: templates.Layout,
 )
 
-@(page: String, message: String)(implicit request: Request[_], messages: Messages)
+@(page: String = "global.error.badRequest400", message: String = "global.error.badRequest400.message")(implicit request: Request[_], messages: Messages)
 
 @layout(messages(page + ".title")) {
 <div class="govuk-grid-row">

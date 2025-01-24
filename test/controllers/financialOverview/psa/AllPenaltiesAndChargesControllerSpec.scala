@@ -87,7 +87,8 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonM
   "AllPenaltiesAndChargesController" must {
 
     "return OK and the correct view with filtered penalties and charges information for All journey for a GET" in {
-      val result = route(application, httpGETRequest(httpPathGET())).value
+      val req = httpGETRequest(httpPathGET())
+      val result = route(application, req).value
       status(result) mustEqual OK
 
       val view = application.injector.instanceOf[PsaPaymentsAndChargesNewView].apply(
@@ -102,7 +103,7 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonM
         totalOutstandingCharge = "£200.00",
         penaltiesTable = emptyChargesTable,
         paymentAndChargesTable = emptyChargesTable
-      )(request, messages)
+      )(req, messages)
 
       compareResultAndView(result, view)
     }
