@@ -64,6 +64,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
 
         Future.successful(Ok(selectYearView(
           form = form(paymentOrChargeType, typeParam),
+          titleMessage = getTitle(typeParam, paymentOrChargeType),
           penaltyType = typeParam,
           submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
           schemeName = paymentsCache.schemeDetails.schemeName,
@@ -87,6 +88,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
 
               Future.successful(BadRequest(selectYearView(
                 form = formWithErrors,
+                titleMessage = getTitle(typeParam, paymentOrChargeType),
                 penaltyType = typeParam,
                 submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
                 schemeName = paymentsCache.schemeDetails.schemeName,

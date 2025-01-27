@@ -83,6 +83,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC.seqSchemeFSDetail)))
+    when(mockPaymentsAndChargesService.getTypeParam(any())(any())).thenReturn("event reporting")
   }
 
   "SelectYear Controller" must {
@@ -97,6 +98,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
 
       val view = application.injector.instanceOf[SelectYearView].apply(
         form = form,
+        titleMessage = "Which year do you want to view event reporting for?",
         penaltyType = typeParam,
         submitCall = submitCall,
         schemeName = SampleData.schemeName,
