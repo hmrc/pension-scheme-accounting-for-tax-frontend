@@ -278,7 +278,7 @@ address.line4.error.length = Address line 4 must be 35 characters or fewer
 address.line4.error.invalid = Address line 4 must only include letters, numbers, spaces, hyphens, commas, full stops, ampersands, apostrophes and forward slashes
 address.country.error.required = Enter {0}’s country
 address.postcode.error.required = Enter a postcode
-address.postcode.error.invalid = Enter a postcode in the correct format
+address.postcode.error.invalid = Enter a full UK postcode
 address.postcode.error.length = Enter postcode length less than 10
 
 chargeC.sponsoringIndividualDetails.title = Individual’s details
@@ -372,7 +372,7 @@ yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
 
 annualAllowanceYear.fileUpload.error.required = Enter the tax year to which the annual allowance charge relates
-annualAllowanceYear.fileUpload.error.invalid = Enter a valid tax year in the correct format, like 2020 to 2021
+annualAllowanceYear.fileUpload.error.invalid = Enter a valid tax year. For example, 2020 to 2021
 annualAllowanceYear.fileUpload.error.future = The tax year to which the annual allowance charge relates must not be in the future
 annualAllowanceYear.fileUpload.error.past = The tax year to which the annual allowance charge related must not be before 2011
 
@@ -479,7 +479,7 @@ chargeG.chargeDetails.title = Overseas transfer charge details for the member
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
 chargeG.chargeDetails.qropsReferenceNumber.label = QROPS reference number
 chargeG.chargeDetails.qropsReferenceNumber.error.required = Enter a QROPS reference number
-chargeG.chargeDetails.qropsReferenceNumber.error.valid = Enter a QROPS reference number in the correct format, like 123456
+chargeG.chargeDetails.qropsReferenceNumber.error.valid = Enter a full QROPS reference number, like 123456
 chargeG.chargeDetails.qropsTransferDate.label = Date of the transfer into the QROPS
 chargeG.chargeDetails.checkYourAnswersLabel = ChargeDetails
 chargeG.chargeDetails.qropsTransferDate.error.required.all = Enter the date of the transfer into the QROPS
@@ -886,7 +886,7 @@ chargeC.employerAddressSearch.heading = What is {0}’s postcode?
 chargeC.employerAddressSearch.label = Postcode
 chargeC.employerAddressSearch.checkYourAnswersLabel = employerAddressSearch
 chargeC.employerAddressSearch.error.required = Enter a postcode
-chargeC.employerAddressSearch.error.invalid = Enter a postcode in the correct format
+chargeC.employerAddressSearch.error.invalid = Enter a full UK postcode
 chargeC.employerAddressSearch.link.youCan = You can
 chargeC.employerAddressSearch.link.enterManually = enter the address manually
 chargeC.employerAddressSearch.findAddress = Find address
