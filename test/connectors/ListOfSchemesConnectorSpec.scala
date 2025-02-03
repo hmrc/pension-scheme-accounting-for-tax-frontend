@@ -38,7 +38,7 @@ class ListOfSchemesConnectorSpec extends AsyncWordSpec with Matchers with WireMo
 
       server.stubFor(
         get(urlEqualTo(listOfSchemesUrl))
-          .withHeader("idType", equalTo("psaid"))
+          .withHeader("idType", equalTo("PSA"))
           .withHeader("idValue", equalTo(psaId))
           .willReturn(
             aResponse()
@@ -99,7 +99,7 @@ class ListOfSchemesConnectorSpec extends AsyncWordSpec with Matchers with WireMo
 
 object ListOfSchemesConnectorSpec extends OptionValues {
 
-  private val listOfSchemesUrl = "/pensions-scheme/list-of-schemes"
+  private val listOfSchemesUrl = "/pensions-scheme/list-of-schemes-self"
 
   private implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
 

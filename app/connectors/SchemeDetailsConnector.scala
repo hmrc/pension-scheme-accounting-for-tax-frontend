@@ -34,7 +34,7 @@ class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: Front
   def getSchemeDetails(psaId: String, idNumber: String, schemeIdType: String)
                       (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
-    val url = url"${config.schemeDetailsUrl}"
+    val url = url"${config.schemeDetailsUrl.format(idNumber)}"
 
     val headers: Seq[(String, String)] =
       Seq(
@@ -65,7 +65,7 @@ class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: Front
 
   def getPspSchemeDetails(pspId: String, srn: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
-    val url = url"${config.pspSchemeDetailsUrl}"
+    val url = url"${config.pspSchemeDetailsUrl.format(srn)}"
     val headers: Seq[(String, String)] = Seq("srn" -> srn, "pspId" -> pspId)
     val schemeHc = hc.withExtraHeaders(headers:_*)
 
