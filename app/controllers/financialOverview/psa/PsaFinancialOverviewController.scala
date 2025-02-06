@@ -61,15 +61,19 @@ class PsaFinancialOverviewController @Inject()(
     response.flatten
   }
 
+  //noinspection ScalaStyle
   private def renderFinancialOverview(
                                        psaName: String,
                                        psaFSDetail: Seq[PsaFSDetail],
                                        creditPsaFS: PsaFS
                                      )(implicit request: Request[_]): Future[Result] = {
     val creditPsaFSDetails = creditPsaFS.seqPsaFSDetail
+    // TODO - psaCharges._2 is due penalties and charges - look at this to figure out history
     val psaCharges: (String, String, String) = service.retrievePsaChargesAmount(psaFSDetail)
     val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)
     val creditBalanceFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
+    println(s"\n creditPsaFS: ${creditPsaFS.seqPsaFSDetail.map(_.chargeType)} ")
+    val displayReceivedPayments: Boolean = creditPsaFS.seqPsaFSDetail.exists(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
 
     logger.debug(s"AFT service returned UpcomingCharge - ${psaCharges._1}")
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
@@ -98,6 +102,7 @@ class PsaFinancialOverviewController @Inject()(
         allPaymentLink = allPaymentLink,
         creditBalanceFormatted = creditBalanceFormatted,
         creditBalance = creditBalance,
+        displayRecievedPayments = displayRecievedPayments,
         returnUrl = returnUrl
       )
     } else {

@@ -32,6 +32,7 @@
     allPaymentLink: String,
     creditBalanceFormatted: String,
     creditBalance: BigDecimal,
+    displayRecievedPayments: Boolean,
     returnUrl: String
 )(implicit messages: Messages, request: Request[_])
 
@@ -135,23 +136,25 @@
 
             <hr>
 
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
-                    <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
-                        @messages("psa.financial.overview.h2.receivedPayments.new")
-                    </h2>
-                    <p class="govuk-body">
-                        @messages("psa.financial.overview.due.penalties.and.charges.p1.new")
-                    </p>
-                    <p class="govuk-body-m">
-                        <a id="receivedPaymentsLink" class="govuk-link" href="/">
-                            @messages("psa.financial.overview.receivedPayments.link")
-                        </a>
-                    </p>
+            @if(displayRecievedPayments) {
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-full">
+                        <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+                            @messages("psa.financial.overview.h2.receivedPayments.new")
+                        </h2>
+                        <p class="govuk-body">
+                            @messages("psa.financial.overview.due.receivedPayments.p1.new")
+                        </p>
+                        <p class="govuk-body-m">
+                            <a id="receivedPaymentsLink" class="govuk-link" href="/">
+                                @messages("psa.financial.overview.receivedPayments.link")
+                            </a>
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            <hr>
+                <hr>
+            }
 
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
