@@ -32,7 +32,10 @@
     allPaymentLink: String,
     creditBalanceFormatted: String,
     creditBalance: BigDecimal,
-    displayRecievedPayments: Boolean,
+    displayReceivedPayments: Boolean,
+    receivedPaymentsLink: String,
+    displayHistory: Boolean,
+    historyLink: String,
     returnUrl: String
 )(implicit messages: Messages, request: Request[_])
 
@@ -136,7 +139,7 @@
 
             <hr>
 
-            @if(displayRecievedPayments) {
+            @if(displayReceivedPayments) {
                 <div class="govuk-grid-row">
                     <div class="govuk-grid-column-full">
                         <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
@@ -146,7 +149,7 @@
                             @messages("psa.financial.overview.due.receivedPayments.p1.new")
                         </p>
                         <p class="govuk-body-m">
-                            <a id="receivedPaymentsLink" class="govuk-link" href="/">
+                            <a id="receivedPaymentsLink" class="govuk-link" href="@receivedPaymentsLink">
                                 @messages("psa.financial.overview.receivedPayments.link")
                             </a>
                         </p>
@@ -156,22 +159,24 @@
                 <hr>
             }
 
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
-                    <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
-                        @messages("psa.financial.overview.h2.penaltiesAndChargesHistory.new")
-                    </h2>
-                    <p class="govuk-body">
-                        @messages("psa.financial.overview.due.penaltiesAndChargesHistory.p1.new")
-                    </p>
-                    <p class="govuk-body-m">
-                        <a id="historyLink" class="govuk-link" href="/">
-                            @messages("psa.financial.overview.penaltiesAndChargesHistory.link")
-                        </a>
-                    </p>
+            @if(displayHistory) {
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-full">
+                        <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+                            @messages("psa.financial.overview.h2.penaltiesAndChargesHistory.new")
+                        </h2>
+                        <p class="govuk-body">
+                            @messages("psa.financial.overview.due.penaltiesAndChargesHistory.p1.new")
+                        </p>
+                        <p class="govuk-body-m">
+                            <a id="historyLink" class="govuk-link" href="@historyLink">
+                                @messages("psa.financial.overview.penaltiesAndChargesHistory.link")
+                            </a>
+                        </p>
+                    </div>
                 </div>
-            </div>
-            <hr>
+                <hr>
+            }
 
         </div>
     </div>

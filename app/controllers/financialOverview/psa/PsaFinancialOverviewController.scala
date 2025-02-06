@@ -61,6 +61,8 @@ class PsaFinancialOverviewController @Inject()(
     response.flatten
   }
 
+  // TODO - add tests
+
   //noinspection ScalaStyle
   private def renderFinancialOverview(
                                        psaName: String,
@@ -68,12 +70,12 @@ class PsaFinancialOverviewController @Inject()(
                                        creditPsaFS: PsaFS
                                      )(implicit request: Request[_]): Future[Result] = {
     val creditPsaFSDetails = creditPsaFS.seqPsaFSDetail
-    // TODO - psaCharges._2 is due penalties and charges - look at this to figure out history
     val psaCharges: (String, String, String) = service.retrievePsaChargesAmount(psaFSDetail)
     val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)
     val creditBalanceFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
     println(s"\n creditPsaFS: ${creditPsaFS.seqPsaFSDetail.map(_.chargeType)} ")
     val displayReceivedPayments: Boolean = creditPsaFS.seqPsaFSDetail.exists(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
+    val displayHistory = service.retrievePaidPenaltiesAndCharges(psaFSDetail).nonEmpty
 
     logger.debug(s"AFT service returned UpcomingCharge - ${psaCharges._1}")
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
@@ -88,6 +90,11 @@ class PsaFinancialOverviewController @Inject()(
     val allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url
     val duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url
     val allPaymentLink = routes.PenaltyTypeController.onPageLoad().url
+
+    // Below 2 links will need to be updated when relevant pages are created
+    val receivedPaymentsLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url
+    val historyLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url
+
     val returnUrl = config.managePensionsSchemeOverviewUrl
 
     val templateToRender = if (config.podsNewFinancialCredits) {
@@ -102,7 +109,10 @@ class PsaFinancialOverviewController @Inject()(
         allPaymentLink = allPaymentLink,
         creditBalanceFormatted = creditBalanceFormatted,
         creditBalance = creditBalance,
-        displayRecievedPayments = displayRecievedPayments,
+        displayReceivedPayments = displayReceivedPayments,
+        receivedPaymentsLink = receivedPaymentsLink,
+        displayHistory = displayHistory,
+        historyLink = historyLink,
         returnUrl = returnUrl
       )
     } else {
