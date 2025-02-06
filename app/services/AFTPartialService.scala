@@ -535,6 +535,10 @@ class AFTPartialService @Inject()(
     (totalUpcomingChargeFormatted, totalOverdueChargeFormatted, totalInterestAccruingFormatted)
   }
 
+  def retrievePaidPenaltiesAndCharges(psaFs: Seq[PsaFSDetail]): Seq[PsaFSDetail] = {
+    psaFs.filter(_.outstandingAmount <= 0)
+  }
+
   def getCreditBalanceAmount(psaFs: Seq[PsaFSDetail]): BigDecimal = {
     val sumAmountOverdue = psaFs.filter(_.dueDate.nonEmpty).map(_.amountDue).sum
     val creditBalanceAmt = if (sumAmountOverdue >= 0) {
