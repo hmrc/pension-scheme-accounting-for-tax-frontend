@@ -58,7 +58,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       val years = getYears(penaltyType, penaltiesCache.penalties.toSeq, journeyType)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
-      val (title) = getParameters(typeParam, journeyType)
+      val title = getParameters(typeParam, journeyType)
 
       val radios = if (journeyType == ChargeDetailsFilter.History) {
         TwirlMigration.toTwirlRadios(FSYears.radios(form(typeParam), years))
@@ -96,7 +96,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
 
       form(typeParam).bindFromRequest().fold(
         formWithErrors => {
-          val (title) = getParameters(typeParam, journeyType)
+          val title = getParameters(typeParam, journeyType)
 
           val radios = if (journeyType == ChargeDetailsFilter.History) {
             TwirlMigration.toTwirlRadios(FSYears.radios(formWithErrors, years))

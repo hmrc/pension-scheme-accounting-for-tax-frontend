@@ -27,7 +27,7 @@ import matchers.JsonMatchers
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
 import models.financialStatement.{DisplayPenaltyType, PenaltyType}
 import models.requests.IdentifierRequest
-import models.{Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
+import models.{ChargeDetailsFilter, Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -71,8 +71,8 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   val penaltyTypes: Seq[PenaltyType] = PenaltyType.values
   val pstr = "24000041IN"
 
-  lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad().url
-  lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit().url
+  lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.All).url
+  lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.All).url
 
   private val year = "2020"
   val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
@@ -103,10 +103,13 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
 
       val view = application.injector.instanceOf[PenaltyTypeView].apply(
         form = form,
+        title = messages("penaltyType.title"),
         psaName = "psa-name",
-        submitCall = routes.PenaltyTypeController.onSubmit(),
+        submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.All),
+        buttonText = messages("site.save_and_continue"),
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-        radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+        radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+        journeyType = ChargeDetailsFilter.All
       )(req, messages)
 
       compareResultAndView(result, view)
