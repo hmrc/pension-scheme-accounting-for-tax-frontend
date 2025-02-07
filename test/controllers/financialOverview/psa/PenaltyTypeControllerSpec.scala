@@ -21,11 +21,11 @@ import connectors.ListOfSchemesConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.psa.SelectSchemeControllerSpec.penaltySchemes
-import data.SampleData.{dummyCall, multiplePenalties, psaId}
+import data.SampleData.{dummyCall, multiplePenalties, psaFsSeqHistorical, psaId}
 import forms.financialStatement.PenaltyTypeFormProvider
 import matchers.JsonMatchers
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
-import models.financialStatement.{DisplayPenaltyType, PenaltyType}
+import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
 import models.{ChargeDetailsFilter, Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
@@ -40,6 +40,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
+import services.AFTPartialService
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import utils.TwirlMigration
 import views.html.financialOverview.psa.PenaltyTypeView
@@ -54,9 +55,11 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   private val mockNavigationService = mock[PenaltiesNavigationService]
   private val mockListOfSchemesConn = mock[ListOfSchemesConnector]
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
+  private val mockAFTPartialService = mock[AFTPartialService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
-    bind[ListOfSchemesConnector].toInstance(mockListOfSchemesConn)
+    bind[ListOfSchemesConnector].toInstance(mockListOfSchemesConn),
+    bind[AFTPartialService].toInstance(mockAFTPartialService)
   )
 
   private val displayPenalties: Seq[DisplayPenaltyType] = Seq(
@@ -88,6 +91,8 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
+    when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any()))
+      .thenReturn(psaFsSeqHistorical)
     when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
       thenReturn(Future.successful(penaltySchemes))
     when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
@@ -110,6 +115,27 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
         radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
         journeyType = ChargeDetailsFilter.All
+      )(req, messages)
+
+      compareResultAndView(result, view)
+
+    }
+    "return OK and the correct view for a GET with penalty types for charge history" in {
+      lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.History).url
+      val req = httpGETRequest(httpPathGET)
+      val result = route(application, req).value
+
+      status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[PenaltyTypeView].apply(
+        form = form,
+        title = messages("psa.financial.overview.historyChargeType.title"),
+        psaName = "psa-name",
+        submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.History),
+        buttonText = messages("site.continue"),
+        returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+        radios = TwirlMigration.toTwirlRadios(PenaltyType.radios(form, displayPenalties, areLabelsBold = false)),
+        journeyType = ChargeDetailsFilter.History
       )(req, messages)
 
       compareResultAndView(result, view)

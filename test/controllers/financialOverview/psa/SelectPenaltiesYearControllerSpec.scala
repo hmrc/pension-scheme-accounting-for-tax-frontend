@@ -115,7 +115,34 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with JsonMatc
 
       compareResultAndView(result, view)
     }
+    "return OK and the correct view for a GET to select the charge history year" in {
+      lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad(penaltyType, ChargeDetailsFilter.History).url
+      val submitCall = controllers.financialOverview.psa.routes.SelectPenaltiesYearController.onSubmit(penaltyType, ChargeDetailsFilter.History)
 
+      when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any()))
+        .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
+      when(mockPsaPenaltiesAndChargesService.getTypeParam(ContractSettlementCharges)).
+        thenReturn(ContractSettlementCharges.toString)
+      when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
+
+      val request = httpGETRequest(httpPathGET)
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[SelectYearView].apply(
+        form = form,
+        title =  messages("psa.financial.overview.chargeHistoryYear.title"),
+        submitCall = submitCall,
+        psaName = penaltiesCache.psaName,
+        penaltyType = typeParam,
+        returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+        radios = TwirlMigration.toTwirlRadios(FSYears.radios(form, years)),
+        journeyType = ChargeDetailsFilter.History
+      )(request, messages)
+
+      compareResultAndView(result, view)
+    }
     "redirect to next page when valid data is submitted for AFT" in {
       when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
         thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
