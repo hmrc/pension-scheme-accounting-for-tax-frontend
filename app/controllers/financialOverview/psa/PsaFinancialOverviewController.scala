@@ -61,9 +61,6 @@ class PsaFinancialOverviewController @Inject()(
     response.flatten
   }
 
-  // TODO - add tests
-
-  //noinspection ScalaStyle
   private def renderFinancialOverview(
                                        psaName: String,
                                        psaFSDetail: Seq[PsaFSDetail],
