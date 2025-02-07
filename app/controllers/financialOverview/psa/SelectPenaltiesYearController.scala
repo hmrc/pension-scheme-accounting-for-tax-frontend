@@ -19,6 +19,7 @@ package controllers.financialOverview.psa
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
+import models.ChargeDetailsFilter.History
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
@@ -31,6 +32,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.TwirlMigration
 import views.html.financialOverview.psa.SelectYearView
 
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -53,17 +55,26 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
 
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
       val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
-      val years = getYears(penaltyType, penaltiesCache.penalties.toSeq)
+      val years = getYears(penaltyType, penaltiesCache.penalties.toSeq, journeyType)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
+
+      val (title) = getParameters(typeParam, journeyType)
+
+      val radios = if (journeyType == ChargeDetailsFilter.History) {
+        TwirlMigration.toTwirlRadios(FSYears.radios(form(typeParam), years))
+      } else {
+        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form(typeParam), years))
+      }
 
       Future.successful(Ok(selectYearView(
         form(typeParam),
-        routes.SelectPenaltiesYearController.onSubmit(penaltyType),
+        title,
+        routes.SelectPenaltiesYearController.onSubmit(penaltyType, journeyType),
         penaltiesCache.psaName,
         typeParam,
         appConfig.managePensionsSchemeOverviewUrl,
-        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form(typeParam), years)
-        )
+        radios,
+        journeyType.toString
       )))
     }
   }
@@ -80,19 +91,28 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
     val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
 
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
-      val years = getYears(penaltyType, penaltiesCache.penalties.toSeq)
+      val years = getYears(penaltyType, penaltiesCache.penalties.toSeq, journeyType)
       implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
 
       form(typeParam).bindFromRequest().fold(
         formWithErrors => {
+          val (title) = getParameters(typeParam, journeyType)
+
+          val radios = if (journeyType == ChargeDetailsFilter.History) {
+            TwirlMigration.toTwirlRadios(FSYears.radios(formWithErrors, years))
+          } else {
+            TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, years))
+          }
+
           Future.successful(BadRequest(selectYearView(
             formWithErrors,
-            routes.SelectPenaltiesYearController.onSubmit(penaltyType),
+            title,
+            routes.SelectPenaltiesYearController.onSubmit(penaltyType, journeyType),
             penaltiesCache.psaName,
             penaltyType = typeParam,
             appConfig.managePensionsSchemeOverviewUrl,
-            TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, years)
-            )
+            radios,
+            penaltyType.toString
           )))
         },
         value => navMethod(penaltiesCache.penalties.toSeq, value.year)
@@ -100,10 +120,12 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
     }
   }
 
-  private def getYears(penaltyType: PenaltyType, penalties: Seq[PsaFSDetail]): Seq[DisplayYear] = {
+  private def getYears(penaltyType: PenaltyType, penalties: Seq[PsaFSDetail], journeyType: ChargeDetailsFilter): Seq[DisplayYear] = {
     val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == penaltyType)
 
-    filteredPenalties
+    val earliestAllowedYear = LocalDate.now.getYear - 6
+
+    val displayYears = filteredPenalties
       .map(_.periodEndDate.getYear).distinct.sorted.reverse
       .map { year =>
         val hint = if (filteredPenalties.filter(_.periodEndDate.getYear == year).exists(psaPenaltiesAndChargesService.isPaymentOverdue)) {
@@ -113,6 +135,12 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
         }
         DisplayYear(year, hint)
       }
+
+    if (journeyType == History) {
+      displayYears.filter(_.year >= earliestAllowedYear)
+    } else {
+      displayYears
+    }
   }
 
   private def erNavMethod(psaId: String): (Seq[PsaFSDetail], Int) => Future[Result] =
@@ -130,6 +158,15 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
   private def nonAftNavMethod(penaltyType: PenaltyType)
                              (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] = {
     (penalties, year) => navService.navFromNonAftYearsPage(penalties, year, request.idOrException, penaltyType)
+  }
+
+  private def getParameters(penaltyType: String, journeyType: ChargeDetailsFilter)(implicit messages: Messages) = {
+    if (journeyType == ChargeDetailsFilter.History) {
+      messages("psa.financial.overview.chargeHistoryYear.title")
+    } else {
+      messages("selectPenaltiesYear.title", penaltyType)
+    }
+
   }
 
 }

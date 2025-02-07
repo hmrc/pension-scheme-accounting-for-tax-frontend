@@ -39,9 +39,7 @@
                 @if(journeyType == "history") {
                     <span class="govuk-caption-xl">@psaName</span>
                     <h1 class="govuk-heading-xl">@title</h1>
-                }
 
-                @if(journeyType == "history") {
                     @govukRadios(
                         RadiosViewModel(
                             form("value"),
@@ -72,7 +70,9 @@
                 ButtonViewModel(Text(buttonText)).asFormSubmit
               )
             }
-            <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", psaName)</a>
 
+            @if(journeyType != "history") {
+                <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", psaName)</a>
+            }
     </div>
 }

@@ -107,7 +107,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
             )
           ))
         },
-        value => penaltiesNavService.navFromPenaltiesTypePage(penaltiesCache.penalties, request.psaIdOrException.id, value)
+        value => penaltiesNavService.navFromPenaltiesTypePage(penaltiesCache.penalties, request.psaIdOrException.id, value, journeyType)
       )
     }
   }

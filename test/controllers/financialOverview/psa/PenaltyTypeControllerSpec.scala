@@ -114,7 +114,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "redirect to next page when valid data is submitted" in {
-      when(mockNavigationService.navFromPenaltiesTypePage(any(), any(), any())(any(), any()))
+      when(mockNavigationService.navFromPenaltiesTypePage(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(year))))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
