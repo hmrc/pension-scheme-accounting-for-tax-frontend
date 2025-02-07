@@ -83,7 +83,7 @@ class PsaFinancialOverviewController @Inject()(
 
     val allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url
     val duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url
-    val allPaymentLink = routes.PenaltyTypeController.onPageLoad().url
+    val allPaymentLink = routes.PenaltyTypeController.onPageLoad("all").url
     val returnUrl = config.managePensionsSchemeOverviewUrl
 
     val templateToRender = if (config.podsNewFinancialCredits) {

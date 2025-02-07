@@ -41,7 +41,7 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
     val paymentTypes: Seq[PenaltyType] = payments.map(p => getPenaltyType(p.chargeType)).distinct
 
     if (paymentTypes.size > 1) {
-      Future.successful(Redirect(PenaltyTypeController.onPageLoad()))
+      Future.successful(Redirect(PenaltyTypeController.onPageLoad("all")))
     } else if (paymentTypes.size == 1) {
       navFromPenaltiesTypePage(payments, pstr, paymentTypes.head)
     } else {

@@ -416,6 +416,8 @@ POST        /financial-overview/accounting-for-tax/:startDate/select-a-scheme   
 GET         /financial-overview/accounting-for-tax/:startDate/:identifier/penalties-and-charges                                                      controllers.financialOverview.psa.AllPenaltiesAndChargesController.onPageLoadAFT(startDate: String, identifier: String, penaltyType: String = "accounting-for-tax", journeyType: String = "all")
 GET         /financial-overview/:penaltyType/:year/:identifier/penalties-and-charges                                                                 controllers.financialOverview.psa.AllPenaltiesAndChargesController.onPageLoad(year: String, identifier: String, penaltyType: String, journeyType: String = "all")
 
+GET         /financial-overview/history-charge-type                                                                                                  controllers.financialOverview.psa.PenaltyTypeController.onPageLoad(journeyType: String = "history")
+POST        /financial-overview/history-charge-type                                                                                                  controllers.financialOverview.psa.PenaltyTypeController.onSubmit(journeyType: String = "history")
 
 GET         /:srn/financial-overview/:paymentsType/select-charges-year                                                                               controllers.financialOverview.scheme.SelectYearController.onPageLoad(srn: String, paymentsType: String)
 POST        /:srn/financial-overview/:paymentsType/select-charges-year                                                                               controllers.financialOverview.scheme.SelectYearController.onSubmit(srn: String, paymentsType: String)
