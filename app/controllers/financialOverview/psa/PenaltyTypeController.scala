@@ -25,6 +25,7 @@ import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import services.AFTPartialService
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.TwirlMigration
@@ -41,22 +42,24 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
                                       val controllerComponents: MessagesControllerComponents,
                                       penaltyTypeView: PenaltyTypeView,
                                       psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                      penaltiesNavService: PenaltiesNavigationService)
+                                      penaltiesNavService: PenaltiesNavigationService,
+                                      aftPartialService: AFTPartialService)
                                      (implicit ec: ExecutionContext) extends FrontendBaseController
   with I18nSupport {
 
   private def form: Form[PenaltyType] = formProvider()
 
-  // TODO - Only display radio if there's a charge of that type
   def onPageLoad(journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
         val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties.toSeq)
 
         val (title, buttonText) = getParameters(journeyType)
 
+        val historyChargeTypes = getHistoryChargeTypes(penaltiesCache.penalties.toSeq)
+
         val radios = if (journeyType == ChargeDetailsFilter.History) {
           TwirlMigration.toTwirlRadios(
-            PenaltyType.radios(form, penaltyTypes, areLabelsBold = false))
+            PenaltyType.radios(form, historyChargeTypes, areLabelsBold = false))
         } else {
           TwirlMigration.toTwirlRadiosWithHintText(
             PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
@@ -83,9 +86,10 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
       form.bindFromRequest().fold(
         formWithErrors => {
           val (title, buttonText) = getParameters(journeyType)
+          val historyChargeTypes = getHistoryChargeTypes(penaltiesCache.penalties.toSeq)
 
           val radios = if (journeyType == ChargeDetailsFilter.History) {
-            TwirlMigration.toTwirlRadios(PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq), areLabelsBold = false))
+            TwirlMigration.toTwirlRadios(PenaltyType.radios(formWithErrors, historyChargeTypes, areLabelsBold = false))
           } else {
             TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq)))
           }
@@ -106,6 +110,14 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
         value => penaltiesNavService.navFromPenaltiesTypePage(penaltiesCache.penalties, request.psaIdOrException.id, value)
       )
     }
+  }
+
+  private def getHistoryChargeTypes(psaFs: Seq[PsaFSDetail]) = {
+    val historyChargeTypes = aftPartialService.retrievePaidPenaltiesAndCharges(psaFs)
+      .map(psaFSDetail => {
+        getPenaltyType(psaFSDetail.chargeType)
+      }).distinct.sortBy(_.toString)
+    historyChargeTypes.map(chargeType => DisplayPenaltyType(chargeType, None))
   }
 
   private def getPenaltyTypes(penalties: Seq[PsaFSDetail]): Seq[DisplayPenaltyType] =
