@@ -1546,9 +1546,11 @@ psa.financial.overview.payment.dueDate = Due date
 psa.financial.overview.payment.interest = Interest accruing
 psa.financial.overview.payment.charge.amount = Charge amount
 psa.financial.overview.charge.reference = Charge reference
+psa.financial.overview.datePaid = Date paid
 psa.financial.overview.dueDate = Due date
 psa.financial.overview.penalty = Penalty
 psa.financial.overview.charge = Penalty
+psa.financial.overview.penaltyOrCharge = Penalty or charge
 psa.financial.overview.paymentStatus = Payment status
 psa.financial.overview.penaltyAmount = Original penalty amount
 psa.financial.overview.chargeAmount = Original penalty amount
@@ -1567,6 +1569,7 @@ psa.financial.overview.all.title.v2 = All penalties and charges
 psa.financial.overview.all.text = The information may not reflect payments made in the last 3 days.
 psa.financial.overview.all.text.new = The information may not reflect payments made in the last 3 days.
 
+psa.financial.overview.clearedPenaltiesAndCharges.title = Cleared penalties and charges
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format

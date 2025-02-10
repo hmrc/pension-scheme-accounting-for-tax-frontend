@@ -41,7 +41,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 
-import java.time.LocalDate
+import java.time.{Instant, LocalDate}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -248,6 +248,90 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         }
     }
   }
+
+  def getClearedPenaltiesAndCharges(psaId: String, psaFs: Seq[PsaFSDetail])
+                                   (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
+    val clearedPenaltiesAndCharges = psaFs.filter(_.outstandingAmount <= 0)
+
+    val tableHeader = {
+      Seq(
+        HeadCell(
+          HtmlContent(
+            s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penaltyOrCharge")}</span>"
+          )),
+        HeadCell(Text(Messages("psa.financial.overview.datePaid")), classes = "govuk-!-font-weight-bold"),
+        HeadCell(Text(Messages("psa.financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold")
+      )
+    }
+
+    def getRows = clearedPenaltiesAndCharges.map(penaltyOrCharge => {
+      val clearingDates = penaltyOrCharge.documentLineItemDetails.flatMap(documentLineItemDetail =>
+        documentLineItemDetail.clearingDate)
+      val latestClearingDate = clearingDates.max
+
+      getSchemeName(psaId, penaltyOrCharge.pstr).map(schemeName =>
+        Seq(
+          TableRow(HtmlContent(
+            s"<a id=${penaltyOrCharge.chargeReference} class=govuk-link href=/>" +
+              penaltyOrCharge.chargeType + "</a></br>" +
+              schemeName + "</br>" +
+              penaltyOrCharge.chargeReference + "</br>" +
+              formatStartDate(penaltyOrCharge.periodStartDate) + " to " + formatDateDMY(penaltyOrCharge.periodEndDate)
+          ), classes = "govuk-!-width-one-half"),
+          TableRow(HtmlContent(s"<p>${formatDateDMY(latestClearingDate)}</p>")),
+          TableRow(HtmlContent(s"<p>£${penaltyOrCharge.documentLineItemDetails.map(_.clearedAmountItem).sum}</p>"))
+        )
+      )
+    })
+
+    val rows = Future.sequence(getRows)
+
+    rows.map(tableRows =>
+      Table(head = Some(tableHeader), rows = tableRows)
+    )
+  }
+
+//  def getClearedPenaltiesAndCharges(psaId: String, psaFs: Seq[PsaFSDetail])
+//                                   (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
+//    val clearedPenaltiesAndCharges = psaFs.filter(_.outstandingAmount <= 0)
+//
+//    val tableHeader = {
+//      Seq(
+//        HeadCell(
+//          HtmlContent(
+//            s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penaltyOrCharge")}</span>"
+//          )),
+//        HeadCell(Text(Messages("psa.financial.overview.datePaid")), classes = "govuk-!-font-weight-bold"),
+//        HeadCell(Text(Messages("psa.financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold")
+//      )
+//    }
+//
+//    def getRows = clearedPenaltiesAndCharges.flatMap(penaltyOrCharge => {
+//      penaltyOrCharge.documentLineItemDetails.map { lineItemDetails =>
+//        val date = lineItemDetails.clearingDate.getOrElse("Date not found")
+//        val clearedAmount = lineItemDetails.clearedAmountItem
+//        getSchemeName(psaId, penaltyOrCharge.pstr).map(schemeName =>
+//          Seq(
+//            TableRow(HtmlContent(
+//              s"<a id=${penaltyOrCharge.chargeReference} class=govuk-link href=/>" +
+//                penaltyOrCharge.chargeType + "</a></br>" +
+//                schemeName + "</br>" +
+//                penaltyOrCharge.chargeReference + "</br>" +
+//                formatStartDate(penaltyOrCharge.periodStartDate) + " to " + formatDateDMY(penaltyOrCharge.periodEndDate)
+//            )),
+//            TableRow(HtmlContent(s"<p>$date</p>")),
+//            TableRow(HtmlContent(s"<p>$clearedAmount</p>"))
+//          )
+//        )
+//      }
+//    })
+//
+//    val rows = Future.sequence(getRows)
+//
+//    rows.map(tableRows =>
+//      Table(head = Some(tableHeader), rows = tableRows)
+//    )
+//  }
 
   private def getSchemeName(psaId: String, pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
     val res = for {
