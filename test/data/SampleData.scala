@@ -22,7 +22,7 @@ import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrga
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.financialStatement.PsaFSChargeType.{AFT_DAILY_LFP, CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP}
+import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT, AFT_DAILY_LFP, CONTRACT_SETTLEMENT}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement._
 import models._
@@ -580,7 +580,39 @@ object SampleData {
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
-    )
+    ),
+    PsaFSDetail(
+      index = 2,
+      chargeReference = "XY002610150185",
+      chargeType = PAYMENT_ON_ACCOUNT,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 90000.00,
+      outstandingAmount = 2345.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 25089.08,
+      amountDue = 1000.00,
+      periodStartDate = LocalDate.parse("2020-10-01"),
+      periodEndDate = LocalDate.parse("2020-12-31"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
+    ),
+    PsaFSDetail(
+      index = 2,
+      chargeReference = "XY002610150184",
+      chargeType = OTC_6_MONTH_LPP,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 10000.00,
+      outstandingAmount = 0.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
+      periodStartDate = LocalDate.parse("2020-10-01"),
+      periodEndDate = LocalDate.parse("2020-12-31"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
+    ),
   )
   val psaFs: PsaFS = PsaFS(false, psaFsSeq)
   val multiplePenalties: Seq[PsaFSDetail] = Seq(

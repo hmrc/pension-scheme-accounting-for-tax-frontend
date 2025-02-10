@@ -79,6 +79,7 @@ class PsaFinancialOverviewControllerSpec
         when(mockAppConfig.countdownSeconds).thenReturn("60")
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
+        when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any())).thenReturn(Seq())
         when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
         when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
           .thenReturn(Future.successful(psaFs))
@@ -114,6 +115,7 @@ class PsaFinancialOverviewControllerSpec
         when(mockAppConfig.countdownSeconds).thenReturn("60")
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
+        when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any())).thenReturn(psaFsSeq)
         when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
         when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
           .thenReturn(Future.successful(psaFs))
@@ -138,6 +140,10 @@ class PsaFinancialOverviewControllerSpec
           allPaymentLink = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.All).url,
           creditBalanceFormatted = "£1,000.00",
           creditBalance = 1000,
+          displayReceivedPayments = true,
+          receivedPaymentsLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url,
+          displayHistory = true,
+          historyLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url,
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
         )(messages, request)
 
