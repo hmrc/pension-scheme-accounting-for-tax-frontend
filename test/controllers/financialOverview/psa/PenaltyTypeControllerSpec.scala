@@ -21,13 +21,13 @@ import connectors.ListOfSchemesConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.psa.SelectSchemeControllerSpec.penaltySchemes
-import data.SampleData.{dummyCall, multiplePenalties, psaId}
+import data.SampleData.{dummyCall, multiplePenalties, psaFsSeqHistorical, psaId}
 import forms.financialStatement.PenaltyTypeFormProvider
 import matchers.JsonMatchers
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
-import models.financialStatement.{DisplayPenaltyType, PenaltyType}
+import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest
-import models.{Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
+import models.{ChargeDetailsFilter, Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -40,6 +40,7 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
+import services.AFTPartialService
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import utils.TwirlMigration
 import views.html.financialOverview.psa.PenaltyTypeView
@@ -54,9 +55,11 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   private val mockNavigationService = mock[PenaltiesNavigationService]
   private val mockListOfSchemesConn = mock[ListOfSchemesConnector]
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
+  private val mockAFTPartialService = mock[AFTPartialService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PsaPenaltiesAndChargesService].toInstance(mockPsaPenaltiesAndChargesService),
-    bind[ListOfSchemesConnector].toInstance(mockListOfSchemesConn)
+    bind[ListOfSchemesConnector].toInstance(mockListOfSchemesConn),
+    bind[AFTPartialService].toInstance(mockAFTPartialService)
   )
 
   private val displayPenalties: Seq[DisplayPenaltyType] = Seq(
@@ -71,8 +74,8 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   val penaltyTypes: Seq[PenaltyType] = PenaltyType.values
   val pstr = "24000041IN"
 
-  lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad().url
-  lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit().url
+  lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.All).url
+  lazy val httpPathPOST: String = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.All).url
 
   private val year = "2020"
   val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
@@ -88,6 +91,8 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
+    when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any()))
+      .thenReturn(psaFsSeqHistorical)
     when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
       thenReturn(Future.successful(penaltySchemes))
     when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
@@ -103,10 +108,34 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
 
       val view = application.injector.instanceOf[PenaltyTypeView].apply(
         form = form,
+        title = messages("penaltyType.title"),
         psaName = "psa-name",
-        submitCall = routes.PenaltyTypeController.onSubmit(),
+        submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.All),
+        buttonText = messages("site.save_and_continue"),
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-        radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+        radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+        journeyType = ChargeDetailsFilter.All
+      )(req, messages)
+
+      compareResultAndView(result, view)
+
+    }
+    "return OK and the correct view for a GET with penalty types for charge history" in {
+      lazy val httpPathGET: String = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.History).url
+      val req = httpGETRequest(httpPathGET)
+      val result = route(application, req).value
+
+      status(result) mustEqual OK
+
+      val view = application.injector.instanceOf[PenaltyTypeView].apply(
+        form = form,
+        title = messages("psa.financial.overview.historyChargeType.title"),
+        psaName = "psa-name",
+        submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.History),
+        buttonText = messages("site.continue"),
+        returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+        radios = TwirlMigration.toTwirlRadios(PenaltyType.radios(form, displayPenalties, areLabelsBold = false)),
+        journeyType = ChargeDetailsFilter.History
       )(req, messages)
 
       compareResultAndView(result, view)
@@ -114,7 +143,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
     }
 
     "redirect to next page when valid data is submitted" in {
-      when(mockNavigationService.navFromPenaltiesTypePage(any(), any(), any())(any(), any()))
+      when(mockNavigationService.navFromPenaltiesTypePage(any(), any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(year))))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value

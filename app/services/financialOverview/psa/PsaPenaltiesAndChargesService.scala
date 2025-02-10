@@ -22,7 +22,7 @@ import connectors.{FinancialStatementConnector, MinimalConnector}
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter
-import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
+import models.ChargeDetailsFilter.{All, History, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, displayCharge, getPenaltyType}
 import models.financialStatement.PsaFSChargeType._
@@ -502,6 +502,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       journeyType match {
         case Overdue => cache.copy(penalties = getOverdueCharges(cache.penalties))
         case Upcoming => cache.copy(penalties = extractUpcomingCharges(cache.penalties))
+        case History => cache.copy(penalties = getClearedCharges(cache.penalties))
         case _ => cache
       }
     }
@@ -528,6 +529,9 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       .filter(_.dueDate.nonEmpty)
       .filter(_.dueDate.get.isBefore(DateHelper.today))
       .filter(_.amountDue > BigDecimal(0.00))
+
+  def getClearedCharges(psaFS: Seq[PsaFSDetail]): Seq[PsaFSDetail] =
+    psaFS.filter(_.outstandingAmount <= 0)
 
   def extractUpcomingCharges(psaFS: Seq[PsaFSDetail]): Seq[PsaFSDetail] =
     psaFS
