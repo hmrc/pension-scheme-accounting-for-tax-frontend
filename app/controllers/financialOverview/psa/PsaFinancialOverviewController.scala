@@ -70,7 +70,6 @@ class PsaFinancialOverviewController @Inject()(
     val psaCharges: (String, String, String) = service.retrievePsaChargesAmount(psaFSDetail)
     val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)
     val creditBalanceFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
-    println(s"\n creditPsaFS: ${creditPsaFS.seqPsaFSDetail.map(_.chargeType)} ")
     val displayReceivedPayments: Boolean = creditPsaFS.seqPsaFSDetail.exists(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
     val displayHistory = service.retrievePaidPenaltiesAndCharges(psaFSDetail).nonEmpty
 
