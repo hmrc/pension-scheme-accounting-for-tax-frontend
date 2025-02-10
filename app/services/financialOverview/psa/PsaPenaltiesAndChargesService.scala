@@ -41,7 +41,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
