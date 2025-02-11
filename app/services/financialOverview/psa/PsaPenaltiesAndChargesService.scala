@@ -26,7 +26,7 @@ import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, displayCharge, getPenaltyType}
 import models.financialStatement.PsaFSChargeType._
-import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFSChargeType, PsaFSDetail}
+import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFSChargeType, PsaFSDetail, SchemeFSDetail}
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
@@ -174,6 +174,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
   }
 
+  def getChargeDetailsForClearedCharge(psaFSDetail: PsaFSDetail, pstr: String)(implicit messages: Messages): Seq[SummaryListRow] = {
+    pstrRow(psaFSDetail) ++
+      chargeReferenceRow(psaFSDetail) ++
+      getTaxPeriod(psaFSDetail)
+  }
   //scalastyle:off parameter.number
   //scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
@@ -593,7 +598,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       ))
   }
 
-  def chargeAmountDetailsRows(data: PsaFSDetail)(implicit messages: Messages): Table = {
+  def chargeAmountDetailsRows(data: PsaFSDetail, caption: Option[String] = None, captionClasses: String = "")(implicit messages: Messages): Table = {
 
     val headRow = Seq(
       HeadCell(Text(Messages("psa.pension.scheme.chargeAmount.label.new"))),
@@ -628,7 +633,12 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       Seq(Seq())
     }
 
-    Table(head = Some(headRow), rows = rows ++ stoodOverAmountRow, attributes = Map("role" -> "table"))
+    Table(head = Some(headRow),
+      rows = rows ++ stoodOverAmountRow,
+      attributes = Map("role" -> "table"),
+      caption = caption,
+      captionClasses = captionClasses
+    )
   }
 
   private def getClearingDetailLabelNew(documentLineItemDetail: DocumentLineItemDetail)(implicit messages: Messages): Option[Text] = {
@@ -722,6 +732,15 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         }
       case _ => None
     }
+  }
+
+  private def getTaxPeriod(psaFSDetail: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+    Seq(
+      SummaryListRow(
+        key = Key(Text(Messages("pension.scheme.interest.tax.period.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+        value = Value(Text(formatStartDate(psaFSDetail.periodStartDate) + " to " +
+          formatDateDMY(psaFSDetail.periodEndDate)), classes = "govuk-!-width-one-half")
+      ))
   }
 
   private def stoodOverAmountChargeDetailsRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
