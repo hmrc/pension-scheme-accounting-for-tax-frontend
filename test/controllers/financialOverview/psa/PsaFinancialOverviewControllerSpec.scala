@@ -20,7 +20,7 @@ import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.Enumerable
+import models.{ChargeDetailsFilter, Enumerable}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -79,6 +79,7 @@ class PsaFinancialOverviewControllerSpec
         when(mockAppConfig.countdownSeconds).thenReturn(60)
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
+        when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any())).thenReturn(Seq())
         when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
         when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
           .thenReturn(Future.successful(psaFs))
@@ -100,7 +101,7 @@ class PsaFinancialOverviewControllerSpec
           requestRefundUrl = routes.PsaRequestRefundController.onPageLoad.url,
           allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
           duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
-          allPaymentLink = routes.PenaltyTypeController.onPageLoad().url,
+          allPaymentLink = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.All).url,
           creditBalanceFormatted = "£1,000.00",
           creditBalance = 1000,
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
@@ -114,6 +115,7 @@ class PsaFinancialOverviewControllerSpec
         when(mockAppConfig.countdownSeconds).thenReturn(60)
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
+        when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any())).thenReturn(psaFsSeq)
         when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
         when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
           .thenReturn(Future.successful(psaFs))
@@ -135,9 +137,13 @@ class PsaFinancialOverviewControllerSpec
           requestRefundUrl = routes.PsaRequestRefundController.onPageLoad.url,
           allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
           duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
-          allPaymentLink = routes.PenaltyTypeController.onPageLoad().url,
+          allPaymentLink = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.All).url,
           creditBalanceFormatted = "£1,000.00",
           creditBalance = 1000,
+          displayReceivedPayments = true,
+          receivedPaymentsLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url,
+          displayHistory = true,
+          historyLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url,
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
         )(messages, request)
 
