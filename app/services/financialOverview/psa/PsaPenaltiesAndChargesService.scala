@@ -174,7 +174,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
   }
 
-  def getChargeDetailsForClearedCharge(psaFSDetail: PsaFSDetail, pstr: String)(implicit messages: Messages): Seq[SummaryListRow] = {
+  def getChargeDetailsForClearedCharge(psaFSDetail: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
     pstrRow(psaFSDetail) ++
       chargeReferenceRow(psaFSDetail) ++
       getTaxPeriod(psaFSDetail)

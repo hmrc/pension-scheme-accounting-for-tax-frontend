@@ -33,6 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import views.html.financialOverview.psa.ClearedPenaltyOrChargeView
 
 
+
 class ClearedPenaltyOrChargeController @Inject()(override val messagesApi: MessagesApi,
                                                  identify: IdentifierAction,
                                                  allowAccess: AllowAccessActionProviderForIdentifierRequest,
@@ -50,11 +51,23 @@ class ClearedPenaltyOrChargeController @Inject()(override val messagesApi: Messa
           .filter(p => getPenaltyType(p.chargeType) == paymentOrChargeType)
 
         val penalty = filteredPenalties(index)
-        val chargeDetails: Seq[SummaryListRow] = psaPenaltiesAndChargesService.getChargeDetailsForClearedCharge(penalty, penalty.pstr)
+        val chargeDetails: Seq[SummaryListRow] = psaPenaltiesAndChargesService.getChargeDetailsForClearedCharge(penalty)
 
-        val clearingDates = penalty.documentLineItemDetails.map(_.clearingDate)
-        val paymDateOrCredDueDate = penalty.documentLineItemDetails.map(_.paymDateOrCredDueDate)
-        val datePaid = (clearingDates ++ paymDateOrCredDueDate).max
+        val paymentDates = penalty.documentLineItemDetails.flatMap { documentLineItemDetail =>
+          (documentLineItemDetail.paymDateOrCredDueDate, documentLineItemDetail.clearingDate) match {
+            case (Some(paymDateOrCredDueDate), _) =>
+              Some(paymDateOrCredDueDate)
+            case (None, Some(clearingDate)) =>
+              Some(clearingDate)
+            case _ => None
+          }
+        }
+
+        val datePaid = if (paymentDates.nonEmpty) {
+          DateHelper.formatDateDMY(paymentDates.max)
+        } else {
+          ""
+        }
 
         val paymentsTable = psaPenaltiesAndChargesService
           .chargeAmountDetailsRows(penalty, Some(Messages("psa.pension.scheme.charge.details.new")), "govuk-table__caption--l")
@@ -66,7 +79,7 @@ class ClearedPenaltyOrChargeController @Inject()(override val messagesApi: Messa
           penalty.chargeType.toString,
           penaltiesCache.psaName,
           FormatHelper.formatCurrencyAmountAsString(penalty.outstandingAmount),
-          DateHelper.formatDateDMY(datePaid),
+          datePaid,
           chargeDetails,
           paymentsTable,
           returnUrl
