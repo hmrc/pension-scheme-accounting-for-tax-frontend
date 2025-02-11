@@ -1218,6 +1218,11 @@ paymentsAndCharges.interest.hint = This interest charge was the result of late p
 paymentsAndCharges.interest.chargeReference.text2 = in full. You can only pay the interest once a charge reference has been generated.
 paymentsAndCharges.viewReturnHistory = View the AFT return for this quarter
 
+receivedPayments.title = Received payments
+receivedPayments.insetText = This information may not reflect payments made in the last 3 days.
+receivedPayments.heading.amount = Amount
+receivedPayments.heading.dateReceived = Date received
+
 selectScheme.title = Which scheme do you want to view {0} for?
 selectScheme.text = Any schemes with which you are no longer associated will only show as PSTR numbers
 selectScheme.error = Select which scheme you want to view {0} for

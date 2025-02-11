@@ -831,6 +831,43 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   def interestRowsNew(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
     chargeReferenceInterestRowNew ++ interestTaxPeriodRow(data)
 
+
+
+
+
+
+
+
+  def paidPenaltiesDetails(data: Seq[PsaFSDetail])(implicit messages: Messages): Table = {
+    val headRow = Seq(
+      HeadCell(Text(Messages("receivedPayments.heading.amount"))),
+      HeadCell(Text(Messages("receivedPayments.heading.dateReceived"))),
+      HeadCell(Text(""), classes = "govuk-!-font-weight-regular")
+    )
+
+    val rows = data.map { psaFSDetail =>
+      // Ensure that documentLineItemDetails exists and is not empty for the current PsaFSDetail
+      psaFSDetail.documentLineItemDetails.flatMap { documentLineItemDetail =>
+        // Only process cleared amounts greater than 0
+        if (documentLineItemDetail.clearedAmountItem > 0) {
+          getClearingDetailLabelNew(documentLineItemDetail) match {
+            case Some(clearingDetailsValue) =>
+              Seq(
+                TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}")),
+                TableRow(Text(getChargeDateNew(documentLineItemDetail))),
+                TableRow(clearingDetailsValue, classes = "govuk-!-font-weight-bold")
+              )
+            case None => Seq() // If no clearing details, return empty sequence
+          }
+        } else {
+          Seq() // If cleared amount is 0 or less, return empty sequence
+        }
+      }
+    }
+
+    Table(head = Some(headRow), rows = rows, attributes = Map("role" -> "table"))
+  }
+
 }
 
 case class PenaltiesCache(psaId: String, psaName: String, penalties: Seq[PsaFSDetail])
