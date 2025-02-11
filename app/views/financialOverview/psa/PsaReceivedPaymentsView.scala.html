@@ -21,11 +21,11 @@
     govukTable: GovukTable
 )
 
-@(schemeName: String, paymentsDetails: Table, insetText: HtmlContent, isRefund: Boolean)(implicit messages: Messages, request: Request[_])
+@(psaName: String, paymentsDetails: Table, insetText: HtmlContent, isRefund: Boolean)(implicit messages: Messages, request: Request[_])
 
 @layout(messages("receivedPayments.title")) {
 
-        <h1 class="govuk-caption-l">@schemeName</h1>
+        <h1 class="govuk-caption-l">@psaName</h1>
         <h1 class="govuk-heading-l">@messages("receivedPayments.title")</h1>
 
         @govukInsetText(

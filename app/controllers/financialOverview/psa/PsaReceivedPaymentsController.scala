@@ -16,8 +16,9 @@
 
 package controllers.financialOverview.psa
 
-import connectors.FinancialStatementConnector
-import controllers.actions._
+import connectors.{FinancialStatementConnector, MinimalConnector}
+import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
+import models.financialStatement.SchemeFS
 import models.{ChargeDetailsFilter, SchemeDetails}
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, Messages}
@@ -37,8 +38,7 @@ class PsaReceivedPaymentsController @Inject()(identify: IdentifierAction,
                                               val controllerComponents: MessagesControllerComponents,
                                               financialStatementConnector: FinancialStatementConnector,
                                               psaPenaltiesAndChargesService: PsaPenaltiesAndChargesService,
-                                              service: AFTPartialService,
-                                              schemeService: SchemeService,
+                                              minimalConnector: MinimalConnector,
                                               view: PsaReceivedPaymentsView
                                                       )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -47,25 +47,25 @@ class PsaReceivedPaymentsController @Inject()(identify: IdentifierAction,
   def onPageLoad(journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request: IdentifierRequest[AnyContent] =>
       val response = for {
-        schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, "pstr", "schemeId")
-        psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFS(request.psaIdOrException.id)
+        psaOrPspName <- minimalConnector.getPsaOrPspName
+        psaFSWithPaymentOnAccount <- financialStatementConnector.getPsaFSWithPaymentOnAccount(request.psaIdOrException.id)
       } yield {
-        val paidPenalties = service.retrievePaidPenaltiesAndCharges(psaFSWithPaymentOnAccount.seqPsaFSDetail)
+        val paidPenalties = psaPenaltiesAndChargesService.getClearedCharges(psaFSWithPaymentOnAccount.seqPsaFSDetail)
         val paymentDetailsTable = psaPenaltiesAndChargesService.paidPenaltiesDetails(paidPenalties)
 
-        renderPsaReceivedPaymentsPage(schemeDetails, paymentDetailsTable, paidPenalties.nonEmpty, journeyType)
+        renderPsaReceivedPaymentsPage(psaOrPspName, request, paymentDetailsTable, paidPenalties.nonEmpty, journeyType)
       }
-
       response.flatten
     }
 
-  private def renderPsaReceivedPaymentsPage(schemeDetails: SchemeDetails,
+  private def renderPsaReceivedPaymentsPage(psaName: String,
+                                            requestHeader: RequestHeader,
                                             paymentDetailsTable: Table,
                                             hasPayments: Boolean,
                                             journeyType: ChargeDetailsFilter)(implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
     if (hasPayments) {
       Future.successful(Ok(view(
-        schemeName = schemeDetails.schemeName,
+        psaName = psaName,
         paymentsDetails = paymentDetailsTable,
         insetText = setInsetText,
         isRefund = false

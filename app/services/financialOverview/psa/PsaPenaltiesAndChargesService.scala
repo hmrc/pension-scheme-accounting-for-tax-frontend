@@ -835,13 +835,6 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   def interestRowsNew(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
     chargeReferenceInterestRowNew ++ interestTaxPeriodRow(data)
 
-
-
-
-
-
-
-
   def paidPenaltiesDetails(data: Seq[PsaFSDetail])(implicit messages: Messages): Table = {
     val headRow = Seq(
       HeadCell(Text(Messages("receivedPayments.heading.amount"))),
