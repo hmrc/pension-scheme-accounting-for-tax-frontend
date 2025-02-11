@@ -846,9 +846,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     )
 
     val rows = data.map { psaFSDetail =>
-      // Ensure that documentLineItemDetails exists and is not empty for the current PsaFSDetail
       psaFSDetail.documentLineItemDetails.flatMap { documentLineItemDetail =>
-        // Only process cleared amounts greater than 0
         if (documentLineItemDetail.clearedAmountItem > 0) {
           getClearingDetailLabelNew(documentLineItemDetail) match {
             case Some(clearingDetailsValue) =>
@@ -857,10 +855,10 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 TableRow(Text(getChargeDateNew(documentLineItemDetail))),
                 TableRow(clearingDetailsValue, classes = "govuk-!-font-weight-bold")
               )
-            case None => Seq() // If no clearing details, return empty sequence
+            case None => Seq()
           }
         } else {
-          Seq() // If cleared amount is 0 or less, return empty sequence
+          Seq()
         }
       }
     }
