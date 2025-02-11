@@ -22,36 +22,57 @@
     govukRadios: GovukRadios
 )
 
-@(form: Form[_], submitCall: Call, psaName: String, returnUrl: String, radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
+@(form: Form[_],
+    title: String,
+    submitCall: Call,
+    psaName: String,
+    buttonText: String,
+    returnUrl: String,
+    radios: Seq[RadioItem],
+    journeyType: String)(implicit request: Request[_], messages: Messages)
 
-@layout(messages("penaltyType.title"), formHasErrors = form.hasErrors) {
+@layout(title, formHasErrors = form.hasErrors) {
 
-<div>
+    <div>
 
             @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+                @if(journeyType == "history") {
+                    <span class="govuk-caption-xl">@psaName</span>
+                    <h1 class="govuk-heading-xl">@title</h1>
 
-                @govukRadios(
-                    RadiosViewModel(
-                        form("value"),
-                        items = radios,
-                        fieldset =
-                            Fieldset(
-                                legend = Some(Legend(
-                                    content = Text(messages("penaltyType.title")),
-                                    isPageHeading = true,
-                                    classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4",
-                            )
+                    @govukRadios(
+                        RadiosViewModel(
+                            form("value"),
+                            items = radios,
+                            fieldset = Fieldset(legend = None)
                         )
                     )
-                )
-            )
+                } else {
+                    @govukRadios(
+                        RadiosViewModel(
+                            form("value"),
+                            items = radios,
+                            fieldset =
+                                Fieldset(
+                                    legend = Some(Legend(
+                                        content = Text(title),
+                                        isPageHeading = true,
+                                        classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4",
+                                    ))
+                                )
+                        )
+                    )
+                }
+
 
 
             @govukButton(
-                ButtonViewModel(Text(messages("site.save_and_continue"))).asFormSubmit
+                ButtonViewModel(Text(buttonText)).asFormSubmit
               )
             }
-            <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", psaName)</a>
 
-</div>
+            @if(journeyType != "history") {
+                <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", psaName)</a>
+            }
+    </div>
 }

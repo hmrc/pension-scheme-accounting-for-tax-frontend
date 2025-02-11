@@ -31,10 +31,13 @@ object ChargeDetailsFilter
 
   case object Overdue extends WithName("overdue") with ChargeDetailsFilter
 
+  case object History extends WithName("history") with ChargeDetailsFilter
+
   val values: Seq[ChargeDetailsFilter] = Seq(
     All,
     Upcoming,
-    Overdue
+    Overdue,
+    History
   )
 
   implicit val enumerable: Enumerable[ChargeDetailsFilter] =
@@ -62,6 +65,7 @@ object ChargeDetailsFilter
     filter match {
       case "upcoming" => Upcoming
       case "overdue" => Overdue
+      case "history" => History
       case _ => All
     }
 }

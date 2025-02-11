@@ -20,7 +20,7 @@ import connectors.ListOfSchemesConnector
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, EventReportingCharges, getPenaltyType}
 import controllers.financialOverview.psa.routes._
 import models.financialStatement.{PenaltyType, PsaFSDetail}
-import models.{ListSchemeDetails, PenaltySchemes}
+import models.{ChargeDetailsFilter, ListSchemeDetails, PenaltySchemes}
 import play.api.Logger
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
@@ -35,21 +35,7 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
 
   private val logger = Logger(classOf[PenaltiesNavigationService])
 
-  def navFromPSADashboard(payments: Seq[PsaFSDetail], pstr: String)
-                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-
-    val paymentTypes: Seq[PenaltyType] = payments.map(p => getPenaltyType(p.chargeType)).distinct
-
-    if (paymentTypes.size > 1) {
-      Future.successful(Redirect(PenaltyTypeController.onPageLoad()))
-    } else if (paymentTypes.size == 1) {
-      navFromPenaltiesTypePage(payments, pstr, paymentTypes.head)
-    } else {
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-    }
-  }
-
-  def navFromPenaltiesTypePage(penalties: Seq[PsaFSDetail], psaId: String, penaltyType: PenaltyType)
+  def navFromPenaltiesTypePage(penalties: Seq[PsaFSDetail], psaId: String, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter)
                               (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
     val yearsSeq: Seq[Int] = penalties
@@ -60,7 +46,7 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
       case (AccountingForTaxPenalties, 1) => navFromAFTYearsPage(penalties, yearsSeq.head, psaId, AccountingForTaxPenalties)
       case (EventReportingCharges, 1) => navFromERYearsPage(penalties, yearsSeq.head, psaId, EventReportingCharges)
       case (_, 1) => navFromNonAftYearsPage(penalties, yearsSeq.head, psaId, penaltyType)
-      case (_, size) if size > 1 => Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType)))
+      case (_, size) if size > 1 => Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType, journeyType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }

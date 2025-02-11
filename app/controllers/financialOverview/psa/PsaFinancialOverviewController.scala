@@ -70,7 +70,6 @@ class PsaFinancialOverviewController @Inject()(
     val psaCharges: (String, String, String) = service.retrievePsaChargesAmount(psaFSDetail)
     val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)
     val creditBalanceFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
-    println(s"\n creditPsaFS: ${creditPsaFS.seqPsaFSDetail.map(_.chargeType)} ")
     val displayReceivedPayments: Boolean = creditPsaFS.seqPsaFSDetail.exists(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
     val displayHistory = service.retrievePaidPenaltiesAndCharges(psaFSDetail).nonEmpty
 
@@ -86,7 +85,7 @@ class PsaFinancialOverviewController @Inject()(
 
     val allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url
     val duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url
-    val allPaymentLink = routes.PenaltyTypeController.onPageLoad().url
+    val allPaymentLink = routes.PenaltyTypeController.onPageLoad("all").url
 
     //TODO
     // Below 2 links will need to be updated & tested when relevant pages are created

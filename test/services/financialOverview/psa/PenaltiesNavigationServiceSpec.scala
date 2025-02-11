@@ -21,6 +21,7 @@ import connectors.ListOfSchemesConnector
 import controllers.financialOverview.psa.routes._
 import controllers.routes
 import data.SampleData.psaId
+import models.ChargeDetailsFilter
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, EventReportingCharges}
 import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, SSC_30_DAY_LPP}
 import models.financialStatement.PsaFSDetail
@@ -81,15 +82,15 @@ class PenaltiesNavigationServiceSpec extends SpecBase with MockitoSugar with Bef
 
     "redirect to SelectYear page if there are multiple years to choose from for AFT" in {
       whenReady(penaltiesNavigationServiceSpec.navFromPenaltiesTypePage(
-        getAftPenalties("24000041IN", LocalDate.parse("2021-07-01"), LocalDate.parse("2021-07-01")), psaId, AccountingForTaxPenalties)) {
-        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(AccountingForTaxPenalties))
+        getAftPenalties("24000041IN", LocalDate.parse("2021-07-01"), LocalDate.parse("2021-07-01")), psaId, AccountingForTaxPenalties, ChargeDetailsFilter.All)) {
+        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(AccountingForTaxPenalties, ChargeDetailsFilter.All))
       }
     }
 
     "redirect to SelectYear page if there are multiple years to choose from for Event Reporting" in {
       val penalties = getAftPenalties("24000041IN", LocalDate.parse("2019-07-01"), LocalDate.parse("2023-07-01"))
-      whenReady(penaltiesNavigationServiceSpec.navFromPenaltiesTypePage(penalties, psaId, EventReportingCharges)) {
-        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges))
+      whenReady(penaltiesNavigationServiceSpec.navFromPenaltiesTypePage(penalties, psaId, EventReportingCharges, ChargeDetailsFilter.All)) {
+        _ mustBe Redirect(SelectPenaltiesYearController.onPageLoad(EventReportingCharges, ChargeDetailsFilter.All))
       }
     }
 
