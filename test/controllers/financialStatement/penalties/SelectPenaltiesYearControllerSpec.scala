@@ -41,7 +41,6 @@ import play.api.mvc.Results
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{PenaltiesCache, PenaltiesService}
-import utils.TwirlMigration
 import views.html.financialStatement.penalties.SelectYearView
 
 import scala.concurrent.Future
@@ -79,7 +78,6 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with JsonMatc
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
@@ -94,7 +92,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with JsonMatc
       val view = application.injector.instanceOf[SelectYearView].apply(
         form,
         typeParam,
-        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form, years)),
+        FSYears.radios(form, years),
         routes.SelectPenaltiesYearController.onSubmit(penaltyAft, All),
         "",
         "psa-name"

@@ -36,9 +36,8 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.{Call, Results}
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import services.SchemeService
-import utils.TwirlMigration
 import views.html.YearsView
 
 import scala.concurrent.Future
@@ -90,7 +89,7 @@ class YearsControllerSpec extends ControllerSpecBase with JsonMatchers
         submitCall,
         SampleData.schemeName,
         dummyCall.url,
-        TwirlMigration.toTwirlRadios(StartYears.radios(form)(mockAppConfig))
+        StartYears.radios(form)(mockAppConfig)
       )(request, messages)
 
       status(result) mustEqual OK

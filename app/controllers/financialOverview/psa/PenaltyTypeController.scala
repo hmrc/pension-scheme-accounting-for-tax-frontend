@@ -27,7 +27,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialOverview.psa.PenaltyTypeView
 
 import javax.inject.Inject
@@ -55,7 +54,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
           penaltyTypeView(
             form = form,
             psaName = penaltiesCache.psaName,
-            radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+            radios = PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
             submitCall = routes.PenaltyTypeController.onSubmit(),
             returnUrl = appConfig.managePensionsSchemeOverviewUrl
           )
@@ -73,7 +72,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
             penaltyTypeView(
               formWithErrors,
               psaName = penaltiesCache.psaName,
-              radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq))),
+              radios = PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq)),
               submitCall = routes.PenaltyTypeController.onSubmit(),
               returnUrl = appConfig.managePensionsSchemeOverviewUrl
             )

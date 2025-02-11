@@ -19,9 +19,10 @@ package models.financialStatement
 import models.Enumerable
 import models.financialStatement.SchemeFSChargeType._
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.mvc.PathBindable
-import uk.gov.hmrc.viewmodels._
-import viewmodels.{Hint, LabelClasses, Radios}
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Hint, RadioItem, Text}
+import viewmodels.{LabelClasses, Radios}
 import viewmodels.Radios.Radio
 
 import scala.language.implicitConversions
@@ -53,11 +54,11 @@ object PaymentOrChargeType extends Enumerable.Implicits {
     Seq(AccountingForTaxCharges, ContractSettlementCharges, EventReportingCharges, ExcessReliefPaidCharges, InterestOnExcessRelief, PensionsCharges)
 
   def radios(form: Form[_], chargeTypes: Seq[DisplayPaymentOrChargeType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
-            : Seq[Radios.Item] =
+            (implicit messages: Messages): Seq[RadioItem] =
   {
     val x: Seq[Radio] = chargeTypes.map { chargeType =>
 
-      Radios.Radio(label = msg"paymentOrChargeType.${chargeType.chargeType.toString}",
+      Radios.Radio(label = Text(Messages(s"paymentOrChargeType.${chargeType.chargeType.toString}")),
         value = chargeType.chargeType.toString,
         hint = getHint(chargeType, hintClass),
         labelClasses = Some(LabelClasses(classes = if(areLabelsBold) Seq("govuk-!-font-weight-bold") else Nil)))
@@ -112,9 +113,9 @@ object PaymentOrChargeType extends Enumerable.Implicits {
 
   case class UnknownChargeTypeException() extends Exception
 
-  private def getHint(chargeTypes: DisplayPaymentOrChargeType, hintClass: Seq[String]): Option[Hint] =
+  private def getHint(chargeTypes: DisplayPaymentOrChargeType, hintClass: Seq[String])(implicit messages: Messages): Option[Hint] =
     chargeTypes.hintText match {
-      case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))
+      case Some(hint) => Some(Hint(content = Text(Messages(s"${hint.toString}")), id = Some("hint-id"), classes = hintClass.mkString(" ")))
       case _ => None
     }
 }

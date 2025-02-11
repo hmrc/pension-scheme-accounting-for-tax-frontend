@@ -31,8 +31,6 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.nunjucks.NunjucksHelper.messages
-import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels._
@@ -232,8 +230,8 @@ object PsaSchemePartialServiceSpec {
   ))
 
   private def upcomingChargesSingleModel(implicit messages: Messages): Seq[CardViewModel] = upcomingChargesMultipleModel(
-    Message("pspDashboardUpcomingAftChargesCard.span.singleDueDate", LocalDate.parse(dueDate).format(dateFormatterDMY)).resolve,
-    Message("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single", Seq(
+    Messages("pspDashboardUpcomingAftChargesCard.span.singleDueDate", LocalDate.parse(dueDate).format(dateFormatterDMY)),
+    Messages("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single", Seq(
       LocalDate.parse(startDate).format(smallDatePattern),
       LocalDate.parse(endDate).format(smallDatePattern))),
     Nil,
@@ -242,7 +240,7 @@ object PsaSchemePartialServiceSpec {
   )
 
   private def upcomingChargesMultipleModel(upcomingChargesSubHeading: String = "pspDashboardUpcomingAftChargesCard.span.multipleDueDate",
-                                   upcomingLinkText: Message = Message("pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"),
+                                   upcomingLinkText: String = "pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
                                    pastLink: Seq[Link],
                                    amount: String = "£300.00",
                                    upcomingLink: String = viewUpcomingChargesUrl)
@@ -260,7 +258,7 @@ object PsaSchemePartialServiceSpec {
     Seq(Link(
       id = "upcoming-payments-and-charges",
       url = upcomingLink,
-      linkText = Text(upcomingLinkText.resolve),
+      linkText = Text(Messages(upcomingLinkText)),
       hiddenText = None
     )) ++ pastLink)
   )
@@ -318,7 +316,7 @@ object PsaSchemePartialServiceSpec {
 
   private def overdueChargesSingleModel(implicit messages: Messages): Seq[CardViewModel] = overdueChargesModel(
     BigDecimal(100.00), BigDecimal(100.00),
-    Message("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+    Messages("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
       , Seq(LocalDate.parse(startDate).format(smallDatePattern),
         LocalDate.parse(endDate).format(smallDatePattern)
       )),
@@ -326,7 +324,7 @@ object PsaSchemePartialServiceSpec {
 
 
   private def overdueChargesModel(totalOverdue: BigDecimal = BigDecimal(300.00), totalInterestAccruing: BigDecimal = BigDecimal(300.00),
-                          overdueLinkText: Message = Message("pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"),
+                          overdueLinkText: String = "pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
                           link: String = viewOverdueChargesUrl)
                          (implicit messages: Messages): Seq[CardViewModel] = Seq(CardViewModel(
     id = "aft-overdue-charges",
@@ -357,7 +355,7 @@ object PsaSchemePartialServiceSpec {
     links = Seq(Link(
       id = "overdue-payments-and-charges",
       url = link,
-      linkText = Text(overdueLinkText.resolve),
+      linkText = Text(Messages(overdueLinkText)),
       hiddenText = None
     ))
   ))

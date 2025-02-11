@@ -38,15 +38,14 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.{DateHelper, TwirlMigration}
+import utils.DateHelper
 import views.html.mccloud.TaxYearReportedAndPaid
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
 class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
-  with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+  with MockitoSugar with JsonMatchers with OptionValues with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction,
@@ -75,7 +74,6 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
 
     "return OK and the correct view for a GET" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET)
@@ -86,7 +84,7 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
 
       val view = application.injector.instanceOf[TaxYearReportedAndPaid].apply(
         form,
-        TwirlMigration.toTwirlRadios(YearRangeMcCloud.radios(form)),
+        YearRangeMcCloud.radios(form),
         "",
         "chargeType.description.annualAllowance",
         submitCall,
@@ -119,7 +117,6 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
     "return a Bad Request and errors when invalid data is submitted" in {
 
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
@@ -132,7 +129,7 @@ class TaxYearReportedAndPaidControllerSpec extends ControllerSpecBase
 
       val view = application.injector.instanceOf[TaxYearReportedAndPaid].apply(
         boundForm,
-        TwirlMigration.toTwirlRadios(YearRangeMcCloud.radios(boundForm)),
+        YearRangeMcCloud.radios(boundForm),
         "",
         "chargeType.description.annualAllowance",
         submitCall,

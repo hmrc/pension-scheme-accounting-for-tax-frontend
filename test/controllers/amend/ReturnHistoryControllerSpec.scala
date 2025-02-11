@@ -40,7 +40,6 @@ import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import views.html.amend.ReturnHistoryView
 
@@ -48,7 +47,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import scala.concurrent.Future
 
-class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class ReturnHistoryControllerSpec extends ControllerSpecBase with JsonMatchers {
   private def httpPathGET: String = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
 
   private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
@@ -137,9 +136,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockUserAnswersCacheConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq.empty)))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-  }
+    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(SchemeFS(seqSchemeFSDetail = Seq.empty)))  }
 
   "ReturnHistory Controller" must {
     "return OK and the correct view for a GET" in {

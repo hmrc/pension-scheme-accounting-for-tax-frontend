@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package models.viewModels.paymentsAndCharges
-import play.api.i18n.Messages
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-import uk.gov.hmrc.govukfrontend.views.Aliases.Table
+package viewmodels
 
-case class PaymentsAndChargesTable(caption: String, table: Table)
+import models.TolerantAddress
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Label, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 
-object PaymentsAndChargesTable {
-  implicit def writes(implicit messages: Messages): Writes[PaymentsAndChargesTable] =
-    ((JsPath \ "caption").write[String] and
-      (JsPath \ "table").write[Table](Table.jsonWrites))(sd => (sd.caption, sd.table))
+object ViewUtils {
+  def convertToRadioItems(addresses: Seq[TolerantAddress]): Seq[RadioItem] = {
+    addresses.zipWithIndex.map { case (address, index) =>
+      RadioItem(
+        content = Text(address.print),
+        label = Some(Label(content = Text(address.print))),
+        value = Some(index.toString)
+      )
+    }
+  }
 }

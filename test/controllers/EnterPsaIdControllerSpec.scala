@@ -79,11 +79,9 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with JsonMatchers
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUserAnswersCacheConnector)
-    reset(mockRenderer)
     reset(mockAFTService)
     reset(mockSchemeDetailsConnector)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockSchemeDetailsConnector.getPspSchemeDetails(ArgumentMatchers.eq(pspId), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails(Some(psaId))))
   }

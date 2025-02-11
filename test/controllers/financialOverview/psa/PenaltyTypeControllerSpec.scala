@@ -41,7 +41,6 @@ import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
-import utils.TwirlMigration
 import views.html.financialOverview.psa.PenaltyTypeView
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -106,7 +105,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
         psaName = "psa-name",
         submitCall = routes.PenaltyTypeController.onSubmit(),
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-        radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+        radios = PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
       )(req, messages)
 
       compareResultAndView(result, view)

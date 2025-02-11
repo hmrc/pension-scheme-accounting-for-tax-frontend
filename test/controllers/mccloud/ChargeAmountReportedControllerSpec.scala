@@ -116,7 +116,6 @@ class ChargeAmountReportedControllerSpec extends ControllerSpecBase
     "return a Bad Request and errors when invalid data is submitted" in {
 
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

@@ -30,8 +30,10 @@ import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.UserAnswersService
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Label, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
+import viewmodels.ViewUtils
 import views.html.chargeC.SponsoringEmployerAddressResultsView
 
 import java.time.LocalDate
@@ -124,7 +126,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
           val enterManuallyUrl = routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url
 
       Future.successful(status(view(form, schemeName, submitCall, returnUrl, sponsorName, empType, enterManuallyUrl,
-        TwirlMigration.convertToRadioItems(addressesSorted))))
+        ViewUtils.convertToRadioItems(addressesSorted))))
       }
     }
   }

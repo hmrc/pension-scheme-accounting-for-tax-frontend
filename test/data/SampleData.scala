@@ -33,8 +33,8 @@ import play.api.libs.json.Json
 import play.api.mvc.Call
 import services.paymentsAndCharges.PaymentsCache
 import services.financialOverview.scheme.{PaymentsCache => FinancialOverviewPaymentsCache}
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import utils.AFTConstants._
-import viewmodels.Table
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -447,7 +447,7 @@ object SampleData {
       Some(AFTOverviewVersion(numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)))
 
   val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
-  val emptyChargesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
+  val emptyChargesTable: Table = Table()
 
   def schemeToFinancial(schemeFS: SchemeFS):FinancialOverviewPaymentsCache =
     FinancialOverviewPaymentsCache(loggedInId = "loggedInId",

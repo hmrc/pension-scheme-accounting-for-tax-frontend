@@ -41,7 +41,6 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
 import views.html.amend.ViewAllAmendmentsView
 
@@ -49,7 +48,6 @@ import scala.concurrent.Future
 
 class ViewAllAmendmentsControllerSpec
   extends ControllerSpecBase
-    with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach {
 
@@ -69,12 +67,9 @@ class ViewAllAmendmentsControllerSpec
     super.beforeEach()
     reset(mockAmendmentHelper)
     reset(mockAFTConnector)
-    reset(mockRenderer)
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
     when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockAmendmentHelper.getAllAmendments(any(), any(), any())(any())).thenReturn(allAmendments)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-  }
+    when(mockAmendmentHelper.getAllAmendments(any(), any(), any())(any())).thenReturn(allAmendments)  }
 
   private val allAmendments = Seq(
     ViewAmendmentDetails(

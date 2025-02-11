@@ -22,7 +22,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
@@ -33,8 +32,7 @@ class PenaltiesLogicController @Inject()(override val messagesApi: MessagesApi,
                                          val controllerComponents: MessagesControllerComponents
                                       )(implicit ec: ExecutionContext)
                                           extends FrontendBaseController
-                                          with I18nSupport
-                                          with NunjucksSupport {
+                                          with I18nSupport {
 
   def onPageLoad(journeyType: PenaltiesFilter): Action[AnyContent] = identify.async { implicit request =>
 

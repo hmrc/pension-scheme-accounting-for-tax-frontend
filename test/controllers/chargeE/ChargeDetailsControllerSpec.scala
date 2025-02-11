@@ -31,13 +31,12 @@ import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import views.html.chargeE.ChargeDetailsView
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class ChargeDetailsControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val dateNoticeReceived = LocalDate.of(1980, 12, 1)

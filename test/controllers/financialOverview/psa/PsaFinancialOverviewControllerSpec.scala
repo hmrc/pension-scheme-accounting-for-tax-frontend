@@ -66,8 +66,8 @@ class PsaFinancialOverviewControllerSpec
     super.beforeEach()
     reset(mockAFTPartialService)
     reset(mockAppConfig)
-    when(mockAppConfig.timeoutSeconds).thenReturn("5")
-    when(mockAppConfig.countdownSeconds).thenReturn("1")
+    when(mockAppConfig.timeoutSeconds).thenReturn(5)
+    when(mockAppConfig.countdownSeconds).thenReturn(1)
     when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("/mockUrl")
     when(mockAppConfig.creditBalanceRefundLink).thenReturn("test.com")
     when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
@@ -76,7 +76,7 @@ class PsaFinancialOverviewControllerSpec
 
   "PsaFinancialOverviewController" must {
       "return old html with information received from overview api for new financial credits is false" in {
-        when(mockAppConfig.countdownSeconds).thenReturn("60")
+        when(mockAppConfig.countdownSeconds).thenReturn(60)
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
         when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
@@ -111,7 +111,7 @@ class PsaFinancialOverviewControllerSpec
       }
 
       "return new html with information received from overview api for new financial credits is true" in {
-        when(mockAppConfig.countdownSeconds).thenReturn("60")
+        when(mockAppConfig.countdownSeconds).thenReturn(60)
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
         when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)

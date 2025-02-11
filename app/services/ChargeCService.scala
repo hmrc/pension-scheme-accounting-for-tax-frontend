@@ -28,10 +28,9 @@ import pages.chargeC._
 import play.api.i18n.Messages
 import play.api.libs.json.JsArray
 import play.api.mvc.Call
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, _}
-import viewmodels.Table
-import viewmodels.Table.Cell
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow}
 
 import java.time.LocalDate
 import scala.math.Numeric.BigDecimalIsFractional
@@ -77,41 +76,42 @@ class ChargeCService {
   def mapToTable(members: Seq[Employer], canChange: Boolean)
                 (implicit messages: Messages): Table = {
     val head = Seq(
-      Cell(msg"addEmployers.employer.header"),
-      Cell(msg"addEmployers.amount.header", classes = Seq("govuk-table__header--numeric")),
-      Cell(Html(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>"""))
+      HeadCell(Text(Messages("addEmployers.employer.header"))),
+      HeadCell(Text(Messages("addEmployers.amount.header")), classes = "govuk-table__header--numeric"),
+      HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.viewSponsoringEmployer")}</span>"""))
     ) ++ (
       if (canChange)
-        Seq(Cell(Html(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")))
+        Seq(HeadCell(HtmlContent(s"""<span class=govuk-visually-hidden>${messages("addEmployers.hiddenText.header.removeSponsoringEmployer")}</span>""")))
       else
         Nil
       )
 
     val rows = members.map { data =>
       Seq(
-        Cell(Literal(data.name), classes = Seq("govuk-!-width-one-half")),
-        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
-        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = Seq("govuk-!-width-one-quarter"))
-      ) ++ (if (canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter")))
+        TableRow(Text(data.name), classes = "govuk-!-width-one-half"),
+        TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"),
+          classes = "govuk-!-width-one-quarter,govuk-table__header--numeric"),
+        TableRow(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = "govuk-!-width-one-quarter")
+      ) ++ (if (canChange) Seq(TableRow(link(data.removeLinkId, "site.remove", data.removeLink, data.name),
+        classes = "govuk-!-width-one-quarter"))
       else Nil)
     }
     val totalAmount = members.map(_.amount).sum
 
     val totalRow = Seq(
       Seq(
-        Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
-        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-          classes = Seq("govuk-table__header--numeric")),
-        Cell(msg"")
-      ) ++ (if (canChange) Seq(Cell(msg"")) else Nil))
+        TableRow(Text(Messages("addMembers.total")), classes = "govuk-table__header--numeric"),
+        TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
+          classes = "govuk-table__header--numeric"),
+        TableRow(Text(""))
+      ) ++ (if (canChange) Seq(TableRow(Text(""))) else Nil))
 
-    Table(head = head, rows = rows ++ totalRow,attributes = Map("role" -> "table"))
+    Table(rows = rows ++ totalRow, head = Some(head), attributes = Map("role" -> "table"))
   }
 
-  def link(id: String, text: String, url: String, name: String)(implicit messages: Messages): Html = {
+  def link(id: String, text: String, url: String, name: String)(implicit messages: Messages): HtmlContent = {
     val hiddenTag = "govuk-visually-hidden"
-    Html(
+    HtmlContent(
         s"<a class=govuk-link id=$id href=$url>" + s"<span aria-hidden=true >${messages(text)}</span>" +
         s"<span class= $hiddenTag>${messages(text)} ${messages(s"chargeC.addEmployers.visuallyHidden", name)}</span> </a>")
   }

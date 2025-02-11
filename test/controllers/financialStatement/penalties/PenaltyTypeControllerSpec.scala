@@ -37,10 +37,9 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{PenaltiesCache, PenaltiesService}
-import utils.TwirlMigration
 import views.html.financialStatement.penalties.PenaltyTypeView
 
 import scala.concurrent.Future
@@ -76,7 +75,6 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any()))
@@ -89,8 +87,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
 
       val view = application.injector.instanceOf[PenaltyTypeView].apply(
         form,
-        TwirlMigration.toTwirlRadiosWithHintText(
-          PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+        PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
         routes.PenaltyTypeController.onSubmit(All),
         "",
         "psa-name"

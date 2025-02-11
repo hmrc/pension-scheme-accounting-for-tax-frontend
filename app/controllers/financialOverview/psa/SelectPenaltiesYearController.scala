@@ -28,7 +28,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialOverview.psa.SelectYearView
 
 import javax.inject.Inject
@@ -62,9 +61,9 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
         penaltiesCache.psaName,
         typeParam,
         appConfig.managePensionsSchemeOverviewUrl,
-        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form(typeParam), years)
+        FSYears.radios(form(typeParam), years)
         )
-      )))
+      ))
     }
   }
 
@@ -91,9 +90,9 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
             penaltiesCache.psaName,
             penaltyType = typeParam,
             appConfig.managePensionsSchemeOverviewUrl,
-            TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, years)
+            FSYears.radios(formWithErrors, years)
             )
-          )))
+          ))
         },
         value => navMethod(penaltiesCache.penalties.toSeq, value.year)
       )
