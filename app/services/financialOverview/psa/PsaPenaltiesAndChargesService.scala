@@ -849,20 +849,29 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       HeadCell(Text(""), classes = "govuk-!-font-weight-regular govuk-!-width-one-third")
     )
 
+    def viewOrRefund(clearingDetailsValue: Option[Text]): HtmlContent = {
+      clearingDetailsValue match {
+        case Some(Text("Credit applied")) =>
+          HtmlContent("<span class='govuk-tag govuk-tag--blue'>Refund</span>")
+        case Some(Text("Payment received")) =>
+          HtmlContent("<a href='#' class='govuk-link'>View</a>")
+        case _ =>
+          HtmlContent("")
+      }
+    }
+
     val rows = data.flatMap { psaFSDetail =>
       psaFSDetail.documentLineItemDetails.flatMap { documentLineItemDetail =>
         if (documentLineItemDetail.clearedAmountItem > 0) {
-          getClearingDetailLabelNew(documentLineItemDetail) match {
-            case Some(clearingDetailsValue) =>
-              Some(Seq(
-                TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"), classes = "govuk-!-font-weight-regular govuk-!-width-one-third"),
-                TableRow(Text(getChargeDateNew(documentLineItemDetail)), classes = "govuk-!-font-weight-regular govuk-!-width-one-third"),
-                TableRow(clearingDetailsValue, classes = "govuk-!-font-weight-regular govuk-!-width-one-third")
-              ))
-            case None => None
-          }
+          val clearingDetailsValue = getClearingDetailLabelNew(documentLineItemDetail)
+
+          Some(Seq(
+            TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"), classes = "govuk-!-font-weight-regular govuk-!-width-one-third"),
+            TableRow(Text(getChargeDateNew(documentLineItemDetail)), classes = "govuk-!-font-weight-regular govuk-!-width-one-third"),
+            TableRow(viewOrRefund(clearingDetailsValue), classes = "govuk-!-font-weight-regular govuk-!-width-one-third")
+          ))
         } else {
-          None
+          Seq()
         }
       }
     }
