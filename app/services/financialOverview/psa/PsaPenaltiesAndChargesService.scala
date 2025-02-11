@@ -835,32 +835,44 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   def interestRowsNew(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =
     chargeReferenceInterestRowNew ++ interestTaxPeriodRow(data)
 
+
+
+
+
+
+
+
   def paidPenaltiesDetails(data: Seq[PsaFSDetail])(implicit messages: Messages): Table = {
     val headRow = Seq(
-      HeadCell(Text(Messages("receivedPayments.heading.amount"))),
-      HeadCell(Text(Messages("receivedPayments.heading.dateReceived"))),
-      HeadCell(Text(""), classes = "govuk-!-font-weight-regular")
+      HeadCell(Text(Messages("receivedPayments.heading.amount")), classes = "govuk-!-font-weight-bold govuk-!-width-one-third"),
+      HeadCell(Text(Messages("receivedPayments.heading.dateReceived")), classes = "govuk-!-font-weight-bold govuk-!-width-one-third"),
+      HeadCell(Text(""), classes = "govuk-!-font-weight-regular govuk-!-width-one-third")
     )
 
-    val rows = data.map { psaFSDetail =>
+    val rows = data.flatMap { psaFSDetail =>
       psaFSDetail.documentLineItemDetails.flatMap { documentLineItemDetail =>
         if (documentLineItemDetail.clearedAmountItem > 0) {
           getClearingDetailLabelNew(documentLineItemDetail) match {
             case Some(clearingDetailsValue) =>
-              Seq(
-                TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}")),
-                TableRow(Text(getChargeDateNew(documentLineItemDetail))),
-                TableRow(clearingDetailsValue, classes = "govuk-!-font-weight-bold")
-              )
-            case None => Seq()
+              Some(Seq(
+                TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(documentLineItemDetail.clearedAmountItem)}"), classes = "govuk-!-font-weight-regular govuk-!-width-one-third"),
+                TableRow(Text(getChargeDateNew(documentLineItemDetail)), classes = "govuk-!-font-weight-regular govuk-!-width-one-third"),
+                TableRow(clearingDetailsValue, classes = "govuk-!-font-weight-regular govuk-!-width-one-third")
+              ))
+            case None => None
           }
         } else {
-          Seq()
+          None
         }
       }
     }
 
-    Table(head = Some(headRow), rows = rows, attributes = Map("role" -> "table"))
+    Table(
+      head = Some(headRow),
+      rows = rows,
+      classes = "govuk-table govuk-!-width-full",
+      attributes = Map("role" -> "table")
+    )
   }
 
 }

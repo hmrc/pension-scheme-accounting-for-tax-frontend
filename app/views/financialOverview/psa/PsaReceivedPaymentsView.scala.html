@@ -23,7 +23,7 @@
 
 @(psaName: String, paymentsDetails: Table, insetText: HtmlContent, isRefund: Boolean)(implicit messages: Messages, request: Request[_])
 
-@layout(messages("receivedPayments.title")) {
+@layout(messages("receivedPayments.title"), fullWidthLayout = true) {
 
         <h1 class="govuk-caption-l">@psaName</h1>
         <h1 class="govuk-heading-l">@messages("receivedPayments.title")</h1>
@@ -32,8 +32,6 @@
             InsetText(content = insetText)
         )
 
-        <p class="govuk-body">
-            @govukTable(paymentsDetails)
-        </p>
+        @govukTable(paymentsDetails)
 
 }
