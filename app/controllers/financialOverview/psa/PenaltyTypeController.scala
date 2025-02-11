@@ -59,7 +59,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
         val radios = if (journeyType == ChargeDetailsFilter.History) {
             PenaltyType.radios(form, historyChargeTypes, areLabelsBold = false)
         } else {
-            PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
+            PenaltyType.radiosWithHint(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
         }
 
         Future.successful(Ok(
@@ -87,7 +87,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
           val radios = if (journeyType == ChargeDetailsFilter.History) {
             PenaltyType.radios(formWithErrors, historyChargeTypes, areLabelsBold = false)
           } else {
-            PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq))
+            PenaltyType.radiosWithHint(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq))
           }
 
           Future.successful(BadRequest(

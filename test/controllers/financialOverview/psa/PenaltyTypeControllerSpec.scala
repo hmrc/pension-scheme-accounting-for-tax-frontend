@@ -112,7 +112,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
         submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.All),
         buttonText = messages("site.save_and_continue"),
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-        radios = PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
+        radios = PenaltyType.radiosWithHint(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
         journeyType = ChargeDetailsFilter.All
       )(req, messages)
 

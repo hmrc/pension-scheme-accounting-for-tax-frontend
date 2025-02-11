@@ -50,7 +50,7 @@ object PenaltyType extends Enumerable.Implicits {
   val values: Seq[PenaltyType] =
     Seq(AccountingForTaxPenalties, ContractSettlementCharges, EventReportingCharges, InformationNoticePenalties, PensionsPenalties)
 
-  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil,
+  def radiosWithHint(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil,
              areLabelsBold: Boolean = true)(implicit messages: Messages): Seq[RadioItem] =
     {
       val x: Seq[Radio] = penaltyTypes.map { penaltyType =>
@@ -63,6 +63,19 @@ object PenaltyType extends Enumerable.Implicits {
 
       Radios(form("value"), x)
     }
+
+  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil,
+             areLabelsBold: Boolean = true)(implicit messages: Messages): Seq[RadioItem] =
+  {
+    val x: Seq[Radio] = penaltyTypes.map { penaltyType =>
+
+      Radios.Radio(label = Text(Messages(s"penaltyType.${penaltyType.penaltyType.toString}")),
+        value = penaltyType.penaltyType.toString,
+        labelClasses = Some(LabelClasses(classes = if(areLabelsBold) Seq("govuk-!-font-weight-bold") else Nil)))
+    }
+
+    Radios(form("value"), x)
+  }
 
 
   implicit val enumerable: Enumerable[PenaltyType] = Enumerable(values.map(v => v.toString -> v): _*)
