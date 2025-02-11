@@ -1576,6 +1576,9 @@ psa.financial.overview.all.text.new = The information may not reflect payments m
 psa.financial.overview.datePaid = Date paid:
 psa.financial.overview.returnToClearedPenalties = your cleared penalties and charges
 
+psa.financial.overview.historyChargeType.title = Select type of charge
+psa.financial.overview.chargeHistoryYear.title = Cleared penalties and charges
+
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.nino = member’s National Insurance number is missing or in the wrong format
