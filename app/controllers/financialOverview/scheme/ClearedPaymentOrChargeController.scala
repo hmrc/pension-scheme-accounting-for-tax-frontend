@@ -16,7 +16,6 @@
 
 package controllers.financialOverview.scheme
 
-import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import models.{ChargeDetailsFilter, Index}
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
