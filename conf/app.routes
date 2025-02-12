@@ -417,6 +417,10 @@ GET         /financial-overview/accounting-for-tax/:startDate/:identifier/penalt
 GET         /financial-overview/:penaltyType/:year/:identifier/penalties-and-charges                                                                 controllers.financialOverview.psa.AllPenaltiesAndChargesController.onPageLoad(year: String, identifier: String, penaltyType: String, journeyType: String = "all")
 
 GET         /financial-overview/:penaltyOrChargeType/:period/cleared-penalties-and-charges                                                           controllers.financialOverview.psa.ClearedPenaltiesAndChargesController.onPageLoad(period: String, penaltyOrChargeType: String, journeyType: String = "history")
+GET         /financial-overview/history-charge-type                                                                                                  controllers.financialOverview.psa.PenaltyTypeController.onPageLoad(journeyType: String = "history")
+POST        /financial-overview/history-charge-type                                                                                                  controllers.financialOverview.psa.PenaltyTypeController.onSubmit(journeyType: String = "history")
+GET         /financial-overview/:penaltyType/select-charge-history-year                                                                              controllers.financialOverview.psa.SelectPenaltiesYearController.onPageLoad(penaltyType: String, journeyType: String = "history")
+POST        /financial-overview/:penaltyType/select-charge-history-year                                                                              controllers.financialOverview.psa.SelectPenaltiesYearController.onSubmit(penaltyType: String, journeyType: String = "history")
 
 GET         /:srn/financial-overview/:paymentsType/select-charges-year                                                                               controllers.financialOverview.scheme.SelectYearController.onPageLoad(srn: String, paymentsType: String)
 POST        /:srn/financial-overview/:paymentsType/select-charges-year                                                                               controllers.financialOverview.scheme.SelectYearController.onSubmit(srn: String, paymentsType: String)
@@ -436,7 +440,6 @@ GET         /:srn/financial-overview/:paymentsType/:period/:index/interest/overd
 GET         /:srn/financial-overview/:paymentsType/:period/:version/:submittedDate/:index/interest/charge-details                                    controllers.financialOverview.scheme.PaymentsAndChargesInterestController.onPageLoad(srn: String, period: String, index: String, paymentsType: String, version: Option[Int], submittedDate: Option[String], journeyType: String = "all")
 GET         /:srn/financial-overview/:paymentsType/:period/:version/:submittedDate/:index/interest/upcoming-charge-details                           controllers.financialOverview.scheme.PaymentsAndChargesInterestController.onPageLoad(srn: String, period: String, index: String, paymentsType: String, version: Option[Int], submittedDate: Option[String], journeyType: String = "upcoming")
 GET         /:srn/financial-overview/:paymentsType/:period/:version/:submittedDate/:index/interest/overdue-charge-details                            controllers.financialOverview.scheme.PaymentsAndChargesInterestController.onPageLoad(srn: String, period: String, index: String, paymentsType: String, version: Option[Int], submittedDate: Option[String], journeyType: String = "overdue")
-
 
 GET         /refund-unavailable                                                                                                                      controllers.financialOverview.RefundUnavailableController.onPageLoad
 # file download

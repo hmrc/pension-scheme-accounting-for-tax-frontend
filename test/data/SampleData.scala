@@ -22,7 +22,7 @@ import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrga
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT, AFT_DAILY_LFP, CONTRACT_SETTLEMENT}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement._
 import models._
@@ -671,6 +671,39 @@ object SampleData {
         clearingReason = Some(FSClearingReason.CLEARED_WITH_DELTA_CREDIT),
         paymDateOrCredDueDate = Some(LocalDate.parse("2020-08-13"))
       ))
+    ),
+    PsaFSDetail(
+      index = 1,
+      chargeReference = "XY002610150184",
+      chargeType = AFT_DAILY_LFP,
+      dueDate = Some(LocalDate.parse("2020-11-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 0.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
+      periodStartDate = LocalDate.parse("2020-07-01"),
+      periodEndDate = LocalDate.parse("2020-09-30"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
+    ),
+    PsaFSDetail(
+      index = 2,
+      chargeReference = "XY002610150184",
+      chargeType = CONTRACT_SETTLEMENT,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 0.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
+      periodStartDate = LocalDate.parse("2020-10-01"),
+      periodEndDate = LocalDate.parse("2020-12-31"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      documentLineItemDetails = Nil
     )
   )
+
 }
