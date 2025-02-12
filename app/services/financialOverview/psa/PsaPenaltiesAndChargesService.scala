@@ -273,13 +273,13 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         Seq(
           TableRow(HtmlContent(
             s"<a id=${penaltyOrCharge.chargeReference} class=govuk-link href=/>" +
-              penaltyOrCharge.chargeType + "</a></br>" +
+              formatChargeTypeWithHyphen(penaltyOrCharge.chargeType.toString) + "</a></br>" +
               schemeName + "</br>" +
               penaltyOrCharge.chargeReference + "</br>" +
               formatStartDate(penaltyOrCharge.periodStartDate) + " to " + formatDateDMY(penaltyOrCharge.periodEndDate)
           ), classes = "govuk-!-width-one-half"),
           TableRow(HtmlContent(s"<p>${formatDateDMY(latestClearingDate)}</p>")),
-          TableRow(HtmlContent(s"<p>£${penaltyOrCharge.documentLineItemDetails.map(_.clearedAmountItem).sum}</p>"))
+          TableRow(HtmlContent(s"<p>${FormatHelper.formatCurrencyAmountAsString(penaltyOrCharge.documentLineItemDetails.map(_.clearedAmountItem).sum)}</p>"))
         )
       )
     })
@@ -289,6 +289,16 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     rows.map(tableRows =>
       Table(head = Some(tableHeader), rows = tableRows)
     )
+  }
+
+  private def formatChargeTypeWithHyphen(chargeTypeString: String) = {
+    chargeTypeString match {
+      case phrase if (phrase.contains("Accounting for Tax")) => phrase.replace("Accounting for Tax", "Accounting for Tax -")
+      case phrase if (phrase.contains("Overseas Transfer Charge")) => phrase.replace("Overseas Transfer Charge", "Overseas Transfer Charge -")
+      case phrase if (phrase.contains("Scheme Sanction Charge")) => phrase.replace("Scheme Sanction Charge", "Scheme Sanction Charge -")
+      case phrase if (phrase.contains("Lifetime Allowance Discharge Assessment")) => phrase.replace("Lifetime Allowance Discharge Assessment", "Lifetime Allowance Discharge Assessment -")
+      case _ => chargeTypeString
+    }
   }
 
   private def getSchemeName(psaId: String, pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
