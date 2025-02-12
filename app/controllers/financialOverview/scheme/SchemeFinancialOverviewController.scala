@@ -94,6 +94,13 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
       case false => routes.RequestRefundController.onPageLoad(srn).url
     }
 
+    val displayHistory = ???
+    val displayReceivedPayments = ???
+
+    // Below 2 links will need to be updated when relevant pages are created
+    val receivedPaymentsLink = routes.SchemeFinancialOverviewController.schemeFinancialOverview(srn).url
+    val historyLink = routes.SchemeFinancialOverviewController.schemeFinancialOverview(srn).url
+
     val templateToRender = if(config.podsNewFinancialCredits) {
       schemeFinancialOverviewNew(
         schemeName = schemeName,
@@ -106,6 +113,10 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
         allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
         creditBalanceFormatted = creditBalanceFormatted,
         creditBalance = creditBalance,
+        displayReceivedPayments = displayReceivedPayments,
+        receivedPaymentsLink = receivedPaymentsLink,
+        displayHistory = displayHistory,
+        historyLink = historyLink,
         isOverdueChargeAvailable = isOverdueChargeAvailable,
         returnUrl = returnUrl
       )
