@@ -1,7 +1,7 @@
 $govuk-assets-path: "/manage-pension-scheme-accounting-for-tax/assets/lib/govuk-frontend/govuk/assets/";
 $hmrc-assets-path: "/manage-pension-scheme-accounting-for-tax/assets/lib/hmrc-frontend/hmrc/assets";
 
-@import "lib/govuk-frontend/govuk/all";
+@import "lib/govuk-frontend/dist/govuk/all";
 @import "lib/hmrc-frontend/hmrc/components/header/header";
 @import "lib/hmrc-frontend/hmrc/components/page-heading/page-heading";
 @import "language-toggles.scss";
