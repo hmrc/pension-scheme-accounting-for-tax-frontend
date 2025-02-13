@@ -43,7 +43,7 @@ class RefundsController @Inject()(
     with I18nSupport {
 
 
-  def onPageLoad(journeyType: ChargeDetailsFilter): Action[AnyContent] =
+  def onPageLoad(): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
 
       minimalConnector.getPsaOrPspName.flatMap { name =>
@@ -58,7 +58,6 @@ class RefundsController @Inject()(
             val creditBalance = service.getCreditBalanceAmount(latestCredits)
             val creditTable = service.getLatestCreditsDetails(latestCredits)
             Future.successful(Ok(view(
-              journeyType = journeyType,
               name,
               creditBalance,
               requestRefundUrl,
