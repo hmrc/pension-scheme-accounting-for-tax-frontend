@@ -37,14 +37,14 @@ class ClearedPenaltiesAndChargesController @Inject()(override val messagesApi: M
                                                      view: ClearedPenaltiesAndChargesView)
                                                     (implicit ec: ExecutionContext) extends FrontendBaseController
   with I18nSupport {
-  def onPageLoad(period: String, paymentOrChargeType: PenaltyType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
+  def onPageLoad(period: String, penaltyOrChargeType: PenaltyType, journeyType: ChargeDetailsFilter): Action[AnyContent] =
     (identify andThen allowAccess()).async { implicit request =>
       psaPenaltiesAndChargesService.getPenaltiesForJourney(request.psaIdOrException.id, journeyType).flatMap { penaltiesCache =>
         val filteredPenalties: Seq[PsaFSDetail] = penaltiesCache.penalties
           .filter(_.periodEndDate.getYear == period.toInt)
-          .filter(p => getPenaltyType(p.chargeType) == paymentOrChargeType)
+          .filter(p => getPenaltyType(p.chargeType) == penaltyOrChargeType)
 
-        psaPenaltiesAndChargesService.getClearedPenaltiesAndCharges(request.idOrException, filteredPenalties).flatMap { table =>
+        psaPenaltiesAndChargesService.getClearedPenaltiesAndCharges(request.idOrException, period, penaltyOrChargeType, filteredPenalties).flatMap { table =>
           Future.successful(Ok(view(penaltiesCache.psaName, table)))
         }
       }

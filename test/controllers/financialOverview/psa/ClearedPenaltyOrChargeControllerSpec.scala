@@ -92,6 +92,9 @@ class ClearedPenaltyOrChargeControllerSpec extends ControllerSpecBase {
     Table(head = Some(headRow), rows = Seq(rows))
   }
 
+  private def returnLink: String =
+    routes.ClearedPenaltiesAndChargesController.onPageLoad("2020", PenaltyType.AccountingForTaxPenalties).url
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaPenaltiesAndChargesService)
@@ -101,6 +104,7 @@ class ClearedPenaltyOrChargeControllerSpec extends ControllerSpecBase {
       .thenReturn(chargeDetailsRow)
     when(mockPsaPenaltiesAndChargesService.chargeAmountDetailsRows(any(), any(), any())(any()))
       .thenReturn(table)
+    when(mockPsaPenaltiesAndChargesService.getClearingDate(any())).thenReturn("13 August 2020")
   }
 
   "ClearedPenaltyOrChargeController" must {
@@ -115,7 +119,7 @@ class ClearedPenaltyOrChargeControllerSpec extends ControllerSpecBase {
         formatDateDMY(LocalDate.parse("2020-08-13")),
         chargeDetailsRow,
         table,
-        httpPathGET
+        returnLink
       )(messages, httpGETRequest(httpPathGET))
 
       compareResultAndView(result, view)

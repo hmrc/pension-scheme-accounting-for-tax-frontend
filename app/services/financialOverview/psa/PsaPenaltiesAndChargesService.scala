@@ -254,7 +254,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
   }
 
-  def getClearedPenaltiesAndCharges(psaId: String, psaFs: Seq[PsaFSDetail])
+  def getClearedPenaltiesAndCharges(psaId: String, period: String, penaltyType: PenaltyType, psaFs: Seq[PsaFSDetail])
                                    (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
     val clearedPenaltiesAndCharges = psaFs.filter(_.outstandingAmount <= 0)
 
@@ -269,31 +269,48 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       )
     }
 
-    def getRows = clearedPenaltiesAndCharges.map(penaltyOrCharge => {
-      val clearingDates = penaltyOrCharge.documentLineItemDetails.flatMap(documentLineItemDetail =>
-        documentLineItemDetail.clearingDate)
-      val latestClearingDate = clearingDates.max
+    def getRows = clearedPenaltiesAndCharges.zipWithIndex.map{ case (penaltyOrCharge, index) => {
+      val clearingDate = getClearingDate(penaltyOrCharge.documentLineItemDetails)
 
+      val chargeLink = controllers.financialOverview.psa.routes.ClearedPenaltyOrChargeController.onPageLoad(period, penaltyType, index)
       getSchemeName(psaId, penaltyOrCharge.pstr).map(schemeName =>
         Seq(
           TableRow(HtmlContent(
-            s"<a id=${penaltyOrCharge.chargeReference} class=govuk-link href=/>" +
+            s"<a id=${penaltyOrCharge.chargeReference} class=govuk-link href=$chargeLink>" +
               formatChargeTypeWithHyphen(penaltyOrCharge.chargeType.toString) + "</a></br>" +
               schemeName + "</br>" +
               penaltyOrCharge.chargeReference + "</br>" +
               formatStartDate(penaltyOrCharge.periodStartDate) + " to " + formatDateDMY(penaltyOrCharge.periodEndDate)
           ), classes = "govuk-!-width-one-half"),
-          TableRow(HtmlContent(s"<p>${formatDateDMY(latestClearingDate)}</p>")),
+          TableRow(HtmlContent(s"<p>$clearingDate</p>")),
           TableRow(HtmlContent(s"<p>${FormatHelper.formatCurrencyAmountAsString(penaltyOrCharge.documentLineItemDetails.map(_.clearedAmountItem).sum)}</p>"))
         )
       )
-    })
+    }}
 
     val rows = Future.sequence(getRows)
 
     rows.map(tableRows =>
       Table(head = Some(tableHeader), rows = tableRows)
     )
+  }
+
+  def getClearingDate(documentLineItemDetails: Seq[DocumentLineItemDetail]): String = {
+    val paymentDates = documentLineItemDetails.flatMap { documentLineItemDetail =>
+      (documentLineItemDetail.paymDateOrCredDueDate, documentLineItemDetail.clearingDate) match {
+        case (Some(paymDateOrCredDueDate), _) =>
+          Some(paymDateOrCredDueDate)
+        case (None, Some(clearingDate)) =>
+          Some(clearingDate)
+        case _ => None
+      }
+    }
+
+    if (paymentDates.nonEmpty) {
+      DateHelper.formatDateDMY(paymentDates.max)
+    } else {
+      ""
+    }
   }
 
   private def formatChargeTypeWithHyphen(chargeTypeString: String) = {

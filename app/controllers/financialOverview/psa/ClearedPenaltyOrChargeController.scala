@@ -53,27 +53,12 @@ class ClearedPenaltyOrChargeController @Inject()(override val messagesApi: Messa
         val penalty = filteredPenalties(index)
         val chargeDetails: Seq[SummaryListRow] = psaPenaltiesAndChargesService.getChargeDetailsForClearedCharge(penalty)
 
-        val paymentDates = penalty.documentLineItemDetails.flatMap { documentLineItemDetail =>
-          (documentLineItemDetail.paymDateOrCredDueDate, documentLineItemDetail.clearingDate) match {
-            case (Some(paymDateOrCredDueDate), _) =>
-              Some(paymDateOrCredDueDate)
-            case (None, Some(clearingDate)) =>
-              Some(clearingDate)
-            case _ => None
-          }
-        }
-
-        val datePaid = if (paymentDates.nonEmpty) {
-          DateHelper.formatDateDMY(paymentDates.max)
-        } else {
-          ""
-        }
+        val datePaid = psaPenaltiesAndChargesService.getClearingDate(penalty.documentLineItemDetails)
 
         val paymentsTable = psaPenaltiesAndChargesService
           .chargeAmountDetailsRows(penalty, Some(Messages("psa.pension.scheme.charge.details.new")), "govuk-table__caption--l")
 
-        // Url to be updated when page merged to main
-        val returnUrl = routes.ClearedPenaltyOrChargeController.onPageLoad(period, paymentOrChargeType, index).url
+        val returnUrl = routes.ClearedPenaltiesAndChargesController.onPageLoad(period, paymentOrChargeType).url
 
         Future.successful(Ok(clearedPenaltyOrChargeView(
           penalty.chargeType.toString,
