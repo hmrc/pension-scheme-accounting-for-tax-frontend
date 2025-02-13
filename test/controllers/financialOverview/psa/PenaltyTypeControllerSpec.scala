@@ -21,11 +21,11 @@ import connectors.ListOfSchemesConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import controllers.financialOverview.psa.SelectSchemeControllerSpec.penaltySchemes
-import data.SampleData.{dummyCall, multiplePenalties, psaFsSeqHistorical, psaId}
+import data.SampleData.{dummyCall, multiplePenalties, psaFsSeqWithCleared, psaId}
 import forms.financialStatement.PenaltyTypeFormProvider
 import matchers.JsonMatchers
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, ContractSettlementCharges}
-import models.financialStatement.{DisplayPenaltyType, PenaltyType, PsaFSDetail}
+import models.financialStatement.{DisplayPenaltyType, PenaltyType}
 import models.requests.IdentifierRequest
 import models.{ChargeDetailsFilter, Enumerable, ListOfSchemes, ListSchemeDetails, PaymentOverdue}
 import org.mockito.ArgumentMatchers.any
@@ -92,7 +92,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", multiplePenalties)))
     when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any()))
-      .thenReturn(psaFsSeqHistorical)
+      .thenReturn(psaFsSeqWithCleared)
     when(mockNavigationService.penaltySchemes(any(): Int, any(), any(), any())(any(), any())).
       thenReturn(Future.successful(penaltySchemes))
     when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
