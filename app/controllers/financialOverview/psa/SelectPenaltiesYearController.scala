@@ -19,7 +19,7 @@ package controllers.financialOverview.psa
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
-import models.ChargeDetailsFilter.{All, History}
+import models.ChargeDetailsFilter.History
 import models.financialStatement.PenaltyType._
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.requests.IdentifierRequest

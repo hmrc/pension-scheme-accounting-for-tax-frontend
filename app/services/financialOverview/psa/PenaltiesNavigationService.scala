@@ -20,7 +20,6 @@ import connectors.ListOfSchemesConnector
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, EventReportingCharges, getPenaltyType}
 import controllers.financialOverview.psa.routes._
 import models.ChargeDetailsFilter.History
-import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.{PenaltyType, PsaFSDetail}
 import models.{ChargeDetailsFilter, ListSchemeDetails, PenaltySchemes}
 import play.api.Logger
