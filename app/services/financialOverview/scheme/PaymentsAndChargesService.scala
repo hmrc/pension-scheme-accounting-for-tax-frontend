@@ -659,6 +659,56 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   private def displayChargeReference(chargeReference: String)(implicit messages: Messages): String = {
     if(chargeReference == "") messages("paymentsAndCharges.chargeReference.toBeAssigned") else chargeReference
   }
+
+  private def getPaymentDates(documentLineItemDetails: Seq[DocumentLineItemDetail]) = {
+    documentLineItemDetails.flatMap { documentLineItemDetail =>
+      (documentLineItemDetail.paymDateOrCredDueDate, documentLineItemDetail.clearingDate) match {
+        case (Some(paymDateOrCredDueDate), _) =>
+          Some(paymDateOrCredDueDate)
+        case (None, Some(clearingDate)) =>
+          Some(clearingDate)
+        case _ => None
+      }
+    }
+  }
+
+  def getClearedPenaltiesAndCharges(psaFs: Seq[SchemeFSDetail])
+                                   (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
+    val clearedPenaltiesAndCharges = psaFs.filter(_.outstandingAmount <= 0)
+
+    val tableHeader = {
+      Seq(
+        HeadCell(
+          HtmlContent(
+            s"<span class='govuk-visually-hidden'>${messages("scheme.financial.overview.paymentOrCharge")}</span>"
+          )),
+        HeadCell(Text(Messages("scheme.financial.overview.clearedPaymentsAndCharges.datePaid")), classes = "govuk-!-font-weight-bold"),
+        HeadCell(Text(Messages("financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold")
+      )
+    }
+
+    val rows = clearedPenaltiesAndCharges.map(paymentOrCharge => {
+
+      val latestClearingDate = if(getPaymentDates(paymentOrCharge.documentLineItemDetails).nonEmpty) {
+        DateHelper.formatDateDMY(getPaymentDates(paymentOrCharge.documentLineItemDetails).max)
+      } else {
+        ""
+      }
+
+        Seq(
+          TableRow(HtmlContent(
+            s"<a id=${paymentOrCharge.chargeReference} class=govuk-link href=/>" +
+              paymentOrCharge.chargeType.toString + "</a></br>" +
+              paymentOrCharge.chargeReference + "</br>" +
+              formatStartDate(paymentOrCharge.periodStartDate) + " to " + formatDateDMY(paymentOrCharge.periodEndDate)
+          ), classes = "govuk-!-width-one-half"),
+          TableRow(HtmlContent(s"<p>${latestClearingDate}</p>")),
+          TableRow(HtmlContent(s"<p>${FormatHelper.formatCurrencyAmountAsString(paymentOrCharge.documentLineItemDetails.map(_.clearedAmountItem).sum)}</p>"))
+        )
+    })
+
+    Table(head = Some(tableHeader), rows = rows)
+  }
 }
 
 case class PaymentsCache(loggedInId: String,

@@ -91,7 +91,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
   private val tableHead = Seq(
     HeadCell(Text(messages("psa.financial.overview.penalty")), classes = "govuk-!-width-one-half"),
     HeadCell(Text(messages("psa.financial.overview.charge.reference")), classes = "govuk-!-font-weight-bold"),
-    HeadCell(Text(messages("psa.financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold"),
+    HeadCell(Text(messages("financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold"),
     HeadCell(Text(messages("psa.financial.overview.payment.due")), classes = "govuk-!-font-weight-bold"),
     HeadCell(HtmlContent(
       s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"
