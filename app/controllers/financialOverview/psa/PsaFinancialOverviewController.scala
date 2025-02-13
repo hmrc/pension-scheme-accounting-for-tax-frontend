@@ -85,7 +85,7 @@ class PsaFinancialOverviewController @Inject()(
 
     val allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url
     val duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url
-    val allPaymentLink = routes.PenaltyTypeController.onPageLoad("all").url
+    val allPaymentLink = routes.RefundsController.onPageLoad().url
 
     // Below 2 links will need to be updated when relevant pages are created
     val receivedPaymentsLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url

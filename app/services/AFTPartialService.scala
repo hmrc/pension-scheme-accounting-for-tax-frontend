@@ -23,16 +23,18 @@ import helpers.FormatHelper
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSDetail.{endDate, startDate}
 import models.financialStatement.{PsaFSDetail, SchemeFSDetail}
-import models.{AFTOverviewOnPODS, Draft, LockDetail, Quarters}
+import models.{AFTOverviewOnPODS, Draft, LockDetail, Member, Quarters}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Content
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{Content, HtmlContent}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatDateDMY}
 import viewmodels._
 
 import java.time.LocalDate
@@ -549,4 +551,28 @@ class AFTPartialService @Inject()(
     creditBalanceAmt
   }
 
+  def getLatestCreditsDetails(latestCredits: Seq[PsaFSDetail]
+                                            )(implicit messages: Messages): table.Table = {
+
+    val head: Seq[HeadCell] = Seq(
+      HeadCell(Text("")),
+      HeadCell(Text(Messages("refunds.aft.date"))),
+      HeadCell(Text(Messages("refunds.aft.credit.value"))))
+
+    val rows = latestCredits.map { psaFSDetail =>
+        Seq(
+          TableRow(getCreditsLabel(psaFSDetail), classes = "govuk-!-width-one-half"),
+          TableRow(Text(formatDateDMY(psaFSDetail.dueDate.get)), classes = "govuk-!-width-one-quarter"),
+          TableRow(Text(psaFSDetail.amountDue.abs.toString), classes = "govuk-!-width-one-quarter"))
+    }
+
+    uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table(head = Some(head), rows = rows , attributes = Map("role" -> "table"))
+  }
+
+  private def getCreditsLabel(psaFSDetail: PsaFSDetail): HtmlContent = {
+    HtmlContent(
+      s"${psaFSDetail.chargeType.toString}</br>" +
+        formatDateDMY(psaFSDetail.periodStartDate) + " to " + formatDateDMY(psaFSDetail.periodEndDate)
+    )
+  }
 }
