@@ -21,7 +21,7 @@ import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.SchemeDetails
-import models.financialStatement.SchemeFSDetail
+import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
@@ -94,8 +94,12 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
       case false => routes.RequestRefundController.onPageLoad(srn).url
     }
 
-    val displayHistory = ???
-    val displayReceivedPayments = ???
+    def retrievePaidPaymentsAndCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] = {
+      schemeFSDetail.filter(_.outstandingAmount <= 0)
+    }
+
+    val displayHistory = retrievePaidPaymentsAndCharges(schemeFSDetail).nonEmpty
+    val displayReceivedPayments: Boolean = schemeFSCache.schemeFSDetail.exists(_.chargeType == SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
 
     // Below 2 links will need to be updated when relevant pages are created
     val receivedPaymentsLink = routes.SchemeFinancialOverviewController.schemeFinancialOverview(srn).url

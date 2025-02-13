@@ -40,7 +40,7 @@ isOverdueChargeAvailable: Boolean,
 returnUrl: String
 )(implicit messages: Messages, request: Request[_])
 
-@layout(messages("schemeFinancial.title"), fullWidthLayout = true) {
+@layout(messages("schemeFinancial.title.new"), fullWidthLayout = true) {
 
 <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
@@ -54,7 +54,7 @@ returnUrl: String
 
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
-                    <h2 class="govuk-heading-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">@messages("schemeFinancial.h2.overdueCharges")</h2>
+                    <h2 class="govuk-heading-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">@messages("schemeFinancial.h2.overdueCharges.new")</h2>
                     <p class="govuk-body">@messages("schemeFinancial.p1.overdueCharges")</p>
                 </div>
             </div>
@@ -78,7 +78,7 @@ returnUrl: String
             @if(totalOverdueCharge != "£0.00") {
             <p class="govuk-body-m govuk-!-margin-bottom-6">
                 <a id="allOverdue" class="govuk-link" href="@allOverduePenaltiesAndInterestLink">
-                    @messages("schemeFinancial.allOverdue.link")
+                    @messages("schemeFinancial.allOverdue.link.new")
                 </a>
             </p>
             }
@@ -108,7 +108,7 @@ returnUrl: String
             @if(totalUpcomingCharge != "£0.00") {
             <p class="govuk-body-m govuk-!-margin-bottom-6">
                 <a id="allDue" class="govuk-link" href="@duePaymentLink">
-                    @messages("schemeFinancial.allDue.link.new")
+                    @messages("schemeFinancial.ji.link.new")
                 </a>
             </p>
             }

@@ -22,7 +22,7 @@ import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrga
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.financialStatement.PsaFSChargeType.{CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT, AFT_DAILY_LFP, CONTRACT_SETTLEMENT}
+import models.financialStatement.PsaFSChargeType.{AFT_DAILY_LFP, CONTRACT_SETTLEMENT, CONTRACT_SETTLEMENT_INTEREST, OTC_6_MONTH_LPP, PAYMENT_ON_ACCOUNT}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement._
 import models._
