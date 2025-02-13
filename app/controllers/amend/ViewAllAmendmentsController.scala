@@ -29,9 +29,8 @@ import pages.ViewOnlyAccessiblePage
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.JsObject
 import play.api.mvc._
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
 
 import java.time.LocalDate
@@ -50,8 +49,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
                                             amendmentHelper: AmendmentHelper,
                                             viewAllAmendmentsView: ViewAllAmendmentsView)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen

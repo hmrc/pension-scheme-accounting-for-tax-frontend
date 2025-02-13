@@ -27,7 +27,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialOverview.scheme.PaymentOrChargeTypeView
 
 import javax.inject.Inject
@@ -59,9 +58,9 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
           submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
           schemeName = cache.schemeDetails.schemeName,
           returnUrl = config.schemeDashboardUrl(request).format(srn),
-          radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(form(), paymentsOrCharges,
+          radios = PaymentOrChargeType.radios(form(), paymentsOrCharges,
             Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
-        )))
+        ))
       }
     }
 
@@ -76,10 +75,9 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
             submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
             schemeName = cache.schemeDetails.schemeName,
             returnUrl = config.schemeDashboardUrl(request).format(srn),
-            radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail))
+            radios = PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail))
               )
             )
-          )
         )
         },
         value => navService.navFromPaymentsTypePage(cache.schemeFSDetail, srn, value)

@@ -28,7 +28,6 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.AFTPartialService
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialOverview.psa.PenaltyTypeView
 
 import javax.inject.Inject
@@ -58,11 +57,9 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
         val historyChargeTypes = getHistoryChargeTypes(penaltiesCache.penalties.toSeq)
 
         val radios = if (journeyType == ChargeDetailsFilter.History) {
-          TwirlMigration.toTwirlRadios(
-            PenaltyType.radios(form, historyChargeTypes, areLabelsBold = false))
+            PenaltyType.radios(form, historyChargeTypes, areLabelsBold = false)
         } else {
-          TwirlMigration.toTwirlRadiosWithHintText(
-            PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+            PenaltyType.radiosWithHint(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
         }
 
         Future.successful(Ok(
@@ -88,9 +85,9 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
           val historyChargeTypes = getHistoryChargeTypes(penaltiesCache.penalties.toSeq)
 
           val radios = if (journeyType == ChargeDetailsFilter.History) {
-            TwirlMigration.toTwirlRadios(PenaltyType.radios(formWithErrors, historyChargeTypes, areLabelsBold = false))
+            PenaltyType.radios(formWithErrors, historyChargeTypes, areLabelsBold = false)
           } else {
-            TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq)))
+            PenaltyType.radiosWithHint(formWithErrors, getPenaltyTypes(penaltiesCache.penalties.toSeq))
           }
 
           Future.successful(BadRequest(

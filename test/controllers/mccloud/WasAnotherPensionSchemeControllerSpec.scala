@@ -87,7 +87,6 @@ class WasAnotherPensionSchemeControllerSpec
   "WasAnotherPensionScheme Controller" must {
 
     "return OK and the correct view for a GET for AnnualAllowance" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance)
@@ -110,7 +109,6 @@ class WasAnotherPensionSchemeControllerSpec
 
 
     "return OK and the correct view for a GET for LifetimeAllowance" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETLifetimeAllowance)

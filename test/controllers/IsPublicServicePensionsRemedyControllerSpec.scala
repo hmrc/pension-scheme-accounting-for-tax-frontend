@@ -95,7 +95,6 @@ class IsPublicServicePensionsRemedyControllerSpec
   "IsPublicServicePensionsRemedy Controller" must {
 
     "return OK and the correct view for a GET for Annual allowance (fileUpload)" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance(None))
@@ -119,7 +118,6 @@ class IsPublicServicePensionsRemedyControllerSpec
       compareResultAndView(result, view)
     }
     "return OK and the correct view for a GET (for ManualInput PSR question)" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance(Some(0)))
@@ -144,7 +142,6 @@ class IsPublicServicePensionsRemedyControllerSpec
     }
 
     "return OK and the correct view for a GET for Lifetime allowance (Manual Input) for PSR dynamic" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAppConfig.mccloudPsrAlwaysTrueStartDate).thenReturn(mccloudPsrAlwaysTrueStartDate)
 
       val ua = userAnswers.setOrException(QuarterPage, SampleData.taxQtrAprToJun2023)
@@ -172,7 +169,6 @@ class IsPublicServicePensionsRemedyControllerSpec
     }
 
     "return OK and the correct view for a GET for Lifetime allowance (Manual Input) for PSR default true" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAppConfig.mccloudPsrAlwaysTrueStartDate).thenReturn(mccloudPsrAlwaysTrueStartDate)
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
@@ -262,7 +258,6 @@ class IsPublicServicePensionsRemedyControllerSpec
     }
 
     "return a Bad Request and errors when invalid data is submitted (manual journey)" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
@@ -288,7 +283,6 @@ class IsPublicServicePensionsRemedyControllerSpec
       compareResultAndView(result, view)
     }
     "return a Bad Request and errors when invalid data is submitted (fileUpload journey)" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

@@ -41,7 +41,6 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
-import utils.TwirlMigration
 import views.html.financialOverview.psa.SelectSchemeView
 
 import scala.concurrent.Future
@@ -76,8 +75,8 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
     reset(mockAppConfig)
     reset(mockFICacheConnector)
     reset(mockFSConnector)
-    when(mockAppConfig.timeoutSeconds).thenReturn("5")
-    when(mockAppConfig.countdownSeconds).thenReturn("1")
+    when(mockAppConfig.timeoutSeconds).thenReturn(5)
+    when(mockAppConfig.countdownSeconds).thenReturn(1)
     when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("/mockUrl")
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
@@ -101,12 +100,11 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
           typeParam = mockPsaPenaltiesAndChargesService.getTypeParam(penaltyType),
           psaName = "psa-name",
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-          radios = TwirlMigration.toTwirlRadiosWithHintText(
-            PenaltySchemes.radios(
+          radios = PenaltySchemes.radios(
               form,
               penaltySchemes,
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline"),
-              areLabelsBold = false))
+              areLabelsBold = false)
         )(request, messages)
 
         compareResultAndView(result, view)

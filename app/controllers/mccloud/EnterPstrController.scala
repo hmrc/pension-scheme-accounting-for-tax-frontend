@@ -69,7 +69,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
           case None => form()
         }
 
-        (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), twirlLifetimeOrAnnual(chargeType)) match {
+        (ordinal(Some(schemeIndex)).map(_.value).getOrElse(""), twirlLifetimeOrAnnual(chargeType)) match {
           case (ordinalValue, Some(chargeTypeDesc)) =>
             Future.successful(Ok(enterPstrView(
               form = preparedForm,
@@ -100,7 +100,7 @@ class EnterPstrController @Inject()(override val messagesApi: MessagesApi,
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              (ordinal(Some(schemeIndex)).map(_.resolve).getOrElse(""), twirlLifetimeOrAnnual(chargeType)) match {
+              (ordinal(Some(schemeIndex)).map(_.value).getOrElse(""), twirlLifetimeOrAnnual(chargeType)) match {
                 case (ordinalValue, Some(chargeTypeDesc)) =>
                   Future.successful(BadRequest(enterPstrView(
                     formWithErrors,

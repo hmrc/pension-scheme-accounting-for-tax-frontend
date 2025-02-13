@@ -28,7 +28,6 @@ import pages.fileUpload.InputSelectionPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.fileUpload.InputSelectionView
 
 import javax.inject.Inject
@@ -60,7 +59,7 @@ class InputSelectionController @Inject()(
         val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
 
         Future.successful(Ok(view(preparedForm, schemeName, submitUrl, returnUrl,ChargeType.fileUploadText(chargeType),
-          TwirlMigration.toTwirlRadiosWithHintText(InputSelection.radios(preparedForm)))))
+          InputSelection.radios(preparedForm))))
       }
     }
 
@@ -76,7 +75,7 @@ class InputSelectionController @Inject()(
               val submitUrl =  controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, version, chargeType)
               val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
               Future.successful(BadRequest(view(formWithErrors, schemeName, submitUrl, returnUrl,ChargeType.fileUploadText(chargeType),
-                TwirlMigration.toTwirlRadiosWithHintText(InputSelection.radios(formWithErrors)))))
+                InputSelection.radios(formWithErrors))))
             },
             { inputSelection =>
               val updatedUA = ua.setOrException(InputSelectionPage(chargeType), inputSelection)

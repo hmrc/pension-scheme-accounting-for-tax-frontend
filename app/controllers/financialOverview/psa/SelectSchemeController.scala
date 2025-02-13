@@ -29,7 +29,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialOverview.psa.SelectSchemeView
 
 import java.time.LocalDate
@@ -69,8 +68,8 @@ class SelectSchemeController @Inject()(
               typeParam = typeParam,
               psaName = penaltiesCache.psaName,
               returnUrl = appConfig.managePensionsSchemeOverviewUrl,
-              radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltySchemes.radios(form(penaltySchemes, typeParam), displayPenaltySchemes,
-                Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)))
+              radios = PenaltySchemes.radios(form(penaltySchemes, typeParam), displayPenaltySchemes,
+                Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
             ))
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
@@ -98,7 +97,7 @@ class SelectSchemeController @Inject()(
                 typeParam = typeParam,
                 psaName = penaltiesCache.psaName,
                 returnUrl = appConfig.managePensionsSchemeOverviewUrl,
-                radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltySchemes.radios(formWithErrors, penaltySchemes))
+                radios = PenaltySchemes.radios(formWithErrors, penaltySchemes)
               ))
               )
             },

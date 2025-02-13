@@ -29,7 +29,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.chargeE.AnnualAllowanceYearView
 
 import java.time.LocalDate
@@ -68,7 +67,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
             schemeName,
             submitUrl,
             returnUrl,
-            TwirlMigration.toTwirlRadios(YearRange.radios(preparedForm))
+            YearRange.radios(preparedForm)
           )))
         }
       }
@@ -86,7 +85,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
                   schemeName,
                   submitUrl,
                   returnUrl,
-                  TwirlMigration.toTwirlRadios(YearRange.radios(formWithErrors))
+                  YearRange.radios(formWithErrors)
                 )))
               },
               value => {

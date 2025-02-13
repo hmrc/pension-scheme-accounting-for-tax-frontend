@@ -28,7 +28,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -59,7 +58,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       Future.successful(Ok(selectYearView(
         form(typeParam),
         typeParam,
-        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form(typeParam), years)),
+        FSYears.radios(form(typeParam), years),
         routes.SelectPenaltiesYearController.onSubmit(penaltyType,  journeyType),
         config.managePensionsSchemeOverviewUrl,
         penaltiesCache.psaName
@@ -88,7 +87,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
           Future.successful(BadRequest(selectYearView(
             formWithErrors,
             typeParam,
-            TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, getYears(penaltyType, penaltiesCache.penalties))),
+            FSYears.radios(formWithErrors, getYears(penaltyType, penaltiesCache.penalties)),
             routes.SelectPenaltiesYearController.onSubmit(penaltyType,  journeyType),
             config.managePensionsSchemeOverviewUrl,
             penaltiesCache.psaName

@@ -34,8 +34,7 @@ import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{route, status, _}
-import utils.TwirlMigration
+import play.api.test.Helpers._
 import views.html.fileUpload.InputSelectionView
 
 import scala.concurrent.Future
@@ -73,7 +72,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with JsonMatchers 
 
       val view = application.injector.instanceOf[InputSelectionView].apply(
         form, schemeName, submitUrl, returnUrl, ChargeType.fileUploadText(chargeType),
-        TwirlMigration.toTwirlRadiosWithHintText(InputSelection.radios(form)))(request, messages)
+        InputSelection.radios(form))(request, messages)
 
       val result = route(application, request).value
 
@@ -93,7 +92,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with JsonMatchers 
 
       val view = application.injector.instanceOf[InputSelectionView].apply(
         boundForm, schemeName, submitUrl, returnUrl, ChargeType.fileUploadText(chargeType),
-        TwirlMigration.toTwirlRadiosWithHintText(InputSelection.radios(boundForm)))(request, messages)
+        InputSelection.radios(boundForm))(request, messages)
 
       val result = route(application, request).value
 

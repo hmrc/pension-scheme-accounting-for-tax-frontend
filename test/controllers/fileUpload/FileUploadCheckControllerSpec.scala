@@ -32,10 +32,9 @@ import pages.fileUpload.UploadCheckPage
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import play.api.{Application, inject}
 import services.fileUpload.UploadProgressTracker
-import utils.TwirlMigration
 import views.html.fileUpload.FileUploadResultView
 
 import java.time.LocalDateTime
@@ -95,7 +94,7 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with JsonMatchers
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
 
       val view = application.injector.instanceOf[FileUploadResultView].apply(
-        form, schemeName, ChargeType.fileUploadText(chargeType), submitUrl, returnUrl, "name", TwirlMigration.toTwirlRadios(UploadCheckSelection.radios(form))
+        form, schemeName, ChargeType.fileUploadText(chargeType), submitUrl, returnUrl, "name", UploadCheckSelection.radios(form)
       )(request, messages)
 
       val result = route(application, request).value
@@ -113,7 +112,7 @@ class FileUploadCheckControllerSpec extends ControllerSpecBase with JsonMatchers
 
       val view = application.injector.instanceOf[FileUploadResultView].apply(
         form.fill(Yes), schemeName, ChargeType.fileUploadText(chargeType), submitUrl, returnUrl, "name",
-        TwirlMigration.toTwirlRadios(UploadCheckSelection.radios(form.fill(Yes)))
+        UploadCheckSelection.radios(form.fill(Yes))
       )(request, messages)
 
       val result = route(application, request).value

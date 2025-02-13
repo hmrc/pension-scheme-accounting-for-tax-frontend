@@ -34,7 +34,6 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.{ActionFilter, AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Result}
 import play.api.test.Helpers.{GET, POST}
 import play.api.test.{FakeHeaders, FakeRequest}
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -54,14 +53,13 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
   }
 
   override def beforeEach(): Unit = {
-    Mockito.reset(mockRenderer)
     Mockito.reset(mockUserAnswersCacheConnector)
     Mockito.reset(mockCompoundNavigator)
     Mockito.reset(mockAllowAccessActionProvider)
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
     when(mockAllowAccessActionProviderForIdentifierRequest.apply(any())).thenReturn(FakeActionFilterForIdentifierRequest)
-    when(mockAppConfig.timeoutSeconds).thenReturn("900")
-    when(mockAppConfig.countdownSeconds).thenReturn("120")
+    when(mockAppConfig.timeoutSeconds).thenReturn(900)
+    when(mockAppConfig.countdownSeconds).thenReturn(120)
     when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("someurl")
   }
 
@@ -71,7 +69,6 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
 
   protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   protected val mockCompoundNavigator: CompoundNavigator = mock[CompoundNavigator]
-  protected val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
   protected val mockAllowAccessActionProvider: AllowAccessActionProvider = mock[AllowAccessActionProvider]
   protected val mockAllowAccessActionProviderForIdentifierRequest: AllowAccessActionProviderForIdentifierRequest =
@@ -80,7 +77,6 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
   def modules: Seq[GuiceableModule] = Seq(
     bind[DataRequiredAction].to[DataRequiredActionImpl],
     bind[IdentifierAction].to[FakeIdentifierAction],
-    bind[NunjucksRenderer].toInstance(mockRenderer),
     bind[FrontendAppConfig].toInstance(mockAppConfig),
     bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
     bind[CompoundNavigator].toInstance(mockCompoundNavigator),

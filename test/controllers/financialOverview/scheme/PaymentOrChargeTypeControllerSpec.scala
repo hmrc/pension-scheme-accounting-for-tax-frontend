@@ -37,13 +37,11 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results
 import play.api.test.Helpers._
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.TwirlMigration
 import views.html.financialOverview.scheme.PaymentOrChargeTypeView
 
 import scala.concurrent.Future
 
-class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -91,8 +89,8 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
         schemeName = schemeName,
         submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
         returnUrl = dummyCall.url,
-        radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(form, displayPaymentOrChargeType,
-        Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+        radios = PaymentOrChargeType.radios(form, displayPaymentOrChargeType,
+        Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)
       )(req, messages)
 
       compareResultAndView(result, view)

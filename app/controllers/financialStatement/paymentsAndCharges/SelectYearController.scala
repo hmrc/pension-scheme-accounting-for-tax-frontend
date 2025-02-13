@@ -27,7 +27,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
 import services.paymentsAndCharges.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -66,8 +65,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
         Future.successful(Ok(selectYearView(
           form(journeyType, paymentOrChargeType, typeParam, config),
           getTitle(typeParam, paymentOrChargeType, journeyType),
-          TwirlMigration.toTwirlRadiosWithHintText(
-            FSYears.radios(form(journeyType, paymentOrChargeType, typeParam, config), years, isTaxYearFormat(paymentOrChargeType))),
+          FSYears.radios(form(journeyType, paymentOrChargeType, typeParam, config), years, isTaxYearFormat(paymentOrChargeType)),
           routes.SelectYearController.onSubmit(srn, paymentOrChargeType,  journeyType),
           config.schemeDashboardUrl(request).format(srn),
           paymentsCache.schemeDetails.schemeName
@@ -89,8 +87,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
               Future.successful(BadRequest(selectYearView(
                 formWithErrors,
                 getTitle(typeParam, paymentOrChargeType, journeyType),
-                TwirlMigration.toTwirlRadiosWithHintText(
-                  FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType))),
+                FSYears.radios(formWithErrors, years, isTaxYearFormat(paymentOrChargeType)),
                 routes.SelectYearController.onSubmit(srn, paymentOrChargeType,  journeyType),
                 config.schemeDashboardUrl(request).format(srn),
                 paymentsCache.schemeDetails.schemeName

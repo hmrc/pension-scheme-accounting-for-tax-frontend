@@ -60,7 +60,6 @@ class AFTReturnLockedControllerSpec extends ControllerSpecBase with MockitoSugar
   "AFT return locked controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
 
       val application = applicationBuilder(userAnswers = data, extraModules).overrides().build()

@@ -42,7 +42,6 @@ import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
 import services.AFTPartialService
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
-import utils.TwirlMigration
 import views.html.financialOverview.psa.PenaltyTypeView
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -113,7 +112,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
         submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.All),
         buttonText = messages("site.save_and_continue"),
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-        radios = TwirlMigration.toTwirlRadiosWithHintText(PenaltyType.radios(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+        radios = PenaltyType.radiosWithHint(form, displayPenalties, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
         journeyType = ChargeDetailsFilter.All
       )(req, messages)
 
@@ -134,7 +133,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
         submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.History),
         buttonText = messages("site.continue"),
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-        radios = TwirlMigration.toTwirlRadios(PenaltyType.radios(form, displayPenalties, areLabelsBold = false)),
+        radios = PenaltyType.radios(form, displayPenalties, areLabelsBold = false),
         journeyType = ChargeDetailsFilter.History
       )(req, messages)
 

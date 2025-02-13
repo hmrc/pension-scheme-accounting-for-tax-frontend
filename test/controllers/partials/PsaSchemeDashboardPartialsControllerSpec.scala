@@ -33,7 +33,6 @@ import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.viewmodels.Text.Message
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
 import views.html.partials.SchemePaymentsAndChargesPartialView
 

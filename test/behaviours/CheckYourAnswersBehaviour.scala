@@ -50,7 +50,6 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with JsonMatchers {
     super.beforeEach()
     Mockito.reset(mockAftConnector)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
 
   }

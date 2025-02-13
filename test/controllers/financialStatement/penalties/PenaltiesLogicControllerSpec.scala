@@ -60,7 +60,6 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with JsonMatchers
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPenaltiesService)
-    reset(mockRenderer)
     reset(mockAppConfig)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     mutableFakeDataRetrievalAction.setViewOnly(false)

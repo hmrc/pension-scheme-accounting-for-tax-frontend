@@ -27,7 +27,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialOverview.psa.SelectQuarterView
 
 import java.time.LocalDate
@@ -62,10 +61,10 @@ class SelectPenaltiesQuarterController @Inject()(
           routes.SelectPenaltiesQuarterController.onSubmit(year),
           penaltiesCache.psaName,
           appConfig.managePensionsSchemeOverviewUrl,
-          TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters),
+          Quarters.radios(form(quarters),
             getDisplayQuarters(filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt)),
             Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
-            areLabelsBold = false)),
+            areLabelsBold = false),
             year
           )))
       } else {
@@ -85,10 +84,10 @@ class SelectPenaltiesQuarterController @Inject()(
               routes.SelectPenaltiesQuarterController.onSubmit(year),
               penaltiesCache.psaName,
               appConfig.managePensionsSchemeOverviewUrl,
-              TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(formWithErrors,
+              Quarters.radios(formWithErrors,
                 getDisplayQuarters(filteredPenalties(penaltiesCache.penalties.toSeq, year.toInt)),
                 Seq("govuk-tag govuk-!-display-inline govuk-tag--red"),
-                areLabelsBold = false)),
+                areLabelsBold = false),
               year
             )))
           },

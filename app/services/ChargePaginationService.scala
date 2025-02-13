@@ -33,7 +33,6 @@ import play.api.i18n.Messages
 import play.api.libs.json._
 import play.api.mvc.Call
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import viewmodels.Link
 
 class ChargePaginationService @Inject()(config: FrontendAppConfig) {

@@ -35,7 +35,6 @@ import play.api.test.Helpers.{route, status, _}
 import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Table, Text}
-import viewmodels.Radios.MessageInterpolators
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
 import views.html.financialOverview.scheme.{SchemeFinancialOverviewNewView, SchemeFinancialOverviewView}
 

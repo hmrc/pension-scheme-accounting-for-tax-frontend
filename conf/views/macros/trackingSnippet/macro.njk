@@ -1,9 +1,0 @@
-{% macro trackingSnippet(params) %}
-    <script
-        {{ params.nonce }}
-        src="{{ params.url }}"
-        id="tracking-consent-script-tag"
-        data-gtm-container="{{ params.gtmContainerId }}"
-        data-language="{{ params.lang }}"
-    ></script>
-{% endmacro %}

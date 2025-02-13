@@ -40,13 +40,11 @@ import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, status, writeableOf_AnyContentAsEmpty, writeableOf_AnyContentAsFormUrlEncoded}
 import services.PenaltiesServiceSpec.penaltiesCache
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.TwirlMigration
 import views.html.financialOverview.psa.SelectQuarterView
 
 import scala.concurrent.Future
 
-class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -100,14 +98,12 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
         submitCall = submitCall,
         psaName = penaltiesCache.psaName,
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-        radios = TwirlMigration.toTwirlRadiosWithHintText(
-          Quarters.radios(
+        radios = Quarters.radios(
             form,
             displayQuarters,
             Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
             areLabelsBold = false
-          )
-        ),
+          ),
         year
       )(request, messages)
 

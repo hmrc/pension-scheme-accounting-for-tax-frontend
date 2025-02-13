@@ -32,7 +32,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.fileUpload.{UploadProgressTracker, UpscanErrorHandlingService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.fileUpload.FileUploadResultView
 
 import javax.inject.Inject
@@ -120,7 +119,7 @@ class FileUploadCheckController @Inject()(
     val submitUrl = routes.FileUploadCheckController.onSubmit(srn, startDate, accessType, version, chargeType, uploadId)
     val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
     Future.successful(Ok(view(preparedForm, schemeName, ChargeType.fileUploadText(chargeType), submitUrl, returnUrl,
-      name, TwirlMigration.toTwirlRadios(UploadCheckSelection.radios(preparedForm)))))
+      name, UploadCheckSelection.radios(preparedForm))))
   }
 
   def onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType, uploadId: UploadId): Action[AnyContent] =
@@ -140,7 +139,7 @@ class FileUploadCheckController @Inject()(
                   val submitUrl = routes.FileUploadCheckController.onSubmit(srn, startDate, accessType, version, chargeType, uploadId)
                   val returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url
                   Future.successful(BadRequest(view(formWithErrors, schemeName, ChargeType.fileUploadText(chargeType), submitUrl, returnUrl,
-                    fileName, TwirlMigration.toTwirlRadios(UploadCheckSelection.radios(formWithErrors)))))
+                    fileName, UploadCheckSelection.radios(formWithErrors))))
                 },
                 value =>
                   for {

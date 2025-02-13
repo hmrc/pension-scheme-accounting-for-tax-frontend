@@ -33,10 +33,9 @@ import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
-import utils.TwirlMigration
 import views.html.amend.ContinueQuartersView
 
 import scala.concurrent.Future
@@ -76,7 +75,6 @@ class ContinueQuartersControllerSpec extends ControllerSpecBase with JsonMatcher
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
     when(mockQuartersService.getInProgressQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
@@ -92,7 +90,7 @@ class ContinueQuartersControllerSpec extends ControllerSpecBase with JsonMatcher
 
       val view = application.injector.instanceOf[ContinueQuartersView].apply(
         quartersForm,
-        TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(quartersForm, displayQuarters)),
+        Quarters.radios(quartersForm, displayQuarters),
         submitCall,
         dummyCall.url,
         schemeName

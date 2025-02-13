@@ -29,7 +29,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.financialOverview.psa.{PenaltiesNavigationService, PsaPenaltiesAndChargesService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialOverview.psa.SelectYearView
 
 import java.time.LocalDate
@@ -61,9 +60,9 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       val title = getParameters(typeParam, journeyType)
 
       val radios = if (journeyType == ChargeDetailsFilter.History) {
-        TwirlMigration.toTwirlRadios(FSYears.radios(form(typeParam), years))
+        FSYears.radios(form(typeParam), years)
       } else {
-        TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form(typeParam), years))
+        FSYears.radios(form(typeParam), years)
       }
 
       Future.successful(Ok(selectYearView(
@@ -99,9 +98,9 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
           val title = getParameters(typeParam, journeyType)
 
           val radios = if (journeyType == ChargeDetailsFilter.History) {
-            TwirlMigration.toTwirlRadios(FSYears.radios(formWithErrors, years))
+            FSYears.radios(formWithErrors, years)
           } else {
-            TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(formWithErrors, years))
+            FSYears.radios(formWithErrors, years)
           }
 
           Future.successful(BadRequest(selectYearView(

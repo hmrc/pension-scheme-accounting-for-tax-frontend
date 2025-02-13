@@ -24,9 +24,9 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.data.Form
 import play.api.libs.json.{JsString, Json}
-import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.govukfrontend.views.Aliases.{RadioItem, Text}
 import utils.DateHelper
-import viewmodels.Radios
+
 
 import java.time.LocalDate
 
@@ -72,11 +72,10 @@ class YearsSpec extends AnyFreeSpec with Matchers with MockitoSugar {
       setDate()
       when(mockConfig.minimumYear).thenReturn(minYear)
       val expectedResult = Seq(
-        Radios.Item("value", Literal("2020"), "2020", checked = false),
-        Radios.Item("value_1", Literal("2019"), "2019", checked = false),
-        Radios.Item("value_2", Literal("2018"), "2018", checked = false)
+        RadioItem(Text("2020"), Some("value"), Some("2020"), None, None, None, false, None, false, Map()),
+        RadioItem(Text("2019"), Some("value_1"), Some("2019"), None, None, None, false, None, false, Map()),
+        RadioItem(Text("2018"), Some("value_2"), Some("2018"), None, None, None, false, None, false, Map())
       )
-
       StartYears.radios(form)(mockConfig) mustBe expectedResult
     }
   }
@@ -92,8 +91,12 @@ class YearsSpec extends AnyFreeSpec with Matchers with MockitoSugar {
   "AmendYears.radios" - {
     "must return Seq of radio items" in {
       val years = Seq(1, 2)
-      val expectedResult = Seq(Radios.Item("value", Literal("2"), "2", false), Radios.Item("value_1", Literal("1"), "1", false))
+      val expectedResult = Seq(
+        RadioItem(Text("2"), Some("value"), Some("2"), None, None, None, false, None, false, Map()),
+        RadioItem(Text("1"), Some("value_1"), Some("1"), None, None, None, false, None, false, Map())
+      )
       AmendYears.radios(form, years) mustBe expectedResult
+
     }
 
   }

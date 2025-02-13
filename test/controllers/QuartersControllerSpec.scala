@@ -36,10 +36,10 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
-import utils.{DateHelper, TwirlMigration}
+import utils.DateHelper
 import views.html.QuartersView
 
 import java.time.LocalDate
@@ -76,7 +76,6 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
@@ -99,7 +98,7 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
       val view = application.injector.instanceOf[QuartersView].apply(
         testYear.toString,
         form,
-        TwirlMigration.toTwirlRadios(Quarters.radios(form, Seq(displayQuarterStart))),
+        Quarters.radios(form, Seq(displayQuarterStart)),
         controllers.routes.QuartersController.onSubmit(srn, testYear.toString),
         dummyCall.url,
         schemeName

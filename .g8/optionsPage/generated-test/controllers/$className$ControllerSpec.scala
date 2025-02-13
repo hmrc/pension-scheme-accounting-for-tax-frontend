@@ -18,11 +18,10 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import data.SampleData._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers with OptionValues with TryValues {
 
   val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   def onwardRoute = Call("GET", "/foo")
@@ -44,7 +43,6 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
     "return OK and the correct view for a GET" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
         .overrides(
@@ -75,7 +73,6 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
     "populate the view correctly on a GET when the question has previously been answered" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       val application = applicationBuilder(userAnswers = Some(answers))
         .overrides(
@@ -134,7 +131,6 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "return a Bad Request and errors when invalid data is submitted" in {
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
         .overrides(

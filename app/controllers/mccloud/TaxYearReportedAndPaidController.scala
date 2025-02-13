@@ -30,7 +30,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.mccloud.TaxYearReportedAndPaid
 
 import java.time.LocalDate
@@ -73,11 +72,11 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
 
         twirlLifetimeOrAnnual(chargeType) match {
           case Some(chargeTypeDesc) =>
-            val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+            val ordinalValue = ordinal(schemeIndex).map(_.value).getOrElse("")
 
             Future.successful(Ok(taxYearReportedAndPaidView(
               form = preparedForm,
-              radios = TwirlMigration.toTwirlRadios(YearRangeMcCloud.radios(preparedForm)),
+              radios = YearRangeMcCloud.radios(preparedForm),
               ordinal = ordinalValue,
               chargeTypeDesc = chargeTypeDesc,
               submitCall = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
@@ -106,11 +105,11 @@ class TaxYearReportedAndPaidController @Inject()(override val messagesApi: Messa
             formWithErrors => {
               twirlLifetimeOrAnnual(chargeType) match {
                 case Some(chargeTypeDesc) =>
-                  val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                  val ordinalValue = ordinal(schemeIndex).map(_.value).getOrElse("")
 
                   Future.successful(BadRequest(taxYearReportedAndPaidView(
                     form = formWithErrors,
-                    radios = TwirlMigration.toTwirlRadios(YearRangeMcCloud.radios(formWithErrors)),
+                    radios = YearRangeMcCloud.radios(formWithErrors),
                     ordinal = ordinalValue,
                     chargeTypeDesc = chargeTypeDesc,
                     submitCall = routes.TaxYearReportedAndPaidController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),

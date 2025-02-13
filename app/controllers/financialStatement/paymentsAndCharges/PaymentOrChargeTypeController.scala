@@ -27,7 +27,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.paymentsAndCharges.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialStatement.paymentsAndCharges.PaymentOrChargeTypeView
 
 import javax.inject.Inject
@@ -54,7 +53,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
       Future.successful(Ok(paymentOrChargeTypeView(
         form(journeyType),
         s"paymentOrChargeType.$journeyType.title",
-        TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(form(journeyType), paymentsOrCharges)),
+        PaymentOrChargeType.radios(form(journeyType), paymentsOrCharges),
         routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
         config.schemeDashboardUrl(request).format(srn),
         cache.schemeDetails.schemeName
@@ -69,7 +68,7 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
           Future.successful(BadRequest(paymentOrChargeTypeView(
             formWithErrors,
             s"paymentOrChargeType.$journeyType.title",
-            TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail))),
+            PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail)),
             routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
             config.schemeDashboardUrl(request).format(srn),
             cache.schemeDetails.schemeName

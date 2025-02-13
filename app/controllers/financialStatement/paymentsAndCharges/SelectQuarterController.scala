@@ -29,7 +29,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -63,8 +62,8 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
             form(quarters, year, journeyType),
             s"selectChargesQuarter.$journeyType.title",
             year,
-            TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
-              Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+            Quarters.radios(form(quarters, year, journeyType), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
+              Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
             routes.SelectQuarterController.onSubmit(srn, year,  journeyType),
             config.schemeDashboardUrl(request).format(srn),
             paymentsCache.schemeDetails.schemeName
@@ -89,8 +88,8 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                   formWithErrors,
                   s"selectChargesQuarter.$journeyType.title",
                   year,
-                  TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
-                    Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false)),
+                  Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
+                    Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false),
                   routes.SelectQuarterController.onSubmit(srn, year,  journeyType),
                   config.schemeDashboardUrl(request).format(srn),
                   paymentsCache.schemeDetails.schemeName

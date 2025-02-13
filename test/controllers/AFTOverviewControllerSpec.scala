@@ -37,7 +37,6 @@ import play.twirl.api.Html
 import services.{QuartersService, SchemeService}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import views.html.AFTOverviewView
 
 import java.time.LocalDate
@@ -57,7 +56,6 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
     .overrides(
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[SchemeService].toInstance(mockSchemeService),
@@ -71,7 +69,6 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
     reset(mockPaymentsAndChargesService)
     reset(mockQuartersService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
@@ -84,9 +81,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
       .thenReturn(Future.successful(Seq.empty))
     when(mockPaymentsAndChargesService.getInterestCharges(any()))
       .thenReturn(schemeFSResponse)
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(any(), any(), any(), any())(any())).thenReturn(emptyChargesTable)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-  }
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(any(), any(), any(), any())(any())).thenReturn(emptyChargesTable)  }
 
 
   "AFT Overview Controller" must {

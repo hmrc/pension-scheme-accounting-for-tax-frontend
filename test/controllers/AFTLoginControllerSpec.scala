@@ -36,13 +36,12 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class AFTLoginControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   //scalastyle.off: magic.number

@@ -28,7 +28,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialOverview.scheme.SelectQuarterView
 
 import java.time.LocalDate
@@ -63,8 +62,8 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
           submitCall = routes.SelectQuarterController.onSubmit(srn, year),
           schemeName = paymentsCache.schemeDetails.schemeName,
           returnUrl = config.schemeDashboardUrl(request).format(srn),
-          radios = TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+          radios = Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFSDetail),
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
           Year = year
         )))
       } else {
@@ -88,8 +87,8 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
               submitCall = routes.SelectQuarterController.onSubmit(srn, year),
               schemeName = paymentsCache.schemeDetails.schemeName,
               returnUrl = config.schemeDashboardUrl(request).format(srn),
-              radios = TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
-                Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false)),
+              radios = Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFSDetail),
+                Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false),
               Year = year
             )))
           },

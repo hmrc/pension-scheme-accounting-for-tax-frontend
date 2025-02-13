@@ -26,7 +26,7 @@ import pages.chargeD.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import services.AddMembersService.mapChargeXMembersToTable
-import viewmodels.Table
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 
 import java.time.LocalDate
 
