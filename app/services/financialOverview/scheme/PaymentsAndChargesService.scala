@@ -672,9 +672,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  def getClearedPenaltiesAndCharges(psaFs: Seq[SchemeFSDetail])
-                                   (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
-    val clearedPenaltiesAndCharges = psaFs.filter(_.outstandingAmount <= 0)
+  def getClearedPaymentsAndCharges(psaFs: Seq[SchemeFSDetail])
+                                  (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
+    val clearedPaymentssAndCharges = psaFs.filter(_.outstandingAmount <= 0)
 
     val tableHeader = {
       Seq(
@@ -687,7 +687,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       )
     }
 
-    val rows = clearedPenaltiesAndCharges.map(paymentOrCharge => {
+    val rows = clearedPaymentssAndCharges.map(paymentOrCharge => {
 
       val latestClearingDate = if(getPaymentDates(paymentOrCharge.documentLineItemDetails).nonEmpty) {
         DateHelper.formatDateDMY(getPaymentDates(paymentOrCharge.documentLineItemDetails).max)
