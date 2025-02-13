@@ -1,7 +1,7 @@
 @import "lib/govuk-frontend/dist/govuk/settings/index";
-@import "lib/govuk-frontend/govuk/tools/all";
-@import "lib/govuk-frontend/govuk/helpers/all";
-@import "lib/govuk-frontend/govuk/vendor/sass-mq";
+@import "lib/govuk-frontend/dist/govuk/tools/all";
+@import "lib/govuk-frontend/dist/govuk/helpers/all";
+@import "lib/govuk-frontend/dist/govuk/vendor/sass-mq";
 
 .hmrc-timeout-overlay {
   position: fixed;
@@ -40,10 +40,6 @@ html {
   @include govuk-media-query($from: tablet) {
     width: 435px;
 
-    @include govuk-if-ie8 {
-      margin-top: -128px;
-      margin-left: -227px;
-    }
   }
 }
 
