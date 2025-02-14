@@ -1458,6 +1458,10 @@ schemeFinancial.allPaymentCharges.link  = View all payments and charges
 schemeFinancial.title = Your financial overview
 schemeFinancial.title.new = Financial overview
 schemeFinancial.refund = Request a refund
+schemeFinancial.paymentsAndChargesHistory = Payments and charges history
+schemeFinancial.paymentsAndChargesHistory.p1.new = Payments and charges that have been paid in full
+schemeFinancial.paymentsAndChargesHistory.link = View all cleared payments and charges
+schemeFinancial.clearedPaymentsAndCharges = Cleared payments and charges
 
 financialPaymentsAndCharges.overdue.title = Overdue charges
 financialPaymentsAndCharges.overdue.reflect.charge.text = The information may not reflect payments made in the last 3 days.
@@ -1577,7 +1581,7 @@ psa.financial.overview.all.text = The information may not reflect payments made 
 psa.financial.overview.all.text.new = The information may not reflect payments made in the last 3 days.
 
 psa.financial.overview.clearedPenaltiesAndCharges.title = Cleared penalties and charges
-psa.financial.overview.historyChargeType.title = Select type of charge
+financial.overview.historyChargeType.title = Select type of charge
 psa.financial.overview.chargeHistoryYear.title = Cleared penalties and charges
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format

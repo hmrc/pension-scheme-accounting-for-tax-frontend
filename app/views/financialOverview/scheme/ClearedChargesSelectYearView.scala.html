@@ -27,48 +27,31 @@
     submitCall: Call,
     schemeName: String,
     returnUrl: String,
-    radios: Seq[RadioItem],
-    journeyType: String)(implicit request: Request[_], messages: Messages)
+    radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
 
 @layout(title, formHasErrors = form.hasErrors) {
 
-<div>
+    <div>
 
-    @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
-        @if(journeyType == "history") {
+        @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
             <span class="govuk-caption-xl">@schemeName</span>
             <h1 class="govuk-heading-xl">@title</h1>
-
-            @govukRadios(
-                RadiosViewModel(
-                    form("value"),
-                    items = radios,
-                    fieldset = Fieldset(legend = None)
-                )
-            )
-        } else {
             @govukRadios(
                 RadiosViewModel(
                     form("value"),
                     radios,
-                    Fieldset(
-                        legend = Some(Legend(content = Text(title), isPageHeading = true,
-                            classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4"
-                        ))
-                    )
+                    Fieldset(legend = None)
                 )
             )
+
+            @govukButton(
+                ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
+            )
+
         }
 
+        <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
 
-        @govukButton(
-            ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
-        )
-
-    }
-
-    <p class="govuk-body"> <a href="@returnUrl" class="govuk-link">@messages("return.to.link", schemeName)</a>
-
-</div>
+    </div>
 
 }

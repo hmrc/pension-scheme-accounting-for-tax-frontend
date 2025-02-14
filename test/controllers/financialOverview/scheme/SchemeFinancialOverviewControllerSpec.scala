@@ -20,6 +20,7 @@ import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
+import models.ChargeDetailsFilter.{All, History}
 import models.Enumerable
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
@@ -113,15 +114,17 @@ class SchemeFinancialOverviewControllerSpec
           schemeName = "Big Scheme",
           totalUpcomingCharge = "£2,058.10",
           totalOverdueCharge = "£2,058.10",
-          totalInterestAccruing = "£47,000.96",
+          totalInterestAccruing = "£47,024.96",
           requestRefundUrl = routes.RequestRefundController.onPageLoad(srn).url,
           allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, journeyType = "overdue").url,
           duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
-          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
+          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url,
           creditBalanceFormatted = "£0.00",
           creditBalance = 0,
           isOverdueChargeAvailable = false,
-          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
+          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+          displayHistory = true,
+          historyLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, History).url
         )(messages, request)
 
         compareResultAndView(result, view)
@@ -152,11 +155,11 @@ class SchemeFinancialOverviewControllerSpec
           schemeName = "Big Scheme",
           totalUpcomingCharge = "£2,058.10",
           totalOverdueCharge = "£2,058.10",
-          totalInterestAccruing = "£47,000.96",
+          totalInterestAccruing = "£47,024.96",
           requestRefundUrl = routes.RequestRefundController.onPageLoad(srn).url,
           allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, journeyType = "overdue").url,
           duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
-          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
+          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url,
           creditBalanceFormatted = "£0.00",
           creditBalance = 0,
           isOverdueChargeAvailable = false,

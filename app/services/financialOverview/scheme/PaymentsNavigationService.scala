@@ -16,6 +16,8 @@
 
 package services.financialOverview.scheme
 
+import models.ChargeDetailsFilter
+import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import play.api.mvc.Result
@@ -30,7 +32,7 @@ class PaymentsNavigationService {
     val paymentTypes: Seq[PaymentOrChargeType] = payments.map(p => getPaymentOrChargeType(p.chargeType)).distinct
 
     if (paymentTypes.size > 1) {
-      Future.successful(Redirect(controllers. financialOverview.scheme.routes.PaymentOrChargeTypeController.onPageLoad(srn)))
+      Future.successful(Redirect(controllers. financialOverview.scheme.routes.PaymentOrChargeTypeController.onPageLoad(srn, All)))
     } else if (paymentTypes.size == 1) {
       navFromPaymentsTypePage(payments, srn, paymentTypes.head)
     } else {
@@ -53,7 +55,11 @@ class PaymentsNavigationService {
         SelectYearController.onPageLoad(srn, paymentType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
-    }
+  }
+
+  def navToSelectClearedChargesYear(srn: String, paymentType: PaymentOrChargeType): Future[Result] = {
+    Future.successful(Redirect(controllers.financialOverview.scheme.routes.ClearedChargesSelectYearController.onPageLoad(srn, paymentType)))
+  }
 
   def navFromAFTYearsPage(payments: Seq[SchemeFSDetail], year: Int, srn: String): Future[Result] = {
 

@@ -22,6 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
 import matchers.JsonMatchers
+import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType.AccountingForTaxCharges
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.requests.IdentifierRequest
@@ -61,8 +62,8 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
   val formProvider = new PaymentOrChargeTypeFormProvider()
   val form: Form[PaymentOrChargeType] = formProvider()
 
-  lazy val httpPathGET: String = routes.PaymentOrChargeTypeController.onPageLoad(srn).url
-  lazy val httpPathPOST: String = routes.PaymentOrChargeTypeController.onSubmit(srn).url
+  lazy val httpPathGET: String = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url
+  lazy val httpPathPOST: String = routes.PaymentOrChargeTypeController.onSubmit(srn, All).url
 
   private val paymentsCache: Seq[SchemeFSDetail] => PaymentsCache = schemeFSDetail => PaymentsCache(psaId, srn, schemeDetails, schemeFSDetail)
 
@@ -87,12 +88,13 @@ class PaymentOrChargeTypeControllerSpec extends ControllerSpecBase with Nunjucks
 
       val view = application.injector.instanceOf[PaymentOrChargeTypeView].apply(
         form = form,
-        titleMessage = messages(s"paymentOrChargeType.all.title"),
+        title = messages(s"paymentOrChargeType.all.title"),
         schemeName = schemeName,
-        submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
+        submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn, All),
         returnUrl = dummyCall.url,
         radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(form, displayPaymentOrChargeType,
-        Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+        Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+        journeyType = All
       )(req, messages)
 
       compareResultAndView(result, view)
