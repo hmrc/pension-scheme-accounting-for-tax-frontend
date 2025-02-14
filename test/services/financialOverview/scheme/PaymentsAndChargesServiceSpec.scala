@@ -381,7 +381,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
       whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Upcoming)) {
-        _ mustBe paymentsCache
+        val upcomingPaymentsCache = PaymentsCache(psaId, srn, schemeDetails, unpaidCharges)
+        _ mustBe upcomingPaymentsCache
       }
     }
 
@@ -390,7 +391,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       when(mockFIConnector.fetch(any(), any()))
         .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
       whenReady(paymentsAndChargesService.getPaymentsForJourney(psaId, srn, Overdue)) {
-        _ mustBe paymentsCache
+        val overduePaymentsCache = PaymentsCache(psaId, srn, schemeDetails, unpaidCharges)
+        _ mustBe overduePaymentsCache
       }
     }
   }
@@ -400,6 +402,7 @@ object PaymentsAndChargesServiceSpec {
   val srn = "S1234567"
   val startDate: String = QUARTER_START_DATE.format(dateFormatterStartDate)
   val endDate: String = QUARTER_END_DATE.format(dateFormatterDMY)
+  val unpaidCharges = schemeFSResponseAftAndOTC.seqSchemeFSDetail.dropRight(1)
   val paymentsCache: PaymentsCache = PaymentsCache(psaId, srn, schemeDetails, schemeFSResponseAftAndOTC.seqSchemeFSDetail)
   val item: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-05-14")), Some(LocalDate.parse("2020-04-24")), Some(FSClearingReason.CLEARED_WITH_PAYMENT))
   val item2: DocumentLineItemDetail = DocumentLineItemDetail(150.00, Some(LocalDate.parse("2020-04-15")), None, Some(FSClearingReason.CLEARED_WITH_PAYMENT))

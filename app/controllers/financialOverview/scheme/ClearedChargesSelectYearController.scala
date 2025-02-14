@@ -58,7 +58,7 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
         Future.successful(Ok(selectYearView(
           form = form,
           title = Messages("schemeFinancial.clearedPaymentsAndCharges"),
-          submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
+          submitCall = routes.ClearedChargesSelectYearController.onSubmit(srn, paymentOrChargeType),
           schemeName = paymentsCache.schemeDetails.schemeName,
           returnUrl = config.schemeDashboardUrl(request).format(srn),
           radios = TwirlMigration.toTwirlRadios(
@@ -83,7 +83,7 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
               Future.successful(BadRequest(selectYearView(
                 form = formWithErrors,
                 title = Messages("schemeFinancial.clearedPaymentsAndCharges"),
-                submitCall = routes.SelectYearController.onSubmit(srn, paymentOrChargeType),
+                submitCall = routes.ClearedChargesSelectYearController.onSubmit(srn, paymentOrChargeType),
                 schemeName = paymentsCache.schemeDetails.schemeName,
                 returnUrl = config.schemeDashboardUrl(request).format(srn),
                 radios = TwirlMigration.toTwirlRadios(FSYears.radios(formWithErrors, years, isYearRangeFormat = true))
