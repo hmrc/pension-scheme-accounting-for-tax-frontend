@@ -1443,7 +1443,6 @@ schemeFinancial.h2.totalInterestAccruing.new2  = Total interest accruing to date
 schemeFinancial.h2.totalInterestAccruing.new  = Total interest to date:
 schemeFinancial.h2.dueCharges  = Due Charges
 schemeFinancial.h2.totalDuePayment  = Total of due payments and charges
-schemeFinancial.h2.totalDuePayment.new  = Total due charges
 schemeFinancial.h2.totalDuePayment.v2  = Total of due penalties and charges:
 schemeFinancial.h2.totalDuePayment.new  = Due charges
 schemeFinancial.p1.totalDue.noDeadline  = Charges where the deadline has not passed.
