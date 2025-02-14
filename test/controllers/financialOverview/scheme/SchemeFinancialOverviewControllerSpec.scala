@@ -163,6 +163,10 @@ class SchemeFinancialOverviewControllerSpec
           allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
           creditBalanceFormatted = "£0.00",
           creditBalance = 0,
+          displayReceivedPayments = ???,
+          receivedPaymentsLink = ???,
+          displayHistory = ???,
+          historyLink = ???,
           isOverdueChargeAvailable = false,
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
         )(messages, request)
