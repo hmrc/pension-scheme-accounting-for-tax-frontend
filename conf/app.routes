@@ -441,6 +441,8 @@ GET         /:srn/financial-overview/:paymentsType/:period/:version/:submittedDa
 GET         /:srn/financial-overview/:paymentsType/:period/:version/:submittedDate/:index/interest/upcoming-charge-details                           controllers.financialOverview.scheme.PaymentsAndChargesInterestController.onPageLoad(srn: String, period: String, index: String, paymentsType: String, version: Option[Int], submittedDate: Option[String], journeyType: String = "upcoming")
 GET         /:srn/financial-overview/:paymentsType/:period/:version/:submittedDate/:index/interest/overdue-charge-details                            controllers.financialOverview.scheme.PaymentsAndChargesInterestController.onPageLoad(srn: String, period: String, index: String, paymentsType: String, version: Option[Int], submittedDate: Option[String], journeyType: String = "overdue")
 
+GET         /:srn/financial-overview/:paymentOrChargeType/:period/:index/cleared-payment-or-charge                                                          controllers.financialOverview.scheme.ClearedPaymentOrChargeController.onPageLoad(srn: String, period: String, paymentOrChargeType: String, journeyType: String = "history", index: Index)
+
 GET         /refund-unavailable                                                                                                                      controllers.financialOverview.RefundUnavailableController.onPageLoad
 # file download
 GET         /annual-allowance-charge/aft-annual-allowance-charge-upload-template                                                                     controllers.FileDownloadController.templateFile(chargeType: ChargeType = ChargeType.ChargeTypeAnnualAllowance, psr: Option[Boolean])
