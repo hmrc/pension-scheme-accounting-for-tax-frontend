@@ -61,26 +61,6 @@ class RefundsControllerSpec extends ControllerSpecBase {
 
   val requestRefundUrl = controllers.financialOverview.routes.RefundUnavailableController.onPageLoad.url
 
-  def createCreditsAndRefundTable(latestCredits: Seq[PsaFSDetail]): Table = {
-
-    val head: Seq[HeadCell] = Seq(
-      HeadCell(Text("")),
-      HeadCell(Text(Messages("refunds.aft.date"))),
-      HeadCell(Text(Messages("refunds.aft.credit.value"))))
-
-    val rows = latestCredits.map { psaFSDetail =>
-      Seq(
-        TableRow(HtmlContent(
-          s"${psaFSDetail.chargeType.toString}</br>" +
-            formatDateDMY(psaFSDetail.periodStartDate) + " to " + formatDateDMY(psaFSDetail.periodEndDate)
-        ), classes = "govuk-!-width-one-half"),
-        TableRow(Text(formatDateDMY(psaFSDetail.dueDate.get)), classes = "govuk-!-width-one-quarter"),
-        TableRow(Text(psaFSDetail.amountDue.abs.toString), classes = "govuk-!-width-one-quarter"))
-    }
-
-    Table(head = Some(head), rows = rows , attributes = Map("role" -> "table"))
-  }
-
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
@@ -105,6 +85,24 @@ class RefundsControllerSpec extends ControllerSpecBase {
     }
   }
 
+  def createCreditsAndRefundTable(latestCredits: Seq[PsaFSDetail]): Table = {
 
+    val head: Seq[HeadCell] = Seq(
+      HeadCell(Text("")),
+      HeadCell(Text(Messages("refunds.aft.date"))),
+      HeadCell(Text(Messages("refunds.aft.credit.value"))))
+
+    val rows = latestCredits.map { psaFSDetail =>
+      Seq(
+        TableRow(HtmlContent(
+          s"${psaFSDetail.chargeType.toString}</br>" +
+            formatDateDMY(psaFSDetail.periodStartDate) + " to " + formatDateDMY(psaFSDetail.periodEndDate)
+        ), classes = "govuk-!-width-one-half"),
+        TableRow(Text(formatDateDMY(psaFSDetail.dueDate.get)), classes = "govuk-!-width-one-quarter"),
+        TableRow(Text(psaFSDetail.amountDue.abs.toString), classes = "govuk-!-width-one-quarter"))
+    }
+
+    Table(head = Some(head), rows = rows , attributes = Map("role" -> "table"))
+  }
 
 }
