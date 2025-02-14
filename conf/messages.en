@@ -1444,7 +1444,7 @@ schemeFinancial.h2.totalInterestAccruing.new  = Total interest to date:
 schemeFinancial.h2.dueCharges  = Due Charges
 schemeFinancial.h2.totalDuePayment  = Total of due payments and charges
 schemeFinancial.h2.totalDuePayment.v2  = Total of due penalties and charges:
-schemeFinancial.h2.totalDuePayment.new  = Due charges
+schemeFinancial.h2.totalDuePayment.new  = Total due charges
 schemeFinancial.p1.totalDue.noDeadline  = Charges where the deadline has not passed.
 schemeFinancial.h2.totalDueCharges  = Total due charges:
 schemeFinancial.h2.totalDueCharges.new  = Due charges
@@ -1461,6 +1461,16 @@ schemeFinancial.allPaymentCharges.link  = View all payments and charges
 schemeFinancial.title = Your financial overview
 schemeFinancial.title.new = Financial overview
 schemeFinancial.refund = Request a refund
+
+schemeFinancial.overview.h2.creditHeading.new  = Credits and refunds
+schemeFinancial.overview.creditsAndRefunds.link = View all credit and refund information
+schemeFinancial.overview.h2.receivedPayments.new = Received payments
+schemeFinancial.overview.due.receivedPayments.p1.new = Allocated and unallocated payments assigned to a penalty or charge.
+schemeFinancial.overview.receivedPayments.link = View all payments
+schemeFinancial.overview.h2.penaltiesAndChargesHistory.new = Penalties and charges history
+schemeFinancial.overview.due.penaltiesAndChargesHistory.p1.new = Penalties and charges that have been paid in full.
+schemeFinancial.overview.penaltiesAndChargesHistory.link = View all cleared penalties and charges
+schemeFinancial.overview.allOverdue.link.new  = View complete list of overdue penalties and interest charges
 
 financialPaymentsAndCharges.overdue.title = Overdue charges
 financialPaymentsAndCharges.overdue.reflect.charge.text = The information may not reflect payments made in the last 3 days.
