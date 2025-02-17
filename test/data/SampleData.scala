@@ -642,7 +642,7 @@ object SampleData {
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
-    ),
+    )
   )
   val psaFs: PsaFS = PsaFS(false, psaFsSeq)
   val multiplePenalties: Seq[PsaFSDetail] = Seq(

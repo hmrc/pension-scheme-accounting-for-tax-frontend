@@ -422,6 +422,8 @@ POST        /financial-overview/history-charge-type                             
 GET         /financial-overview/:penaltyType/select-charge-history-year                                                                              controllers.financialOverview.psa.SelectPenaltiesYearController.onPageLoad(penaltyType: String, journeyType: String = "history")
 POST        /financial-overview/:penaltyType/select-charge-history-year                                                                              controllers.financialOverview.psa.SelectPenaltiesYearController.onSubmit(penaltyType: String, journeyType: String = "history")
 
+GET         /financial-overview/:penaltyOrChargeType/:period/:index/cleared-penalty-or-charge                                                        controllers.financialOverview.psa.ClearedPenaltyOrChargeController.onPageLoad(period: String, penaltyOrChargeType: String, journeyType: String = "history", index: Index)
+
 GET         /:srn/financial-overview/:paymentsType/select-charges-year                                                                               controllers.financialOverview.scheme.SelectYearController.onPageLoad(srn: String, paymentsType: String)
 POST        /:srn/financial-overview/:paymentsType/select-charges-year                                                                               controllers.financialOverview.scheme.SelectYearController.onSubmit(srn: String, paymentsType: String)
 GET         /:srn/:year/financial-overview/select-charges-quarter                                                                                    controllers.financialOverview.scheme.SelectQuarterController.onPageLoad(srn: String, year: String)
