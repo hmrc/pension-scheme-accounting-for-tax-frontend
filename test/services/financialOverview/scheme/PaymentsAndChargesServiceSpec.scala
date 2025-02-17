@@ -415,7 +415,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   "getChargeDetailsForSelectedChargeV2" must {
     "expected Summary List Rows" in {
       val schemeFSDetails = schemeFSResponseAftAndOTC.seqSchemeFSDetail.head
-      val result = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetails, schemeDetails, All, Some(submittedDate))
+      val result = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetails, schemeDetails, true)
       val pstrRow = Seq(
         SummaryListRow(
           key = Key(Text(Messages("pension.scheme.tax.reference.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
@@ -431,21 +431,12 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       val taxPeriod = Seq(
         SummaryListRow(
           key = Key(Text(Messages("pension.scheme.interest.tax.period.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-          value = Value(Text("1 April 2020 to 30 June 2020"), classes = "govuk-!-width-one-half")
+          value = Value(Text("1 April to 30 June 2020"), classes = "govuk-!-width-one-half")
         ))
 
       result mustBe pstrRow ++ chargeReferenceRow ++ taxPeriod
     }
   }
-
-//  "getReturnUrl" must {
-//    "return scheme dashboard url is journeyType is All" in {
-//      when(mockFIConnector.fetch(any(), any()))
-//        .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
-//      val result = paymentsAndChargesService.getReturnUrl(srn, Some(PsaId(psaId)), None, config, All)
-//      result mustBe config.schemeDashboardUrl(Some(PsaId(psaId)), None).format(srn)
-//    }
-//  }
 }
 
 object PaymentsAndChargesServiceSpec {

@@ -572,6 +572,36 @@ object SampleData {
       )
     )
 
+  val schemeFSResponseWithClearedPayments: SchemeFS =
+    SchemeFS(
+      seqSchemeFSDetail = Seq(
+        SchemeFSDetail(
+          index = 0,
+          chargeReference = "XY002610150184",
+          chargeType = PSS_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2020-06-30")),
+          totalAmount = 80.00,
+          outstandingAmount = 0.00,
+          stoodOverAmount = 0.00,
+          amountDue = 0.00,
+          accruedInterestTotal = 0.00,
+          periodStartDate = Some(LocalDate.parse("2020-04-01")),
+          periodEndDate = Some(LocalDate.parse("2020-06-30")),
+          formBundleNumber = None,
+          version = None,
+          receiptDate = None,
+          sourceChargeRefForInterest = None,
+          sourceChargeInfo = None,
+          documentLineItemDetails = Seq(DocumentLineItemDetail(
+            clearedAmountItem = 80.00,
+            clearingDate = Some(LocalDate.parse("2020-05-13")),
+            clearingReason = Some(FSClearingReason.CLEARED_WITH_DELTA_CREDIT),
+            paymDateOrCredDueDate = Some(LocalDate.parse("2020-05-13"))
+          ))
+        )
+      )
+    )
+
   val psaFsSeq: Seq[PsaFSDetail] = Seq(
     PsaFSDetail(
       index = 1,
@@ -636,7 +666,7 @@ object SampleData {
       pstr = "24000041IN",
       sourceChargeRefForInterest = None,
       documentLineItemDetails = Nil
-    ),
+    )
   )
   val psaFs: PsaFS = PsaFS(false, psaFsSeq)
   val multiplePenalties: Seq[PsaFSDetail] = Seq(

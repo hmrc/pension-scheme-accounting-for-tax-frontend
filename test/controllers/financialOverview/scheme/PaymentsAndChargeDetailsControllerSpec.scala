@@ -82,7 +82,7 @@ class PaymentsAndChargeDetailsControllerSpec
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
     when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any(), any(), any())(any()))
       .thenReturn(Nil)
-    when(mockPaymentsAndChargesService.getChargeDetailsForSelectedChargeV2(any(), any(), any(), any())(any()))
+    when(mockPaymentsAndChargesService.getChargeDetailsForSelectedChargeV2(any(), any(), any())(any()))
       .thenReturn(Nil)
     when(mockPaymentsAndChargesService.setPeriod(any(), any(), any()))
       .thenReturn("")
