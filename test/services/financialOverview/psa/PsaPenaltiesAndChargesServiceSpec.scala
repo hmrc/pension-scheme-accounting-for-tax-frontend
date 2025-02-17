@@ -25,11 +25,12 @@ import data.SampleData._
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
 import models.ChargeDetailsFilter.{Overdue, Upcoming}
+import models.financialStatement.PenaltyType.ContractSettlementCharges
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETTLEMENT, INTEREST_ON_CONTRACT_SETTLEMENT, SSC_30_DAY_LPP}
 import models.financialStatement._
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
-import models.{ChargeDetailsFilter, SchemeDetails}
+import models.{ChargeDetailsFilter, Index, SchemeDetails}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -243,6 +244,39 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
       }
     }
 
+    "getClearedPenaltiesAndCharges" must {
+      "return correct table" in {
+        val result = psaPenaltiesAndChargesService.getClearedPenaltiesAndCharges(psaId, "2020", ContractSettlementCharges, psaFsCleared)
+
+        val expectedTableHeader = Seq(
+          HeadCell(
+            HtmlContent(
+              s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penaltyOrCharge")}</span>"
+            )),
+          HeadCell(Text(Messages("psa.financial.overview.datePaid")), classes = "govuk-!-font-weight-bold"),
+          HeadCell(Text(Messages("psa.financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold")
+        )
+
+        val chargeLink = controllers.financialOverview.psa.routes.ClearedPenaltyOrChargeController.onPageLoad("2020", ContractSettlementCharges, Index(0))
+        val expectedTableRows = Seq(
+          TableRow(HtmlContent(
+            s"<a id=XY002610150184 class=govuk-link href=$chargeLink>" +
+              "Contract Settlement</a></br>" +
+              schemeName + "</br>" +
+              "XY002610150184</br>" +
+              "1 April to 30 June 2020"
+          ), classes = "govuk-!-width-one-half"),
+          TableRow(HtmlContent(s"<p>12 May 2020</p>")),
+          TableRow(HtmlContent(s"<p>£500.00</p>"))
+        )
+
+        val expectedTable = Table(head = Some(expectedTableHeader), rows = Seq(expectedTableRows))
+        whenReady(result) {
+          _ mustBe expectedTable
+        }
+      }
+    }
+
   }
 
 }
@@ -393,6 +427,31 @@ object PsaPenaltiesAndChargesServiceSpec {
       sourceChargeRefForInterest = None,
       psaSourceChargeInfo = None,
       documentLineItemDetails = Nil
+    )
+  )
+
+  val psaFsCleared: Seq[PsaFSDetail] = Seq(
+    PsaFSDetail(
+      index = 0,
+      chargeReference = "XY002610150184",
+      chargeType = CONTRACT_SETTLEMENT,
+      dueDate = Some(LocalDate.parse("2020-11-15")),
+      totalAmount = 500.00,
+      outstandingAmount = 0.00,
+      accruedInterestTotal = 0.00,
+      stoodOverAmount = 0.00,
+      amountDue = 0.00,
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30"),
+      pstr = "24000041IN",
+      sourceChargeRefForInterest = None,
+      psaSourceChargeInfo = None,
+      documentLineItemDetails = Seq(DocumentLineItemDetail(
+        clearedAmountItem = 500.00,
+        clearingDate = Some(LocalDate.parse("2020-05-12")),
+        paymDateOrCredDueDate = Some(LocalDate.parse("2020-05-12")),
+        clearingReason = Some(FSClearingReason.CLEARED_WITH_PAYMENT)
+      ))
     )
   )
 

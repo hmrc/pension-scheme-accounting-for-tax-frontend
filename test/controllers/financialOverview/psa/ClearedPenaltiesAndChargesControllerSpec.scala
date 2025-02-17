@@ -86,7 +86,7 @@ class ClearedPenaltiesAndChargesControllerSpec extends ControllerSpecBase {
     reset(mockPsaPenaltiesAndChargesService)
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any()))
       .thenReturn(Future.successful(penaltiesCache))
-    when(mockPsaPenaltiesAndChargesService.getClearedPenaltiesAndCharges(any(), any())(any(), any(), any()))
+    when(mockPsaPenaltiesAndChargesService.getClearedPenaltiesAndCharges(any(), any(), any(), any())(any(), any(), any()))
       .thenReturn(Future.successful(table))
   }
 
