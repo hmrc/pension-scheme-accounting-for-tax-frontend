@@ -1505,6 +1505,7 @@ financialPaymentsAndCharges.refundUnavailable.p1 = You cannot request a refund u
 financialPaymentsAndCharges.refundUnavailable.p2 = for more information.
 financialPaymentsAndCharges.refundUnavailable.linkText = Contact HMRC
 schemeFinancial.refund = Request a refund
+financialPaymentsAndCharges.returnToClearedPayments.linkText = your cleared payments and charges
 
 
 psa.financial.overview.title = Your financial overview
@@ -1581,6 +1582,8 @@ psa.financial.overview.returnToClearedPenalties = your cleared penalties and cha
 psa.financial.overview.clearedPenaltiesAndCharges.title = Cleared penalties and charges
 psa.financial.overview.historyChargeType.title = Select type of charge
 psa.financial.overview.chargeHistoryYear.title = Cleared penalties and charges
+
+financial.overview.datePaid = Date paid:
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format
