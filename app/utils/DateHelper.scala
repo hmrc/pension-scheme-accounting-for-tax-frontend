@@ -17,7 +17,7 @@
 package utils
 
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZonedDateTime}
+import java.time.{LocalDate, Month, ZonedDateTime}
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 
@@ -50,4 +50,16 @@ object DateHelper {
   }
 
   def formatDateDMY(date: Option[LocalDate]): String = date.map(_.format(dateFormatterDMY)).getOrElse("")
+
+  def getTaxYear(date: LocalDate): Int = {
+    val givenYear = date.getYear
+
+    val firstDayOfTaxYear = LocalDate.of(givenYear, Month.APRIL, 6)
+
+    if (date.isBefore(firstDayOfTaxYear)) {
+      givenYear
+    } else {
+      givenYear + 1
+    }
+  }
 }

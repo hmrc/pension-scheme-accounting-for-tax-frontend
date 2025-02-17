@@ -47,8 +47,7 @@ class ClearedChargesSelectYearControllerSpec extends ControllerSpecBase {
   private def httpPathPOST: String =
     routes.ClearedChargesSelectYearController.onSubmit(srn, PaymentOrChargeType.AccountingForTaxCharges).url
 
-  private def redirectUrl = routes.AllPaymentsAndChargesController
-    .onPageLoad(srn, "2020", PaymentOrChargeType.AccountingForTaxCharges).url
+  private def redirectUrl = routes.ClearedPaymentsAndChargesController.onPageLoad(srn, "2021", PaymentOrChargeType.AccountingForTaxCharges).url
 
   private val mockPaymentsAndChargesService = mock[PaymentsAndChargesService]
 
@@ -66,7 +65,7 @@ class ClearedChargesSelectYearControllerSpec extends ControllerSpecBase {
   private val schemeFSDetails = schemeFSResponseAftAndOTC.seqSchemeFSDetail
   private val samplePaymentsCache = PaymentsCache(psaId, srn, schemeDetails, schemeFSDetails)
   val formProvider = new YearsFormProvider()
-  private val years = Seq(DisplayYear(2020, None))
+  private val years = Seq(DisplayYear(2021, None))
   implicit val ev: Enumerable[Year] = FSYears.enumerable(years.map(_.year))
   val form: Form[Year] = formProvider()
 
@@ -82,7 +81,7 @@ class ClearedChargesSelectYearControllerSpec extends ControllerSpecBase {
   private val radios = TwirlMigration.toTwirlRadios(
     FSYears.radios(form, years, isYearRangeFormat = true))
 
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("2020"))
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("2021"))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
   "ClearedChargesSelectYearController" must {

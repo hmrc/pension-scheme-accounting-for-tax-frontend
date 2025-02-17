@@ -16,7 +16,6 @@
 
 package services.financialOverview.scheme
 
-import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}

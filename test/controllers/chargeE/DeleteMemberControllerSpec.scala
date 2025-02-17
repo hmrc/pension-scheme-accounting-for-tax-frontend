@@ -21,7 +21,6 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YesNoFormProvider
 import matchers.JsonMatchers
-import models.GenericViewModel
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers

@@ -130,7 +130,7 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
       DateHelper.setDate(Some(LocalDate.of(2021, 1, 1)))
       when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesMultiple)
 
-      service.upcomingAftChargesModel(upcomingChargesMultiple, srn) mustBe upcomingChargesMultipleModel(pastLink = upcomingPastChargesLink)
+      service.upcomingAftChargesModel(upcomingChargesMultiple, srn) mustBe upcomingChargesMultipleModel(pastLink = upcomingPastChargesLink())
     }
 
     "return the correct model when there is a single upcoming charge and no past charges" in {

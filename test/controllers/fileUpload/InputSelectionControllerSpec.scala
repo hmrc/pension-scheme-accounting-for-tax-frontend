@@ -25,7 +25,7 @@ import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
 import models.fileUpload.InputSelection.FileUploadInput
-import models.{AccessType, ChargeType, GenericViewModel, UserAnswers}
+import models.{ChargeType, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}

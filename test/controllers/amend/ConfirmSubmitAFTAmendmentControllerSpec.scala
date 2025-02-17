@@ -26,22 +26,21 @@ import helpers.AmendmentHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTOverview, AFTOverviewVersion, AccessMode, GenericViewModel, UserAnswers}
+import models.{AFTOverview, AFTOverviewVersion, AccessMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.Mockito
 import pages.ConfirmSubmitAFTAmendmentPage
 import play.api.Application
-import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import viewmodels.TwirlRadios
 import views.html.ConfirmSubmitAFTAmendmentView
@@ -58,8 +57,6 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
   private val mockAFTConnector = mock[AFTConnector]
 
   private def confirmSubmitAFTAmendmentRoute: String = routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, QUARTER_START_DATE, accessType, 3).url
-
-  private def confirmSubmitAFTAmendmentSubmitRoute: String = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, QUARTER_START_DATE, accessType, 3).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(

@@ -24,12 +24,12 @@ import models.financialStatement.PaymentOrChargeType.getPaymentOrChargeType
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsNavigationService}
+import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
+import utils.{DateHelper, TwirlMigration}
 import views.html.financialOverview.scheme.ClearedChargesSelectYearView
 
-import java.time.{LocalDate, Month}
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,8 +40,7 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
                                                    val controllerComponents: MessagesControllerComponents,
                                                    config: FrontendAppConfig,
                                                    service: PaymentsAndChargesService,
-                                                   selectYearView: ClearedChargesSelectYearView,
-                                                   navService: PaymentsNavigationService
+                                                   selectYearView: ClearedChargesSelectYearView
                                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
@@ -90,7 +89,7 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
               )))
             },
             value =>
-              Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
+              Future.successful(Redirect(routes.ClearedPaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
           )
       }
     }
@@ -100,8 +99,8 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
 
     val years = payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
       .filter(_.periodEndDate.nonEmpty)
-      .filter(date => getTaxYear(date.periodEndDate.get) >= earliestAllowedYear)
-      .map(_.periodEndDate.get.getYear)
+      .filter(date => DateHelper.getTaxYear(date.periodEndDate.get) >= earliestAllowedYear)
+      .map(schemeFsDetails => DateHelper.getTaxYear(schemeFsDetails.periodEndDate.get))
       .distinct
       .sorted
       .reverse
@@ -109,17 +108,5 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
     years.map { year => {
       DisplayYear(year, None)
     }}
-  }
-
-  private def getTaxYear(date: LocalDate): Int = {
-    val givenYear = date.getYear
-
-    val firstDayOfTaxYear = LocalDate.of(givenYear, Month.APRIL, 6)
-
-    if (date.isBefore(firstDayOfTaxYear)) {
-      givenYear
-    } else {
-      givenYear + 1
-    }
   }
 }
