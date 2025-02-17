@@ -22,7 +22,7 @@ import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper
 import helpers.FormatHelper._
-import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
+import models.ChargeDetailsFilter.{All, History, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
 import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
 import models.financialStatement.SchemeFSChargeType._
@@ -87,6 +87,10 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     schemeFSDetail.filter(charge => charge.dueDate.nonEmpty
       && (charge.dueDate.get.isEqual(DateHelper.today) || charge.dueDate.get.isAfter(DateHelper.today))
       && charge.amountDue > BigDecimal(0.00))
+
+  def getClearedCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] = {
+    schemeFSDetail.filter(_.outstandingAmount <= 0)
+  }
 
   def getOverdueCharges(schemeFSDetail: Seq[SchemeFSDetail]): Seq[SchemeFSDetail] = {
     val withDueDate = schemeFSDetail.filter(_.dueDate.nonEmpty)
@@ -395,9 +399,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       stoodOverAmountChargeDetailsRow(schemeFSDetail) ++ totalAmountDueChargeDetailsRow(schemeFSDetail, journeyType)
   }
 
-  def getChargeDetailsForSelectedChargeV2(schemeFSDetail: SchemeFSDetail, schemeDetails: SchemeDetails, journeyType: ChargeDetailsFilter, submittedDate: Option[String])
+  def getChargeDetailsForSelectedChargeV2(schemeFSDetail: SchemeFSDetail, schemeDetails: SchemeDetails, isClearedCharge: Boolean = false)
                                          (implicit messages: Messages): Seq[SummaryListRow] = {
-    pstrRow(schemeDetails) ++ chargeReferenceRow(schemeFSDetail) ++ getTaxPeriod(schemeFSDetail)
+    pstrRow(schemeDetails) ++ chargeReferenceRow(schemeFSDetail) ++ getTaxPeriod(schemeFSDetail, isClearedCharge)
   }
 
   def chargeAmountDetailsRowsV2(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): Table = {
@@ -448,11 +452,17 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       ))
   }
 
-  private def getTaxPeriod(schemeFSDetail: SchemeFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+  private def getTaxPeriod(schemeFSDetail: SchemeFSDetail, isClearedCharge: Boolean = false)(implicit messages: Messages): Seq[SummaryListRow] = {
+    val formattedStartDate = if (isClearedCharge) {
+      formatStartDate(schemeFSDetail.periodStartDate)
+    } else {
+      formatDateDMY(schemeFSDetail.periodStartDate)
+    }
+
     Seq(
       SummaryListRow(
         key = Key(Text(Messages("pension.scheme.interest.tax.period.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
-        value = Value(Text(formatDateDMY(schemeFSDetail.periodStartDate) + " to " +
+        value = Value(Text(formattedStartDate + " to " +
           formatDateDMY(schemeFSDetail.periodEndDate)), classes = "govuk-!-width-one-half")
       ))
   }
@@ -579,6 +589,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       journeyType match {
         case Overdue => cache.copy(schemeFSDetail = getOverdueCharges(cache.schemeFSDetail))
         case Upcoming => cache.copy(schemeFSDetail = extractUpcomingCharges(cache.schemeFSDetail))
+        case History => cache.copy(schemeFSDetail = getClearedCharges(cache.schemeFSDetail))
         case _ => cache
       }
     }
