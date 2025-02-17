@@ -18,7 +18,7 @@ package controllers.financialOverview.psa
 
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
-import models.ChargeDetailsFilter
+import helpers.FormatHelper
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.AFTPartialService
@@ -59,7 +59,7 @@ class RefundsController @Inject()(
             val creditTable = service.getLatestCreditsDetails(latestCredits)
             Future.successful(Ok(view(
               name,
-              creditBalance,
+              s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}",
               requestRefundUrl,
               creditTable
             )))

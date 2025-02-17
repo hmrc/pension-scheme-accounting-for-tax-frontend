@@ -563,7 +563,7 @@ class AFTPartialService @Inject()(
         Seq(
           TableRow(getCreditsLabel(psaFSDetail), classes = "govuk-!-width-one-half"),
           TableRow(Text(formatDateDMY(psaFSDetail.dueDate.get)), classes = "govuk-!-width-one-quarter"),
-          TableRow(Text(psaFSDetail.amountDue.abs.toString), classes = "govuk-!-width-one-quarter"))
+          TableRow(Text(s"${FormatHelper.formatCurrencyAmountAsString(psaFSDetail.amountDue.abs)}"), classes = "govuk-!-width-one-quarter"))
     }
 
     uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table(head = Some(head), rows = rows , attributes = Map("role" -> "table"))

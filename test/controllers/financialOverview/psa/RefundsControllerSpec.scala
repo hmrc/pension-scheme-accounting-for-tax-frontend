@@ -65,7 +65,7 @@ class RefundsControllerSpec extends ControllerSpecBase {
     super.beforeEach()
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
     when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any())).thenReturn(Future.successful(psaFs))
-    when(mockAFTPartialService.getCreditBalanceAmount(any())).thenReturn(BigDecimal("1000.0"))
+    when(mockAFTPartialService.getCreditBalanceAmount(any())).thenReturn(BigDecimal("100.00"))
     when(mockAFTPartialService.getLatestCreditsDetails(any())(any())).thenReturn(createCreditsAndRefundTable(psaFs.seqPsaFSDetail))
   }
 
@@ -76,7 +76,7 @@ class RefundsControllerSpec extends ControllerSpecBase {
 
       val view = application.injector.instanceOf[RefundsView].apply(
         "psa-name",
-        1000.0,
+        "£100.00",
         requestRefundUrl,
         createCreditsAndRefundTable(psaFs.seqPsaFSDetail)
       )(httpGETRequest(httpPathGET), messages)

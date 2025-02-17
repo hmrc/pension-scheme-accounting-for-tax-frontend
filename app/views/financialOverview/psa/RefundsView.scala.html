@@ -27,7 +27,7 @@ govukButton: GovukButton
 
 @(
     psaName: String,
-    creditBalance: BigDecimal,
+    creditBalance: String,
     requestRefundUrl: String,
     creditTable: Table
 )(implicit request: Request[_], messages: Messages)
@@ -37,8 +37,9 @@ govukButton: GovukButton
 <div>
 
     <span class="govuk-caption-xl">@psaName</span>
+    <h1 class="govuk-heading-xl"> @messages("refunds.aft.title")</h1>
     <p class="govuk-body">
-        @messages("refunds.aft.p1") <strong>£@creditBalance</strong>
+        @messages("refunds.aft.p1") <strong>@creditBalance</strong>
         <br><br>
         @messages("refunds.aft.p2")
         <br><br>
