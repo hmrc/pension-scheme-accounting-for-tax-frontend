@@ -143,7 +143,7 @@ class PsaFinancialOverviewControllerSpec
           displayReceivedPayments = true,
           receivedPaymentsLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url,
           displayHistory = true,
-          historyLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url,
+          historyLink = routes.PenaltyTypeController.onPageLoad("history").url,
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
         )(messages, request)
 

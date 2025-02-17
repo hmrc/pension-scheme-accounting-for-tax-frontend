@@ -1576,6 +1576,8 @@ psa.financial.overview.all.title = All penalties and charges
 psa.financial.overview.all.title.v2 = All penalties and charges
 psa.financial.overview.all.text = The information may not reflect payments made in the last 3 days.
 psa.financial.overview.all.text.new = The information may not reflect payments made in the last 3 days.
+psa.financial.overview.datePaid = Date paid:
+psa.financial.overview.returnToClearedPenalties = your cleared penalties and charges
 
 psa.financial.overview.clearedPenaltiesAndCharges.title = Cleared penalties and charges
 psa.financial.overview.historyChargeType.title = Select type of charge
