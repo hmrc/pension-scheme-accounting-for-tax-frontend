@@ -55,8 +55,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   private val logger = Logger(classOf[PaymentsAndChargesService])
 
-  case class IndexRef(chargeType: String, chargeReference: String, period: String)
-
   def getPaymentsAndCharges(srn: String,
                             schemeFSDetail: Seq[SchemeFSDetail],
                             chargeDetailsFilter: ChargeDetailsFilter,
@@ -225,9 +223,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         formatStartDate(periodStartDate) + " to " + formatDateDMY(periodEndDate)
       case PSS_CHARGE | PSS_CHARGE_INTEREST | CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST =>
         formatStartDate(periodStartDate) + " to " + formatDateDMY(periodEndDate)
-      case EXCESS_RELIEF_PAID =>
-        formatDateDMY(periodStartDate) + " to " + formatDateDMY(periodEndDate)
-      case EXCESS_RELIEF_INTEREST =>
+      case EXCESS_RELIEF_PAID | EXCESS_RELIEF_INTEREST =>
         formatDateDMY(periodStartDate) + " to " + formatDateDMY(periodEndDate)
       case _ => ""
     }

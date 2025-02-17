@@ -44,7 +44,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListR
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import utils.DateHelper.formatDateDMY
 import viewmodels.PsaChargeDetailsViewModel
-import views.html.financialOverview.psa.{PsaChargeDetailsNewView, PsaChargeDetailsView}
+import views.html.financialOverview.psa.PsaChargeDetailsView
 
 import java.time.LocalDate
 import scala.concurrent.Future

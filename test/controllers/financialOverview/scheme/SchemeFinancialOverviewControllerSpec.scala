@@ -203,15 +203,6 @@ class SchemeFinancialOverviewControllerSpec
 
   private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = Text(Messages("aftPartial.view.change.past")))
 
-  private def retrieveCreditBalance(creditBalance: BigDecimal): String = {
-    if (creditBalance >= 0) {
-      BigDecimal(0.00).toString()
-    }
-    else {
-      creditBalance.abs.toString()
-    }
-  }
-
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
   private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
   private val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"

@@ -65,9 +65,6 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
       secondAddress
     )
 
-  private val emptySeqAddresses =
-    Seq[TolerantAddress]()
-
   private val userAnswersIndividual: Option[UserAnswers] = Some(
     userAnswersWithSchemeNameAndIndividual.setOrException(SponsoringEmployerAddressSearchPage(index), seqAddresses)
   )

@@ -31,7 +31,6 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.nunjucks.NunjucksHelper.messages
 import uk.gov.hmrc.viewmodels.Text.Message
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}

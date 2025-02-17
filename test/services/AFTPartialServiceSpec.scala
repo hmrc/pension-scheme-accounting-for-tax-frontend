@@ -21,7 +21,6 @@ import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData.multiplePenalties
 import helpers.FormatHelper
-import controllers.fileUpload.ValidationControllerSpec.messages
 import models._
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}

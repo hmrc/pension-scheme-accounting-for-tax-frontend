@@ -42,7 +42,6 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with JsonMatcher
 
   private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
   private val mockService = mock[AFTPartialService]
-  private val mockRefundController = mock[PsaRequestRefundController]
   private val mockMinimalConnector = mock[MinimalConnector]
   private val mockFinancialInfoCreditAccessConnector = mock[FinancialInfoCreditAccessConnector]
   private val dummyURL = "/DUMMY"

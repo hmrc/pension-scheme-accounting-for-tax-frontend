@@ -37,7 +37,7 @@ import pages.EnterPsaIdPage
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
@@ -132,7 +132,6 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with JsonMatchers
     "on a POST" must {
       "for a logged-in PSP save data to user answers, call psp get scheme details and redirect to next page when valid data is submitted" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        val expectedJson = Json.obj(EnterPsaIdPage.toString -> psaId)
 
         when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(EnterPsaIdPage), any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(SampleData.dummyCall)

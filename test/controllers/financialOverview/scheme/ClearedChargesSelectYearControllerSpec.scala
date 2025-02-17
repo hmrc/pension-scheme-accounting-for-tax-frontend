@@ -47,6 +47,9 @@ class ClearedChargesSelectYearControllerSpec extends ControllerSpecBase {
   private def httpPathPOST: String =
     routes.ClearedChargesSelectYearController.onSubmit(srn, PaymentOrChargeType.AccountingForTaxCharges).url
 
+  private def redirectUrl = routes.AllPaymentsAndChargesController
+    .onPageLoad(srn, "2020", PaymentOrChargeType.AccountingForTaxCharges).url
+
   private val mockPaymentsAndChargesService = mock[PaymentsAndChargesService]
 
   private val application: Application = new GuiceApplicationBuilder()
@@ -97,6 +100,15 @@ class ClearedChargesSelectYearControllerSpec extends ControllerSpecBase {
       )(httpGETRequest(httpPathGET), messages)
 
       compareResultAndView(result, view)
+    }
+
+    "redirect to the correct page when valid data is submitted" in {
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual redirectUrl
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

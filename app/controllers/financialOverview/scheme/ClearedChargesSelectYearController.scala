@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, IdentifierAction}
 import forms.YearsFormProvider
 import models.{ChargeDetailsFilter, DisplayYear, Enumerable, FSYears, Year}
-import models.financialStatement.PaymentOrChargeType.{AccountingForTaxCharges, getPaymentOrChargeType}
+import models.financialStatement.PaymentOrChargeType.getPaymentOrChargeType
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -29,7 +29,7 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.TwirlMigration
 import views.html.financialOverview.scheme.ClearedChargesSelectYearView
 
-import java.time.LocalDate
+import java.time.{LocalDate, Month}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -90,11 +90,7 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
               )))
             },
             value =>
-              if (paymentOrChargeType == AccountingForTaxCharges) {
-                navService.navFromAFTYearsPage(paymentsCache.schemeFSDetail, value.year, srn)
-              } else {
-                Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
-              }
+              Future.successful(Redirect(routes.AllPaymentsAndChargesController.onPageLoad(srn, value.year.toString, paymentOrChargeType)))
           )
       }
     }
@@ -102,11 +98,10 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
   private def getYears(payments: Seq[SchemeFSDetail], paymentOrChargeType: PaymentOrChargeType): Seq[DisplayYear] = {
     val earliestAllowedYear = LocalDate.now.getYear - 7
 
-    // TODO - End date should be within tax year - Look at YearRange maxYear val
     val years = payments.filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
       .filter(_.periodEndDate.nonEmpty)
+      .filter(date => getTaxYear(date.periodEndDate.get) >= earliestAllowedYear)
       .map(_.periodEndDate.get.getYear)
-      .filter(_ >= earliestAllowedYear)
       .distinct
       .sorted
       .reverse
@@ -114,5 +109,17 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
     years.map { year => {
       DisplayYear(year, None)
     }}
+  }
+
+  private def getTaxYear(date: LocalDate): Int = {
+    val givenYear = date.getYear
+
+    val firstDayOfTaxYear = LocalDate.of(givenYear, Month.APRIL, 6)
+
+    if (date.isBefore(firstDayOfTaxYear)) {
+      givenYear
+    } else {
+      givenYear + 1
+    }
   }
 }

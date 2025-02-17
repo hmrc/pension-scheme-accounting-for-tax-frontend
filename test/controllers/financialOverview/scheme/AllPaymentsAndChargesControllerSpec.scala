@@ -47,7 +47,6 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
   import AllPaymentsAndChargesControllerSpec._
 
   private val startDate = "2020-04-01"
-  private val endDate = "2020-06-30"
   val pstr = "24000041IN"
 
   private def httpPathGET(startDate: String = startDate): String =
@@ -66,8 +65,6 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
     .build()
 
   val emptyChargesTable: Table = Table()
-
-  private implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -117,7 +114,6 @@ class AllPaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMa
 }
 
 object AllPaymentsAndChargesControllerSpec {
-  private val startDate = "2020-04-01"
   private val srn = "test-srn"
 
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFSDetail = {

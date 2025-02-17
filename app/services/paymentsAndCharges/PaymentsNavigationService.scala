@@ -19,7 +19,6 @@ package services.paymentsAndCharges
 
 import controllers.financialStatement.paymentsAndCharges.routes._
 import models.ChargeDetailsFilter
-import models.ChargeDetailsFilter._
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.{PaymentOrChargeType, SchemeFSDetail}
 import play.api.mvc.Result

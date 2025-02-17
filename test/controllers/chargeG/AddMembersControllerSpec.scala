@@ -39,7 +39,6 @@ import play.twirl.api.Html
 import services.{ChargePaginationService, PaginatedMembersInfo, PaginationStats}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
-import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY

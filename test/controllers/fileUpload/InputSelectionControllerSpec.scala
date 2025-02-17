@@ -130,10 +130,4 @@ class InputSelectionControllerSpec extends ControllerSpecBase with JsonMatchers 
     }
   }
 
-  private def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType) = GenericViewModel(
-    submitUrl = controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, version, chargeType).url,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-    schemeName = schemeName
-  )
-
 }

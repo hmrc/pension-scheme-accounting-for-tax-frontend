@@ -29,7 +29,7 @@ import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.requests.IdentifierRequest
-import models.{AFTQuarter, AccessMode, AdministratorOrPractitioner, Declaration, GenericViewModel, JourneyType, SessionAccessData, UserAnswers}
+import models.{AFTQuarter, AccessMode, AdministratorOrPractitioner, Declaration, JourneyType, SessionAccessData, UserAnswers}
 import navigators.CompoundNavigator
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -340,7 +340,6 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 }
 
 object DeclarationControllerSpec {
-  private val templateToBeRenderedPsp = "pspDeclaration.njk"
   private val emailParamsCaptor = ArgumentCaptor.forClass(classOf[Map[String, String]])
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val journeyTypeCaptor = ArgumentCaptor.forClass(classOf[JourneyType.Value])

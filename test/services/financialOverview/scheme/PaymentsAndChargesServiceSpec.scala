@@ -48,7 +48,7 @@ import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatDateDMY}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListRow, Value}
-import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -396,6 +396,56 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       }
     }
   }
+
+  "setPeriodNew" must {
+    "return correct string for AFT charge type" in {
+      val result = paymentsAndChargesService.setPeriodNew(SchemeFSChargeType.PSS_AFT_RETURN, Some(QUARTER_START_DATE), Some(QUARTER_END_DATE))
+      result mustBe "1 April to 30 June 2020"
+    }
+    "return correct string for Contract Settlement charge type" in {
+      val result = paymentsAndChargesService.setPeriodNew(SchemeFSChargeType.CONTRACT_SETTLEMENT, Some(QUARTER_START_DATE), Some(QUARTER_END_DATE))
+      result mustBe "1 April to 30 June 2020"
+    }
+    "return correct string for Excess Relief charge type" in {
+      val result = paymentsAndChargesService.setPeriodNew(SchemeFSChargeType.EXCESS_RELIEF_PAID, Some(QUARTER_START_DATE), Some(QUARTER_END_DATE))
+      result mustBe "1 April 2020 to 30 June 2020"
+    }
+  }
+
+  "getChargeDetailsForSelectedChargeV2" must {
+    "expected Summary List Rows" in {
+      val schemeFSDetails = schemeFSResponseAftAndOTC.seqSchemeFSDetail.head
+      val result = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetails, schemeDetails, All, Some(submittedDate))
+      val pstrRow = Seq(
+        SummaryListRow(
+          key = Key(Text(Messages("pension.scheme.tax.reference.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+          value = Value(Text(s"${schemeDetails.pstr}"), classes = "govuk-!-width-one-half")
+        ))
+
+      val chargeReferenceRow = Seq(
+        SummaryListRow(
+          key = Key(Text(Messages("financialPaymentsAndCharges.chargeReference")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+          value = Value(Text(schemeFSDetails.chargeReference), classes = "govuk-!-width-one-quarter")
+        ))
+
+      val taxPeriod = Seq(
+        SummaryListRow(
+          key = Key(Text(Messages("pension.scheme.interest.tax.period.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+          value = Value(Text("1 April 2020 to 30 June 2020"), classes = "govuk-!-width-one-half")
+        ))
+
+      result mustBe pstrRow ++ chargeReferenceRow ++ taxPeriod
+    }
+  }
+
+//  "getReturnUrl" must {
+//    "return scheme dashboard url is journeyType is All" in {
+//      when(mockFIConnector.fetch(any(), any()))
+//        .thenReturn(Future.successful(Some(Json.toJson(paymentsCache))))
+//      val result = paymentsAndChargesService.getReturnUrl(srn, Some(PsaId(psaId)), None, config, All)
+//      result mustBe config.schemeDashboardUrl(Some(PsaId(psaId)), None).format(srn)
+//    }
+//  }
 }
 
 object PaymentsAndChargesServiceSpec {

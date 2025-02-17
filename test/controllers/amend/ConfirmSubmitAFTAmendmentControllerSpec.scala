@@ -25,13 +25,12 @@ import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.ValueChangeType.ChangeTypeSame
 import models.requests.DataRequest
 import models.{AFTOverview, AFTOverviewVersion, AccessMode, GenericViewModel, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{never, times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
-import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTAmendmentValueChangeTypePage}
+import org.mockito.Mockito
+import pages.ConfirmSubmitAFTAmendmentPage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
@@ -71,20 +70,6 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private val versionNumber = 3
-
-  private def jsonToBePassed(form: Form[Boolean]): JsObject = Json.obj(
-    fields = "srn" -> srn,
-    "startDate" -> Some(localDateToString(startDate)),
-    "form" -> form,
-    "versionNumber" -> 3,
-    "viewModel" -> GenericViewModel(
-      submitUrl = confirmSubmitAFTAmendmentSubmitRoute,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "tableRowsUK" -> Nil,
-    "tableRowsNonUK" -> Nil,
-    "radios" -> Radios.yesNo(form("value"))
-  )
 
   override def beforeEach(): Unit = {
     super.beforeEach()
