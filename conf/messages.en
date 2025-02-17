@@ -1109,6 +1109,14 @@ psaPenaltiesCard.h2 = Penalties and charges
 psaPenaltiesCard.paymentsDue.linkText = View only penalties and charges outstanding
 psaPenaltiesCard.viewPastPenalties = View all penalties and charges
 
+refunds.aft.title = Credits and refunds
+refunds.aft.p1 = You are eligible for a refund of up to
+refunds.aft.p2 = You or someone else from your organisation might have recently requested a refund for this account.
+refunds.aft.p3 = Your credit balance will only change once a refund has been paid. We aim to process refund requests within 15 working days.
+refunds.aft.heading = Credit history
+refunds.aft.date = Date
+refunds.aft.credit.value =Credit value
+
 penalties.aft.title = Accounting for Tax penalties for {0} to {1}
 penalties.nonAft.title = {0} for {1}
 penalties.pstr = Pension Scheme Tax Reference: {0}

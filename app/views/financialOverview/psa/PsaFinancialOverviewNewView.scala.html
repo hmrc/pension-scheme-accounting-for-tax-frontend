@@ -122,16 +122,8 @@
                     </h3>
                     <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@creditBalanceFormatted</p>
 
-                    @if(creditBalance > 0) {
-                        <p class="govuk-body-m">
-                            <a id="refund" class="govuk-link" href="@requestRefundUrl">
-                                @messages("schemeFinancial.refund")
-                            </a>
-                        </p>
-                    }
-
                     <p class="govuk-body-m">
-                        <a id="allPaymentCharges" class=govuk-link href="@allPaymentLink"> @messages("psa.financial.overview.creditsAndRefunds.link")</a>
+                        <a id="allRefunds" class=govuk-link href="@allPaymentLink"> @messages("psa.financial.overview.creditsAndRefunds.link")</a>
                     </p>
 
                 </div>
