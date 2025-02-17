@@ -1560,7 +1560,7 @@ psa.financial.overview.payment.amount = Penalty amount
 psa.financial.overview.payment.amount.new = Charge amount
 psa.financial.overview.payment.dueDate = Due date
 psa.financial.overview.payment.interest = Interest accruing
-psa.financial.overview.payment.charge.amount = Charge amount
+financial.overview.payment.charge.amount = Charge amount
 psa.financial.overview.charge.reference = Charge reference
 psa.financial.overview.datePaid = Date paid
 psa.financial.overview.dueDate = Due date
@@ -1590,6 +1590,11 @@ psa.financial.overview.returnToClearedPenalties = your cleared penalties and cha
 psa.financial.overview.clearedPenaltiesAndCharges.title = Cleared penalties and charges
 psa.financial.overview.historyChargeType.title = Select type of charge
 psa.financial.overview.chargeHistoryYear.title = Cleared penalties and charges
+
+
+scheme.financial.overview.clearedPaymentsAndCharges.title = Cleared payments and charges
+scheme.financial.overview.clearedPaymentsAndCharges.datePaid = Date paid
+scheme.financial.overview.paymentOrCharge = Cleared payment or charge
 
 financial.overview.datePaid = Date paid:
 

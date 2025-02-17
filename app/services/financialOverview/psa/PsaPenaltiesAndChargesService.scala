@@ -338,7 +338,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penalty")}</span>"
           )),
         HeadCell(Text(Messages("psa.financial.overview.payment.dueDate")), classes = "govuk-!-font-weight-bold"),
-        HeadCell(Text(Messages("psa.financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold"),
+        HeadCell(Text(Messages("financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold"),
         HeadCell(Text(Messages("psa.financial.overview.payment.due")), classes = "govuk-!-font-weight-bold"),
         HeadCell(Text(Messages("psa.financial.overview.payment.interest")), classes = "govuk-!-font-weight-bold")
       )
