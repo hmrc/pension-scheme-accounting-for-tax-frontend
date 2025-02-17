@@ -48,7 +48,6 @@ class ClearedPaymentsAndChargesController @Inject()(override val messagesApi: Me
         }).filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
           .filter(_.outstandingAmount <= 0)
 
-        println(s"\n filtered payments: ${filteredPayments.map(_.documentLineItemDetails)}")
         val table = paymentsAndChargesService.getClearedPaymentsAndCharges(filteredPayments)
         Ok(clearedPaymentsAndChargesView(paymentsCache.schemeDetails.schemeName, table))
       }
