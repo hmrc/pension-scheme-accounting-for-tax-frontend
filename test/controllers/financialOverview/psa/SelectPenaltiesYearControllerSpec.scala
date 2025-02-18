@@ -43,7 +43,6 @@ import play.api.test.Helpers.{defaultAwaitTimeout, redirectLocation, route, stat
 import services.PenaltiesServiceSpec.{listOfSchemes, penaltiesCache}
 import services.financialOverview.psa.PsaPenaltiesAndChargesServiceSpec.{psaFsERSeq, psaFsSeq, pstr}
 import services.financialOverview.psa.{PenaltiesCache, PenaltiesNavigationService, PsaPenaltiesAndChargesService}
-import utils.TwirlMigration
 import views.html.financialOverview.psa.SelectYearView
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -109,7 +108,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with JsonMatc
         psaName = penaltiesCache.psaName,
         penaltyType = typeParam,
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-        radios = TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form, years)),
+        radios = FSYears.radios(form, years),
         journeyType = ChargeDetailsFilter.All
       )(request, messages)
 
@@ -137,7 +136,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with JsonMatc
         psaName = penaltiesCache.psaName,
         penaltyType = typeParam,
         returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
-        radios = TwirlMigration.toTwirlRadios(FSYears.radios(form, years)),
+        radios = FSYears.radios(form, years),
         journeyType = ChargeDetailsFilter.History
       )(request, messages)
 

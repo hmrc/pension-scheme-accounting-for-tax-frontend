@@ -43,9 +43,7 @@ class RemoveLastChargeControllerSpec extends ControllerSpecBase with JsonMatcher
   val redirectUrl: String = routes.ChargeAmountsController.onSubmit(CheckMode, srn, startDate, accessType, versionInt, index).url
 
   override def beforeEach(): Unit = {
-    super.beforeEach()
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-  }
+    super.beforeEach()  }
 
   "removeLastCharge Controller" must {
     "return OK and the correct view for a GET" in {

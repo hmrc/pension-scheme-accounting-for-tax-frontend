@@ -21,11 +21,11 @@ import matchers.JsonMatchers
 import models.ChargeType
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Text.Message
+import play.api.i18n.Messages
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 
 class CommonMcCloudSpec extends ControllerSpecBase
-  with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+  with MockitoSugar with JsonMatchers with OptionValues with TryValues {
 
   private val commonMcCloud = new CommonMcCloud {}
 
@@ -45,17 +45,17 @@ class CommonMcCloudSpec extends ControllerSpecBase
 
     "return correct value for indexes 1..4" in {
       (1 to 4).foreach { index =>
-        commonMcCloud.ordinal(Some(index)) mustBe Some(Message(s"mccloud.scheme.ref$index"))
+        commonMcCloud.ordinal(Some(index)) mustBe Some(Text(Messages(s"mccloud.scheme.ref$index")))
       }
     }
   }
 
   "lifetimeOrAnnual" must {
     "return correct value for annual allowance" in {
-      commonMcCloud.lifetimeOrAnnual(ChargeType.ChargeTypeAnnualAllowance) mustBe Some(Message("chargeType.description.annualAllowance"))
+      commonMcCloud.lifetimeOrAnnual(ChargeType.ChargeTypeAnnualAllowance) mustBe Some(Text(Messages("chargeType.description.annualAllowance")))
     }
     "return correct value for lifetime allowance" in {
-      commonMcCloud.lifetimeOrAnnual(ChargeType.ChargeTypeLifetimeAllowance) mustBe Some(Message("chargeType.description.lifeTimeAllowance"))
+      commonMcCloud.lifetimeOrAnnual(ChargeType.ChargeTypeLifetimeAllowance) mustBe Some(Text(Messages("chargeType.description.lifeTimeAllowance")))
     }
 
     "return correct value for invalid charge type" in {

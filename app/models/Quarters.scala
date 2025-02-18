@@ -19,11 +19,10 @@ package models
 import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Text, _}
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Hint, RadioItem, Text}
 import utils.DateHelper._
 import viewmodels.Radios.Radio
-import viewmodels.{Hint, LabelClasses, Radios}
+import viewmodels.{LabelClasses, Radios}
 
 import java.time.{LocalDate, Month}
 import scala.language.implicitConversions
@@ -126,7 +125,7 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
   def values(displayQuarters: Seq[DisplayQuarter]): Seq[AFTQuarter] = displayQuarters.map(_.quarter)
 
   def radios(form: Form[_], displayQuarters: Seq[DisplayQuarter], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
-            (implicit messages: Messages): Seq[Radios.Item] = {
+            (implicit messages: Messages): Seq[RadioItem] = {
     val x: Seq[Radio] = displayQuarters.map { displayQuarter =>
       Radios.Radio(label = getLabel(displayQuarter),
         value = displayQuarter.quarter.toString,
@@ -148,12 +147,12 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
       case _ => ""
     }
 
-    Literal(s"${messages(s"quarters.${q.toString}.label")} $year $lockedString")
+    Text(s"${messages(s"quarters.${q.toString}.label")} $year $lockedString")
   }
 
-  private def getHint(displayQuarter: DisplayQuarter, hintClass: Seq[String]): Option[Hint] =
+  private def getHint(displayQuarter: DisplayQuarter, hintClass: Seq[String])(implicit messages: Messages): Option[Hint] =
     displayQuarter.hintText match {
-    case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))
-    case _ => None
+      case Some(hint) => Some(Hint(content = Text(Messages(s"${hint.toString}")), id = Some("hint-id"), classes = hintClass.mkString(" ")))
+      case _ => None
   }
 }

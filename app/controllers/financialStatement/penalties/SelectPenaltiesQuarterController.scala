@@ -27,7 +27,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -62,10 +61,10 @@ class SelectPenaltiesQuarterController @Inject()(
           Future.successful(Ok(selectQuarterView(
             form(quarters),
             year,
-            TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters),
+            Quarters.radios(form(quarters),
               getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"),
-              areLabelsBold = false)),
+              areLabelsBold = false),
             routes.SelectPenaltiesQuarterController.onSubmit(year, journeyType),
             config.managePensionsSchemeOverviewUrl,
             penaltiesCache.psaName
@@ -88,10 +87,10 @@ class SelectPenaltiesQuarterController @Inject()(
                 Future.successful(BadRequest(selectQuarterView(
                   formWithErrors,
                   year,
-                  TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(formWithErrors,
+                  Quarters.radios(formWithErrors,
                     getDisplayQuarters(year, filteredPenalties(penaltiesCache.penalties, year.toInt)),
                     Seq("govuk-tag govuk-!-display-inline govuk-tag--red"),
-                    areLabelsBold = false)),
+                    areLabelsBold = false),
                   routes.SelectPenaltiesQuarterController.onSubmit(year, journeyType),
                   config.managePensionsSchemeOverviewUrl,
                   penaltiesCache.psaName

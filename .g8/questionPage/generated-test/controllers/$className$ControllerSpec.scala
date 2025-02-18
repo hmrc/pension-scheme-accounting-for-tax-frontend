@@ -16,11 +16,11 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+
 import data.SampleData._
 import scala.concurrent.Future
 
-class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
+class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {
 
   val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   def onwardRoute = Call("GET", "/foo")

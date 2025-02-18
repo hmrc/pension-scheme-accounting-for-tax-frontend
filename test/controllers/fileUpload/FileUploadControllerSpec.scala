@@ -84,8 +84,6 @@ class FileUploadControllerSpec extends ControllerSpecBase with JsonMatchers {
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUpscanInitiateConnector)
-    reset(mockRenderer)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.maxUploadFileSize).thenReturn(maxUploadFileSize)
   }
 

@@ -19,13 +19,14 @@ package models
 
 import config.FrontendAppConfig
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.libs.json.{JsString, Writes}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Hint, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.Radios.Radio
-import viewmodels.{Hint, Radios}
+import viewmodels.Radios
 
 import java.time.{LocalDate, Month}
 
@@ -61,8 +62,8 @@ object StartYears extends CommonYears with Enumerable.Implicits {
 
   def values(implicit config: FrontendAppConfig): Seq[Year] = (minYear to currentYear).reverseIterator.map(Year(_)).toSeq
 
-  def radios(form: Form[_])(implicit config: FrontendAppConfig): Seq[Radios.Item] = {
-    Radios(form("value"), values.map(year => Radios.Radio(Literal(year.toString), year.toString)))
+  def radios(form: Form[_])(implicit config: FrontendAppConfig): Seq[RadioItem] = {
+    Radios(form("value"), values.map(year => Radios.Radio(Text(year.toString), year.toString)))
   }
 
   implicit def enumerable(implicit config: FrontendAppConfig): Enumerable[Year] =
@@ -73,8 +74,8 @@ object AmendYears extends CommonYears with Enumerable.Implicits {
 
   def values(years: Seq[Int]): Seq[Year] = years.reverseIterator.map(Year(_)).toSeq
 
-  def radios(form: Form[_], years: Seq[Int]): Seq[Radios.Item] = {
-    Radios(form("value"), years.reverseIterator.map(year => Radios.Radio(Literal(year.toString), year.toString)).toSeq)
+  def radios(form: Form[_], years: Seq[Int]): Seq[RadioItem] = {
+    Radios(form("value"), years.reverseIterator.map(year => Radios.Radio(Text(year.toString), year.toString)).toSeq)
   }
 
   implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =
@@ -86,7 +87,7 @@ object FSYears extends CommonYears with Enumerable.Implicits {
 
   def values(years: Seq[DisplayYear]): Seq[Year] = years.map(x => Year(x.year))
 
-  def radios(form: Form[_], displayYears: Seq[DisplayYear], isFYFormat: Boolean = false): Seq[Radios.Item] = {
+  def radios(form: Form[_], displayYears: Seq[DisplayYear], isFYFormat: Boolean = false)(implicit messages: Messages): Seq[RadioItem] = {
     val x: Seq[Radio] = displayYears.map { displayYear =>
 
       Radios.Radio(label = getLabel(displayYear.year, isFYFormat),
@@ -100,21 +101,22 @@ object FSYears extends CommonYears with Enumerable.Implicits {
   implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =
     Enumerable(years.map(v => v.toString -> Year(v)): _*)
 
-  private def getHint(displayYear: DisplayYear): Option[Hint] =
+  private def getHint(displayYear: DisplayYear)(implicit messages: Messages): Option[Hint] =
     displayYear.hintText match {
-      case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", Seq("govuk-tag govuk-tag--red govuk-!-display-inline")))
+      case Some(hint) => Some(Hint(content = Text(Messages(s"${hint.toString}")), id = Some("hint-id"),
+        classes = "govuk-tag govuk-tag--red govuk-!-display-inline"))
       case _ => None
     }
 
   //scalastyle:off magic.number
-  private def getLabel(year: Int, isFYFormat: Boolean): Text =
+  private def getLabel(year: Int, isFYFormat: Boolean)(implicit messages: Messages): Text =
     if (isFYFormat) {
-      msg"yearRangeRadio".withArgs(
+      Text(Messages("yearRangeRadio",
         LocalDate.of(year - 1, Month.APRIL, 6).format(dateFormatterDMY),
         LocalDate.of(year, Month.APRIL, 5).format(dateFormatterDMY)
-      )
+      ))
     } else {
-      Literal(year.toString)
+      Text(year.toString)
     }
 
 }

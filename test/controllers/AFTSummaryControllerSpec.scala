@@ -35,7 +35,7 @@ import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Call
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import play.twirl.api.{Html => TwirlHtml}
 import services.MemberSearchService.MemberRow
 import services.{AFTService, MemberSearchService, SchemeService}
@@ -46,7 +46,6 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.{AFTSummaryViewModel, Radios}
 import views.html.AFTSummaryView
 import uk.gov.hmrc.govukfrontend.views.html.components.{Hint => GovukHint}
-import utils.TwirlMigration
 
 import scala.concurrent.Future
 
@@ -75,11 +74,9 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUserAnswersCacheConnector)
-    reset(mockRenderer)
     reset(mockAFTService)
     reset(mockMemberSearchService)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(TwirlHtml("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(testManagePensionsUrl.url)
     when(mockAFTSummaryHelper.summaryListData(any(), any(), any(), any(), any())(any())).thenReturn(Nil)
@@ -122,7 +119,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
           membersList = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44")),
           quarterEndDate = QUARTER_END_DATE.format(dateFormatterDMY),
           quarterStartDate = startDate.format(dateFormatterStartDate),
-          radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+          radios = Radios.yesNo(form("value")),
           submissionNumber = "Big Scheme",
           summarySearchHeadingText = "",
           viewAllAmendmentsLink = None,
@@ -157,7 +154,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
           membersList = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44")),
           quarterEndDate = QUARTER_END_DATE.format(dateFormatterDMY),
           quarterStartDate = startDate.format(dateFormatterStartDate),
-          radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+          radios = Radios.yesNo(form("value")),
           submissionNumber = "Big Scheme",
           summarySearchHeadingText = "",
           viewAllAmendmentsLink = None,
@@ -200,7 +197,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
           membersList = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44")),
           quarterEndDate = QUARTER_END_DATE.format(dateFormatterDMY),
           quarterStartDate = startDate.format(dateFormatterStartDate),
-          radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+          radios = Radios.yesNo(form("value")),
           submissionNumber = "Draft",
           summarySearchHeadingText = "",
           viewAllAmendmentsLink = Some(viewAllAmendmentsLink),
@@ -300,7 +297,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with JsonMatchers with
           membersList = searchResult,
           quarterEndDate = QUARTER_END_DATE.format(dateFormatterDMY),
           quarterStartDate = startDate.format(dateFormatterStartDate),
-          radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+          radios = Radios.yesNo(form("value")),
           submissionNumber = "Big Scheme",
           summarySearchHeadingText = messages("aft.summary.heading.search.results") + " ",
           viewAllAmendmentsLink = None,

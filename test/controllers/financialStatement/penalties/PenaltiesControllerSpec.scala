@@ -68,7 +68,6 @@ class PenaltiesControllerSpec extends ControllerSpecBase with JsonMatchers
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPenaltiesService)
-    reset(mockRenderer)
     when(mockPenaltiesService.getPsaFsTable(any(), any(), any(), any(), any())(any()))
       .thenReturn(penaltyTables)
     when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any()))
@@ -76,8 +75,6 @@ class PenaltiesControllerSpec extends ControllerSpecBase with JsonMatchers
 
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
-    when(mockRenderer.render(any(), any())(any()))
-      .thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
   "Penalties Controller" when {

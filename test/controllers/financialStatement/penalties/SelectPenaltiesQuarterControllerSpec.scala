@@ -35,10 +35,9 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{PenaltiesCache, PenaltiesService}
-import utils.TwirlMigration
 import views.html.financialStatement.penalties.SelectQuarterView
 
 import scala.concurrent.Future
@@ -75,7 +74,6 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with JsonM
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
     when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any())).thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFsSeq)))
@@ -88,8 +86,7 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with JsonM
       val view = application.injector.instanceOf[SelectQuarterView].apply(
         form,
         year,
-        TwirlMigration.toTwirlRadiosWithHintText(
-          Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"), areLabelsBold = false)),
+        Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline-block"), areLabelsBold = false),
         routes.SelectPenaltiesQuarterController.onSubmit(year, All),
         "",
         "psa-name"

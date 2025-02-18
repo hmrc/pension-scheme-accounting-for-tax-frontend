@@ -11,9 +11,3 @@
 
 # Add all the application routes to the prod.routes file
 ->         /                          prod.Routes
-
-GET        /manage-pension-scheme-accounting-for-tax/test-only/set-date             @controllers.testonly.DateTestController.present()
-POST       /manage-pension-scheme-accounting-for-tax/test-only/set-date             @controllers.testonly.DateTestController.submit()
-
-GET        /manage-pension-scheme-accounting-for-tax/test-only/clear-data           @controllers.testonly.DeleteDataTestController.present()
-POST       /manage-pension-scheme-accounting-for-tax/test-only/clear-data           @controllers.testonly.DeleteDataTestController.delete()

@@ -19,10 +19,12 @@ package models.financialStatement
 import models.Enumerable
 import models.financialStatement.PsaFSChargeType._
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.mvc.PathBindable
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.govukfrontend.views.Aliases.{Hint, Text}
+import uk.gov.hmrc.govukfrontend.views.viewmodels.radios.RadioItem
 import viewmodels.Radios.Radio
-import viewmodels.{Hint, LabelClasses, Radios}
+import viewmodels.{LabelClasses, Radios}
 
 import scala.language.implicitConversions
 
@@ -48,11 +50,12 @@ object PenaltyType extends Enumerable.Implicits {
   val values: Seq[PenaltyType] =
     Seq(AccountingForTaxPenalties, ContractSettlementCharges, EventReportingCharges, InformationNoticePenalties, PensionsPenalties)
 
-  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true): Seq[Radios.Item] =
+  def radiosWithHint(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil,
+             areLabelsBold: Boolean = true)(implicit messages: Messages): Seq[RadioItem] =
     {
       val x: Seq[Radio] = penaltyTypes.map { penaltyType =>
 
-        Radios.Radio(label = msg"penaltyType.${penaltyType.penaltyType.toString}",
+        Radios.Radio(label = Text(Messages(s"penaltyType.${penaltyType.penaltyType.toString}")),
           value = penaltyType.penaltyType.toString,
           hint = getHint(penaltyType, hintClass),
           labelClasses = Some(LabelClasses(classes = if(areLabelsBold) Seq("govuk-!-font-weight-bold") else Nil)))
@@ -60,6 +63,19 @@ object PenaltyType extends Enumerable.Implicits {
 
       Radios(form("value"), x)
     }
+
+  def radios(form: Form[_], penaltyTypes: Seq[DisplayPenaltyType], hintClass: Seq[String] = Nil,
+             areLabelsBold: Boolean = true)(implicit messages: Messages): Seq[RadioItem] =
+  {
+    val x: Seq[Radio] = penaltyTypes.map { penaltyType =>
+
+      Radios.Radio(label = Text(Messages(s"penaltyType.${penaltyType.penaltyType.toString}")),
+        value = penaltyType.penaltyType.toString,
+        labelClasses = Some(LabelClasses(classes = if(areLabelsBold) Seq("govuk-!-font-weight-bold") else Nil)))
+    }
+
+    Radios(form("value"), x)
+  }
 
 
   implicit val enumerable: Enumerable[PenaltyType] = Enumerable(values.map(v => v.toString -> v): _*)
@@ -104,9 +120,9 @@ object PenaltyType extends Enumerable.Implicits {
 
   case class UnknownPenaltyTypeException() extends Exception
 
-  private def getHint(penaltyTypes: DisplayPenaltyType, hintClass: Seq[String]): Option[Hint] =
+  private def getHint(penaltyTypes: DisplayPenaltyType, hintClass: Seq[String])(implicit messages: Messages): Option[Hint] =
     penaltyTypes.hintText match {
-      case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))
+      case Some(hint) => Some(Hint(content = Text(Messages(s"${hint.toString}")), id = Some("hint-id"), classes = hintClass.mkString(" ")))
       case _ => None
 
     }
