@@ -1109,6 +1109,14 @@ psaPenaltiesCard.h2 = Penalties and charges
 psaPenaltiesCard.paymentsDue.linkText = View only penalties and charges outstanding
 psaPenaltiesCard.viewPastPenalties = View all penalties and charges
 
+refunds.aft.title = Credits and refunds
+refunds.aft.p1 = You are eligible for a refund of up to
+refunds.aft.p2 = You or someone else from your organisation might have recently requested a refund for this account.
+refunds.aft.p3 = Your credit balance will only change once a refund has been paid. We aim to process refund requests within 15 working days.
+refunds.aft.heading = Credit history
+refunds.aft.date = Date
+refunds.aft.credit.value =Credit value
+
 penalties.aft.title = Accounting for Tax penalties for {0} to {1}
 penalties.nonAft.title = {0} for {1}
 penalties.pstr = Pension Scheme Tax Reference: {0}
@@ -1505,6 +1513,7 @@ financialPaymentsAndCharges.refundUnavailable.p1 = You cannot request a refund u
 financialPaymentsAndCharges.refundUnavailable.p2 = for more information.
 financialPaymentsAndCharges.refundUnavailable.linkText = Contact HMRC
 schemeFinancial.refund = Request a refund
+financialPaymentsAndCharges.returnToClearedPayments.linkText = your cleared payments and charges
 
 
 psa.financial.overview.title = Your financial overview
@@ -1551,11 +1560,13 @@ psa.financial.overview.payment.amount = Penalty amount
 psa.financial.overview.payment.amount.new = Charge amount
 psa.financial.overview.payment.dueDate = Due date
 psa.financial.overview.payment.interest = Interest accruing
-psa.financial.overview.payment.charge.amount = Charge amount
+financial.overview.payment.charge.amount = Charge amount
 psa.financial.overview.charge.reference = Charge reference
+psa.financial.overview.datePaid = Date paid
 psa.financial.overview.dueDate = Due date
 psa.financial.overview.penalty = Penalty
 psa.financial.overview.charge = Penalty
+psa.financial.overview.penaltyOrCharge = Penalty or charge
 psa.financial.overview.paymentStatus = Payment status
 psa.financial.overview.penaltyAmount = Original penalty amount
 psa.financial.overview.chargeAmount = Original penalty amount
@@ -1573,9 +1584,19 @@ psa.financial.overview.all.title = All penalties and charges
 psa.financial.overview.all.title.v2 = All penalties and charges
 psa.financial.overview.all.text = The information may not reflect payments made in the last 3 days.
 psa.financial.overview.all.text.new = The information may not reflect payments made in the last 3 days.
+psa.financial.overview.datePaid = Date paid:
+psa.financial.overview.returnToClearedPenalties = your cleared penalties and charges
 
+psa.financial.overview.clearedPenaltiesAndCharges.title = Cleared penalties and charges
 psa.financial.overview.historyChargeType.title = Select type of charge
 psa.financial.overview.chargeHistoryYear.title = Cleared penalties and charges
+
+
+scheme.financial.overview.clearedPaymentsAndCharges.title = Cleared payments and charges
+scheme.financial.overview.clearedPaymentsAndCharges.datePaid = Date paid
+scheme.financial.overview.paymentOrCharge = Cleared payment or charge
+
+financial.overview.datePaid = Date paid:
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format

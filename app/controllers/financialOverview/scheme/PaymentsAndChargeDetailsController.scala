@@ -179,7 +179,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                        ): ChargeDetailsViewModel = {
 
       ChargeDetailsViewModel(
-        chargeDetailsList = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetail, schemeDetails, journeyType, submittedDate),
+        chargeDetailsList = paymentsAndChargesService.getChargeDetailsForSelectedChargeV2(schemeFSDetail, schemeDetails),
         schemeName = schemeDetails.schemeName,
         chargeType = version match {
           case Some(value) => schemeFSDetail.chargeType.toString + s" submission $value"

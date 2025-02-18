@@ -174,6 +174,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
   }
 
+  def getChargeDetailsForClearedCharge(psaFSDetail: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+    pstrRow(psaFSDetail) ++
+      chargeReferenceRow(psaFSDetail) ++
+      getTaxPeriod(psaFSDetail)
+  }
   //scalastyle:off parameter.number
   //scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
@@ -249,6 +254,75 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
   }
 
+  def getClearedPenaltiesAndCharges(psaId: String, period: String, penaltyType: PenaltyType, psaFs: Seq[PsaFSDetail])
+                                   (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
+    val clearedPenaltiesAndCharges = psaFs.filter(_.outstandingAmount <= 0)
+
+    val tableHeader = {
+      Seq(
+        HeadCell(
+          HtmlContent(
+            s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penaltyOrCharge")}</span>"
+          )),
+        HeadCell(Text(Messages("psa.financial.overview.datePaid")), classes = "govuk-!-font-weight-bold"),
+        HeadCell(Text(Messages("psa.financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold")
+      )
+    }
+
+    def getRows = clearedPenaltiesAndCharges.zipWithIndex.map{ case (penaltyOrCharge, index) => {
+      val clearingDate = getClearingDate(penaltyOrCharge.documentLineItemDetails)
+
+      val chargeLink = controllers.financialOverview.psa.routes.ClearedPenaltyOrChargeController.onPageLoad(period, penaltyType, index)
+      getSchemeName(psaId, penaltyOrCharge.pstr).map(schemeName =>
+        Seq(
+          TableRow(HtmlContent(
+            s"<a id=${penaltyOrCharge.chargeReference} class=govuk-link href=$chargeLink>" +
+              formatChargeTypeWithHyphen(penaltyOrCharge.chargeType.toString) + "</a></br>" +
+              schemeName + "</br>" +
+              penaltyOrCharge.chargeReference + "</br>" +
+              formatStartDate(penaltyOrCharge.periodStartDate) + " to " + formatDateDMY(penaltyOrCharge.periodEndDate)
+          ), classes = "govuk-!-width-one-half"),
+          TableRow(HtmlContent(s"<p>$clearingDate</p>")),
+          TableRow(HtmlContent(s"<p>${FormatHelper.formatCurrencyAmountAsString(penaltyOrCharge.documentLineItemDetails.map(_.clearedAmountItem).sum)}</p>"))
+        )
+      )
+    }}
+
+    val rows = Future.sequence(getRows)
+
+    rows.map(tableRows =>
+      Table(head = Some(tableHeader), rows = tableRows)
+    )
+  }
+
+  def getClearingDate(documentLineItemDetails: Seq[DocumentLineItemDetail]): String = {
+    val paymentDates = documentLineItemDetails.flatMap { documentLineItemDetail =>
+      (documentLineItemDetail.paymDateOrCredDueDate, documentLineItemDetail.clearingDate) match {
+        case (Some(paymDateOrCredDueDate), _) =>
+          Some(paymDateOrCredDueDate)
+        case (None, Some(clearingDate)) =>
+          Some(clearingDate)
+        case _ => None
+      }
+    }
+
+    if (paymentDates.nonEmpty) {
+      DateHelper.formatDateDMY(paymentDates.max)
+    } else {
+      ""
+    }
+  }
+
+  private def formatChargeTypeWithHyphen(chargeTypeString: String) = {
+    chargeTypeString match {
+      case phrase if (phrase.contains("Accounting for Tax")) => phrase.replace("Accounting for Tax", "Accounting for Tax -")
+      case phrase if (phrase.contains("Overseas Transfer Charge")) => phrase.replace("Overseas Transfer Charge", "Overseas Transfer Charge -")
+      case phrase if (phrase.contains("Scheme Sanction Charge")) => phrase.replace("Scheme Sanction Charge", "Scheme Sanction Charge -")
+      case phrase if (phrase.contains("Lifetime Allowance Discharge Assessment")) => phrase.replace("Lifetime Allowance Discharge Assessment", "Lifetime Allowance Discharge Assessment -")
+      case _ => chargeTypeString
+    }
+  }
+
   private def getSchemeName(psaId: String, pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
     val res = for {
       schemeDetails <- schemeService.retrieveSchemeDetails(psaId, pstr, "pstr")
@@ -264,7 +338,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
             s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penalty")}</span>"
           )),
         HeadCell(Text(Messages("psa.financial.overview.payment.dueDate")), classes = "govuk-!-font-weight-bold"),
-        HeadCell(Text(Messages("psa.financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold"),
+        HeadCell(Text(Messages("financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold"),
         HeadCell(Text(Messages("psa.financial.overview.payment.due")), classes = "govuk-!-font-weight-bold"),
         HeadCell(Text(Messages("psa.financial.overview.payment.interest")), classes = "govuk-!-font-weight-bold")
       )
@@ -597,7 +671,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       ))
   }
 
-  def chargeAmountDetailsRows(data: PsaFSDetail)(implicit messages: Messages): Table = {
+  def chargeAmountDetailsRows(data: PsaFSDetail, caption: Option[String] = None, captionClasses: String = "")(implicit messages: Messages): Table = {
 
     val headRow = Seq(
       HeadCell(Text(Messages("psa.pension.scheme.chargeAmount.label.new"))),
@@ -632,7 +706,12 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       Seq(Seq())
     }
 
-    Table(head = Some(headRow), rows = rows ++ stoodOverAmountRow, attributes = Map("role" -> "table"))
+    Table(head = Some(headRow),
+      rows = rows ++ stoodOverAmountRow,
+      attributes = Map("role" -> "table"),
+      caption = caption,
+      captionClasses = captionClasses
+    )
   }
 
   private def getClearingDetailLabelNew(documentLineItemDetail: DocumentLineItemDetail)(implicit messages: Messages): Option[Text] = {
@@ -726,6 +805,15 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
         }
       case _ => None
     }
+  }
+
+  private def getTaxPeriod(psaFSDetail: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] = {
+    Seq(
+      SummaryListRow(
+        key = Key(Text(Messages("pension.scheme.interest.tax.period.new")), classes = "govuk-!-padding-left-0 govuk-!-width-one-half"),
+        value = Value(Text(formatStartDate(psaFSDetail.periodStartDate) + " to " +
+          formatDateDMY(psaFSDetail.periodEndDate)), classes = "govuk-!-width-one-half")
+      ))
   }
 
   private def stoodOverAmountChargeDetailsRow(data: PsaFSDetail)(implicit messages: Messages): Seq[SummaryListRow] =

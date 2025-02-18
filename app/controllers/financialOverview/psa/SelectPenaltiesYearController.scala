@@ -82,9 +82,9 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
 
     val navMethod: (Seq[PsaFSDetail], Int) => Future[Result] = {
       penaltyType match {
-        case AccountingForTaxPenalties => aftNavMethod(request.psaIdOrException.id)
-        case EventReportingCharges => erNavMethod(request.psaIdOrException.id)
-        case _ => nonAftNavMethod(penaltyType)
+        case AccountingForTaxPenalties => aftNavMethod(request.psaIdOrException.id, journeyType)
+        case EventReportingCharges => erNavMethod(journeyType)
+        case _ => nonAftNavMethod(penaltyType, journeyType)
       }
     }
     val typeParam = psaPenaltiesAndChargesService.getTypeParam(penaltyType)
@@ -142,21 +142,21 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
     }
   }
 
-  private def erNavMethod(psaId: String): (Seq[PsaFSDetail], Int) => Future[Result] =
+  private def erNavMethod(journeyType: ChargeDetailsFilter): (Seq[PsaFSDetail], Int) => Future[Result] =
     (penalties, year) => {
-      val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == EventReportingCharges)
-      navService.navFromERYearsPage(filteredPenalties, year, psaId, EventReportingCharges)
+        val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == EventReportingCharges)
+        navService.navFromERYearsPage(filteredPenalties, year, EventReportingCharges, journeyType)
     }
-  private def aftNavMethod(psaId: String)
+  private def aftNavMethod(psaId: String, journeyType: ChargeDetailsFilter)
                           (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] =
     (penalties, year) => {
-      val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
-      navService.navFromAFTYearsPage(filteredPenalties, year, psaId, AccountingForTaxPenalties)
+        val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == AccountingForTaxPenalties)
+        navService.navFromAFTYearsPage(filteredPenalties, year, psaId, journeyType)
     }
 
-  private def nonAftNavMethod(penaltyType: PenaltyType)
+  private def nonAftNavMethod(penaltyType: PenaltyType, journeyType: ChargeDetailsFilter)
                              (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFSDetail], Int) => Future[Result] = {
-    (penalties, year) => navService.navFromNonAftYearsPage(penalties, year, request.idOrException, penaltyType)
+    (penalties, year) => navService.navFromNonAftYearsPage(penalties, year, request.idOrException, penaltyType, journeyType)
   }
 
   private def getParameters(penaltyType: String, journeyType: ChargeDetailsFilter)(implicit messages: Messages) = {

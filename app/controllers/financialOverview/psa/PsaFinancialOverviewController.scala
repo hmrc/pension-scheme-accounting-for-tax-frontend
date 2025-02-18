@@ -85,11 +85,16 @@ class PsaFinancialOverviewController @Inject()(
 
     val allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url
     val duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url
-    val allPaymentLink = routes.PenaltyTypeController.onPageLoad("all").url
+    val allPaymentLink = if (config.podsNewFinancialCredits) {
+      routes.RefundsController.onPageLoad().url
+    } else {
+      routes.PenaltyTypeController.onPageLoad("all").url
+    }
 
-    // Below 2 links will need to be updated when relevant pages are created
+    // Below link will need to be updated when relevant page is created
     val receivedPaymentsLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url
-    val historyLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url
+
+    val historyLink = routes.PenaltyTypeController.onPageLoad("history").url
 
     val returnUrl = config.managePensionsSchemeOverviewUrl
 

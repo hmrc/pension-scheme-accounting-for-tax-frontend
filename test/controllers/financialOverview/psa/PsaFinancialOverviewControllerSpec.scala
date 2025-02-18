@@ -137,13 +137,13 @@ class PsaFinancialOverviewControllerSpec
           requestRefundUrl = routes.PsaRequestRefundController.onPageLoad.url,
           allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
           duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
-          allPaymentLink = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.All).url,
+          allPaymentLink = routes.RefundsController.onPageLoad().url,
           creditBalanceFormatted = "£1,000.00",
           creditBalance = 1000,
           displayReceivedPayments = true,
           receivedPaymentsLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url,
           displayHistory = true,
-          historyLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url,
+          historyLink = routes.PenaltyTypeController.onPageLoad("history").url,
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
         )(messages, request)
 
