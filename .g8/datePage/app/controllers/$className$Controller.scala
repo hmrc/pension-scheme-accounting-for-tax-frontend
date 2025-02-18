@@ -52,7 +52,6 @@ class $className$Controller @Inject()(override val messagesApi: MessagesApi,
         )
 
         Future.successful(Ok(view(preparedForm, schemeName, submitUrl, returnUrl)))
-       // renderer.render("$className;format="decap"$.njk", json).map(Ok(_))
       }
   }
 
