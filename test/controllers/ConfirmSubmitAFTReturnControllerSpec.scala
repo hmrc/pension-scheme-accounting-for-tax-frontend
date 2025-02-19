@@ -35,7 +35,6 @@ import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import utils.AFTConstants.QUARTER_START_DATE
 import viewmodels.TwirlRadios
 import views.html.ConfirmSubmitAFTReturnView
@@ -57,8 +56,6 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with JsonM
   override def beforeEach(): Unit = {
     super.beforeEach()
     Mockito.reset(mockUserAnswersCacheConnector)
-    Mockito.reset(mockRenderer)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 

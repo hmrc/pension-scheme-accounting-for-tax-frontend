@@ -31,15 +31,13 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
 import views.html.CannotSubmitAFTView
 
 import scala.concurrent.Future
 
-class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport
+class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
   with JsonMatchers with OptionValues with TryValues {
   private val srn = "test-srn"
   val startDate = QUARTER_START_DATE
@@ -61,7 +59,6 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
   "Cannot submit AFT controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
 
       val application = applicationBuilder(userAnswers = data, extraModules).overrides().build()

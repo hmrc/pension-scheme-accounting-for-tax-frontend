@@ -34,7 +34,6 @@ import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Call}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import utils.DateHelper
 import views.html.chargeG.ChargeDetailsView
@@ -77,7 +76,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
     "return OK and the correct view for a GET" in {
 
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
 
@@ -99,7 +97,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
     "populate the view correctly on a GET when the question has previously been answered" in {
 
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(chargeGMember))
 
       val view = application.injector.instanceOf[ChargeDetailsView].apply(
@@ -122,7 +119,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
 
@@ -135,7 +131,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
     "return a Bad Request and errors when invalid data is submitted" in {
 
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))

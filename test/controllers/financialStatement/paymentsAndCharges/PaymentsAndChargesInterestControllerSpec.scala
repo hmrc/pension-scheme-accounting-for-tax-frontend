@@ -67,7 +67,6 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with J
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockAppConfig.schemeDashboardUrl(any(), any())).thenReturn(dummyCall.url)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
   private def chargeDetailsList(schemeFSDetail: SchemeFSDetail) = Seq(

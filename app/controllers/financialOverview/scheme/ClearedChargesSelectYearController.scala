@@ -26,7 +26,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.{DateHelper, TwirlMigration}
+import utils.DateHelper
 import views.html.financialOverview.scheme.ClearedChargesSelectYearView
 
 import java.time.LocalDate
@@ -60,8 +60,7 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
           submitCall = routes.ClearedChargesSelectYearController.onSubmit(srn, paymentOrChargeType),
           schemeName = paymentsCache.schemeDetails.schemeName,
           returnUrl = config.schemeDashboardUrl(request).format(srn),
-          radios = TwirlMigration.toTwirlRadios(
-            FSYears.radios(form, years, isYearRangeFormat = true))
+          radios = FSYears.radios(form, years, isYearRangeFormat = true)
         )))
       }
     }
@@ -85,7 +84,7 @@ class ClearedChargesSelectYearController @Inject()(override val messagesApi: Mes
                 submitCall = routes.ClearedChargesSelectYearController.onSubmit(srn, paymentOrChargeType),
                 schemeName = paymentsCache.schemeDetails.schemeName,
                 returnUrl = config.schemeDashboardUrl(request).format(srn),
-                radios = TwirlMigration.toTwirlRadios(FSYears.radios(formWithErrors, years, isYearRangeFormat = true))
+                radios = FSYears.radios(formWithErrors, years, isYearRangeFormat = true)
               )))
             },
             value =>

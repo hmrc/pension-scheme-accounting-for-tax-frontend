@@ -36,7 +36,6 @@ import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import viewmodels.TwirlRadios
 import views.html.mccloud.IsChargeInAdditionReported
 
@@ -86,7 +85,6 @@ class IsChargeInAdditionReportedControllerSpec
   "IsChargeInAdditionReported Controller" must {
 
     "return OK and the correct view for a GET for AnnualAllowance" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETAnnualAllowance)
@@ -108,7 +106,6 @@ class IsChargeInAdditionReportedControllerSpec
     }
 
     "return OK and the correct view for a GET for LifetimeAllowance" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGETLifetimeAllowance)
@@ -198,7 +195,6 @@ class IsChargeInAdditionReportedControllerSpec
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

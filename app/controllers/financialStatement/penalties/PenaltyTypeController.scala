@@ -27,7 +27,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -51,8 +50,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
       val penaltyTypes = getPenaltyTypes(penaltiesCache.penalties)
       Future.successful(Ok(penaltyTypeView(
         form,
-        TwirlMigration.toTwirlRadiosWithHintText(
-          PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)),
+        PenaltyType.radios(form, penaltyTypes, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
         routes.PenaltyTypeController.onSubmit(journeyType),
         config.managePensionsSchemeOverviewUrl,
         penaltiesCache.psaName
@@ -66,8 +64,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
         formWithErrors => {
           Future.successful(BadRequest(penaltyTypeView(
             formWithErrors,
-            TwirlMigration.toTwirlRadiosWithHintText(
-              PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties))),
+            PenaltyType.radios(formWithErrors, getPenaltyTypes(penaltiesCache.penalties)),
             routes.PenaltyTypeController.onSubmit(journeyType),
             config.managePensionsSchemeOverviewUrl,
             penaltiesCache.psaName

@@ -36,7 +36,6 @@ import views.html.financialOverview.scheme.ClearedChargesSelectYearView
 import models.{DisplayYear, FSYears}
 import models.requests.IdentifierRequest
 import play.api.i18n.Messages
-import utils.TwirlMigration
 
 import scala.concurrent.Future
 
@@ -78,8 +77,7 @@ class ClearedChargesSelectYearControllerSpec extends ControllerSpecBase {
     when(mockPaymentsAndChargesService.getTypeParam(any())(any())).thenReturn("accounting-for-tax")
   }
 
-  private val radios = TwirlMigration.toTwirlRadios(
-    FSYears.radios(form, years, isYearRangeFormat = true))
+  private val radios = FSYears.radios(form, years, isYearRangeFormat = true)
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("2021"))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))

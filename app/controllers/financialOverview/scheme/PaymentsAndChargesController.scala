@@ -28,7 +28,6 @@ import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.Text.Message
 import views.html.financialOverview.scheme.{PaymentsAndChargesNewView, PaymentsAndChargesView}
 
 import javax.inject.Inject
@@ -64,10 +63,10 @@ class PaymentsAndChargesController @Inject()(
 
             if (paymentsCache.schemeFSDetail.nonEmpty) {
 
-              val reflectChargeTextMsgKey = if (config.podsNewFinancialCredits) {
-                Message(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text.new")
+              val reflectChargeTextMsgKey: String = if (config.podsNewFinancialCredits) {
+                s"financialPaymentsAndCharges.$journeyType.reflect.charge.text.new"
               } else {
-                Message(s"financialPaymentsAndCharges.$journeyType.reflect.charge.text")
+                s"financialPaymentsAndCharges.$journeyType.reflect.charge.text"
               }
 
               val table: Table = paymentsAndChargesService.getPaymentsAndCharges(srn, paymentsCache.schemeFSDetail, journeyType, config)
@@ -80,7 +79,7 @@ class PaymentsAndChargesController @Inject()(
                   titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
                   schemeName = paymentsCache.schemeDetails.schemeName,
                   pstr = "",
-                  reflectChargeText = messages(reflectChargeTextMsgKey.key),
+                  reflectChargeText = messages(reflectChargeTextMsgKey),
                   totalOverdue = s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
                   totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
                   totalUpcoming = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
@@ -94,7 +93,7 @@ class PaymentsAndChargesController @Inject()(
                   titleMessage = messages(getTitleMessage(journeyType)), journeyType = journeyType,
                   schemeName = paymentsCache.schemeDetails.schemeName,
                   pstr = "",
-                  reflectChargeText = messages(reflectChargeTextMsgKey.key),
+                  reflectChargeText = messages(reflectChargeTextMsgKey),
                   totalDue = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
                   totalInterestAccruing = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
                   totalUpcoming = s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",

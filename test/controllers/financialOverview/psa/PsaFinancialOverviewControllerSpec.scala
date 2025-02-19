@@ -66,8 +66,8 @@ class PsaFinancialOverviewControllerSpec
     super.beforeEach()
     reset(mockAFTPartialService)
     reset(mockAppConfig)
-    when(mockAppConfig.timeoutSeconds).thenReturn("5")
-    when(mockAppConfig.countdownSeconds).thenReturn("1")
+    when(mockAppConfig.timeoutSeconds).thenReturn(5)
+    when(mockAppConfig.countdownSeconds).thenReturn(1)
     when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("/mockUrl")
     when(mockAppConfig.creditBalanceRefundLink).thenReturn("test.com")
     when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
@@ -76,7 +76,7 @@ class PsaFinancialOverviewControllerSpec
 
   "PsaFinancialOverviewController" must {
       "return old html with information received from overview api for new financial credits is false" in {
-        when(mockAppConfig.countdownSeconds).thenReturn("60")
+        when(mockAppConfig.countdownSeconds).thenReturn(60)
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
         when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any())).thenReturn(Seq())
@@ -112,7 +112,7 @@ class PsaFinancialOverviewControllerSpec
       }
 
       "return new html with information received from overview api for new financial credits is true" in {
-        when(mockAppConfig.countdownSeconds).thenReturn("60")
+        when(mockAppConfig.countdownSeconds).thenReturn(60)
         when(mockAFTPartialService.retrievePsaChargesAmount(any()))
           .thenReturn(("10", "10", "10"))
         when(mockAFTPartialService.retrievePaidPenaltiesAndCharges(any())).thenReturn(psaFsSeq)
@@ -137,7 +137,7 @@ class PsaFinancialOverviewControllerSpec
           requestRefundUrl = routes.PsaRequestRefundController.onPageLoad.url,
           allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url,
           duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url,
-          allPaymentLink = routes.PenaltyTypeController.onPageLoad(ChargeDetailsFilter.All).url,
+          allPaymentLink = routes.RefundsController.onPageLoad().url,
           creditBalanceFormatted = "£1,000.00",
           creditBalance = 1000,
           displayReceivedPayments = true,

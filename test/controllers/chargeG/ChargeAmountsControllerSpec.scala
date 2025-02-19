@@ -32,7 +32,6 @@ import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{redirectLocation, route, status, _}
-import play.twirl.api.Html
 import views.html.chargeG.ChargeAmountsView
 
 import scala.concurrent.Future
@@ -64,7 +63,6 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with JsonMatchers {
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 

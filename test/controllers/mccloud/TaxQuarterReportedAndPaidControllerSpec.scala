@@ -36,10 +36,9 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.{Call, Results}
-import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
+import play.api.test.Helpers._
 import services.SchemeService
-import utils.{DateHelper, TwirlMigration}
+import utils.DateHelper
 import views.html.mccloud.TaxQuarterReportedAndPaid
 
 import java.time.LocalDate
@@ -78,9 +77,7 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Js
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUserAnswersCacheConnector)
-    reset(mockRenderer)
     reset(mockSchemeService)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
@@ -103,7 +100,7 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Js
 
       val view = application.injector.instanceOf[TaxQuarterReportedAndPaid].apply(
         form,
-        TwirlMigration.toTwirlRadios(Quarters.radios(form, xx)),
+        Quarters.radios(form, xx),
         testYear.toString + " to " + (testYear + 1).toString,
         "",
         "chargeType.description.annualAllowance",
@@ -135,7 +132,7 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Js
 
       val view = application.injector.instanceOf[TaxQuarterReportedAndPaid].apply(
         boundForm,
-        TwirlMigration.toTwirlRadios(Quarters.radios(boundForm, xx)),
+        Quarters.radios(boundForm, xx),
         testYear.toString + " to " + (testYear + 1).toString,
         "",
         "chargeType.description.annualAllowance",

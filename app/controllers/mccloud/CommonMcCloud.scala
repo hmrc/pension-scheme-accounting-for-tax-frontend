@@ -18,24 +18,25 @@ package controllers.mccloud
 
 import models.ChargeType
 import models.ChargeType._
+import play.api.i18n.Messages
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
-import uk.gov.hmrc.viewmodels.Text.Message
+import uk.gov.hmrc.govukfrontend.views.Aliases.Text
 
 import scala.concurrent.Future
 
 trait CommonMcCloud {
-  def ordinal(index: Option[Int]): Option[Message] = {
+  def ordinal(index: Option[Int])(implicit messages: Messages): Option[Text] = {
     index match {
-      case Some(i) if i > 0 && i < 5 => Some(Message(s"mccloud.scheme.ref$i"))
+      case Some(i) if i > 0 && i < 5 => Some(Text(Messages(s"mccloud.scheme.ref$i")))
       case _ => None
     }
   }
 
-  def lifetimeOrAnnual(chargeType: ChargeType): Option[Message] = {
+  def lifetimeOrAnnual(chargeType: ChargeType)(implicit messages: Messages): Option[Text] = {
     chargeType match {
-      case ChargeTypeAnnualAllowance => Some(Message("chargeType.description.annualAllowance"))
-      case ChargeTypeLifetimeAllowance => Some(Message("chargeType.description.lifeTimeAllowance"))
+      case ChargeTypeAnnualAllowance => Some(Text(Messages("chargeType.description.annualAllowance")))
+      case ChargeTypeLifetimeAllowance => Some(Text(Messages("chargeType.description.lifeTimeAllowance")))
       case _ => None
     }
   }

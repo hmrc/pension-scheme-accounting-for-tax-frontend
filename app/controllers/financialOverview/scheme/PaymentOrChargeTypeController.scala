@@ -28,7 +28,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialOverview.scheme.PaymentOrChargeTypeView
 
 import javax.inject.Inject
@@ -54,12 +53,12 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
         val (title, radios) = if (journeyType == History) {
           val clearedPayments = cache.schemeFSDetail.filter(_.outstandingAmount <= 0)
           val paymentsOrCharges = getPaymentOrChargeTypes(clearedPayments, journeyType)
-          (Messages("financial.overview.historyChargeType.title"), TwirlMigration.toTwirlRadios(PaymentOrChargeType.radios(form(), paymentsOrCharges,
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)))
+          (Messages("financial.overview.historyChargeType.title"), PaymentOrChargeType.radios(form(), paymentsOrCharges,
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
         } else {
           val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail, journeyType)
-          (Messages("paymentOrChargeType.all.title"), TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(form(), paymentsOrCharges,
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false)))
+          (Messages("paymentOrChargeType.all.title"), PaymentOrChargeType.radios(form(), paymentsOrCharges,
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
         }
 
         Future.successful(Ok(paymentOrChargeTypeView(
@@ -83,13 +82,13 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
             val clearedPayments = cache.schemeFSDetail.filter(_.outstandingAmount <= 0)
             val paymentsOrCharges = getPaymentOrChargeTypes(clearedPayments, journeyType)
             (Messages("financial.overview.historyChargeType.title"),
-              TwirlMigration.toTwirlRadios(PaymentOrChargeType.radios(formWithErrors, paymentsOrCharges)))
+              PaymentOrChargeType.radios(formWithErrors, paymentsOrCharges))
           } else {
             val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail, journeyType)
             (Messages("paymentOrChargeType.all.title"),
-              TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(formWithErrors, paymentsOrCharges)))
+              PaymentOrChargeType.radios(formWithErrors, paymentsOrCharges))
           }
-          
+
           Future.successful(BadRequest(paymentOrChargeTypeView(
             form = formWithErrors,
             title = title,

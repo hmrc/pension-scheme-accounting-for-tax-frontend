@@ -19,7 +19,7 @@ package models
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json._
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import uk.gov.hmrc.govukfrontend.views.Aliases.{RadioItem, Text}
 import viewmodels.Radios
 import utils.DateHelper
 
@@ -51,13 +51,13 @@ trait YearRangeCommon extends Enumerable.Implicits {
     (minYear to maxYear).reverseIterator.map(year => YearRange(year.toString)).toSeq
   }
 
-  def getLabel(yr: YearRange)(implicit messages: Messages): Literal = {
+  def getLabel(yr: YearRange)(implicit messages: Messages): Text = {
     val startYear = yr.toString
-    val yearRangeMsg = Message("yearRangeRadio").withArgs(startYear, (startYear.toInt + 1).toString).resolve
-    Literal(yearRangeMsg)
+    val yearRangeMsg = Messages("yearRangeRadio", startYear, (startYear.toInt + 1).toString)
+    Text(yearRangeMsg)
   }
 
-  def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] =
+  def radios(form: Form[_])(implicit messages: Messages): Seq[RadioItem] =
     Radios(form("value"), values.map(yearRange => Radios.Radio(getLabel(yearRange), yearRange.toString)))
 
   implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)

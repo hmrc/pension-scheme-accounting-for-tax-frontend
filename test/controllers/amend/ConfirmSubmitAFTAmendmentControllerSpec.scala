@@ -28,8 +28,8 @@ import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AFTOverview, AFTOverviewVersion, AccessMode, UserAnswers}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.Mockito
+import org.mockito.Mockito.{never, times, verify, when}
 import pages.ConfirmSubmitAFTAmendmentPage
 import play.api.Application
 import play.api.inject.bind
@@ -39,15 +39,13 @@ import play.api.mvc.Call
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import viewmodels.TwirlRadios
 import views.html.ConfirmSubmitAFTAmendmentView
 
 import scala.concurrent.Future
 
-class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with JsonMatchers {
   private def onwardRoute = Call("GET", "/onward")
 
   private val formProvider = new ConfirmSubmitAFTReturnFormProvider()
@@ -71,10 +69,8 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
   override def beforeEach(): Unit = {
     super.beforeEach()
     Mockito.reset(mockUserAnswersCacheConnector)
-    Mockito.reset(mockRenderer)
     Mockito.reset(mockAmendmentHelper)
     Mockito.reset(mockAFTConnector)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
     when(mockAmendmentHelper.amendmentSummaryRows(any(), any(), any())(any())).thenReturn(Nil)
     when(mockAmendmentHelper.getTotalAmount(any())).thenReturn((BigDecimal(2000.00), BigDecimal(40000.00)))

@@ -35,11 +35,9 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
-import play.twirl.api.Html
 import services.{ChargePaginationService, PaginatedMembersInfo, PaginationStats}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{HtmlContent, Text}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, Table, TableRow}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.{Link, TwirlRadios}
@@ -48,7 +46,7 @@ import views.html.chargeG.AddMembersView
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class AddMembersControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
 
@@ -154,7 +152,6 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockDeleteChargeHelper)
     when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockMemberPaginationService
       .getItemsPaginated(any(), any(), any(), any(), any()))

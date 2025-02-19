@@ -38,15 +38,13 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.{AFTService, SchemeService}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
 import views.html.ChargeTypeView
 
 import scala.concurrent.Future
 
-class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class ChargeTypeControllerSpec extends ControllerSpecBase with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   import ChargeTypeControllerSpec._
@@ -68,10 +66,8 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUserAnswersCacheConnector)
-    reset(mockRenderer)
     reset(mockAFTService)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
   }

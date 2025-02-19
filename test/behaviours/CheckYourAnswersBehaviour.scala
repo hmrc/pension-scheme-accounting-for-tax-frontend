@@ -32,7 +32,6 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.libs.json.Json
 import play.api.test.Helpers.{redirectLocation, route, status, _}
-import play.twirl.api.Html
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import views.html.CheckYourAnswersView
@@ -50,7 +49,6 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with JsonMatchers {
     super.beforeEach()
     Mockito.reset(mockAftConnector)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
 
   }

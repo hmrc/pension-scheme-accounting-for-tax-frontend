@@ -41,10 +41,8 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.AFTService
 import uk.gov.hmrc.http.UpstreamErrorResponse
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 import views.html.{DeclarationView, PspDeclarationView}
@@ -69,7 +67,6 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   override def modules: Seq[GuiceableModule] =
     Seq(
       bind[DataRequiredAction].to[DataRequiredActionImpl],
-      bind[NunjucksRenderer].toInstance(mockRenderer),
       bind[FrontendAppConfig].toInstance(mockAppConfig),
       bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
       bind[CompoundNavigator].toInstance(mockCompoundNavigator),
@@ -98,7 +95,6 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     Mockito.reset(mockUserAnswersCacheConnector)
     Mockito.reset(mockCompoundNavigator)
     Mockito.reset(mockAuditService)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.amendAftReturnDecreaseTemplateIdId).thenReturn(amendAftReturnDecreaseTemplateIdId)
     when(mockAppConfig.amendAftReturnNoChangeTemplateIdId).thenReturn(amendAftReturnNoChangeTemplateIdId)

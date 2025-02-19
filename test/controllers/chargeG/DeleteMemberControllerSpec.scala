@@ -38,7 +38,6 @@ import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.DeleteAFTChargeService
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import viewmodels.TwirlRadios
@@ -74,7 +73,6 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
     "return OK and the correct view for a GET" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET)
@@ -123,7 +121,6 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
     "return a Bad Request and errors when invalid data is submitted" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
