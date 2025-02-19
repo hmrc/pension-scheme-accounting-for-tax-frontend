@@ -97,8 +97,6 @@ class SchemeFinancialOverviewControllerSpec
           .thenReturn(allTypesMultipleReturnsModel)
         when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
           .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
-        when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
-          .thenReturn("£1,000.00")
         when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
           .thenReturn(Future.successful("John Doe"))
         when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
@@ -118,6 +116,10 @@ class SchemeFinancialOverviewControllerSpec
           duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
           allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
           creditBalanceFormatted = "£0.00",
+          displayReceivedPayments = false,
+          receivedPaymentsLink = routes.SchemeFinancialOverviewController.schemeFinancialOverview(srn).url,
+          displayHistory = false,
+          historyLink = routes.SchemeFinancialOverviewController.schemeFinancialOverview(srn).url,
           creditBalance = 0,
           isOverdueChargeAvailable = false,
           returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
@@ -136,8 +138,6 @@ class SchemeFinancialOverviewControllerSpec
           .thenReturn(allTypesMultipleReturnsModel)
         when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
           .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
-        when(mockPsaSchemePartialService.creditBalanceAmountFormatted(any()))
-          .thenReturn("£1,000.00")
         when(mockMinimalPsaConnector.getPsaOrPspName(any(), any(), any()))
           .thenReturn(Future.successful("John Doe"))
         when(mockAppConfig.podsNewFinancialCredits).thenReturn(false)
