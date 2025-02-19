@@ -34,11 +34,9 @@ import play.api.data.Form
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import viewmodels.TwirlRadios
 import views.html.mccloud.AddAnotherPensionScheme
 
-import scala.concurrent.Future
 
 class AddAnotherPensionSchemeControllerSpec
     extends ControllerSpecBase

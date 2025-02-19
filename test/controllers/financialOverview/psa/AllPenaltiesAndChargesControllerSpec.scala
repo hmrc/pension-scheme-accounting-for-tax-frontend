@@ -31,8 +31,6 @@ import play.api.Application
 import play.api.http.Status.OK
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.mvc.AnyContentAsEmpty
-import play.api.test.FakeRequest
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
 import services.SchemeService
 import services.financialOverview.psa.{PenaltiesCache, PsaPenaltiesAndChargesService}
@@ -44,7 +42,6 @@ import scala.concurrent.Future
 class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonMatchers with BeforeAndAfterEach {
 
   private val startDate = "2020-07-01"
-  private val endDate = "2020-09-30"
   val pstr = "24000041IN"
 
   private def httpPathGET(startDate: String = startDate): String =
@@ -67,7 +64,6 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonM
     )
     .build()
 
-  private implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
 
   override def beforeEach(): Unit = {
     super.beforeEach()

@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
+import models.ChargeDetailsFilter.{All, History}
 import models.SchemeDetails
 import models.financialStatement.SchemeFSDetail
 import play.api.Logger
@@ -81,6 +82,8 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
     val creditBalanceFormatted: String = creditBalanceAmountFormatted(creditSchemeFSDetail)
     val returnUrl = config.managePensionsSchemeOverviewUrl
     val isOverdueChargeAvailable = paymentsAndChargesService.isOverdueChargeAvailable(schemeFSDetail)
+    val displayHistory = schemeFSDetail.exists(_.outstandingAmount <= 0)
+    val historyLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, History).url
 
     logger.debug(s"AFT service returned UpcomingCharge - $totalUpcomingCharge")
     logger.debug(s"AFT service returned OverdueCharge - $totalOverdueCharge")
@@ -103,11 +106,13 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
         requestRefundUrl = requestRefundUrl,
         allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, "overdue").url,
         duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
-        allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
+        allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url,
         creditBalanceFormatted = creditBalanceFormatted,
         creditBalance = creditBalance,
         isOverdueChargeAvailable = isOverdueChargeAvailable,
-        returnUrl = returnUrl
+        returnUrl = returnUrl,
+        displayHistory = displayHistory,
+        historyLink = historyLink
       )
     } else {
       schemeFinancialOverview(
@@ -118,7 +123,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
         requestRefundUrl = requestRefundUrl,
         allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, "overdue").url,
         duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
-        allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
+        allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url,
         creditBalanceFormatted = creditBalanceFormatted,
         creditBalance = creditBalance,
         isOverdueChargeAvailable = isOverdueChargeAvailable,

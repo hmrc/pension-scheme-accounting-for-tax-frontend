@@ -32,7 +32,6 @@ import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import views.html.MemberDetailsView
 
 import scala.concurrent.Future

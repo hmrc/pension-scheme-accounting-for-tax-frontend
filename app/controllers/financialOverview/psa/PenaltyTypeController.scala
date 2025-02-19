@@ -71,7 +71,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
             buttonText = buttonText,
             submitCall = routes.PenaltyTypeController.onSubmit(journeyType),
             returnUrl = appConfig.managePensionsSchemeOverviewUrl,
-            journeyType = journeyType.toString
+            journeyType = journeyType
           )
         ))
       }
@@ -128,7 +128,7 @@ class PenaltyTypeController @Inject()(override val messagesApi: MessagesApi,
 
   private def getParameters(journeyType: ChargeDetailsFilter)(implicit messages: Messages) = {
     if (journeyType == ChargeDetailsFilter.History) {
-        (messages("psa.financial.overview.historyChargeType.title"), messages("site.continue"))
+        (messages("financial.overview.historyChargeType.title"), messages("site.continue"))
     } else {
         (messages("penaltyType.title"), messages("site.save_and_continue"))
     }

@@ -30,7 +30,6 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.SchemeService
 import utils.AFTConstants.QUARTER_START_DATE
 import views.html.NotSubmissionTimeView

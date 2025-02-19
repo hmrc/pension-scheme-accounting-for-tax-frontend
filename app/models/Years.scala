@@ -87,10 +87,10 @@ object FSYears extends CommonYears with Enumerable.Implicits {
 
   def values(years: Seq[DisplayYear]): Seq[Year] = years.map(x => Year(x.year))
 
-  def radios(form: Form[_], displayYears: Seq[DisplayYear], isFYFormat: Boolean = false)(implicit messages: Messages): Seq[RadioItem] = {
+  def radios(form: Form[_], displayYears: Seq[DisplayYear], isFYFormat: Boolean = false, isYearRangeFormat: Boolean = false)(implicit messages: Messages): Seq[RadioItem] = {
     val x: Seq[Radio] = displayYears.map { displayYear =>
 
-      Radios.Radio(label = getLabel(displayYear.year, isFYFormat),
+      Radios.Radio(label = getLabel(displayYear.year, isFYFormat, isYearRangeFormat),
         value = displayYear.year.toString,
         hint = getHint(displayYear),
         labelClasses = None)
@@ -109,11 +109,16 @@ object FSYears extends CommonYears with Enumerable.Implicits {
     }
 
   //scalastyle:off magic.number
-  private def getLabel(year: Int, isFYFormat: Boolean)(implicit messages: Messages): Text =
+  private def getLabel(year: Int, isFYFormat: Boolean, isYearRangeFormat: Boolean)(implicit messages: Messages): Text =
     if (isFYFormat) {
       Text(Messages("yearRangeRadio",
         LocalDate.of(year - 1, Month.APRIL, 6).format(dateFormatterDMY),
         LocalDate.of(year, Month.APRIL, 5).format(dateFormatterDMY)
+      ))
+    } else if (isYearRangeFormat) {
+      Text(Messages("yearRangeRadio",
+        (year - 1).toString,
+        year.toString
       ))
     } else {
       Text(year.toString)

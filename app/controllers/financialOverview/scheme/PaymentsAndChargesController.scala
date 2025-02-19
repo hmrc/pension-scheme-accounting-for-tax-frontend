@@ -23,10 +23,10 @@ import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.Upcoming
 import models.financialStatement.SchemeFSDetail
 import play.api.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.financialOverview.scheme.PaymentsAndChargesService
-import uk.gov.hmrc.govukfrontend.views.Aliases.{Table, Text}
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import views.html.financialOverview.scheme.{PaymentsAndChargesNewView, PaymentsAndChargesView}
 

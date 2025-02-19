@@ -56,7 +56,6 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}

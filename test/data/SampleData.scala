@@ -496,6 +496,30 @@ object SampleData {
           sourceChargeRefForInterest = None,
           sourceChargeInfo = None,
           documentLineItemDetails = Nil
+        ),
+        SchemeFSDetail(
+          index = 1,
+          chargeReference = "XY002610150185",
+          chargeType = PSS_OTC_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2020-08-15")),
+          totalAmount = 564.00,
+          outstandingAmount = 0.00,
+          stoodOverAmount = 0.00,
+          amountDue = 0.00,
+          accruedInterestTotal = 24.00,
+          periodStartDate = Some(LocalDate.parse("2020-04-01")),
+          periodEndDate = Some(LocalDate.parse("2020-06-30")),
+          formBundleNumber = None,
+          version = None,
+          receiptDate = None,
+          sourceChargeRefForInterest = None,
+          sourceChargeInfo = None,
+          documentLineItemDetails = Seq(DocumentLineItemDetail(
+            clearedAmountItem = 588.00,
+            clearingDate = Some(LocalDate.parse("2020-05-13")),
+            clearingReason = Some(FSClearingReason.CLEARED_WITH_DELTA_CREDIT),
+            paymDateOrCredDueDate = Some(LocalDate.parse("2020-05-13"))
+          ))
         )
       )
     )

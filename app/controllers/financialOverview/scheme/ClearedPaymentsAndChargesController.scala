@@ -24,10 +24,11 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.scheme.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.DateHelper
 import views.html.financialOverview.scheme.ClearedPaymentsAndChargesView
 
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class ClearedPaymentsAndChargesController @Inject()(override val messagesApi: MessagesApi,
                                                     identify: IdentifierAction,
@@ -43,15 +44,14 @@ class ClearedPaymentsAndChargesController @Inject()(override val messagesApi: Me
     (identify andThen allowAccess()).async { implicit request =>
       paymentsAndChargesService.getPaymentsForJourney(request.idOrException, srn, journeyType).map { paymentsCache =>
         val filteredPayments = paymentsCache.schemeFSDetail.filter(_.periodEndDate match {
-          case Some(endDate) => endDate.getYear == period.toInt
+          case Some(endDate) => DateHelper.getTaxYear(endDate) == period.toInt
           case _ => false
         }).filter(p => getPaymentOrChargeType(p.chargeType) == paymentOrChargeType)
           .filter(_.outstandingAmount <= 0)
 
-        val table = paymentsAndChargesService.getClearedPaymentsAndCharges(filteredPayments)
+        val table = paymentsAndChargesService.getClearedPaymentsAndCharges(srn, period, paymentOrChargeType, filteredPayments)
         Ok(clearedPaymentsAndChargesView(paymentsCache.schemeDetails.schemeName, table))
       }
     }
   }
-
 }

@@ -56,8 +56,6 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Js
 
   private def confirmSubmitAFTAmendmentRoute: String = routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, QUARTER_START_DATE, accessType, 3).url
 
-  private def confirmSubmitAFTAmendmentSubmitRoute: String = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, QUARTER_START_DATE, accessType, 3).url
-
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(
     bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction),

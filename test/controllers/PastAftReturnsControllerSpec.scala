@@ -32,7 +32,6 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results
 import play.api.test.Helpers.{defaultAwaitTimeout, route, status, writeableOf_AnyContentAsEmpty}
-import play.twirl.api.Html
 import services.SchemeService
 import views.html.PastAFTReturnsView
 

@@ -128,7 +128,7 @@ class PenaltyTypeControllerSpec extends ControllerSpecBase with JsonMatchers
 
       val view = application.injector.instanceOf[PenaltyTypeView].apply(
         form = form,
-        title = messages("psa.financial.overview.historyChargeType.title"),
+        title = messages("financial.overview.historyChargeType.title"),
         psaName = "psa-name",
         submitCall = routes.PenaltyTypeController.onSubmit(ChargeDetailsFilter.History),
         buttonText = messages("site.continue"),

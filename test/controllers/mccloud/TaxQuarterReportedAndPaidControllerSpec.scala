@@ -37,7 +37,6 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.SchemeService
 import utils.DateHelper
 import views.html.mccloud.TaxQuarterReportedAndPaid

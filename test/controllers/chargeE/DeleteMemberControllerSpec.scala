@@ -21,7 +21,6 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YesNoFormProvider
 import matchers.JsonMatchers
-import models.GenericViewModel
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers
@@ -38,7 +37,6 @@ import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.DeleteAFTChargeService
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import views.html.chargeE.DeleteMemberView
@@ -59,13 +57,6 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private val form: Form[Boolean] = formProvider(messages("deleteMember.error.required", memberName))
 
   private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
-
-  private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, startDate, accessType, versionInt, 0).url
-
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-    schemeName = schemeName)
 
   private def userAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value

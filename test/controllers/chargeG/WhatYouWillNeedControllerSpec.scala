@@ -29,10 +29,8 @@ import org.mockito.ArgumentMatchers
 import pages.chargeG.WhatYouWillNeedPage
 import play.api.Application
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import views.html.chargeG.WhatYouWillNeedView
 
-import scala.concurrent.Future
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()

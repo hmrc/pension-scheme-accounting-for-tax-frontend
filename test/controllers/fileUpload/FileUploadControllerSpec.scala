@@ -33,7 +33,6 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
 import views.html.fileUpload.FileUploadView
 

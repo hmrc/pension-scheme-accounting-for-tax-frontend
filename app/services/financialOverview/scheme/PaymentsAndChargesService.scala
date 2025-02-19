@@ -55,8 +55,6 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
 
   private val logger = Logger(classOf[PaymentsAndChargesService])
 
-  case class IndexRef(chargeType: String, chargeReference: String, period: String)
-
   def getPaymentsAndCharges(srn: String,
                             schemeFSDetail: Seq[SchemeFSDetail],
                             chargeDetailsFilter: ChargeDetailsFilter,
@@ -229,9 +227,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         formatStartDate(periodStartDate) + " to " + formatDateDMY(periodEndDate)
       case PSS_CHARGE | PSS_CHARGE_INTEREST | CONTRACT_SETTLEMENT | CONTRACT_SETTLEMENT_INTEREST =>
         formatStartDate(periodStartDate) + " to " + formatDateDMY(periodEndDate)
-      case EXCESS_RELIEF_PAID =>
-        formatDateDMY(periodStartDate) + " to " + formatDateDMY(periodEndDate)
-      case EXCESS_RELIEF_INTEREST =>
+      case EXCESS_RELIEF_PAID | EXCESS_RELIEF_INTEREST =>
         formatDateDMY(periodStartDate) + " to " + formatDateDMY(periodEndDate)
       case _ => ""
     }
@@ -683,9 +679,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  def getClearedPaymentsAndCharges(psaFs: Seq[SchemeFSDetail])
-                                  (implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Table = {
-    val clearedPaymentssAndCharges = psaFs.filter(_.outstandingAmount <= 0)
+  def getClearedPaymentsAndCharges(srn: String, period: String, chargeType: PaymentOrChargeType, psaFs: Seq[SchemeFSDetail])
+                                  (implicit messages: Messages): Table = {
+    val clearedPaymentsAndCharges = psaFs.filter(_.outstandingAmount <= 0)
 
     val tableHeader = {
       Seq(
@@ -698,7 +694,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       )
     }
 
-    val rows = clearedPaymentssAndCharges.map(paymentOrCharge => {
+    val rows = clearedPaymentsAndCharges.zipWithIndex.map{ case (paymentOrCharge, index) => {
 
       val latestClearingDate = if(getPaymentDates(paymentOrCharge.documentLineItemDetails).nonEmpty) {
         DateHelper.formatDateDMY(getPaymentDates(paymentOrCharge.documentLineItemDetails).max)
@@ -706,9 +702,10 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         ""
       }
 
+      val hrefLink = controllers.financialOverview.scheme.routes.ClearedPaymentOrChargeController.onPageLoad(srn, period, chargeType, index)
         Seq(
           TableRow(HtmlContent(
-            s"<a id=${paymentOrCharge.chargeReference} class=govuk-link href=/>" +
+            s"<a id=${paymentOrCharge.chargeReference} class=govuk-link href=$hrefLink>" +
               paymentOrCharge.chargeType.toString + "</a></br>" +
               paymentOrCharge.chargeReference + "</br>" +
               formatStartDate(paymentOrCharge.periodStartDate) + " to " + formatDateDMY(paymentOrCharge.periodEndDate)
@@ -716,7 +713,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           TableRow(HtmlContent(s"<p>${latestClearingDate}</p>")),
           TableRow(HtmlContent(s"<p>${FormatHelper.formatCurrencyAmountAsString(paymentOrCharge.documentLineItemDetails.map(_.clearedAmountItem).sum)}</p>"))
         )
-    })
+    }}
 
     Table(head = Some(tableHeader), rows = rows)
   }

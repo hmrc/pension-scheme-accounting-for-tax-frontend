@@ -20,7 +20,6 @@ import config.FrontendAppConfig
 import controllers.actions.{AllowAccessActionProviderForIdentifierRequest, FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.ChargeDetailsFilter.Overdue
 import models.LocalDateBinder._

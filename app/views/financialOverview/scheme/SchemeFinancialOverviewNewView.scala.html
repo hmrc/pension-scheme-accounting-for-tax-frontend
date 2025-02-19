@@ -22,18 +22,20 @@ govukButton: GovukButton
 )
 
 @(
-schemeName: String,
-totalUpcomingCharge: String,
-totalOverdueCharge: String,
-totalInterestAccruing: String,
-requestRefundUrl: String,
-allOverduePenaltiesAndInterestLink: String,
-duePaymentLink: String,
-allPaymentLink: String,
-creditBalanceFormatted: String,
-creditBalance: BigDecimal,
-isOverdueChargeAvailable: Boolean,
-returnUrl: String
+    schemeName: String,
+    totalUpcomingCharge: String,
+    totalOverdueCharge: String,
+    totalInterestAccruing: String,
+    requestRefundUrl: String,
+    allOverduePenaltiesAndInterestLink: String,
+    duePaymentLink: String,
+    allPaymentLink: String,
+    creditBalanceFormatted: String,
+    creditBalance: BigDecimal,
+    isOverdueChargeAvailable: Boolean,
+    returnUrl: String,
+    displayHistory: Boolean,
+    historyLink: String
 )(implicit messages: Messages, request: Request[_])
 
 @layout(messages("schemeFinancial.title"), fullWidthLayout = true) {
@@ -134,6 +136,27 @@ returnUrl: String
 
             </div>
         </div>
+
+        @if(displayHistory) {
+
+            <hr>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-full">
+                    <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+                        @messages("schemeFinancial.paymentsAndChargesHistory")
+                    </h2>
+                    <p class="govuk-body">
+                        @messages("schemeFinancial.paymentsAndChargesHistory.p1.new")
+                    </p>
+                    <p class="govuk-body-m">
+                        <a id="historyLink" class="govuk-link" href="@historyLink">
+                            @messages("schemeFinancial.paymentsAndChargesHistory.link")
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <hr>
+        }
 
 </div>
 
