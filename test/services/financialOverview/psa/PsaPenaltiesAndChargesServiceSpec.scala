@@ -253,8 +253,8 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
             HtmlContent(
               s"<span class='govuk-visually-hidden'>${messages("psa.financial.overview.penaltyOrCharge")}</span>"
             )),
-          HeadCell(Text(Messages("psa.financial.overview.datePaid")), classes = "govuk-!-font-weight-bold"),
-          HeadCell(Text(Messages("psa.financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold")
+          HeadCell(Text(Messages("psa.financial.overview.datePaid.table")), classes = "govuk-!-font-weight-bold"),
+          HeadCell(Text(Messages("financial.overview.payment.charge.amount")), classes = "govuk-!-font-weight-bold")
         )
 
         val chargeLink = controllers.financialOverview.psa.routes.ClearedPenaltyOrChargeController.onPageLoad("2020", ContractSettlementCharges, Index(0))
