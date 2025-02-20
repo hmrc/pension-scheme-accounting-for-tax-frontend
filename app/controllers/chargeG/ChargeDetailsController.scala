@@ -89,13 +89,22 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                 schemeName
               )))
             },
-            value =>
+            value => {
+              val cleanedValue = {
+                val qropsRefNo = value.qropsReferenceNumber
+
+                if (qropsRefNo.startsWith("Q") || qropsRefNo.startsWith("q")) {
+                  value.copy(qropsReferenceNumber = qropsRefNo.drop(1))
+                } else {
+                  value
+                }
+              }
               for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeDetailsPage(index), value, mode))
+                updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeDetailsPage(index), cleanedValue, mode))
                 _ <- userAnswersCacheConnector.savePartial(request.internalId, updatedAnswers.data,
                   chargeType = Some(ChargeType.ChargeTypeOverseasTransfer), memberNo = Some(index.id))
               } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
-          )
+            })
       }
     }
 }
