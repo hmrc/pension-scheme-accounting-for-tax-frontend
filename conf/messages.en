@@ -478,6 +478,7 @@ aft.notSubmissionTime.p1 = You can only submit this AFT return on or after {0}
 chargeG.chargeDetails.title = Overseas transfer charge details for the member
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
 chargeG.chargeDetails.qropsReferenceNumber.label = QROPS reference number
+chargeG.chargeDetails.qropsReferenceNumber.hint = The reference is ‘QROPS’ followed by 6 numbers
 chargeG.chargeDetails.qropsReferenceNumber.error.required = Enter a QROPS reference number
 chargeG.chargeDetails.qropsReferenceNumber.error.valid = Enter a full QROPS reference number, like 123456
 chargeG.chargeDetails.qropsTransferDate.label = Date of the transfer into the QROPS
@@ -835,7 +836,7 @@ chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need
 chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
 chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
 chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
-chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
+chargeG.whatYouWillNeed.li4 = reference number given by HMRC to the qualifying recognised overseas pension scheme (QROPS) to which each transfer is made
 
 chargeC.paymentDate.error.invalid = Enter a real date for the date the authorised surplus payment was made
 chargeC.paymentDate.error.required = Enter the date the authorised surplus payment was made
