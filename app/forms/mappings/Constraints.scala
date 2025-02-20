@@ -31,7 +31,7 @@ trait Constraints {
   val pstrRegx = """^[0-9]{8}[Rr][A-Za-z]{1}$"""
   val regexTightText = """^[a-zA-ZàÀ-ÿ '&.^-]{1,160}$"""
   val regexTightTextWithNumber = """^[a-zA-Z0-9àÀ-ÿ '&.^-]{1,160}$"""
-  val qropsRegex = """^[qQ]?\d{6}$"""
+  val qropsRegex = """^(qrops|QROPS)?\d{6}$"""
 
   protected def year(minYear: Int,
                      maxYear: Int,

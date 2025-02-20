@@ -59,10 +59,10 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
   private def getRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, httpPathGET)
 
-  private def postRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
+  private def postRequest(qropsReferenceNumber: String = chargeGDetails.qropsReferenceNumber): FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest(POST, httpPathPOST)
       .withFormUrlEncodedBody(
-        "qropsReferenceNumber" -> chargeGDetails.qropsReferenceNumber,
+        "qropsReferenceNumber" -> qropsReferenceNumber,
         "qropsTransferDate.day" -> chargeGDetails.qropsTransferDate.getDayOfMonth.toString,
         "qropsTransferDate.month" -> chargeGDetails.qropsTransferDate.getMonthValue.toString,
         "qropsTransferDate.year" -> chargeGDetails.qropsTransferDate.getYear.toString
@@ -122,7 +122,22 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
 
-      val result = route(application, postRequest).value
+      val result = route(application, postRequest()).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual onwardRoute.url
+    }
+
+    "redirect to the next page when valid data is submitted with the QROPS prefix added to the reference" in {
+      DateHelper.setDate(Some(startDate))
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
+      when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
+
+      val result = route(application, postRequest("QROPS123456")).value
 
       status(result) mustEqual SEE_OTHER
 
@@ -167,7 +182,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       mutableFakeDataRetrievalAction.setDataToReturn(None)
 
-      val result = route(application, postRequest).value
+      val result = route(application, postRequest()).value
 
       status(result) mustEqual SEE_OTHER
 

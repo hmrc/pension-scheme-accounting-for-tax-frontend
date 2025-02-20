@@ -91,10 +91,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             },
             value => {
               val cleanedValue = {
-                val qropsRefNo = value.qropsReferenceNumber
+                val qropsRefNo = value.qropsReferenceNumber.toUpperCase
 
-                if (qropsRefNo.startsWith("Q") || qropsRefNo.startsWith("q")) {
-                  value.copy(qropsReferenceNumber = qropsRefNo.drop(1))
+                if (qropsRefNo.startsWith("QROPS")) {
+                  value.copy(qropsReferenceNumber = qropsRefNo.drop(5))
                 } else {
                   value
                 }
