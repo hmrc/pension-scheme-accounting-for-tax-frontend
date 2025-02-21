@@ -1004,7 +1004,7 @@ quarters.lockDetail = - locked by {0}
 quarters.hint.locked = You might be able to view this return but you cannot make changes until it is unlocked
 quarters.hint.inProgress = Continue this return. It has already been started.
 quarters.hint.submitted = You have already submitted this return. You can still view or amend it.
-hint.paymentOverdue = PAYMENT OVERDUE
+hint.paymentOverdue = Payment overdue
 
 returnHistory.title = AFT return history for {0} to {1}
 returnHistory.version = Submission
