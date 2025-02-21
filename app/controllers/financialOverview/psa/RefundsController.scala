@@ -19,6 +19,7 @@ package controllers.financialOverview.psa
 import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.actions._
 import helpers.FormatHelper
+import models.financialStatement.PsaFSChargeType
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import services.AFTPartialService
@@ -52,7 +53,7 @@ class RefundsController @Inject()(
           psaFSWithPaymentOnAccount =>
 
             val latestCredits = psaFSWithPaymentOnAccount.seqPsaFSDetail
-              .filter(_.dueDate.nonEmpty)
+              .filter(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
               .filter(_.amountDue < 0)
               .sortBy(_.dueDate)(Ordering[Option[LocalDate]].reverse).take(3)
             val creditBalance = service.getCreditBalanceAmount(latestCredits)

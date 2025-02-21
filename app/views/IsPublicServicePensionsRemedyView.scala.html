@@ -31,15 +31,10 @@
     returnUrl: String,
     schemeName: String)(implicit request: Request[_], messages: Messages)
 
-@layout(messages(manOrBulkTitle, chargeTypeDescription), formHasErrors = form.hasErrors) {
+
+@layout(messages(manOrBulkHeading, chargeTypeDescription), formHasErrors = form.hasErrors) {
     <div>
         @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
-            <h1 class="govuk-heading-xl">
-                @messages(manOrBulkHeading, chargeTypeDescription)
-            </h1>
-
-            <p class="govuk-body">@messages("isPublicServicePensionsRemedy.p1")</p>
-
             @govukRadios(
                 RadiosViewModel(
                     form("value"),
@@ -47,8 +42,11 @@
                     Fieldset(
                         legend = Some(
                             Legend(
-                                content = Text(messages(manOrBulkHeading, chargeTypeDescription)),
-                                classes = "govuk-visually-hidden"
+                                content =
+                                HtmlContent(s"""<h1 class="govuk-heading-xl">
+                                    ${messages(manOrBulkHeading, chargeTypeDescription)}
+                                </h1><p class="govuk-body">${messages("isPublicServicePensionsRemedy.p1")}</p>"""),
+                                classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4"
                             )
                         )
                     ),
