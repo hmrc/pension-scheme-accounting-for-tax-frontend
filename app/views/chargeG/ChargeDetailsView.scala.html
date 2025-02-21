@@ -51,9 +51,10 @@
                         ),
                         inputmode = Some("numeric"),
                         pattern = Some("[0-9]*"),
-                        classes = "govuk-input--width-10"
+                        classes = "govuk-input--width-10",
+                        hint = Some(Hint(content = Text(messages("chargeG.chargeDetails.qropsReferenceNumber.hint"))))
                     )
-                    .withPrefix(PrefixOrSuffix(content = Text("Q")))
+                    .withPrefix(PrefixOrSuffix(content = Text("QROPS")))
                 )
 
                 @govukDateInput(
