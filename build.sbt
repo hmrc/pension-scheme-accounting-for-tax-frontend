@@ -53,7 +53,7 @@ lazy val root = (project in file("."))
       Resolver.jcenterRepo
     ),
     Concat.groups := Seq(
-      "javascripts/application.js" -> group(Seq("lib/govuk-frontend/dist/govuk/all.js", "lib/hmrc-frontend/hmrc/all.js",
+      "javascripts/application.js" -> group(Seq("lib/govuk-frontend/dist/govuk/all.bundle.js", "lib/hmrc-frontend/hmrc/all.js",
         "javascripts/aft.js"
       ))
     ),
