@@ -21,7 +21,7 @@
     formHelper: FormWithCSRF,
     govukErrorSummary: GovukErrorSummary,
     govukButton: GovukButton,
-    hmrcCurrencyInput: HmrcCurrencyInput,
+    govukInput: GovukInput
 )
 
 @(form: Form[ChargeAmounts],
@@ -39,34 +39,23 @@
 
             <form action="@submitCall" method="post" autocomplete="off" novalidate >
 
-                @hmrcCurrencyInput(
-                    CurrencyInput(
-                        id = "amountTransferred",
-                        name = "amountTransferred",
-                        value = form("amountTransferred").value,
-                        classes = "govuk-input--width-10",
-                        errorMessage = form("amountTransferred").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
-                        label = Label(
-                            content = Text(messages("chargeG.chargeAmount.transferred")),
-                            classes = "govuk-label--s",
-                            isPageHeading = false,
-                        )
+                @govukInput(
+                    InputViewModel(
+                        field = form("amountTransferred"),
+                        label = Label(content = Text(messages("chargeG.chargeAmount.transferred")), classes = "govuk-label--s"),
                     )
+                    .withPrefix(PrefixOrSuffix(content = Text("£")))
+                    .withCssClass("govuk-input--width-10")
                 )
 
-                @hmrcCurrencyInput(
-                    CurrencyInput(
-                        id = "amountTaxDue",
-                        name = "amountTaxDue",
-                        value = form("amountTaxDue").value,
-                        classes = "govuk-input--width-10",
-                        errorMessage = form("amountTaxDue").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
-                        label = Label(
-                            content = Text(messages("chargeG.chargeAmount.taxDue")),
-                            isPageHeading = false,
-                            classes = "govuk-label--s"
-                        )
+
+                @govukInput(
+                    InputViewModel(
+                        field = form("amountTaxDue"),
+                        label = Label(content = Text(messages("chargeG.chargeAmount.taxDue")), classes = "govuk-label--s"),
                     )
+                    .withPrefix(PrefixOrSuffix(content = Text("£")))
+                    .withCssClass("govuk-input--width-10")
                 )
 
                 @govukButton(
