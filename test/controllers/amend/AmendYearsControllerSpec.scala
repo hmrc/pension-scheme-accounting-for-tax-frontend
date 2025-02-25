@@ -72,7 +72,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockQuartersService.getPastYears(any())(any(), any())).thenReturn(Future.successful(displayYears))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
   }
 

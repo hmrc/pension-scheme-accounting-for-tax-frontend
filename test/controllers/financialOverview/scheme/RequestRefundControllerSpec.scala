@@ -79,7 +79,7 @@ class RequestRefundControllerSpec extends ControllerSpecBase with JsonMatchers w
     when(mockFinancialStatementConnector.getSchemeFSPaymentOnAccount(any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
     when(mockPsaSchemePartialService.getCreditBalanceAmount(any())).thenReturn(BigDecimal(44.4))
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any()))
       .thenReturn(Future.successful("John Doe"))

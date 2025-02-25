@@ -87,7 +87,7 @@ class PsaPaymentsAndChargesInterestControllerSpec
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any())).
       thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", interestPsaFSResponse)))
     when(mockPsaPenaltiesAndChargesService.isPaymentOverdue).thenReturn(isOverdue)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockAppConfig.podsNewFinancialCredits).thenReturn(true)
   }

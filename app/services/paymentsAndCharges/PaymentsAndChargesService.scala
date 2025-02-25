@@ -284,7 +284,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
   private def saveAndReturnPaymentsCache(loggedInId: String, srn: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaymentsCache] =
     for {
-      schemeDetails <- schemeService.retrieveSchemeDetails(loggedInId, srn, "srn")
+      schemeDetails <- schemeService.retrieveSchemeDetails(loggedInId, srn)
       schemeFSDetail <- fsConnector.getSchemeFS(schemeDetails.pstr)
       paymentsCache = PaymentsCache(loggedInId, srn, schemeDetails, schemeFSDetail.seqSchemeFSDetail)
       _ <- financialInfoCacheConnector.save(Json.toJson(paymentsCache))

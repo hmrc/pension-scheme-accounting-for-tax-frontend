@@ -52,7 +52,7 @@ class PspSchemeDashboardPartialsController @Inject()(
       (idNumber, schemeIdType, authorisingPsaId) match {
         case (Some(idNumber), Some(_), Some(psaId)) =>
               val futureSeqHtml = for {
-                schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber, "srn")
+                schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber)
                 schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
                 paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(idNumber, schemeFs.seqSchemeFSDetail, schemeDetails.pstr)
               }

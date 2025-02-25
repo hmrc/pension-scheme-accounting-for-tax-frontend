@@ -131,7 +131,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(versions))
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(multipleVersions))
     when(mockUserAnswersCacheConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))

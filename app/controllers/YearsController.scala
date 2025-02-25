@@ -49,8 +49,7 @@ class YearsController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) map { schemeDetails =>
 
       Ok(
@@ -66,8 +65,7 @@ class YearsController @Inject()(
         formWithErrors =>
           schemeService.retrieveSchemeDetails(
             psaId = request.idOrException,
-            srn = srn,
-            schemeIdType = "srn"
+            srn = srn
           ) flatMap { schemeDetails =>
             Future.successful(BadRequest(yearsView(formWithErrors, routes.YearsController.onSubmit(srn), schemeDetails.schemeName,
               config.schemeDashboardUrl(request).format(srn), TwirlMigration.toTwirlRadios(StartYears.radios(form(config))(config)))))

@@ -58,7 +58,7 @@ class RequestRefundController @Inject()(appConfig: FrontendAppConfig,
   private def requestRefundURL(srn: String)(implicit request: IdentifierRequest[AnyContent]): Future[String] = {
     for {
       psaOrPspName <- minimalConnector.getPsaOrPspName
-      schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
+      schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn)
       creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
     } yield {
       if (creditSchemeFS.inhibitRefundSignal) {

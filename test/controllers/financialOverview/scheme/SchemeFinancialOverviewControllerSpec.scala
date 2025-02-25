@@ -71,7 +71,7 @@ class SchemeFinancialOverviewControllerSpec
     super.beforeEach()
     reset(mockPsaSchemePartialService)
     reset(mockPaymentsAndChargesService)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))

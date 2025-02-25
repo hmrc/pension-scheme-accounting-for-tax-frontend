@@ -56,8 +56,7 @@ class ContinueQuartersController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) flatMap { schemeDetails =>
       quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
@@ -81,8 +80,7 @@ class ContinueQuartersController @Inject()(
   def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>

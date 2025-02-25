@@ -78,7 +78,7 @@ class QuartersControllerSpec extends ControllerSpecBase with JsonMatchers
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
     DateHelper.setDate(Some(LocalDate.of(2021, 1, 1)))
   }

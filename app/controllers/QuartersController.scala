@@ -54,8 +54,7 @@ class QuartersController @Inject()(
   def onPageLoad(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) flatMap { schemeDetails =>
       quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
@@ -77,7 +76,7 @@ class QuartersController @Inject()(
   }
 
   def onSubmit(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(request.idOrException, srn) flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
           if (displayQuarters.nonEmpty) {

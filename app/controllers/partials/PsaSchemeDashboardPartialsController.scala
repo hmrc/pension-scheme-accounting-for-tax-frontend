@@ -50,7 +50,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
 
   def psaSchemeDashboardAFTTilePartial(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
-          schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+          schemeService.retrieveSchemeDetails(request.idOrException, srn).flatMap { schemeDetails =>
               service.aftCardModel(schemeDetails, srn).flatMap { cards =>
                 Future.successful(Ok(view(cards)))
             }
@@ -60,7 +60,7 @@ class PsaSchemeDashboardPartialsController @Inject()(
 
   def psaSchemeDashboardFinInfoPartial(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+      schemeService.retrieveSchemeDetails(request.idOrException, srn).flatMap { schemeDetails =>
           getFinancialOverviewTile(srn, schemeDetails).flatMap { cards =>
             Future.successful(Ok(view(cards)))
         }

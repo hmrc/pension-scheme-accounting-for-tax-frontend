@@ -80,7 +80,7 @@ class AllPenaltiesAndChargesControllerSpec extends ControllerSpecBase with JsonM
     when(mockPsaPenaltiesAndChargesService.getAllPenaltiesAndCharges(any(), any(), any())(any(), any(), any())).
       thenReturn(Future.successful(emptyChargesTable))
     when(mockMinimalConnector.getPsaOrPspName(any(), any(), any())).thenReturn(Future.successful("psa-name"))
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
   }
 

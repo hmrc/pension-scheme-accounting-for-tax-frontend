@@ -132,7 +132,7 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockFinancialInfoCacheConnector.fetch(any(), any()))
       .thenReturn(Future.successful(Some(Json.toJson(penaltiesCache))))

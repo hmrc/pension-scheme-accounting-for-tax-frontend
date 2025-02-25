@@ -120,7 +120,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
       allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       request.userAnswers.get(TaxYearReportedAndPaidPage(chargeType, index, schemeIndex.map(indexToInt))).map(fullYearRange) match {
         case Some(yearRange) =>
-          schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn") flatMap { schemeDetails =>
+          schemeService.retrieveSchemeDetails(request.idOrException, srn) flatMap { schemeDetails =>
             val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
             form(displayQuarters.map(_.quarter))
               .bindFromRequest()

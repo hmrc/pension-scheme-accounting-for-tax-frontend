@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.SchemeDetails
+import models.{SchemeDetails, SchemeReferenceNumber}
 import play.api.http.Status._
 import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
@@ -31,15 +31,15 @@ import scala.concurrent.{ExecutionContext, Future}
 class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
-  def getSchemeDetails(psaId: String, idNumber: String, schemeIdType: String)
+  def getSchemeDetails(psaId: String, srn: SchemeReferenceNumber)
                       (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
-    val url = url"${config.schemeDetailsUrl.format(idNumber)}"
+    val url = url"${config.schemeDetailsUrl.format(srn)}"
 
     val headers: Seq[(String, String)] =
       Seq(
-        ("idNumber", idNumber),
-        ("schemeIdType", schemeIdType),
+        ("idNumber", srn),
+        ("schemeIdType", "srn"),
         ("psaId", psaId)
       )
 

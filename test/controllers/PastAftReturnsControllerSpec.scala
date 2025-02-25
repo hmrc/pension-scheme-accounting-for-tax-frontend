@@ -59,7 +59,7 @@ class PastAftReturnsControllerSpec extends ControllerSpecBase with BeforeAndAfte
   override def beforeEach(): Unit = {
     super.beforeEach()
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
   }
 
   "PastAftReturnsController" must {

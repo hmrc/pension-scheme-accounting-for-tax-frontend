@@ -46,8 +46,7 @@ class AFTAmendController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         val futureResult = if (aftOverview.nonEmpty) {

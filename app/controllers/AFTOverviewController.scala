@@ -54,7 +54,7 @@ class AFTOverviewController @Inject()(
     implicit request =>
       (for {
         outstandingAmount <- getOutstandingPaymentAmount(srn, AccountingForTaxCharges)
-        schemeDetails <- schemeService.retrieveSchemeDetails(psaId = request.idOrException, schemeIdType = schemeIdType, srn = srn)
+        schemeDetails <- schemeService.retrieveSchemeDetails(psaId = request.idOrException)
         quartersInProgress <- quartersService.getInProgressQuarters(srn = srn, pstr = schemeDetails.pstr)
         allPastYears <- quartersService.getPastYears(pstr = schemeDetails.pstr)
         pastYearsAndQuarters <- Future.traverse(displayYears(allPastYears))(
@@ -99,7 +99,6 @@ class AFTOverviewController @Inject()(
 
 object AFTOverviewController {
 
-  private val schemeIdType: String = "srn"
   private val maxPastYearsToDisplay: Int  = 3
   private val journeyTypeAll: String  = "all"
   private val nothingOutstanding: String = "£0.00"

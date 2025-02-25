@@ -123,8 +123,7 @@ class AFTSummaryController @Inject()(
 
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
+        srn = srn
       ) flatMap { schemeDetails =>
         val viewModel = getAftSummaryViewModel(srn, startDate, version, accessType, schemeDetails.schemeName)
         Future.successful(Ok(aftSummaryView(
@@ -154,8 +153,7 @@ class AFTSummaryController @Inject()(
 
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
+        srn = srn
       ) flatMap { schemeDetails =>
         val ua = request.userAnswers
         memberSearchForm

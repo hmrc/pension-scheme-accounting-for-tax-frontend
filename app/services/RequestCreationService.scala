@@ -84,7 +84,7 @@ class RequestCreationService @Inject()(
     val psaId = request.idOrException
 
     for {
-      schemeDetails <- schemeService.retrieveSchemeDetails(psaId, srn, "srn")
+      schemeDetails <- schemeService.retrieveSchemeDetails(psaId, srn)
       seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
       uaWithMinPsaDetails <- updateMinimalDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus)
       seqAFTOverviewPODS = seqAFTOverview.filter(_.versionDetails.isDefined).map(_.toPodsReport)

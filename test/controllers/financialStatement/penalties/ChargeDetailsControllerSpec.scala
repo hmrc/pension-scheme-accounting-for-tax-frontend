@@ -86,7 +86,7 @@ class ChargeDetailsControllerSpec
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any()))
       .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }

@@ -45,7 +45,7 @@ class AFTReturnLockedController @Inject()(appConfig: FrontendAppConfig,
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
-        schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+        schemeService.retrieveSchemeDetails(request.idOrException, srn).flatMap { schemeDetails =>
           Future.successful(Ok(aftReturnLockedView(
             controllers.routes.AFTLoginController.onPageLoad(srn).url,
             controllers.routes.AFTReturnLockedController.onClick(srn, startDate).url,
