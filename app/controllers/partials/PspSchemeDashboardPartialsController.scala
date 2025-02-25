@@ -45,16 +45,16 @@ class PspSchemeDashboardPartialsController @Inject()(
   // scalastyle:off
   def pspDashboardAllTilesPartial(): Action[AnyContent] = identify.async {
     implicit request =>
-      val idNumber = request.headers.get("idNumber")
+      val srn = request.headers.get("idNumber")
       val schemeIdType = request.headers.get("schemeIdType")
       val authorisingPsaId = request.headers.get("authorisingPsaId")
 
-      (idNumber, schemeIdType, authorisingPsaId) match {
-        case (Some(idNumber), Some(_), Some(psaId)) =>
+      (srn, schemeIdType, authorisingPsaId) match {
+        case (Some(srn), Some(_), Some(psaId)) =>
               val futureSeqHtml = for {
-                schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, idNumber)
+                schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn)
                 schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
-                paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(idNumber, schemeFs.seqSchemeFSDetail, schemeDetails.pstr)
+                paymentsAndChargesHtml <- pspDashboardPaymentsAndChargesPartial(srn, schemeFs.seqSchemeFSDetail, schemeDetails.pstr)
               }
               yield {
                 scala.collection.immutable.Seq(paymentsAndChargesHtml)

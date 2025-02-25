@@ -19,7 +19,7 @@ package services.financialOverview.psa
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, MinimalConnector}
+import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
 import controllers.financialOverview.psa.routes._
 import data.SampleData._
 import helpers.FormatHelper
@@ -51,17 +51,18 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
   import PsaPenaltiesAndChargesServiceSpec._
 
-  val mockSchemeService: SchemeService = mock[SchemeService]
-  val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
-  val mockFinancialInfoCacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
-  val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
-  val dateNow: LocalDate = LocalDate.now()
-  val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
+  private val mockSchemeService: SchemeService = mock[SchemeService]
+  private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  private val mockFinancialInfoCacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
+  private val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
+  private val mockListOfSchemesConnector = mock[ListOfSchemesConnector]
+  private val dateNow: LocalDate = LocalDate.now()
+  private val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   private def config: FrontendAppConfig = mock[FrontendAppConfig]
 
   private val psaPenaltiesAndChargesService = new PsaPenaltiesAndChargesService(fsConnector = mockFSConnector,
-    financialInfoCacheConnector = mockFinancialInfoCacheConnector, schemeService = mockSchemeService, minimalConnector = mockMinimalConnector, config)
+    financialInfoCacheConnector = mockFinancialInfoCacheConnector, minimalConnector = mockMinimalConnector, config, mockListOfSchemesConnector)
 
   private def htmlChargeType(penaltyType: String,
                              chargeReference: String,

@@ -75,8 +75,7 @@ class ConfirmationController @Inject()(
                                                  (implicit request: DataRequest[AnyContent]): Future[Boolean] = {
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) flatMap { schemeDetails =>
       fsConnector.getSchemeFS(schemeDetails.pstr).map(_.seqSchemeFSDetail.exists(_.periodStartDate.contains(startDate)))
     } recover { case e =>

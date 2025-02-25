@@ -52,17 +52,17 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(identifier: String,
+  def onPageLoad(srn: String,
                  index: String,
                  journeyType: ChargeDetailsFilter): Action[AnyContent] =
-    (identify andThen allowAccess()).async {
+    (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
         psaPenaltiesAndChargesService.getPenaltiesForJourney(request.idOrException, journeyType).flatMap { penaltiesCache =>
 
           def penaltyOpt: Option[PsaFSDetail] = penaltiesCache.penalties.find(_.index.toString == index)
 
           if(penaltyOpt.nonEmpty) {
-            schemeService.retrieveSchemeDetails(request.idOrException, identifier, "pstr") flatMap {
+            schemeService.retrieveSchemeDetails(request.idOrException, srn) flatMap {
               schemeDetails =>
 
                 val modelObject = if (config.podsNewFinancialCredits) {

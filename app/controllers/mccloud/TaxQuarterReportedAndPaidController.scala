@@ -76,8 +76,7 @@ class TaxQuarterReportedAndPaidController @Inject()(
         case Some(yearRange) =>
           schemeService.retrieveSchemeDetails(
             psaId = request.idOrException,
-            srn = srn,
-            schemeIdType = "srn"
+            srn = srn
           ) flatMap { schemeDetails =>
             val displayQuarters = getAllQuartersForYear(yearRange.startYear).filter(filterQuarters)
             val preparedForm: Form[AFTQuarter] = {
