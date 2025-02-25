@@ -259,10 +259,10 @@ chargeC.sponsoringOrganisationDetails.crn.error.invalid = The company or organis
 
 chargeC.sponsoringEmployerAddress.title = Enter {0}’s address
 chargeC.sponsoringEmployerAddress.heading = Enter {0}’s address
-chargeC.sponsoringEmployerAddress.line1.title = Address line 1
-chargeC.sponsoringEmployerAddress.line2.title = Address line 2
-chargeC.sponsoringEmployerAddress.line3.title = Address line 3 (optional)
-chargeC.sponsoringEmployerAddress.line4.title = Address line 4 (optional)
+chargeC.sponsoringEmployerAddress.line1.title = Address Line 1
+chargeC.sponsoringEmployerAddress.line2.title = Address Line 2
+chargeC.sponsoringEmployerAddress.line3.title = Address Line 3 (optional)
+chargeC.sponsoringEmployerAddress.line4.title = Address Line 4 (optional)
 chargeC.sponsoringEmployerAddress.country.title = Country
 chargeC.sponsoringEmployerAddress.postcode.title = Postcode (if UK)
 

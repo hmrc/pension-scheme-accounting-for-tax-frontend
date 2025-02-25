@@ -21,7 +21,7 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.govukfrontend.views.viewmodels.hint.Hint
 import uk.gov.hmrc.govukfrontend.views.viewmodels.input.{Input, PrefixOrSuffix}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.label.Label
-import viewmodels.ErrorMessageAwareness
+import viewmodels.{ErrorMessageAwareness, InputWidth}
 
 object input extends InputFluency
 
@@ -63,5 +63,11 @@ trait InputFluency {
 
     def withPrefix(prefix: PrefixOrSuffix): Input =
       input copy (prefix = Some(prefix))
+
+    def withWidth(inputWidth: InputWidth): Input =
+      input.withCssClass(inputWidth.toString)
+
+    def withAutocomplete(value: String): Input =
+      input copy (autocomplete = Some(value))
   }
 }
