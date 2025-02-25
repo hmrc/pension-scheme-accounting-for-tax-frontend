@@ -30,7 +30,7 @@
 
 @layout(messages("memberDetails.title", messages(chargeName).toLowerCase())) {
     <div>
-        @formHelper(action = submitCall, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "true") {
+        @formHelper(action = submitCall, Symbol("autoComplete") -> "on", Symbol("novalidate") -> "true") {
 
             <h1 class="govuk-heading-xl">
                 @messages("memberDetails.heading")
