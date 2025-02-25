@@ -14,8 +14,6 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.{HmrcCurrencyInput, CurrencyInput}
-
 @this(
       layout: templates.Layout,
       formHelper: FormWithCSRF,
@@ -23,61 +21,52 @@
       govukDataInput: GovukDateInput,
       govukInput: GovukInput,
       govukButton: GovukButton,
-      govukBackLink: GovukBackLink,
-      hmrcCurrencyInput: HmrcCurrencyInput
+      govukBackLink: GovukBackLink
 )
 @(form: Form[_], schemeName: String, submitUrl: play.api.mvc.Call, returnUrl: String)(implicit request: Request[_], messages: Messages)
 
 @layout(messages("chargeA.chargeDetails.title"), formHasErrors = form.hasErrors) {
-@if(form.errors.nonEmpty) {
-@govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
-}
-<h1 class="govuk-heading-xl">@messages("chargeA.chargeDetails.heading")</h1>
+    @if(form.errors.nonEmpty) {
+        @govukErrorSummary(ErrorSummary().withFormErrorsAsText(form))
+    }
+    <h1 class="govuk-heading-xl">@messages("chargeA.chargeDetails.heading")</h1>
 
-@formHelper(action = submitUrl, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "true") {
-@govukInput(
-        InputViewModel(
-        field = form("numberOfMembers"),
-        label = Label(
-        content = Text(messages("chargeA.chargeDetails.numberOfMembers.title")),
-        isPageHeading = false,
-        classes = "govuk-label--s"
-),
-inputmode = Some("numeric"),
-pattern = Some("[0-9]*"),
-classes = "govuk-input--width-10"
-)
-)
+    @formHelper(action = submitUrl, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "true") {
+        @govukInput(
+            InputViewModel(
+                field = form("numberOfMembers"),
+                label = Label(
+                    content = Text(messages("chargeA.chargeDetails.numberOfMembers.title")),
+                    isPageHeading = false,
+                    classes = "govuk-label--s"
+                ),
+                inputmode = Some("numeric"),
+                pattern = Some("[0-9]*"),
+                classes = "govuk-input--width-10"
+            )
+        )
 
-@hmrcCurrencyInput(
-CurrencyInput(
-         id = "totalAmtOfTaxDueAtLowerRate",
-         name = "totalAmtOfTaxDueAtLowerRate",
-         value = form("totalAmtOfTaxDueAtLowerRate").value,
-         classes = "govuk-input--width-10",
-         errorMessage = form("totalAmtOfTaxDueAtLowerRate").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
-         label = Label(
-         content = Text(messages("chargeA.chargeDetails.totalAmtOfTaxDueAtLowerRate.label"))
-)
-)
-)
+        @govukInput(
+            InputViewModel(
+                field = form("totalAmtOfTaxDueAtLowerRate"),
+                label = Label(content = Text(messages("chargeA.chargeDetails.totalAmtOfTaxDueAtLowerRate.label")), classes = "govuk-label--s"),
+            )
+            .withPrefix(PrefixOrSuffix(content = Text("£")))
+            .withCssClass("govuk-input--width-10")
+        )
 
-@hmrcCurrencyInput(
-CurrencyInput(
-         id = "totalAmtOfTaxDueAtHigherRate",
-         name = "totalAmtOfTaxDueAtHigherRate",
-         value = form("totalAmtOfTaxDueAtHigherRate").value,
-         classes = "govuk-input--width-10",
-         errorMessage = form("totalAmtOfTaxDueAtHigherRate").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
-         label = Label(
-         content = Text(messages("chargeA.chargeDetails.totalAmtOfTaxDueAtHigherRate.label"))
-)
-)
-)
+        @govukInput(
+            InputViewModel(
+                field = form("totalAmtOfTaxDueAtHigherRate"),
+                label = Label(content = Text(messages("chargeA.chargeDetails.totalAmtOfTaxDueAtHigherRate.label")), classes = "govuk-label--s"),
+            )
+            .withPrefix(PrefixOrSuffix(content = Text("£")))
+            .withCssClass("govuk-input--width-10")
+        )
 
-@govukButton(
-        ButtonViewModel(Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String))
-)
-}
-@templates.ReturnLink(schemeName, returnUrl)
+        @govukButton(
+            ButtonViewModel(Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String))
+        )
+    }
+    @templates.ReturnLink(schemeName, returnUrl)
 }
