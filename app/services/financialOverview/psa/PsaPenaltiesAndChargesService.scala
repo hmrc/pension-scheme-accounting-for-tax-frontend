@@ -245,7 +245,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
                 schemeName = schemeName,
                 redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
-                  .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
+                  .onPageLoad(srn, detail.index.toString, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText"),
                 dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
               ))
@@ -347,9 +347,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
   private def getSchemeDetails(pstr: String, pstrToSchemeName: Map[String,(String, String)]): (String, String) = {
     pstrToSchemeName.get(pstr) match {
       case Some((schemeName, srn)) => (schemeName, srn)
-      case None =>
-        logger.warn("Scheme name not found")
-        ("Scheme name not found", "Srn not found")
+      case None => throw new RuntimeException("Scheme details not found")
     }
   }
 

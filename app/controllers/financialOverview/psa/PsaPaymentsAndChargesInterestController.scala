@@ -66,9 +66,9 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
               schemeDetails =>
 
                 val modelObject = if (config.podsNewFinancialCredits) {
-                  commonJsonNewV2(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType)
+                  commonJsonNewV2(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType, srn)
                 } else {
-                  commonJson(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType)
+                  commonJson(penaltiesCache.psaName, schemeDetails.schemeName, penaltyOpt.head, journeyType, srn)
                 }
 
 
@@ -89,10 +89,11 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
   private def commonJson(psaName: String,
                          schemeName: String,
                          sourcePsaFSDetail: PsaFSDetail,
-                         journeyType: ChargeDetailsFilter
+                         journeyType: ChargeDetailsFilter,
+                         srn: String
                         )(implicit request: IdentifierRequest[AnyContent]): PsaInterestDetailsViewModel = {
     val period = psaPenaltiesAndChargesService.setPeriod(sourcePsaFSDetail.chargeType, sourcePsaFSDetail.periodStartDate, sourcePsaFSDetail.periodEndDate)
-    val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(sourcePsaFSDetail.pstr, sourcePsaFSDetail.index.toString, journeyType).url
+    val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(srn, sourcePsaFSDetail.index.toString, journeyType).url
     val detailsChargeType = sourcePsaFSDetail.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
     val penaltyType = getPenaltyType(detailsChargeType)
@@ -123,9 +124,10 @@ class PsaPaymentsAndChargesInterestController @Inject()(identify: IdentifierActi
   private def commonJsonNewV2(psaName: String,
                               schemeName: String,
                               sourcePsaFSDetail: PsaFSDetail,
-                              journeyType: ChargeDetailsFilter
+                              journeyType: ChargeDetailsFilter,
+                              srn: String
                              )(implicit request: IdentifierRequest[AnyContent]): PsaInterestDetailsViewModel = {
-    val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(sourcePsaFSDetail.pstr, sourcePsaFSDetail.index.toString, journeyType).url
+    val originalAmountURL = routes.PsaPenaltiesAndChargeDetailsController.onPageLoad(srn, sourcePsaFSDetail.index.toString, journeyType).url
     val detailsChargeType = sourcePsaFSDetail.chargeType
     val detailsChargeTypeHeading = if (detailsChargeType == PsaFSChargeType.CONTRACT_SETTLEMENT) INTEREST_ON_CONTRACT_SETTLEMENT else detailsChargeType
     val penaltyType = getPenaltyType(detailsChargeType)

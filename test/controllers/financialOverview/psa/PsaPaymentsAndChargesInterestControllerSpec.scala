@@ -58,7 +58,7 @@ class PsaPaymentsAndChargesInterestControllerSpec
 
   private def httpPathGETAssociated(indexVal: String): String = {
     controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController.onPageLoad(
-      identifier = pstr, index = indexVal, Overdue).url
+      identifier = srn, index = indexVal, Overdue).url
   }
 
   private val mockPsaPenaltiesAndChargesService = mock[PsaPenaltiesAndChargesService]
@@ -114,7 +114,7 @@ class PsaPaymentsAndChargesInterestControllerSpec
             penaltyAmount = 10,
             returnUrl = "/manage-pension-scheme-accounting-for-tax/financial-overview/all-overdue-penalties-interest",
             list = getRows(),
-            htmlInsetText = HtmlContent("<p class=govuk-body>The charge reference for the interest due will show once you have paid the <span><a id='breakdown' class=govuk-link href=/manage-pension-scheme-accounting-for-tax/financial-overview/24000040IN/0/due-charge-details> original amount due</a></span> in full. You can only pay the interest once a charge reference has been generated.</p>"),
+            htmlInsetText = HtmlContent("<p class=govuk-body>The charge reference for the interest due will show once you have paid the <span><a id='breakdown' class=govuk-link href=/manage-pension-scheme-accounting-for-tax/financial-overview/aa/0/due-charge-details> original amount due</a></span> in full. You can only pay the interest once a charge reference has been generated.</p>"),
             returnUrlText = "your Overdue payments and charges"
           )
         )(messages, httpGETRequest(httpPathGETAssociated("0")))
