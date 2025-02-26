@@ -292,9 +292,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
   (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     val penaltyTypes: Seq[PenaltyType] = penalties.map(p => getPenaltyType(p.chargeType)).distinct
 
-    if (penaltyTypes.nonEmpty && penaltyTypes.size > 1) {
-      Future.successful(Redirect(PenaltyTypeController.onPageLoad(journeyType)))
-    } else if (penaltyTypes.size == 1) {
+    if (penaltyTypes.nonEmpty) {
       logger.debug(s"Skipping the penalty type page for type ${penaltyTypes.head}")
       navFromPenaltiesTypePage(penalties, penaltyTypes.head, psaId, journeyType)
     } else {
