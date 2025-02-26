@@ -15,15 +15,14 @@
  *@
 
 @import viewmodels.govuk.date.DateViewModel
-@import uk.gov.hmrc.hmrcfrontend.views.html.components.{HmrcCurrencyInput, CurrencyInput}
 
 @this(
-layout: templates.Layout,
-formHelper: FormWithCSRF,
-govukErrorSummary: GovukErrorSummary,
-govukDateInput: GovukDateInput,
-govukButton: GovukButton,
-hmrcCurrencyInput: HmrcCurrencyInput
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    govukDateInput: GovukDateInput,
+    govukButton: GovukButton,
+    govukInput: GovukInput
 )
 @(form: Form[_], schemeName: String, submitUrl: play.api.mvc.Call, returnUrl: String, memberName: String)(implicit request: Request[_], messages: Messages)
 
@@ -35,39 +34,37 @@ hmrcCurrencyInput: HmrcCurrencyInput
 
 @formHelper(action = submitUrl, Symbol("autoComplete") -> "off", Symbol("novalidate") -> "true") {
 
-@govukDateInput(
-    DateViewModel(
-        field  = form("dateOfEvent"),
-        legend = Legend(
-        content = Text(messages("chargeDDetails.dateOfEvent.label")),
-        classes = "govuk-fieldset__legend--s",
-        isPageHeading = false
+    @govukDateInput(
+        DateViewModel(
+            field  = form("dateOfEvent"),
+            legend = Legend(
+            content = Text(messages("chargeDDetails.dateOfEvent.label")),
+            classes = "govuk-fieldset__legend--s",
+            isPageHeading = false
+            )
         )
     )
-)
 
-@hmrcCurrencyInput(
-CurrencyInput(
-    id = "taxAt25Percent",
-    name = "taxAt25Percent",
-    value = form("taxAt25Percent").value,
-    classes = "govuk-input--width-10",
-    errorMessage = form("taxAt25Percent").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
-    label = Label(content = Text(messages("taxAt25Percent.label")), classes = "govuk-label--s")
-))
+    @govukInput(
+        InputViewModel(
+            field = form("taxAt25Percent"),
+            label = Label(content = Text(messages("taxAt25Percent.label")), classes = "govuk-label--s"),
+        )
+        .withPrefix(PrefixOrSuffix(content = Text("£")))
+        .withCssClass("govuk-input--width-10")
+    )
 
-@hmrcCurrencyInput(
-CurrencyInput(
-    id = "taxAt55Percent",
-    name = "taxAt55Percent",
-    value = form("taxAt55Percent").value,
-    classes = "govuk-input--width-10",
-    errorMessage = form("taxAt55Percent").error.map(err => ErrorMessage(content = Text(messages(err.message, err.args: _*)))),
-    label = Label(content = Text(messages("taxAt55Percent.label")), classes = "govuk-label--s")
-))
+    @govukInput(
+        InputViewModel(
+            field = form("taxAt55Percent"),
+            label = Label(content = Text(messages("taxAt55Percent.label")), classes = "govuk-label--s"),
+        )
+        .withPrefix(PrefixOrSuffix(content = Text("£")))
+        .withCssClass("govuk-input--width-10")
+    )
 
-@govukButton(ButtonViewModel(
-    Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String)))
-}
-@templates.ReturnLink(schemeName, returnUrl)
+    @govukButton(ButtonViewModel(
+        Text(messages("site.continue"))).withAttribute(("id", "submit"): (String, String)))
+    }
+    @templates.ReturnLink(schemeName, returnUrl)
 }
