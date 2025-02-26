@@ -81,7 +81,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
         (taxQuarterSelection, twirlLifetimeOrAnnual(chargeType)) match {
           case (Some(aftQuarter), Some(chargeTypeDesc)) =>
-            val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+            val ordinalValue = ordinal(schemeIndex).map(_.value).getOrElse("")
             Future.successful(Ok(chargeAmountReportedView(
               form = preparedForm,
               submitCall = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),
@@ -118,7 +118,7 @@ class ChargeAmountReportedController @Inject()(override val messagesApi: Message
 
               (taxQuarterSelection, twirlLifetimeOrAnnual(chargeType)) match {
                 case (Some(aftQuarter), Some(chargeTypeDesc)) =>
-                  val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                  val ordinalValue = ordinal(schemeIndex).map(_.value).getOrElse("")
                   Future.successful(BadRequest(chargeAmountReportedView(
                     form = formWithErrors,
                     submitCall = routes.ChargeAmountReportedController.onSubmit(chargeType, mode, srn, startDate, accessType, version, index, schemeIndex),

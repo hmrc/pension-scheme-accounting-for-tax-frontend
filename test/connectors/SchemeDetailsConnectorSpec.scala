@@ -32,7 +32,7 @@ class SchemeDetailsConnectorSpec
 
   private implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
   private val psaId = "0000"
-  private val srn = "24000006IN"
+  private val srn = "S24000006IN"
 
   "getSchemeDetails" must {
     val schemeDetailsUrl = s"/pensions-scheme/scheme/$srn"

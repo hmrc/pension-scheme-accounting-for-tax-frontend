@@ -44,7 +44,7 @@ import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.{Key, SummaryListR
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import utils.DateHelper.formatDateDMY
 import viewmodels.PsaChargeDetailsViewModel
-import views.html.financialOverview.psa.{PsaChargeDetailsNewView, PsaChargeDetailsView}
+import views.html.financialOverview.psa.PsaChargeDetailsView
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -89,7 +89,6 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     when(mockPsaPenaltiesAndChargesService.setPeriod(any(), any(), any())).thenReturn("Quarter: 1 October to 31 December 2020")
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
   "PsaPenaltiesAndChargeDetailsController" when {

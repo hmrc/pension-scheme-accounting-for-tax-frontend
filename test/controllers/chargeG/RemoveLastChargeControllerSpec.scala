@@ -22,15 +22,11 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{CheckMode, Index, UserAnswers}
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.when
 import play.api.Application
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import utils.AFTConstants.QUARTER_START_DATE
 import views.html.RemoveLastChargeView
 
-import scala.concurrent.Future
 
 class RemoveLastChargeControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
@@ -43,9 +39,7 @@ class RemoveLastChargeControllerSpec extends ControllerSpecBase with JsonMatcher
   val redirectUrl: String = routes.ChargeAmountsController.onSubmit(CheckMode, srn, startDate, accessType, versionInt, index).url
 
   override def beforeEach(): Unit = {
-    super.beforeEach()
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-  }
+    super.beforeEach()  }
 
   "removeLastCharge Controller" must {
     "return OK and the correct view for a GET" in {

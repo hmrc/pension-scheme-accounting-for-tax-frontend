@@ -30,7 +30,6 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.SchemeService
 import utils.AFTConstants.QUARTER_START_DATE
 import views.html.NotSubmissionTimeView
@@ -55,7 +54,6 @@ class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSug
   "Not Submission Time controller" must {
 
     "Return OK and the correct view for a GET" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
 

@@ -37,10 +37,9 @@ import pages.EnterPsaIdPage
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.AFTService
 import utils.AFTConstants.QUARTER_START_DATE
 import views.html.EnterPsaIdView
@@ -79,11 +78,9 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with JsonMatchers
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUserAnswersCacheConnector)
-    reset(mockRenderer)
     reset(mockAFTService)
     reset(mockSchemeDetailsConnector)
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockSchemeDetailsConnector.getPspSchemeDetails(ArgumentMatchers.eq(pspId), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails(Some(psaId))))
   }
@@ -132,7 +129,6 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with JsonMatchers
     "on a POST" must {
       "for a logged-in PSP save data to user answers, call psp get scheme details and redirect to next page when valid data is submitted" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        val expectedJson = Json.obj(EnterPsaIdPage.toString -> psaId)
 
         when(mockCompoundNavigator.nextPage(ArgumentMatchers.eq(EnterPsaIdPage), any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(SampleData.dummyCall)

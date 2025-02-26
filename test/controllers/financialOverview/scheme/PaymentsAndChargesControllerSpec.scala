@@ -26,19 +26,15 @@ import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSDetail
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
+import org.mockito.Mockito.{reset, when}
+import org.mockito.ArgumentMatchers
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
-import play.twirl.api.Html
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import views.html.financialOverview.scheme.{PaymentsAndChargesNewView, PaymentsAndChargesView}
 
 import java.time.LocalDate
@@ -69,7 +65,6 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with JsonMatch
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
     reset(mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any())).

@@ -36,7 +36,6 @@ import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import views.html.mccloud.EnterPstr
 
 import scala.concurrent.Future
@@ -69,7 +68,6 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
     "return OK and the correct view for a GET for scheme index zero" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET(schemeIndex = 0))
@@ -92,7 +90,6 @@ class EnterPstrControllerSpec extends ControllerSpecBase
 
     "return OK and the correct view for a GET and correct ordinal for scheme index one" in {
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET(schemeIndex = 1))
@@ -134,7 +131,6 @@ class EnterPstrControllerSpec extends ControllerSpecBase
     "return a Bad Request and errors when invalid data is submitted" in {
 
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

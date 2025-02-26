@@ -34,11 +34,9 @@ import play.api.data.Form
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import viewmodels.TwirlRadios
 import views.html.mccloud.AddAnotherPensionScheme
 
-import scala.concurrent.Future
 
 class AddAnotherPensionSchemeControllerSpec
     extends ControllerSpecBase
@@ -88,7 +86,6 @@ class AddAnotherPensionSchemeControllerSpec
   "AddAnotherPensionScheme Controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET)
@@ -125,7 +122,6 @@ class AddAnotherPensionSchemeControllerSpec
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

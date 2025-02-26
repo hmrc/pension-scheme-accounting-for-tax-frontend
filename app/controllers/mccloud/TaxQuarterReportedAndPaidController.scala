@@ -31,7 +31,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc._
 import services.{SchemeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.{DateHelper, TwirlMigration}
+import utils.DateHelper
 import views.html.mccloud.TaxQuarterReportedAndPaid
 
 import java.time.LocalDate
@@ -88,10 +88,10 @@ class TaxQuarterReportedAndPaidController @Inject()(
             }
             twirlLifetimeOrAnnual(chargeType) match {
               case Some(chargeTypeDesc) =>
-                val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                val ordinalValue = ordinal(schemeIndex).map(_.value).getOrElse("")
                 Future.successful(Ok(taxQuarterReportedAndPaidView(
                   form = preparedForm,
-                  radios = TwirlMigration.toTwirlRadios(Quarters.radios(preparedForm, displayQuarters)),
+                  radios = Quarters.radios(preparedForm, displayQuarters),
                   year = yearRange.toString,
                   ordinal = ordinalValue,
                   chargeTypeDesc = chargeTypeDesc,
@@ -127,10 +127,10 @@ class TaxQuarterReportedAndPaidController @Inject()(
                 formWithErrors => {
                   twirlLifetimeOrAnnual(chargeType) match {
                     case Some(chargeTypeDesc) =>
-                      val ordinalValue = ordinal(schemeIndex).map(_.resolve).getOrElse("")
+                      val ordinalValue = ordinal(schemeIndex).map(_.value).getOrElse("")
                       Future.successful(BadRequest(taxQuarterReportedAndPaidView(
                         form = formWithErrors,
-                        radios = TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, displayQuarters)),
+                        radios = Quarters.radios(formWithErrors, displayQuarters),
                         year = yearRange.toString,
                         ordinal = ordinalValue,
                         chargeTypeDesc = chargeTypeDesc,

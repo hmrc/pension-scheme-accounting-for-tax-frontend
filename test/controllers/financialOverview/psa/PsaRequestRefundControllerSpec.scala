@@ -42,7 +42,6 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with JsonMatcher
 
   private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
   private val mockService = mock[AFTPartialService]
-  private val mockRefundController = mock[PsaRequestRefundController]
   private val mockMinimalConnector = mock[MinimalConnector]
   private val mockFinancialInfoCreditAccessConnector = mock[FinancialInfoCreditAccessConnector]
   private val dummyURL = "/DUMMY"
@@ -69,8 +68,8 @@ class PsaRequestRefundControllerSpec extends ControllerSpecBase with JsonMatcher
     reset(mockMinimalConnector)
     reset(mockFinancialInfoCreditAccessConnector)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockAppConfig.timeoutSeconds).thenReturn("5")
-    when(mockAppConfig.countdownSeconds).thenReturn("1")
+    when(mockAppConfig.timeoutSeconds).thenReturn(5)
+    when(mockAppConfig.countdownSeconds).thenReturn(1)
     when(mockAppConfig.betaFeedbackUnauthenticatedUrl).thenReturn("/mockUrl")
     when(mockFinancialStatementConnector.getPsaFSWithPaymentOnAccount(any())(any(), any()))
       .thenReturn(Future.successful(psaFs))

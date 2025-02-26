@@ -19,8 +19,9 @@ package services.financialOverview.psa
 import connectors.ListOfSchemesConnector
 import models.financialStatement.PenaltyType.{AccountingForTaxPenalties, EventReportingCharges, getPenaltyType}
 import controllers.financialOverview.psa.routes._
+import models.ChargeDetailsFilter.History
 import models.financialStatement.{PenaltyType, PsaFSDetail}
-import models.{ListSchemeDetails, PenaltySchemes}
+import models.{ChargeDetailsFilter, ListSchemeDetails, PenaltySchemes}
 import play.api.Logger
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
@@ -35,21 +36,7 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
 
   private val logger = Logger(classOf[PenaltiesNavigationService])
 
-  def navFromPSADashboard(payments: Seq[PsaFSDetail], pstr: String)
-                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-
-    val paymentTypes: Seq[PenaltyType] = payments.map(p => getPenaltyType(p.chargeType)).distinct
-
-    if (paymentTypes.size > 1) {
-      Future.successful(Redirect(PenaltyTypeController.onPageLoad()))
-    } else if (paymentTypes.size == 1) {
-      navFromPenaltiesTypePage(payments, pstr, paymentTypes.head)
-    } else {
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-    }
-  }
-
-  def navFromPenaltiesTypePage(penalties: Seq[PsaFSDetail], psaId: String, penaltyType: PenaltyType)
+  def navFromPenaltiesTypePage(penalties: Seq[PsaFSDetail], psaId: String, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter)
                               (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
     val yearsSeq: Seq[Int] = penalties
@@ -57,29 +44,33 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
       .map(_.periodEndDate.getYear).distinct.sorted.reverse
 
     (penaltyType, yearsSeq.size) match {
-      case (AccountingForTaxPenalties, 1) => navFromAFTYearsPage(penalties, yearsSeq.head, psaId, AccountingForTaxPenalties)
-      case (EventReportingCharges, 1) => navFromERYearsPage(penalties, yearsSeq.head, psaId, EventReportingCharges)
-      case (_, 1) => navFromNonAftYearsPage(penalties, yearsSeq.head, psaId, penaltyType)
-      case (_, size) if size > 1 => Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType)))
+      case (AccountingForTaxPenalties, 1) => navFromAFTYearsPage(penalties, yearsSeq.head, psaId, journeyType)
+      case (EventReportingCharges, 1) => navFromERYearsPage(penalties, yearsSeq.head, EventReportingCharges, journeyType)
+      case (_, 1) => navFromNonAftYearsPage(penalties, yearsSeq.head, psaId, penaltyType, journeyType)
+      case (_, size) if size > 1 => Future.successful(Redirect(SelectPenaltiesYearController.onPageLoad(penaltyType, journeyType)))
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
     }
   }
 
-  def navFromERYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType): Future[Result] = {
-    val uniquePstrs = penalties
-      .filter(p => getPenaltyType(p.chargeType) == EventReportingCharges)
-      .map(_.pstr).distinct
+  def navFromERYearsPage(penalties: Seq[PsaFSDetail], year: Int, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter): Future[Result] = {
+    if (journeyType == History) {
+      Future.successful(Redirect(ClearedPenaltiesAndChargesController.onPageLoad(year.toString, penaltyType)))
+    } else {
+      val uniquePstrs = penalties
+        .filter(p => getPenaltyType(p.chargeType) == EventReportingCharges)
+        .map(_.pstr).distinct
 
-    uniquePstrs.length match {
-      case 1 =>
-        logger.debug(s"Skipping the select scheme page as only 1 scheme is available")
-        Future.successful(Redirect(AllPenaltiesAndChargesController.onPageLoad(year.toString, uniquePstrs.head, penaltyType)))
-      case 0 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
-      case _ => Future.successful(Redirect(SelectSchemeController.onPageLoad(penaltyType, year.toString)))
+      uniquePstrs.length match {
+        case 1 =>
+          logger.debug(s"Skipping the select scheme page as only 1 scheme is available")
+          Future.successful(Redirect(AllPenaltiesAndChargesController.onPageLoad(year.toString, uniquePstrs.head, penaltyType)))
+        case 0 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad))
+        case _ => Future.successful(Redirect(SelectSchemeController.onPageLoad(penaltyType, year.toString)))
+      }
     }
   }
 
-  def navFromAFTYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType)
+  def navFromAFTYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, journeyType: ChargeDetailsFilter)
                          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
     val quartersSeq = penalties
@@ -87,7 +78,9 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
       .filter(_.periodEndDate.getYear == year)
       .map(_.periodStartDate).distinct
 
-    if (quartersSeq.size > 1) {
+    if (journeyType == History) {
+      Future.successful(Redirect(ClearedPenaltiesAndChargesController.onPageLoad(year.toString, AccountingForTaxPenalties)))
+    } else if (quartersSeq.size > 1) {
       Future.successful(Redirect(SelectPenaltiesQuarterController.onPageLoad(year.toString)))
     } else if (quartersSeq.size == 1) {
       logger.debug(s"Skipping the select quarter page")
@@ -98,18 +91,22 @@ class PenaltiesNavigationService @Inject()(listOfSchemesConnector: ListOfSchemes
   }
 
 
-  def navFromNonAftYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType)
+  def navFromNonAftYearsPage(penalties: Seq[PsaFSDetail], year: Int, psaId: String, penaltyType: PenaltyType, journeyType: ChargeDetailsFilter)
                             (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
 
-    penaltySchemes(year, psaId, penaltyType, penalties).map { schemes =>
+    if (journeyType == History) {
+      Future.successful(Redirect(ClearedPenaltiesAndChargesController.onPageLoad(year.toString, penaltyType)))
+    } else {
+      penaltySchemes(year, psaId, penaltyType, penalties).map { schemes =>
 
-      if(schemes.size > 1) {
-        Redirect(SelectSchemeController.onPageLoad(penaltyType, year.toString))
-      } else if (schemes.size == 1) {
-        logger.debug(s"Skipping the select scheme page for year $year and type $penaltyType")
-        Redirect(AllPenaltiesAndChargesController.onPageLoad(year.toString, schemes.head.pstr, penaltyType))
-      } else {
-        Redirect(controllers.routes.SessionExpiredController.onPageLoad)
+        if (schemes.size > 1) {
+          Redirect(SelectSchemeController.onPageLoad(penaltyType, year.toString))
+        } else if (schemes.size == 1) {
+          logger.debug(s"Skipping the select scheme page for year $year and type $penaltyType")
+          Redirect(AllPenaltiesAndChargesController.onPageLoad(year.toString, schemes.head.pstr, penaltyType))
+        } else {
+          Redirect(controllers.routes.SessionExpiredController.onPageLoad)
+        }
       }
     }
   }

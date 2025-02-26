@@ -31,7 +31,6 @@ import play.api.i18n.Messages
 import play.api.libs.json.JsArray
 import play.api.mvc.Call
 import uk.gov.hmrc.govukfrontend.views.Aliases.Text
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import viewmodels.Link
 
 class ChargePaginationServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {

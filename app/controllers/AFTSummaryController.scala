@@ -34,7 +34,6 @@ import play.twirl.api.Html
 import services._
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import utils.TwirlMigration
 import uk.gov.hmrc.govukfrontend.views.html.components.{Hint => GovukHint}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import viewmodels.{AFTSummaryViewModel, Radios}
@@ -135,7 +134,7 @@ class AFTSummaryController @Inject()(
           membersList = Seq(),
           quarterEndDate = Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
           quarterStartDate = startDate.format(dateFormatterStartDate),
-          radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+          radios = Radios.yesNo(form("value")),
           submissionNumber = getSubmissionNumber(schemeDetails.schemeName, version),
           summarySearchHeadingText = summarySearchHeadingText(memberSearchForm),
           viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType),
@@ -173,7 +172,7 @@ class AFTSummaryController @Inject()(
                 membersList = Seq(),
                 quarterEndDate = Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
                 quarterStartDate = startDate.format(dateFormatterStartDate),
-                radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+                radios = Radios.yesNo(form("value")),
                 submissionNumber = getSubmissionNumber(schemeDetails.schemeName, version),
                 summarySearchHeadingText = summarySearchHeadingText(formWithErrors),
                 viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType),
@@ -202,7 +201,7 @@ class AFTSummaryController @Inject()(
                 membersList = memberSearchService.search(ua, srn, startDate, value, accessType, version),
                 quarterEndDate = Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
                 quarterStartDate = startDate.format(dateFormatterStartDate),
-                radios = TwirlMigration.toTwirlRadios(Radios.yesNo(form("value"))),
+                radios = Radios.yesNo(form("value")),
                 submissionNumber = getSubmissionNumber(schemeDetails.schemeName, version),
                 summarySearchHeadingText = summarySearchHeadingText(preparedForm),
                 viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType),
@@ -234,7 +233,7 @@ class AFTSummaryController @Inject()(
                 membersList = Seq(),
                 quarterEndDate = Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
                 quarterStartDate = startDate.format(dateFormatterStartDate),
-                radios = TwirlMigration.toTwirlRadios(Radios.yesNo(formWithErrors("value"))),
+                radios = Radios.yesNo(formWithErrors("value")),
                 submissionNumber = getSubmissionNumber(schemeName, version),
                 summarySearchHeadingText = summarySearchHeadingText(memberSearchForm),
                 viewAllAmendmentsLink = getAmendmentsLink(srn, startDate, version, accessType),

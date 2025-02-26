@@ -70,6 +70,8 @@ class PsaFinancialOverviewController @Inject()(
     val psaCharges: (String, String, String) = service.retrievePsaChargesAmount(psaFSDetail)
     val creditBalance = service.getCreditBalanceAmount(creditPsaFSDetails)
     val creditBalanceFormatted: String = s"${FormatHelper.formatCurrencyAmountAsString(creditBalance)}"
+    val displayReceivedPayments: Boolean = creditPsaFS.seqPsaFSDetail.exists(_.chargeType == PsaFSChargeType.PAYMENT_ON_ACCOUNT)
+    val displayHistory = service.retrievePaidPenaltiesAndCharges(psaFSDetail).nonEmpty
 
     logger.debug(s"AFT service returned UpcomingCharge - ${psaCharges._1}")
     logger.debug(s"AFT service returned OverdueCharge - ${psaCharges._2}")
@@ -83,7 +85,17 @@ class PsaFinancialOverviewController @Inject()(
 
     val allOverduePenaltiesAndInterestLink = routes.PsaPaymentsAndChargesController.onPageLoad(journeyType = "overdue").url
     val duePaymentLink = routes.PsaPaymentsAndChargesController.onPageLoad("upcoming").url
-    val allPaymentLink = routes.PenaltyTypeController.onPageLoad().url
+    val allPaymentLink = if (config.podsNewFinancialCredits) {
+      routes.RefundsController.onPageLoad().url
+    } else {
+      routes.PenaltyTypeController.onPageLoad("all").url
+    }
+
+    // Below link will need to be updated when relevant page is created
+    val receivedPaymentsLink = routes.PsaFinancialOverviewController.psaFinancialOverview.url
+
+    val historyLink = routes.PenaltyTypeController.onPageLoad("history").url
+
     val returnUrl = config.managePensionsSchemeOverviewUrl
 
     val templateToRender = if (config.podsNewFinancialCredits) {
@@ -98,6 +110,10 @@ class PsaFinancialOverviewController @Inject()(
         allPaymentLink = allPaymentLink,
         creditBalanceFormatted = creditBalanceFormatted,
         creditBalance = creditBalance,
+        displayReceivedPayments = displayReceivedPayments,
+        receivedPaymentsLink = receivedPaymentsLink,
+        displayHistory = displayHistory,
+        historyLink = historyLink,
         returnUrl = returnUrl
       )
     } else {

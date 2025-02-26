@@ -19,15 +19,15 @@ package controllers.financialOverview.scheme
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.financialStatement.PaymentOrChargeTypeFormProvider
+import models.ChargeDetailsFilter.History
 import models.financialStatement.PaymentOrChargeType.getPaymentOrChargeType
 import models.financialStatement.{DisplayPaymentOrChargeType, PaymentOrChargeType, SchemeFSDetail}
 import models.{ChargeDetailsFilter, DisplayHint, PaymentOverdue}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsNavigationService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.financialOverview.scheme.PaymentOrChargeTypeView
 
 import javax.inject.Inject
@@ -47,52 +47,78 @@ class PaymentOrChargeTypeController @Inject()(override val messagesApi: Messages
 
   private def form(): Form[PaymentOrChargeType] = formProvider()
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
-    service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
-        val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail)
+  def onPageLoad(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+    service.getPaymentsForJourney(request.idOrException, srn, journeyType).flatMap { cache =>
 
-        val messages = request2Messages
+        val (title, radios) = if (journeyType == History) {
+          val clearedPayments = cache.schemeFSDetail.filter(_.outstandingAmount <= 0)
+          val paymentsOrCharges = getPaymentOrChargeTypes(clearedPayments, journeyType)
+          (Messages("financial.overview.historyChargeType.title"), PaymentOrChargeType.radios(form(), paymentsOrCharges,
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+        } else {
+          val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail, journeyType)
+          (Messages("paymentOrChargeType.all.title"), PaymentOrChargeType.radios(form(), paymentsOrCharges,
+            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+        }
 
         Future.successful(Ok(paymentOrChargeTypeView(
           form = form(),
-          titleMessage = messages(s"paymentOrChargeType.all.title"),
-          submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
+          title = title,
+          submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
           schemeName = cache.schemeDetails.schemeName,
           returnUrl = config.schemeDashboardUrl(request).format(srn),
-          radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(form(), paymentsOrCharges,
-            Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false))
+          radios = radios,
+          journeyType = journeyType
         )))
       }
     }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
+  def onSubmit(srn: String, journeyType: ChargeDetailsFilter): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     service.getPaymentsForJourney(request.idOrException, srn, ChargeDetailsFilter.All).flatMap { cache =>
       form().bindFromRequest().fold(
         formWithErrors => {
 
+          val (title, radios) = if (journeyType == History) {
+            val clearedPayments = cache.schemeFSDetail.filter(_.outstandingAmount <= 0)
+            val paymentsOrCharges = getPaymentOrChargeTypes(clearedPayments, journeyType)
+            (Messages("financial.overview.historyChargeType.title"),
+              PaymentOrChargeType.radios(formWithErrors, paymentsOrCharges))
+          } else {
+            val paymentsOrCharges = getPaymentOrChargeTypes(cache.schemeFSDetail, journeyType)
+            (Messages("paymentOrChargeType.all.title"),
+              PaymentOrChargeType.radios(formWithErrors, paymentsOrCharges))
+          }
+
           Future.successful(BadRequest(paymentOrChargeTypeView(
             form = formWithErrors,
-            titleMessage = s"paymentOrChargeType.all.title",
-            submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn),
+            title = title,
+            submitCall = routes.PaymentOrChargeTypeController.onSubmit(srn, journeyType),
             schemeName = cache.schemeDetails.schemeName,
             returnUrl = config.schemeDashboardUrl(request).format(srn),
-            radios = TwirlMigration.toTwirlRadiosWithHintText(PaymentOrChargeType.radios(formWithErrors, getPaymentOrChargeTypes(cache.schemeFSDetail))
-              )
-            )
-          )
+            radios = radios,
+            journeyType = journeyType
+          ))
         )
         },
-        value => navService.navFromPaymentsTypePage(cache.schemeFSDetail, srn, value)
+        value => {
+          journeyType match {
+            case History => navService.navToSelectClearedChargesYear(srn, value)
+            case _ => navService.navFromPaymentsTypePage(cache.schemeFSDetail, srn, value)
+          }
+        }
       )
     }
   }
 
-  private def getPaymentOrChargeTypes(paymentsOrCharges: Seq[SchemeFSDetail]): Seq[DisplayPaymentOrChargeType] =
+  private def getPaymentOrChargeTypes(paymentsOrCharges: Seq[SchemeFSDetail], journeyType: ChargeDetailsFilter): Seq[DisplayPaymentOrChargeType] =
     paymentsOrCharges.map(p => getPaymentOrChargeType(p.chargeType)).distinct.sortBy(_.toString).map { category =>
+      if (journeyType == History) {
+        DisplayPaymentOrChargeType(category, None)
+      } else {
+        val isOverdue: Boolean = paymentsOrCharges.filter(p => getPaymentOrChargeType(p.chargeType) == category).exists(service.isPaymentOverdue)
+        val hint: Option[DisplayHint] = if (isOverdue) Some(PaymentOverdue) else None
 
-      val isOverdue: Boolean = paymentsOrCharges.filter(p => getPaymentOrChargeType(p.chargeType) == category).exists(service.isPaymentOverdue)
-      val hint: Option[DisplayHint] = if (isOverdue) Some(PaymentOverdue) else None
-
-      DisplayPaymentOrChargeType(category, hint)
+        DisplayPaymentOrChargeType(category, hint)
+      }
     }
 }

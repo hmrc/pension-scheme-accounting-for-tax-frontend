@@ -20,6 +20,7 @@ import connectors.{FinancialStatementConnector, MinimalConnector}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
+import models.ChargeDetailsFilter.{All, History}
 import models.Enumerable
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
@@ -35,7 +36,6 @@ import play.api.test.Helpers.{route, status, _}
 import services.financialOverview.scheme.PaymentsAndChargesService
 import services.{PsaSchemePartialService, SchemeService}
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Table, Text}
-import viewmodels.Radios.MessageInterpolators
 import viewmodels.{CardSubHeading, CardSubHeadingParam, CardViewModel, Link}
 import views.html.financialOverview.scheme.{SchemeFinancialOverviewNewView, SchemeFinancialOverviewView}
 
@@ -113,15 +113,17 @@ class SchemeFinancialOverviewControllerSpec
           schemeName = "Big Scheme",
           totalUpcomingCharge = "£2,058.10",
           totalOverdueCharge = "£2,058.10",
-          totalInterestAccruing = "£47,000.96",
+          totalInterestAccruing = "£47,024.96",
           requestRefundUrl = routes.RequestRefundController.onPageLoad(srn).url,
           allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, journeyType = "overdue").url,
           duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
-          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
+          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url,
           creditBalanceFormatted = "£0.00",
           creditBalance = 0,
           isOverdueChargeAvailable = false,
-          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl
+          returnUrl = mockAppConfig.managePensionsSchemeOverviewUrl,
+          displayHistory = true,
+          historyLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, History).url
         )(messages, request)
 
         compareResultAndView(result, view)
@@ -152,11 +154,11 @@ class SchemeFinancialOverviewControllerSpec
           schemeName = "Big Scheme",
           totalUpcomingCharge = "£2,058.10",
           totalOverdueCharge = "£2,058.10",
-          totalInterestAccruing = "£47,000.96",
+          totalInterestAccruing = "£47,024.96",
           requestRefundUrl = routes.RequestRefundController.onPageLoad(srn).url,
           allOverduePenaltiesAndInterestLink = routes.PaymentsAndChargesController.onPageLoad(srn, journeyType = "overdue").url,
           duePaymentLink = routes.PaymentsAndChargesController.onPageLoad(srn, "upcoming").url,
-          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn).url,
+          allPaymentLink = routes.PaymentOrChargeTypeController.onPageLoad(srn, All).url,
           creditBalanceFormatted = "£0.00",
           creditBalance = 0,
           isOverdueChargeAvailable = false,
@@ -199,15 +201,6 @@ class SchemeFinancialOverviewControllerSpec
   private def startLink: Link = Link(id = "aftLoginLink", url = aftLoginUrl, linkText = Text(Messages("aftPartial.start.link")))
 
   private def pastReturnsLink: Link = Link(id = "aftAmendLink", url = amendUrl, linkText = Text(Messages("aftPartial.view.change.past")))
-
-  private def retrieveCreditBalance(creditBalance: BigDecimal): String = {
-    if (creditBalance >= 0) {
-      BigDecimal(0.00).toString()
-    }
-    else {
-      creditBalance.abs.toString()
-    }
-  }
 
   private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
   private val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"

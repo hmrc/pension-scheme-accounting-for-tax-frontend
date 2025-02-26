@@ -56,17 +56,15 @@ import play.api.inject.guice.GuiceableModule
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.{LocalDate, LocalDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
-class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class ValidationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val chargeType = ChargeType.ChargeTypeAnnualAllowance
   private val mockAuditService = mock[AuditService]
@@ -98,13 +96,11 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockFileUploadOutcomeConnector)
     reset(mockUpscanInitiateConnector)
     reset(mockAppConfig)
-    reset(mockRenderer)
     reset(mockAnnualAllowanceParser)
     reset(mockAnnualAllowanceMcCloudParser)
     reset(mockLifetimeAllowanceParser)
     reset(mockOverseasTransferParser)
     reset(mockAuditService)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockUpscanInitiateConnector.download(any())(any())).thenReturn(Future.successful(HttpResponse(OK,
       "First name,Last name,National Insurance number,Tax year,Charge amount,Date,Payment type mandatory\nJoy,Smith,9717C,2020,268.28,2020-01-01,true")))
     doNothing.when(mockAuditService).sendEvent(any())(any(), any())
@@ -471,7 +467,7 @@ class ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 }
 
-object ValidationControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+object ValidationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val mockUpscanInitiateConnector: UpscanInitiateConnector = mock[UpscanInitiateConnector]
   private val mockAFTService: AFTService = mock[AFTService]
   private val mockFileUploadAftReturnService: FileUploadAftReturnService = mock[FileUploadAftReturnService]

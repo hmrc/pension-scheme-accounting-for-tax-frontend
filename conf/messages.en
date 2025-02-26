@@ -277,8 +277,8 @@ address.line3.error.invalid = Address line 3 must only include letters, numbers,
 address.line4.error.length = Address line 4 must be 35 characters or fewer
 address.line4.error.invalid = Address line 4 must only include letters, numbers, spaces, hyphens, commas, full stops, ampersands, apostrophes and forward slashes
 address.country.error.required = Enter {0}’s country
-address.postcode.error.required = Enter a postcode
-address.postcode.error.invalid = Enter a postcode in the correct format
+address.postcode.error.required = Enter a full UK postcode
+address.postcode.error.invalid = Enter a full UK postcode
 address.postcode.error.length = Enter postcode length less than 10
 
 chargeC.sponsoringIndividualDetails.title = Individual’s details
@@ -372,7 +372,7 @@ yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
 
 annualAllowanceYear.fileUpload.error.required = Enter the tax year to which the annual allowance charge relates
-annualAllowanceYear.fileUpload.error.invalid = Enter a valid tax year in the correct format, like 2020 to 2021
+annualAllowanceYear.fileUpload.error.invalid = Enter a valid tax year. For example, 2020 to 2021
 annualAllowanceYear.fileUpload.error.future = The tax year to which the annual allowance charge relates must not be in the future
 annualAllowanceYear.fileUpload.error.past = The tax year to which the annual allowance charge related must not be before 2011
 
@@ -478,8 +478,9 @@ aft.notSubmissionTime.p1 = You can only submit this AFT return on or after {0}
 chargeG.chargeDetails.title = Overseas transfer charge details for the member
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
 chargeG.chargeDetails.qropsReferenceNumber.label = QROPS reference number
+chargeG.chargeDetails.qropsReferenceNumber.hint = The reference is ‘QROPS’ followed by 6 numbers
 chargeG.chargeDetails.qropsReferenceNumber.error.required = Enter a QROPS reference number
-chargeG.chargeDetails.qropsReferenceNumber.error.valid = Enter a QROPS reference number in the correct format, like 123456
+chargeG.chargeDetails.qropsReferenceNumber.error.valid = Enter a full QROPS reference number, like 123456
 chargeG.chargeDetails.qropsTransferDate.label = Date of the transfer into the QROPS
 chargeG.chargeDetails.checkYourAnswersLabel = ChargeDetails
 chargeG.chargeDetails.qropsTransferDate.error.required.all = Enter the date of the transfer into the QROPS
@@ -835,7 +836,7 @@ chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need
 chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
 chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
 chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
-chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
+chargeG.whatYouWillNeed.li4 = reference number given by HMRC to the qualifying recognised overseas pension scheme (QROPS) to which each transfer is made
 
 chargeC.paymentDate.error.invalid = Enter a real date for the date the authorised surplus payment was made
 chargeC.paymentDate.error.required = Enter the date the authorised surplus payment was made
@@ -885,8 +886,8 @@ chargeC.employerAddressSearch.title = What is {0}’s postcode?
 chargeC.employerAddressSearch.heading = What is {0}’s postcode?
 chargeC.employerAddressSearch.label = Postcode
 chargeC.employerAddressSearch.checkYourAnswersLabel = employerAddressSearch
-chargeC.employerAddressSearch.error.required = Enter a postcode
-chargeC.employerAddressSearch.error.invalid = Enter a postcode in the correct format
+chargeC.employerAddressSearch.error.required = Enter a full UK postcode
+chargeC.employerAddressSearch.error.invalid = Enter a full UK postcode
 chargeC.employerAddressSearch.link.youCan = You can
 chargeC.employerAddressSearch.link.enterManually = enter the address manually
 chargeC.employerAddressSearch.findAddress = Find address
@@ -1004,7 +1005,7 @@ quarters.lockDetail = - locked by {0}
 quarters.hint.locked = You might be able to view this return but you cannot make changes until it is unlocked
 quarters.hint.inProgress = Continue this return. It has already been started.
 quarters.hint.submitted = You have already submitted this return. You can still view or amend it.
-hint.paymentOverdue = PAYMENT OVERDUE
+hint.paymentOverdue = Payment overdue
 
 returnHistory.title = AFT return history for {0} to {1}
 returnHistory.version = Submission
@@ -1108,6 +1109,14 @@ pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods = Vie
 psaPenaltiesCard.h2 = Penalties and charges
 psaPenaltiesCard.paymentsDue.linkText = View only penalties and charges outstanding
 psaPenaltiesCard.viewPastPenalties = View all penalties and charges
+
+refunds.aft.title = Credits and refunds
+refunds.aft.p1 = You are eligible for a refund of up to
+refunds.aft.p2 = You or someone else from your organisation might have recently requested a refund for this account.
+refunds.aft.p3 = Your credit balance will only change once a refund has been paid. We aim to process refund requests within 15 working days.
+refunds.aft.heading = Credit history
+refunds.aft.date = Date
+refunds.aft.credit.value =Credit value
 
 penalties.aft.title = Accounting for Tax penalties for {0} to {1}
 penalties.nonAft.title = {0} for {1}
@@ -1458,6 +1467,10 @@ schemeFinancial.allPaymentCharges.link  = View all payments and charges
 schemeFinancial.title = Your financial overview
 schemeFinancial.title.new = Financial overview
 schemeFinancial.refund = Request a refund
+schemeFinancial.paymentsAndChargesHistory = Payments and charges history
+schemeFinancial.paymentsAndChargesHistory.p1.new = Payments and charges that have been paid in full
+schemeFinancial.paymentsAndChargesHistory.link = View all cleared payments and charges
+schemeFinancial.clearedPaymentsAndCharges = Cleared payments and charges
 
 financialPaymentsAndCharges.overdue.title = Overdue charges
 financialPaymentsAndCharges.overdue.reflect.charge.text = The information may not reflect payments made in the last 3 days.
@@ -1505,29 +1518,37 @@ financialPaymentsAndCharges.refundUnavailable.p1 = You cannot request a refund u
 financialPaymentsAndCharges.refundUnavailable.p2 = for more information.
 financialPaymentsAndCharges.refundUnavailable.linkText = Contact HMRC
 schemeFinancial.refund = Request a refund
+financialPaymentsAndCharges.returnToClearedPayments.linkText = your cleared payments and charges
 
 
 psa.financial.overview.title = Your financial overview
 psa.financial.overview.title.new = Financial overview
 psa.financial.overview.h2.overdue  = Total of overdue penalties and charges
-psa.financial.overview.h2.overdue.new  = Total overdue charges:
-psa.financial.overview.h2.overdue.penalties.and.charges.new = Overdue charges
+psa.financial.overview.h2.overdue.new  = Total overdue penalties and charges:
+psa.financial.overview.h2.overdue.penalties.and.charges.new = Overdue penalties and charges
 psa.financial.overview.h2.overdue.penalties.and.charges.p1.new = Charges that are late and accruing interest.
 psa.financial.overview.h2.overdue.no.deadline.passed.p1 = Charges where the deadline has not passed.
 psa.financial.overview.h2.totalInterestAccruing  = Total interest accruing to date
-psa.financial.overview.h2.totalInterestAccruing.new  = Total interest accrued to date:
+psa.financial.overview.h2.totalInterestAccruing.new  = Total interest to date:
 psa.financial.overview.h2.totalDuePenalties  = Total of due penalties and charges
 psa.financial.overview.h2.totalDuePenalties.new2  = Total of due penalties and charges:
 psa.financial.overview.h2.totalDuePenalties.new  = Total due charges:
 
-psa.financial.overview.due.penalties.and.charges.new = Due charges
-psa.financial.overview.due.penalties.and.charges.p1.new = Charges where the deadline has not passed.
+psa.financial.overview.due.penalties.and.charges.new = Due penalties and charges
+psa.financial.overview.due.penalties.and.charges.p1.new = Penalties and charges where the deadline has not passed.
 psa.financial.overview.h2.creditBalance  = Credit balance
 psa.financial.overview.h2.creditBalance.new  = Total credit balance:
-psa.financial.overview.h2.creditHeading.new  = Credits
+psa.financial.overview.h2.creditHeading.new  = Credits and refunds
+psa.financial.overview.creditsAndRefunds.link = View all credit and refund information
+psa.financial.overview.h2.receivedPayments.new = Received payments
+psa.financial.overview.due.receivedPayments.p1.new = Allocated and unallocated payments assigned to a penalty or charge.
+psa.financial.overview.receivedPayments.link = View all payments
+psa.financial.overview.h2.penaltiesAndChargesHistory.new = Penalties and charges history
+psa.financial.overview.due.penaltiesAndChargesHistory.p1.new = Penalties and charges that have been paid in full.
+psa.financial.overview.penaltiesAndChargesHistory.link = View all cleared penalties and charges
 psa.financial.overview.h2.repaymentInterest  = Repayment interest
 psa.financial.overview.allOverdue.link  = View all overdue penalties and interest charges
-psa.financial.overview.allOverdue.link.new  = View complete list of overdue charges
+psa.financial.overview.allOverdue.link.new  = View complete list of overdue penalties and interest charges
 psa.financial.overview.allDue.link  = View all due penalties and charges
 psa.financial.overview.pastPenalties.link  = View all penalties and charges
 psa.financial.overview.overdue.title = Overdue penalties and charges
@@ -1544,11 +1565,13 @@ psa.financial.overview.payment.amount = Penalty amount
 psa.financial.overview.payment.amount.new = Charge amount
 psa.financial.overview.payment.dueDate = Due date
 psa.financial.overview.payment.interest = Interest accruing
-psa.financial.overview.payment.charge.amount = Charge amount
+financial.overview.payment.charge.amount = Charge amount
 psa.financial.overview.charge.reference = Charge reference
+psa.financial.overview.datePaid.table = Date paid
 psa.financial.overview.dueDate = Due date
 psa.financial.overview.penalty = Penalty
 psa.financial.overview.charge = Penalty
+psa.financial.overview.penaltyOrCharge = Penalty or charge
 psa.financial.overview.paymentStatus = Payment status
 psa.financial.overview.penaltyAmount = Original penalty amount
 psa.financial.overview.chargeAmount = Original penalty amount
@@ -1566,7 +1589,19 @@ psa.financial.overview.all.title = All penalties and charges
 psa.financial.overview.all.title.v2 = All penalties and charges
 psa.financial.overview.all.text = The information may not reflect payments made in the last 3 days.
 psa.financial.overview.all.text.new = The information may not reflect payments made in the last 3 days.
+psa.financial.overview.datePaid = Date paid:
+psa.financial.overview.returnToClearedPenalties = your cleared penalties and charges
 
+psa.financial.overview.clearedPenaltiesAndCharges.title = Cleared penalties and charges
+financial.overview.historyChargeType.title = Select type of charge
+psa.financial.overview.chargeHistoryYear.title = Cleared penalties and charges
+
+
+scheme.financial.overview.clearedPaymentsAndCharges.title = Cleared payments and charges
+scheme.financial.overview.clearedPaymentsAndCharges.datePaid = Date paid
+scheme.financial.overview.paymentOrCharge = Cleared payment or charge
+
+financial.overview.datePaid = Date paid:
 
 fileUpload.memberDetails.generic.error.firstName = member’s first name is missing or in the wrong format
 fileUpload.memberDetails.generic.error.lastName = member’s last name is missing or in the wrong format

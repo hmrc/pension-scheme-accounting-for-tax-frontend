@@ -34,11 +34,11 @@ class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: Front
   def getSchemeDetails(psaId: String, srn: SchemeReferenceNumber)
                       (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
-    val url = url"${config.schemeDetailsUrl.format(srn)}"
+    val url = url"${config.schemeDetailsUrl.format(srn.id)}"
 
     val headers: Seq[(String, String)] =
       Seq(
-        ("idNumber", srn),
+        ("idNumber", srn.id),
         ("schemeIdType", "srn"),
         ("psaId", psaId)
       )

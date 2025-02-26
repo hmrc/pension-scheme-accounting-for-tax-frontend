@@ -16,7 +16,7 @@
 
 package forms.chargeG
 
-import forms.mappings.Mappings
+import forms.mappings.{Constraints, Mappings}
 import models.chargeG.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
@@ -26,7 +26,7 @@ import utils.DateHelper.formatDateDMY
 import java.time.LocalDate
 import javax.inject.Inject
 
-class ChargeDetailsFormProvider @Inject() extends Mappings {
+class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
   val qropsReferenceNumberKey: String = "chargeG.chargeDetails.qropsReferenceNumber.error"
   val qropsTransferDateKey: String = "chargeG.chargeDetails.qropsTransferDate.error"
@@ -37,7 +37,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
         errorKey = s"$qropsReferenceNumberKey.required"
       ).transform(noSpaceWithUpperCaseTransform, noTransform)
         .verifying(
-          regexp("""^[0-9]{6}""", s"$qropsReferenceNumberKey.valid")
+          regexp(qropsRegex, s"$qropsReferenceNumberKey.valid")
         ),
       "qropsTransferDate" -> localDate(
         invalidKey = s"$qropsTransferDateKey.invalid",

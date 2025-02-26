@@ -13,8 +13,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, DateInput}
-
+import views.html.$className$View
 import scala.concurrent.{ExecutionContext, Future}
 
 class $className$Controller @Inject()(override val messagesApi: MessagesApi,
@@ -26,12 +25,12 @@ class $className$Controller @Inject()(override val messagesApi: MessagesApi,
                                       formProvider: $className$FormProvider,
                                       val controllerComponents: MessagesControllerComponents,
                                       config: FrontendAppConfig,
-                                      renderer: Renderer
-                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                      view: $className$View
+                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData) {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get($className$Page) match {
@@ -52,7 +51,7 @@ class $className$Controller @Inject()(override val messagesApi: MessagesApi,
           "date" -> date
         )
 
-        renderer.render("$className;format="decap"$.njk", json).map(Ok(_))
+        Future.successful(Ok(view(preparedForm, schemeName, submitUrl, returnUrl)))
       }
   }
 

@@ -40,7 +40,6 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.AFTService
 import services.fileUpload.{FileUploadAftReturnService, UploadProgressTracker}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -66,7 +65,7 @@ class ValidationController @Inject()(
                                       fileUploadOutcomeConnector: FileUploadOutcomeConnector
                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport with NunjucksSupport {
+    with I18nSupport {
 
   private val logger = Logger(classOf[ValidationController])
 

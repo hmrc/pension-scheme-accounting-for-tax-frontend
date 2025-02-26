@@ -36,7 +36,7 @@ import play.api.Application
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
-import utils.TwirlMigration
+import viewmodels.ViewUtils
 import views.html.chargeC.SponsoringEmployerAddressResultsView
 
 import scala.concurrent.Future
@@ -64,9 +64,6 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
       firstAddress,
       secondAddress
     )
-
-  private val emptySeqAddresses =
-    Seq[TolerantAddress]()
 
   private val userAnswersIndividual: Option[UserAnswers] = Some(
     userAnswersWithSchemeNameAndIndividual.setOrException(SponsoringEmployerAddressSearchPage(index), seqAddresses)
@@ -114,7 +111,7 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
         Messages(s"chargeC.employerType.${SponsoringEmployerTypeIndividual.toString}"),
         routes.SponsoringEmployerAddressController.
           onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url,
-        TwirlMigration.convertToRadioItems(seqAddresses)
+        ViewUtils.convertToRadioItems(seqAddresses)
       )(request, messages)
 
       val result = route(application, request).value

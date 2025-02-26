@@ -25,8 +25,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.TwirlMigration
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,8 +42,7 @@ class AmendYearsController @Inject()(
                                       amendYearsView: AmendYearsView
                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def amendQuartersPage(srn:String, year:Int):Future[Result] =
     Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year.toString)))
@@ -62,7 +59,7 @@ class AmendYearsController @Inject()(
         case yearsSeq =>
           Future.successful(Ok(amendYearsView(
             form(yearsSeq),
-            TwirlMigration.toTwirlRadios(AmendYears.radios(form(yearsSeq), yearsSeq)),
+            AmendYears.radios(form(yearsSeq), yearsSeq),
             routes.AmendYearsController.onSubmit(srn),
             config.schemeDashboardUrl(request).format(srn),
             schemeDetails.schemeName
@@ -86,7 +83,7 @@ class AmendYearsController @Inject()(
               formWithErrors => {
                 Future.successful(BadRequest(amendYearsView(
                   formWithErrors,
-                  TwirlMigration.toTwirlRadios(AmendYears.radios(formWithErrors, yearsSeq)),
+                  AmendYears.radios(formWithErrors, yearsSeq),
                   routes.AmendYearsController.onSubmit(srn),
                   config.schemeDashboardUrl(request).format(srn),
                   schemeDetails.schemeName

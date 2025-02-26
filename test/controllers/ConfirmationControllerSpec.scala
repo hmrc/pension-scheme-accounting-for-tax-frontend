@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.FinancialStatementConnector
-import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction, MutableFakeDataSetupAction}
+import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._

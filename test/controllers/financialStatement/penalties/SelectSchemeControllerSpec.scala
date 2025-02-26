@@ -36,9 +36,8 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import services.{PenaltiesCache, PenaltiesService}
-import utils.TwirlMigration
 import views.html.financialStatement.penalties.SelectSchemeView
 
 import scala.concurrent.Future
@@ -79,7 +78,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with JsonMatchers
         val view = application.injector.instanceOf[SelectSchemeView].apply(
           form,
           typeParam,
-          radios = TwirlMigration.toTwirlRadios(PenaltySchemes.radios(form, penaltySchemes)),
+          radios = PenaltySchemes.radios(form, penaltySchemes),
           submitCall = routes.SelectSchemeController.onSubmit(penaltyType, year, All),
           returnUrl = "",
           psaName = "psa-name"

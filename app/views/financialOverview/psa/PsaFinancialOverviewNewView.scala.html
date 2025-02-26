@@ -15,38 +15,43 @@
  *@
 
 @this(
-layout: templates.Layout,
-formHelper: FormWithCSRF,
-govukErrorSummary: GovukErrorSummary,
-govukButton: GovukButton
+    layout: templates.Layout,
+    formHelper: FormWithCSRF,
+    govukErrorSummary: GovukErrorSummary,
+    govukButton: GovukButton
 )
 
 @(
-psaName: String,
-totalUpcomingCharge: String,
-totalOverdueCharge: String,
-totalInterestAccruing: String,
-requestRefundUrl: String,
-allOverduePenaltiesAndInterestLink: String,
-duePaymentLink: String,
-allPaymentLink: String,
-creditBalanceFormatted: String,
-creditBalance: BigDecimal,
-returnUrl: String
+    psaName: String,
+    totalUpcomingCharge: String,
+    totalOverdueCharge: String,
+    totalInterestAccruing: String,
+    requestRefundUrl: String,
+    allOverduePenaltiesAndInterestLink: String,
+    duePaymentLink: String,
+    allPaymentLink: String,
+    creditBalanceFormatted: String,
+    creditBalance: BigDecimal,
+    displayReceivedPayments: Boolean,
+    receivedPaymentsLink: String,
+    displayHistory: Boolean,
+    historyLink: String,
+    returnUrl: String
 )(implicit messages: Messages, request: Request[_])
 
 @layout(messages("psa.financial.overview.title.new"), fullWidthLayout = true) {
 
-    <div>
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
 
-            <h1 class="hmrc-caption govuk-caption-xl">@psaName</h1>
+            <span class="hmrc-caption govuk-caption-xl">@psaName</span>
             <h1 class="govuk-heading-xl">@messages("psa.financial.overview.title.new")</h1>
 
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
 
                 <h2 class="govuk-heading-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">@messages("psa.financial.overview.h2.overdue.penalties.and.charges.new")</h2>
-                    <p class="govuk-body">@messages("paymentsAndCharges.chargeDetails.late.interestAccruing")</p>
+                    <p class="govuk-body">@messages("psa.financial.overview.h2.overdue.penalties.and.charges.p1.new")</p>
 
                 </div>
             </div>
@@ -68,11 +73,11 @@ returnUrl: String
 
 
             @if(totalOverdueCharge != "£0.00") {
-            <p class="govuk-body-m govuk-!-margin-bottom-6">
-                <a id="allOverdue" class="govuk-link" href="@allOverduePenaltiesAndInterestLink">
-                    @messages("psa.financial.overview.allOverdue.link.new")
-                </a>
-            </p>
+                <p class="govuk-body-m govuk-!-margin-bottom-6">
+                    <a id="allOverdue" class="govuk-link" href="@allOverduePenaltiesAndInterestLink">
+                        @messages("psa.financial.overview.allOverdue.link.new")
+                    </a>
+                </p>
             }
 
             <hr>
@@ -90,7 +95,7 @@ returnUrl: String
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-full">
                     <h3 class="govuk-caption-l govuk-!-margin-top-4 govuk-!-margin-bottom-2">
-                        @messages("psa.financial.overview.h2.totalDuePenalties.new")
+                        @messages("psa.financial.overview.h2.totalDuePenalties.new2")
                     </h3>
                     <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@totalUpcomingCharge</p>
 
@@ -98,11 +103,11 @@ returnUrl: String
             </div>
 
             @if(totalUpcomingCharge != "£0.00") {
-            <p class="govuk-body-m govuk-!-margin-bottom-6">
-                <a id="allDue" class="govuk-link" href="@duePaymentLink">
-                    @messages("psa.financial.overview.allDue.link")
-                </a>
-            </p>
+                <p class="govuk-body-m govuk-!-margin-bottom-6">
+                    <a id="allDue" class="govuk-link" href="@duePaymentLink">
+                        @messages("psa.financial.overview.allDue.link")
+                    </a>
+                </p>
             }
 
             <hr>
@@ -117,21 +122,55 @@ returnUrl: String
                     </h3>
                     <p class="govuk-body govuk-!-font-size-36 govuk-!-font-weight-bold">@creditBalanceFormatted</p>
 
-                    @if(creditBalance > 0) {
                     <p class="govuk-body-m">
-                        <a id="refund" class="govuk-link" href="@requestRefundUrl">
-                            @messages("schemeFinancial.refund")
-                        </a>
-                    </p>
-                    }
-
-                    <p class="govuk-body-m">
-                        <a id="allPaymentCharges" class=govuk-link href="@allPaymentLink"> @messages("psa.financial.overview.pastPenalties.link")</a>
+                        <a id="allRefunds" class=govuk-link href="@allPaymentLink"> @messages("psa.financial.overview.creditsAndRefunds.link")</a>
                     </p>
 
                 </div>
             </div>
 
+            <hr>
+
+            @if(displayReceivedPayments) {
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-full">
+                        <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+                            @messages("psa.financial.overview.h2.receivedPayments.new")
+                        </h2>
+                        <p class="govuk-body">
+                            @messages("psa.financial.overview.due.receivedPayments.p1.new")
+                        </p>
+                        <p class="govuk-body-m">
+                            <a id="receivedPaymentsLink" class="govuk-link" href="@receivedPaymentsLink">
+                                @messages("psa.financial.overview.receivedPayments.link")
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <hr>
+            }
+
+            @if(displayHistory) {
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-full">
+                        <h2 class="govuk-heading-l govuk-!-margin-top-6 govuk-!-margin-bottom-2">
+                            @messages("psa.financial.overview.h2.penaltiesAndChargesHistory.new")
+                        </h2>
+                        <p class="govuk-body">
+                            @messages("psa.financial.overview.due.penaltiesAndChargesHistory.p1.new")
+                        </p>
+                        <p class="govuk-body-m">
+                            <a id="historyLink" class="govuk-link" href="@historyLink">
+                                @messages("psa.financial.overview.penaltiesAndChargesHistory.link")
+                            </a>
+                        </p>
+                    </div>
+                </div>
+                <hr>
+            }
+
+        </div>
     </div>
 
 }

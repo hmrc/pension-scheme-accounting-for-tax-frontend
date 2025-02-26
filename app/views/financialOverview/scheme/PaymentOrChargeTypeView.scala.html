@@ -22,28 +22,48 @@
     govukRadios: GovukRadios
 )
 
-@(form: Form[_], titleMessage: String, submitCall: Call, schemeName: String, returnUrl: String, radios: Seq[RadioItem])(implicit request: Request[_], messages: Messages)
+@(form: Form[_],
+    title: String,
+    submitCall: Call,
+    schemeName: String,
+    returnUrl: String,
+    radios: Seq[RadioItem],
+    journeyType: String)(implicit request: Request[_], messages: Messages)
 
-@layout(messages(titleMessage), formHasErrors = form.hasErrors) {
+@layout(title, formHasErrors = form.hasErrors) {
 
 <div>
 
     @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
-        @govukRadios(
-            RadiosViewModel(
-                form("value"),
-                radios,
-                Fieldset(
-                    legend = Some(Legend(content = Text(titleMessage), isPageHeading = true,
-                        classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4"
-                ))
-            )
-        )
-    )
+        @if(journeyType == "history") {
+            <span class="govuk-caption-xl">@schemeName</span>
+            <h1 class="govuk-heading-xl">@title</h1>
 
-    @govukButton(
-        ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
-    )
+            @govukRadios(
+                RadiosViewModel(
+                    form("value"),
+                    items = radios,
+                    fieldset = Fieldset(legend = None)
+                )
+            )
+        } else {
+            @govukRadios(
+                RadiosViewModel(
+                    form("value"),
+                    radios,
+                    Fieldset(
+                        legend = Some(Legend(content = Text(title), isPageHeading = true,
+                            classes = "govuk-fieldset__legend--l govuk-!-margin-bottom-4"
+                        ))
+                    )
+                )
+            )
+        }
+
+
+        @govukButton(
+            ButtonViewModel(Text(messages("site.continue"))).asFormSubmit
+        )
 
     }
 

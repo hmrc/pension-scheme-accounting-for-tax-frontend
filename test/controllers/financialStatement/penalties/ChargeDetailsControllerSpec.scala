@@ -81,14 +81,12 @@ class ChargeDetailsControllerSpec
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPenaltiesService)
-    reset(mockRenderer)
     when(mockPenaltiesService.chargeDetailsRows(any())(any())).thenReturn(getRows())
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(isOverdue)
     when(mockPenaltiesService.getPenaltiesForJourney(any(), any())(any(), any()))
       .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
   "ChargeDetails Controller" when {

@@ -38,10 +38,9 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
 import play.api.mvc.{Call, Results}
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers._
 import services.financialOverview.scheme.{PaymentsAndChargesService, PaymentsCache}
 import utils.AFTConstants.QUARTER_START_DATE
-import utils.TwirlMigration
 import views.html.financialOverview.scheme.SelectYearView
 
 import java.time.LocalDate
@@ -103,7 +102,7 @@ class SelectYearControllerSpec extends ControllerSpecBase with JsonMatchers
         submitCall = submitCall,
         schemeName = SampleData.schemeName,
         returnUrl = dummyCall.url,
-        radios = TwirlMigration.toTwirlRadiosWithHintText(FSYears.radios(form, years))
+        radios = FSYears.radios(form, years)
       )(request, messages)
 
       compareResultAndView(result, view)

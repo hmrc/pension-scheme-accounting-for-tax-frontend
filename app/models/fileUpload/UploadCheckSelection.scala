@@ -18,8 +18,10 @@ package models.fileUpload
 
 import models.{Enumerable, WithName}
 import play.api.data.Form
+import play.api.i18n.Messages
+import uk.gov.hmrc.govukfrontend.views.Aliases.RadioItem
+import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
 import viewmodels.Radios
-import viewmodels.Radios.MessageInterpolators
 
 sealed trait UploadCheckSelection
 
@@ -33,12 +35,12 @@ object UploadCheckSelection extends Enumerable.Implicits {
     No
   )
 
-  def radios(form: Form[_]): Seq[Radios.Item] = {
+  def radios(form: Form[_])(implicit messages: Messages): Seq[RadioItem] = {
 
     val field = form("value")
     val items = Seq(
-      Radios.Radio(msg"fileupload.upload.result.radio.yes", Yes.toString),
-      Radios.Radio(msg"fileupload.upload.result.radio.no", No.toString)
+      Radios.Radio(Text(Messages("fileupload.upload.result.radio.yes")), Yes.toString),
+      Radios.Radio(Text(Messages("fileupload.upload.result.radio.no")), No.toString)
     )
 
     Radios(field, items)

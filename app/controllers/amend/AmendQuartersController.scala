@@ -26,8 +26,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.TwirlMigration
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -46,8 +44,7 @@ class AmendQuartersController @Inject()(
                                          amendQuartersView: AmendQuartersView
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
   private def form(quarters: Seq[AFTQuarter])(implicit messages: Messages): Form[AFTQuarter] =
     formProvider(messages("amendQuarters.error.required"), quarters)
@@ -78,7 +75,7 @@ class AmendQuartersController @Inject()(
                 val quarters = displayQuarters.map(_.quarter)
                 Future.successful(Ok(amendQuartersView(
                   form(quarters),
-                  TwirlMigration.toTwirlRadiosWithHintText(Quarters.radios(form(quarters), displayQuarters)),
+                  Quarters.radios(form(quarters), displayQuarters),
                   routes.AmendQuartersController.onSubmit(srn, year),
                   config.schemeDashboardUrl(request).format(srn),
                   schemeDetails.schemeName
@@ -107,7 +104,7 @@ class AmendQuartersController @Inject()(
                       formWithErrors =>
                           Future.successful(BadRequest(amendQuartersView(
                             formWithErrors,
-                            TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, displayQuarters)),
+                            Quarters.radios(formWithErrors, displayQuarters),
                             routes.AmendQuartersController.onSubmit(srn, year),
                             config.schemeDashboardUrl(request).format(srn),
                             schemeDetails.schemeName

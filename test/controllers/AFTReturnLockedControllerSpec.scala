@@ -31,7 +31,6 @@ import play.api.inject.guice.GuiceableModule
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.twirl.api.Html
 import services.SchemeService
 import utils.AFTConstants.QUARTER_START_DATE
 import views.html.AFTReturnLockedView
@@ -60,7 +59,6 @@ class AFTReturnLockedControllerSpec extends ControllerSpecBase with MockitoSugar
   "AFT return locked controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
 
       val application = applicationBuilder(userAnswers = data, extraModules).overrides().build()

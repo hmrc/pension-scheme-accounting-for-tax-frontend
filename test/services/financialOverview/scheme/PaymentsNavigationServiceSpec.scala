@@ -19,6 +19,7 @@ package services.financialOverview.scheme
 import base.SpecBase
 import controllers.financialOverview.scheme.routes._
 import data.SampleData._
+import models.ChargeDetailsFilter.All
 import models.financialStatement.PaymentOrChargeType._
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{SchemeFSChargeType, SchemeFSDetail}
@@ -135,7 +136,7 @@ class PaymentsNavigationServiceSpec extends SpecBase with MockitoSugar with Befo
   "navFromSchemeDashboard" must {
     "redirect to PaymentOrChargeType page if there are multiple payment types to choose from" in {
       whenReady(paymentsNavigationService.navFromSchemeDashboard(payments(charge2Type = CONTRACT_SETTLEMENT), srn)) {
-        _ mustBe Redirect(PaymentOrChargeTypeController.onPageLoad(srn))
+        _ mustBe Redirect(PaymentOrChargeTypeController.onPageLoad(srn, All))
       }
     }
 

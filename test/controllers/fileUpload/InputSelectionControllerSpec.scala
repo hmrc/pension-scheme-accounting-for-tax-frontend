@@ -25,7 +25,7 @@ import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.fileUpload.InputSelection
 import models.fileUpload.InputSelection.FileUploadInput
-import models.{AccessType, ChargeType, GenericViewModel, UserAnswers}
+import models.{ChargeType, UserAnswers}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, ArgumentMatchers}
@@ -34,8 +34,7 @@ import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{route, status, _}
-import utils.TwirlMigration
+import play.api.test.Helpers._
 import views.html.fileUpload.InputSelectionView
 
 import scala.concurrent.Future
@@ -73,7 +72,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with JsonMatchers 
 
       val view = application.injector.instanceOf[InputSelectionView].apply(
         form, schemeName, submitUrl, returnUrl, ChargeType.fileUploadText(chargeType),
-        TwirlMigration.toTwirlRadiosWithHintText(InputSelection.radios(form)))(request, messages)
+        InputSelection.radios(form))(request, messages)
 
       val result = route(application, request).value
 
@@ -93,7 +92,7 @@ class InputSelectionControllerSpec extends ControllerSpecBase with JsonMatchers 
 
       val view = application.injector.instanceOf[InputSelectionView].apply(
         boundForm, schemeName, submitUrl, returnUrl, ChargeType.fileUploadText(chargeType),
-        TwirlMigration.toTwirlRadiosWithHintText(InputSelection.radios(boundForm)))(request, messages)
+        InputSelection.radios(boundForm))(request, messages)
 
       val result = route(application, request).value
 
@@ -129,11 +128,5 @@ class InputSelectionControllerSpec extends ControllerSpecBase with JsonMatchers 
       redirectLocation(result) mustBe Some(dummyCall.url)
     }
   }
-
-  private def viewModel(srn: String, startDate: String, accessType: AccessType, version: Int, chargeType: ChargeType) = GenericViewModel(
-    submitUrl = controllers.fileUpload.routes.InputSelectionController.onSubmit(srn, startDate, accessType, version, chargeType).url,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-    schemeName = schemeName
-  )
 
 }

@@ -18,12 +18,12 @@ package models.viewModels.paymentsAndCharges
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import viewmodels.Table
+import uk.gov.hmrc.govukfrontend.views.Aliases.Table
 
 case class PaymentsAndChargesTable(caption: String, table: Table)
 
 object PaymentsAndChargesTable {
   implicit def writes(implicit messages: Messages): Writes[PaymentsAndChargesTable] =
     ((JsPath \ "caption").write[String] and
-      (JsPath \ "table").write[Table](Table.writes))(sd => (sd.caption, sd.table))
+      (JsPath \ "table").write[Table](Table.jsonWrites))(sd => (sd.caption, sd.table))
 }

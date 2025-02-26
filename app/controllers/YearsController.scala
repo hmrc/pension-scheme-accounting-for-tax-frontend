@@ -25,7 +25,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 import views.html.YearsView
 
 import javax.inject.Inject
@@ -53,7 +52,8 @@ class YearsController @Inject()(
     ) map { schemeDetails =>
 
       Ok(
-        yearsView(form(config), routes.YearsController.onSubmit(srn), schemeDetails.schemeName, config.schemeDashboardUrl(request).format(srn), TwirlMigration.toTwirlRadios(StartYears.radios(form(config))(config)))
+        yearsView(form(config), routes.YearsController.onSubmit(srn), schemeDetails.schemeName, config.schemeDashboardUrl(request).format(srn),
+          StartYears.radios(form(config))(config))
       )
     }
   }
@@ -68,7 +68,7 @@ class YearsController @Inject()(
             srn = srn
           ) flatMap { schemeDetails =>
             Future.successful(BadRequest(yearsView(formWithErrors, routes.YearsController.onSubmit(srn), schemeDetails.schemeName,
-              config.schemeDashboardUrl(request).format(srn), TwirlMigration.toTwirlRadios(StartYears.radios(form(config))(config)))))
+              config.schemeDashboardUrl(request).format(srn), StartYears.radios(form(config))(config))))
         },
         value => Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.getYear.toString)))
       )

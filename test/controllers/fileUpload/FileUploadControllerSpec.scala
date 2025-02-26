@@ -33,7 +33,6 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import services.fileUpload.UploadProgressTracker
 import views.html.fileUpload.FileUploadView
 
@@ -84,8 +83,6 @@ class FileUploadControllerSpec extends ControllerSpecBase with JsonMatchers {
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUpscanInitiateConnector)
-    reset(mockRenderer)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.maxUploadFileSize).thenReturn(maxUploadFileSize)
   }
 

@@ -34,7 +34,7 @@
 
 @layout(messages("memberDetails.title", messages(chargeName).toLowerCase()), formHasErrors = form.hasErrors) {
     <div>
-        @formHelper(action = submitCall, Symbol("autoComplete") -> "off") {
+        @formHelper(action = submitCall, Symbol("autoComplete") -> "on") {
             <h1 id="chargeG_h1" class="govuk-heading-xl">@messages("memberDetails.heading")</h1>
 
             <form action="@submitCall" method="post" autocomplete="off" novalidate >

@@ -38,7 +38,6 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.test.Helpers.{route, _}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.HtmlContent
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import utils.AFTConstants._
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
@@ -63,7 +62,6 @@ class PaymentsAndChargeDetailsControllerSpec
     .overrides(
       Seq[GuiceableModule](
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
         bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
@@ -73,7 +71,6 @@ class PaymentsAndChargeDetailsControllerSpec
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRenderer)
     reset(mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(), any()))
       .thenReturn(dummyCall.url)
@@ -81,8 +78,6 @@ class PaymentsAndChargeDetailsControllerSpec
       .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
     when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any())(any()))
       .thenReturn(Nil)
-    when(mockRenderer.render(any(), any())(any()))
-      .thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
   private def insetTextWithAmountDueAndInterest(schemeFSDetail: SchemeFSDetail, index: String = "1") = {

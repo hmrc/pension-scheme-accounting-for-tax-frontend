@@ -17,12 +17,12 @@ import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Call}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.DateInput
 import data.SampleData._
 import play.api.data.Form
 import scala.concurrent.Future
 
-class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
+class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {
 
   val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   val formProvider = new $className$FormProvider()
@@ -58,7 +58,6 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "return OK and the correct view for a GET" in {
 
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
         .overrides(
@@ -91,7 +90,6 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "populate the view correctly on a GET when the question has previously been answered" in {
 
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
         .overrides(

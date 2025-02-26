@@ -27,7 +27,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import utils.TwirlMigration
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -63,7 +62,7 @@ class QuartersController @Inject()(
           Future.successful(Ok(quartersView(
             year,
             form(year, quarters),
-            TwirlMigration.toTwirlRadios(Quarters.radios(form(year, quarters), displayQuarters)),
+            Quarters.radios(form(year, quarters), displayQuarters),
             routes.QuartersController.onSubmit(srn, year),
             config.schemeDashboardUrl(request).format(srn),
             schemeDetails.schemeName
@@ -88,7 +87,7 @@ class QuartersController @Inject()(
                   Future.successful(BadRequest(quartersView(
                     year,
                     formWithErrors,
-                    TwirlMigration.toTwirlRadios(Quarters.radios(formWithErrors, displayQuarters)),
+                    Quarters.radios(formWithErrors, displayQuarters),
                     routes.QuartersController.onSubmit(srn, year),
                     config.schemeDashboardUrl(request).format(srn),
                     schemeDetails.schemeName
