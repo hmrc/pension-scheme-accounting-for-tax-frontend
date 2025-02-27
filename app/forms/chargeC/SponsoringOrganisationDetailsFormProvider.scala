@@ -29,7 +29,12 @@ class SponsoringOrganisationDetailsFormProvider @Inject() extends Mappings with 
     Form(
       mapping(
         "name" -> text("chargeC.sponsoringOrganisationDetails.name.error.required")
-          .verifying(maxLength(SponsoringOrganisationDetailsFormProvider.maxLength, "chargeC.sponsoringOrganisationDetails.name.error.length")),
+          .verifying(
+            firstError(
+              maxLength(SponsoringOrganisationDetailsFormProvider.maxLength, "chargeC.sponsoringOrganisationDetails.name.error.length"),
+              regexp(regexTightText, "chargeC.sponsoringOrganisationDetails.name.error.invalid")
+            )
+          ),
         "crn" -> crnMapping(
           requiredCRNKey = "chargeC.sponsoringOrganisationDetails.crn.error.required",
           lengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length",

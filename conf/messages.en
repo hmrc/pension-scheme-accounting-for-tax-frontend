@@ -252,6 +252,7 @@ chargeC.sponsoringOrganisationDetails.crn.label = Company number
 chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel = Company or organisation’s details
 chargeC.sponsoringOrganisationDetails.name.error.required = Enter the company or organisation’s name
 chargeC.sponsoringOrganisationDetails.name.error.length = The company or organisation’s name must be 155 characters or fewer
+chargeC.sponsoringOrganisationDetails.name.error.invalid = The company or organisation’s name must only include letters, spaces, ampersands (&), grave accents (à), apostrophes, hyphens, full stops and carets (^)
 
 chargeC.sponsoringOrganisationDetails.crn.error.required = Enter the company or organisation’s company number
 chargeC.sponsoringOrganisationDetails.crn.error.length = The company or organisation’s company number must be 8 characters, like 01234567 or AB123456
