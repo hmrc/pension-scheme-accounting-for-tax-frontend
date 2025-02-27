@@ -400,14 +400,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   }
 
   "navFromOverviewPage" must {
-    "redirect to penaltyType page if API returns multiple categories" in {
-      val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(AFT_INITIAL_LFP), customPsaFS(PSS_PENALTY))
-      whenReady(penaltiesService.navFromOverviewPage(apiResponse, psaId, All)) {
-        _ mustBe Redirect(PenaltyTypeController.onPageLoad(All))
-      }
-    }
-
-    "redirect to penaltyType page if API returns charges in a single category" in {
+    "redirect to penaltyType page if API returns charges" in {
       val apiResponse: Seq[PsaFSDetail] = Seq(customPsaFS(CONTRACT_SETTLEMENT_INTEREST), customPsaFS(CONTRACT_SETTLEMENT))
       whenReady(penaltiesService.navFromOverviewPage(apiResponse, psaId, All)) {
         _ mustBe Redirect(PenaltiesController.onPageLoadContract("2021", "SRN123", All))
