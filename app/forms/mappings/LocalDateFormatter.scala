@@ -68,17 +68,25 @@ private[mappings] class LocalDateFormatter(
       .map(_._1)
       .toList
 
-    fields.count(_._2.isDefined) match {
-      case 3 =>
-        formatDate(key, data).left.map {
-          _.map(_.copy(key = key, args = args))
-        }
-      case 2 =>
-        Left(List(FormError(key, twoRequiredKey, missingFields ++ args)))
-      case 1 =>
-        Left(List(FormError(key, twoRequiredKey, missingFields ++ args)))
-      case _ =>
-        Left(List(FormError(key, allRequiredKey, args)))
+    if (missingFields.contains("day")) {
+      Left(List(FormError(s"$key.day", "invalid.day", missingFields ++ args)))
+    } else if (missingFields.contains("month")) {
+      Left(List(FormError(s"$key.month", "invalid.month", missingFields ++ args)))
+    } else if (missingFields.contains("year")) {
+      Left(List(FormError(s"$key.year", "invalid.year", missingFields ++ args)))
+    } else {
+      fields.count(_._2.isDefined) match {
+        case 3 =>
+          formatDate(key, data).left.map {
+            _.map(_.copy(key = key, args = args))
+          }
+        case 2 =>
+          Left(List(FormError(key, twoRequiredKey, missingFields ++ args)))
+        case 1 =>
+          Left(List(FormError(key, twoRequiredKey, missingFields ++ args)))
+        case _ =>
+          Left(List(FormError(key, allRequiredKey, args)))
+      }
     }
   }
 
