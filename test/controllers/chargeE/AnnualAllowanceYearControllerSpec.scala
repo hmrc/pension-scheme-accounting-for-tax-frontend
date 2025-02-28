@@ -84,7 +84,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with JsonMatc
 
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeNamePstrQuarter))
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val request = httpGETRequest(httpPathGET)
 
       val view = application.injector.instanceOf[AnnualAllowanceYearView].apply(
@@ -108,7 +108,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with JsonMatc
         writes(YearRange.enumerable)
       ).get
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val request = httpGETRequest(httpPathGET)
 
       val view = application.injector.instanceOf[AnnualAllowanceYearView].apply(

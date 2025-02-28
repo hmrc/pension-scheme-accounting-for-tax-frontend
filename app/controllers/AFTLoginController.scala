@@ -43,7 +43,7 @@ class AFTLoginController @Inject()(
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     val defaultYear = StartYears.minYear(config)
-    schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").map { schemeDetails =>
+    schemeService.retrieveSchemeDetails(request.idOrException, srn).map { schemeDetails =>
       auditService.sendEvent(StartNewAFTAuditEvent(request.idOrException, schemeDetails.pstr))
       (StartYears.values(config).size, Quarters.availableQuarters(defaultYear)(config).size) match {
         case (years, _) if years > 1 =>

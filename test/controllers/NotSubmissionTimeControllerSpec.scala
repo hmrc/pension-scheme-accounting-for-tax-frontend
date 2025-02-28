@@ -54,7 +54,7 @@ class NotSubmissionTimeControllerSpec extends ControllerSpecBase with MockitoSug
   "Not Submission Time controller" must {
 
     "Return OK and the correct view for a GET" in {
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
       when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
 
       val application = applicationBuilder(extraModules = extraModules).overrides().build()

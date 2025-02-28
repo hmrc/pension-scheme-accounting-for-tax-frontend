@@ -18,9 +18,10 @@ package services.financialOverview.psa
 
 import config.FrontendAppConfig
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, MinimalConnector}
+import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
 import helpers.FormatHelper
 import helpers.FormatHelper.formatCurrencyAmountAsString
+import models.ChargeDetailsFilter.{All, Overdue, Upcoming}
 import models.ChargeDetailsFilter
 import models.ChargeDetailsFilter.{All, History, Overdue, Upcoming}
 import models.financialStatement.FSClearingReason._
@@ -30,14 +31,15 @@ import models.financialStatement.{DocumentLineItemDetail, PenaltyType, PsaFSChar
 import models.viewModels.financialOverview.PsaPaymentsAndChargesDetails
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
+import models.{ChargeDetailsFilter, ListOfSchemes, ListSchemeDetails}
+import play.api.Logging
 import play.api.i18n.Messages
 import play.api.libs.json.{JsSuccess, Json, OFormat}
-import services.SchemeService
 import uk.gov.hmrc.govukfrontend.views.Aliases.{Key, Table, Text, Value}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.content.{Content, HtmlContent}
 import uk.gov.hmrc.govukfrontend.views.viewmodels.summarylist.SummaryListRow
 import uk.gov.hmrc.govukfrontend.views.viewmodels.table.{HeadCell, TableRow}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, formatDateDMY, formatStartDate}
 
@@ -45,15 +47,14 @@ import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-
+//scalastyle:off
 class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementConnector,
                                               financialInfoCacheConnector: FinancialInfoCacheConnector,
-                                              schemeService: SchemeService,
                                               minimalConnector: MinimalConnector,
-                                              config: FrontendAppConfig) {
+                                              config: FrontendAppConfig,
+                                              listOfSchemesConnector: ListOfSchemesConnector) extends Logging {
 
   val isPaymentOverdue: PsaFSDetail => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
-
 
   case class chargeAmount(upcomingCharge: String, overdueCharge: String, interestAccruing: String)
 
@@ -86,16 +87,18 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                               config: FrontendAppConfig
                             )(implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
 
-    val seqPayments = penalties.filter({ penalty =>
+    def seqPayments(pstrToSchemeNameMap: Map[String, (String, String)]) = penalties.filter({ penalty =>
       penalty.chargeType match {
         case x:PenaltyType => displayCharge(x)
         case _ => true
       }
-    }).foldLeft[Seq[Future[Table]]](
+    }).foldLeft[Seq[Table]](
       Nil) { (acc, detail) =>
 
-      val tableRecords = getSchemeName(psaId, detail.pstr).map { schemeName =>
-
+      val tableRecords = {
+        val schemeDetails = getSchemeDetails(detail.pstr, pstrToSchemeNameMap)
+        val schemeName = schemeDetails._1
+        val srn = schemeDetails._2
         val tableChargeType = if (detail.chargeType == CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detail.chargeType
         val penaltyDetailsItemWithStatus: PaymentAndChargeStatus => PsaPaymentsAndChargesDetails =
           status =>
@@ -114,7 +117,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                   setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
               schemeName = schemeName,
               redirectUrl = controllers.financialOverview.psa.routes.PsaPenaltiesAndChargeDetailsController
-                .onPageLoad(detail.pstr, detail.index.toString, journeyType)
+                .onPageLoad(srn, detail.index.toString, journeyType)
                 .url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", displayChargeReference(detail.chargeReference)),
               dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
@@ -138,7 +141,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                     setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
                 schemeName = schemeName,
                 redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
-                  .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
+                  .onPageLoad(srn, detail.index.toString, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText"),
                 dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
               ))
@@ -161,16 +164,17 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       }
       acc :+ tableRecords
     }
-    Future.sequence(seqPayments).map {
-      x =>
-        x.foldLeft(Table(
-          head = if(config.podsNewFinancialCredits) Some(getHeadingNew()) else Some(getHeading()),
-          rows = Nil
-        )) { (acc, a) =>
-          acc.copy(
-            rows = acc.rows ++ a.rows
-          )
-        }
+
+    val pstrToSchemeNameMapFtr = getPstrToSchemeNameMap(psaId)
+    pstrToSchemeNameMapFtr.map { pstrToSchemeNameMap =>
+      seqPayments(pstrToSchemeNameMap).foldLeft(Table(
+        head = if (config.podsNewFinancialCredits) Some(getHeadingNew()) else Some(getHeading()),
+        rows = Nil
+      )) { (acc, a) =>
+        acc.copy(
+          rows = acc.rows ++ a.rows
+        )
+      }
     }
   }
 
@@ -179,6 +183,19 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       chargeReferenceRow(psaFSDetail) ++
       getTaxPeriod(psaFSDetail)
   }
+
+  private def getPstrToSchemeNameMap(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Map[String, (String, String)]] =
+    listOfSchemesConnector.getListOfSchemes(psaId).flatMap {
+      case Right(ListOfSchemes(processingDate, totalSchemesRegistered, Some(schemeDetails))) =>
+        Future.successful(
+          schemeDetails.collect {
+            case ListSchemeDetails(name, referenceNumber, schemeStatus, openDate, windUpDate, Some(pstr), relationship, pspDetails, underAppeal) =>
+              pstr -> (name, referenceNumber)
+          }.toMap
+        )
+      case Left(response) => Future.failed(UpstreamErrorResponse(response.body, response.status))
+    }
+
   //scalastyle:off parameter.number
   //scalastyle:off method.length
   //scalastyle:off cyclomatic.complexity
@@ -188,11 +205,13 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                                  journeyType: ChargeDetailsFilter
                                )(implicit messages: Messages, hc: HeaderCarrier, ec: ExecutionContext): Future[Table] = {
 
-    val seqPayments = penalties.foldLeft[Seq[Future[Table]]](
+    def seqPayments(pstrToSchemeNameMap: Map[String,(String, String)]) = penalties.foldLeft[Seq[Table]](
       Nil) { (acc, detail) =>
 
-      val tableRecords = getSchemeName(psaId, detail.pstr).map { schemeName =>
-
+      val tableRecords = {
+        val schemeDetails = getSchemeDetails(detail.pstr, pstrToSchemeNameMap)
+        val schemeName = schemeDetails._1
+        val srn = schemeDetails._2
         val tableChargeType = if (detail.chargeType == CONTRACT_SETTLEMENT_INTEREST) INTEREST_ON_CONTRACT_SETTLEMENT else detail.chargeType
         val penaltyDetailsItemWithStatus: PaymentAndChargeStatus => PsaPaymentsAndChargesDetails =
           status =>
@@ -207,7 +226,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
               period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
               schemeName = schemeName,
               redirectUrl = controllers.financialOverview.psa.routes.PsaPenaltiesAndChargeDetailsController
-                .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
+                .onPageLoad(srn, detail.index.toString, journeyType).url,
               visuallyHiddenText = messages("paymentsAndCharges.visuallyHiddenText", detail.chargeReference),
               dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
             )
@@ -226,7 +245,7 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
                 period = setPeriod(detail.chargeType, detail.periodStartDate, detail.periodEndDate),
                 schemeName = schemeName,
                 redirectUrl = controllers.financialOverview.psa.routes.PsaPaymentsAndChargesInterestController
-                  .onPageLoad(detail.pstr, detail.index.toString, journeyType).url,
+                  .onPageLoad(srn, detail.index.toString, journeyType).url,
                 visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText"),
                 dueDate = Some(detail.dueDate.get.format(dateFormatterDMY))
               ))
@@ -244,13 +263,14 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       }
       acc :+ tableRecords
     }
-    Future.sequence(seqPayments).map {
-      x =>
-        x.foldLeft(Table(head = Some(getHeading()), rows = Nil)) { (acc, a) =>
-          acc.copy(
-            rows = acc.rows ++ a.rows
-          )
-        }
+
+    val pstrToSchemeNameMapFtr = getPstrToSchemeNameMap(psaId)
+    pstrToSchemeNameMapFtr.map { pstrToSchemeNameMap =>
+        seqPayments(pstrToSchemeNameMap).foldLeft(Table(head = Some(getHeading()), rows = Nil)) { (acc, a) =>
+        acc.copy(
+          rows = acc.rows ++ a.rows
+        )
+      }
     }
   }
 
@@ -269,11 +289,12 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
       )
     }
 
-    def getRows = clearedPenaltiesAndCharges.zipWithIndex.map{ case (penaltyOrCharge, index) => {
+    def getRows = clearedPenaltiesAndCharges.zipWithIndex.map { case (penaltyOrCharge, index) =>
       val clearingDate = getClearingDate(penaltyOrCharge.documentLineItemDetails)
 
       val chargeLink = controllers.financialOverview.psa.routes.ClearedPenaltyOrChargeController.onPageLoad(period, penaltyType, index)
-      getSchemeName(psaId, penaltyOrCharge.pstr).map(schemeName =>
+      getPstrToSchemeNameMap(psaId).map { pstrToSchemeName =>
+        val schemeName = getSchemeDetails(penaltyOrCharge.pstr, pstrToSchemeName)._1
         Seq(
           TableRow(HtmlContent(
             s"<a id=${penaltyOrCharge.chargeReference} class=govuk-link href=$chargeLink>" +
@@ -285,8 +306,8 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
           TableRow(HtmlContent(s"<p>$clearingDate</p>")),
           TableRow(HtmlContent(s"<p>${FormatHelper.formatCurrencyAmountAsString(penaltyOrCharge.documentLineItemDetails.map(_.clearedAmountItem).sum)}</p>"))
         )
-      )
-    }}
+      }
+    }
 
     val rows = Future.sequence(getRows)
 
@@ -323,11 +344,11 @@ class PsaPenaltiesAndChargesService @Inject()(fsConnector: FinancialStatementCon
     }
   }
 
-  private def getSchemeName(psaId: String, pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
-    val res = for {
-      schemeDetails <- schemeService.retrieveSchemeDetails(psaId, pstr, "pstr")
-    } yield schemeDetails.schemeName
-    res
+  private def getSchemeDetails(pstr: String, pstrToSchemeName: Map[String,(String, String)]): (String, String) = {
+    pstrToSchemeName.get(pstr) match {
+      case Some((schemeName, srn)) => (schemeName, srn)
+      case None => throw new RuntimeException("Scheme details not found")
+    }
   }
 
   private def getHeading()(implicit messages: Messages): Seq[HeadCell] = {

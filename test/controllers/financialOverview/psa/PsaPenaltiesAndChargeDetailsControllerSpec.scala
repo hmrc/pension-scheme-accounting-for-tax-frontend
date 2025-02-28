@@ -87,7 +87,7 @@ class PsaPenaltiesAndChargeDetailsControllerSpec
     when(mockPsaPenaltiesAndChargesService.getPenaltiesForJourney(any(), any())(any(), any()))
       .thenReturn(Future.successful(PenaltiesCache(psaId, "psa-name", psaFSResponse)))
     when(mockPsaPenaltiesAndChargesService.setPeriod(any(), any(), any())).thenReturn("Quarter: 1 October to 31 December 2020")
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
   }
 

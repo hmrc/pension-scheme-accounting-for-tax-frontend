@@ -59,7 +59,7 @@ class CannotSubmitAFTControllerSpec extends ControllerSpecBase with MockitoSugar
   "Cannot submit AFT controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
 
       val application = applicationBuilder(userAnswers = data, extraModules).overrides().build()
       val request = FakeRequest(GET, getRoute)

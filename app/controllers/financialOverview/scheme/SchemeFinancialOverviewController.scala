@@ -53,7 +53,7 @@ class SchemeFinancialOverviewController @Inject()(identify: IdentifierAction,
   def schemeFinancialOverview(srn: String): Action[AnyContent] = (identify andThen accessAction(Some(srn))).async {
     implicit request =>
       val response = for {
-        schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
+        schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn)
         schemeFS <- paymentsAndChargesService.getPaymentsFromCache(loggedInId = request.idOrException , srn = srn)
         creditSchemeFS <- financialStatementConnector.getSchemeFSPaymentOnAccount(schemeDetails.pstr)
       } yield {

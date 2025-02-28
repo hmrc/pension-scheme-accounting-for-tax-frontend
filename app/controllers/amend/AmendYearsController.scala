@@ -51,8 +51,7 @@ class AmendYearsController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) flatMap { schemeDetails =>
       quartersService.getPastYears(schemeDetails.pstr).flatMap {
         case Nil => futureSessionExpiredPage
@@ -75,8 +74,7 @@ class AmendYearsController @Inject()(
   def onSubmit(srn: String): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
-      srn = srn,
-      schemeIdType = "srn"
+      srn = srn
     ) flatMap { schemeDetails =>
       quartersService.getPastYears(schemeDetails.pstr).flatMap {
         case Nil => futureSessionExpiredPage

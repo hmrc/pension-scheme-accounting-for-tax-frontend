@@ -45,7 +45,7 @@ class CannotSubmitAFTController @Inject()(appConfig: FrontendAppConfig,
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess(Some(srn))).async {
       implicit request =>
-        schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn").flatMap { schemeDetails =>
+        schemeService.retrieveSchemeDetails(request.idOrException, srn).flatMap { schemeDetails =>
           Future.successful(Ok(cannotSubmitAFTView(
             schemeDetails.schemeName,
             controllers.routes.CannotSubmitAFTController.onClick(srn, startDate).url

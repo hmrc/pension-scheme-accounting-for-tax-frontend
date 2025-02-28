@@ -42,12 +42,11 @@ class SchemeServiceSpec extends SpecBase with MockitoSugar with ScalaFutures wit
       when(
         mockSchemeDetailsConnector.getSchemeDetails(
           psaId = ArgumentMatchers.eq(SampleData.psaId),
-          idNumber = ArgumentMatchers.eq(SampleData.srn),
-          schemeIdType = ArgumentMatchers.eq("srn")
+          srn = ArgumentMatchers.eq(SampleData.srn)
         )(any(), any())
       ).thenReturn(Future.successful(SampleData.schemeDetails))
       val schemeService = new SchemeService(mockSchemeDetailsConnector)
-      val result = schemeService.retrieveSchemeDetails(SampleData.psaId, SampleData.srn, "srn")
+      val result = schemeService.retrieveSchemeDetails(SampleData.psaId, SampleData.srn)
       whenReady(result) { resultSchemeDetails =>
         resultSchemeDetails mustBe SampleData.schemeDetails
       }
@@ -61,7 +60,7 @@ class SchemeServiceSpec extends SpecBase with MockitoSugar with ScalaFutures wit
         )(any(), any())
       ).thenReturn(Future.successful(SampleData.schemeDetails))
       val schemeService = new SchemeService(mockSchemeDetailsConnector)
-      val result = schemeService.retrieveSchemeDetails(SampleData.pspId, SampleData.srn, "srn")
+      val result = schemeService.retrieveSchemeDetails(SampleData.pspId, SampleData.srn)
       whenReady(result) { resultSchemeDetails =>
         resultSchemeDetails mustBe SampleData.schemeDetails
       }

@@ -64,7 +64,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with JsonMatchers
     reset(mockSchemeService)
     reset(mockAppConfig)
     reset(mockAuditService)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     mutableFakeDataRetrievalAction.setViewOnly(false)

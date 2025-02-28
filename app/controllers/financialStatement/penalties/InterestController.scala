@@ -57,7 +57,7 @@ class InterestController @Inject()(
             val chargeTypeDescription = psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString.toLowerCase
 
             if (identifier.matches(srnRegex)) {
-                  schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") flatMap {
+                  schemeService.retrieveSchemeDetails(request.idOrException, identifier) flatMap {
                     schemeDetails =>
                       Future.successful(Ok(interestView(
                         heading(Messages("penalties.column.chargeType.interestOn", chargeTypeDescription)),

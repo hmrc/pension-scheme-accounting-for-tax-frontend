@@ -19,7 +19,7 @@ package services.financialOverview.psa
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, MinimalConnector}
+import connectors.{FinancialStatementConnector, ListOfSchemesConnector, MinimalConnector}
 import controllers.financialOverview.psa.routes._
 import data.SampleData._
 import helpers.FormatHelper
@@ -30,7 +30,7 @@ import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, CONTRACT_SETT
 import models.financialStatement._
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, PaymentOverdue}
-import models.{ChargeDetailsFilter, Index, SchemeDetails}
+import models.{ChargeDetailsFilter, Index, ListOfSchemes, ListSchemeDetails, SchemeDetails}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -52,17 +52,20 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
   import PsaPenaltiesAndChargesServiceSpec._
 
-  val mockSchemeService: SchemeService = mock[SchemeService]
-  val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
-  val mockFinancialInfoCacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
-  val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
-  val dateNow: LocalDate = LocalDate.now()
-  val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
+  private val mockSchemeService: SchemeService = mock[SchemeService]
+  private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  private val mockFinancialInfoCacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
+  private val mockMinimalConnector: MinimalConnector = mock[MinimalConnector]
+  private val mockListOfSchemesConnector = mock[ListOfSchemesConnector]
+  private val dateNow: LocalDate = LocalDate.now()
+  private val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, "psa-name", psaFsSeq)
+  private val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
+    ListSchemeDetails(schemeName, srn, "", None, Some("24000040IN"), Some(pstr), None))))
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   private def config: FrontendAppConfig = mock[FrontendAppConfig]
 
   private val psaPenaltiesAndChargesService = new PsaPenaltiesAndChargesService(fsConnector = mockFSConnector,
-    financialInfoCacheConnector = mockFinancialInfoCacheConnector, schemeService = mockSchemeService, minimalConnector = mockMinimalConnector, config)
+    financialInfoCacheConnector = mockFinancialInfoCacheConnector, minimalConnector = mockMinimalConnector, config, mockListOfSchemesConnector)
 
   private def htmlChargeType(penaltyType: String,
                              chargeReference: String,
@@ -133,10 +136,11 @@ class PsaPenaltiesAndChargesServiceSpec extends SpecBase with MockitoSugar with 
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockFinancialInfoCacheConnector.fetch(any(), any()))
       .thenReturn(Future.successful(Some(Json.toJson(penaltiesCache))))
+    when(mockListOfSchemesConnector.getListOfSchemes(any())(any(), any())).thenReturn(Future(Right(listOfSchemes)))
   }
 
   "getPenaltiesAndCharges" must {

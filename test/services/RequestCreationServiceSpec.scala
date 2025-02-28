@@ -88,7 +88,7 @@ class RequestCreationServiceSpec extends SpecBase with Matchers with MockitoSuga
     reset(mockAppConfig)
 
     when(mockUserAnswersCacheConnector.fetch(any())(any(), any())).thenReturn(Future.successful(Some(userAnswersWithSchemeName.data)))
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockMinimalPsaConnector.getMinimalDetails(any(), any(), any()))
       .thenReturn(Future.successful(MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = true)))
     when(mockUserAnswersCacheConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
