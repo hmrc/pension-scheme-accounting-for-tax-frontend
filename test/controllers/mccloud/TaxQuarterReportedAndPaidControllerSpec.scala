@@ -79,7 +79,7 @@ class TaxQuarterReportedAndPaidControllerSpec extends ControllerSpecBase with Js
     reset(mockUserAnswersCacheConnector)
     reset(mockSchemeService)
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
     when(mockUserAnswersCacheConnector.savePartial(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     DateHelper.setDate(Some(LocalDate.of(2022, 1, 1)))

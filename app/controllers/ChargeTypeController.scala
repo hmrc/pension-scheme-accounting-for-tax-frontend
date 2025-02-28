@@ -57,8 +57,7 @@ class ChargeTypeController @Inject()(
       requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
+        srn = srn
       ) flatMap { schemeDetails =>
         val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
         Future.successful(Ok(chargeTypeView(

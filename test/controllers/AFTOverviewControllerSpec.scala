@@ -88,7 +88,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
     "must return OK and the correct view for a GET" in {
       val srn = "test-srn"
 
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
         .thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
@@ -114,7 +114,7 @@ class AFTOverviewControllerSpec extends ControllerSpecBase with JsonMatchers wit
       when(mockPaymentsAndChargesService.getPaymentsForJourney(any(), any(), any())(any(), any()))
         .thenReturn(Future.failed(new RuntimeException("Test exception")))
 
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
         .thenReturn(Future.successful(SchemeDetails(schemeName, "", "", None)))
 
       val srn: String = "S2012345678"

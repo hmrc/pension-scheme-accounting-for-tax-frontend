@@ -63,7 +63,7 @@ class PsaSchemeDashboardPartialsControllerSpec
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockPsaSchemePartialService)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))

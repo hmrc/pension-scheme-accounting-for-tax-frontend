@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.SchemeDetails
+import models.{SchemeDetails, SchemeReferenceNumber}
 import play.api.http.Status._
 import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._
@@ -31,15 +31,15 @@ import scala.concurrent.{ExecutionContext, Future}
 class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
-  def getSchemeDetails(psaId: String, idNumber: String, schemeIdType: String)
+  def getSchemeDetails(psaId: String, srn: SchemeReferenceNumber)
                       (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
-    val url = url"${config.schemeDetailsUrl}"
+    val url = url"${config.schemeDetailsUrl.format(srn.id)}"
 
     val headers: Seq[(String, String)] =
       Seq(
-        ("idNumber", idNumber),
-        ("schemeIdType", schemeIdType),
+        ("idNumber", srn.id),
+        ("schemeIdType", "srn"),
         ("psaId", psaId)
       )
 
@@ -65,7 +65,7 @@ class SchemeDetailsConnector @Inject()(httpClientV2: HttpClientV2, config: Front
 
   def getPspSchemeDetails(pspId: String, srn: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
-    val url = url"${config.pspSchemeDetailsUrl}"
+    val url = url"${config.pspSchemeDetailsUrl.format(srn)}"
     val headers: Seq[(String, String)] = Seq("srn" -> srn, "pspId" -> pspId)
     val schemeHc = hc.withExtraHeaders(headers:_*)
 

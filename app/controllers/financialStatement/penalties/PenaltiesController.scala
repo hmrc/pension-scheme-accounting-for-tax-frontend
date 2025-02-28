@@ -61,7 +61,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
 
         val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
         val viewModel: Future[PenaltiesViewModel] = if (identifier.matches(srnRegex)) {
-          schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
+          schemeService.retrieveSchemeDetails(request.idOrException, identifier) map { schemeDetails =>
 
             val filteredPsaFS: Seq[PsaFSDetail] = penaltiesCache.penalties
               .filter(_.pstr == schemeDetails.pstr)
@@ -131,7 +131,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
       val title: String = Messages("penalties.nonAft.title", Messages(s"penaltyType.${penaltyType.toString}"), year.toString)
       val chargeRefsIndex: String => String = cr => penaltiesCache.penalties.map(_.chargeReference).indexOf(cr).toString
       val viewModel: Future[PenaltiesViewModel] = if (identifier.matches(srnRegex)) {
-        schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
+        schemeService.retrieveSchemeDetails(request.idOrException, identifier) map { schemeDetails =>
 
           val filteredPsaFS: Seq[PsaFSDetail] = penaltiesCache.penalties
             .filter(_.pstr == schemeDetails.pstr)

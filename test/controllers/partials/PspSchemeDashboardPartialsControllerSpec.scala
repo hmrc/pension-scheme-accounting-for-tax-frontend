@@ -96,7 +96,7 @@ class PspSchemeDashboardPartialsControllerSpec
     super.beforeEach()
     reset(mockAftPartialService)
     when(mockAppConfig.paymentsAndChargesUrl).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))

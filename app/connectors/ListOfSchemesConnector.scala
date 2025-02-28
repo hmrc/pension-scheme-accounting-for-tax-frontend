@@ -48,7 +48,7 @@ class ListOfSchemesConnectorImpl @Inject()(
 
   override def getListOfSchemes(psaId: String)
                                (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
-      val (url, schemeHc) = (config.listOfSchemesUrl, hc.withExtraHeaders("idType" -> "psaid", "idValue" -> psaId))
+      val (url, schemeHc) = (config.listOfSchemesUrl, hc.withExtraHeaders("idType" -> "PSA", "idValue" -> psaId))
       listOfSchemes(url)(schemeHc, ec)
   }
 

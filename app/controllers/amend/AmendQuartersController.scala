@@ -60,8 +60,7 @@ class AmendQuartersController @Inject()(
       implicit request =>
         schemeService.retrieveSchemeDetails(
           psaId = request.idOrException,
-          srn = srn,
-          schemeIdType = "srn"
+          srn = srn
         ) flatMap {
           schemeDetails =>
             quartersService.getPastQuarters(
@@ -90,8 +89,7 @@ class AmendQuartersController @Inject()(
       implicit request =>
         schemeService.retrieveSchemeDetails(
           psaId = request.idOrException,
-          srn = srn,
-          schemeIdType = "srn"
+          srn = srn
         ) flatMap {
           schemeDetails =>
             quartersService.getPastQuarters(
