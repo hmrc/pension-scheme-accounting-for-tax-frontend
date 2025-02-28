@@ -43,7 +43,7 @@ class AddressLookupConnector @Inject()(http: HttpClient, config: FrontendAppConf
       case response if response.status equals OK => Future.successful {
         response.json.as[Seq[TolerantAddress]]
           .filterNot(
-            a => a.addressLine1.isEmpty && a.addressLine2.isEmpty && a.addressLine3.isEmpty && a.addressLine4.isEmpty
+            a => a.addressLine1.isEmpty && a.addressLine2.isEmpty && a.townOrCity.isEmpty && a.county.isEmpty
           )
       }
       case response =>

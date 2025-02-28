@@ -37,25 +37,25 @@ class SponsoringEmployerAddressFormProvider @Inject() extends Mappings {
               validAddressLine(invalidKey = "address.line1.error.invalid")
             )
           ),
-        "line2" -> text(errorKey = "address.line2.error.required")
+        "line2" -> optionalText()
           .verifying(
             firstError(
-              maxLength(addressLineMaxLength, errorKey = "address.line2.error.length"),
-              validAddressLine(invalidKey = "address.line2.error.invalid")
+              optionalMaxLength(addressLineMaxLength, errorKey = "address.line2.error.length"),
+              optionalValidAddressLine(invalidKey = "address.line2.error.invalid")
             )
           ),
-        "line3" -> optionalText()
+        "townOrCity" -> text(errorKey = "address.townOrCity.error.required")
           .verifying(
             firstError(
-              optionalMaxLength(addressLineMaxLength, errorKey = "address.line3.error.length"),
-              optionalValidAddressLine(invalidKey = "address.line3.error.invalid")
+              maxLength(addressLineMaxLength, errorKey = "address.townOrCity.error.length"),
+              validAddressLine(invalidKey = "address.townOrCity.error.invalid")
             )
           ),
-        "line4" -> optionalText()
+        "county" -> optionalText()
           .verifying(
             firstError(
-              optionalMaxLength(addressLineMaxLength, errorKey = "address.line4.error.length"),
-              optionalValidAddressLine(invalidKey = "address.line4.error.invalid")
+              optionalMaxLength(addressLineMaxLength, errorKey = "address.county.error.length"),
+              optionalValidAddressLine(invalidKey = "address.county.error.invalid")
             )
           ),
         "country" -> text(errorKey = "address.country.error.required"),

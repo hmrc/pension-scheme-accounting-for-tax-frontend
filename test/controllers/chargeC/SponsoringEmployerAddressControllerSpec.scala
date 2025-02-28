@@ -59,8 +59,8 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
   private val valuesValid: Map[String, Seq[String]] = Map(
     "line1" -> Seq("line1"),
     "line2" -> Seq("line2"),
-    "line3" -> Seq("line3"),
-    "line4" -> Seq("line4"),
+    "townOrCity" -> Seq("town"),
+    "county" -> Seq("county"),
     "country" -> Seq("UK"),
     "postcode" -> Seq("ZZ1 1ZZ")
 
@@ -69,9 +69,9 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
   val sponsoringEmployerAddress: SponsoringEmployerAddress =
     SponsoringEmployerAddress(
       line1 = "line1",
-      line2 = "line2",
-      line3 = Some("line3"),
-      line4 = Some("line4"),
+      line2 = Some("line2"),
+      townOrCity = "town",
+      county = Some("county"),
       country = "UK",
       postcode = Some("ZZ1 1ZZ")
     )

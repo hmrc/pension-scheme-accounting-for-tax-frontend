@@ -19,9 +19,9 @@ package models.chargeC
 import play.api.libs.json.{Format, Json}
 
 case class SponsoringEmployerAddress(line1: String,
-                                     line2: String,
-                                     line3: Option[String],
-                                     line4: Option[String],
+                                     line2: Option[String],
+                                     townOrCity: String,
+                                     county: Option[String],
                                      country: String,
                                      postcode: Option[String])
 

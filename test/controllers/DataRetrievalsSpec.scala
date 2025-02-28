@@ -252,7 +252,7 @@ class DataRetrievalsSpec extends AnyFreeSpec with Matchers with OptionValues {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").
         flatMap(_.set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual)).
         flatMap(_.set(SponsoringIndividualDetailsPage(0), MemberDetails("first", "last", "nino"))).
-        flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", "line2", None, None, "GB", None))).
+        flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", Some("line2"), "town", None, "GB", None))).
         flatMap(_.set(ChargeCDetailsPage(0), ChargeCDetails(LocalDate.now(), 100.00)))
         .getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
@@ -265,7 +265,7 @@ class DataRetrievalsSpec extends AnyFreeSpec with Matchers with OptionValues {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").
         flatMap(_.set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeOrganisation)).
         flatMap(_.set(SponsoringOrganisationDetailsPage(0), SponsoringOrganisationDetails("name", "test-crn"))).
-        flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", "line2", None, None, "GB", None))).
+        flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", Some("line2"), "town", None, "GB", None))).
         flatMap(_.set(ChargeCDetailsPage(0), ChargeCDetails(LocalDate.now(), 100.00)))
         .getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
@@ -277,7 +277,7 @@ class DataRetrievalsSpec extends AnyFreeSpec with Matchers with OptionValues {
     "return aft summary when there is no complete sponsoring employer details in user answers" in {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").
         flatMap(_.set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeOrganisation)).
-        flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", "line2", None, None, "GB", None))).
+        flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", Some("line2"), "town", None, "GB", None))).
         flatMap(_.set(ChargeCDetailsPage(0), ChargeCDetails(LocalDate.now(), 100.00)))
         .getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id",
