@@ -68,20 +68,20 @@ govukFieldset: GovukFieldset
 
     @govukInput(
         InputViewModel(
-            field = form("line3"),
-            label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.line3.title")))
+            field = form("townOrCity"),
+            label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.townOrCity.title")))
         )
         .withWidth(OneHalf)
-        .withAutocomplete("line3")
+        .withAutocomplete("townOrCity")
     )
 
     @govukInput(
         InputViewModel(
-            field = form("line4"),
-            label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.line4.title")))
+            field = form("county"),
+            label = Label(content = Text(messages("chargeC.sponsoringEmployerAddress.county.title")))
         )
         .withWidth(OneHalf)
-        .withAutocomplete("line4")
+        .withAutocomplete("county")
     )
 
 
