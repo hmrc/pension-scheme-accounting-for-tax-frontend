@@ -30,35 +30,25 @@ class CYAChargeBHelper(srn: String, startDate: LocalDate, accessType: AccessType
   def chargeBDetails(answer: ChargeBDetails): Seq[SummaryListRow] = {
     Seq(
       SummaryListRow(
-        key = Key(Text(messages("chargeB.numberOfDeceased.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
-        value = Value(Text(answer.numberOfDeceased.toString), classes = "govuk-!-width-one-quarter"),
+        key = Key(Text(messages("chargeB.deathBenefits.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
+        value = Value(HtmlContent(s"""<p class="govuk-body">${messages("chargeB.numberOfDeceased.checkYourAnswersLabel")}:</p>
+                                     |<p class="govuk-body">${answer.numberOfDeceased.toString}</p>
+                                     |</br>
+                                     |<p class="govuk-body">${messages("chargeB.totalTaxDue.checkYourAnswersLabel")}:</p>
+                                     |<p class="govuk-body">${FormatHelper.formatCurrencyAmountAsString(answer.totalAmount)}</p>""".stripMargin), classes = "govuk-!-width-one-quarter"),
         actions = Some(
           Actions(
             items = Seq(ActionItem(
               content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
               href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
               visuallyHiddenText = Some(
-                messages("site.edit") + " " + messages("chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel")
+                messages("site.edit") + " " + messages("chargeB.deathBenefits.visuallyHidden.checkYourAnswersLabel")
               )
             ))
           )
         )
-      ),
-      SummaryListRow(
-        key = Key(Text(messages("chargeB.totalTaxDue.checkYourAnswersLabel")), classes = "govuk-!-width-one-half"),
-        value = Value(Text(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmount)}"), classes = "govuk-!-width-one-quarter"),
-        actions = Some(
-          Actions(
-            items = Seq(ActionItem(
-            content = HtmlContent(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
-            href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-            visuallyHiddenText = Some(
-              messages("site.edit") + " " + messages("chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
-            )
-          ))
-        )
       )
-    ))
+    )
   }
 
 }
