@@ -83,7 +83,7 @@ trait Constraints {
       case _ => Invalid(errorKey)
     }
 
-  protected def postCode(errorKey: String): Constraint[String] = regexp(regexPostcode, errorKey)
+  protected def postcode(errorKey: String): Constraint[String] = regexp(regexPostcode, errorKey)
 
   protected def minimumValue[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {
