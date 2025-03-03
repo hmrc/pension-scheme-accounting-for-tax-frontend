@@ -252,6 +252,7 @@ chargeC.sponsoringOrganisationDetails.crn.label = Company number
 chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel = Company or organisation’s details
 chargeC.sponsoringOrganisationDetails.name.error.required = Enter the company or organisation’s name
 chargeC.sponsoringOrganisationDetails.name.error.length = The company or organisation’s name must be 155 characters or fewer
+chargeC.sponsoringOrganisationDetails.name.error.invalid = The company or organisation’s name must only include letters, spaces, ampersands (&), grave accents (à), apostrophes, hyphens, full stops and carets (^)
 
 chargeC.sponsoringOrganisationDetails.crn.error.required = Enter the company or organisation’s company number
 chargeC.sponsoringOrganisationDetails.crn.error.length = The company or organisation’s company number must be 8 characters, like 01234567 or AB123456
@@ -520,7 +521,7 @@ dateOfEvent.error.required = Enter the date of the benefit crystallisation event
 dateOfEvent.error.date = The date of the benefit crystallisation event giving rise to the charge must be between {0} and {1}
 dateOfEvent.error.incomplete = The date of the benefit crystallisation event must include a day, month and year
 dateOfEvent.error.invalid = Enter a real date for the benefit crystallisation event giving rise to the charge
-dateOfEvent.error.future = The date cannot be in the future
+dateOfEvent.error.outsideRelevantTaxYear = Date must be between {0} and {1}
 
 chargeDDetails.title = Lifetime allowance charge details for the member
 chargeDDetails.heading = Lifetime allowance charge details for {0}
