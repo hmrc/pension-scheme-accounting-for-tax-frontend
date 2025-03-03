@@ -28,7 +28,7 @@ class FormattersSpec extends AnyFreeSpec with Matchers with OptionValues with Ma
   val invalidKey = "error.invalid"
   val nonUkLengthKey = "error.nonUkLength"
   val countryFieldName = "country"
-  val postCodeFieldName = "postCode"
+  val postcodeFieldName = "postcode"
 
   "optionalPostcodeFormatter" - {
 
@@ -36,28 +36,28 @@ class FormattersSpec extends AnyFreeSpec with Matchers with OptionValues with Ma
 
       "when post code is as per the regex and without spaces" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
-          bind(postCodeFieldName, Map(postCodeFieldName -> " zz11zz ", countryFieldName -> "GB"))
+          bind(postcodeFieldName, Map(postcodeFieldName -> " zz11zz ", countryFieldName -> "GB"))
 
         result.toOption.get must be(Some("ZZ1 1ZZ"))
       }
 
       "when post code is as per the regex and with spaces" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
-          bind(postCodeFieldName, Map(postCodeFieldName -> " zz1 1zz ", countryFieldName -> "GB"))
+          bind(postcodeFieldName, Map(postcodeFieldName -> " zz1 1zz ", countryFieldName -> "GB"))
 
         result.toOption.get must be(Some("ZZ1 1ZZ"))
       }
 
       "when postcode is non UK and length is 10 and country is non UK" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
-          bind(postCodeFieldName, Map(postCodeFieldName -> " 1234567890 ", countryFieldName -> "FR"))
+          bind(postcodeFieldName, Map(postcodeFieldName -> " 1234567890 ", countryFieldName -> "FR"))
 
         result.toOption.get must be(Some("1234567890"))
       }
 
       "when postcode is non UK and country is None" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
-          bind(postCodeFieldName, Map(postCodeFieldName -> " 12345 "))
+          bind(postcodeFieldName, Map(postcodeFieldName -> " 12345 "))
 
         result.toOption.get must be(Some("12345"))
       }
@@ -65,7 +65,7 @@ class FormattersSpec extends AnyFreeSpec with Matchers with OptionValues with Ma
 
     "bind None when no country and no postcode" in {
       val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
-        bind(postCodeFieldName, Map.empty)
+        bind(postcodeFieldName, Map.empty)
 
       result.toOption.get must be(None)
     }
@@ -74,31 +74,31 @@ class FormattersSpec extends AnyFreeSpec with Matchers with OptionValues with Ma
 
       "when postcode is required for UK" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
-          bind(postCodeFieldName, Map(countryFieldName -> "GB"))
+          bind(postcodeFieldName, Map(countryFieldName -> "GB"))
 
-        result.left.toOption.get must be(Seq(FormError(postCodeFieldName, requiredKey)))
+        result.left.toOption.get must be(Seq(FormError(postcodeFieldName, requiredKey)))
       }
 
       "when postcode is not a valid postcode for UK" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
-          bind(postCodeFieldName, Map(postCodeFieldName -> " 123456 ", countryFieldName -> "GB"))
+          bind(postcodeFieldName, Map(postcodeFieldName -> " 123456 ", countryFieldName -> "GB"))
 
-        result.left.toOption.get must be(Seq(FormError(postCodeFieldName, invalidKey)))
+        result.left.toOption.get must be(Seq(FormError(postcodeFieldName, invalidKey)))
       }
 
       "when postcode is not a valid postcode for NON UK" in {
         val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
-          bind(postCodeFieldName, Map(postCodeFieldName -> " 12345678909 ", countryFieldName -> "FR"))
+          bind(postcodeFieldName, Map(postcodeFieldName -> " 12345678909 ", countryFieldName -> "FR"))
 
-        result.left.toOption.get must be(Seq(FormError(postCodeFieldName, nonUkLengthKey)))
+        result.left.toOption.get must be(Seq(FormError(postcodeFieldName, nonUkLengthKey)))
       }
     }
 
     "unbind a postcode string" in {
       val result = optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName).
-        unbind(postCodeFieldName, Some("ZZ1 1ZZ"))
+        unbind(postcodeFieldName, Some("ZZ1 1ZZ"))
 
-      result mustBe Map(postCodeFieldName -> "ZZ1 1ZZ")
+      result mustBe Map(postcodeFieldName -> "ZZ1 1ZZ")
     }
   }
 

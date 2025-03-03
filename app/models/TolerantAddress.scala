@@ -83,13 +83,13 @@ case class TolerantAddress(addressLine1: Option[String],
 }
 
 object TolerantAddress {
-  val postCodeLookupAddressReads: Reads[TolerantAddress] = (
+  val postcodeLookupAddressReads: Reads[TolerantAddress] = (
     (JsPath \ "address" \ "lines").read[List[String]] and
       (JsPath \ "address" \ "postcode").read[String] and
       (JsPath \ "address" \ "country" \ "code").read[String] and
       (JsPath \ "address" \ "town").readNullable[String] and
       (JsPath \ "address" \ "county").readNullable[String]
-    ) ((lines, postCode, countryCode, town, county) => {
+    ) ((lines, postcode, countryCode, town, county) => {
     val addressLines: (Option[String], Option[String], Option[String], Option[String]) = {
       lines.size match {
         case 0 =>
@@ -107,7 +107,7 @@ object TolerantAddress {
         case numberOfLines if numberOfLines >= 4 => (Some(lines.head), Some(lines(1)), Some(lines(2)), Some(lines(3)))
       }
     }
-    TolerantAddress(addressLines._1, addressLines._2, addressLines._3, addressLines._4, Some(postCode), Some(countryCode))
+    TolerantAddress(addressLines._1, addressLines._2, addressLines._3, addressLines._4, Some(postcode), Some(countryCode))
   })
 
 
@@ -133,14 +133,14 @@ object TolerantAddress {
     }
   }
 
-  val postCodeLookupReads: Reads[Seq[TolerantAddress]] = Reads {
+  val postcodeLookupReads: Reads[Seq[TolerantAddress]] = Reads {
     json =>
       json.validate[Seq[JsValue]].flatMap(addresses => {
         addresses.foldLeft[JsResult[List[TolerantAddress]]](JsSuccess(List.empty)) {
           (addresses, currentAddress) => {
             for {
               sequenceOfAddressess <- addresses
-              address <- currentAddress.validate[TolerantAddress](postCodeLookupAddressReads)
+              address <- currentAddress.validate[TolerantAddress](postcodeLookupAddressReads)
             } yield sequenceOfAddressess :+ address
           }
         }
